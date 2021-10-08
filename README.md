@@ -16,7 +16,7 @@ becomes
     "comment": "finely chopped"
 }
 ```
-The model will be created using Conditional Random Fields, using an approach borrowed from NY Times [Ingredient Phrase Tagger][https://github.com/NYTimes/ingredient-phrase-tagger].
+The model will be created using Conditional Random Fields, using an approach borrowed from NY Times [Ingredient Phrase Tagger](https://github.com/NYTimes/ingredient-phrase-tagger).
 
 ## Data sources
 
