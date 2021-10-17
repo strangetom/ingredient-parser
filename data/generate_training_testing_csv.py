@@ -49,7 +49,6 @@ def write_csv(ingredient_rows, feature_rows, output):
         writer = csv.writer(f)
         writer.writerow(['Input', 'quantity', 'unit', 'item', 'comment'])
         for ingredient, features in zip(ingredient_rows, feature_rows):
-            breakpoint()
             writer.writerow([ingredient, *features])
 
 def generate_rows(recipes):
@@ -110,8 +109,8 @@ def extract_features(ingredient):
     return ' '.join(string.split()), Features(quantity, unit, item, additional)
     
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Generate recipe ingredient parser training data')
-    parser.add_argument('-p', '--path', default='/home/tom/Recipes/resources/json', help='Path to recipe json files')
+    parser = argparse.ArgumentParser(description='Generate recipe ingredient parser training and testing data in csv form')
+    parser.add_argument('-p', '--path', default='~/Recipes/resources/json', help='Path to recipe json files')
     parser.add_argument('-t', '--train_output', default='training_data.csv', help='Output csv file for training data')
     parser.add_argument('-v', '--test_output', default='testing_data.csv', help='Output csv file for testing data')
     parser.add_argument('-f', '--fraction', default=0.25, type=float, help='Fraction of data to be used for testing')
