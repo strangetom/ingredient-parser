@@ -6,8 +6,6 @@ import csv
 import argparse
 from collections import namedtuple
 
-from sklearn.model_selection import train_test_split
-
 # Features tuple
 Features = namedtuple('Features', ['quantity', 'unit', 'item', 'comment'])
 
@@ -109,15 +107,11 @@ def extract_features(ingredient):
     return ' '.join(string.split()), Features(quantity, unit, item, additional)
     
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Generate recipe ingredient parser training and testing data in csv form')
-    parser.add_argument('-p', '--path', default='~/Recipes/resources/json', help='Path to recipe json files')
-    parser.add_argument('-t', '--train_output', default='training_data.csv', help='Output csv file for training data')
-    parser.add_argument('-v', '--test_output', default='testing_data.csv', help='Output csv file for testing data')
-    parser.add_argument('-f', '--fraction', default=0.25, type=float, help='Fraction of data to be used for testing')
+    parser = argparse.ArgumentParser(description='Generate recipe ingredient parser labelled data in csv form')
+    parser.add_argument('-p', '--path', default='/home/tom/Recipes/resources/json', help='Path to recipe json files')
+    parser.add_argument('-o', '--output', default='labelled_data.csv', help='Output csv file for labelled data')
     args = parser.parse_args()
 
     recipes = load_recipes(args.path)
     ingredients, features = generate_rows(recipes)
-    X_train, X_test, y_train, y_test = train_test_split(ingredients, features, test_size=args.fraction)
-    write_csv(X_train, y_train, args.train_output)
-    write_csv(X_test, y_test, args.test_output)
+    write_csv(ingredients, features, args.output)

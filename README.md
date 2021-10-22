@@ -36,17 +36,14 @@ This requires a working installation of [CRF++](https://taku910.github.io/crfpp/
 
 Generate training and testing data csv files.
 
-1. ```generate_training_testing_csv.py``` generates a ```testing_data.csv``` and ```training_data.csv``` from the recipes found on https://strangerfoods.org.
+1. ```generate_labelled_data.py``` generates a ```labelled_data.csv``` from the recipes found on https://strangerfoods.org.
 
-2. ```generate_crfpp_from_csv.py``` takes those csv files and generates .crf files in the format required by CRF++ using the following commands:
-
-   ```bash
-   >>> python generate_crfpp_from_csv.py -i training_data.csv -o training_data.crf 
-   ```
+2. ```generate_training_testing_data_from_csv.py``` takes the csv file, splits the data into training and testing datasets and generates .crf files in the format required by CRF++ using the following command:
 
    ```bash
-   >>> python generate_crfpp_from_csv.py -i testing_data.csv -o testing_data.crf 
+   >>> python generate_training_testing_data_from_csv.py -i labelled_data.csv -o training_data.crf -t testing_data.crf 
    ```
+
 
 ### Train model using CRF++
 
@@ -70,14 +67,14 @@ The ```evaluate_model.py``` script will parse the ```testing_results.crf``` file
 
 ```bash
 Sentence-level results:
-	Total: 1476
-	Correct: 1382
-	-> 93.63%
+	Total: 1481
+	Correct: 1390
+	-> 93.86%
 
 Word-level results:
-	Total: 8310
-	Correct: 8067
-	-> 97.08%
+	Total: 8280
+	Correct: 8060
+	-> 97.34%
 
 ```
 
