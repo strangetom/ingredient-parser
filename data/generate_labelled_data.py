@@ -45,7 +45,7 @@ def write_csv(ingredient_rows, feature_rows, output):
     """
     with open(output, 'w', newline='') as f:
         writer = csv.writer(f)
-        writer.writerow(['Input', 'quantity', 'unit', 'item', 'comment'])
+        writer.writerow(['input', 'quantity', 'unit', 'item', 'comment'])
         for ingredient, features in zip(ingredient_rows, feature_rows):
             writer.writerow([ingredient, *features])
 
