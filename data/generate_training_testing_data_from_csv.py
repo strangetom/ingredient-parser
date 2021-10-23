@@ -28,10 +28,10 @@ def load_csv(csv_filename):
         next(reader) # skip first row
         for row in reader:
             ingredients.append(row[0])
-            labels.append({'quantity': row[1].split(), 
-                             'unit': row[2].split(), 
-                             'item': row[3].split(), 
-                             'comment': row[4].split()})
+            labels.append({'quantity': row[1].strip(), 
+                             'unit': row[2].strip(), 
+                             'item': row[3].strip(), 
+                             'comment': row[4].strip()})
     return ingredients, labels
 
 def create_crf(crf_filename, ingredients, labels):
