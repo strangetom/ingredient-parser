@@ -4,6 +4,8 @@ import argparse
 import tempfile
 import subprocess
 import json
+import re
+from fractions import Fraction
 from nltk import pos_tag
 from nltk.tokenize import word_tokenize
 
@@ -48,6 +50,47 @@ def execute_model(features, model):
         f.flush()
         return subprocess.check_output(['crf_test', '--model', model, f.name]).decode('utf-8')
 
+def replace_fractions(string):
+    """Replace text fractions in string with decimals
+    1/2 -> 0.5
+    1/4 -> 0.25
+    1 1/3 -> 1.3333333 
+
+    (?P<int>(?:\d+)\s+)?
+    Optional capture group (indicated by trailing ?) to capture at least one numeric value (\d+) followed by at least one whitespace character (\s+)
+    The numeric values are stored in the 'int' field
+
+    (?P<fraction>(?:\d+/\d+))
+    Capture group to capture at least one numeric value (\d+) followed by / followed by at least one numeric value (\d+)
+
+    (?P<full>(?: ... ))
+    Wraps the full match in a capture group
+    
+    Parameters
+    ----------
+    string : str
+        Ingredient string
+    
+    Returns
+    -------
+    str
+        Input string with fractions replaced with decimals
+    """
+    matches = re.findall(r'(?P<full>(?:(?P<int>(?:\d+)\s+)?(?P<fraction>(?:\d+/\d+))))', string)
+    
+    for match in matches:
+        full = match[0]
+        if match[1] == '':
+            integer = 0
+        else:
+            integer = match[1] 
+        fraction = match[2]
+        
+        num = float(integer) + float(Fraction(fraction))
+        string = string.replace(full, str(num))
+    
+    return string    
+
 def parse_ingredient(string, model):
     """Parse ingredient senetence using CRF model to return structured data
     
@@ -63,6 +106,7 @@ def parse_ingredient(string, model):
     dict
         Dictionary of structured data parsed from input string
     """
+    string = replace_fractions(string)
     features = extract_crf_features(string)
     crf_output = execute_model(features, model)
 
@@ -80,8 +124,8 @@ def parse_ingredient(string, model):
             comment.append(parts[0])
 
     return {'string': string, 
-            'quantity': ' '.join(quantity),
-            'unit': ' '.join(unit),
+            'quantity': quantity[0] if quantity != [] else '',
+            'unit': unit[0] if unit != [] else '',
             'item': ' '.join(item),
             'comment': ' '.join(comment)}
 
