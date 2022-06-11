@@ -4,13 +4,22 @@ import glob
 import json
 import csv
 import argparse
-from collections import namedtuple
+from dataclasses import dataclass
 
-# Features tuple
-Features = namedtuple("Features", ["quantity", "unit", "item", "comment"])
+from typing import Any, Dict, List
 
 
-def load_recipes(path):
+@dataclass
+class Features:
+    """Dataclass to store setences features"""
+
+    quantity: str
+    unit: str
+    item: str
+    comment: str
+
+
+def load_recipes(path: str) -> List[Dict[str, Any]]:
     """Load recipes from json files
 
     Parameters
@@ -33,15 +42,17 @@ def load_recipes(path):
     return recipes
 
 
-def write_csv(ingredient_rows, feature_rows, output):
+def write_csv(
+    ingredient_rows: List[str], feature_rows: List[Features], output: str
+) -> None:
     """Generate csv file of ingredients and features
 
     Parameters
     ----------
-    ingredient_rows : list[str]
+    ingredient_rows : List[str]
         List of ingredients as sentences
-    feature_rows : list[Features]
-        List of ingredient features as a Features tuple
+    feature_rows : List[Features]
+        List of ingredient features as a Features dataclass
     output : str
         csv file to write
     """
@@ -49,21 +60,29 @@ def write_csv(ingredient_rows, feature_rows, output):
         writer = csv.writer(f)
         writer.writerow(["input", "quantity", "unit", "item", "comment"])
         for ingredient, features in zip(ingredient_rows, feature_rows):
-            writer.writerow([ingredient, *features])
+            writer.writerow(
+                [
+                    ingredient,
+                    features.quantity,
+                    features.unit,
+                    features.item,
+                    features.comment,
+                ]
+            )
 
 
-def generate_rows(recipes):
+def generate_rows(recipes: List[Dict[str, Any]]) -> tuple[List[str], List[Features]]:
     """Generate rows of data for writing to csv
 
     Parameters
     ----------
-    recipes : list[dict]
+    recipes : List[Dict[str, Any]]
         List of dictionaries of recipe data
 
     Returns
     -------
-    tuple
-        (list of ingredient sentences, list of Feature tuples)
+    tuple[List[str], List[Features]]
+        (list of ingredient sentences, list of Feature objects)
 
     """
     ingredients_list = []
@@ -84,17 +103,17 @@ def generate_rows(recipes):
     return ingredients_list, features_list
 
 
-def extract_features(ingredient):
+def extract_features(ingredient: Dict[str, Any]) -> tuple[str, Features]:
     """Extract features from ingredient dictionary
 
     Parameters
     ----------
-    ingredient : dict
+    ingredient : Dict[str, Any]
         Dictionary of ingredient information
 
     Returns
     -------
-    tuple(str, Features)
+    tuple[str, Features]
         First element of tuple is the ingredient sentence
         Second element of the tuple of the ingredient features, as a Features tuple
     """

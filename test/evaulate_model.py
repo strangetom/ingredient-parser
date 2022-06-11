@@ -1,15 +1,32 @@
 #!/usr/bin/env python3
 
 import argparse
-from collections import namedtuple
-
-Stats = namedtuple(
-    "Stats", ["total_sentences", "correct_sentences", "total_words", "correct_words"]
-)
+from dataclasses import dataclass
 
 
-def evaluate_results(file):
+@dataclass
+class Stats:
+    """Dataclass to store statistics on model performance"""
 
+    total_sentences: int
+    correct_sentences: int
+    total_words: int
+    correct_words: int
+
+
+def evaluate_results(file: str) -> Stats:
+    """Parse and gather statistics on CRF model output
+
+    Parameters
+    ----------
+    file : str
+        File containing model output
+
+    Returns
+    -------
+    NamedTuple
+        Stats tuple containing sentence and word level statistics
+    """
     with open(file, "r") as f:
         sentences = f.read().split("\n\n")
 

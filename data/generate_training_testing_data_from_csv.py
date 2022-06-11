@@ -3,12 +3,14 @@
 import argparse
 import csv
 
+from typing import Dict, List, Tuple
+
 from sklearn.model_selection import train_test_split
 from nltk import pos_tag
 from nltk.tokenize import word_tokenize
 
 
-def load_csv(csv_filename):
+def load_csv(csv_filename: str) -> tuple[List[str], List[Dict[str, str]]]:
     """Load csv file generated py ```generate_training_testing_csv.py``` and parse contents into ingredients and labels lists
 
     Parameters
@@ -18,9 +20,9 @@ def load_csv(csv_filename):
 
     Returns
     -------
-    list[str]
+    List[str]
         List of ingredient strings
-    list[dict]
+    List[Dict[str, str]]
         List of dictionaries, each dictionary the ingredient labels
     """
     labels, ingredients = [], []
@@ -40,7 +42,9 @@ def load_csv(csv_filename):
     return ingredients, labels
 
 
-def create_crf(crf_filename, ingredients, labels):
+def create_crf(
+    crf_filename: str, ingredients: List[str], labels: List[Dict[str, str]]
+) -> None:
     """Create a .crf file containing CRF++ formatted data.
 
     CRF++ expects files formatted in a particular way.
@@ -66,9 +70,9 @@ def create_crf(crf_filename, ingredients, labels):
     ----------
     crf_filename : str
         Name of .crf file to write data to.
-    ingredients : list[str]
+    ingredients : List[str]
         List of labels for each label dict
-    labels : list[dict]
+    labels : List[Dict[str, str]]
         List of dicts of labels for each label
     """
     with open(crf_filename, "w") as f:

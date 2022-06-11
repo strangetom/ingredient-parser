@@ -5,12 +5,15 @@ import tempfile
 import subprocess
 import json
 import re
+
 from fractions import Fraction
+from typing import Dict, List
+
 from nltk import pos_tag
 from nltk.tokenize import word_tokenize
 
 
-def extract_crf_features(string):
+def extract_crf_features(string: str) -> str:
     """Extract features from string required by CRF model and return CRF++ compatible list
 
     Parameters
@@ -20,7 +23,7 @@ def extract_crf_features(string):
 
     Returns
     -------
-    list
+    str
         List of CRF++ formatted tokens and features
 
     """
@@ -32,7 +35,7 @@ def extract_crf_features(string):
     return "\n".join(features)
 
 
-def execute_model(features, model):
+def execute_model(features: str, model: str) -> str:
     """Execute CRF model using features
 
     Parameters
@@ -55,7 +58,7 @@ def execute_model(features, model):
         )
 
 
-def replace_fractions(string):
+def replace_fractions(string: str) -> str:
     """Replace text fractions in string with decimals
     1/2 -> 0.5
     1/4 -> 0.25
@@ -99,7 +102,7 @@ def replace_fractions(string):
     return string
 
 
-def parse_ingredient(string, model):
+def parse_ingredient(string: str, model: str) -> Dict[str, str]:
     """Parse ingredient senetence using CRF model to return structured data
 
     Parameters
@@ -140,7 +143,7 @@ def parse_ingredient(string, model):
     }
 
 
-def parse_multiple_ingredients(file, model):
+def parse_multiple_ingredients(file: str, model: str) -> List[Dict[str, str]]:
     """Parse multiple ingredients from text file.
     Each line of the file is one ingredient sentence
 
@@ -153,7 +156,7 @@ def parse_multiple_ingredients(file, model):
 
     Returns
     -------
-    list[dict]
+    List[Dict[str, str]]
         List of dictionaries of structured data parsed from input sentences
     """
     with open(file, "r") as f:
@@ -184,5 +187,5 @@ if __name__ == "__main__":
         parsed = parse_ingredient(args.string, args.model)
         print(json.dumps(parsed, indent=2))
     elif args.file is not None:
-        parsed = parse_multiple_ingredients(args.file, args.model)
-        print(json.dumps(parsed, indent=2))
+        parsed_multiple = parse_multiple_ingredients(args.file, args.model)
+        print(json.dumps(parsed_multiple, indent=2))
