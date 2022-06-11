@@ -3,12 +3,15 @@
 import argparse
 from collections import namedtuple
 
-Stats = namedtuple('Stats', ['total_sentences', 'correct_sentences', 'total_words', 'correct_words'])
+Stats = namedtuple(
+    "Stats", ["total_sentences", "correct_sentences", "total_words", "correct_words"]
+)
+
 
 def evaluate_results(file):
 
-    with open(file, 'r') as f:
-        sentences = f.read().split('\n\n')
+    with open(file, "r") as f:
+        sentences = f.read().split("\n\n")
 
     total_sentences = 0
     correct_sentences = 0
@@ -23,12 +26,12 @@ def evaluate_results(file):
         for token in tokens:
             total_words_per_sentence += 1
             total_words += 1
-            parts = token.strip().split('\t')
-            
+            parts = token.strip().split("\t")
+
             if parts[-2] == parts[-1]:
-                correct_words_per_sentence +=1
+                correct_words_per_sentence += 1
                 correct_words += 1
-        
+
         total_sentences += 1
         if correct_words_per_sentence == total_words_per_sentence:
             correct_sentences += 1
@@ -36,21 +39,22 @@ def evaluate_results(file):
     return Stats(total_sentences, correct_sentences, total_words, correct_words)
 
 
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Evaluate recipe ingredient parser results from testing data')
-    parser.add_argument('-r', '--results', help='Output file from testing data')
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description="Evaluate recipe ingredient parser results from testing data"
+    )
+    parser.add_argument("-r", "--results", help="Output file from testing data")
     args = parser.parse_args()
 
     stats = evaluate_results(args.results)
 
-    print('Sentence-level results:')
-    print(f'\tTotal: {stats.total_sentences}')
-    print(f'\tCorrect: {stats.correct_sentences}')
-    print(f'\t-> {100*stats.correct_sentences/stats.total_sentences:.2f}%')
+    print("Sentence-level results:")
+    print(f"\tTotal: {stats.total_sentences}")
+    print(f"\tCorrect: {stats.correct_sentences}")
+    print(f"\t-> {100*stats.correct_sentences/stats.total_sentences:.2f}%")
 
     print()
-    print('Word-level results:')
-    print(f'\tTotal: {stats.total_words}')
-    print(f'\tCorrect: {stats.correct_words}')
-    print(f'\t-> {100*stats.correct_words/stats.total_words:.2f}%')
+    print("Word-level results:")
+    print(f"\tTotal: {stats.total_words}")
+    print(f"\tCorrect: {stats.correct_words}")
+    print(f"\t-> {100*stats.correct_words/stats.total_words:.2f}%")
