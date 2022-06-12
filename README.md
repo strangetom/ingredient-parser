@@ -53,7 +53,8 @@ Suggested features to for each word in the sentence are:
 * It the word is numeric
 * The Part Of Speech tag for the word
 
-The suggestion of a decision tree classifier is based of [this](https://nlpforhackers.io/training-pos-tagger/) tutorial for Part Of Speech tagging, but it doesn't look like a unreasonable starting place.
+The suggestion of a decision tree classifier is based of [this](https://nlpforhackers.io/training-pos-tagger/) tutorial for Part Of Speech tagging, but it doesn't look like a unreasonable starting place. 
+We could also do a conditional random fields approach (without crfpp) following [this](https://nlpforhackers.io/crf-pos-tagger/).
 
 ### Other things I might do
 
