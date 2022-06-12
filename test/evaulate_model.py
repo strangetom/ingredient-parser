@@ -38,14 +38,23 @@ def evaluate_results(file: str) -> Stats:
     for sent in sentences:
         correct_words_per_sentence = 0
         total_words_per_sentence = 0
-        tokens = sent.splitlines()
 
-        for token in tokens:
-            total_words_per_sentence += 1
-            total_words += 1
+        for token in sent.splitlines():
             parts = token.strip().split("\t")
 
-            if parts[-2] == parts[-1]:
+            word = parts[0].strip()
+            guess = parts[-2]
+            truth = parts[-1]
+
+            # Skip commas
+            if word == ",":
+                continue
+
+            total_words += 1
+            total_words_per_sentence += 1
+
+            # Count as match if guess matches actual, ignoring the B- or I- part
+            if guess[2:] == truth[2:]:
                 correct_words_per_sentence += 1
                 correct_words += 1
 

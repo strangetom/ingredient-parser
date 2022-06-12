@@ -9,6 +9,8 @@ from sklearn.model_selection import train_test_split
 from nltk import pos_tag
 from nltk.tokenize import word_tokenize
 
+from Preprocess import PreProcessor
+
 
 def load_csv(csv_filename: str) -> tuple[List[str], List[Dict[str, str]]]:
     """Load csv file generated py ```generate_training_testing_csv.py``` and parse contents into ingredients and labels lists
@@ -33,9 +35,9 @@ def load_csv(csv_filename: str) -> tuple[List[str], List[Dict[str, str]]]:
             ingredients.append(row[0])
             labels.append(
                 {
-                    "quantity": row[1].strip(),
-                    "unit": row[2].strip(),
-                    "item": row[3].strip(),
+                    "name": row[1].strip(),
+                    "quantity": row[2].strip(),
+                    "unit": row[3].strip(),
                     "comment": row[4].strip(),
                 }
             )
@@ -76,44 +78,16 @@ def create_crf(
         List of dicts of labels for each label
     """
     with open(crf_filename, "w") as f:
-        for ingredient, label in zip(ingredients, labels):
-            tokens = word_tokenize(ingredient)
+        for ingredient, labels in zip(ingredients, labels):
 
-            prev_tag = "OTHER"
-            for i, (token, pos) in enumerate(pos_tag(tokens)):
-                if token in label["quantity"]:
-                    if prev_tag != "B-QTY" and prev_tag != "I-QTY":
-                        tag = "B-QTY"
-                        prev_tag = "B-QTY"
-                    else:
-                        tag = "I-QTY"
-                        prev_tag = "I-QTY"
-                elif token in label["unit"]:
-                    if prev_tag != "B-UNIT" and prev_tag != "I-UNIT":
-                        tag = "B-UNIT"
-                        prev_tag = "B-UNIT"
-                    else:
-                        tag = "I-UNIT"
-                        prev_tag = "I-UNIT"
-                elif token in label["item"]:
-                    if prev_tag != "B-ITEM" and prev_tag != "I-ITEM":
-                        tag = "B-ITEM"
-                        prev_tag = "B-ITEM"
-                    else:
-                        tag = "I-ITEM"
-                        prev_tag = "I-ITEM"
-                elif token in label["comment"]:
-                    if prev_tag != "B-COMMENT" and prev_tag != "I-COMMENT":
-                        tag = "B-COMMENT"
-                        prev_tag = "B-COMMENT"
-                    else:
-                        tag = "I-COMMENT"
-                        prev_tag = "I-COMMENT"
-                else:
-                    tag = "OTHER"
-                    prev_tag = "OTHER"
-
-                f.write(f"{token}\t{pos}\tI{i+1}\t{tag}\n")
+            p = PreProcessor(ingredient, labels)
+            token_features = p.generate_token_features()
+            for t in token_features:
+                cap = "YesCAP" if t["IsCap"] else "NoCAP"
+                paren = "YesPAREN" if t["IsParen"] else "NoPAREN"
+                f.write(
+                    f"{t['token']}\t{t['index']}\t{t['length']}\t{cap}\t{paren}\t{t['BIO']}\n"
+                )
             f.write("\n")
 
 
