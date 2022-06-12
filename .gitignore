@@ -139,4 +139,4 @@ dmypy.json
 cython_debug/
 
 venv/
-*.crf
+**/*.crf
