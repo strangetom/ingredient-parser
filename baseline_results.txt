@@ -1,0 +1,9 @@
+Sentence-level results:
+	Total: 35811
+	Correct: 24448
+	-> 68.27%
+
+Word-level results:
+	Total: 213584
+	Correct: 186239
+	-> 87.20%
