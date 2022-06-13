@@ -4,11 +4,11 @@ import argparse
 import csv
 import re
 
+from dataclasses import dataclass
 from fractions import Fraction
 from typing import Dict, List
 
 from nltk.tokenize import RegexpTokenizer
-from nltk import pos_tag
 from sklearn.model_selection import train_test_split
 from sklearn_crfsuite import CRF, metrics
 
@@ -19,6 +19,16 @@ FRACTION_PARTS_PATTERN = re.compile(r"(\d*\s*\d/\d)")
 # Predefine tokenizer
 # The regex pattern matches the tokens: any word character, including '.', or ( or ) or ,
 REGEXP_TOKENIZER = RegexpTokenizer("[\w\.]+|\(|\)|,", gaps=False)
+
+
+@dataclass
+class Stats:
+    """Dataclass to store statistics on model performance"""
+
+    total_sentences: int
+    correct_sentences: int
+    total_words: int
+    correct_words: int
 
 
 def load_csv(csv_filename: str) -> tuple[List[str], List[Dict[str, str]]]:
@@ -102,9 +112,7 @@ def is_inside_parentheses(token: str, sentence: List[str]) -> bool:
         return True
 
     token_index = sentence.index(token)
-    return (
-        "(" in sentence[:token_index] and ")" in sentence[:token_index+1:]
-    )
+    return "(" in sentence[:token_index] and ")" in sentence[: token_index + 1 :]
 
 
 def follows_comma(token: str, sentence: List[str]) -> bool:
@@ -153,11 +161,35 @@ def is_numeric(token: str) -> bool:
         return False
 
 
-def features(sentence, index):
+def get_length(tokens: List[str]) -> int:
+    """Get the smallest bucket the length of the tokens list fits into.
+
+    Parameters
+    ----------
+    tokens : List[str]
+        List of tokens in sentence
+
+    Returns
+    -------
+    int
+        Smallest bucket true length fits in
+
+    """
+    l = len(tokens)
+    for n in [4, 8, 12, 16, 20, 26, 32, 38, 44, 50, 70]:
+        if l < n:
+            return n
+
+
+def features(sentence: List[str], index: int):
     """sentence: [w1, w2, ...], index: the index of the word"""
     token = sentence[index]
+    if get_length(sentence) is None:
+        print(sentence)
     return {
         "word": token,
+        "index": index,
+        "length": get_length(sentence),
         "prev_word": "" if index == 0 else sentence[index - 1],
         "next_word": "" if index == len(sentence) - 1 else sentence[index + 1],
         "is_in_parens": is_inside_parentheses(token, sentence),
@@ -165,7 +197,6 @@ def features(sentence, index):
         "is_first": index == 0,
         "is_capitalised": token[0] == token[0].upper(),
         "is_numeric": is_numeric(token),
-        "pos_tag": pos_tag([token])[0][-1],
     }
 
 
@@ -274,10 +305,53 @@ def transform_to_dataset(
 
     for sentence, labels in zip(sentences, labels):
         tokenized_sentence = REGEXP_TOKENIZER.tokenize(replace_fractions(sentence))
-        X.append([features(tokenized_sentence, index) for index in range(len(tokenized_sentence))])
-        y.append([match_label(tokenized_sentence[index], labels) for index in range(len(tokenized_sentence))])
+        X.append(
+            [
+                features(tokenized_sentence, index)
+                for index in range(len(tokenized_sentence))
+            ]
+        )
+        y.append(
+            [
+                match_label(tokenized_sentence[index], labels)
+                for index in range(len(tokenized_sentence))
+            ]
+        )
 
     return X, y
+
+
+def evaluate(
+    X: List[Dict[str, str]], predictions: List[List[str]], truths: List[List[str]]
+) -> Stats:
+
+    total_sentences = 0
+    correct_sentences = 0
+    total_words = 0
+    correct_words = 0
+
+    for sentence, prediction, truth in zip(X, predictions, truths):
+        correct_words_per_sentence = 0
+        total_words_per_sentence = 0
+
+        for token, p, t in zip(sentence, prediction, truth):
+            # Skip commas
+            if token == ",":
+                continue
+
+            total_words += 1
+            total_words_per_sentence += 1
+
+            # Count as match if guess matches actual, ignoring the B- or I- part
+            if p == t:
+                correct_words_per_sentence += 1
+                correct_words += 1
+
+        total_sentences += 1
+        if correct_words_per_sentence == total_words_per_sentence:
+            correct_sentences += 1
+
+    return Stats(total_sentences, correct_sentences, total_words, correct_words)
 
 
 if __name__ == "__main__":
@@ -293,11 +367,18 @@ if __name__ == "__main__":
         type=float,
         help="Fraction of data to be used for testing",
     )
+    parser.add_argument(
+        "-n",
+        "--number",
+        default=20000,
+        type=int,
+        help="Number of entries from dataset to use (train+test)",
+    )
     args = parser.parse_args()
 
     ingredients, labels = load_csv(args.input)
     ingredients_train, ingredients_test, labels_train, labels_test = train_test_split(
-        ingredients, labels, test_size=args.split
+        ingredients[: args.number], labels[: args.number], test_size=args.split
     )
 
     X_train, y_train = transform_to_dataset(ingredients_train, labels_train)
@@ -308,3 +389,15 @@ if __name__ == "__main__":
 
     y_pred = model.predict(X_test)
     print(metrics.flat_accuracy_score(y_test, y_pred))
+
+    stats = evaluate(X_test, y_pred, y_test)
+    print("Sentence-level results:")
+    print(f"\tTotal: {stats.total_sentences}")
+    print(f"\tCorrect: {stats.correct_sentences}")
+    print(f"\t-> {100*stats.correct_sentences/stats.total_sentences:.2f}%")
+
+    print()
+    print("Word-level results:")
+    print(f"\tTotal: {stats.total_words}")
+    print(f"\tCorrect: {stats.correct_words}")
+    print(f"\t-> {100*stats.correct_words/stats.total_words:.2f}%")
