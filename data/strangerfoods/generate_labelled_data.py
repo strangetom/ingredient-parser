@@ -13,9 +13,9 @@ from typing import Any, Dict, List
 class Features:
     """Dataclass to store setences features"""
 
+    name: str
     quantity: str
     unit: str
-    item: str
     comment: str
 
 
@@ -58,14 +58,14 @@ def write_csv(
     """
     with open(output, "w", newline="") as f:
         writer = csv.writer(f)
-        writer.writerow(["input", "quantity", "unit", "item", "comment"])
+        writer.writerow(["input", "name", "quantity", "unit", "comment"])
         for ingredient, features in zip(ingredient_rows, feature_rows):
             writer.writerow(
                 [
                     ingredient,
+                    features.name,
                     features.quantity,
                     features.unit,
-                    features.item,
                     features.comment,
                 ]
             )
@@ -119,15 +119,15 @@ def extract_features(ingredient: Dict[str, Any]) -> tuple[str, Features]:
     """
     quantity = ingredient["quantity"]
     unit = ingredient["unit"]
-    item = ingredient["ingredient"]
+    name = ingredient["ingredient"]
     additional = ingredient["additional"]
 
     if additional == "":
-        string = f"{quantity} {unit} {item}".strip()
+        string = f"{quantity} {unit} {name}".strip()
     else:
-        string = f"{quantity} {unit} {item}, {ingredient['additional']}".strip()
+        string = f"{quantity} {unit} {name}, {ingredient['additional']}".strip()
 
-    return " ".join(string.split()), Features(quantity, unit, item, additional)
+    return " ".join(string.split()), Features(name, quantity, unit, additional)
 
 
 if __name__ == "__main__":
