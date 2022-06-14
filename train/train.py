@@ -2,23 +2,13 @@
 
 import argparse
 import csv
-import re
-
 from dataclasses import dataclass
-from fractions import Fraction
 from typing import Dict, List
 
-from nltk.tokenize import RegexpTokenizer
 from sklearn.model_selection import train_test_split
 from sklearn_crfsuite import CRF, metrics
 
-# Regex pattern for fraction parts.
-# Matches 1+ numbers followed by 1+ whitespace charaters followed by a number then a forward slash then another number
-FRACTION_PARTS_PATTERN = re.compile(r"(\d*\s*\d/\d)")
-
-# Predefine tokenizer
-# The regex pattern matches the tokens: any word character, including '.', or ( or ) or ,
-REGEXP_TOKENIZER = RegexpTokenizer("[\w\.]+|\(|\)|,", gaps=False)
+from Preprocess import PreProcessor
 
 
 @dataclass
@@ -61,143 +51,6 @@ def load_csv(csv_filename: str) -> tuple[List[str], List[Dict[str, str]]]:
                 }
             )
     return ingredients, labels
-
-
-def replace_fractions(string: str) -> str:
-    """Attempt to parse fractions from sentence and convert to decimal
-
-    Parameters
-    ----------
-    string : str
-        Ingredient sentence
-
-    Returns
-    -------
-    str
-        Ingredient sentence with fractions replaced with decimals
-    """
-    matches = FRACTION_PARTS_PATTERN.match(string)
-    if matches is None:
-        return string
-
-    for match in matches.groups():
-        split = match.split()
-        summed = float(sum(Fraction(s) for s in split))
-        rounded = round(summed, 2)
-        string = string.replace(match, f"{rounded:g}")
-
-    return string
-
-
-def is_inside_parentheses(token: str, sentence: List[str]) -> bool:
-    """Return True is token is inside parentheses within the sentence or is a parenthesis
-
-    Parameters
-    ----------
-    token : str
-        Token to check
-
-    Returns
-    -------
-    bool
-        True is token is inside parantheses or is parenthesis
-    """
-    # If token not sentence return False
-    # This protects the final return from returning True is there are brackets but no token in the sentence
-    if token not in sentence:
-        return False
-
-    # If it's "(" or ")", return True
-    if token in ["(", ")"]:
-        return True
-
-    token_index = sentence.index(token)
-    return "(" in sentence[:token_index] and ")" in sentence[: token_index + 1 :]
-
-
-def follows_comma(token: str, sentence: List[str]) -> bool:
-    """Return True if token follows a comma (by any amount) in sentence
-
-    Parameters
-    ----------
-    token : str
-        Token to check
-    sentence : List[str]
-        Sentence, split into tokens
-
-    Returns
-    -------
-    bool
-        True if token follows comma, else False
-    """
-    try:
-        comma_index = sentence.index(",")
-        token_index = sentence.index(token)
-        if comma_index < token_index:
-            return True
-        else:
-            return False
-    except ValueError:
-        return False
-
-
-def is_numeric(token: str) -> bool:
-    """Return True if token is numeric
-
-    Parameters
-    ----------
-    token : str
-        Token to check
-
-    Returns
-    -------
-    bool
-        True if token is numeric, else False
-    """
-    try:
-        float(token)
-        return True
-    except ValueError:
-        return False
-
-
-def get_length(tokens: List[str]) -> int:
-    """Get the smallest bucket the length of the tokens list fits into.
-
-    Parameters
-    ----------
-    tokens : List[str]
-        List of tokens in sentence
-
-    Returns
-    -------
-    int
-        Smallest bucket true length fits in
-
-    """
-    l = len(tokens)
-    for n in [4, 8, 12, 16, 20, 26, 32, 38, 44, 50, 70]:
-        if l < n:
-            return n
-
-
-def features(sentence: List[str], index: int):
-    """sentence: [w1, w2, ...], index: the index of the word"""
-    token = sentence[index]
-    if get_length(sentence) is None:
-        print(sentence)
-    return {
-        "word": token,
-        "index": index,
-        "length": get_length(sentence),
-        "prev_word": "" if index == 0 else sentence[index - 1],
-        "next_word": "" if index == len(sentence) - 1 else sentence[index + 1],
-        "is_in_parens": is_inside_parentheses(token, sentence),
-        "follows_comma": follows_comma(token, sentence),
-        "is_first": index == 0,
-        "is_capitalised": token[0] == token[0].upper(),
-        "is_numeric": is_numeric(token),
-    }
 
 
 def singlarise_unit(token: str) -> str:
@@ -304,17 +157,12 @@ def transform_to_dataset(
     X, y = [], []
 
     for sentence, labels in zip(sentences, labels):
-        tokenized_sentence = REGEXP_TOKENIZER.tokenize(replace_fractions(sentence))
-        X.append(
-            [
-                features(tokenized_sentence, index)
-                for index in range(len(tokenized_sentence))
-            ]
-        )
+        p = PreProcessor(sentence)
+        X.append(p.sentence_features())
         y.append(
             [
-                match_label(tokenized_sentence[index], labels)
-                for index in range(len(tokenized_sentence))
+                match_label(p.tokenized_sentence[index], labels)
+                for index in range(len(p.tokenized_sentence))
             ]
         )
 
