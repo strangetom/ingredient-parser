@@ -16,7 +16,7 @@ CAPITALISED_PATTERN = re.compile(r"^[A-Z]")
 
 # Predefine tokenizer
 # The regex pattern matches the tokens: any word character, including '.', or ( or ) or ,
-REGEXP_TOKENIZER = RegexpTokenizer("[\w\.]+|\(|\)|,", gaps=False)
+REGEXP_TOKENIZER = RegexpTokenizer("[\w\.]+|\(|\)|,|\"", gaps=False)
 
 
 class PreProcessor:
