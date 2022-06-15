@@ -225,14 +225,22 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     nyt_ingredients, nyt_labels = load_csv(args.input)
-    sf_ingredients, sf_labels = load_csv('../data/strangerfoods/labelled_data.csv')
+    sf_ingredients, sf_labels = load_csv("../data/strangerfoods/labelled_data.csv")
 
-    nyt_ingredients_train, nyt_ingredients_test, nyt_labels_train, nyt_labels_test = train_test_split(
+    (
+        nyt_ingredients_train,
+        nyt_ingredients_test,
+        nyt_labels_train,
+        nyt_labels_test,
+    ) = train_test_split(
         nyt_ingredients[: args.number], nyt_labels[: args.number], test_size=args.split
     )
-    sf_ingredients_train, sf_ingredients_test, sf_labels_train, sf_labels_test = train_test_split(
-        sf_ingredients, sf_labels, test_size=args.split
-    )
+    (
+        sf_ingredients_train,
+        sf_ingredients_test,
+        sf_labels_train,
+        sf_labels_test,
+    ) = train_test_split(sf_ingredients, sf_labels, test_size=args.split)
 
     ingredients_train = nyt_ingredients_train + sf_ingredients_train
     labels_train = nyt_labels_train + sf_labels_train

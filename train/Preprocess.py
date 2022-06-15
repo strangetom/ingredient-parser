@@ -15,8 +15,8 @@ FRACTION_PARTS_PATTERN = re.compile(r"(\d*\s*\d/\d)")
 CAPITALISED_PATTERN = re.compile(r"^[A-Z]")
 
 # Predefine tokenizer
-# The regex pattern matches the tokens: any word character, including '.', or ( or ) or ,
-REGEXP_TOKENIZER = RegexpTokenizer("[\w\.]+|\(|\)|,|\"", gaps=False)
+# The regex pattern matches the tokens: any word character, including '.', or ( or ) or , or "
+REGEXP_TOKENIZER = RegexpTokenizer('[\w\.]+|\(|\)|,|"', gaps=False)
 
 
 class PreProcessor:
