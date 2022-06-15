@@ -207,7 +207,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Generate CRF++ compatible training and testing data files from csv"
     )
-    parser.add_argument("-i", "--input", help="Path to input csv file")
+    parser.add_argument("--nyt", help="Path to input csv file for NYTimes data")
+    parser.add_argument("--sf", help="Path to input csv file for StrangerFoods data")
     parser.add_argument(
         "-s",
         "--split",
@@ -220,32 +221,34 @@ if __name__ == "__main__":
         "--number",
         default=20000,
         type=int,
-        help="Number of entries from dataset to use (train+test)",
+        help="Number of entries from NYTimes dataset to use (train+test)",
     )
     args = parser.parse_args()
 
-    nyt_ingredients, nyt_labels = load_csv(args.input)
-    sf_ingredients, sf_labels = load_csv("../data/strangerfoods/labelled_data.csv")
+    SF_ingredients, SF_labels = load_csv(args.sf)
+    NYT_ingredients, NYT_labels = load_csv(args.nyt)
 
     (
-        nyt_ingredients_train,
-        nyt_ingredients_test,
-        nyt_labels_train,
-        nyt_labels_test,
+        NYT_ingredients_train,
+        NYT_ingredients_test,
+        NYT_labels_train,
+        NYT_labels_test,
     ) = train_test_split(
-        nyt_ingredients[: args.number], nyt_labels[: args.number], test_size=args.split
+        NYT_ingredients[: args.number],
+        NYT_labels[: args.number],
+        test_size=args.split,
     )
     (
-        sf_ingredients_train,
-        sf_ingredients_test,
-        sf_labels_train,
-        sf_labels_test,
-    ) = train_test_split(sf_ingredients, sf_labels, test_size=args.split)
+        SF_ingredients_train,
+        SF_ingredients_test,
+        SF_labels_train,
+        SF_labels_test,
+    ) = train_test_split(SF_ingredients, SF_labels, test_size=args.split)
 
-    ingredients_train = nyt_ingredients_train + sf_ingredients_train
-    labels_train = nyt_labels_train + sf_labels_train
-    ingredients_test = nyt_ingredients_test + sf_ingredients_test
-    labels_test = nyt_labels_test + sf_labels_test
+    ingredients_train = NYT_ingredients_train + SF_ingredients_train
+    labels_train = NYT_labels_train + SF_labels_train
+    ingredients_test = NYT_ingredients_test + SF_ingredients_test
+    labels_test = NYT_labels_test + SF_labels_test
 
     X_train, y_train = transform_to_dataset(ingredients_train, labels_train)
     X_test, y_test = transform_to_dataset(ingredients_test, labels_test)

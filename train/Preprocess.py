@@ -160,14 +160,14 @@ class PreProcessor:
             and ")" in self.tokenized_sentence[token_index + 1 :]
         )
 
-    def token_features(self, index: int):
-        """sentence: [w1, w2, ...], index: the index of the word
-
+    def token_features(self, index: int) -> Dict[str, Any]:
+        """Return the features for each token in the sentence
+        
         Parameters
         ----------
         index : int
             Index of token to get features for.
-
+        
         Returns
         -------
         Dict[str, Any]
