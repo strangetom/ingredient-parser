@@ -40,7 +40,7 @@ The two datasets have different advantages and disadvantages, therefore combinin
 
 ## Training the model
 
-The model chosen is a condition random fields model. This was selected because the NYTimes work on this used the same model. Rather than re-using the same tools and process the NYTimes did, this will implemented purely in ```python``` using my own ideas.
+The model chosen is a condition random fields model. This was selected because the NYTimes work on this used the same model. Rather than re-using the same tools and process the NYTimes did, this will implemented purely in ```python``` using my own ideas (although they are obviously influenced by the NYTimes work).
 
 Step 1 is pre-processing the data. We need to do the following things to it:
 
@@ -106,11 +106,7 @@ def token_features(self, index: int) -> Dict[str, Any]:
 
 It's likely that some of these features aren't necessary, but I haven't don't the analysis to look at the impact of removing each one.
 
-Step 3 is to train the model. The two datasets are combined and split into training and testing sets. The NYTimes data is limited to first 20,000
-
-[^1]: Is it reasonable to select the first 20,000 entries or should they be randomly selected from the entire dataset?
-
- entries to prevent it overwhelming the StrangerFoods data.
+Step 3 is to train the model. The two datasets are combined and split into training and testing sets. The NYTimes data is limited to first 20,000 entries to prevent it overwhelming the StrangerFoods data.
 
 The training and testing data is transformed to get it's features and correct labelling
 
@@ -255,5 +251,11 @@ My interpretation of these results is the the high word-level accuracy compared 
 
 - [ ] Clean up the NYTimes data.
 - [ ] Change library from ```sklearn_crfsuite``` to [```python_crfsuite```](https://github.com/scrapinghub/python-crfsuite) because the ```sklearn_crfsuite``` appears to be unmaintained and breaking in newer versions of python. 
+- [ ] Investigate which features are most relevant and which can be removed
+  - [ ] The model ```state_features_``` property can help here
+- [ ] Investigate whether it's reasonable to use the first 20,000 entries in the NYTimes dataset.
+  - [ ] Should it be more?
+  - [ ] Should it be randomly selected?
+- [ ] Output confidence scores using ```model.predict_marginals()```
 - [ ] Write a tool that uses the model and return a dict like the one at the top of this README.
 - [ ] Compare the model results to my regular expression based parser.
