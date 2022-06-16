@@ -10,7 +10,7 @@ becomes
 
 ```python
 {
-	"quantity": 1,
+    "quantity": 1,
     "unit": "large",
     "name": "onion",
     "comment": "finely chopped"
