@@ -8,7 +8,7 @@ from nltk.tokenize import RegexpTokenizer
 
 
 # Regex pattern for fraction parts.
-# Matches 1+ numbers followed by 1+ whitespace charaters followed by a number then a forward slash then another number
+# Matches 0+ numbers followed by 0+ whitespace charaters followed by a number then a forward slash then another number
 FRACTION_PARTS_PATTERN = re.compile(r"(\d*\s*\d/\d)")
 
 # Regex pattern for checking if token starts with a capital letter
@@ -32,12 +32,14 @@ class PreProcessor:
         ingredient : str
             Ingredient sentence
         """
-        self.sentence = self.replace_fractions(sentence)
+        self.sentence = self.replace_unicode_fractions(sentence)
+        self.sentence = self.replace_fake_fractions(self.sentence)
         self.sentence = self.split_quantity_and_units(self.sentence)
         self.tokenized_sentence = REGEXP_TOKENIZER.tokenize(self.sentence)
 
-    def replace_fractions(self, sentence: str) -> str:
+    def replace_fake_fractions(self, sentence: str) -> str:
         """Attempt to parse fractions from sentence and convert to decimal
+        This looks for fractions with the format of 1/2, 1/4, 1 1/2 etc.
 
         Parameters
         ----------
@@ -58,6 +60,43 @@ class PreProcessor:
             summed = float(sum(Fraction(s) for s in split))
             rounded = round(summed, 2)
             sentence = sentence.replace(match, f"{rounded:g}")
+
+        return sentence
+
+    def replace_unicode_fractions(self, sentence: str) -> str:
+        """Replace unicode fractions with a 'fake' ascii equivalent.
+        The ascii equivalent is used because the replace_fake_fractions function can deal with spaces between an integer and the fraction.
+
+        Parameters
+        ----------
+        sentence : str
+            Ingredient sentence
+
+        Returns
+        -------
+        str
+            Ingredient sentence with unicode fractions replaced
+        """
+        fractions = {
+            "\x215b": "1/8",
+            "\x215c": "3/8",
+            "\x215d": "5/8",
+            "\x215e": "7/8",
+            "\x2159": "1/6",
+            "\x215a": "5/6",
+            "\x2155": "1/5",
+            "\x2156": "2/5",
+            "\x2157": "3/5",
+            "\x2158": "4/5",
+            "\xbc": "1/4",
+            "\xbe": "3/4",
+            "\x2153": "1/3",
+            "\x2154": "2/3",
+            "\xbd": "1/2",
+        }
+        for f_unicode, f_ascii in fractions.items():
+            # Insert space before ascii fraction to avoid merging into a single token
+            sentence = sentence.replace(f_unicode, f" {f_ascii}")
 
         return sentence
 
