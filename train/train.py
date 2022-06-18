@@ -2,6 +2,7 @@
 
 import argparse
 import csv
+import pickle
 from dataclasses import dataclass
 from typing import Dict, List
 
@@ -137,7 +138,7 @@ def match_label(token: str, labels: Dict[str, str]) -> str:
 
 def transform_to_dataset(
     sentences: List[str], labels: List[Dict[str, str]]
-) -> tuple[List[Dict[str, str]], List[str]]:
+) -> tuple[List[List[Dict[str, str]]], List[List[str]]]:
     """Transform dataset into feature lists for each sentence
 
     Parameters
@@ -149,19 +150,19 @@ def transform_to_dataset(
 
     Returns
     -------
-    List[Dict[str, str]]
-        List of transformed sentences
+    List[List[Dict[str, str]]]
+        List of sentences transformed into features. Each sentence returns a list of dicts, with the dicts containing the features.
      List[str]
-        List of transformed labels
+        List of labels transformed into QTY, UNIT, NAME, COMMENT, PUNCT or OTHER for each token
     """
     X, y = [], []
 
-    for sentence, labels in zip(sentences, labels):
+    for sentence, label in zip(sentences, labels):
         p = PreProcessor(sentence)
         X.append(p.sentence_features())
         y.append(
             [
-                match_label(p.tokenized_sentence[index], labels)
+                match_label(p.tokenized_sentence[index], label)
                 for index in range(len(p.tokenized_sentence))
             ]
         )
@@ -170,7 +171,7 @@ def transform_to_dataset(
 
 
 def evaluate(
-    X: List[Dict[str, str]], predictions: List[List[str]], truths: List[List[str]]
+    X: List[List[Dict[str, str]]], predictions: List[List[str]], truths: List[List[str]]
 ) -> Stats:
 
     total_sentences = 0
@@ -184,7 +185,7 @@ def evaluate(
 
         for token, p, t in zip(sentence, prediction, truth):
             # Skip commas
-            if token == ",":
+            if token in [",", "(", ")"]:
                 continue
 
             total_words += 1
@@ -219,12 +220,19 @@ if __name__ == "__main__":
     parser.add_argument(
         "-n",
         "--number",
-        default=20000,
+        default=30000,
         type=int,
         help="Number of entries from NYTimes dataset to use (train+test)",
     )
+    parser.add_argument(
+        "-m",
+        "--save-model",
+        default="../models/model.pickle",
+        help="Path to save model to",
+    )
     args = parser.parse_args()
 
+    print("[INFO] Loading training data.")
     SF_ingredients, SF_labels = load_csv(args.sf)
     NYT_ingredients, NYT_labels = load_csv(args.nyt)
 
@@ -249,15 +257,18 @@ if __name__ == "__main__":
     labels_train = NYT_labels_train + SF_labels_train
     ingredients_test = NYT_ingredients_test + SF_ingredients_test
     labels_test = NYT_labels_test + SF_labels_test
+    print(f"[INFO] {len(ingredients_train)} training vectors.")
+    print(f"[INFO] {len(ingredients_test)} testing vectors.")
 
     X_train, y_train = transform_to_dataset(ingredients_train, labels_train)
     X_test, y_test = transform_to_dataset(ingredients_test, labels_test)
 
+    print("[INFO] Training model with training data.")
     model = CRF()
     model.fit(X_train, y_train)
 
+    print("[INFO] Evaluating model with test data.")
     y_pred = model.predict(X_test)
-    print(metrics.flat_accuracy_score(y_test, y_pred))
 
     stats = evaluate(X_test, y_pred, y_test)
     print("Sentence-level results:")
@@ -270,3 +281,7 @@ if __name__ == "__main__":
     print(f"\tTotal: {stats.total_words}")
     print(f"\tCorrect: {stats.correct_words}")
     print(f"\t-> {100*stats.correct_words/stats.total_words:.2f}%")
+
+    # Save model
+    with open(args.save_model, 'wb') as f:
+        pickle.dump(model, f)
