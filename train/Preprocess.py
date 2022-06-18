@@ -32,10 +32,35 @@ class PreProcessor:
         ingredient : str
             Ingredient sentence
         """
-        self.sentence = self.replace_unicode_fractions(sentence)
+        self.sentence = self.clean(sentence)
         self.sentence = self.replace_fake_fractions(self.sentence)
         self.sentence = self.split_quantity_and_units(self.sentence)
         self.tokenized_sentence = REGEXP_TOKENIZER.tokenize(self.sentence)
+
+    def clean(self, sentence: str) -> str:
+        """Clean sentence prior to feature extraction
+
+        Parameters
+        ----------
+        sentence : str
+            Ingredient sentence
+
+        Returns
+        -------
+        str
+            Clean ingredient sentence
+        """
+        # List of funtions to apply to sentence, in order
+        funcs = [
+            self.replace_unicode_fractions,
+            self.replace_fake_fractions,
+            self.split_quantity_and_units,
+        ]
+
+        for func in funcs:
+            sentence = func(sentence)
+
+        return sentence
 
     def replace_fake_fractions(self, sentence: str) -> str:
         """Attempt to parse fractions from sentence and convert to decimal
