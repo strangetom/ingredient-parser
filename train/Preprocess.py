@@ -19,8 +19,8 @@ CAPITALISED_PATTERN = re.compile(r"^[A-Z]")
 QUANTITY_UNITS = re.compile(r"(\d)([a-zA-Z])")
 
 # Predefine tokenizer
-# The regex pattern matches the tokens: any word character, including '.', or ( or ) or , or "
-REGEXP_TOKENIZER = RegexpTokenizer('[\w\.]+|\(|\)|,|"', gaps=False)
+# The regex pattern matches the tokens: any word character, including '.' and '-', or ( or ) or , or "
+REGEXP_TOKENIZER = RegexpTokenizer('[\w\.-]+|\(|\)|,|"', gaps=False)
 
 
 class PreProcessor:
