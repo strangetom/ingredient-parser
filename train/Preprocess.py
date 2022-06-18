@@ -76,15 +76,15 @@ class PreProcessor:
         str
             Ingredient sentence with fractions replaced with decimals
         """
-        matches = FRACTION_PARTS_PATTERN.match(sentence)
+        matches = FRACTION_PARTS_PATTERN.findall(sentence)
         if matches is None:
             return sentence
 
-        for match in matches.groups():
+        for match in matches:
             split = match.split()
             summed = float(sum(Fraction(s) for s in split))
             rounded = round(summed, 2)
-            sentence = sentence.replace(match, f"{rounded:g}")
+            sentence = sentence.replace(match, f" {rounded:g}")
 
         return sentence
 
