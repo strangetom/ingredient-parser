@@ -14,6 +14,10 @@ FRACTION_PARTS_PATTERN = re.compile(r"(\d*\s*\d/\d)")
 # Regex pattern for checking if token starts with a capital letter
 CAPITALISED_PATTERN = re.compile(r"^[A-Z]")
 
+# Regex pattern for finding quantity and units without space between them.
+# Assumes the quantity is always a number and the units always a letter
+QUANTITY_UNITS = re.compile(r"(\d)([a-zA-Z])")
+
 # Predefine tokenizer
 # The regex pattern matches the tokens: any word character, including '.', or ( or ) or , or "
 REGEXP_TOKENIZER = RegexpTokenizer('[\w\.]+|\(|\)|,|"', gaps=False)
@@ -29,6 +33,7 @@ class PreProcessor:
             Ingredient sentence
         """
         self.sentence = self.replace_fractions(sentence)
+        self.sentence = self.split_quantity_and_units(self.sentence)
         self.tokenized_sentence = REGEXP_TOKENIZER.tokenize(self.sentence)
 
     def replace_fractions(self, sentence: str) -> str:
@@ -55,6 +60,22 @@ class PreProcessor:
             sentence = sentence.replace(match, f"{rounded:g}")
 
         return sentence
+
+    def split_quantity_and_units(self, sentence: str) -> str:
+        """Insert space between quantity and unit
+        This currently finds any instances of a number followed directly by a letter with no space inbetween.
+
+        Parameters
+        ----------
+        sentence : str
+            Ingredient sentence
+
+        Returns
+        -------
+        str
+            Ingredient sentence with spaces inserted between quantity and units
+        """
+        return QUANTITY_UNITS.sub(r"\1 \2", sentence)
 
     def get_length(self, tokens: List[str]) -> int:
         """Get the smallest bucket the length of the tokens list fits into.
@@ -162,12 +183,12 @@ class PreProcessor:
 
     def token_features(self, index: int) -> Dict[str, Any]:
         """Return the features for each token in the sentence
-        
+
         Parameters
         ----------
         index : int
             Index of token to get features for.
-        
+
         Returns
         -------
         Dict[str, Any]
