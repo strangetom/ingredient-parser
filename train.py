@@ -9,7 +9,7 @@ from typing import Dict, List
 from sklearn.model_selection import train_test_split
 from sklearn_crfsuite import CRF, metrics
 
-from Preprocess import PreProcessor
+from ingredient_parser import PreProcessor
 
 
 @dataclass
@@ -227,7 +227,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-m",
         "--save-model",
-        default="../models/model.pickle",
+        default="models/model.pickle",
         help="Path to save model to",
     )
     args = parser.parse_args()
@@ -283,5 +283,5 @@ if __name__ == "__main__":
     print(f"\t-> {100*stats.correct_words/stats.total_words:.2f}%")
 
     # Save model
-    with open(args.save_model, 'wb') as f:
+    with open(args.save_model, "wb") as f:
         pickle.dump(model, f)

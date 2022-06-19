@@ -5,7 +5,7 @@ import json
 import pickle
 from typing import Any, Dict, List
 
-from Preprocess import PreProcessor
+from .preprocess import PreProcessor
 
 
 def find_idx(labels: List[str], key: str) -> List[int]:
@@ -105,15 +105,15 @@ def parse_ingredient(
 
 
 def parse_multiple_ingredients(
-    file: str, model: Any, confidence: bool = False
-) -> List[Dict[str, str]]:
+    sentences: List[str], model: Any, confidence: bool = False
+) -> List[Dict[str, Any]]:
     """Parse multiple ingredients from text file.
     Each line of the file is one ingredient sentence
 
     Parameters
     ----------
-    file : str
-        Path to input file
+    sentences : List[str]
+        List of sentences to parse
     model : Any
         Path to model
     confidence : bool, optional
@@ -121,14 +121,10 @@ def parse_multiple_ingredients(
 
     Returns
     -------
-    List[Dict[str, str]]
+    List[Dict[str, Any]]
         List of dictionaries of structured data parsed from input sentences
     """
-    with open(file, "r") as f:
-        contents = f.read()
-
     parsed = []
-    sentences = contents.splitlines()
     for sent in sentences:
         parsed.append(parse_ingredient(sent, model, confidence))
 
