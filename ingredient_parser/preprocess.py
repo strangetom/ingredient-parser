@@ -33,8 +33,6 @@ class PreProcessor:
             Ingredient sentence
         """
         self.sentence = self.clean(sentence)
-        self.sentence = self.replace_fake_fractions(self.sentence)
-        self.sentence = self.split_quantity_and_units(self.sentence)
         self.tokenized_sentence = REGEXP_TOKENIZER.tokenize(self.sentence)
 
     def clean(self, sentence: str) -> str:
@@ -55,6 +53,7 @@ class PreProcessor:
             self.replace_unicode_fractions,
             self.replace_fake_fractions,
             self.split_quantity_and_units,
+            self.singlarise_unit
         ]
 
         for func in funcs:
@@ -140,6 +139,56 @@ class PreProcessor:
             Ingredient sentence with spaces inserted between quantity and units
         """
         return QUANTITY_UNITS.sub(r"\1 \2", sentence)
+
+    def singlarise_unit(self, sentence: str) -> str:
+        """Singularise units
+        e.g. cups -> cup, tablespoons -> tablespoon
+
+        Parameters
+        ----------
+        sentence : str
+            Ingredient sentnece
+
+        Returns
+        -------
+        str
+            Ingredient sentence with units singularised
+        """
+        units = {
+            "cups": "cup",
+            "tablespoons": "tablespoon",
+            "tbsps": "tbsp",
+            "teaspoons": "teaspoon",
+            "tsps": "tsp",
+            "pounds": "pound",
+            "lbs": "lb",
+            "ounces": "ounce",
+            "cloves": "clove",
+            "sprigs": "sprig",
+            "pinches": "pinch",
+            "bunches": "bunch",
+            "slices": "slice",
+            "grams": "gram",
+            "heads": "head",
+            "quarts": "quart",
+            "litres": "litre",
+            "stalks": "stalk",
+            "pints": "pint",
+            "pieces": "piece",
+            "sticks": "stick",
+            "dashes": "dash",
+            "fillets": "fillet",
+            "cans": "can",
+            "ears": "ear",
+            "packages": "package",
+            "strips": "strip",
+            "bulbs": "bulb",
+            "bottles": "bottle",
+        }
+        for plural, singular in units.items():
+            sentence = sentence.replace(plural, singular)
+
+        return sentence
 
     def get_length(self, tokens: List[str]) -> int:
         """Get the smallest bucket the length of the tokens list fits into.
@@ -261,15 +310,14 @@ class PreProcessor:
         token = self.tokenized_sentence[index]
         return {
             "word": token,
-            "index": index,
-            "length": self.get_length(self.tokenized_sentence),
             "prev_word": "" if index == 0 else self.tokenized_sentence[index - 1],
+            "prev_word2": "" if index < 2 else self.tokenized_sentence[index - 2],
             "next_word": ""
             if index == len(self.tokenized_sentence) - 1
             else self.tokenized_sentence[index + 1],
-            "is_in_parens": self.is_inside_parentheses(token),
-            "follows_comma": self.follows_comma(token),
-            "is_first": index == 0,
+            "next_word2": ""
+            if index >= len(self.tokenized_sentence) - 2
+            else self.tokenized_sentence[index + 2],
             "is_capitalised": self.is_capitalised(token),
             "is_numeric": self.is_numeric(token),
         }
