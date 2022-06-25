@@ -9,6 +9,26 @@ input,name,quantity,unit,comment
 "1x 400 g can lentils, drained",lentils,1x,400 g can,drained
 200 g bag baby spinach,bag baby spinach,200,g,
 150 ml coconut yogurt,coconut yogurt,150,ml,
+"4 boneless pork chops, 1"" thick",boneless pork chops,4,,"1"" thick"
+"salt, to taste",salt,,,to taste
+"white pepper, to taste",white pepper,,,to taste
+225 g all purpose flour,all purpose flour,225,g,
+"1 egg, beaten",egg,1,,beaten
+1 tbsp water,water,1,tbsp,
+80 g Panko breadcrumbs,Panko breadcrumbs,80,g,
+60 ml Dashi,Dashi,60,ml,
+120 ml water,water,120,ml,
+1 inch square Kombu,square Kombu,1,inch,
+3 tbsp Bonito flakes,Bonito flakes,3,tbsp,
+"1 yellow onion, thinly sliced",yellow onion,1,,thinly sliced
+1 tbsp mirin,mirin,1,tbsp,
+2.5 tbsp shirodashi,shirodashi,2.5,tbsp,
+1 tbsp sake,sake,1,tbsp,
+1 tbsp soy sauce,soy sauce,1,tbsp,
+"2 eggs, beaten",eggs,2,,beaten
+780 g cooked rice,cooked rice,780,g,
+2 tbsp Bonito flakes,Bonito flakes,2,tbsp,
+"1 green onions, thinly sliced, for garnish",green onions,1,,"thinly sliced, for garnish"
 250 g shelled fresh peas,shelled fresh peas,250,g,
 "2 fat cloves garlic, finely chopped",garlic,2,fat cloves,finely chopped
 "50 g pine nuts, toasted",pine nuts,50,g,toasted
@@ -208,6 +228,21 @@ Smarties to decorate,Smarties to decorate,,,
 2x 400 g cans chopped tomatoes,chopped tomatoes,2x,400 g cans,
 "2x 400 g cans black beans, drained and rinsed",black beans,2x,400 g cans,drained and rinsed
 "boiled long grain rice, plus some of the following toppings: crumbled feta, chopped spring onions, sliced radishes, avocado chunks",boiled long grain rice,,,"plus some of the following toppings: crumbled feta, chopped spring onions, sliced radishes, avocado chunks"
+"50 g cold butter, diced",cold butter,50,g,diced
+50 g plain flour,plain flour,50,g,
+50 g rolled oats,rolled oats,50,g,
+50 g light brown sugar,light brown sugar,50,g,
+zest &frac12; orange,zest &frac12; orange,,,
+"600 g forced rhubarb, trimmed",forced rhubarb,600,g,trimmed
+240 g caster sugar,caster sugar,240,g,
+"zest of &frac12; orange, plus 1 tbsp juice",zest of &frac12;  orange,,,plus 1 tbsp juice
+"150 g long-life custard (such as Ambrosia), plus extra to serve if you like",long-life custard (such as Ambrosia),150,g,plus extra to serve if you like
+"200 g soft salted butter, plus extra to grease",soft salted butter,200,g,plus extra to grease
+2 tsp vanilla extract,vanilla extract,2,tsp,
+3 large eggs,eggs,3,large,
+200 g self-raising flour,self-raising flour,200,g,
+75 g ground almonds,ground almonds,75,g,
+0.5 tsp baking powder,baking powder,0.5,tsp,
 1.5 tsp saffron threads,saffron threads,1.5,tsp,
 pinch of granulated sugar,of granulated sugar,,pinch,
 "1 large lemon, zested, plus &frac13; cup fresh lemon juice",lemon,1,large,"zested, plus &frac13; cup fresh lemon juice"
@@ -442,6 +477,16 @@ soy sauce,soy sauce,,,
 850 ml vegetable stock,vegetable stock,850,ml,
 1 tin tomatoes,tomatoes,1,tin,
 coriander leaves to garnish,coriander leaves to garnish,,,
+1x 280 g block firm tofu,firm tofu,1x,280 g block,
+150 g cornflour,cornflour,150,g,
+"vegetable oil, for frying",vegetable oil,,,for frying
+2 lemons,lemons,2,,
+250 ml orange juice,orange juice,250,ml,
+100 g sweet chilli sauce,sweet chilli sauce,100,g,
+"1 tbsp Sriracha, or other chilli sauce",Sriracha,1,tbsp,or other chilli sauce
+3 tbsp soy sauce,soy sauce,3,tbsp,
+"1 spring onion, to serve",spring onion,1,,to serve
+"1 tsp sesame seeds, to serve",sesame seeds,1,tsp,to serve
 Salt to taste,Salt to taste,,,
 3 tbsp olive oil,olive oil,3,tbsp,
 "3 cloves garlic, or more, lightly smashed and peeled",garlic,3,cloves,"or more, lightly smashed and peeled"
@@ -1593,6 +1638,21 @@ seeds from 1 pomegranate,seeds from 1 pomegranate,,,
 12 lamb cutlets,lamb cutlets,12,,
 "2 courgettes, cut lengthways into 3 mm slices",courgettes,2,,cut lengthways into 3 mm slices
 "4 pitta breads or flatbreads, griddled or toasted to serve",pitta breads or flatbreads,4,,griddled or toasted to serve
+0.5 tsp turmeric,turmeric,0.5,tsp,
+0.5 tsp curry powder,curry powder,0.5,tsp,
+0.5 tsp ground cumin,ground cumin,0.5,tsp,
+0.5 tsp ground coriander,ground coriander,0.5,tsp,
+0.25 tsp ground cinnamon,ground cinnamon,0.25,tsp,
+"2 fat cloves garlic, minced",garlic,2,fat cloves,minced
+"5 cm piece of fresh root ginger, peeled and minced",piece of fresh root ginger,5,cm ,peeled and minced
+"handful of coriander, leaves picked and finely chopped, plus extra to serve",of coriander,,handful,"leaves picked and finely chopped, plus extra to serve"
+"handful of dill, leaves picked and finely chopped, plus extra to serve",of dill,,handful,"leaves picked and finely chopped, plus extra to serve"
+finely grated rind and juice of 1 lime,finely grated rind and juice of 1 lime,,,
+2 tbsp Greek yogurt,Greek yogurt,2,tbsp,
+olive oil,olive oil,,,
+"1 tsp sea salt flakes, crushed",sea salt flakes,1,tsp,crushed
+0.25 tsp freshly ground black pepper,freshly ground black pepper,0.25,tsp,
+"4 monkfish tails or loins, about 175-200 g each, skinned and cleaned",monkfish tails or loins,4,,"about 175-200 g each, skinned and cleaned"
 400 g sweet potatoes,sweet potatoes,400,g,
 1 onion,onion,1,,
 olive oil,olive oil,,,
@@ -2213,7 +2273,7 @@ Kosher salt and black pepper,Kosher salt and black pepper,,,
 500 g tomato puree,tomato puree,500,g,
 3 cloves garlic,garlic,3,cloves,
 "2 fresh red chillies, spicy",fresh red chillies,2,,spicy
-"1 sprig parsley, Prezzemolo 1 ciuffo",parsley,1,sprig,Prezzemolo 1 ciuffo
+1 sprig parsley,parsley,1,sprig,
 "extra virgin olive oil, to taste",extra virgin olive oil,,,to taste
 "salt, to taste",salt,,,to taste
 "3 chicken breasts, cut into strips",chicken breasts,3,,cut into strips
@@ -2425,6 +2485,12 @@ finely grated zest and juice 1 lemon,finely grated zest and juice 1 lemon,,,
 "2 medium carrots, cut into matchsticks",carrots,2,medium,cut into matchsticks
 "100 g baby corn, halved",baby corn,100,g,halved
 "2 courgettes, cut into matchsticks",courgettes,2,,cut into matchsticks
+250 g chocolate Hobnobs,chocolate Hobnobs,250,g,
+100 g butter,butter,100,g ,
+1x 397 g can Carnation Caramel,Carnation Caramel,1x,397 g can,
+250 ml double cream,double cream,250,ml,
+1 tbsp espresso instant coffee,espresso instant coffee,1,tbsp,
+2 tbsp icing sugar,icing sugar,2,tbsp,
 Kosher salt,Kosher salt,,,
 "3 tbsp olive oil, plus more for serving",olive oil,3,tbsp,plus more for serving
 "1 medium butternut squash, peeled, seeds removed and cut into &frac12;-inch cubes",butternut squash,1,medium,"peeled, seeds removed and cut into &frac12;-inch cubes"
@@ -2682,6 +2748,22 @@ drizzle sweet chilli sauce (optional),drizzle sweet chilli sauce (optional),,,
 1 tsp cornflour,cornflour,1,tsp,
 1 tbsp dark soy sauce,dark soy sauce,1,tbsp,
 0.5x 195 g bottle black bean sauce,black bean sauce,0.5x,195 g bottle,
+250 g soft butter,soft butter,250,g,
+115 g light brown sugar,light brown sugar,115,g,
+115 g granulated sugar,granulated sugar,115,g,
+1 tsp vanilla bean paste or extract,vanilla bean paste or extract,1,tsp,
+1 medium egg,egg,1,medium,
+300 g plain flour,plain flour,300,g,
+0.5 tsp sea salt flakes,sea salt flakes,0.5,tsp,
+1 tsp bicarbonate of soda,bicarbonate of soda,1,tsp,
+1 tsp cocoa powder,cocoa powder,1,tsp,
+30 g dark chocolate chips,dark chocolate chips,30,g,
+30 g milk chocolate chips,milk chocolate chips,30,g,
+50 g white chocolate chips,white chocolate chips,50,g,
+2 tsp freeze-dried raspberry pieces,freeze-dried raspberry pieces,2,tsp,
+40 g dried cherries,dried cherries,40,g,
+"25 g cashews, chopped",cashews,25,g,chopped
+"50 g fudge, chopped into small pieces",fudge,50,g,chopped into small pieces
 1 clove garlic,garlic,1,clove,
 0.5 red onion,red onion,0.5,,
 0.5 tsp turmeric,turmeric,0.5,tsp,
@@ -2808,6 +2890,24 @@ salt,salt,,,
 "110 g Manchego, coarsely grated",Manchego,110,g,coarsely grated
 "2 limes, halved, to serve","limes, halved",2,,to serve
 salt and black pepper,salt and black pepper,,,
+0.25 cup sun-dried tomatoes,sun-dried tomatoes,0.25,cup,
+0.5 cup mascarpone,mascarpone,0.5,cup,
+1 egg,egg,1,,
+0.75 cup Italian-seasoned breadcrumbs or panko,Italian-seasoned breadcrumbs or panko,0.75,cup,
+1 lb ground beef,ground beef,1,lb,
+0.5 tsp garlic powder,garlic powder,0.5,tsp,
+1 tsp dried Italian oregano,dried Italian oregano,1,tsp,
+1 tbsp neutral oil (for frying),neutral oil (for frying),1,tbsp,
+0.5 teaspoon crushed red pepper,crushed red pepper,0.5,teaspoon,
+0.5 cup hot water,hot water,0.5,cup,
+1x 28 oz can whole peeled tomatoes,whole peeled tomatoes,1x,28 oz can,
+1 yellow onion (peeled and diced),yellow onion (peeled and diced),1,,
+"6 cloves garlic, peeled and minced",garlic,6,cloves,peeled and minced
+1x 15 oz can of crushed tomatoes,of crushed tomatoes,1x,15 oz can,
+8 oz fresh mozzarella (sliced thinly),fresh mozzarella (sliced thinly),8,oz,
+6 Italian hoagie buns,Italian hoagie buns,6,,
+0.5 oz fresh basil leaves,fresh basil leaves,0.5,oz,
+"Salt, pepper, and sugar if needed","Salt, pepper, and sugar if needed",,,
 4 tbsp olive oil,olive oil,4,tbsp,
 2 cups chopped cod,chopped cod,2,cups,
 "6 large eggs, beaten",eggs,6,large,beaten
@@ -3794,6 +3894,20 @@ Salt and fresh cracked pepper,Salt and fresh cracked pepper,,,
 0.333 cup soy sauce,soy sauce,0.333,cup,
 "1 tbsp hot sauce, we used Sriracha",hot sauce,1,tbsp,we used Sriracha
 Fresh cracked pepper,Fresh cracked pepper,,,
+5 cm piece fresh ginger,piece fresh ginger,5,cm,
+3 cloves garlic,garlic,3,cloves,
+1 fresh red chilli,fresh red chilli,1,,
+1 lime,lime,1,,
+"8 sun-dried tomatoes, plus 1 tbsp oil from the jar",sun-dried tomatoes,8,,plus 1 tbsp oil from the jar
+"30 g fresh coriander, leaves and stalks",fresh coriander,30,g,leaves and stalks
+40 g desiccated coconut,desiccated coconut,40,g,
+30 g panko breadcrumbs,panko breadcrumbs,30,g,
+1 tsp garam masala,garam masala,1,tsp,
+1 tsp ground cumin,ground cumin,1,tsp,
+2 tsp water,water,2,tsp,
+"2 large sweet potatoes, about 300 g each",sweet potatoes,2,large,about 300 g each
+"vegetable oil, for greasing",vegetable oil,,,for greasing
+"salad leaves, for serving, optional",salad leaves,,,"for serving, optional"
 2 tsp finely chopped red onion,finely chopped red onion,2,tsp,
 1 tsp capers,capers,1,tsp,
 1 tbsp pesto,pesto,1,tbsp,
@@ -5948,6 +6062,13 @@ few drops sesame oil,sesame oil,,few drops,
 juice and zest of 0.5 lemon,juice and zest of 0.5 lemon,,,
 large handful coriander or parsley leaves,coriander or parsley leaves,,large handful,
 "warm coriander naan, to serve",warm coriander naan,,,to serve
+0.25 cup mayonnaise,mayonnaise,0.25,cup,
+"1 clove garlic, minced",garlic,1,clove,minced
+1 tbsp tomato paste,tomato paste,1,tbsp,
+1 tbsp cooking oil,cooking oil,1,tbsp,
+4 pieces mozzarella string cheese, mozzarella string cheese,4,pieces,
+4 tbsp basil pesto,basil pesto,4,tbsp,
+8 8-inch flour tortillas,8-inch flour tortillas,8,,
 600 g sweet potatoes,sweet potatoes,600,g,
 0.5 tsp cayenne pepper,cayenne pepper,0.5,tsp,
 2 tbsp olive oil,olive oil,2,tbsp,
@@ -6139,6 +6260,31 @@ Salt,Salt,,,
 "1 fat clove garlic, crushed",garlic,1,fat clove,crushed
 2x 400 g cans kidney beans in chilli sauce,kidney beans in chilli sauce,2x,400 g cans,
 "2-3 sprigs curly parsley, chopped",curly parsley,2-3,sprigs,chopped
+1 tbsp avocado oil,avocado oil,1,tbsp,
+"1 small yellow onion, diced",yellow onion,1,small,diced
+"3 cloves garlic, minced",garlic,3,cloves,minced
+1 lb grass-fed ground beef,grass-fed ground beef,1,lb,
+14 oz fire-roasted tomatoes with green chilis,fire-roasted tomatoes with green chilis,14,oz,
+2 tbsp cumin,cumin,2,tbsp,
+2 tsp smoked paprika,smoked paprika,2,tsp,
+2 tsp ancho chili powder,ancho chili powder,2,tsp,
+2 tsp chili powder,chili powder,2,tsp,
+1 tsp garlic powder,garlic powder,1,tsp,
+1 tsp onion powder,onion powder,1,tsp,
+0.5 tsp ground cinnamon,ground cinnamon,0.5,tsp,
+0.5 tsp chipotle chili powder,chipotle chili powder,0.5,tsp,
+0.5 tsp of salt,of salt,0.5,tsp,
+0.25 tsp of pepper,of pepper,0.25,tsp,
+"0.5 cup pinto beans, drained and rinsed",pinto beans,0.5,cup,drained and rinsed
+1 tbsp lime juice,lime juice,1,tbsp,
+0.25 cup cilantro,cilantro,0.25,cup,
+"2 avocado, mashed",avocado,2,,mashed
+1 tbsp lime juice,lime juice,1,tbsp,
+salt to taste,salt to taste,,,
+10-14 corn tortillas,corn tortillas,10-14,,
+1 cup shredded lettuce,shredded lettuce,1,cup,
+Pico de Gallo,Pico de Gallo,,,
+"optional: shredded Mexican cheese, pickled onions, pickled jalapenos or sour cream","optional: shredded Mexican cheese, pickled onions, pickled jalapenos or sour cream",,,
 2 mugs rigatoni,rigatoni,2,mugs,
 50 g butter,butter,50,g,
 1 tbsp olive oil,olive oil,1,tbsp,
@@ -6310,6 +6456,24 @@ zest and juice of 1 lime,zest and juice of 1 lime,,,
 0.5 cucumber,cucumber,0.5,,
 "2 ripe tomatoes, sliced",ripe tomatoes,2,,sliced
 "A handful of iceberg lettuce, shredded",A handful of iceberg lettuce,,,shredded
+76 g margarine,margarine,76,g,
+80 ml coconut cream,coconut cream,80,ml,
+2 tbsp maple syrup,maple syrup,2,tbsp,
+0.25 tsp salt,salt,0.25,tsp,
+0.25 tsp pure vanilla extract,pure vanilla extract,0.25,tsp,
+73 g brown sugar,brown sugar,73,g,
+480 ml unsweetened soy milk,unsweetened soy milk,480,ml,
+1.5 tbsp apple cider vinegar,apple cider vinegar,1.5,tbsp,
+414 g all-purpose flour,all-purpose flour,414,g,
+336 g granulated sugar,granulated sugar,336,g,
+1 tbsp baking powder,baking powder,1,tbsp,
+1 tsp baking soda,baking soda,1,tsp,
+0.5 tsp salt,salt,0.5,tsp,
+145 g refined coconut oil,refined coconut oil,145,g,
+1.5 tbsp pure vanilla extract,pure vanilla extract,1.5,tbsp,
+224 g unsalted vegan butter,unsalted vegan butter,224,g,
+268 g powdered sugar,powdered sugar,268,g,
+1 tsp pure vanilla extract,pure vanilla extract,1,tsp,
 1 large ring chorizo,chorizo,1,large ring,
 2 red peppers,red peppers,2,,
 2 yellow peppers,yellow peppers,2,,
@@ -6575,6 +6739,18 @@ crushed red pepper flakes,crushed red pepper flakes,,,
 1 kg skinless boneless chicken thighs,skinless boneless chicken thighs,1,kg,
 0.5 cup cilantro leaves with tender stems,cilantro leaves with tender stems,0.5,cup,
 "Lime wedges, for serving",Lime wedges,,,for serving
+"juice of 2 limes, use 2 of the zested limes from the cake ingredients",juice of 2 limes,,,use 2 of the zested limes from the cake ingredients
+100 g icing sugar,icing sugar,100,g,
+"2 digestive biscuits, crumbled",digestive biscuits,2,,crumbled
+"90 g soft butter, plus extra to grease",soft butter,90,g,plus extra to grease
+75 g caster sugar,caster sugar,75,g,
+"zest of 3 limes, plus 1 extra lime to decorate",zest of 3 limes,,,plus 1 extra lime to decorate
+225 g condensed milk,condensed milk,225,g,
+3 large eggs,eggs,3,large,
+200 g plain flour,plain flour,200,g,
+40 g cornflour,cornflour,40,g,
+1.5 tsp baking powder,baking powder,1.5,tsp,
+60 g caster sugar,caster sugar,60,g,
 "275 g Madeira sponge, cut into 2 cm cubes",Madeira sponge,275,g,cut into 2 cm cubes
 "juice of 4 limes, reserve some zest to serve",juice of 4 limes,,,reserve some zest to serve
 5 tbsp Malibu (or 3 tbsp white rum),Malibu (or 3 tbsp white rum),5,tbsp,
@@ -6683,6 +6859,11 @@ oil to fry,oil to fry,,,
 1 lemon: finely shave the skin to get 6 strips and then juice to get 1&frac12; tbsp,lemon: finely shave the skin to get 6 strips and then juice to get 1&frac12; tbsp,1,,
 1 tbsp roughly chopped parsley leaves,roughly chopped parsley leaves,1,tbsp,
 salt and black pepper,salt and black pepper,,,
+"3.5 cups ricotta or famer's cheese, drained and densely packed",ricotta or famer's cheese,3.5,cups,drained and densely packed
+"0.375 cup honey, plus another &frac34; or a cup",honey,0.375,cup,plus another &frac34; or a cup
+"1.25 cup flour, whole-wheat (more authentic) or white",flour,1.25,cup,whole-wheat (more authentic) or white
+"1 egg, beaten",egg,1,,beaten
+poppyseeds,poppyseeds,,,
 1.5 tbsp olive oil,olive oil,1.5,tbsp,
 1 tsp ground turmeric,ground turmeric,1,tsp,
 0.5 tsp ground coriander,ground coriander,0.5,tsp,

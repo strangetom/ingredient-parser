@@ -127,7 +127,10 @@ def extract_features(ingredient: Dict[str, Any]) -> tuple[str, Features]:
     else:
         string = f"{quantity} {unit} {name}, {ingredient['additional']}".strip()
 
-    return " ".join(string.split()), Features(name, quantity, unit, additional)
+    # Strip any duplicate spaces
+    string = " ".join(string.split())
+
+    return string, Features(name, quantity, unit, additional)
 
 
 if __name__ == "__main__":
@@ -143,7 +146,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-o",
         "--output",
-        default="labelled_data.csv",
+        default="sf_labelled_data.csv",
         help="Output csv file for labelled data",
     )
     args = parser.parse_args()
