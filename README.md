@@ -61,13 +61,11 @@ from Preprocess import PreProcessor
 Step 2 is to extract the features for each token in the sentence. The selected features are as follows:
 
 * The token
-* The index of the token in the tokenized sentence
-* The length of the tokenized sentence (rounded to the nearest multiple of 4 or 6)
 * The previous token (or an empty string if the first token)
+* The token 2 tokens previous (or an empty string if the second or first token)
 * The next token (or an empty string if the last token)
+* The token 2 tokens after (or an empty string if the last or second last token)
 * Whether the token is inside parentheses
-* Whether the token follows a comma
-* If the token is the first
 * If the token is capitalised
 * If the token is numeric
 
@@ -88,15 +86,14 @@ def token_features(self, index: int) -> Dict[str, Any]:
     token = self.tokenized_sentence[index]
     return {
         "word": token,
-        "index": index,
-        "length": self.get_length(self.tokenized_sentence),
         "prev_word": "" if index == 0 else self.tokenized_sentence[index - 1],
+        "prev_word2": "" if index < 2 else self.tokenized_sentence[index - 2],
         "next_word": ""
         if index == len(self.tokenized_sentence) - 1
         else self.tokenized_sentence[index + 1],
-        "is_in_parens": self.is_inside_parentheses(token),
-        "follows_comma": self.follows_comma(token),
-        "is_first": index == 0,
+        "next_word2": ""
+        if index >= len(self.tokenized_sentence) - 2
+        else self.tokenized_sentence[index + 2],
         "is_capitalised": self.is_capitalised(token),
         "is_numeric": self.is_numeric(token),
     }
@@ -106,7 +103,7 @@ def token_features(self, index: int) -> Dict[str, Any]:
 
 It's likely that some of these features aren't necessary, but I haven't don't the analysis to look at the impact of removing each one.
 
-Step 3 is to train the model. The two datasets are combined and split into training and testing sets. The NYTimes data is limited to first 20,000 entries to prevent it overwhelming the StrangerFoods data.
+Step 3 is to train the model. The two datasets are combined and split into training and testing sets. The NYTimes data is limited to first 30,000 entries to prevent it overwhelming the StrangerFoods data.
 
 The training and testing data is transformed to get it's features and correct labelling
 
@@ -207,42 +204,47 @@ All of the above steps are implemented in the ```tools/train.py``` script.
 
 ## Using the model
 
-If you don't want the train the model yourself, then a pre-trained model is provided: ```models/model.pickle```. To use:
+If you don't want the train the model yourself, then a pre-trained model is provided in the ```ingredient_parser``` package
 
 ```python
-import pickle
+>>> from ingredient_parser import parse_ingredient
 
-with open('models/model.pickle', 'rb') as f:
-    model = pickle.load(f)
-    
-y_pred = model.predict('...')
+>>> parse_ingredient("3 pounds pork shoulder, cut into 2-inch chunks")
+{'sentence': '3 pounds pork shoulder, cut into 2-inch chunks',
+ 'quantity': '3',
+ 'unit': 'pound',
+ 'name': 'pork shoulder',
+ 'comment': 'cut into 2-inch chunks'}
+
+# Output confidence for each label
+>>> parse_ingredient("3 pounds pork shoulder, cut into 2-inch chunks", True)
+{'sentence': '3 pounds pork shoulder, cut into 2-inch chunks',
+ 'quantity': '3',
+ 'unit': 'pound',
+ 'name': 'pork shoulder',
+ 'comment': 'cut into 2-inch chunks',
+ 'confidence': {'quantity': 0.9976,
+  'unit': 0.9913,
+  'name': 0.9291,
+  'comment': 0.9801}}
 ```
 
 This requires ```sklearn_crfsuite``` to run.
 
-A sentence needs processing before it can be interpreted by the model
-
-```python
-from Preprocess import PreProcessor
-
-test_sentence = PreProcessor("100 g toasted almonds")
-y_pred = model.predict([test_sentence.sentence_features()])
-```
-
 ## Model accuracy
 
-The model provided in ```models/``` directory has the following accuracy on a test dataset of 6682 sentences:
+The model provided in ```ingredient-parser/``` directory has the following accuracy on a test dataset of 9227 sentences:
 
 ```
 Sentence-level results:
-    Total: 6682
-    Correct: 4884
-    -> 73.09%
+	Total: 9227
+	Correct: 6923
+	-> 75.03%
 
 Word-level results:
-    Total: 39495
-    Correct: 35791
-    -> 90.62%
+	Total: 52992
+	Correct: 48351
+	-> 91.24%
 ```
 
 My interpretation of these results is the the high word-level accuracy compared to the lower sentence-level accuracy means that if the model is getting a label wrong, it's usually only one label in the sentence.
@@ -256,6 +258,6 @@ My interpretation of these results is the the high word-level accuracy compared 
 - [ ] Investigate whether it's reasonable to use the first 20,000 entries in the NYTimes dataset.
   - [ ] Should it be more?
   - [ ] Should it be randomly selected?
-- [ ] Output confidence scores using ```model.predict_marginals()```
+- [x] Output confidence scores using ```model.predict_marginals()```
 - [ ] Write a tool that uses the model and return a dict like the one at the top of this README.
 - [ ] Compare the model results to my regular expression based parser.
