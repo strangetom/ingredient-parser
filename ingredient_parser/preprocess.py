@@ -222,6 +222,10 @@ class PreProcessor:
         bool
             True if token is numeric, else False
         """
+        if "-" in token:
+            parts = token.split("-")
+            return all([self.is_numeric(part) for part in parts])
+
         try:
             float(token)
             return True
