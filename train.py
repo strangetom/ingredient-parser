@@ -227,7 +227,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-m",
         "--save-model",
-        default="models/model.pickle",
+        default="ingredient_parser/model.pickle",
         help="Path to save model to",
     )
     args = parser.parse_args()
