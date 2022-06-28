@@ -140,7 +140,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-p",
         "--path",
-        default="/home/tom/Recipes/resources/json",
+        default="../Recipes/resources/json",
         help="Path to recipe json files",
     )
     parser.add_argument(
