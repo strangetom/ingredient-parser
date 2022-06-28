@@ -5,6 +5,7 @@ from fractions import Fraction
 from typing import Any, Dict, List
 
 from nltk.tokenize import RegexpTokenizer
+from nltk.tag import pos_tag
 
 
 # Regex pattern for fraction parts.
@@ -18,10 +19,53 @@ CAPITALISED_PATTERN = re.compile(r"^[A-Z]")
 # Assumes the quantity is always a number and the units always a letter
 QUANTITY_UNITS = re.compile(r"(\d)([a-zA-Z])")
 
+# Regex pattern for matching a numeric range e.g. 1-2, 2-3
+RANGE_PATTERN = re.compile(r"\d+\-\d+")
+
 # Predefine tokenizer
 # The regex pattern matches the tokens: any word character, including '.' and '-', or ( or ) or , or "
 REGEXP_TOKENIZER = RegexpTokenizer('[\w\.-]+|\(|\)|,|"', gaps=False)
 
+# Plural and singular units
+UNITS = {
+    "tablespoons": "tablespoon",
+    "tbsps": "tbsp",
+    "teaspoons": "teaspoon",
+    "tsps": "tsp",
+    "grams": "gram",
+    "g": "g",
+    "kilograms": "kilogram",
+    "kg": "kg",
+    "litres": "litre",
+    "liters": "liter",
+    "milliliters": "milliliter",
+    "ml": "ml",
+    "pounds": "pound",
+    "lbs": "lb",
+    "ounces": "ounce",
+    "cups": "cup",
+    "cloves": "clove",
+    "sprigs": "sprig",
+    "pinches": "pinch",
+    "bunches": "bunch",
+    "handfuls": "handful",
+    "slices": "slice",
+    "grams": "gram",
+    "heads": "head",
+    "quarts": "quart",
+    "stalks": "stalk",
+    "pints": "pint",
+    "pieces": "piece",
+    "sticks": "stick",
+    "dashes": "dash",
+    "fillets": "fillet",
+    "cans": "can",
+    "ears": "ear",
+    "packages": "package",
+    "strips": "strip",
+    "bulbs": "bulb",
+    "bottles": "bottle",
+}
 
 class PreProcessor:
     def __init__(self, sentence: str):
@@ -34,6 +78,7 @@ class PreProcessor:
         """
         self.sentence = self.clean(sentence)
         self.tokenized_sentence = REGEXP_TOKENIZER.tokenize(self.sentence)
+        self.pos_tags = self.tag_partofspeech(self.tokenized_sentence)
 
     def clean(self, sentence: str) -> str:
         """Clean sentence prior to feature extraction
@@ -154,41 +199,31 @@ class PreProcessor:
         str
             Ingredient sentence with units singularised
         """
-        units = {
-            "cups": "cup",
-            "tablespoons": "tablespoon",
-            "tbsps": "tbsp",
-            "teaspoons": "teaspoon",
-            "tsps": "tsp",
-            "pounds": "pound",
-            "lbs": "lb",
-            "ounces": "ounce",
-            "cloves": "clove",
-            "sprigs": "sprig",
-            "pinches": "pinch",
-            "bunches": "bunch",
-            "slices": "slice",
-            "grams": "gram",
-            "heads": "head",
-            "quarts": "quart",
-            "litres": "litre",
-            "stalks": "stalk",
-            "pints": "pint",
-            "pieces": "piece",
-            "sticks": "stick",
-            "dashes": "dash",
-            "fillets": "fillet",
-            "cans": "can",
-            "ears": "ear",
-            "packages": "package",
-            "strips": "strip",
-            "bulbs": "bulb",
-            "bottles": "bottle",
-        }
-        for plural, singular in units.items():
+        for plural, singular in UNITS.items():
             sentence = sentence.replace(plural, singular)
 
         return sentence
+
+    def tag_partofspeech(self, tokens: List[str]) -> List[str]:
+        """Tag tokens with part of speech using universal tagset
+        This function ensures that numeric ranges are tagged as NUM
+        
+        Parameters
+        ----------
+        tokens : List[str]
+            Tokenized ingredient sentence
+        
+        Returns
+        -------
+        List[str]
+            List of part of speech tags
+        """
+        tags = []
+        for token, tag in pos_tag(tokens, tagset="universal"):
+            if RANGE_PATTERN.match(token):
+                tag = "NUM"
+            tags.append(tag)
+        return tags
 
     def get_length(self, tokens: List[str]) -> int:
         """Get the smallest bucket the length of the tokens list fits into.
@@ -208,6 +243,21 @@ class PreProcessor:
         for n in [4, 8, 12, 16, 20, 26, 32, 38, 44, 50, 70]:
             if l < n:
                 return n
+
+    def is_unit(self, token: str) -> bool:
+        """Return True if token is a unit
+        
+        Parameters
+        ----------
+        token : str
+            Token to check
+        
+        Returns
+        -------
+        bool
+            True if token is a unit, else False
+        """
+        return token in UNITS.values()
 
     def is_numeric(self, token: str) -> bool:
         """Return True if token is numeric
@@ -314,6 +364,7 @@ class PreProcessor:
         token = self.tokenized_sentence[index]
         return {
             "word": token,
+            "pos": self.pos_tags[index],
             "prev_word": "" if index == 0 else self.tokenized_sentence[index - 1],
             "prev_word2": "" if index < 2 else self.tokenized_sentence[index - 2],
             "next_word": ""
@@ -324,6 +375,7 @@ class PreProcessor:
             else self.tokenized_sentence[index + 2],
             "is_capitalised": self.is_capitalised(token),
             "is_numeric": self.is_numeric(token),
+            "is_unit": self.is_unit(token)
         }
 
     def sentence_features(self) -> List[Dict[str, Any]]:
