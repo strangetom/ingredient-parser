@@ -4,61 +4,18 @@ import argparse
 import json
 import pickle
 import os
-from typing import Any, Dict, List
+from itertools import groupby
+from operator import itemgetter
+from typing import Any, Dict, List, Union
 
 from .preprocess import PreProcessor
+from .utils import find_idx, join_adjacent, average
 
 MODEL = None
 pkg_dir, _ = os.path.split(__file__)
 model_path = os.path.join(pkg_dir, "model.pickle")
 with open(model_path, "rb") as f:
     MODEL = pickle.load(f)
-
-
-def find_idx(labels: List[str], key: str) -> List[int]:
-    """Find indices of elements matching key in list
-
-    Parameters
-    ----------
-    labels : List[str]
-        List to search for key in
-    key : str
-        Key to find in list
-    """
-    matches = []
-    for idx, el in enumerate(labels):
-        if el == key:
-            matches.append(idx)
-    return matches
-
-
-def average(labels: List[str], scores: List[Dict[str, float]], key: str) -> float:
-    """Average the scores for labels matching key
-
-    Parameters
-    ----------
-    labels : List[str]
-        List to search key for
-    scores : List[float]
-        Confidence score for each labels
-    key : str
-        Key to calculate confidence for
-
-    Returns
-    -------
-    float
-        Confidence, average of all labels with given key
-    """
-    score_list = []
-    for idx, el in enumerate(labels):
-        if el == key:
-            score_list.append(scores[idx][key])
-
-    if len(score_list) == 0:
-        return 0
-
-    average = sum(score_list) / len(score_list)
-    return round(average, 4)
 
 
 def parse_ingredient(sentence: str, confidence: bool = False) -> Dict[str, Any]:
@@ -87,8 +44,8 @@ def parse_ingredient(sentence: str, confidence: bool = False) -> Dict[str, Any]:
     quantity = " ".join([tokens[idx] for idx in find_idx(labels, "QTY")])
     unit = " ".join([tokens[idx] for idx in find_idx(labels, "UNIT")])
     name = " ".join([tokens[idx] for idx in find_idx(labels, "NAME")])
-    comment = " ".join([tokens[idx] for idx in find_idx(labels, "COMMENT")])
-    other = " ".join([tokens[idx] for idx in find_idx(labels, "OTHER")])
+    comment = join_adjacent(tokens, find_idx(labels, "COMMENT"))
+    other = join_adjacent(tokens, find_idx(labels, "OTHER"))
 
     parsed: Dict[str, Any] = {
         "sentence": sentence,
@@ -133,7 +90,7 @@ def parse_multiple_ingredients(
     """
     parsed = []
     for sent in sentences:
-        parsed.append(parse_ingredient(sent, model, confidence))
+        parsed.append(parse_ingredient(sent, confidence))
 
     return parsed
 

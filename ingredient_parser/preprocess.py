@@ -67,6 +67,7 @@ UNITS = {
     "bottles": "bottle",
 }
 
+
 class PreProcessor:
     def __init__(self, sentence: str):
         """Summary
@@ -98,7 +99,7 @@ class PreProcessor:
             self.replace_unicode_fractions,
             self.replace_fake_fractions,
             self.split_quantity_and_units,
-            self.singlarise_unit
+            self.singlarise_unit,
         ]
 
         for func in funcs:
@@ -207,12 +208,12 @@ class PreProcessor:
     def tag_partofspeech(self, tokens: List[str]) -> List[str]:
         """Tag tokens with part of speech using universal tagset
         This function ensures that numeric ranges are tagged as NUM
-        
+
         Parameters
         ----------
         tokens : List[str]
             Tokenized ingredient sentence
-        
+
         Returns
         -------
         List[str]
@@ -244,14 +245,16 @@ class PreProcessor:
             if l < n:
                 return n
 
+        return 0
+
     def is_unit(self, token: str) -> bool:
         """Return True if token is a unit
-        
+
         Parameters
         ----------
         token : str
             Token to check
-        
+
         Returns
         -------
         bool
@@ -375,7 +378,7 @@ class PreProcessor:
             else self.tokenized_sentence[index + 2],
             "is_capitalised": self.is_capitalised(token),
             "is_numeric": self.is_numeric(token),
-            "is_unit": self.is_unit(token)
+            "is_unit": self.is_unit(token),
         }
 
     def sentence_features(self) -> List[Dict[str, Any]]:
