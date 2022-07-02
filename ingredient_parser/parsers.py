@@ -88,6 +88,7 @@ def parse_ingredient(sentence: str, confidence: bool = False) -> Dict[str, Any]:
     unit = " ".join([tokens[idx] for idx in find_idx(labels, "UNIT")])
     name = " ".join([tokens[idx] for idx in find_idx(labels, "NAME")])
     comment = " ".join([tokens[idx] for idx in find_idx(labels, "COMMENT")])
+    other = " ".join([tokens[idx] for idx in find_idx(labels, "OTHER")])
 
     parsed: Dict[str, Any] = {
         "sentence": sentence,
@@ -95,6 +96,7 @@ def parse_ingredient(sentence: str, confidence: bool = False) -> Dict[str, Any]:
         "unit": unit,
         "name": name,
         "comment": comment,
+        "other": other,
     }
 
     if confidence:
@@ -103,6 +105,7 @@ def parse_ingredient(sentence: str, confidence: bool = False) -> Dict[str, Any]:
             "unit": average(labels, scores, "UNIT"),
             "name": average(labels, scores, "NAME"),
             "comment": average(labels, scores, "COMMENT"),
+            "other": average(labels, scores, "OTHER"),
         }
         return parsed
 
