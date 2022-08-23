@@ -8,14 +8,16 @@ from itertools import groupby
 from operator import itemgetter
 from typing import Any, Dict, List, Union
 
+import pycrfsuite
+
 from .preprocess import PreProcessor
 from .utils import average, find_idx, join_adjacent
 
-MODEL = None
+# Create TAGGER object
 pkg_dir, _ = os.path.split(__file__)
-model_path = os.path.join(pkg_dir, "model.pickle")
-with open(model_path, "rb") as f:
-    MODEL = pickle.load(f)
+model_path = os.path.join(pkg_dir, "model.crfsuite")
+TAGGER = pycrfsuite.Tagger()
+TAGGER.open(model_path)
 
 
 def parse_ingredient(sentence: str, confidence: bool = False) -> Dict[str, Any]:
@@ -33,13 +35,11 @@ def parse_ingredient(sentence: str, confidence: bool = False) -> Dict[str, Any]:
     Dict[str, Any]
         Dictionary of structured data parsed from input string
     """
-    if MODEL is None:
-        raise Exception("Model didn't loaded.")
 
     processed_sentence = PreProcessor(sentence)
     tokens = processed_sentence.tokenized_sentence
-    labels = MODEL.predict([processed_sentence.sentence_features()])[0]
-    scores = MODEL.predict_marginals([processed_sentence.sentence_features()])[0]
+    labels = TAGGER.tag(processed_sentence.sentence_features())
+    scores = [TAGGER.marginal(label, i) for i, label in enumerate(labels)]
 
     quantity = " ".join([tokens[idx] for idx in find_idx(labels, "QTY")])
     unit = " ".join([tokens[idx] for idx in find_idx(labels, "UNIT")])
@@ -110,9 +110,6 @@ if __name__ == "__main__":
         "-f", "--file", help="Path to file of ingredient strings to parse"
     )
     args = parser.parse_args()
-
-    with open(args.model, "rb") as f:
-        model = pickle.load(f)
 
     if args.string is not None:
         parsed = parse_ingredient(args.string, args.confidence)
