@@ -4,9 +4,8 @@ import re
 from fractions import Fraction
 from typing import Any, Dict, List
 
-from nltk.tokenize import RegexpTokenizer
 from nltk.tag import pos_tag
-
+from nltk.tokenize import RegexpTokenizer
 
 # Regex pattern for fraction parts.
 # Matches 0+ numbers followed by 0+ whitespace charaters followed by a number then a forward slash then another number
@@ -24,7 +23,7 @@ RANGE_PATTERN = re.compile(r"\d+\-\d+")
 
 # Predefine tokenizer
 # The regex pattern matches the tokens: any word character, including '.' and '-', or ( or ) or , or "
-REGEXP_TOKENIZER = RegexpTokenizer('[\w\.-]+|\(|\)|,|"', gaps=False)
+REGEXP_TOKENIZER = RegexpTokenizer(r'[\w\.-]+|\(|\)|,|"', gaps=False)
 
 # Plural and singular units
 UNITS = {

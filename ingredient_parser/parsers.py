@@ -2,14 +2,14 @@
 
 import argparse
 import json
-import pickle
 import os
+import pickle
 from itertools import groupby
 from operator import itemgetter
 from typing import Any, Dict, List, Union
 
 from .preprocess import PreProcessor
-from .utils import find_idx, join_adjacent, average
+from .utils import average, find_idx, join_adjacent
 
 MODEL = None
 pkg_dir, _ = os.path.split(__file__)

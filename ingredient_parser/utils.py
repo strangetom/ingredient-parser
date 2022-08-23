@@ -2,8 +2,8 @@
 
 import argparse
 import json
-import pickle
 import os
+import pickle
 from itertools import groupby
 from operator import itemgetter
 from typing import Any, Dict, Generator, Iterator, List, Union
