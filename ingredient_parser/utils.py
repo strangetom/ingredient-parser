@@ -72,15 +72,15 @@ def join_adjacent(tokens: List[str], idx: List[int]) -> Union[str, List[str]]:
         return grouped
 
 
-def average(labels: List[str], scores: List[Dict[str, float]], key: str) -> float:
+def average(labels: List[str], scores: List[float], key: str) -> float:
     """Average the scores for labels matching key
 
     Parameters
     ----------
     labels : List[str]
-        List to search key for
+        List of labels to search key for
     scores : List[float]
-        Confidence score for each labels
+        Confidence score for each label
     key : str
         Key to calculate confidence for
 
@@ -92,7 +92,7 @@ def average(labels: List[str], scores: List[Dict[str, float]], key: str) -> floa
     score_list = []
     for idx, el in enumerate(labels):
         if el == key:
-            score_list.append(scores[idx][key])
+            score_list.append(scores[idx])
 
     if len(score_list) == 0:
         return 0

@@ -6,8 +6,8 @@ import pickle
 from dataclasses import dataclass
 from typing import Dict, List
 
+import pycrfsuite
 from sklearn.model_selection import train_test_split
-from sklearn_crfsuite import CRF, metrics
 
 from ingredient_parser import PreProcessor
 
@@ -227,7 +227,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-m",
         "--save-model",
-        default="ingredient_parser/model.pickle",
+        default="ingredient_parser/model.crfsuite",
         help="Path to save model to",
     )
     args = parser.parse_args()
@@ -264,11 +264,15 @@ if __name__ == "__main__":
     X_test, y_test = transform_to_dataset(ingredients_test, labels_test)
 
     print("[INFO] Training model with training data.")
-    model = CRF()
-    model.fit(X_train, y_train)
+    trainer = pycrfsuite.Trainer(verbose=False)
+    for X, y in zip(X_train, y_train):
+        trainer.append(X, y)
+    trainer.train(args.save_model)
 
     print("[INFO] Evaluating model with test data.")
-    y_pred = model.predict(X_test)
+    tagger = pycrfsuite.Tagger()
+    tagger.open(args.save_model)
+    y_pred = [tagger.tag(X) for X in X_test]
 
     stats = evaluate(X_test, y_pred, y_test)
     print("Sentence-level results:")
@@ -281,7 +285,3 @@ if __name__ == "__main__":
     print(f"\tTotal: {stats.total_words}")
     print(f"\tCorrect: {stats.correct_words}")
     print(f"\t-> {100*stats.correct_words/stats.total_words:.2f}%")
-
-    # Save model
-    with open(args.save_model, "wb") as f:
-        pickle.dump(model, f)

@@ -252,7 +252,7 @@ My interpretation of these results is the the high word-level accuracy compared 
 ## To do list
 
 - [ ] Clean up the NYTimes data.
-- [ ] Change library from ```sklearn_crfsuite``` to [```python_crfsuite```](https://github.com/scrapinghub/python-crfsuite) because the ```sklearn_crfsuite``` appears to be unmaintained and breaking in newer versions of python. 
+- [x] Change library from ```sklearn_crfsuite``` to [```python_crfsuite```](https://github.com/scrapinghub/python-crfsuite) because the ```sklearn_crfsuite``` appears to be unmaintained and breaking in newer versions of python. 
 - [ ] Investigate which features are most relevant and which can be removed
   - [ ] The model ```state_features_``` property can help here
 - [ ] Investigate whether it's reasonable to use the first 20,000 entries in the NYTimes dataset.
