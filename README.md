@@ -204,7 +204,7 @@ print(metrics.accuracy_score(y_test, y_pred))
 # 0.9169...
 ```
 
-All of the above steps are implemented in the ```tools/train.py``` script.
+All of the above steps are implemented in the ```train.py``` script.
 
 ## Using the model
 
