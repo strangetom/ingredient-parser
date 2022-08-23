@@ -101,9 +101,9 @@ def token_features(self, index: int) -> Dict[str, Any]:
 
 
 
-It's likely that some of these features aren't necessary, but I haven't don't the analysis to look at the impact of removing each one.
+It's likely that some of these features aren't necessary, but I haven't done the analysis to look at the impact of removing each one.
 
-Step 3 is to train the model. The two datasets are combined and split into training and testing sets. The NYTimes data is limited to first 30,000 entries to prevent it overwhelming the StrangerFoods data.
+Step 3 is to train the model. The two datasets are combined and split into training and testing sets. The NYTimes data is limited to the first 30,000 entries to prevent it overwhelming the StrangerFoods data.
 
 The training and testing data is transformed to get it's features and correct labelling
 
@@ -143,7 +143,7 @@ X_train, y_train = transform_to_dataset(ingredients_train, labels_train)
 X_test, y_test = transform_to_dataset(ingredients_test, labels_test)
 ```
 
-The tokens have to be matched to the label because not all works in each entry are labelled. The match label function does this, although imperfectly since it does not handle a word appearing multiple times in a sentence
+The tokens have to be matched to the label because not all words in each entry are labelled. The ```match_label``` function does this, although imperfectly since it does not handle a word appearing multiple times in a sentence
 
 ```python
 def match_label(token: str, labels: Dict[str, str]) -> str:
@@ -217,7 +217,7 @@ If you don't want the train the model yourself, then a pre-trained model is prov
  'comment': 'cut into 2-inch chunks'}
 
 # Output confidence for each label
->>> parse_ingredient("3 pounds pork shoulder, cut into 2-inch chunks", True)
+>>> parse_ingredient("3 pounds pork shoulder, cut into 2-inch chunks", confidence=True)
 {'sentence': '3 pounds pork shoulder, cut into 2-inch chunks',
  'quantity': '3',
  'unit': 'pound',
@@ -259,5 +259,5 @@ My interpretation of these results is the the high word-level accuracy compared 
   - [ ] Should it be more?
   - [ ] Should it be randomly selected?
 - [x] Output confidence scores using ```model.predict_marginals()```
-- [ ] Write a tool that uses the model and return a dict like the one at the top of this README.
+- [x] Write a tool that uses the model and return a dict like the one at the top of this README.
 - [ ] Compare the model results to my regular expression based parser.
