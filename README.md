@@ -181,23 +181,27 @@ def match_label(token: str, labels: Dict[str, str]) -> str:
         return "OTHER"
 ```
 
-With the data ready, we can now train the model using [```sklearn_crfsuite```](https://github.com/TeamHG-Memex/sklearn-crfsuite).
+With the data ready, we can now train the model using [```python-crfuite```](https://github.com/scrapinghub/python-crfsuite).
 
 ```python
-from sklearn_crfsuite import CRF
+import pycrfsuite
 
-model = CRF()
-model.fit(X_train, y_train)
+    trainer = pycrfsuite.Trainer(verbose=False)
+    for X, y in zip(X_train, y_train):
+        trainer.append(X, y)
+    trainer.train("model.crfsuite")
 ```
 
 Then we can evaluate the model using the test data. For each entry in the test data, we use the model to predict the labels then calculate the accuracy score.
 
 ```python
-from sklearn_crfsuite import metrics
+from sklearn import metrics
 
-y_pred = model.predict(X_test)
-print(metrics.flat_accuracy_score(y_test, y_pred))
-# 0.9039365676383135
+tagger = pycrfsuite.Tagger()
+tagger.open("model.crfsuite")
+y_pred = [tagger.tag(X) for X in X_test]
+print(metrics.accuracy_score(y_test, y_pred))
+# 0.9169...
 ```
 
 All of the above steps are implemented in the ```tools/train.py``` script.
@@ -214,7 +218,8 @@ If you don't want the train the model yourself, then a pre-trained model is prov
  'quantity': '3',
  'unit': 'pound',
  'name': 'pork shoulder',
- 'comment': 'cut into 2-inch chunks'}
+ 'comment': 'cut into 2-inch chunks',
+ 'other': ','}
 
 # Output confidence for each label
 >>> parse_ingredient("3 pounds pork shoulder, cut into 2-inch chunks", confidence=True)
@@ -223,13 +228,15 @@ If you don't want the train the model yourself, then a pre-trained model is prov
  'unit': 'pound',
  'name': 'pork shoulder',
  'comment': 'cut into 2-inch chunks',
- 'confidence': {'quantity': 0.9976,
-  'unit': 0.9913,
-  'name': 0.9291,
-  'comment': 0.9801}}
+ 'other': ',',
+ 'confidence': {'quantity': 0.9987,
+  'unit': 0.9943,
+  'name': 0.9208,
+  'comment': 0.9903,
+  'other': 0.539}}
 ```
 
-This requires ```sklearn_crfsuite``` to run.
+This requires ```python-crfsuite``` to run.
 
 ## Model accuracy
 
@@ -254,10 +261,10 @@ My interpretation of these results is the the high word-level accuracy compared 
 - [ ] Clean up the NYTimes data.
 - [x] Change library from ```sklearn_crfsuite``` to [```python_crfsuite```](https://github.com/scrapinghub/python-crfsuite) because the ```sklearn_crfsuite``` appears to be unmaintained and breaking in newer versions of python. 
 - [ ] Investigate which features are most relevant and which can be removed
-  - [ ] The model ```state_features_``` property can help here
+  - [ ] The ```tagger.info()``` method can help here
 - [ ] Investigate whether it's reasonable to use the first 20,000 entries in the NYTimes dataset.
   - [ ] Should it be more?
   - [ ] Should it be randomly selected?
-- [x] Output confidence scores using ```model.predict_marginals()```
+- [x] Output confidence scores using ```tagger.marginal()```
 - [x] Write a tool that uses the model and return a dict like the one at the top of this README.
 - [ ] Compare the model results to my regular expression based parser.
