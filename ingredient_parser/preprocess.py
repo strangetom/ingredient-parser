@@ -206,7 +206,10 @@ class PreProcessor:
 
     def tag_partofspeech(self, tokens: List[str]) -> List[str]:
         """Tag tokens with part of speech using universal tagset
-        This function ensures that numeric ranges are tagged as NUM
+        This function manually fixes tags that are incorrect in the context of:
+        1. Change tags of numeric ranges to CD
+        2. Change tag of "ground" from NN to VBD
+
 
         Parameters
         ----------
@@ -219,9 +222,11 @@ class PreProcessor:
             List of part of speech tags
         """
         tags = []
-        for token, tag in pos_tag(tokens, tagset="universal"):
+        for token, tag in pos_tag(tokens):
             if RANGE_PATTERN.match(token):
-                tag = "NUM"
+                tag = "CD"
+            if token in ["ground"]:
+                tag = "VBD"
             tags.append(tag)
         return tags
 
@@ -365,8 +370,10 @@ class PreProcessor:
         """
         token = self.tokenized_sentence[index]
         return {
-            "word": token,
+            "word": token.lower(),
             "pos": self.pos_tags[index],
+            "prev_pos+pos": self.pos_tags[index] if index == 0 else self.pos_tags[index - 1] + self.pos_tags[index],
+            "pos+next_pos": self.pos_tags[index] if index == len(self.tokenized_sentence) - 1 else self.pos_tags[index] + self.pos_tags[index + 1],
             "prev_word": "" if index == 0 else self.tokenized_sentence[index - 1],
             "prev_word2": "" if index < 2 else self.tokenized_sentence[index - 2],
             "next_word": ""
