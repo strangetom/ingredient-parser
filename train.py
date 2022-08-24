@@ -10,6 +10,7 @@ import pycrfsuite
 from sklearn.model_selection import train_test_split
 
 from ingredient_parser import PreProcessor
+from output_test_results import output_test_results
 
 
 @dataclass
@@ -230,6 +231,12 @@ if __name__ == "__main__":
         default="ingredient_parser/model.crfsuite",
         help="Path to save model to",
     )
+    parser.add_argument(
+        "-d",
+        "--detailed_results",
+        action="store_true",
+        help="Output a markdown file containing detailed results.",
+    )
     args = parser.parse_args()
 
     print("[INFO] Loading training data.")
@@ -260,6 +267,7 @@ if __name__ == "__main__":
     print(f"[INFO] {len(ingredients_train)} training vectors.")
     print(f"[INFO] {len(ingredients_test)} testing vectors.")
 
+    print(f"[INFO] Transforming vectors")
     X_train, y_train = transform_to_dataset(ingredients_train, labels_train)
     X_test, y_test = transform_to_dataset(ingredients_test, labels_test)
 
@@ -285,3 +293,6 @@ if __name__ == "__main__":
     print(f"\tTotal: {stats.total_words}")
     print(f"\tCorrect: {stats.correct_words}")
     print(f"\t-> {100*stats.correct_words/stats.total_words:.2f}%")
+
+    if args.detailed_results:
+        output_test_results(ingredients_test, y_test, y_pred)
