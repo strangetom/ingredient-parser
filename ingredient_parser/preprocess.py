@@ -9,7 +9,7 @@ from nltk.tokenize import RegexpTokenizer
 
 # Regex pattern for fraction parts.
 # Matches 0+ numbers followed by 0+ whitespace charaters followed by a number then a forward slash then another number
-FRACTION_PARTS_PATTERN = re.compile(r"(\d*\s*\d/\d)")
+FRACTION_PARTS_PATTERN = re.compile(r"(\d*\s*\d/\d+)")
 
 # Regex pattern for checking if token starts with a capital letter
 CAPITALISED_PATTERN = re.compile(r"^[A-Z]")
