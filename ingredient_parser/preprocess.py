@@ -21,6 +21,11 @@ QUANTITY_UNITS = re.compile(r"(\d)([a-zA-Z])")
 # Regex pattern for matching a numeric range e.g. 1-2, 2-3
 RANGE_PATTERN = re.compile(r"\d+\-\d+")
 
+# Regex pattern for matching a range in string format e.g. 1 to 2, 8.5 to 12
+# Assumes fake fractions and unicode fraction have already been replaced
+# Captures the two number in the range in separate capture groups
+STRING_RANGE_PATTERN = re.compile(r"([\d\.]+)\sto\s([\d\.]+)")
+
 # Predefine tokenizer
 # The regex pattern matches the tokens: any word character, including '.' and '-', or ( or ) or , or "
 REGEXP_TOKENIZER = RegexpTokenizer(r'[\w\.-]+|\(|\)|,|"', gaps=False)
@@ -101,6 +106,7 @@ class PreProcessor:
             self.replace_unicode_fractions,
             self.replace_fake_fractions,
             self.split_quantity_and_units,
+            self.replace_string_range,
             self.singlarise_unit,
         ]
 
@@ -187,6 +193,24 @@ class PreProcessor:
             Ingredient sentence with spaces inserted between quantity and units
         """
         return QUANTITY_UNITS.sub(r"\1 \2", sentence)
+
+    def replace_string_range(self, sentence: str) -> str:
+        """Replace range in the form "<num> to <num" with standardised range "<num>-<num>"
+        For example:
+        1 to 2 -> 1-2
+        8.5 to 12.5 -> 8.5-12.5
+        
+        Parameters
+        ----------
+        sentence : str
+            Ingredient sentence
+        
+        Returns
+        -------
+        str
+            Ingredient sentence with string ranges replaced with standardised range
+        """
+        return STRING_RANGE_PATTERN.sub(r"\1-\2", sentence)
 
     def singlarise_unit(self, sentence: str) -> str:
         """Singularise units
