@@ -64,6 +64,9 @@ UNITS = {
     "strips": "strip",
     "bulbs": "bulb",
     "bottles": "bottle",
+    "boxes": "box",
+    "sheet": "sheets",
+    "scoops": "scoop"
 }
 
 
