@@ -99,3 +99,19 @@ def average(labels: List[str], scores: List[float], key: str) -> float:
 
     average = sum(score_list) / len(score_list)
     return round(average, 4)
+
+def squeeze_parentheses(sentence: str) -> str:
+    """Remove the space following an opening parens "(" and the space preceeding a closing parens ")"
+    caused by using " ".join to turn a list into a sentence
+    
+    Parameters
+    ----------
+    sentence : str
+        Sentence in which to squeeze parentheses 
+    
+    Returns
+    -------
+    str
+        Modified sentence
+    """
+    return sentence.replace("( ", "(").replace(" )", ")")
