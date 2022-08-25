@@ -71,11 +71,26 @@ UNITS = {
     "bottles": "bottle",
     "boxes": "box",
     "sheet": "sheets",
-    "scoops": "scoop"
+    "scoops": "scoop",
+    "chops": "chop",
 }
 
 
 class PreProcessor:
+
+    """Recipe ingredient sentence PreProcessor class.
+    Performs the necessary preprocessing on a sentence to generate the features required for the ingredient parser model
+
+    Attributes
+    ----------
+    pos_tags : List[str]
+        Part of speech tag for each token in the tokenized sentence
+    sentence : str
+        Input ingredient sentence
+    tokenized_sentence : List[str]
+        Tokenised ingredient sentence
+    """
+
     def __init__(self, sentence: str):
         """Summary
 
@@ -235,7 +250,7 @@ class PreProcessor:
         """Tag tokens with part of speech using universal tagset
         This function manually fixes tags that are incorrect in the context of:
         1. Change tags of numeric ranges to CD
-        2. Change tag of "ground" from NN to VBD
+        2. Change tag of "ground" from NN to VBD e.g. ground almonds
 
 
         Parameters
@@ -399,8 +414,12 @@ class PreProcessor:
         return {
             "word": token.lower(),
             "pos": self.pos_tags[index],
-            "prev_pos+pos": self.pos_tags[index] if index == 0 else self.pos_tags[index - 1] + self.pos_tags[index],
-            "pos+next_pos": self.pos_tags[index] if index == len(self.tokenized_sentence) - 1 else self.pos_tags[index] + self.pos_tags[index + 1],
+            "prev_pos+pos": self.pos_tags[index]
+            if index == 0
+            else self.pos_tags[index - 1] + self.pos_tags[index],
+            "pos+next_pos": self.pos_tags[index]
+            if index == len(self.tokenized_sentence) - 1
+            else self.pos_tags[index] + self.pos_tags[index + 1],
             "prev_word": "" if index == 0 else self.tokenized_sentence[index - 1],
             "prev_word2": "" if index < 2 else self.tokenized_sentence[index - 2],
             "next_word": ""
