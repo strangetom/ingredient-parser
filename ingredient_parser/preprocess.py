@@ -158,10 +158,15 @@ class PreProcessor:
             return sentence
 
         for match in matches:
+            # The regex pattern will capture the space before a fraction if the fraction doesn't have a whole number in front of it.
+            # Therefore, if the match starts with a space, remove it.
+            if match.startswith(" "):
+                match = match[1:]
+
             split = match.split()
             summed = float(sum(Fraction(s) for s in split))
             rounded = round(summed, 2)
-            sentence = sentence.replace(match, f" {rounded:g}")
+            sentence = sentence.replace(match, f"{rounded:g}")
 
         return sentence
 
