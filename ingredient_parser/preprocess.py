@@ -83,6 +83,9 @@ class PreProcessor:
 
     Attributes
     ----------
+    defer_pos_tagging : bool
+        Defer part of speech tagging until feature generation
+        Part of speech tagging is an expensive operation and it's not always needed
     pos_tags : List[str]
         Part of speech tag for each token in the tokenized sentence
     sentence : str
@@ -91,17 +94,23 @@ class PreProcessor:
         Tokenised ingredient sentence
     """
 
-    def __init__(self, sentence: str):
+    def __init__(self, sentence: str, defer_pos_tagging=False):
         """Summary
 
         Parameters
         ----------
-        ingredient : str
+        sentence : str
             Ingredient sentence
+        defer_pos_tagging : bool, optional
+            Defer part of speech tagging until feature generation
         """
         self.sentence = self.clean(sentence)
         self.tokenized_sentence = REGEXP_TOKENIZER.tokenize(self.sentence)
-        self.pos_tags = self.tag_partofspeech(self.tokenized_sentence)
+        self.defer_pos_tagging = defer_pos_tagging
+        if not defer_pos_tagging:
+            self.pos_tags = self.tag_partofspeech(self.tokenized_sentence)
+        else:
+            self.pos_tags = []
 
     def clean(self, sentence: str) -> str:
         """Clean sentence prior to feature extraction
@@ -446,6 +455,10 @@ class PreProcessor:
         List[Dict[str, Any]]
             Description
         """
+        if self.defer_pos_tagging:
+            # If part of speech tagging was deferred, do it now
+            self.pos_tags = self.tag_partofspeech(self.tokenized_sentence)
+
         features = []
         for idx, _ in enumerate(self.tokenized_sentence):
             features.append(self.token_features(idx))

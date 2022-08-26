@@ -1,9 +1,14 @@
 import xml.etree.ElementTree as ET
-from typing import Any, List, Dict
+from typing import Any, Dict, List
 
 from ingredient_parser.preprocess import PreProcessor
 
-def output_test_results(sentences: List[str], labels_truth: List[List[str]], labels_prediction: List[List[str]]) -> None:
+
+def output_test_results(
+    sentences: List[str],
+    labels_truth: List[List[str]],
+    labels_prediction: List[List[str]],
+) -> None:
 
     html = ET.Element("html")
     head = ET.Element("head")
@@ -11,7 +16,7 @@ def output_test_results(sentences: List[str], labels_truth: List[List[str]], lab
     html.append(head)
     html.append(body)
 
-    style = ET.Element("style", attrib = {"type": "text/css"})
+    style = ET.Element("style", attrib={"type": "text/css"})
     style.text = """
     body {
       font-family: sans-serif;
@@ -41,10 +46,15 @@ def output_test_results(sentences: List[str], labels_truth: List[List[str]], lab
     heading.text = "Incorrect sentences in test data"
     body.append(heading)
 
-    for (sentence, truth, prediction) in zip(sentences, labels_truth, labels_prediction):
+    for (sentence, truth, prediction) in zip(
+        sentences, labels_truth, labels_prediction
+    ):
         if truth != prediction:
             tokens: List[str] = PreProcessor(sentence).tokenized_sentence
             table = create_html_table(tokens, truth, prediction)
+            p = ET.Element("p")
+            p.text = sentence
+            body.append(p)
             body.append(table)
 
     ET.indent(html, space="    ")
@@ -52,8 +62,11 @@ def output_test_results(sentences: List[str], labels_truth: List[List[str]], lab
         f.write("<!DOCTYPE html>\n")
         f.write(ET.tostring(html, encoding="unicode", method="html"))
 
-def create_html_table(tokens: List[str], labels_truth: List[str], labels_prediction: List[str]):
-    
+
+def create_html_table(
+    tokens: List[str], labels_truth: List[str], labels_prediction: List[str]
+):
+
     table = ET.Element("table")
 
     tokens_tr = ET.Element("tr")
@@ -94,8 +107,5 @@ def create_html_table(tokens: List[str], labels_truth: List[str], labels_predict
     return table
 
 
-
-
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     raise NotImplementedError()
