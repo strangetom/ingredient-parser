@@ -9,7 +9,7 @@ from nltk.tokenize import RegexpTokenizer
 
 # Regex pattern for fraction parts.
 # Matches 0+ numbers followed by 0+ whitespace charaters followed by a number then a forward slash then another number
-FRACTION_PARTS_PATTERN = re.compile(r"(\d*\s*\d/\d)")
+FRACTION_PARTS_PATTERN = re.compile(r"(\d*\s*\d/\d+)")
 
 # Regex pattern for checking if token starts with a capital letter
 CAPITALISED_PATTERN = re.compile(r"^[A-Z]")
@@ -20,6 +20,11 @@ QUANTITY_UNITS = re.compile(r"(\d)([a-zA-Z])")
 
 # Regex pattern for matching a numeric range e.g. 1-2, 2-3
 RANGE_PATTERN = re.compile(r"\d+\-\d+")
+
+# Regex pattern for matching a range in string format e.g. 1 to 2, 8.5 to 12, 4 or 5
+# Assumes fake fractions and unicode fraction have already been replaced
+# Captures the two number in the range in separate capture groups
+STRING_RANGE_PATTERN = re.compile(r"([\d\.]+)\s+(to|or)\s+([\d\.]+)")
 
 # Predefine tokenizer
 # The regex pattern matches the tokens: any word character, including '.' and '-', or ( or ) or , or "
@@ -64,21 +69,48 @@ UNITS = {
     "strips": "strip",
     "bulbs": "bulb",
     "bottles": "bottle",
+    "boxes": "box",
+    "sheet": "sheets",
+    "scoops": "scoop",
+    "chops": "chop",
 }
 
 
 class PreProcessor:
-    def __init__(self, sentence: str):
+
+    """Recipe ingredient sentence PreProcessor class.
+    Performs the necessary preprocessing on a sentence to generate the features required for the ingredient parser model
+
+    Attributes
+    ----------
+    defer_pos_tagging : bool
+        Defer part of speech tagging until feature generation
+        Part of speech tagging is an expensive operation and it's not always needed
+    pos_tags : List[str]
+        Part of speech tag for each token in the tokenized sentence
+    sentence : str
+        Input ingredient sentence
+    tokenized_sentence : List[str]
+        Tokenised ingredient sentence
+    """
+
+    def __init__(self, sentence: str, defer_pos_tagging=False):
         """Summary
 
         Parameters
         ----------
-        ingredient : str
+        sentence : str
             Ingredient sentence
+        defer_pos_tagging : bool, optional
+            Defer part of speech tagging until feature generation
         """
         self.sentence = self.clean(sentence)
         self.tokenized_sentence = REGEXP_TOKENIZER.tokenize(self.sentence)
-        self.pos_tags = self.tag_partofspeech(self.tokenized_sentence)
+        self.defer_pos_tagging = defer_pos_tagging
+        if not defer_pos_tagging:
+            self.pos_tags = self.tag_partofspeech(self.tokenized_sentence)
+        else:
+            self.pos_tags = []
 
     def clean(self, sentence: str) -> str:
         """Clean sentence prior to feature extraction
@@ -98,6 +130,7 @@ class PreProcessor:
             self.replace_unicode_fractions,
             self.replace_fake_fractions,
             self.split_quantity_and_units,
+            self.replace_string_range,
             self.singlarise_unit,
         ]
 
@@ -185,6 +218,24 @@ class PreProcessor:
         """
         return QUANTITY_UNITS.sub(r"\1 \2", sentence)
 
+    def replace_string_range(self, sentence: str) -> str:
+        """Replace range in the form "<num> to <num" with standardised range "<num>-<num>"
+        For example:
+        1 to 2 -> 1-2
+        8.5 to 12.5 -> 8.5-12.5
+
+        Parameters
+        ----------
+        sentence : str
+            Ingredient sentence
+
+        Returns
+        -------
+        str
+            Ingredient sentence with string ranges replaced with standardised range
+        """
+        return STRING_RANGE_PATTERN.sub(r"\1-\3", sentence)
+
     def singlarise_unit(self, sentence: str) -> str:
         """Singularise units
         e.g. cups -> cup, tablespoons -> tablespoon
@@ -208,7 +259,7 @@ class PreProcessor:
         """Tag tokens with part of speech using universal tagset
         This function manually fixes tags that are incorrect in the context of:
         1. Change tags of numeric ranges to CD
-        2. Change tag of "ground" from NN to VBD
+        2. Change tag of "ground" from NN to VBD e.g. ground almonds
 
 
         Parameters
@@ -372,8 +423,12 @@ class PreProcessor:
         return {
             "word": token.lower(),
             "pos": self.pos_tags[index],
-            "prev_pos+pos": self.pos_tags[index] if index == 0 else self.pos_tags[index - 1] + self.pos_tags[index],
-            "pos+next_pos": self.pos_tags[index] if index == len(self.tokenized_sentence) - 1 else self.pos_tags[index] + self.pos_tags[index + 1],
+            "prev_pos+pos": self.pos_tags[index]
+            if index == 0
+            else self.pos_tags[index - 1] + self.pos_tags[index],
+            "pos+next_pos": self.pos_tags[index]
+            if index == len(self.tokenized_sentence) - 1
+            else self.pos_tags[index] + self.pos_tags[index + 1],
             "prev_word": "" if index == 0 else self.tokenized_sentence[index - 1],
             "prev_word2": "" if index < 2 else self.tokenized_sentence[index - 2],
             "next_word": ""
@@ -400,6 +455,10 @@ class PreProcessor:
         List[Dict[str, Any]]
             Description
         """
+        if self.defer_pos_tagging:
+            # If part of speech tagging was deferred, do it now
+            self.pos_tags = self.tag_partofspeech(self.tokenized_sentence)
+
         features = []
         for idx, _ in enumerate(self.tokenized_sentence):
             features.append(self.token_features(idx))

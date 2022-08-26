@@ -102,39 +102,94 @@ def singlarise_unit(token: str) -> str:
         return token
 
 
-def match_label(token: str, labels: Dict[str, str]) -> str:
-    """Match a token to it's label
-    This is naive in that it assumes a token can only have one label with the sentence
+def match_labels(tokenized_sentence: List[str], labels: Dict[str, str]) -> List[str]:
+    """Match a label to each token in the tokenized sentence
+    Possible labels are: QTY, UNIT, NAME, COMMENT, OTHER
+
+    This is made more complicated than it could because the labels for the training data are provided as string, which are a subset of the input sentnece.
+    This means we have to try to match each token to one of the label strings.
+    The main problems with this are:
+        A token could appear multiple times and have different labels for each instance
+        A token might not be in any of the label strings
+
+    This function makes the assumes that the first time we come across a particular token in a tokenized sentence, it's get the first associated label.
+    This is not always true, because the first comma in a sentence is often not included in any of the label strings, but subsequent commas often are included in the comment label string
 
     Parameters
     ----------
-    token : str
-        Token to match
+    tokenized_sentence : List[str]
+        Tokenized ingredient sentence
+    labels : Dict[str, str]
+        Labels for sentence as a dict. The dict keys are the labels, the dict values are the strings that match each label
 
     Returns
     -------
-    str
-        Label for token, or None
+    List[str]
+        List of labels for each token.
     """
 
-    # TODO:
-    # 1. Handle ingredients that have both US and metric units (or remove them from training data...)
-    # 2. Singularise all units so they match the label
+    token_labels = invert_labels_dict(labels)
 
-    # Make lower case first, beccause all labels are lower case
-    token = token.lower()
-    token = singlarise_unit(token)
+    matched_labels = []
+    for token in tokenized_sentence:
 
-    if token in labels["quantity"]:
-        return "QTY"
-    elif token in labels["unit"]:
-        return "UNIT"
-    elif token in labels["name"]:
-        return "NAME"
-    elif token in labels["comment"]:
-        return "COMMENT"
-    else:
-        return "OTHER"
+        # Make lower case first, because all labels are lower case
+        token = token.lower()
+        token = singlarise_unit(token)
+
+        # Check if the token is in the token_labels dict, or if we've already used all the assigned labels
+        if token in token_labels.keys() and token_labels[token] != []:
+            # Assign the first label in the list to the current token
+            # We then remove this from the list, so repeated tokens get the next label
+            try:
+                matched_labels.append(token_labels[token][0])
+                del token_labels[token][0]
+            except:
+                breakpoint()
+        else:
+            # If the token is not anywhere in the labels, assign OTHER
+            matched_labels.append("OTHER")
+
+    assert len(matched_labels) == len(tokenized_sentence)
+
+    return matched_labels
+
+
+def invert_labels_dict(labels: Dict[str, str]) -> Dict[str, List[str]]:
+    """Reverse the labels dictionary. Instead of having the labels as the key, tokenize the values and have each token as a key.
+    If a token appears multiple times, the it has a list of labels
+
+    Parameters
+    ----------
+    labels : Dict[str, str]
+        Labels for an ingredient sentence as a dict, with labels as keys and sentences as values.
+
+    Returns
+    -------
+    Dict[str, List[str]]
+        Labels for an ingredient sentence as a dict, with tokens as keys and labels as values.
+        The values are a list of labels, to account for a particular appearing multiple times in a ingredient sentence, possibly with different labels
+    """
+    labels_map = {
+        "name": "NAME",
+        "unit": "UNIT",
+        "quantity": "QTY",
+        "comment": "COMMENT",
+    }
+
+    token_dict = {}
+    for label, sent in labels.items():
+        # Map label to preferred label
+        label = labels_map[label]
+
+        tokenized_sent = PreProcessor(sent, defer_pos_tagging=True).tokenized_sentence
+        for token in tokenized_sent:
+            if token in token_dict.keys():
+                token_dict[token].append(label)
+            else:
+                token_dict[token] = [label]
+
+    return token_dict
 
 
 def transform_to_dataset(
@@ -153,7 +208,7 @@ def transform_to_dataset(
     -------
     List[List[Dict[str, str]]]
         List of sentences transformed into features. Each sentence returns a list of dicts, with the dicts containing the features.
-     List[str]
+    List[str]
         List of labels transformed into QTY, UNIT, NAME, COMMENT, PUNCT or OTHER for each token
     """
     X, y = [], []
@@ -161,12 +216,7 @@ def transform_to_dataset(
     for sentence, label in zip(sentences, labels):
         p = PreProcessor(sentence)
         X.append(p.sentence_features())
-        y.append(
-            [
-                match_label(p.tokenized_sentence[index], label)
-                for index in range(len(p.tokenized_sentence))
-            ]
-        )
+        y.append(match_labels(p.tokenized_sentence, label))
 
     return X, y
 
