@@ -96,7 +96,7 @@ class PreProcessor:
     """
 
     def __init__(self, sentence: str, defer_pos_tagging=False):
-        """Summary
+        """Initialisation
 
         Parameters
         ----------
@@ -105,6 +105,7 @@ class PreProcessor:
         defer_pos_tagging : bool, optional
             Defer part of speech tagging until feature generation
         """
+        self.input = sentence
         self.sentence = self.clean(sentence)
         self.tokenized_sentence = REGEXP_TOKENIZER.tokenize(self.sentence)
         self.defer_pos_tagging = defer_pos_tagging
@@ -112,6 +113,32 @@ class PreProcessor:
             self.pos_tags = self.tag_partofspeech(self.tokenized_sentence)
         else:
             self.pos_tags = []
+
+    def __repr__(self) -> str:
+        """__repr__ method
+
+        Returns
+        -------
+        str
+            String representation of initialised object
+        """
+        return f'PreProcessor("{self.input}")'
+
+    def __str__(self) -> str:
+        """__str__ method
+
+        Returns
+        -------
+        str
+            Human readble string representation of object
+        """
+        _str = [
+            "Pre-processed recipe ingedient sentence",
+            f"\t    Input: {self.input}",
+            f"\t  Cleaned: {self.sentence}",
+            f"\tTokenized: {self.tokenized_sentence}",
+        ]
+        return "\n".join(_str)
 
     def clean(self, sentence: str) -> str:
         """Clean sentence prior to feature extraction
