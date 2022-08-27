@@ -2,6 +2,7 @@
 
 import re
 from fractions import Fraction
+from html import unescape
 from typing import Any, Dict, List
 
 from nltk.tag import pos_tag
@@ -127,6 +128,7 @@ class PreProcessor:
         """
         # List of funtions to apply to sentence, in order
         funcs = [
+            self.replace_html_fractions,
             self.replace_unicode_fractions,
             self.replace_fake_fractions,
             self.split_quantity_and_units,
@@ -138,6 +140,21 @@ class PreProcessor:
             sentence = func(sentence)
 
         return sentence
+
+    def replace_html_fractions(self, sentence: str) -> str:
+        """Replace html fractions e.g. &frac12; with unicode equivalents
+
+        Parameters
+        ----------
+        sentence : str
+            Ingredient sentence
+
+        Returns
+        -------
+        str
+            Ingredient sentence with html fractions replaced
+        """
+        return unescape(sentence)
 
     def replace_fake_fractions(self, sentence: str) -> str:
         """Attempt to parse fractions from sentence and convert to decimal
