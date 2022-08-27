@@ -218,8 +218,8 @@ If you don't want the train the model yourself, then a pre-trained model is prov
  'quantity': '3',
  'unit': 'pound',
  'name': 'pork shoulder',
- 'comment': 'cut into 2-inch chunks',
- 'other': ','}
+ 'comment': ', cut into 2-inch chunks',
+ 'other': ''}
 
 # Output confidence for each label
 >>> parse_ingredient("3 pounds pork shoulder, cut into 2-inch chunks", confidence=True)
@@ -227,16 +227,29 @@ If you don't want the train the model yourself, then a pre-trained model is prov
  'quantity': '3',
  'unit': 'pound',
  'name': 'pork shoulder',
- 'comment': 'cut into 2-inch chunks',
- 'other': ',',
- 'confidence': {'quantity': 0.9987,
-  'unit': 0.9943,
-  'name': 0.9208,
-  'comment': 0.9903,
-  'other': 0.539}}
+ 'comment': ', cut into 2-inch chunks',
+ 'other': '',
+ 'confidence': {'quantity': 0.9986,
+  'unit': 0.9967,
+  'name': 0.9535,
+  'comment': 0.9967,
+  'other': 0}}
 ```
 
 This requires ```python-crfsuite``` to run.
+
+The returned dictionary has the format
+
+```python
+{
+    "sentence": str,
+    "quantity": str,
+    "unit": str,
+    "name": str,
+    "comment": Union[List[str], str],
+    "other": Union[List[str], str]
+}
+```
 
 ## Model accuracy
 

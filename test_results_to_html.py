@@ -4,12 +4,23 @@ from typing import Any, Dict, List
 from ingredient_parser.preprocess import PreProcessor
 
 
-def output_test_results(
+def test_results_to_html(
     sentences: List[str],
     labels_truth: List[List[str]],
     labels_prediction: List[List[str]],
 ) -> None:
+    """Output results for test vectors that failed to label entire sentence with the truth labels
+    in HTML format
 
+    Parameters
+    ----------
+    sentences : List[str]
+        List of ingredient sentences
+    labels_truth : List[List[str]]
+        True labels for sentence
+    labels_prediction : List[List[str]]
+        Predicted labels for sentence
+    """
     html = ET.Element("html")
     head = ET.Element("head")
     body = ET.Element("body")
@@ -46,27 +57,46 @@ def output_test_results(
     heading.text = "Incorrect sentences in test data"
     body.append(heading)
 
+    incorrect = 0
     for (sentence, truth, prediction) in zip(
         sentences, labels_truth, labels_prediction
     ):
         if truth != prediction:
-            tokens: List[str] = PreProcessor(sentence).tokenized_sentence
+            tokens: List[str] = PreProcessor(
+                sentence, defer_pos_tagging=True
+            ).tokenized_sentence
             table = create_html_table(tokens, truth, prediction)
             p = ET.Element("p")
             p.text = sentence
             body.append(p)
             body.append(table)
 
+            incorrect += 1
+
+    heading2 = ET.Element("h2")
+    heading2.text = f"{incorrect:,} incorrect sentences."
+    body.insert(1, heading2)
+
     ET.indent(html, space="    ")
-    with open("output.html", "w") as f:
+    with open("test_results.html", "w") as f:
         f.write("<!DOCTYPE html>\n")
         f.write(ET.tostring(html, encoding="unicode", method="html"))
 
 
 def create_html_table(
     tokens: List[str], labels_truth: List[str], labels_prediction: List[str]
-):
+) -> ET.Element:
+    """Create HTM table for a sentence to show tokens, true labels and predicted labels
 
+    Parameters
+    ----------
+    tokens : List[str]
+        List of tokens for sentence
+    labels_truth : List[str]
+        True labels for each token
+    labels_prediction : List[str]
+        Predicted labels for each token
+    """
     table = ET.Element("table")
 
     tokens_tr = ET.Element("tr")

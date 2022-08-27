@@ -23,6 +23,16 @@ TAGGER.open(model_path)
 def parse_ingredient(sentence: str, confidence: bool = False) -> Dict[str, Any]:
     """Parse ingredient senetence using CRF model to return structured data
 
+    Return dictionary has the following types
+    {
+        "sentence": str,
+        "quantity": str,
+        "unit": str,
+        "name": str,
+        "comment": Union[List[str], str],
+        "other": Union[List[str], str]
+    }
+
     Parameters
     ----------
     sentence : str

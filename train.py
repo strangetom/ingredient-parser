@@ -10,7 +10,7 @@ import pycrfsuite
 from sklearn.model_selection import train_test_split
 
 from ingredient_parser import PreProcessor
-from output_test_results import output_test_results
+from test_results_to_html import test_results_to_html
 
 
 @dataclass
@@ -148,7 +148,7 @@ def match_labels(tokenized_sentence: List[str], labels: Dict[str, str]) -> List[
             # We then remove this from the list, so repeated tokens get the next label
             matched_labels.append(token_labels[token][0])
             del token_labels[token][0]
-        
+
         else:
             # If the token is not anywhere in the labels, assign OTHER
             matched_labels.append("OTHER")
@@ -315,8 +315,9 @@ if __name__ == "__main__":
     labels_train = NYT_labels_train + SF_labels_train
     ingredients_test = NYT_ingredients_test + SF_ingredients_test
     labels_test = NYT_labels_test + SF_labels_test
-    print(f"[INFO] {len(ingredients_train)} training vectors.")
-    print(f"[INFO] {len(ingredients_test)} testing vectors.")
+    print(f"[INFO] {len(ingredients_train)+len(ingredients_test):,} total vectors")
+    print(f"[INFO] {len(ingredients_train):,} training vectors.")
+    print(f"[INFO] {len(ingredients_test):,} testing vectors.")
 
     print(f"[INFO] Transforming vectors")
     X_train, y_train = transform_to_dataset(ingredients_train, labels_train)
@@ -346,4 +347,4 @@ if __name__ == "__main__":
     print(f"\t-> {100*stats.correct_words/stats.total_words:.2f}%")
 
     if args.detailed_results:
-        output_test_results(ingredients_test, y_test, y_pred)
+        test_results_to_html(ingredients_test, y_test, y_pred)
