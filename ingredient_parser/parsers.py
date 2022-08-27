@@ -6,10 +6,10 @@ import os
 import pickle
 from itertools import groupby
 from operator import itemgetter
-from typing import Any, Dict, List, TypedDict, Union
+from typing import Any, Dict, List, Union
 
 import pycrfsuite
-from typing_extensions import NotRequired
+from typing_extensions import NotRequired, TypedDict
 
 from .preprocess import PreProcessor
 from .utils import average, find_idx, fix_punctuation, join_adjacent
