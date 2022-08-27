@@ -11,18 +11,31 @@ from typing import Any, Dict, Generator, Iterator, List, Union
 
 def find_idx(labels: List[str], key: str) -> List[int]:
     """Find indices of elements matching key in list
-
+    If there is an element with the COMMA label before an element with label key, 
+    include this in the list of matched indices
+    
     Parameters
     ----------
     labels : List[str]
         List to search for key in
     key : str
         Key to find in list
+    
+    Returns
+    -------
+    List[int]
+        List of indices of elements with label key
+        Includes elements with label COMMA if the element is previous to a key label
     """
     matches = []
+    prev_el = ""
     for idx, el in enumerate(labels):
         if el == key:
+            if prev_el == "COMMA":
+                matches.append(idx-1)
             matches.append(idx)
+
+        prev_el = el
     return matches
 
 
@@ -100,9 +113,11 @@ def average(labels: List[str], scores: List[float], key: str) -> float:
     average = sum(score_list) / len(score_list)
     return round(average, 4)
 
-def squeeze_parentheses(sentence: str) -> str:
-    """Remove the space following an opening parens "(" and the space preceeding a closing parens ")"
-    caused by using " ".join to turn a list into a sentence
+def fix_punctuation(sentence: str) -> str:
+    """Fix punctuation when joining a list into a string
+    1. Remove the space following an opening parens "(" and the space preceeding a closing parens ")"
+       caused by using " ".join to turn a list into a sentence
+    2. Remove the space preceeding a comma
     
     Parameters
     ----------
@@ -114,4 +129,4 @@ def squeeze_parentheses(sentence: str) -> str:
     str
         Modified sentence
     """
-    return sentence.replace("( ", "(").replace(" )", ")")
+    return sentence.replace("( ", "(").replace(" )", ")").replace(" ,", ",")
