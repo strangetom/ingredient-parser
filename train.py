@@ -104,7 +104,7 @@ def singlarise_unit(token: str) -> str:
 
 def match_labels(tokenized_sentence: List[str], labels: Dict[str, str]) -> List[str]:
     """Match a label to each token in the tokenized sentence
-    Possible labels are: QTY, UNIT, NAME, COMMENT, OTHER
+    Possible labels are: QTY, UNIT, NAME, COMMENT, OTHER, COMMA
 
     This is made more complicated than it could because the labels for the training data are provided as string, which are a subset of the input sentnece.
     This means we have to try to match each token to one of the label strings.
@@ -112,8 +112,9 @@ def match_labels(tokenized_sentence: List[str], labels: Dict[str, str]) -> List[
         A token could appear multiple times and have different labels for each instance
         A token might not be in any of the label strings
 
-    This function makes the assumes that the first time we come across a particular token in a tokenized sentence, it's get the first associated label.
-    This is not always true, because the first comma in a sentence is often not included in any of the label strings, but subsequent commas often are included in the comment label string
+    This function assumes that the first time we come across a particular token in a tokenized sentence, it's get the first associated label.
+    Commas are treated specially with the label COMMA because they can legitimately appear anywhere in the sentence and often don't appear in the labelled strings
+    Post processing will assign commas to one of the other labels based on it's location in the sentence.
 
     Parameters
     ----------
@@ -137,20 +138,20 @@ def match_labels(tokenized_sentence: List[str], labels: Dict[str, str]) -> List[
         token = token.lower()
         token = singlarise_unit(token)
 
+        # Treat commas as special because they can appear all over the place in a sentence
+        if token == ",":
+            matched_labels.append("COMMA")
+
         # Check if the token is in the token_labels dict, or if we've already used all the assigned labels
-        if token in token_labels.keys() and token_labels[token] != []:
+        elif token in token_labels.keys() and token_labels[token] != []:
             # Assign the first label in the list to the current token
             # We then remove this from the list, so repeated tokens get the next label
-            try:
-                matched_labels.append(token_labels[token][0])
-                del token_labels[token][0]
-            except:
-                breakpoint()
+            matched_labels.append(token_labels[token][0])
+            del token_labels[token][0]
+        
         else:
             # If the token is not anywhere in the labels, assign OTHER
             matched_labels.append("OTHER")
-
-    assert len(matched_labels) == len(tokenized_sentence)
 
     return matched_labels
 

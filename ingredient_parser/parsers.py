@@ -11,7 +11,7 @@ from typing import Any, Dict, List, Union
 import pycrfsuite
 
 from .preprocess import PreProcessor
-from .utils import average, find_idx, join_adjacent, squeeze_parentheses
+from .utils import average, find_idx, join_adjacent, fix_punctuation
 
 # Create TAGGER object
 pkg_dir, _ = os.path.split(__file__)
@@ -46,21 +46,21 @@ def parse_ingredient(sentence: str, confidence: bool = False) -> Dict[str, Any]:
     name = " ".join([tokens[idx] for idx in find_idx(labels, "NAME")])
     comment = join_adjacent(tokens, find_idx(labels, "COMMENT"))
     if isinstance(comment, list):
-        comment = [squeeze_parentheses(item) for item in comment]
+        comment = [fix_punctuation(item) for item in comment]
     else:
-        comment = squeeze_parentheses(comment)
+        comment = fix_punctuation(comment)
 
     other = join_adjacent(tokens, find_idx(labels, "OTHER"))
     if isinstance(other, list):
-        other = [squeeze_parentheses(item) for item in other]
+        other = [fix_punctuation(item) for item in other]
     else:
-        other = squeeze_parentheses(other)
+        other = fix_punctuation(other)
 
     parsed: Dict[str, Any] = {
         "sentence": sentence,
         "quantity": quantity,
         "unit": unit,
-        "name": squeeze_parentheses(name),
+        "name": fix_punctuation(name),
         "comment": comment,
         "other": other,
     }
