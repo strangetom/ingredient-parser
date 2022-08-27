@@ -165,7 +165,7 @@ class PreProcessor:
 
             split = match.split()
             summed = float(sum(Fraction(s) for s in split))
-            rounded = round(summed, 2)
+            rounded = round(summed, 3)
             sentence = sentence.replace(match, f"{rounded:g}")
 
         return sentence
