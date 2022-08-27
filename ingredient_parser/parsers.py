@@ -6,12 +6,24 @@ import os
 import pickle
 from itertools import groupby
 from operator import itemgetter
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, TypedDict, Union
 
 import pycrfsuite
+from typing_extensions import NotRequired
 
 from .preprocess import PreProcessor
-from .utils import average, find_idx, join_adjacent, fix_punctuation
+from .utils import average, find_idx, fix_punctuation, join_adjacent
+
+
+class ParsedIngredient(TypedDict):
+    sentence: str
+    quantity: str
+    unit: str
+    name: str
+    comment: Union[List[str], str]
+    other: Union[List[str], str]
+    confidence: NotRequired[Dict[str, float]]
+
 
 # Create TAGGER object
 pkg_dir, _ = os.path.split(__file__)
@@ -20,7 +32,7 @@ TAGGER = pycrfsuite.Tagger()
 TAGGER.open(model_path)
 
 
-def parse_ingredient(sentence: str, confidence: bool = False) -> Dict[str, Any]:
+def parse_ingredient(sentence: str, confidence: bool = False) -> ParsedIngredient:
     """Parse ingredient senetence using CRF model to return structured data
 
     Return dictionary has the following types
@@ -30,7 +42,8 @@ def parse_ingredient(sentence: str, confidence: bool = False) -> Dict[str, Any]:
         "unit": str,
         "name": str,
         "comment": Union[List[str], str],
-        "other": Union[List[str], str]
+        "other": Union[List[str], str],
+        "confidence": Dict[str, float] <- Optional
     }
 
     Parameters
@@ -42,7 +55,7 @@ def parse_ingredient(sentence: str, confidence: bool = False) -> Dict[str, Any]:
 
     Returns
     -------
-    Dict[str, Any]
+    ParsedIngredient
         Dictionary of structured data parsed from input string
     """
 
@@ -66,7 +79,7 @@ def parse_ingredient(sentence: str, confidence: bool = False) -> Dict[str, Any]:
     else:
         other = fix_punctuation(other)
 
-    parsed: Dict[str, Any] = {
+    parsed: ParsedIngredient = {
         "sentence": sentence,
         "quantity": quantity,
         "unit": unit,
@@ -91,7 +104,7 @@ def parse_ingredient(sentence: str, confidence: bool = False) -> Dict[str, Any]:
 
 def parse_multiple_ingredients(
     sentences: List[str], confidence: bool = False
-) -> List[Dict[str, Any]]:
+) -> List[ParsedIngredient]:
     """Parse multiple ingredients from text file.
     Each line of the file is one ingredient sentence
 
@@ -104,7 +117,7 @@ def parse_multiple_ingredients(
 
     Returns
     -------
-    List[Dict[str, Any]]
+    List[ParsedIngredient]
         List of dictionaries of structured data parsed from input sentences
     """
     parsed = []
