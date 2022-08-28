@@ -29,8 +29,8 @@ RANGE_PATTERN = re.compile(r"\d+\s*\-\d+")
 STRING_RANGE_PATTERN = re.compile(r"([\d\.]+)(-)?\s+(to|or)\s+([\d\.]+)(-)?")
 
 # Predefine tokenizer
-# The regex pattern matches the tokens: any word character, including '.' and '-', or ( or ) or , or "
-REGEXP_TOKENIZER = RegexpTokenizer(r'[\w\.-]+|\(|\)|,|"', gaps=False)
+# The regex pattern matches the tokens: any word character (including '.' and '-' and ' ) or ( or ) or , or "
+REGEXP_TOKENIZER = RegexpTokenizer(r"[\w\.\-\']+|\(|\)|,|\"", gaps=False)
 
 # Plural and singular units
 UNITS = {
