@@ -199,6 +199,12 @@ class PreProcessor:
             Ingredient sentence with fractions replaced with decimals
         """
         matches = FRACTION_PARTS_PATTERN.findall(sentence)
+        # This is a bit of a hack.
+        # If a fraction appears multiple times but in different forms e.g. 1/2 and 1 1/2, then
+        # we need to replace the longest one first, otherwise both instance of 1/2 would be replaced
+        # at the same time which would mean that the instance of 1 1/2 would end up as 1 0.5 instead of 1.5
+        matches.sort(key=len, reverse=True)
+
         if matches is None:
             return sentence
 
