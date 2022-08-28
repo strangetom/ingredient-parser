@@ -116,9 +116,10 @@ def average(labels: List[str], scores: List[float], key: str) -> float:
 
 def fix_punctuation(sentence: str) -> str:
     """Fix punctuation when joining a list into a string
-    1. Remove the space following an opening parens "(" and the space preceeding a closing parens ")"
+    1. Remove the ", " from start of the sentence
+    2. Remove the space following an opening parens "(" and the space preceeding a closing parens ")"
        caused by using " ".join to turn a list into a sentence
-    2. Remove the space preceeding a comma
+    3. Remove the space preceeding a comma
 
     Parameters
     ----------
@@ -130,4 +131,8 @@ def fix_punctuation(sentence: str) -> str:
     str
         Modified sentence
     """
+    # Let's not have any sentence fragments start with a comma
+    if sentence.startswith(", "):
+        sentence = sentence[2:]
+
     return sentence.replace("( ", "(").replace(" )", ")").replace(" ,", ",")
