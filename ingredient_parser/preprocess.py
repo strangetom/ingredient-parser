@@ -20,12 +20,13 @@ CAPITALISED_PATTERN = re.compile(r"^[A-Z]")
 QUANTITY_UNITS = re.compile(r"(\d)([a-zA-Z])")
 
 # Regex pattern for matching a numeric range e.g. 1-2, 2-3
-RANGE_PATTERN = re.compile(r"\d+\-\d+")
+RANGE_PATTERN = re.compile(r"\d+\s*\-\d+")
 
 # Regex pattern for matching a range in string format e.g. 1 to 2, 8.5 to 12, 4 or 5
 # Assumes fake fractions and unicode fraction have already been replaced
+# Allows the range to include a hyphen after each number, which are captured in separate groups
 # Captures the two number in the range in separate capture groups
-STRING_RANGE_PATTERN = re.compile(r"([\d\.]+)\s+(to|or)\s+([\d\.]+)")
+STRING_RANGE_PATTERN = re.compile(r"([\d\.]+)(-)?\s+(to|or)\s+([\d\.]+)(-)?")
 
 # Predefine tokenizer
 # The regex pattern matches the tokens: any word character, including '.' and '-', or ( or ) or , or "
@@ -272,6 +273,7 @@ class PreProcessor:
         For example:
         1 to 2 -> 1-2
         8.5 to 12.5 -> 8.5-12.5
+        16- to 9-
 
         Parameters
         ----------
@@ -283,7 +285,7 @@ class PreProcessor:
         str
             Ingredient sentence with string ranges replaced with standardised range
         """
-        return STRING_RANGE_PATTERN.sub(r"\1-\3", sentence)
+        return STRING_RANGE_PATTERN.sub(r"\1-\4 ", sentence)
 
     def singlarise_unit(self, sentence: str) -> str:
         """Singularise units
