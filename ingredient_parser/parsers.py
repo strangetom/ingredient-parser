@@ -138,14 +138,8 @@ if __name__ == "__main__":
         action="store_true",
         help="Return confidence scores for labels",
     )
-    parser.add_argument(
-        "-f", "--file", help="Path to file of ingredient strings to parse"
-    )
     args = parser.parse_args()
 
     if args.string is not None:
         parsed = parse_ingredient(args.string, args.confidence)
         print(json.dumps(parsed, indent=2))
-    elif args.file is not None:
-        parsed_multiple = parse_multiple_ingredients(args.file, args.confidence)
-        print(json.dumps(parsed_multiple, indent=2))
