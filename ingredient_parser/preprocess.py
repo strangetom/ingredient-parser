@@ -77,6 +77,19 @@ UNITS = {
     "chops": "chop",
 }
 
+STRING_NUMBERS = {
+    "half": "0.5",
+    "one": "1",
+    "two": "2",
+    "three": "3",
+    "four": "4",
+    "five": "5",
+    "six": "6",
+    "seven": "7",
+    "eight": "8",
+    "nine": "9",
+}
+
 
 class PreProcessor:
 
@@ -154,8 +167,10 @@ class PreProcessor:
         str
             Clean ingredient sentence
         """
-        # List of funtions to apply to sentence, in order
+        # List of funtions to apply to sentence
+        # Note that the order matters
         funcs = [
+            self.replace_string_numbers,
             self.replace_html_fractions,
             self.replace_unicode_fractions,
             self.replace_fake_fractions,
@@ -166,6 +181,25 @@ class PreProcessor:
 
         for func in funcs:
             sentence = func(sentence)
+
+        return sentence
+
+    def replace_string_numbers(self, sentence: str) -> str:
+        """Replace string numbers (e.g. one, two) with numeric values (e.g. 1, 2)
+
+        Parameters
+        ----------
+        sentence : str
+            Ingredient sentence
+
+        Returns
+        -------
+        str
+            Ingredient sentence with string numbers replace with numeric values
+        """
+        for s, n in STRING_NUMBERS.items():
+            # This is case insensitive so it replace e.g. "one" and "One"
+            sentence = re.sub(s, n, sentence, flags=re.IGNORECASE)
 
         return sentence
 
