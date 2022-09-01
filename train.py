@@ -2,7 +2,6 @@
 
 import argparse
 import csv
-import pickle
 from dataclasses import dataclass
 from typing import Dict, List
 
@@ -258,7 +257,7 @@ def evaluate(
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(
-        description="Generate CRF++ compatible training and testing data files from csv"
+        description="Train a CRF model to parse structured data from recipe ingredient sentences"
     )
     parser.add_argument("--nyt", help="Path to input csv file for NYTimes data")
     parser.add_argument("--sf", help="Path to input csv file for StrangerFoods data")
