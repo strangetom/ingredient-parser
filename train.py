@@ -45,10 +45,10 @@ def load_csv(csv_filename: str) -> tuple[List[str], List[Dict[str, str]]]:
             ingredients.append(row[0])
             labels.append(
                 {
-                    "name": row[1].strip(),
-                    "quantity": row[2].strip(),
-                    "unit": row[3].strip(),
-                    "comment": row[4].strip(),
+                    "name": row[1].strip().lower(),
+                    "quantity": row[2].strip().lower(),
+                    "unit": row[3].strip().lower(),
+                    "comment": row[4].strip().lower(),
                 }
             )
     return ingredients, labels
