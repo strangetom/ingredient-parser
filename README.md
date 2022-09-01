@@ -26,7 +26,7 @@ The recipes from my website: https://strangerfoods.org. This data is found in th
 
 * The dataset is extremely clean and well labelled. This isn't a particularly useful feature.
 * The dataset primarily uses metric units
-* The dataset is small, roughly 6500 entries
+* The dataset is small, roughly 7100 entries
 
 ### New York Times
 
@@ -34,7 +34,7 @@ The New York Times released a dataset of labelled ingredients in their [Ingredie
 
 * The dataset isn't very clean and the labelling is suspect in places.
 * The dataset primarily uses imperial/US customary units
-* The dataset is large, roughly 180,000 entries
+* The dataset is large, roughly 178,000 entries
 
 The two datasets have different advantages and disadvantages, therefore combining the two should yield an improvement.
 
@@ -253,31 +253,55 @@ The returned dictionary has the format
 
 ## Model accuracy
 
-The model provided in ```ingredient-parser/``` directory has the following accuracy on a test dataset of 9227 sentences:
+The model provided in ```ingredient-parser/``` directory has the following accuracy on a test dataset of 25%:
 
 ```
 Sentence-level results:
 	Total: 9277
-	Correct: 7650
-	-> 82.46%
+	Correct: 7649
+	-> 82.45%
 
 Word-level results:
-	Total: 53408
-	Correct: 50402
-	-> 94.37%
+	Total: 53622
+	Correct: 50714
+	-> 94.58%
 ```
 
 My interpretation of these results is the the high word-level accuracy compared to the lower sentence-level accuracy means that if the model is getting a label wrong, it's usually only one label in the sentence.
 
+## Cleaning up the NYTimes data
+
+The NYTimes dataset is very inconsistently labelled, which makes training a model more difficult that it could. The dataset was cleaned, applying the following rules to the labels. The input column was (mostly) unchanged.
+
+- All numbers in labels are decimal
+- All ranges are formatted as X-Y. 
+  - This covers "1 to 2", "1 or 2", "1-2", "1- to 2-" etc.
+- Any cases of consolidated units were undone
+  - For example "2 tablespoons plus 1 teaspoon" was not consolidated into 2.5 tablespoons
+- Adjectives for ingredients that fundamentally affect the ingredient are kept in the name e.g.
+  - ground spices
+  - ground meats
+  - red/white/yellow/green onion
+  - freshly ground black pepper
+
 ## To do list
 
 - [ ] Clean up the NYTimes data.
+
 - [x] Change library from ```sklearn_crfsuite``` to [```python_crfsuite```](https://github.com/scrapinghub/python-crfsuite) because the ```sklearn_crfsuite``` appears to be unmaintained and breaking in newer versions of python. 
+
 - [ ] Investigate which features are most relevant and which can be removed
   - [ ] The ```tagger.info()``` method can help here
-- [ ] Investigate whether it's reasonable to use the first 20,000 entries in the NYTimes dataset.
+
+- [ ] Investigate whether it's reasonable to use the first 30,000 entries in the NYTimes dataset.
   - [ ] Should it be more?
+
+    More seems to improve the model performance
+
   - [ ] Should it be randomly selected?
+
 - [x] Output confidence scores using ```tagger.marginal()```
+
 - [x] Write a tool that uses the model and return a dict like the one at the top of this README.
+
 - [ ] Compare the model results to my regular expression based parser.
