@@ -1,12 +1,8 @@
 #!/usr/bin/env python3
 
-import argparse
-import json
-import os
-import pickle
 from itertools import groupby
 from operator import itemgetter
-from typing import Any, Dict, Generator, Iterator, List, Union
+from typing import Generator, Iterator, List, Union
 
 
 def find_idx(labels: List[str], key: str) -> List[int]:

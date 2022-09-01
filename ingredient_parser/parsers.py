@@ -3,10 +3,7 @@
 import argparse
 import json
 import os
-import pickle
-from itertools import groupby
-from operator import itemgetter
-from typing import Any, Dict, List, Union
+from typing import Dict, List, Union
 
 import pycrfsuite
 from typing_extensions import NotRequired, TypedDict

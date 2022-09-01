@@ -386,9 +386,9 @@ class PreProcessor:
             Smallest bucket true length fits in
 
         """
-        l = len(tokens)
+        length = len(tokens)
         for n in [4, 8, 12, 16, 20, 26, 32, 38, 44, 50, 70]:
-            if l < n:
+            if length < n:
                 return n
 
         return 0

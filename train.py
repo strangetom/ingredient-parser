@@ -318,7 +318,7 @@ if __name__ == "__main__":
     print(f"[INFO] {len(ingredients_train):,} training vectors.")
     print(f"[INFO] {len(ingredients_test):,} testing vectors.")
 
-    print(f"[INFO] Transforming vectors")
+    print("[INFO] Transforming vectors")
     X_train, y_train = transform_to_dataset(ingredients_train, labels_train)
     X_test, y_test = transform_to_dataset(ingredients_test, labels_test)
 
