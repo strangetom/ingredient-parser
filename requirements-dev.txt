@@ -2,3 +2,4 @@ scikit-learn>=1.1.1
 black>=22.6.0
 pyright>=1.1.267
 isort>=5.10.1
+flake8>=5.0.4
