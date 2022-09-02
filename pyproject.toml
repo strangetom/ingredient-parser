@@ -5,13 +5,6 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools]
 packages = ["ingredient_parser"]
 
-[options]
-zip_safe = false
-include_package_data = true
-
-[options.package_data]
-ingredient_parser = "model.crfsuite"
-
 [project]
 name = "ingredient_parser"
 version = "0.1.0"
