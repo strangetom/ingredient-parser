@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import importlib.resources as pkg_resources
 import json
 import os
 from typing import Dict, List, Union
@@ -23,10 +24,10 @@ class ParsedIngredient(TypedDict):
 
 
 # Create TAGGER object
-pkg_dir, _ = os.path.split(__file__)
-model_path = os.path.join(pkg_dir, "model.crfsuite")
 TAGGER = pycrfsuite.Tagger()
-TAGGER.open(model_path)
+model_path = pkg_resources.path(__package__, "model.crfsuite")
+with model_path as p:
+    TAGGER.open(str(p))
 
 
 def parse_ingredient(sentence: str, confidence: bool = False) -> ParsedIngredient:
