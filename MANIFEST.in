@@ -1,0 +1,2 @@
+include ingredient_parser/model.crfsuite
+prune */__pycache__

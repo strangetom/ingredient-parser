@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["ingredient_parser"]
+
+[options]
+zip_safe = false
+include_package_data = true
+
+[options.package_data]
+ingredient_parser = "model.crfsuite"
+
+[project]
+name = "ingredient_parser"
+version = "0.1.0"
+authors = [
+    { name="Tom Strange", email="tpstrange@gmail.com"},
+]
+description = "A Python package to parse structured information from recipe ingredient sentences"
+readme = "README.md"
+license = { file="LICENSE"}
+requires-python = ">=3.9"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "nltk>=3.7",
+    "python-crfsuite>=0.9.8",
+    "typing_extensions>=4.3.0",
+]
+
+[project.urls]
+"HomePage" = "https://github.com/strangetom/ingredient-parser"
+
+
