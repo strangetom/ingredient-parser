@@ -13,6 +13,12 @@ from .utils import average, find_idx, fix_punctuation, join_adjacent
 
 
 class ParsedIngredient(TypedDict):
+
+    """Return type for parse_ingredient function.
+
+    This specifies the dictionary keys and datatypes for their associated values.
+    """
+
     sentence: str
     quantity: str
     unit: str
@@ -30,18 +36,21 @@ TAGGER.open(model_path)
 
 
 def parse_ingredient(sentence: str, confidence: bool = False) -> ParsedIngredient:
-    """Parse ingredient senetence using CRF model to return structured data
+    """Parse an ingredient senetence using CRF model to return structured data
 
-    Return dictionary has the following types
-    {
-        "sentence": str,
-        "quantity": str,
-        "unit": str,
-        "name": str,
-        "comment": Union[List[str], str],
-        "other": Union[List[str], str],
-        "confidence": Dict[str, float] <- Optional
-    }
+    Returned dictionary has the following fields and datatypes
+
+    .. code-block:: python
+
+        {
+            "sentence": str,
+            "quantity": str,
+            "unit": str,
+            "name": str,
+            "comment": Union[List[str], str],
+            "other": Union[List[str], str],
+            "confidence": Dict[str, float] <- Optional
+        }
 
     Parameters
     ----------
@@ -54,6 +63,11 @@ def parse_ingredient(sentence: str, confidence: bool = False) -> ParsedIngredien
     -------
     ParsedIngredient
         Dictionary of structured data parsed from input string
+
+    Examples
+    ------
+    >>> parse_ingredient("2 yellow onions, finely chopped")
+    {'sentence': '2 yellow onions, finely chopped', 'quantity': '2', 'unit': '', 'name': 'yellow onions', 'comment': 'finely chopped', 'other': ''}
     """
 
     processed_sentence = PreProcessor(sentence)
@@ -102,8 +116,11 @@ def parse_ingredient(sentence: str, confidence: bool = False) -> ParsedIngredien
 def parse_multiple_ingredients(
     sentences: List[str], confidence: bool = False
 ) -> List[ParsedIngredient]:
-    """Parse multiple ingredients from text file.
-    Each line of the file is one ingredient sentence
+    """Parse multiple ingredient sentences in one go.
+
+    This function accepts a list of sentences, with element of the list representing one ingredient sentence.
+    A list of dictionaries is returned, with optional confidence values.
+    This function is a simple for-loop that iterates through each element of the input list.
 
     Parameters
     ----------
@@ -116,6 +133,16 @@ def parse_multiple_ingredients(
     -------
     List[ParsedIngredient]
         List of dictionaries of structured data parsed from input sentences
+
+    Examples
+    ------
+    >>> parse_multiple_ingredients(sentences)
+    >>> sentences = [
+        "3 tablespoons fresh lime juice, plus lime wedges for serving",
+        "2 tablespoons extra-virgin olive oil",
+        "2 large garlic cloves, finely grated",
+    ]
+    [{'sentence': '3 tablespoons fresh lime juice, plus lime wedges for serving', 'quantity': '3', 'unit': 'tablespoon', 'name': 'lime juice', 'comment': ['fresh', 'plus lime wedges for serving'], 'other': ''}, {'sentence': '2 tablespoons extra-virgin olive oil', 'quantity': '2', 'unit': 'tablespoon', 'name': 'extra-virgin olive oil', 'comment': '', 'other': ''}, {'sentence': '2 large garlic cloves, finely grated', 'quantity': '2', 'unit': 'clove', 'name': 'garlic', 'comment': 'finely grated', 'other': 'large'}]
     """
     parsed = []
     for sent in sentences:
