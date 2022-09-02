@@ -17,7 +17,7 @@ CAPITALISED_PATTERN = re.compile(r"^[A-Z]")
 
 # Regex pattern for finding quantity and units without space between them.
 # Assumes the quantity is always a number and the units always a letter
-QUANTITY_UNITS = re.compile(r"(\d)([a-zA-Z])")
+QUANTITY_UNITS_PATTERN = re.compile(r"(\d)([a-zA-Z])")
 
 # Regex pattern for matching a numeric range e.g. 1-2, 2-3
 RANGE_PATTERN = re.compile(r"\d+\s*\-\d+")
@@ -94,19 +94,90 @@ STRING_NUMBERS = {
 class PreProcessor:
 
     """Recipe ingredient sentence PreProcessor class.
-    Performs the necessary preprocessing on a sentence to generate the features required for the ingredient parser model
+
+    Performs the necessary preprocessing on a sentence to generate the features required for the ingredient parser model.
+
+    Each input sentence goes through a cleaning process to tidy up the input into a standardised form.
+    The cleaning steps are as follows:
+
+    1. | Replace numbers given as words with the numeric equivalent.
+       | e.g. one >> 1
+    2. | Replace fractions given in html mark up with the unicide representation.
+       | e.g. &frac12; >> ½
+    3. | Replace unicode fractions with the equivalent decimal form. Decimals are rounded to 3 a maximum of decimal places.
+       | e.g. ½ >> 0.5
+    4. | Replace "fake" fractions represented by 1/2, 2/3 etc. with the equivalent decimal form
+       | e.g. 1/2 >> 0.5
+    5. | A space is enforced between quantities and units
+    6. | Numeric ranges indicated in words using "to" or "or" are replaced with a standard numeric form
+       | e.g. 1 or 2 >> 1-2; 10 to 12 >> 10-12
+    7. | Units are made singular. This step uses a predefined list of plural units and their singular form.
+
+    Following the cleaning of the input sentence, it is tokenized into a list of tokens.
+    Each token is one of the following:
+
+    * A word, including . - and ' characters
+    * Opening or closing parentheses
+    * Comma
+    * Speech marks, "
+
+    The features for each token are computed on demand using the ``sentence_features`` method, which returns a list of dictionaries.
+    Each dictionary is the feature set for each token.
+    The following features are generated:
+
+    word
+        The current token.
+
+    pos
+        The part of speech tag for the current token.
+
+    prev_pos+pos
+        The combined part of speech tag for the previous token and the current token.
+
+    pos+next_pos
+        The combined part of speech tag for the current token and the next token.
+
+    prev_word
+        The previous token.
+
+    prev_word2
+        The token before the previous token.
+
+    next_word
+        The next token.
+
+    next_word2
+        The token following the next token.
+
+    is_capitalised
+        True if the token starts with a capital letter.
+
+    is_numeric
+        True if the token is numeric, including ranges.
+
+    is_unit
+        True if the token is a unit.
+
+    The sentence features can then be passed to the CRF model which will generate the parsed output.
+
+    Parameters
+    ----------
+    sentence : str
+        Input ingredient sentence.
+    defer_pos_tagging : bool
+        Defer part of speech tagging until feature generation.
+        Part of speech tagging is an expensive operation and it's not always needed when using this class.
 
     Attributes
     ----------
-    defer_pos_tagging : bool
-        Defer part of speech tagging until feature generation
-        Part of speech tagging is an expensive operation and it's not always needed
-    pos_tags : List[str]
-        Part of speech tag for each token in the tokenized sentence
-    sentence : str
-        Input ingredient sentence
+    input: str
+        Input ingredient sentence.
+    sentence: str
+        Input ingredient sentence, cleaned to standardised form.
     tokenized_sentence : List[str]
-        Tokenised ingredient sentence
+        Tokenised ingredient sentence.
+    pos_tags : List[str]
+        Part of speech tag for each token in the tokenized sentence.
     """
 
     def __init__(self, sentence: str, defer_pos_tagging=False):
@@ -120,11 +191,11 @@ class PreProcessor:
             Defer part of speech tagging until feature generation
         """
         self.input = sentence
-        self.sentence = self.clean(sentence)
+        self.sentence = self._clean(sentence)
         self.tokenized_sentence = REGEXP_TOKENIZER.tokenize(self.sentence)
         self.defer_pos_tagging = defer_pos_tagging
         if not defer_pos_tagging:
-            self.pos_tags = self.tag_partofspeech(self.tokenized_sentence)
+            self.pos_tags = self._tag_partofspeech(self.tokenized_sentence)
         else:
             self.pos_tags = []
 
@@ -154,7 +225,7 @@ class PreProcessor:
         ]
         return "\n".join(_str)
 
-    def clean(self, sentence: str) -> str:
+    def _clean(self, sentence: str) -> str:
         """Clean sentence prior to feature extraction
 
         Parameters
@@ -170,13 +241,13 @@ class PreProcessor:
         # List of funtions to apply to sentence
         # Note that the order matters
         funcs = [
-            self.replace_string_numbers,
-            self.replace_html_fractions,
-            self.replace_unicode_fractions,
-            self.replace_fake_fractions,
-            self.split_quantity_and_units,
-            self.replace_string_range,
-            self.singlarise_unit,
+            self._replace_string_numbers,
+            self._replace_html_fractions,
+            self._replace_unicode_fractions,
+            self._replace_fake_fractions,
+            self._split_quantity_and_units,
+            self._replace_string_range,
+            self._singlarise_unit,
         ]
 
         for func in funcs:
@@ -184,7 +255,7 @@ class PreProcessor:
 
         return sentence
 
-    def replace_string_numbers(self, sentence: str) -> str:
+    def _replace_string_numbers(self, sentence: str) -> str:
         """Replace string numbers (e.g. one, two) with numeric values (e.g. 1, 2)
 
         Parameters
@@ -203,7 +274,7 @@ class PreProcessor:
 
         return sentence
 
-    def replace_html_fractions(self, sentence: str) -> str:
+    def _replace_html_fractions(self, sentence: str) -> str:
         """Replace html fractions e.g. &frac12; with unicode equivalents
 
         Parameters
@@ -218,7 +289,7 @@ class PreProcessor:
         """
         return unescape(sentence)
 
-    def replace_fake_fractions(self, sentence: str) -> str:
+    def _replace_fake_fractions(self, sentence: str) -> str:
         """Attempt to parse fractions from sentence and convert to decimal
         This looks for fractions with the format of 1/2, 1/4, 1 1/2 etc.
 
@@ -255,7 +326,7 @@ class PreProcessor:
 
         return sentence
 
-    def replace_unicode_fractions(self, sentence: str) -> str:
+    def _replace_unicode_fractions(self, sentence: str) -> str:
         """Replace unicode fractions with a 'fake' ascii equivalent.
         The ascii equivalent is used because the replace_fake_fractions function can deal with spaces between an integer and the fraction.
 
@@ -292,7 +363,7 @@ class PreProcessor:
 
         return sentence
 
-    def split_quantity_and_units(self, sentence: str) -> str:
+    def _split_quantity_and_units(self, sentence: str) -> str:
         """Insert space between quantity and unit
         This currently finds any instances of a number followed directly by a letter with no space inbetween.
 
@@ -306,9 +377,9 @@ class PreProcessor:
         str
             Ingredient sentence with spaces inserted between quantity and units
         """
-        return QUANTITY_UNITS.sub(r"\1 \2", sentence)
+        return QUANTITY_UNITS_PATTERN.sub(r"\1 \2", sentence)
 
-    def replace_string_range(self, sentence: str) -> str:
+    def _replace_string_range(self, sentence: str) -> str:
         """Replace range in the form "<num> to <num" with standardised range "<num>-<num>"
         For example:
         1 to 2 -> 1-2
@@ -327,7 +398,7 @@ class PreProcessor:
         """
         return STRING_RANGE_PATTERN.sub(r"\1-\4 ", sentence)
 
-    def singlarise_unit(self, sentence: str) -> str:
+    def _singlarise_unit(self, sentence: str) -> str:
         """Singularise units
         e.g. cups -> cup, tablespoons -> tablespoon
 
@@ -346,7 +417,7 @@ class PreProcessor:
 
         return sentence
 
-    def tag_partofspeech(self, tokens: List[str]) -> List[str]:
+    def _tag_partofspeech(self, tokens: List[str]) -> List[str]:
         """Tag tokens with part of speech using universal tagset
         This function manually fixes tags that are incorrect in the context of:
         1. Change tags of numeric ranges to CD
@@ -372,7 +443,7 @@ class PreProcessor:
             tags.append(tag)
         return tags
 
-    def get_length(self, tokens: List[str]) -> int:
+    def _get_length(self, tokens: List[str]) -> int:
         """Get the smallest bucket the length of the tokens list fits into.
 
         Parameters
@@ -393,7 +464,7 @@ class PreProcessor:
 
         return 0
 
-    def is_unit(self, token: str) -> bool:
+    def _is_unit(self, token: str) -> bool:
         """Return True if token is a unit
 
         Parameters
@@ -408,7 +479,7 @@ class PreProcessor:
         """
         return token in UNITS.values()
 
-    def is_numeric(self, token: str) -> bool:
+    def _is_numeric(self, token: str) -> bool:
         """Return True if token is numeric
 
         Parameters
@@ -423,7 +494,7 @@ class PreProcessor:
         """
         if "-" in token:
             parts = token.split("-")
-            return all([self.is_numeric(part) for part in parts])
+            return all([self._is_numeric(part) for part in parts])
 
         try:
             float(token)
@@ -431,7 +502,7 @@ class PreProcessor:
         except ValueError:
             return False
 
-    def follows_comma(self, token: str) -> bool:
+    def _follows_comma(self, token: str) -> bool:
         """Return True if token follows a comma (by any amount) in sentence
 
         Parameters
@@ -454,7 +525,7 @@ class PreProcessor:
         except ValueError:
             return False
 
-    def is_capitalised(self, token: str) -> bool:
+    def _is_capitalised(self, token: str) -> bool:
         """Return True is token starts with a capital letter
 
         Parameters
@@ -469,7 +540,7 @@ class PreProcessor:
         """
         return CAPITALISED_PATTERN.match(token) is not None
 
-    def is_inside_parentheses(self, token: str) -> bool:
+    def _is_inside_parentheses(self, token: str) -> bool:
         """Return True is token is inside parentheses within the sentence or is a parenthesis
 
         Parameters
@@ -497,7 +568,7 @@ class PreProcessor:
             and ")" in self.tokenized_sentence[token_index + 1 :]
         )
 
-    def token_features(self, index: int) -> Dict[str, Any]:
+    def _token_features(self, index: int) -> Dict[str, Any]:
         """Return the features for each token in the sentence
 
         Parameters
@@ -528,9 +599,9 @@ class PreProcessor:
             "next_word2": ""
             if index >= len(self.tokenized_sentence) - 2
             else self.tokenized_sentence[index + 2],
-            "is_capitalised": self.is_capitalised(token),
-            "is_numeric": self.is_numeric(token),
-            "is_unit": self.is_unit(token),
+            "is_capitalised": self._is_capitalised(token),
+            "is_numeric": self._is_numeric(token),
+            "is_unit": self._is_unit(token),
         }
 
     def sentence_features(self) -> List[Dict[str, Any]]:
@@ -548,10 +619,10 @@ class PreProcessor:
         """
         if self.defer_pos_tagging:
             # If part of speech tagging was deferred, do it now
-            self.pos_tags = self.tag_partofspeech(self.tokenized_sentence)
+            self.pos_tags = self._tag_partofspeech(self.tokenized_sentence)
 
         features = []
         for idx, _ in enumerate(self.tokenized_sentence):
-            features.append(self.token_features(idx))
+            features.append(self._token_features(idx))
 
         return features
