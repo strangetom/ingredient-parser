@@ -258,13 +258,13 @@ The model provided in ```ingredient-parser/``` directory has the following accur
 ```
 Sentence-level results:
 	Total: 9277
-	Correct: 7649
-	-> 82.45%
+	Correct: 7689
+	-> 82.88%
 
 Word-level results:
-	Total: 53622
-	Correct: 50714
-	-> 94.58%
+	Total: 52931
+	Correct: 50051
+	-> 94.56%
 ```
 
 My interpretation of these results is the the high word-level accuracy compared to the lower sentence-level accuracy means that if the model is getting a label wrong, it's usually only one label in the sentence.
