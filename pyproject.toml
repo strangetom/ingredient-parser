@@ -21,9 +21,9 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies = [
-    "nltk>=3.7",
-    "python-crfsuite>=0.9.8",
-    "typing_extensions>=4.3.0",
+    "nltk",
+    "python-crfsuite",
+    "typing-extensions",
 ]
 
 [project.urls]
