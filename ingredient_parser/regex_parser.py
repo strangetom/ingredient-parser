@@ -26,15 +26,17 @@ UNITS = {
     "ounce": ["ounce", "ounces", "oz", "oz."],
     "pound": ["pound", "pounds", "lb", "lbs", "lb.", "lbs."],
 }
+# Convert values to list
 UNITS_LIST = list(chain.from_iterable(UNITS.values()))
+# Sort list in order of decreasing length. This is important for the regex matching, so we don't match a shorter substring
 UNITS_LIST.sort(key=lambda x: len(x), reverse=True)
 
-# This matches an integer, decimal number, fraction or range (i.e. 1-2)
+# This matches an integer, decimal number or range (e.g. 1, 0.5, 1-2)
 QUANTITY_RE = r"""
 (?P<quantity>(?:        # Creates a match group called quantity. Match everything inside the parentheses
 (^\d+\s*x\s)?           # Optional capture group that matches e.g. 1x or 1 x followed by a space
 \d+                     # Match at least one number
-([\.\-]\d+)?           # Optionally matches a decimal point followed by at least one number, or a - followed by at least one number
+([\.\-]\d+)?            # Optionally matches a decimal point followed by at least one number, or a - followed by at least one number
 ))
 """
 # This matches any string in the list of units
@@ -44,7 +46,7 @@ UNITS_RE = rf"""
 )\s)                    # Match a single whitespace character
 ?                       # Make this match group optional
 """
-# Create full ingredient parse regular expression
+# Create full ingredient parser regular expression
 PARSER_RE = rf"""
 {QUANTITY_RE}           # Use QUANTITY_RE from above
 \s*                     # Match zero or more whitespace characters
@@ -56,7 +58,21 @@ PARSER_PATTERN = re.compile(PARSER_RE, re.VERBOSE)
 
 
 def parse_ingredient_regex(sentence: str) -> ParsedIngredient:
-    """Parse an ingredient senetence using regular expression based approach to return structured data
+    """Parse an ingredient senetence using regular expression based approach to return structured data.
+
+    This parser uses a regular expression to attempt to extract information from the sentence.
+    For this to work, a basic structure of the sentence is assumed:
+    [optional quantity] [optional unit] [name], [comment]
+
+    The quantity regex matches integers, decimals and ranges. Sentences cleaned using the PreProcessor class before being passed
+    to the regular expression so fractions and other formats for quantities are converted to those listed.
+
+    The unit regex matches from a predefined list of units. If the unit in the sentence is not in this list, it will end up in the name.
+
+    Following any quantity and/or unit, all subsquent characters in the sentence are captured in a single regex capture group.
+    An attempt is then made to split this string at the first comma.
+    If successful, the first part becomes the name and the second part becomes the comment.
+    If unsuccesful (because there is no comma), the whole string is returned as the name. 
 
     Parameters
     ----------
