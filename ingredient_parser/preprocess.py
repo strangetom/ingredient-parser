@@ -77,17 +77,20 @@ UNITS = {
     "chops": "chop",
 }
 
+# The spaces around the text are required to ensure we only replace the word when it represents a number
+# and not when the word appear inside a large word.
+# We don't want boneless to become b1less
 STRING_NUMBERS = {
-    "half": "0.5",
-    "one": "1",
-    "two": "2",
-    "three": "3",
-    "four": "4",
-    "five": "5",
-    "six": "6",
-    "seven": "7",
-    "eight": "8",
-    "nine": "9",
+    " half ": " 0.5 ",
+    " one ": " 1 ",
+    " two ": " 2 ",
+    " three ": " 3 ",
+    " four ": " 4 ",
+    " five ": " 5 ",
+    " six ": " 6 ",
+    " seven ": " 7 ",
+    " eight ": " 8 ",
+    " nine ": " 9 ",
 }
 
 
