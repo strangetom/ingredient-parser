@@ -31,8 +31,7 @@ class ParsedIngredient(TypedDict):
 
 # Create TAGGER object
 TAGGER = pycrfsuite.Tagger()
-model_path = pkg_resources.path(__package__, "model.crfsuite")
-with model_path as p:
+with pkg_resources.path(__package__, "model.crfsuite") as p:
     TAGGER.open(str(p))
 
 
