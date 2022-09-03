@@ -35,7 +35,10 @@ sys.path.insert(0, os.path.abspath('..'))
 
 html_theme = 'pydata_sphinx_theme'
 html_static_path = ['_static']
+html_css_files = ['custom.css', 'pygments.css']
 
 html_theme_options = {
   "collapse_navigation": True,
+   "pygment_light_style": "gruvbox-light",
+   "pygment_dark_style": "gruvbox-dark"
 }
