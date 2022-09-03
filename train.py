@@ -235,14 +235,15 @@ def evaluate(
         total_words_per_sentence = 0
 
         for token, p, t in zip(sentence, prediction, truth):
-            # Skip commas
-            if token in [",", "(", ")"]:
+
+            if truth == "OTHER":
+                # Skip tokens where the truth label is OTHER because we don't know if that's the true label or not
                 continue
 
             total_words += 1
             total_words_per_sentence += 1
 
-            # Count as match if guess matches actual, ignoring the B- or I- part
+            # Count as match if guess matches actual
             if p == t:
                 correct_words_per_sentence += 1
                 correct_words += 1
