@@ -1,5 +1,3 @@
-.. module:: ingredient_parser
-
 The Data
 ========
 
