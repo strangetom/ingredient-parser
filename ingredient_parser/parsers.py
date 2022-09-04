@@ -3,7 +3,6 @@
 import argparse
 import importlib.resources as pkg_resources
 import json
-import os
 from typing import Dict, List, Union
 
 import pycrfsuite

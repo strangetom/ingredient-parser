@@ -9,7 +9,7 @@ from nltk.tag import pos_tag
 from nltk.tokenize import RegexpTokenizer
 
 # Regex pattern for fraction parts.
-# Matches 0+ numbers followed by 0+ whitespace charaters followed by a number then a forward slash then another number
+# Matches 0+ numbers followed by 0+ white space characters followed by a number then a forward slash then another number
 FRACTION_PARTS_PATTERN = re.compile(r"(\d*\s*\d/\d+)")
 
 # Regex pattern for checking if token starts with a capital letter
@@ -76,7 +76,7 @@ UNITS = {
     "scoops": "scoop",
     "chops": "chop",
     "leaves": "leaf",
-    "glasses": "glass"
+    "glasses": "glass",
 }
 
 # The spaces around the text are required to ensure we only replace the word when it represents a number
