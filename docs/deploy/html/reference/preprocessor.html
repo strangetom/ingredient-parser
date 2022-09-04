@@ -1,0 +1,540 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>PreProcess &#8212; Ingredient Parser 0.1.0-alpha1 documentation</title>
+  <script>
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "dark";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "light";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=9b1a4fa89bdd0e95b23b" rel="stylesheet">
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=9b1a4fa89bdd0e95b23b" rel="stylesheet">
+
+  
+  <link rel="stylesheet"
+    href="../_static/vendor/fontawesome/6.1.2/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/6.1.2/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/6.1.2/webfonts/fa-brands-400.woff2">
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/design-style.4045f2051d55cab465a707391d5b2007.min.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=9b1a4fa89bdd0e95b23b">
+
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/design-tabs.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'reference/preprocessor';</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Utilities" href="utils.html" />
+    <link rel="prev" title="Parsers" href="parsers.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="docsearch:language" content="en">
+  </head>
+  
+  
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="180" data-default-mode="dark">
+
+  
+  <input type="checkbox" class="sidebar-toggle" name="__primary" id="__primary">
+  <label class="overlay overlay-primary" for="__primary"></label>
+
+  
+  <input type="checkbox" class="sidebar-toggle" name="__secondary" id="__secondary">
+  <label class="overlay overlay-secondary" for="__secondary"></label>
+
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+      
+<form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+    </div>
+  </div>
+
+  
+  <nav class="bd-header navbar navbar-expand-lg bd-navbar" id="navbar-main"><div class="bd-header__inner bd-page-width">
+  <label class="sidebar-toggle primary-toggle" for="__primary">
+      <span class="fas fa-bars"></span>
+  </label>
+  <div id="navbar-start">
+    
+    
+  
+
+
+<a class="navbar-brand logo" href="../index.html">
+
+  
+  
+  
+  
+  
+  
+  
+
+  
+  
+    <p class="title logo__title">Ingredient Parser 0.1.0-alpha1 documentation</p>
+  
+</a>
+    
+  </div>
+
+  
+  <div class="col-lg-9 navbar-header-items">
+    <div id="navbar-center" class="mr-auto">
+      
+      <div class="navbar-center-item">
+        <nav class="navbar-nav">
+    <p class="sidebar-header-items__title" role="heading" aria-level="1" aria-label="Site Navigation">
+        Site Navigation
+    </p>
+    <ul id="navbar-main-elements" class="navbar-nav">
+        
+                <li class="nav-item">
+                    <a class="nav-link" href="../start/index.html">
+                        Getting Started
+                    </a>
+                </li>
+                
+
+                <li class="nav-item">
+                    <a class="nav-link" href="../user/index.html">
+                        User Guide
+                    </a>
+                </li>
+                
+
+                <li class="nav-item current active">
+                    <a class="nav-link" href="index.html">
+                        API Reference
+                    </a>
+                </li>
+                
+    </ul>
+</nav>
+      </div>
+      
+    </div>
+
+    <div id="navbar-end">
+      <div class="navbar-end-item navbar-end__search-button-container">
+        
+<button class="btn btn-sm navbar-btn search-button search-button__button" title="Search">
+  <i class="fas fa-search"></i>
+</button>
+      </div>
+      
+      <div class="navbar-end-item">
+        <span class="theme-switch-button btn btn-sm btn-outline-primary navbar-btn rounded-circle">
+    <a class="theme-switch" data-mode="light"><i class="fas fa-sun"></i></a>
+    <a class="theme-switch" data-mode="dark"><i class="far fa-moon"></i></a>
+    <a class="theme-switch" data-mode="auto"><i class="fas fa-adjust"></i></a>
+</span>
+      </div>
+      
+      <div class="navbar-end-item">
+        <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
+      </ul>
+      </div>
+      
+    </div>
+  </div>
+
+
+  
+  <div class="search-button-container--mobile">
+<button class="btn btn-sm navbar-btn search-button search-button__button" title="Search">
+  <i class="fas fa-search"></i>
+</button>
+  </div>
+
+  
+  <label class="sidebar-toggle secondary-toggle" for="__secondary">
+      <span class="fas fa-outdent"></span>
+  </label>
+  
+
+</div>
+  </nav>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+      
+      <div class="navbar-center-item">
+        <nav class="navbar-nav">
+    <p class="sidebar-header-items__title" role="heading" aria-level="1" aria-label="Site Navigation">
+        Site Navigation
+    </p>
+    <ul id="navbar-main-elements" class="navbar-nav">
+        
+                <li class="nav-item">
+                    <a class="nav-link" href="../start/index.html">
+                        Getting Started
+                    </a>
+                </li>
+                
+
+                <li class="nav-item">
+                    <a class="nav-link" href="../user/index.html">
+                        User Guide
+                    </a>
+                </li>
+                
+
+                <li class="nav-item current active">
+                    <a class="nav-link" href="index.html">
+                        API Reference
+                    </a>
+                </li>
+                
+    </ul>
+</nav>
+      </div>
+      
+      </div>
+    
+
+    
+    
+    <div class="sidebar-header-items__end">
+      
+      <div class="navbar-end-item">
+        <span class="theme-switch-button btn btn-sm btn-outline-primary navbar-btn rounded-circle">
+    <a class="theme-switch" data-mode="light"><i class="fas fa-sun"></i></a>
+    <a class="theme-switch" data-mode="dark"><i class="far fa-moon"></i></a>
+    <a class="theme-switch" data-mode="auto"><i class="fas fa-adjust"></i></a>
+</span>
+      </div>
+      
+      <div class="navbar-end-item">
+        <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
+      </ul>
+      </div>
+      
+    </div>
+    
+  </div>
+
+  
+  <div class="sidebar-start-items sidebar-primary__section">
+    <div class="sidebar-start-items__item"><nav class="bd-links" id="bd-docs-nav" aria-label="Section navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">
+    Section Navigation
+  </p>
+  <div class="bd-toc-item navbar-nav">
+    <ul class="current nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="parsers.html">
+   Parsers
+  </a>
+ </li>
+ <li class="toctree-l1 current active">
+  <a class="current reference internal" href="#">
+   PreProcess
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="utils.html">
+   Utilities
+  </a>
+ </li>
+</ul>
+
+  </div>
+</nav>
+    </div>
+  </div>
+  
+
+  
+  <div class="sidebar-end-items sidebar-primary__section">
+    <div class="sidebar-end-items__item">
+    </div>
+  </div>
+
+      </div>
+      <main class="bd-main">
+        
+        
+        <div class="bd-content">
+          <div class="bd-article-container">
+            
+            <div class="bd-header-article">
+                
+            </div>
+            
+            
+            <article class="bd-article" role="main">
+              
+  <section id="module-ingredient_parser.preprocess">
+<span id="preprocess"></span><h1>PreProcess<a class="headerlink" href="#module-ingredient_parser.preprocess" title="Permalink to this heading">#</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="ingredient_parser.preprocess.PreProcessor">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ingredient_parser.preprocess.</span></span><span class="sig-name descname"><span class="pre">PreProcessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sentence</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">defer_pos_tagging</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ingredient_parser.preprocess.PreProcessor" title="Permalink to this definition">#</a></dt>
+<dd><p>Recipe ingredient sentence PreProcessor class.</p>
+<p>Performs the necessary preprocessing on a sentence to generate the features required for the ingredient parser model.</p>
+<p>Each input sentence goes through a cleaning process to tidy up the input into a standardised form.
+The cleaning steps are as follows:</p>
+<ol class="arabic">
+<li><div class="line-block">
+<div class="line">Replace numbers given as words with the numeric equivalent.</div>
+<div class="line">e.g. one &gt;&gt; 1</div>
+</div>
+</li>
+<li><div class="line-block">
+<div class="line">Replace fractions given in html mark up with the unicide representation.</div>
+<div class="line">e.g. &amp;frac12; &gt;&gt; ½</div>
+</div>
+</li>
+<li><div class="line-block">
+<div class="line">Replace unicode fractions with the equivalent decimal form. Decimals are rounded to 3 a maximum of decimal places.</div>
+<div class="line">e.g. ½ &gt;&gt; 0.5</div>
+</div>
+</li>
+<li><div class="line-block">
+<div class="line">Replace “fake” fractions represented by 1/2, 2/3 etc. with the equivalent decimal form</div>
+<div class="line">e.g. 1/2 &gt;&gt; 0.5</div>
+</div>
+</li>
+<li><div class="line-block">
+<div class="line">A space is enforced between quantities and units</div>
+</div>
+</li>
+<li><div class="line-block">
+<div class="line">Numeric ranges indicated in words using “to” or “or” are replaced with a standard numeric form</div>
+<div class="line">e.g. 1 or 2 &gt;&gt; 1-2; 10 to 12 &gt;&gt; 10-12</div>
+</div>
+</li>
+<li><div class="line-block">
+<div class="line">Units are made singular. This step uses a predefined list of plural units and their singular form.</div>
+</div>
+</li>
+</ol>
+<p>Following the cleaning of the input sentence, it is tokenized into a list of tokens.
+Each token is one of the following:</p>
+<ul class="simple">
+<li><p>A word, including . - and ‘ characters</p></li>
+<li><p>Opening or closing parentheses</p></li>
+<li><p>Comma</p></li>
+<li><p>Speech marks, “</p></li>
+</ul>
+<p>The features for each token are computed on demand using the <code class="docutils literal notranslate"><span class="pre">sentence_features</span></code> method, which returns a list of dictionaries.
+Each dictionary is the feature set for each token.
+The following features are generated:</p>
+<dl class="simple">
+<dt>word</dt><dd><p>The current token.</p>
+</dd>
+<dt>pos</dt><dd><p>The part of speech tag for the current token.</p>
+</dd>
+<dt>prev_pos+pos</dt><dd><p>The combined part of speech tag for the previous token and the current token.</p>
+</dd>
+<dt>pos+next_pos</dt><dd><p>The combined part of speech tag for the current token and the next token.</p>
+</dd>
+<dt>prev_word</dt><dd><p>The previous token.</p>
+</dd>
+<dt>prev_word2</dt><dd><p>The token before the previous token.</p>
+</dd>
+<dt>next_word</dt><dd><p>The next token.</p>
+</dd>
+<dt>next_word2</dt><dd><p>The token following the next token.</p>
+</dd>
+<dt>is_capitalised</dt><dd><p>True if the token starts with a capital letter.</p>
+</dd>
+<dt>is_numeric</dt><dd><p>True if the token is numeric, including ranges.</p>
+</dd>
+<dt>is_unit</dt><dd><p>True if the token is a unit.</p>
+</dd>
+</dl>
+<p>The sentence features can then be passed to the CRF model which will generate the parsed output.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sentence</strong> (<em>str</em>) – Input ingredient sentence.</p></li>
+<li><p><strong>defer_pos_tagging</strong> (<em>bool</em>) – Defer part of speech tagging until feature generation.
+Part of speech tagging is an expensive operation and it’s not always needed when using this class.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ingredient_parser.preprocess.PreProcessor.input">
+<span class="sig-name descname"><span class="pre">input</span></span><a class="headerlink" href="#ingredient_parser.preprocess.PreProcessor.input" title="Permalink to this definition">#</a></dt>
+<dd><p>Input ingredient sentence.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ingredient_parser.preprocess.PreProcessor.sentence">
+<span class="sig-name descname"><span class="pre">sentence</span></span><a class="headerlink" href="#ingredient_parser.preprocess.PreProcessor.sentence" title="Permalink to this definition">#</a></dt>
+<dd><p>Input ingredient sentence, cleaned to standardised form.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ingredient_parser.preprocess.PreProcessor.tokenized_sentence">
+<span class="sig-name descname"><span class="pre">tokenized_sentence</span></span><a class="headerlink" href="#ingredient_parser.preprocess.PreProcessor.tokenized_sentence" title="Permalink to this definition">#</a></dt>
+<dd><p>Tokenised ingredient sentence.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ingredient_parser.preprocess.PreProcessor.pos_tags">
+<span class="sig-name descname"><span class="pre">pos_tags</span></span><a class="headerlink" href="#ingredient_parser.preprocess.PreProcessor.pos_tags" title="Permalink to this definition">#</a></dt>
+<dd><p>Part of speech tag for each token in the tokenized sentence.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ingredient_parser.preprocess.PreProcessor.sentence_features">
+<span class="sig-name descname"><span class="pre">sentence_features</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ingredient_parser.preprocess.PreProcessor.sentence_features" title="Permalink to this definition">#</a></dt>
+<dd><p>Return features for all tokens in sentence</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>sentence</strong> (<em>str</em>) – Description</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Description</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[Dict[str, Any]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+            </article>
+            
+            
+            
+            <footer class="bd-footer-article">
+                <!-- Previous / next buttons -->
+<div class='prev-next-area'>
+  <a class='left-prev' id="prev-link" href="parsers.html" title="previous page">
+      <i class="fas fa-angle-left"></i>
+      <div class="prev-next-info">
+          <p class="prev-next-subtitle">previous</p>
+          <p class="prev-next-title">Parsers</p>
+      </div>
+  </a>
+  <a class='right-next' id="next-link" href="utils.html" title="next page">
+  <div class="prev-next-info">
+      <p class="prev-next-subtitle">next</p>
+      <p class="prev-next-title">Utilities</p>
+  </div>
+  <i class="fas fa-angle-right"></i>
+  </a>
+</div>
+            </footer>
+            
+          </div>
+          
+          
+          
+            <div class="bd-sidebar-secondary bd-toc">
+              
+<div class="toc-item">
+  
+</div>
+
+<div class="toc-item">
+  
+<div class="tocsection sourcelink">
+    <a href="../_sources/reference/preprocessor.rst.txt">
+        <i class="fas fa-file-alt"></i> Show Source
+    </a>
+</div>
+
+</div>
+
+            </div>
+          
+          
+        </div>
+        <footer class="bd-footer-content">
+          <div class="bd-footer-content__inner">
+            
+          </div>
+        </footer>
+        
+      </main>
+    </div>
+  </div>
+
+  
+    
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/pydata-sphinx-theme.js?digest=9b1a4fa89bdd0e95b23b"></script>
+
+  <footer class="bd-footer"><div class="bd-footer__inner container">
+  
+  <div class="footer-item">
+    
+<p class="copyright">
+
+    &copy; Copyright 2022, Tom Strange.<br>
+
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+<p class="sphinx-version">
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.1.1.<br>
+</p>
+
+  </div>
+  
+</div>
+  </footer>
+  </body>
+</html>

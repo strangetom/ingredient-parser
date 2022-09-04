@@ -1,3 +1,5 @@
+.. currentmodule:: ingredient_parser
+
 User Guide
 ==========
 
@@ -46,6 +48,9 @@ The ```PreProcessor``` class handles this for us. All fractions are replaced wit
     '0.5 cup orange juice, freshly squeezed'
     >>> p.tokenized_sentence
     ['0.5', 'cup', 'orange', 'juice', ',', 'freshly', 'squeezed']
+
+.. literalinclude:: ../../ingredient_parser/preprocess.py
+   :pyobject: PreProcessor._clean
 
 Extracting Features
 ^^^^^^^^^^^^^^^^^^^

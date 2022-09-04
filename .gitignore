@@ -140,8 +140,8 @@ cython_debug/
 
 venv/
 
-# sphinx build folder
-_build
+# Ignore doctrees folders built by sphinx
+doctrees/
 
 # Compiled source #
 ###################
