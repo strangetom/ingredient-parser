@@ -33,8 +33,8 @@ dependencies = [
 ]
 
 [project.urls]
-homepage = "https://github.com/strangetom/ingredient-parser/"
-documentation = "https://ingredient-parser.readthedocs.io/en/latest/"
-source = "https://github.com/strangetom/ingredient-parser"
+Homepage = "https://github.com/strangetom/ingredient-parser/"
+Documentation = "https://ingredient-parser.readthedocs.io/en/latest/"
+Source = "https://github.com/strangetom/ingredient-parser"
 
 

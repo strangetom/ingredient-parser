@@ -23,15 +23,11 @@ This package uses a natural language model trained on thousands of example ingre
 Installation
 ^^^^^^^^^^^^
 
-.. error::
-    
-    This doesn't actually work yet beacuse I haven't uploaded to pypi.
-
 You can install ``ingredient_parser`` from PyPi with ``pip``:
 
 .. code:: bash
     
-    python -m pip install ingredient_parser_mlp
+    python -m pip install ingredient_parser_nlp
 
 This will download and install the package,  plus it's dependencies.
 
