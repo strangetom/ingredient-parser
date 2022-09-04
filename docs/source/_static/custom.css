@@ -2,6 +2,15 @@
     --sd-gutter-y: 1.5rem;
 }
 
+.sd-card-header {
+    font-size: 2em;
+    border-bottom: none !important;
+}
+
+.sd-card-footer {
+    border-top: none !important;
+}
+
 html[data-theme=dark] {
     --pst-color-primary: #b8bb26;
     --pst-color-primary-text: #fff;

@@ -3,18 +3,24 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to Ingredient Parser's documentation!
+Ingredient Parser |release| documentation!
 =============================================
+
+The Ingredient Parser package is a Python package for parsing structured information out of recipe ingredient sentences
 
 .. grid:: 2
 
    .. grid-item-card::
+      :text-align: center
+      :padding: 3 1 2 1
+      :margin: 1 1 0 0
+      
+      :material-regular:`directions_run;2em;sd-color-secondary`
 
       Getting Started
       ^^^^^^^^^^^^^^^
-
-      Find out how to install and use the ``ingredient-parser`` package with minimum effort.
-
+      Find out how to install and get started using the ``ingredient-parser`` package.
+      +++
       .. button-ref:: start/index
                   :expand:
                   :color: secondary
@@ -24,27 +30,35 @@ Welcome to Ingredient Parser's documentation!
 
 
    .. grid-item-card::
+      :text-align: center
+      :padding: 3 1 2 1
+      :margin: 1 1 0 0
+      
+      :material-regular:`import_contacts;2em;sd-color-secondary`
 
-      User Guide
-      ^^^^^^^^^^
-
+      Model Guide
+      ^^^^^^^^^^^
       Detailed information about the data behind the model, the data preprocessing steps and how to train the model yourself.
-
-      .. button-ref:: user/index
+      +++
+      .. button-ref:: guide/index
                   :expand:
                   :color: secondary
                   :click-parent:
 
-                  User Guide
+                  Model Guide
 
 
    .. grid-item-card::
+      :text-align: center
+      :padding: 3 1 2 1
+      :margin: 1 1 0 0
+      
+      :material-regular:`data_array;2em;sd-color-secondary`
 
       API Reference
-      ^^^^^^^^^^^^^
-
+      ^^^^^^^^^^^^
       The reference guide contains a detailed descriptions of the functions, modules and objects included with ``ingredient-parser``.
-
+      +++
       .. button-ref:: reference/index
                   :expand:
                   :color: secondary
@@ -57,5 +71,5 @@ Welcome to Ingredient Parser's documentation!
    :hidden:
 
    Getting Started <start/index>
-   User Guide <user/index>
+   Model Guide <guide/index>
    API reference <reference/index>

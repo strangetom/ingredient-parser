@@ -1,28 +1,45 @@
 Getting Started
 ===============
 
-What is this?
+The Ingredient Parser package is a Python package for parsing structured information out of recipe ingredient sentences.
+
+Given a recipe ingredient such as 
+
+    200 g plain flour, sifted
+
+we want to extract information about the quantity, units, name and comment. For the example above:
+
+.. code:: python
+
+    {
+        "quantity": "200",
+        "unit": "g",
+        "name": "plain flour",
+        "comment": "sifted",
+    }
+
+This package uses a natural language model trained on thousands of example ingredient sentence. The condition random fields model has been trained on data from two main sources. The New York Times released a large dataset when they did some similar work in 2015 in their `Ingredient Phrase Tagger <https://github.com/nytimes/ingredient-phrase-tagger>`_ repository. I have also gathered a (much smaller) dataset from recipes, which is also used to train the model.
 
 Installation
 ^^^^^^^^^^^^
+
+.. error::
+    
+    This doesn't actually work yet beacuse I haven't uploaded to pypi.
 
 You can install ``ingredient_parser`` from PyPi with ``pip``:
 
 .. code:: bash
     
-    python -m pip install ingredient_parser
+    python -m pip install ingredient_parser_mlp
 
-.. error::
-    
-    This doesn't actually work yet.
+This will download and install the package,  plus it's dependencies.
+
 
 Usage
 ^^^^^
 
-There are two convenience functions that provide the main functionality of this package.
-
-Single ingredient sentence
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+The primary functionality of this package is provided by the ``parse_ingredient`` function.
 
 The ``parse_ingredient`` function takes an ingredient sentence and return the structered data extracted from it.
 
@@ -63,7 +80,7 @@ An optional ``confidence`` argument can be passed to the ``parse_ingredient`` fu
 Multiple ingredient sentences
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The ``parse_multiple_ingredients`` function accepts a list of ingredient sentence as it's input and returns a list of dictionaries with the parsed information.
+The ``parse_multiple_ingredients`` function is provided as a convenience function. It accepts a list of ingredient sentences as it's input and returns a list of dictionaries with the parsed information.
 
 .. code:: python
 

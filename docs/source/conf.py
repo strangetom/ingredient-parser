@@ -12,7 +12,7 @@ import sys
 project = 'Ingredient Parser'
 copyright = '2022, Tom Strange'
 author = 'Tom Strange'
-release = '0.1.0'
+release = '0.1.0-alpha1'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
