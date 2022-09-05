@@ -2,20 +2,8 @@
 
 The Ingredient Parser package is a Python package for parsing structured information out of recipe ingredient sentences.
 
-```
-1 large onion, finely chopped
-```
+![](docs/source/_static/logo.svg)
 
-becomes
-
-```python
-{
-    "quantity": 1,
-    "unit": "large",
-    "name": "onion",
-    "comment": "finely chopped"
-}
-```
 ## Documentation
 
 Documentation on using the package and training the model can be found at https://ingredient-parser.readthedocs.io/en/latest/.
