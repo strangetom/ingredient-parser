@@ -43,8 +43,8 @@ QUANTITY_RE = r"""
 UNITS_RE = rf"""
 (?P<unit>(?:                        # Creates a match group called unit
 (({"|".join(UNIT_MODIFIERS)})\s)?   # Optionally match a size before the unit. Join the sizes in an OR list
-(({"|".join(UNITS_LIST)})\s))       # Optionally match a unit. Join all ingredients into a giant OR list
-)                                   # Make this match group optional
+(({"|".join(UNITS_LIST)})\s)?      # Optionally match a unit. Join all ingredients into a giant OR list
+))                                  # Make this match group optional
 """
 # Create full ingredient parser regular expression
 PARSER_RE = rf"""
@@ -68,6 +68,7 @@ def parse_ingredient_regex(sentence: str) -> ParsedIngredient:
     to the regular expression so fractions and other formats for quantities are converted to those listed.
 
     The unit regex matches from a predefined list of units. If the unit in the sentence is not in this list, it will end up in the name.
+    The unit can be preceeded by an optional modifier such as small, medium, large.
 
     Following any quantity and/or unit, all subsquent characters in the sentence are captured in a single regex capture group.
     An attempt is then made to split this string at the first comma.
@@ -98,6 +99,11 @@ def parse_ingredient_regex(sentence: str) -> ParsedIngredient:
     >>> parse_ingredient_regex("2 1/2 cups plain flour")
     {'sentnece': '2 1/2 cups plain flour', quantity': '2.5', 'unit': 'cups', 'name': 'plain flour', 'comment': '', 'other': ''}
 
+    >>> parse_ingredient_regex("2 1/2 cups plain flour")
+    {'sentnece': '12 heaped tsp ground cumin', quantity': '12', 'unit': 'heaped tsp', 'name': 'ground cumin', 'comment': '', 'other': ''}
+
+    >>> parse_ingredient_regex("2 1/2 cups plain flour")
+    {'sentnece': '2 medium sweet potatoes, peeled and chopped into 1-inch cubes', quantity': '2', 'unit': 'medium', 'name': 'sweet potatoes', 'comment': 'peeled and chopped into 1-inch cubes', 'other': ''}
     """
     parsed: ParsedIngredient = {
         "sentence": sentence,
