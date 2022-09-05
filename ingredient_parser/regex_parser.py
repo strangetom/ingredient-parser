@@ -18,7 +18,6 @@ UNITS = {
     "clove": ["cloves", "clove"],
     "sprig": ["sprig", "sprigs"],
     "stick": ["stick", "sticks"],
-    "size": ["small", "medium", "large"],
     "dimension": ["cm", "inch", "'"],
     "cup": ["cup", "cups", "mug", "mugs"],
     "bunch": ["bunches", "bunch"],
@@ -26,6 +25,7 @@ UNITS = {
     "ounce": ["ounce", "ounces", "oz", "oz."],
     "pound": ["pound", "pounds", "lb", "lbs", "lb.", "lbs."],
 }
+UNIT_MODIFIERS = ["small", "medium", "large", "heaped", "heaping", "fat", "scant"]
 # Convert values to list
 UNITS_LIST = list(chain.from_iterable(UNITS.values()))
 # Sort list in order of decreasing length. This is important for the regex matching, so we don't match a shorter substring
@@ -39,12 +39,12 @@ QUANTITY_RE = r"""
 ([\.\-]\d+)?            # Optionally matches a decimal point followed by at least one number, or a - followed by at least one number
 ))
 """
-# This matches any string in the list of units
+# This matches any string in the list of sizes and/or units
 UNITS_RE = rf"""
-(?P<unit>(?:            # Creates a match group called unit
-{"|".join(UNITS_LIST)}  # Join all ingredients into a giant OR list
-)\s)                    # Match a single whitespace character
-?                       # Make this match group optional
+(?P<unit>(?:                        # Creates a match group called unit
+(({"|".join(UNIT_MODIFIERS)})\s)?   # Optionally match a size before the unit. Join the sizes in an OR list
+(({"|".join(UNITS_LIST)})\s))       # Optionally match a unit. Join all ingredients into a giant OR list
+)                                   # Make this match group optional
 """
 # Create full ingredient parser regular expression
 PARSER_RE = rf"""
@@ -72,7 +72,7 @@ def parse_ingredient_regex(sentence: str) -> ParsedIngredient:
     Following any quantity and/or unit, all subsquent characters in the sentence are captured in a single regex capture group.
     An attempt is then made to split this string at the first comma.
     If successful, the first part becomes the name and the second part becomes the comment.
-    If unsuccesful (because there is no comma), the whole string is returned as the name. 
+    If unsuccesful (because there is no comma), the whole string is returned as the name.
 
     Parameters
     ----------
