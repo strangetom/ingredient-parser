@@ -3,7 +3,7 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Ingredient Parser |release| documentation!
+Ingredient Parser |version| documentation!
 =============================================
 
 The Ingredient Parser package is a Python package for parsing structured information out of recipe ingredient sentences
