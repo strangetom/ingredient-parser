@@ -9,7 +9,7 @@ A split of 75% training, 25% testing is used be default and data in the training
 
 The training and testing data is transformed to get it's features and correct labelling
 
-.. literalinclude:: ../../../train.py
+.. literalinclude:: ../../../train/train.py
     :pyobject: transform_to_dataset
 
 .. code:: python
@@ -40,10 +40,10 @@ We have reverse engineer this data to match each token in the input to the corre
 
 The ``match_label`` function attempts to do this.
 
-.. literalinclude:: ../../../train.py
+.. literalinclude:: ../../../train/train.py
     :pyobject: match_labels
 
-.. literalinclude:: ../../../train.py
+.. literalinclude:: ../../../train/train.py
     :pyobject: invert_labels_dict
 
 Note that two new labels are introduced in this step, that do not appear in the labelled data.
@@ -68,6 +68,12 @@ With the data ready, we can now train the model using `python-crfuite <https://g
 
 This trains the model and saves the model to the file specified.
 This is relatively quick the train, it takes ~30 seconds on a laptop with an Intel Core 15-10300H and 16 GB of RAM. No GPU is required.
+
+All of the above steps are implemented in the ``train/train.py`` script. The following command will execute the script and train the model on both datasets.
+
+.. code:: bash
+
+    python train/train.py --nyt train/data/nytimes/nyt-ingredients-snapshot-2015.csv --sf train/data/strangerfoods/sf_labelled_data.csv
 
 Evaluating the Model
 ^^^^^^^^^^^^^^^^^^^^
