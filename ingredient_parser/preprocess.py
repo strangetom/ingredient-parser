@@ -77,6 +77,7 @@ UNITS = {
     "chops": "chop",
     "leaves": "leaf",
     "glasses": "glass",
+    "wedges": "wedge",
 }
 
 # The spaces around the text are required to ensure we only replace the word when it represents a number
