@@ -10,8 +10,7 @@ from nltk.tokenize import RegexpTokenizer
 
 # Regex pattern for fraction parts.
 # Matches 0+ numbers followed by 0+ white space characters followed by a number then a forward slash then another number
-# We also include a trailing -, so we can handle this case specially as this can represent fractions greater than 1 that should not be combined
-FRACTION_PARTS_PATTERN = re.compile(r"(\d*\s*\d/\d+\-*)")
+FRACTION_PARTS_PATTERN = re.compile(r"(\d*\s*\d/\d+)")
 
 # Regex pattern for checking if token starts with a capital letter
 CAPITALISED_PATTERN = re.compile(r"^[A-Z]")
@@ -325,15 +324,6 @@ class PreProcessor:
             # Therefore, if the match starts with a space, remove it.
             if match.startswith(" "):
                 match = match[1:]
-
-            # If the match ends with a "-" then we have to be careful. This often means we have a case such as
-            # "2 1/4-inch..." and we don't want to turn this into 2.25. We actually want 2 0.25.
-            # In this cases, split the match in spaces and discard the first part
-            if match.endswith("-"):
-                parts = match.split(" ")
-                match = " ".join(parts[1:])
-                # Now get rid of hyphen at the end
-                match = match[:-1]
 
             split = match.split()
             summed = float(sum(Fraction(s) for s in split))

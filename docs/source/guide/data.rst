@@ -145,10 +145,8 @@ Fractions represented in a textual format (e.g. 1/2, 3/4) are replaced with deci
 
 A regular expression is used to find these in the sentence. The regular expression also matches fractions greater than 1 (e.g. 1 1/2 is 1.5).
 
-We take extra care here not handle cases where an integer is followed by a fraction but they shouldn't be combined. For example, "2 1/4-inch pieces" should be "2 0.25-inch pieces" not "2.25-inch pieces". Such cases are identified by a hyphen appended to the fraction part. The regular expression pattern matches these so they can be handled in the ```_replace_fake_fractions``` function.
-
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
-    :lines: 11-14
+    :lines: 11-13
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
     :pyobject: PreProcessor._replace_fake_fractions
