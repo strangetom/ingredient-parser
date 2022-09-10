@@ -1,7 +1,12 @@
+import sys
 import xml.etree.ElementTree as ET
+from pathlib import Path
 from typing import Any, Dict, List
 
-from ingredient_parser.preprocess import PreProcessor
+# Ensure the local ingredient_parser package can be found
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from ingredient_parser import PreProcessor
 
 
 def test_results_to_html(
