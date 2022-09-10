@@ -1,8 +1,3 @@
-.. Ingredient Parser documentation master file, created by
-   sphinx-quickstart on Fri Sep  2 12:04:58 2022.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
 Ingredient Parser |version| documentation!
 =============================================
 

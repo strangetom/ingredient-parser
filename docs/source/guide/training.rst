@@ -52,7 +52,7 @@ The ``OTHER`` labels is used for any tokens that cannot be matched to a label.
 
 The ``COMMA`` label is used to label commas, specifically. This is done because commas are particular difficult for the model to learn the correct label for, since they can legitimately appear almost anywhere in a sentence. Post-processing of the model output if used to return the commas to the most likely position, but this is not necessary for training.
 
-Training the Model
+Training the model
 ^^^^^^^^^^^^^^^^^^
 
 With the data ready, we can now train the model using `python-crfuite <https://github.com/scrapinghub/python-crfsuite>`_.
@@ -75,7 +75,7 @@ All of the above steps are implemented in the ``train/train.py`` script. The fol
 
     python train/train.py --nyt train/data/nytimes/nyt-ingredients-snapshot-2015.csv --sf train/data/strangerfoods/sf_labelled_data.csv
 
-Evaluating the Model
+Evaluating the model
 ^^^^^^^^^^^^^^^^^^^^
 
 Two metrics are used to evaluate the model:

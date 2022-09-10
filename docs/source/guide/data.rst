@@ -1,7 +1,7 @@
 The Data
 ========
 
-Data Sources
+Data sources
 ^^^^^^^^^^^^
 
 There are two sources of data which are used to train the model, each with their own advantages and disadvantages.
@@ -33,6 +33,12 @@ The New York Times dataset has gone through, and continues to go through, the ve
 
 The model is currently trained using the first 30,000 entries, so the cleaning is primarily focussed on that subset.
 
+.. note::
+
+    The impact of the cleaning can be seen by training the model using the full NYTimes dataset, where the majority of the data has not been properly cleaned. The model performance drops significantly: ~5% hit to both word and sentence metrics.
+
+    Perhaps in time, a larger amount of the data can be used, once properly cleaned up.
+
 The following operations were done to clean up the data (note that this is not exhaustive, the git history for the dataset will give the full details).
 
 * Convert all numbers in the labels to decimal
@@ -49,7 +55,7 @@ The following operations were done to clean up the data (note that this is not e
 * Adjectives that are a fundamental part of the ingredient identity should be part of the name
     This was mostly an inconsistency across the data, for example if the entry contained "red onion", sometimes this was labelled with a name of "red onion" and sometimes with a name of "onion" and a comment of "red".
 
-    It is recognised that this can be subjective. Universal correctness is not the main goal of this, only consistency.
+    A general rule was applied: if the adjective changes the ingredient in a way that the cook cannot, it should be part of the name. It is recognised that this can be subjective. Universal correctness is not the main goal of this, only consistency.
 
     Examples of this:
 
@@ -62,7 +68,9 @@ The following operations were done to clean up the data (note that this is not e
 * All units should be made singular
     This is to reduce the amount the model needs to learn. "teaspoon" and "teaspoons" are fundamentally the same unit, but because they are different words, the model could learn different associations.
 
-Processing the Data
+:doc:`Data Cleaning Todo List <clean>` contains a list of possible further data cleaning steps.
+
+Processing the data
 ^^^^^^^^^^^^^^^^^^^
 
 Before any data can be used to either train or test the model, or the model used to label the data, the data needs to be pre-processed in a consistent manner. This pre-process step is there to remove as much of the variation in the data that can be reasonably foreseen, so that the model is presented with tidy and consistent data and therefore has an easier time of learning or labelling.
