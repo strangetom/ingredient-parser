@@ -89,7 +89,11 @@ def match_labels(tokenized_sentence: List[str], labels: Dict[str, str]) -> List[
     token_labels = invert_labels_dict(labels)
 
     matched_labels = []
-    for token in tokenized_sentence:
+    for token in p.tokenized_sentence:
+
+        # Convert to lower case because all labels are lower case.
+        # Note that we couldn't do this earlier without losing information required for feature extraction
+        token = token.lower()
 
         # Treat commas as special because they can appear all over the place in a sentence
         if token == ",":
