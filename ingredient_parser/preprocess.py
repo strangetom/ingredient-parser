@@ -67,7 +67,7 @@ UNITS = {
     "pounds": "pound",
     "quarts": "quart",
     "scoops": "scoop",
-    "sheet": "sheets",
+    "sheets": "sheet",
     "slices": "slice",
     "sprigs": "sprig",
     "stalks": "stalk",
