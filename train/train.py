@@ -47,7 +47,7 @@ def load_csv(csv_filename: str) -> tuple[List[str], List[Dict[str, str]]]:
         reader = csv.reader(f)
         next(reader)  # skip first row
         for row in reader:
-            sentences.append(row[0].lower())
+            sentences.append(row[0])
             labels.append(
                 {
                     "name": row[1].strip().lower(),
