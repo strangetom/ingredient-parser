@@ -78,6 +78,7 @@ UNITS = {
     "leaves": "leaf",
     "glasses": "glass",
     "wedges": "wedge",
+    "gallons": "gallon",
 }
 
 # The spaces around the text are required to ensure we only replace the word when it represents a number
@@ -421,6 +422,11 @@ class PreProcessor:
         for plural, singular in UNITS.items():
             sentence = sentence.replace(plural, singular)
 
+            # We also need to do this for units that are capitalised.
+            # We can't make everything lower case yet, because we haven't extracted the features
+            # yet and one of the features is whether the token is capitalised.
+            sentence = sentence.replace(plural.capitalize(), singular.capitalize())
+
         return sentence
 
     def _tag_partofspeech(self, tokens: List[str]) -> List[str]:
@@ -441,7 +447,9 @@ class PreProcessor:
             List of part of speech tags
         """
         tags = []
-        for token, tag in pos_tag(tokens):
+        # If we don't make each token lower case, that POS tag maybe different in
+        # ways that are unhelpful. For example, if a sentence starts with a unit.
+        for token, tag in pos_tag([t.lower() for t in tokens]):
             if RANGE_PATTERN.match(token):
                 tag = "CD"
             if token in ["ground"]:
@@ -483,7 +491,7 @@ class PreProcessor:
         bool
             True if token is a unit, else False
         """
-        return token in UNITS.values()
+        return token.lower() in UNITS.values()
 
     def _is_numeric(self, token: str) -> bool:
         """Return True if token is numeric
@@ -597,14 +605,18 @@ class PreProcessor:
             "pos+next_pos": self.pos_tags[index]
             if index == len(self.tokenized_sentence) - 1
             else self.pos_tags[index] + self.pos_tags[index + 1],
-            "prev_word": "" if index == 0 else self.tokenized_sentence[index - 1],
-            "prev_word2": "" if index < 2 else self.tokenized_sentence[index - 2],
+            "prev_word": ""
+            if index == 0
+            else self.tokenized_sentence[index - 1].lower(),
+            "prev_word2": ""
+            if index < 2
+            else self.tokenized_sentence[index - 2].lower(),
             "next_word": ""
             if index == len(self.tokenized_sentence) - 1
-            else self.tokenized_sentence[index + 1],
+            else self.tokenized_sentence[index + 1].lower(),
             "next_word2": ""
             if index >= len(self.tokenized_sentence) - 2
-            else self.tokenized_sentence[index + 2],
+            else self.tokenized_sentence[index + 2].lower(),
             "is_capitalised": self._is_capitalised(token),
             "is_numeric": self._is_numeric(token),
             "is_unit": self._is_unit(token),
