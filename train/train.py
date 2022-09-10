@@ -42,12 +42,12 @@ def load_csv(csv_filename: str) -> tuple[List[str], List[Dict[str, str]]]:
     List[Dict[str, str]]
         List of dictionaries, each dictionary the ingredient labels
     """
-    labels, ingredients = [], []
+    labels, sentences = [], []
     with open(csv_filename, "r") as f:
         reader = csv.reader(f)
         next(reader)  # skip first row
         for row in reader:
-            ingredients.append(row[0])
+            sentences.append(row[0].lower())
             labels.append(
                 {
                     "name": row[1].strip().lower(),
@@ -56,54 +56,7 @@ def load_csv(csv_filename: str) -> tuple[List[str], List[Dict[str, str]]]:
                     "comment": row[4].strip().lower(),
                 }
             )
-    return ingredients, labels
-
-
-def singlarise_unit(token: str) -> str:
-    """Singularise units
-    e.g. cups -> cup, tablespoons -> tablespoon
-
-    Parameters
-    ----------
-    token : str
-        Token to singularise
-
-    Returns
-    -------
-    str
-        Singularised token or original token
-    """
-    units = {
-        "cups": "cup",
-        "tablespoons": "tablespoon",
-        "teaspoons": "teaspoon",
-        "pounds": "pound",
-        "ounces": "ounce",
-        "cloves": "clove",
-        "sprigs": "sprig",
-        "pinches": "pinch",
-        "bunches": "bunch",
-        "slices": "slice",
-        "grams": "gram",
-        "heads": "head",
-        "quarts": "quart",
-        "stalks": "stalk",
-        "pints": "pint",
-        "pieces": "piece",
-        "sticks": "stick",
-        "dashes": "dash",
-        "fillets": "fillet",
-        "cans": "can",
-        "ears": "ear",
-        "packages": "package",
-        "strips": "strip",
-        "bulbs": "bulb",
-        "bottles": "bottle",
-    }
-    if token in units.keys():
-        return units[token]
-    else:
-        return token
+    return sentences, labels
 
 
 def match_labels(tokenized_sentence: List[str], labels: Dict[str, str]) -> List[str]:
@@ -137,10 +90,6 @@ def match_labels(tokenized_sentence: List[str], labels: Dict[str, str]) -> List[
 
     matched_labels = []
     for token in tokenized_sentence:
-
-        # Make lower case first, because all labels are lower case
-        token = token.lower()
-        token = singlarise_unit(token)
 
         # Treat commas as special because they can appear all over the place in a sentence
         if token == ",":
@@ -227,7 +176,7 @@ def transform_to_dataset(
 
 
 def evaluate(
-    X: List[List[Dict[str, str]]], predictions: List[List[str]], truths: List[List[str]]
+    X: List[str], predictions: List[List[str]], truths: List[List[str]]
 ) -> Stats:
 
     total_sentences = 0
@@ -292,29 +241,29 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     print("[INFO] Loading training data.")
-    SF_ingredients, SF_labels = load_csv(args.sf)
-    NYT_ingredients, NYT_labels = load_csv(args.nyt)
+    SF_sentences, SF_labels = load_csv(args.sf)
+    NYT_sentences, NYT_labels = load_csv(args.nyt)
 
     (
-        NYT_ingredients_train,
-        NYT_ingredients_test,
+        NYT_sentences_train,
+        NYT_sentences_test,
         NYT_labels_train,
         NYT_labels_test,
     ) = train_test_split(
-        NYT_ingredients[: args.number],
+        NYT_sentences[: args.number],
         NYT_labels[: args.number],
         test_size=args.split,
     )
     (
-        SF_ingredients_train,
-        SF_ingredients_test,
+        SF_sentences_train,
+        SF_sentences_test,
         SF_labels_train,
         SF_labels_test,
-    ) = train_test_split(SF_ingredients, SF_labels, test_size=args.split)
+    ) = train_test_split(SF_sentences, SF_labels, test_size=args.split)
 
-    ingredients_train = NYT_ingredients_train + SF_ingredients_train
+    ingredients_train = NYT_sentences_train + SF_sentences_train
     labels_train = NYT_labels_train + SF_labels_train
-    ingredients_test = NYT_ingredients_test + SF_ingredients_test
+    ingredients_test = NYT_sentences_test + SF_sentences_test
     labels_test = NYT_labels_test + SF_labels_test
     print(f"[INFO] {len(ingredients_train)+len(ingredients_test):,} total vectors")
     print(f"[INFO] {len(ingredients_train):,} training vectors.")
@@ -335,7 +284,7 @@ if __name__ == "__main__":
     tagger.open(args.save_model)
     y_pred = [tagger.tag(X) for X in X_test]
 
-    stats = evaluate(X_test, y_pred, y_test)
+    stats = evaluate(ingredients_test, y_pred, y_test)
     print("Sentence-level results:")
     print(f"\tTotal: {stats.total_sentences}")
     print(f"\tCorrect: {stats.correct_sentences}")
