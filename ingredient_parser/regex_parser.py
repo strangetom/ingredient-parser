@@ -26,7 +26,19 @@ UNITS = {
     "pound": ["pound", "pounds", "lb", "lbs", "lb.", "lbs."],
     "wedge": ["wedge", "wedges"],
 }
-UNIT_MODIFIERS = ["small", "medium", "medium-size", "large", "big", "heaped", "heaping", "fat", "scant"]
+UNIT_MODIFIERS = [
+    "small",
+    "medium",
+    "medium-size",
+    "large",
+    "big",
+    "heaped",
+    "heaping",
+    "fat",
+    "scant",
+    "thick",
+    "thin",
+]
 # Convert values to list
 UNITS_LIST = list(chain.from_iterable(UNITS.values()))
 # Sort list in order of decreasing length. This is important for the regex matching, so we don't match a shorter substring
