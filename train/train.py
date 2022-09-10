@@ -301,4 +301,4 @@ if __name__ == "__main__":
     print(f"\t-> {100*stats.correct_words/stats.total_words:.2f}%")
 
     if args.detailed_results:
-        test_results_to_html(ingredients_test, y_test, y_pred)
+        test_results_to_html(ingredients_test, y_test, y_pred, minimum_mismatches=0)

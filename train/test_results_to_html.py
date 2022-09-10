@@ -13,6 +13,7 @@ def test_results_to_html(
     sentences: List[str],
     labels_truth: List[List[str]],
     labels_prediction: List[List[str]],
+    minimum_mismatches: int = 0,
 ) -> None:
     """Output results for test vectors that failed to label entire sentence with the truth labels
     in HTML format
@@ -67,16 +68,19 @@ def test_results_to_html(
         sentences, labels_truth, labels_prediction
     ):
         if truth != prediction:
-            tokens: List[str] = PreProcessor(
-                sentence, defer_pos_tagging=True
-            ).tokenized_sentence
-            table = create_html_table(tokens, truth, prediction)
-            p = ET.Element("p")
-            p.text = sentence
-            body.append(p)
-            body.append(table)
+            # Count mismatches and only include if greater than set limit
+            if sum(i != j for i, j in zip(truth, prediction)) > minimum_mismatches:
 
-            incorrect += 1
+                tokens: List[str] = PreProcessor(
+                    sentence, defer_pos_tagging=True
+                ).tokenized_sentence
+                table = create_html_table(tokens, truth, prediction)
+                p = ET.Element("p")
+                p.text = sentence
+                body.append(p)
+                body.append(table)
+
+                incorrect += 1
 
     heading2 = ET.Element("h2")
     heading2.text = f"{incorrect:,} incorrect sentences."
