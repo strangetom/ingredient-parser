@@ -110,23 +110,9 @@ Each of the functions are detailed below.
 Numbers represented in textual form e.g. "one", "two" are replaced with numeric forms.
 The replacements are predefined in a dictionary.
 
-.. code:: python
-
-    # The spaces around the text are required to ensure we only replace the word when it represents a number
-    # and not when the word appear inside a large word.
-    # We don't want boneless to become b1less
-    STRING_NUMBERS = {
-        " half ": " 0.5 ",
-        " one ": " 1 ",
-        " two ": " 2 ",
-        " three ": " 3 ",
-        " four ": " 4 ",
-        " five ": " 5 ",
-        " six ": " 6 ",
-        " seven ": " 7 ",
-        " eight ": " 8 ",
-        " nine ": " 9 ",
-    }
+.. literalinclude:: ../../../ingredient_parser/preprocess.py
+    :lines: 83-97
+    
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
     :pyobject: PreProcessor._replace_string_numbers
@@ -159,11 +145,8 @@ Fractions represented in a textual format (e.g. 1/2, 3/4) are replaced with deci
 
 A regular expression is used to find these in the sentence. The regular expression also matches fractions greater than 1 (e.g. 1 1/2 is 1.5).
 
-.. code:: python
-
-    # Regex pattern for fraction parts.
-    # Matches 0+ numbers followed by 0+ white space characters followed by a number then a forward slash then another number
-    FRACTION_PARTS_PATTERN = re.compile(r"(\d*\s*\d/\d+)")
+.. literalinclude:: ../../../ingredient_parser/preprocess.py
+    :lines: 11-13
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
     :pyobject: PreProcessor._replace_fake_fractions
@@ -176,11 +159,8 @@ A regular expression is used to find these in the sentence. The regular expressi
 A space is enforced between quantities and units to make sure they are tokenized to separate tokens.
 The regular expression that does this is quite simple.
 
-.. code:: python
-
-    # Regex pattern for finding quantity and units without space between them.
-    # Assumes the quantity is always a number and the units always a letter
-    QUANTITY_UNITS_PATTERN = re.compile(r"(\d)([a-zA-Z])")
+.. literalinclude:: ../../../ingredient_parser/preprocess.py
+    :lines: 18-20
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
     :pyobject: PreProcessor._split_quantity_and_units
@@ -200,13 +180,8 @@ where the numbers 1 and 2 represent any decimal value.
 
 The purpose of this is to ensure the range is kept as a single token.
 
-.. code:: python
-
-    # Regex pattern for matching a range in string format e.g. 1 to 2, 8.5 to 12, 4 or 5
-    # Assumes fake fractions and unicode fraction have already been replaced
-    # Allows the range to include a hyphen after each number, which are captured in separate groups
-    # Captures the two number in the range in separate capture groups
-    STRING_RANGE_PATTERN = re.compile(r"([\d\.]+)(-)?\s+(to|or)\s+([\d\.]+)(-)?")
+.. literalinclude:: ../../../ingredient_parser/preprocess.py
+    :lines: 25-29
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
     :pyobject: PreProcessor._replace_string_range
@@ -218,55 +193,8 @@ The purpose of this is to ensure the range is kept as a single token.
 
 Units are made singular. This is done using a predefined list of plural units and their singular form.
 
-.. code:: python
-
-    # Plural and singular units
-    UNITS = {
-        "tablespoons": "tablespoon",
-        "tbsps": "tbsp",
-        "teaspoons": "teaspoon",
-        "tsps": "tsp",
-        "grams": "gram",
-        "g": "g",
-        "kilograms": "kilogram",
-        "kg": "kg",
-        "litres": "litre",
-        "liters": "liter",
-        "milliliters": "milliliter",
-        "ml": "ml",
-        "pounds": "pound",
-        "lbs": "lb",
-        "ounces": "ounce",
-        "cups": "cup",
-        "cloves": "clove",
-        "sprigs": "sprig",
-        "pinches": "pinch",
-        "bunches": "bunch",
-        "handfuls": "handful",
-        "slices": "slice",
-        "grams": "gram",
-        "heads": "head",
-        "quarts": "quart",
-        "stalks": "stalk",
-        "pints": "pint",
-        "pieces": "piece",
-        "sticks": "stick",
-        "dashes": "dash",
-        "fillets": "fillet",
-        "cans": "can",
-        "ears": "ear",
-        "packages": "package",
-        "strips": "strip",
-        "bulbs": "bulb",
-        "bottles": "bottle",
-        "boxes": "box",
-        "sheet": "sheets",
-        "scoops": "scoop",
-        "chops": "chop",
-        "leaves": "leaf",
-        "glasses": "glass",
-    }
-
+.. literalinclude:: ../../../ingredient_parser/preprocess.py
+    :lines: 35-81
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
     :pyobject: PreProcessor._singlarise_unit
@@ -290,8 +218,5 @@ The defined tokenizer splits the sentence according the following rules.
 * Double quotes/speech marks become a token.
     Double quotes can be a unit (inch), which we would to identify.
 
-.. code:: python
-
-    # Predefine tokenizer
-    # The regex pattern matches the tokens: any word character (including '.' and '-' and ' ) or ( or ) or , or "
-    REGEXP_TOKENIZER = RegexpTokenizer(r"[\w\.\-\']+|\(|\)|,|\"", gaps=False)
+.. literalinclude:: ../../../ingredient_parser/preprocess.py
+    :lines: 31-33
