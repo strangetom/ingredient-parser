@@ -16,7 +16,7 @@ Install the package using pip
 python -m pip install ingredient-parser-nlp
 ```
 
-Import the ```parse_ingredient`` function and pass it an ingredient sentence.
+Import the ```parse_ingredient``` function and pass it an ingredient sentence.
 
 ```python
 >>> from ingredient_parser import parse_ingredient
@@ -59,7 +59,7 @@ The returned dictionary has the format
 
 ## Model accuracy
 
-The model provided in ```ingredient-parser/``` directory has the following accuracy on a test data set of 25%:
+The model provided in ```ingredient-parser/``` directory has the following accuracy on a test data set of 25% of the total  data used:
 
 ```
 Sentence-level results:
