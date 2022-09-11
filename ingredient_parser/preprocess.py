@@ -35,6 +35,7 @@ REGEXP_TOKENIZER = RegexpTokenizer(r"[\w\.\-\']+|\(|\)|,|\"", gaps=False)
 # Plural and singular units
 UNITS = {
     "bags": "bag",
+    "bars": "bar",
     "bottles": "bottle",
     "boxes": "box",
     "branches": "branch",
@@ -109,16 +110,16 @@ UNITS = {
 # and not when the word appear inside a large word.
 # We don't want boneless to become b1less
 STRING_NUMBERS = {
-    "half ": "0.5 ",
-    "one ": "1 ",
-    "two ": "2 ",
-    "three ": "3 ",
-    "four ": "4 ",
-    "five ": "5 ",
-    "six ": "6 ",
-    "seven ": "7 ",
-    "eight ": "8 ",
-    "nine ": "9 ",
+    "half": "0.5",
+    "one": "1",
+    "two": "2",
+    "three": "3",
+    "four": "4",
+    "five": "5",
+    "six": "6",
+    "seven": "7",
+    "eight": "8",
+    "nine": "9",
 }
 
 
@@ -301,9 +302,9 @@ class PreProcessor:
         """
         for s, n in STRING_NUMBERS.items():
             # This is case insensitive so it replace e.g. "one" and "One"
-            # Only match if the string is preceeded by a space or is at the start of the sentence
+            # Only match if the string is preceeded by a non-word character or is at the start of the sentence
             sentence = re.sub(
-                rf"((^|[\s\(]){s})", f" {n}", sentence, flags=re.IGNORECASE
+                rf"(^|\W)({s})", rf"\1 {n}", sentence, flags=re.IGNORECASE
             )
 
         return sentence
