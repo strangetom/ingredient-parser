@@ -34,49 +34,73 @@ REGEXP_TOKENIZER = RegexpTokenizer(r"[\w\.\-\']+|\(|\)|,|\"", gaps=False)
 
 # Plural and singular units
 UNITS = {
+    "bags": "bag",
     "bottles": "bottle",
     "boxes": "box",
+    "branches": "branch",
     "bulbs": "bulb",
     "bunches": "bunch",
     "cans": "can",
     "chops": "chop",
+    "chunks": "chunk",
     "cloves": "clove",
+    "clusters": "cluster",
+    "cubes": "cube",
     "cups": "cup",
     "dashes": "dash",
     "dollops": "dollop",
+    "drops": "drop",
     "ears": "ear",
+    "envelopes": "envelope",
     "feet": "foot",
     "fillets": "fillet",
     "gallons": "gallon",
     "glasses": "glass",
     "grams": "gram",
+    "grinds": "grind",
     "handfuls": "handful",
     "heads": "head",
+    "inches": "inch",
+    "jars": "jar",
     "kilograms": "kilogram",
+    "knobs": "knob",
     "lbs": "lb",
     "leaves": "leaf",
+    "lengths": "length",
     "liters": "liter",
     "litres": "litre",
     "loaves": "loaf",
     "milliliters": "milliliter",
     "ounces": "ounce",
     "packages": "package",
+    "packets": "packet",
+    "pairs": "pair",
     "pieces": "piece",
     "pinches": "pinch",
     "pints": "pint",
     "pounds": "pound",
+    "racks": "rack",
+    "rectangles": "rectangle",
     "quarts": "quart",
     "scoops": "scoop",
+    "segments": "segment",
+    "shakes": "shake",
     "sheets": "sheet",
+    "shoots": "shoot",
+    "slabs": "slab",
     "slices": "slice",
     "sprigs": "sprig",
+    "squares": "square",
     "stalks": "stalk",
+    "steaks": "steak",
+    "stems": "stem",
     "sticks": "stick",
     "strips": "strip",
     "tablespoons": "tablespoon",
     "tbsps": "tbsp",
     "teaspoons": "teaspoon",
     "tsps": "tsp",
+    "twists": "twist",
     "wedges": "wedge",
 }
 
@@ -277,7 +301,9 @@ class PreProcessor:
         for s, n in STRING_NUMBERS.items():
             # This is case insensitive so it replace e.g. "one" and "One"
             # Only match if the string is preceeded by a space or is at the start of the sentence
-            sentence = re.sub(rf"(^|\s){s}", n, sentence, flags=re.IGNORECASE)
+            sentence = re.sub(
+                rf"((^|[\s\(]){s})", f" {n}", sentence, flags=re.IGNORECASE
+            )
 
         return sentence
 
