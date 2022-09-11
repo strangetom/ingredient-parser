@@ -84,16 +84,16 @@ UNITS = {
 # and not when the word appear inside a large word.
 # We don't want boneless to become b1less
 STRING_NUMBERS = {
-    " half ": " 0.5 ",
-    " one ": " 1 ",
-    " two ": " 2 ",
-    " three ": " 3 ",
-    " four ": " 4 ",
-    " five ": " 5 ",
-    " six ": " 6 ",
-    " seven ": " 7 ",
-    " eight ": " 8 ",
-    " nine ": " 9 ",
+    "half ": "0.5 ",
+    "one ": "1 ",
+    "two ": "2 ",
+    "three ": "3 ",
+    "four ": "4 ",
+    "five ": "5 ",
+    "six ": "6 ",
+    "seven ": "7 ",
+    "eight ": "8 ",
+    "nine ": "9 ",
 }
 
 
@@ -276,7 +276,8 @@ class PreProcessor:
         """
         for s, n in STRING_NUMBERS.items():
             # This is case insensitive so it replace e.g. "one" and "One"
-            sentence = re.sub(s, n, sentence, flags=re.IGNORECASE)
+            # Only match if the string is preceeded by a space or is at the start of the sentence
+            sentence = re.sub(rf"(^|\s){s}", n, sentence, flags=re.IGNORECASE)
 
         return sentence
 
