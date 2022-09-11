@@ -67,6 +67,7 @@ UNITS = {
     "lbs": "lb",
     "leaves": "leaf",
     "lengths": "length",
+    "links": "link",
     "liters": "liter",
     "litres": "litre",
     "loaves": "loaf",

@@ -194,7 +194,7 @@ The purpose of this is to ensure the range is kept as a single token.
 Units are made singular. This is done using a predefined list of plural units and their singular form.
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
-    :lines: 35-105
+    :lines: 35-106
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
     :pyobject: PreProcessor._singlarise_unit
