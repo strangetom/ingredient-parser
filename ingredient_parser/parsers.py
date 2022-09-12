@@ -9,7 +9,7 @@ import pycrfsuite
 from typing_extensions import NotRequired, TypedDict
 
 from .preprocess import PreProcessor
-from .utils import average, find_idx, fix_punctuation, join_adjacent
+from .utils import average, find_idx, fix_punctuation, join_adjacent, pluralise_units
 
 
 class ParsedIngredient(TypedDict):
@@ -75,8 +75,15 @@ def parse_ingredient(sentence: str, confidence: bool = False) -> ParsedIngredien
     scores = [TAGGER.marginal(label, i) for i, label in enumerate(labels)]
 
     quantity = " ".join([tokens[idx] for idx in find_idx(labels, "QTY")])
+
     unit = " ".join([tokens[idx] for idx in find_idx(labels, "UNIT")])
+    # If quantity is plural (i.e. not singular), make the units plural
+    # The condition here may need to be more robust
+    if quantity != 1:
+        unit = pluralise_units(unit)
+
     name = " ".join([tokens[idx] for idx in find_idx(labels, "NAME")])
+
     comment = join_adjacent(tokens, find_idx(labels, "COMMENT"))
     if isinstance(comment, list):
         comment = [fix_punctuation(item) for item in comment]

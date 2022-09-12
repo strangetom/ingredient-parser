@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 
+import re
 from itertools import groupby
 from operator import itemgetter
 from typing import Generator, Iterator, List, Union
+
+from .preprocess import UNITS
 
 
 def find_idx(labels: List[str], key: str) -> List[int]:
@@ -178,3 +181,35 @@ def fix_punctuation(sentence: str) -> str:
         sentence = sentence[2:]
 
     return sentence.replace("( ", "(").replace(" )", ")").replace(" ,", ",")
+
+
+def pluralise_units(sentence: str) -> str:
+    """Pluralise units in the sentence.
+
+    Use the same UNITS dictionary as PreProcessor to make any units in sentence plural
+
+    Parameters
+    ----------
+    sentence : str
+        Input sentence
+
+    Returns
+    -------
+    str
+        Input sentence with any words in the values of UNITS replaced with their plural version
+
+    Examples
+    --------
+    >>> pluralise_units("2 bag")
+    '2 bags'
+
+    >>> pluralise_units("13 ounce")
+    '13 ounces'
+
+    >>> pluralise_units("1.5 loaf bread")
+    '1.5 loaves bread'
+    """
+    for plural, singular in UNITS.items():
+        sentence = re.sub(rf"\b({singular})\b", f"{plural}", sentence)
+
+    return sentence
