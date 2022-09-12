@@ -8,7 +8,7 @@ packages = ["ingredient_parser"]
 [project]
 # Use a slightly different name to avoid conflict with pre-existing package in pypi
 name = "ingredient_parser_nlp"
-version = "0.1.0-alpha1"
+version = "0.1.0-alpha2"
 authors = [
     { name="Tom Strange", email="tpstrange@gmail.com"},
 ]
