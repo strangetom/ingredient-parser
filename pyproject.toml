@@ -37,4 +37,13 @@ Homepage = "https://github.com/strangetom/ingredient-parser/"
 Documentation = "https://ingredient-parser.readthedocs.io/en/latest/"
 Source = "https://github.com/strangetom/ingredient-parser"
 
-
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = [
+    "-ra",
+    "-q",
+    "--import-mode=importlib",
+]
+testpaths = [
+    "tests",
+]

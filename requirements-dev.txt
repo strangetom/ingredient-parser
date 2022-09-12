@@ -5,3 +5,4 @@ isort
 flake8
 build
 twine
+pytest
