@@ -79,7 +79,7 @@ def parse_ingredient(sentence: str, confidence: bool = False) -> ParsedIngredien
     unit = " ".join([tokens[idx] for idx in find_idx(labels, "UNIT")])
     # If quantity is plural (i.e. not singular), make the units plural
     # The condition here may need to be more robust
-    if quantity != 1:
+    if quantity != "1":
         unit = pluralise_units(unit)
 
     name = " ".join([tokens[idx] for idx in find_idx(labels, "NAME")])
