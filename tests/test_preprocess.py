@@ -15,14 +15,14 @@ class TestPreProcessor_replace_string_numbers:
         The string number, surrounded by spaces, is converted to a numeral
         """
         input_sentence = "Zest of one orange"
-        assert p._replace_string_numbers(input_sentence) == "Zest of  1 orange"
+        assert p._replace_string_numbers(input_sentence) == "Zest of 1 orange"
 
     def test_start(self, p):
         """
         The string number, at the start of the sentence and followed by a space, is converted to a numeral
         """
         input_sentence = "Half of a lime"
-        assert p._replace_string_numbers(input_sentence) == " 0.5 of a lime"
+        assert p._replace_string_numbers(input_sentence) == "0.5 of a lime"
 
     def test_parens(self, p):
         """
@@ -31,7 +31,7 @@ class TestPreProcessor_replace_string_numbers:
         input_sentence = "2 cups (three 12-ounce bags) frozen raspberries"
         assert (
             p._replace_string_numbers(input_sentence)
-            == "2 cups ( 3 12-ounce bags) frozen raspberries"
+            == "2 cups (3 12-ounce bags) frozen raspberries"
         )
 
     def test_hyphen(self, p):
@@ -41,7 +41,7 @@ class TestPreProcessor_replace_string_numbers:
         input_sentence = "1 pound potatoes, peeled and cut into five-inch cubes"
         assert (
             p._replace_string_numbers(input_sentence)
-            == "1 pound potatoes, peeled and cut into  5-inch cubes"
+            == "1 pound potatoes, peeled and cut into 5-inch cubes"
         )
 
     def test_substring(self, p):

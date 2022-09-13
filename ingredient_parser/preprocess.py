@@ -304,7 +304,7 @@ class PreProcessor:
             # This is case insensitive so it replace e.g. "one" and "One"
             # Only match if the string is preceeded by a non-word character or is at the start of the sentence
             sentence = re.sub(
-                rf"(^|\W)({s})", rf"\1 {n}", sentence, flags=re.IGNORECASE
+                rf"\b({s})\b", rf"{n}", sentence, flags=re.IGNORECASE
             )
 
         return sentence
