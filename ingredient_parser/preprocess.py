@@ -74,6 +74,7 @@ UNITS = {
     "loaves": "loaf",
     "milliliters": "milliliter",
     "ounces": "ounce",
+    "packs": "pack",
     "packages": "package",
     "packets": "packet",
     "pairs": "pair",
@@ -303,9 +304,7 @@ class PreProcessor:
         for s, n in STRING_NUMBERS.items():
             # This is case insensitive so it replace e.g. "one" and "One"
             # Only match if the string is preceeded by a non-word character or is at the start of the sentence
-            sentence = re.sub(
-                rf"\b({s})\b", rf"{n}", sentence, flags=re.IGNORECASE
-            )
+            sentence = re.sub(rf"\b({s})\b", rf"{n}", sentence, flags=re.IGNORECASE)
 
         return sentence
 
@@ -578,36 +577,30 @@ class PreProcessor:
         Returns
         -------
         bool
-            True is token starts with a capital letter
+            True if token starts with a capital letter, else False
         """
         return CAPITALISED_PATTERN.match(token) is not None
 
-    def _is_inside_parentheses(self, token: str) -> bool:
+    def _is_inside_parentheses(self, index: int) -> bool:
         """Return True is token is inside parentheses within the sentence or is a parenthesis
 
         Parameters
         ----------
-        token : str
-            Token to check
+        index : int
+            Index of token to check
 
         Returns
         -------
         bool
-            True is token is inside parantheses or is parenthesis
+            True if index is inside parantheses or is parenthesis, else False
         """
-        # If token not sentence return False
-        # This protects the final return from returning True is there are brackets but no token in the sentence
-        if token not in self.tokenized_sentence:
-            return False
-
         # If it's "(" or ")", return True
-        if token in ["(", ")"]:
+        if self.tokenized_sentence[index] in ["(", ")"]:
             return True
 
-        token_index = self.tokenized_sentence.index(token)
         return (
-            "(" in self.tokenized_sentence[:token_index]
-            and ")" in self.tokenized_sentence[token_index + 1 :]
+            "(" in self.tokenized_sentence[:index]
+            and ")" in self.tokenized_sentence[index + 1 :]
         )
 
     def _token_features(self, index: int) -> Dict[str, Any]:
@@ -648,6 +641,7 @@ class PreProcessor:
             "is_capitalised": self._is_capitalised(token),
             "is_numeric": self._is_numeric(token),
             "is_unit": self._is_unit(token),
+            "is_in_parens": self._is_inside_parentheses(index),
         }
 
     def sentence_features(self) -> List[Dict[str, Any]]:

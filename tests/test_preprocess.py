@@ -429,3 +429,44 @@ class TestPreProcessor_is_capitalised:
         "sausage" is not capitalised
         """
         assert not p._is_capitalised("sausage")
+
+class TestPreProcessor_is_inside_parentheses:
+    def test_inside(self):
+        """
+        Token index is inside parens
+        """
+        input_sentence = "8 small slices (or 4 large slices, halved) stale bread"
+        p = PreProcessor(input_sentence)
+        assert p._is_inside_parentheses(6)
+
+    def test_before(self):
+        """
+        Token index is before parens
+        """
+        input_sentence = "8 small slices (or 4 large slices, halved) stale bread"
+        p = PreProcessor(input_sentence)
+        assert not p._is_inside_parentheses(2)
+
+    def test_after(self):
+        """
+        Token index is before parens
+        """
+        input_sentence = "8 small slices (or 4 large slices, halved) stale bread"
+        p = PreProcessor(input_sentence)
+        assert not p._is_inside_parentheses(12)
+
+    def test_open_parens(self):
+        """
+        Token index is (
+        """
+        input_sentence = "8 small slices (or 4 large slices, halved) stale bread"
+        p = PreProcessor(input_sentence)
+        assert p._is_inside_parentheses(3)
+
+    def test_close_parens(self):
+        """
+        Token index is (
+        """
+        input_sentence = "8 small slices (or 4 large slices, halved) stale bread"
+        p = PreProcessor(input_sentence)
+        assert p._is_inside_parentheses(10)
