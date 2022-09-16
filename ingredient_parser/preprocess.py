@@ -484,27 +484,6 @@ class PreProcessor:
             tags.append(tag)
         return tags
 
-    def _get_length(self, tokens: List[str]) -> int:
-        """Get the smallest bucket the length of the tokens list fits into.
-
-        Parameters
-        ----------
-        tokens : List[str]
-            List of tokens in sentence
-
-        Returns
-        -------
-        int
-            Smallest bucket true length fits in
-
-        """
-        length = len(tokens)
-        for n in [4, 8, 12, 16, 20, 26, 32, 38, 44, 50, 70]:
-            if length < n:
-                return n
-
-        return 0
-
     def _is_unit(self, token: str) -> bool:
         """Return True if token is a unit
 
