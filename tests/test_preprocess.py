@@ -299,6 +299,21 @@ class TestPreProcessor_replace_fake_fractions:
             == "1 pound melted butter, about 3.333 cups"
         )
 
+    def test_no_fraction(self, p):
+        """
+        There is no fake fraction in the input
+        """
+        input_sentence = "pinch of salt"
+        assert p._replace_fake_fractions(input_sentence) == input_sentence
+
+    def test_leading_space(self, p):
+        """
+        The fake fraction 1/2 is replaced with 0.5
+        The input sentence starts with a space
+        """
+        input_sentence = " 1/2 cup sugar"
+        assert p._replace_fake_fractions(input_sentence) == " 0.5 cup sugar"
+
 
 class TestPreProcessor_split_quantity_and_units:
     def test_basic(self, p):
@@ -435,15 +450,15 @@ class TestPreProcessor_is_inside_parentheses:
         """
         Token index is inside parens
         """
-        input_sentence = "8 small slices (or 4 large slices, halved) stale bread"
+        input_sentence = "8-10 teaspoons pine nuts (ground), toasted"
         p = PreProcessor(input_sentence)
-        assert p._is_inside_parentheses(6)
+        assert p._is_inside_parentheses(5)
 
     def test_before(self):
         """
         Token index is before parens
         """
-        input_sentence = "8 small slices (or 4 large slices, halved) stale bread"
+        input_sentence = "8-10 teaspoons pine nuts (ground), toasted"
         p = PreProcessor(input_sentence)
         assert not p._is_inside_parentheses(2)
 
@@ -451,22 +466,63 @@ class TestPreProcessor_is_inside_parentheses:
         """
         Token index is before parens
         """
-        input_sentence = "8 small slices (or 4 large slices, halved) stale bread"
+        input_sentence = "8-10 teaspoons pine nuts (ground), toasted"
         p = PreProcessor(input_sentence)
-        assert not p._is_inside_parentheses(12)
+        assert not p._is_inside_parentheses(7)
 
     def test_open_parens(self):
         """
         Token index is (
         """
-        input_sentence = "8 small slices (or 4 large slices, halved) stale bread"
+        input_sentence = "8-10 teaspoons pine nuts (ground), toasted"
         p = PreProcessor(input_sentence)
-        assert p._is_inside_parentheses(3)
+        assert p._is_inside_parentheses(4)
 
     def test_close_parens(self):
         """
         Token index is (
         """
-        input_sentence = "8 small slices (or 4 large slices, halved) stale bread"
+        input_sentence = "8-10 teaspoons pine nuts (ground), toasted"
         p = PreProcessor(input_sentence)
-        assert p._is_inside_parentheses(10)
+        assert p._is_inside_parentheses(6)
+
+class TestPreProcess_follows_comma:
+    def test_no_comma(self):
+        """
+        No comma in input
+        """
+        input_sentence = "freshly ground black pepper"
+        p = PreProcessor(input_sentence)
+        assert not p._follows_comma(2)
+
+    def test_before_comma(self):
+        """
+        Token index is before comma
+        """
+        input_sentence = "freshly ground black pepper, to taste"
+        p = PreProcessor(input_sentence)
+        assert not p._follows_comma(1)
+
+    def test_after_comma(self):
+        """
+        Token index is after comma
+        """
+        input_sentence = "freshly ground black pepper, to taste"
+        p = PreProcessor(input_sentence)
+        assert p._follows_comma(5)
+
+    def test_index_is_comma(self):
+        """
+        Token at index is comma
+        """
+        input_sentence = "freshly ground black pepper, to taste"
+        p = PreProcessor(input_sentence)
+        assert not p._follows_comma(4)
+
+    def test_index_is_comma_and_follows_comma(self):
+        """
+        Token at index is comma and follows another comma
+        """
+        input_sentence = "freshly ground black pepper, or white pepper, to taste"
+        p = PreProcessor(input_sentence)
+        assert p._follows_comma(8)
