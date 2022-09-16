@@ -522,28 +522,21 @@ class PreProcessor:
         except ValueError:
             return False
 
-    def _follows_comma(self, token: str) -> bool:
-        """Return True if token follows a comma (by any amount) in sentence
+    def _follows_comma(self, index: int) -> bool:
+        """Return True if token at index follows a comma (by any amount) in sentence
+        If the token at index is a comma, treat it the same as any other token
 
         Parameters
         ----------
-        token : str
-            Token to check
+        index : int
+            Index of token to check
 
         Returns
         -------
         bool
             True if token follows comma, else False
         """
-        try:
-            comma_index = self.tokenized_sentence.index(",")
-            token_index = self.tokenized_sentence.index(token)
-            if comma_index < token_index:
-                return True
-            else:
-                return False
-        except ValueError:
-            return False
+        return "," in self.tokenized_sentence[:index]
 
     def _is_capitalised(self, token: str) -> bool:
         """Return True is token starts with a capital letter
