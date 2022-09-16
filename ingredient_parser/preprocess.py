@@ -344,7 +344,7 @@ class PreProcessor:
         # at the same time which would mean that the instance of 1 1/2 would end up as 1 0.5 instead of 1.5
         matches.sort(key=len, reverse=True)
 
-        if matches is None:
+        if not matches:
             return sentence
 
         for match in matches:
