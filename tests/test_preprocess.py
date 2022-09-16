@@ -445,6 +445,7 @@ class TestPreProcessor_is_capitalised:
         """
         assert not p._is_capitalised("sausage")
 
+
 class TestPreProcessor_is_inside_parentheses:
     def test_inside(self):
         """
@@ -485,6 +486,7 @@ class TestPreProcessor_is_inside_parentheses:
         input_sentence = "8-10 teaspoons pine nuts (ground), toasted"
         p = PreProcessor(input_sentence)
         assert p._is_inside_parentheses(6)
+
 
 class TestPreProcess_follows_comma:
     def test_no_comma(self):
