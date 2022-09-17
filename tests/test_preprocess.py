@@ -61,7 +61,7 @@ class TestPreProcessor_replace_html_fractions:
     def test_half(self, p):
         """
         The HTML fraction &frac12; is converted to the unicode symbol ½
-        There is no space between the preceeding character and the start of the html fraction
+        There is no space between the preceding character and the start of the html fraction
         """
         input_sentence = "3&frac12; potatoes"
         assert p._replace_html_fractions(input_sentence) == "3½ potatoes"
@@ -69,7 +69,7 @@ class TestPreProcessor_replace_html_fractions:
     def test_one_third(self, p):
         """
         The HTML fraction &frac13; is converted to the unicode symbol ⅓
-        There is no space between the preceeding character and the start of the html fraction
+        There is no space between the preceding character and the start of the html fraction
         """
         input_sentence = "3&frac13; potatoes"
         assert p._replace_html_fractions(input_sentence) == "3⅓ potatoes"
@@ -77,7 +77,7 @@ class TestPreProcessor_replace_html_fractions:
     def test_two_thirds(self, p):
         """
         The HTML fraction &frac23; is converted to the unicode symbol ⅔
-        There is no space between the preceeding character and the start of the html fraction
+        There is no space between the preceding character and the start of the html fraction
         """
         input_sentence = "3&frac23; potatoes"
         assert p._replace_html_fractions(input_sentence) == "3⅔ potatoes"
@@ -85,7 +85,7 @@ class TestPreProcessor_replace_html_fractions:
     def test_one_quarter(self, p):
         """
         The HTML fraction &frac14; is converted to the unicode symbol ¼
-        There is no space between the preceeding character and the start of the html fraction
+        There is no space between the preceding character and the start of the html fraction
         """
         input_sentence = "3&frac14; potatoes"
         assert p._replace_html_fractions(input_sentence) == "3¼ potatoes"
@@ -93,7 +93,7 @@ class TestPreProcessor_replace_html_fractions:
     def test_three_quarters(self, p):
         """
         The HTML fraction &frac34; is converted to the unicode symbol ¾
-        There is no space between the preceeding character and the start of the html fraction
+        There is no space between the preceding character and the start of the html fraction
         """
         input_sentence = "3&frac34; potatoes"
         assert p._replace_html_fractions(input_sentence) == "3¾ potatoes"
@@ -173,7 +173,7 @@ class TestPreProcessor_replace_unicode_fractions:
     def test_half(self, p):
         """
         The unicode fraction ½ is converted to 1/2
-        There is no space between the preceeding character and the unicode fraction
+        There is no space between the preceding character and the unicode fraction
         """
         input_sentence = "3½ potatoes"
         assert p._replace_unicode_fractions(input_sentence) == "3 1/2 potatoes"
@@ -181,7 +181,7 @@ class TestPreProcessor_replace_unicode_fractions:
     def test_third(self, p):
         """
         The unicode fraction ⅓ is converted to 1/3
-        There is no space between the preceeding character and the unicode fraction
+        There is no space between the preceding character and the unicode fraction
         """
         input_sentence = "3⅓ potatoes"
         assert p._replace_unicode_fractions(input_sentence) == "3 1/3 potatoes"
@@ -189,7 +189,7 @@ class TestPreProcessor_replace_unicode_fractions:
     def test_two_thirds(self, p):
         """
         The unicode fraction ⅔ is converted to 2/3
-        There is no space between the preceeding character and the unicode fraction
+        There is no space between the preceding character and the unicode fraction
         """
         input_sentence = "3⅔ potatoes"
         assert p._replace_unicode_fractions(input_sentence) == "3 2/3 potatoes"
@@ -197,7 +197,7 @@ class TestPreProcessor_replace_unicode_fractions:
     def test_quarter(self, p):
         """
         The unicode fraction ¼ is converted to 1/4
-        There is no space between the preceeding character and the unicode fraction
+        There is no space between the preceding character and the unicode fraction
         """
         input_sentence = "3¼ potatoes"
         assert p._replace_unicode_fractions(input_sentence) == "3 1/4 potatoes"
@@ -205,7 +205,7 @@ class TestPreProcessor_replace_unicode_fractions:
     def test_three_quarters(self, p):
         """
         The unicode fraction ¾ is converted to 3/4
-        There is no space between the preceeding character and the unicode fraction
+        There is no space between the preceding character and the unicode fraction
         """
         input_sentence = "3¾ potatoes"
         assert p._replace_unicode_fractions(input_sentence) == "3 3/4 potatoes"
