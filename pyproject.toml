@@ -2,24 +2,18 @@
 requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
-[tool.setuptools]
-packages = ["ingredient_parser"]
-
-[tool.setuptools.dynamic]
-version =  {attr = "ingredient_parser.__version__"}
-
 [project]
 # Use a slightly different name to avoid conflict with pre-existing package in pypi
 name = "ingredient_parser_nlp"
 dynamic = ["version"]
-authors = [
-    { name="Tom Strange", email="tpstrange@gmail.com"},
-]
 description = "A Python package to parse structured information from recipe ingredient sentences"
 readme = "README.md"
 license = { file="LICENSE"}
 requires-python = ">=3.9"
 keywords = ["recipe", "ingredient", "ingredients", "nlp", "parsing" ]
+authors = [
+    { name="Tom Strange", email="tpstrange@gmail.com"},
+]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "License :: OSI Approved :: MIT License",
@@ -40,6 +34,12 @@ Homepage = "https://github.com/strangetom/ingredient-parser/"
 Documentation = "https://ingredient-parser.readthedocs.io/en/latest/"
 Source = "https://github.com/strangetom/ingredient-parser"
 
+[tool.setuptools]
+packages = ["ingredient_parser"]
+
+[tool.setuptools.dynamic]
+version =  {attr = "ingredient_parser.__version__"}
+
 [tool.pytest.ini_options]
 minversion = "7.0"
 addopts = [
@@ -50,3 +50,6 @@ addopts = [
 testpaths = [
     "tests",
 ]
+
+[tool.isort]
+profile = "black"
