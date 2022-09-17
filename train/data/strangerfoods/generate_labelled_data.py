@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 
+import argparse
+import csv
 import glob
 import json
-import csv
-import argparse
 from dataclasses import dataclass
-
 from typing import Any, Dict, List
 
 

@@ -11,9 +11,9 @@ from typing import Dict, List
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import pycrfsuite
-from ingredient_parser import PreProcessor
 from sklearn.model_selection import train_test_split
 
+from ingredient_parser import PreProcessor
 from test_results_to_html import test_results_to_html
 
 
@@ -28,7 +28,8 @@ class Stats:
 
 
 def load_csv(csv_filename: str) -> tuple[List[str], List[Dict[str, str]]]:
-    """Load csv file generated py ```generate_training_testing_csv.py``` and parse contents into ingredients and labels lists
+    """Load csv file generated py ```generate_training_testing_csv.py``` and parse
+    contents into ingredients and labels lists
 
     Parameters
     ----------
@@ -63,22 +64,27 @@ def match_labels(tokenized_sentence: List[str], labels: Dict[str, str]) -> List[
     """Match a label to each token in the tokenized sentence
     Possible labels are: QTY, UNIT, NAME, COMMENT, OTHER, COMMA
 
-    This is made more complicated than it could because the labels for the training data are provided as string, which are a subset of the input sentnece.
+    This is made more complicated than it could because the labels for the training
+    data are provided as string, which are a subset of the input sentnece.
     This means we have to try to match each token to one of the label strings.
     The main problems with this are:
         A token could appear multiple times and have different labels for each instance
         A token might not be in any of the label strings
 
-    This function assumes that the first time we come across a particular token in a tokenized sentence, it's get the first associated label.
-    Commas are treated specially with the label COMMA because they can legitimately appear anywhere in the sentence and often don't appear in the labelled strings
-    Post processing will assign commas to one of the other labels based on it's location in the sentence.
+    This function assumes that the first time we come across a particular token in a
+    tokenized sentence, it's get the first associated label.
+    Commas are treated specially with the label COMMA because they can legitimately
+    appear anywhere in the sentence and often don't appear in the labelled strings
+    Post processing will assign commas to one of the other labels based on it's
+    location in the sentence.
 
     Parameters
     ----------
     tokenized_sentence : List[str]
         Tokenized ingredient sentence
     labels : Dict[str, str]
-        Labels for sentence as a dict. The dict keys are the labels, the dict values are the strings that match each label
+        Labels for sentence as a dict. The dict keys are the labels, the dict values
+        are the strings that match each label
 
     Returns
     -------
@@ -92,14 +98,17 @@ def match_labels(tokenized_sentence: List[str], labels: Dict[str, str]) -> List[
     for token in tokenized_sentence:
 
         # Convert to lower case because all labels are lower case.
-        # Note that we couldn't do this earlier without losing information required for feature extraction
+        # Note that we couldn't do this earlier without losing information required for
+        # feature extraction
         token = token.lower()
 
-        # Treat commas as special because they can appear all over the place in a sentence
+        # Treat commas as special because they can appear all over the
+        # place in a sentence.
         if token == ",":
             matched_labels.append("COMMA")
 
-        # Check if the token is in the token_labels dict, or if we've already used all the assigned labels
+        # Check if the token is in the token_labels dict, or if we've already used all
+        # the assigned labels
         elif token in token_labels.keys() and token_labels[token] != []:
             # Assign the first label in the list to the current token
             # We then remove this from the list, so repeated tokens get the next label
@@ -114,19 +123,22 @@ def match_labels(tokenized_sentence: List[str], labels: Dict[str, str]) -> List[
 
 
 def invert_labels_dict(labels: Dict[str, str]) -> Dict[str, List[str]]:
-    """Reverse the labels dictionary. Instead of having the labels as the key, tokenize the values and have each token as a key.
+    """Reverse the labels dictionary. Instead of having the labels as the key, tokenize
+    the values and have each token as a key.
     If a token appears multiple times, the it has a list of labels
 
     Parameters
     ----------
     labels : Dict[str, str]
-        Labels for an ingredient sentence as a dict, with labels as keys and sentences as values.
+        Labels for an ingredient sentence as a dict, with labels as keys and sentences
+        as values.
 
     Returns
     -------
     Dict[str, List[str]]
-        Labels for an ingredient sentence as a dict, with tokens as keys and labels as values.
-        The values are a list of labels, to account for a particular appearing multiple times in a ingredient sentence, possibly with different labels
+        Labels for an ingredient sentence as a dict, with tokens as keys and labels as
+        values. The values are a list of labels, to account for a particular appearing
+        multiple times in a ingredient sentence, possibly with different labels.
     """
     labels_map = {
         "name": "NAME",
@@ -165,9 +177,11 @@ def transform_to_dataset(
     Returns
     -------
     List[List[Dict[str, str]]]
-        List of sentences transformed into features. Each sentence returns a list of dicts, with the dicts containing the features.
+        List of sentences transformed into features. Each sentence returns a list of
+        dicts, with the dicts containing the features.
     List[str]
-        List of labels transformed into QTY, UNIT, NAME, COMMENT, PUNCT or OTHER for each token
+        List of labels transformed into QTY, UNIT, NAME, COMMENT, PUNCT or OTHER for
+        each token
     """
     X, y = [], []
 
@@ -212,7 +226,8 @@ def evaluate(
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(
-        description="Train a CRF model to parse structured data from recipe ingredient sentences"
+        description="Train a CRF model to parse structured data from recipe \
+                     ingredient sentences."
     )
     parser.add_argument("--nyt", help="Path to input csv file for NYTimes data")
     parser.add_argument("--sf", help="Path to input csv file for StrangerFoods data")

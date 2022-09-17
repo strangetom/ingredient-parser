@@ -9,7 +9,8 @@ from nltk.tag import pos_tag
 from nltk.tokenize import RegexpTokenizer
 
 # Regex pattern for fraction parts.
-# Matches 0+ numbers followed by 0+ white space characters followed by a number then a forward slash then another number
+# Matches 0+ numbers followed by 0+ white space characters followed by a number then
+# a forward slash then another number
 FRACTION_PARTS_PATTERN = re.compile(r"(\d*\s*\d/\d+)")
 
 # Regex pattern for checking if token starts with a capital letter
@@ -24,12 +25,14 @@ RANGE_PATTERN = re.compile(r"\d+\s*\-\d+")
 
 # Regex pattern for matching a range in string format e.g. 1 to 2, 8.5 to 12, 4 or 5
 # Assumes fake fractions and unicode fraction have already been replaced
-# Allows the range to include a hyphen after each number, which are captured in separate groups
+# Allows the range to include a hyphen after each number, which are captured in
+# separate groups
 # Captures the two number in the range in separate capture groups
 STRING_RANGE_PATTERN = re.compile(r"([\d\.]+)(-)?\s+(to|or)\s+([\d\.]+(-)?)")
 
 # Predefine tokenizer
-# The regex pattern matches the tokens: any word character (including '.' and '-' and ' ) or ( or ) or , or "
+# The regex pattern matches the tokens: any word character
+# (including '.' and '-' and ' ) or ( or ) or , or "
 REGEXP_TOKENIZER = RegexpTokenizer(r"[\w\.\-\']+|\(|\)|,|\"", gaps=False)
 
 # Plural and singular units
@@ -107,8 +110,8 @@ UNITS = {
     "wedges": "wedge",
 }
 
-# The spaces around the text are required to ensure we only replace the word when it represents a number
-# and not when the word appear inside a large word.
+# The spaces around the text are required to ensure we only replace the word when it
+# represents a number and not when the word appear inside a large word.
 # We don't want boneless to become b1less
 STRING_NUMBERS = {
     "half": "0.5",
@@ -128,23 +131,29 @@ class PreProcessor:
 
     """Recipe ingredient sentence PreProcessor class.
 
-    Performs the necessary preprocessing on a sentence to generate the features required for the ingredient parser model.
+    Performs the necessary preprocessing on a sentence to generate the features
+    required for the ingredient parser model.
 
-    Each input sentence goes through a cleaning process to tidy up the input into a standardised form.
+    Each input sentence goes through a cleaning process to tidy up the input into a
+    standardised form.
     The cleaning steps are as follows:
 
     1. | Replace numbers given as words with the numeric equivalent.
        | e.g. one >> 1
     2. | Replace fractions given in html mark up with the unicide representation.
        | e.g. &frac12; >> ½
-    3. | Replace unicode fractions with the equivalent decimal form. Decimals are rounded to 3 a maximum of decimal places.
+    3. | Replace unicode fractions with the equivalent decimal form. Decimals are
+       | rounded to 3 a maximum of decimal places.
        | e.g. ½ >> 0.5
-    4. | Replace "fake" fractions represented by 1/2, 2/3 etc. with the equivalent decimal form
+    4. | Replace "fake" fractions represented by 1/2, 2/3 etc. with the equivalent
+       | decimal form
        | e.g. 1/2 >> 0.5
     5. | A space is enforced between quantities and units
-    6. | Numeric ranges indicated in words using "to" or "or" are replaced with a standard numeric form
+    6. | Numeric ranges indicated in words using "to" or "or" are replaced with a
+       | standard numeric form
        | e.g. 1 or 2 >> 1-2; 10 to 12 >> 10-12
-    7. | Units are made singular. This step uses a predefined list of plural units and their singular form.
+    7. | Units are made singular. This step uses a predefined list of plural units and
+       | their singular form.
 
     Following the cleaning of the input sentence, it is tokenized into a list of tokens.
     Each token is one of the following:
@@ -154,7 +163,8 @@ class PreProcessor:
     * Comma
     * Speech marks, "
 
-    The features for each token are computed on demand using the ``sentence_features`` method, which returns a list of dictionaries.
+    The features for each token are computed on demand using the ``sentence_features``
+    method, which returns a list of dictionaries.
     Each dictionary is the feature set for each token.
     The following features are generated:
 
@@ -191,7 +201,8 @@ class PreProcessor:
     is_unit
         True if the token is a unit.
 
-    The sentence features can then be passed to the CRF model which will generate the parsed output.
+    The sentence features can then be passed to the CRF model which will generate the
+    parsed output.
 
     Parameters
     ----------
@@ -199,7 +210,8 @@ class PreProcessor:
         Input ingredient sentence.
     defer_pos_tagging : bool
         Defer part of speech tagging until feature generation.
-        Part of speech tagging is an expensive operation and it's not always needed when using this class.
+        Part of speech tagging is an expensive operation and it's not always needed when
+        using this class.
 
     Attributes
     ----------
@@ -303,7 +315,8 @@ class PreProcessor:
         """
         for s, n in STRING_NUMBERS.items():
             # This is case insensitive so it replace e.g. "one" and "One"
-            # Only match if the string is preceeded by a non-word character or is at the start of the sentence
+            # Only match if the string is preceeded by a non-word character or is at
+            # the start of the sentence
             sentence = re.sub(rf"\b({s})\b", rf"{n}", sentence, flags=re.IGNORECASE)
 
         return sentence
@@ -339,16 +352,19 @@ class PreProcessor:
         """
         matches = FRACTION_PARTS_PATTERN.findall(sentence)
         # This is a bit of a hack.
-        # If a fraction appears multiple times but in different forms e.g. 1/2 and 1 1/2, then
-        # we need to replace the longest one first, otherwise both instance of 1/2 would be replaced
-        # at the same time which would mean that the instance of 1 1/2 would end up as 1 0.5 instead of 1.5
+        # If a fraction appears multiple times but in different forms e.g. 1/2 and
+        # 1 1/2, then
+        # we need to replace the longest one first, otherwise both instance of 1/2
+        # would be replaced at the same time which would mean that the instance of
+        # 1 1/2 would end up as 1 0.5 instead of 1.5
         matches.sort(key=len, reverse=True)
 
         if not matches:
             return sentence
 
         for match in matches:
-            # The regex pattern will capture the space before a fraction if the fraction doesn't have a whole number in front of it.
+            # The regex pattern will capture the space before a fraction if the fraction
+            # doesn't have a whole number in front of it.
             # Therefore, if the match starts with a space, remove it.
             if match.startswith(" "):
                 match = match[1:]
@@ -362,7 +378,8 @@ class PreProcessor:
 
     def _replace_unicode_fractions(self, sentence: str) -> str:
         """Replace unicode fractions with a 'fake' ascii equivalent.
-        The ascii equivalent is used because the replace_fake_fractions function can deal with spaces between an integer and the fraction.
+        The ascii equivalent is used because the replace_fake_fractions function can
+        deal with spaces between an integer and the fraction.
 
         Parameters
         ----------
@@ -399,7 +416,8 @@ class PreProcessor:
 
     def _split_quantity_and_units(self, sentence: str) -> str:
         """Insert space between quantity and unit
-        This currently finds any instances of a number followed directly by a letter with no space inbetween.
+        This currently finds any instances of a number followed directly by a letter
+        with no space inbetween.
 
         Parameters
         ----------
@@ -414,7 +432,9 @@ class PreProcessor:
         return QUANTITY_UNITS_PATTERN.sub(r"\1 \2", sentence)
 
     def _replace_string_range(self, sentence: str) -> str:
-        """Replace range in the form "<num> to <num" with standardised range "<num>-<num>"
+        """Replace range in the form "<num> to <num" with
+        standardised range "<num>-<num>".
+
         For example:
         1 to 2 -> 1-2
         8.5 to 12.5 -> 8.5-12.5
@@ -450,8 +470,8 @@ class PreProcessor:
             sentence = sentence.replace(plural, singular)
 
             # We also need to do this for units that are capitalised.
-            # We can't make everything lower case yet, because we haven't extracted the features
-            # yet and one of the features is whether the token is capitalised.
+            # We can't make everything lower case yet, because we haven't extracted the
+            # features yet and one of the features is whether the token is capitalised.
             sentence = sentence.replace(plural.capitalize(), singular.capitalize())
 
         return sentence
@@ -554,7 +574,8 @@ class PreProcessor:
         return CAPITALISED_PATTERN.match(token) is not None
 
     def _is_inside_parentheses(self, index: int) -> bool:
-        """Return True is token is inside parentheses within the sentence or is a parenthesis
+        """Return True is token is inside parentheses within the sentence or is a
+        parenthesis.
 
         Parameters
         ----------

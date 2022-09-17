@@ -11,8 +11,10 @@ from .preprocess import UNITS
 def find_idx(labels: List[str], key: str) -> List[int]:
     """Find indices of elements in list matching key.
 
-    Return the indices of every element in the input list whose value is equal to the given key.
-    If there is an element with the COMMA label before an element with label key, include this in the list of matched indices
+    Return the indices of every element in the input list whose value is equal to the
+    given key.
+    If there is an element with the COMMA label before an element with label key,
+    include this in the list of matched indices
 
     Parameters
     ----------
@@ -32,7 +34,7 @@ def find_idx(labels: List[str], key: str) -> List[int]:
     >>> find_idx(["QTY", "UNIT", "NAME", "NAME", "COMMENT", "COMMENT"], "NAME")
     [2, 3]
 
-    >>> find_idx(["QTY", "UNIT", "NAME", "NAME", "COMMA", "COMMENT", "COMMENT"], "COMMENT")
+    >>> find_idx(["QTY", "UNIT", "NAME", "COMMA", "COMMENT", "COMMENT"], "COMMENT")
     [4, 5, 6]
     """
     matches = []
@@ -50,7 +52,8 @@ def find_idx(labels: List[str], key: str) -> List[int]:
 def group_consecutive_idx(idx: List[int]) -> Generator[Iterator[int], None, None]:
     """Yield groups of consecutive indices
 
-    Given a list of integers, yield groups of integers where the value of each in a group is adjacent to the previous element's value.
+    Given a list of integers, yield groups of integers where the value of each in a
+    group is adjacent to the previous element's value.
 
     Parameters
     ----------
@@ -76,7 +79,8 @@ def join_adjacent(tokens: List[str], idx: List[int]) -> Union[str, List[str]]:
     """Join tokens with adjacent indices in idx list into strings.
 
     Given a list of tokens and list of indices for token with a particular value,
-    join all the token with adjacent indices in the idx list into space seperated strings.
+    join all the token with adjacent indices in the idx list into space seperated
+    strings.
 
     If idx is an empty list, return an empty string.
 
@@ -119,7 +123,8 @@ def average(labels: List[str], scores: List[float], key: str) -> float:
     """Average the scores for labels matching key
 
     Given a particular label (key), find the indices of the labels that have that key.
-    Then use those indices to take the average of the associated score in the scores input.
+    Then use those indices to take the average of the associated score in the scores
+    input.
 
     Parameters
     ----------
@@ -151,8 +156,8 @@ def fix_punctuation(sentence: str) -> str:
     """Fix punctuation when joining a list into a string
 
     1. Remove the ", " from start of the sentence
-    2. Remove the space following an opening parens "(" and the space preceeding a closing parens ")"
-       caused by using " ".join to turn a list into a sentence
+    2. Remove the space following an opening parens "(" and the space preceeding a
+       closing parens ")" caused by using " ".join to turn a list into a sentence
     3. Remove the space preceeding a comma
 
     Parameters
@@ -196,7 +201,8 @@ def pluralise_units(sentence: str) -> str:
     Returns
     -------
     str
-        Input sentence with any words in the values of UNITS replaced with their plural version
+        Input sentence with any words in the values of UNITS replaced with their plural
+        version
 
     Examples
     --------

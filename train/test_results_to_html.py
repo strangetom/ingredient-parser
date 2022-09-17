@@ -1,7 +1,9 @@
+#!/usr/bin/env python3
+
 import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import List
 
 # Ensure the local ingredient_parser package can be found
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -15,8 +17,8 @@ def test_results_to_html(
     labels_prediction: List[List[str]],
     minimum_mismatches: int = 0,
 ) -> None:
-    """Output results for test vectors that failed to label entire sentence with the truth labels
-    in HTML format
+    """Output results for test vectors that failed to label entire sentence with the
+    truth labels in HTML format.
 
     Parameters
     ----------
@@ -62,6 +64,10 @@ def test_results_to_html(
     heading = ET.Element("h1")
     heading.text = "Incorrect sentences in test data"
     body.append(heading)
+
+    heading3 = ET.Element("h3")
+    heading3.text = f"Showing results with more than {minimum_mismatches} mismatches."
+    body.append(heading3)
 
     incorrect = 0
     for (sentence, truth, prediction) in zip(

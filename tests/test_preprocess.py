@@ -5,7 +5,9 @@ from ingredient_parser import PreProcessor
 
 @pytest.fixture
 def p():
-    """Define an empty PreProcessor object to use for testing the PreProcessor class methods"""
+    """Define an empty PreProcessor object to use for testing the PreProcessor
+    class methods.
+    """
     return PreProcessor("", defer_pos_tagging=True)
 
 
@@ -19,14 +21,16 @@ class TestPreProcessor_replace_string_numbers:
 
     def test_start(self, p):
         """
-        The string number, at the start of the sentence and followed by a space, is converted to a numeral
+        The string number, at the start of the sentence and followed by a space,
+        is converted to a numeral
         """
         input_sentence = "Half of a lime"
         assert p._replace_string_numbers(input_sentence) == "0.5 of a lime"
 
     def test_parens(self, p):
         """
-        The string number, at the beginning of a phrase inside parentheses, is converted to a numeral
+        The string number, at the beginning of a phrase inside parentheses,
+        s converted to a numeral
         """
         input_sentence = "2 cups (three 12-ounce bags) frozen raspberries"
         assert (
@@ -36,7 +40,8 @@ class TestPreProcessor_replace_string_numbers:
 
     def test_hyphen(self, p):
         """
-        The string number, with a hyphen appended without a space, is converted to a numeral
+        The string number, with a hyphen appended without a space,
+        is converted to a numeral
         """
         input_sentence = "1 pound potatoes, peeled and cut into five-inch cubes"
         assert (
@@ -46,7 +51,8 @@ class TestPreProcessor_replace_string_numbers:
 
     def test_substring(self, p):
         """
-        The string number, appearing as a substring of another word, is not converted to a numeral
+        The string number, appearing as a substring of another word,
+        is not converted to a numeral
         """
         input_sentence = (
             "1 pound skinless, boneless monkfish fillets"  # "one" inside "boneless"
@@ -61,7 +67,8 @@ class TestPreProcessor_replace_html_fractions:
     def test_half(self, p):
         """
         The HTML fraction &frac12; is converted to the unicode symbol ½
-        There is no space between the preceding character and the start of the html fraction
+        There is no space between the preceding character and the start of the html
+        fraction
         """
         input_sentence = "3&frac12; potatoes"
         assert p._replace_html_fractions(input_sentence) == "3½ potatoes"
@@ -69,7 +76,8 @@ class TestPreProcessor_replace_html_fractions:
     def test_one_third(self, p):
         """
         The HTML fraction &frac13; is converted to the unicode symbol ⅓
-        There is no space between the preceding character and the start of the html fraction
+        There is no space between the preceding character and the start of the html
+        fraction
         """
         input_sentence = "3&frac13; potatoes"
         assert p._replace_html_fractions(input_sentence) == "3⅓ potatoes"
@@ -77,7 +85,8 @@ class TestPreProcessor_replace_html_fractions:
     def test_two_thirds(self, p):
         """
         The HTML fraction &frac23; is converted to the unicode symbol ⅔
-        There is no space between the preceding character and the start of the html fraction
+        There is no space between the preceding character and the start of the html
+        fraction
         """
         input_sentence = "3&frac23; potatoes"
         assert p._replace_html_fractions(input_sentence) == "3⅔ potatoes"
@@ -85,7 +94,8 @@ class TestPreProcessor_replace_html_fractions:
     def test_one_quarter(self, p):
         """
         The HTML fraction &frac14; is converted to the unicode symbol ¼
-        There is no space between the preceding character and the start of the html fraction
+        There is no space between the preceding character and the start of the html
+        fraction
         """
         input_sentence = "3&frac14; potatoes"
         assert p._replace_html_fractions(input_sentence) == "3¼ potatoes"
@@ -93,7 +103,8 @@ class TestPreProcessor_replace_html_fractions:
     def test_three_quarters(self, p):
         """
         The HTML fraction &frac34; is converted to the unicode symbol ¾
-        There is no space between the preceding character and the start of the html fraction
+        There is no space between the preceding character and the start of the html
+        fraction
         """
         input_sentence = "3&frac34; potatoes"
         assert p._replace_html_fractions(input_sentence) == "3¾ potatoes"
