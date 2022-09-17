@@ -3,6 +3,7 @@ black
 pyright
 isort
 flake8
+pyproject-flake8
 build
 twine
 pytest
