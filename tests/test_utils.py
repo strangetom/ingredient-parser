@@ -131,7 +131,8 @@ class TestUtils_fix_punctuation:
 
     def test_all(self):
         """
-        Spaces following opening parenthesis, preceding closing parenthesis, preceding comma are removed
+        Spaces following opening parenthesis, preceding closing parenthesis,
+        preceding comma are removed
         """
         input_sentence = "2 teaspoons ( kosher ) salt , to taste"
         assert fix_punctuation(input_sentence) == "2 teaspoons (kosher) salt, to taste"
