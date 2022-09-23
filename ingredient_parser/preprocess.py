@@ -8,6 +8,8 @@ from typing import Any, Dict, List
 from nltk.tag import pos_tag
 from nltk.tokenize import RegexpTokenizer
 
+from ._constants import STOP_WORDS, STRING_NUMBERS, UNITS
+
 # Regex pattern for fraction parts.
 # Matches 0+ numbers followed by 0+ white space characters followed by a number then
 # a forward slash then another number
@@ -34,97 +36,6 @@ STRING_RANGE_PATTERN = re.compile(r"([\d\.]+)(-)?\s+(to|or)\s+([\d\.]+(-)?)")
 # The regex pattern matches the tokens: any word character
 # (including '.' and '-' and ' ) or ( or ) or , or "
 REGEXP_TOKENIZER = RegexpTokenizer(r"[\w\.\-\']+|\(|\)|,|\"", gaps=False)
-
-# Plural and singular units
-UNITS = {
-    "bags": "bag",
-    "bars": "bar",
-    "bottles": "bottle",
-    "boxes": "box",
-    "branches": "branch",
-    "bulbs": "bulb",
-    "bunches": "bunch",
-    "cans": "can",
-    "chops": "chop",
-    "chunks": "chunk",
-    "cloves": "clove",
-    "clusters": "cluster",
-    "cubes": "cube",
-    "cups": "cup",
-    "dashes": "dash",
-    "dollops": "dollop",
-    "drops": "drop",
-    "ears": "ear",
-    "envelopes": "envelope",
-    "feet": "foot",
-    "fillets": "fillet",
-    "gallons": "gallon",
-    "glasses": "glass",
-    "grams": "gram",
-    "grinds": "grind",
-    "handfuls": "handful",
-    "heads": "head",
-    "inches": "inch",
-    "jars": "jar",
-    "kilograms": "kilogram",
-    "knobs": "knob",
-    "lbs": "lb",
-    "leaves": "leaf",
-    "lengths": "length",
-    "links": "link",
-    "liters": "liter",
-    "litres": "litre",
-    "loaves": "loaf",
-    "milliliters": "milliliter",
-    "ounces": "ounce",
-    "packs": "pack",
-    "packages": "package",
-    "packets": "packet",
-    "pairs": "pair",
-    "pieces": "piece",
-    "pinches": "pinch",
-    "pints": "pint",
-    "pounds": "pound",
-    "racks": "rack",
-    "rectangles": "rectangle",
-    "quarts": "quart",
-    "scoops": "scoop",
-    "segments": "segment",
-    "shakes": "shake",
-    "sheets": "sheet",
-    "shoots": "shoot",
-    "slabs": "slab",
-    "slices": "slice",
-    "sprigs": "sprig",
-    "squares": "square",
-    "stalks": "stalk",
-    "steaks": "steak",
-    "stems": "stem",
-    "sticks": "stick",
-    "strips": "strip",
-    "tablespoons": "tablespoon",
-    "tbsps": "tbsp",
-    "teaspoons": "teaspoon",
-    "tsps": "tsp",
-    "twists": "twist",
-    "wedges": "wedge",
-}
-
-# The spaces around the text are required to ensure we only replace the word when it
-# represents a number and not when the word appear inside a large word.
-# We don't want boneless to become b1less
-STRING_NUMBERS = {
-    "half": "0.5",
-    "one": "1",
-    "two": "2",
-    "three": "3",
-    "four": "4",
-    "five": "5",
-    "six": "6",
-    "seven": "7",
-    "eight": "8",
-    "nine": "9",
-}
 
 
 class PreProcessor:
@@ -559,7 +470,7 @@ class PreProcessor:
         return "," in self.tokenized_sentence[:index]
 
     def _is_capitalised(self, token: str) -> bool:
-        """Return True is token starts with a capital letter
+        """Return True if token starts with a capital letter
 
         Parameters
         ----------
@@ -574,7 +485,7 @@ class PreProcessor:
         return CAPITALISED_PATTERN.match(token) is not None
 
     def _is_inside_parentheses(self, index: int) -> bool:
-        """Return True is token is inside parentheses within the sentence or is a
+        """Return True if token is inside parentheses within the sentence or is a
         parenthesis.
 
         Parameters
@@ -595,6 +506,21 @@ class PreProcessor:
             "(" in self.tokenized_sentence[:index]
             and ")" in self.tokenized_sentence[index + 1 :]
         )
+
+    def _is_stop_word(self, token: str) -> bool:
+        """Return True if token is in STOP_WORDS set
+
+        Parameters
+        ----------
+        token : str
+            Token to check
+
+        Returns
+        -------
+        bool
+            True if token is a stop word, else False.
+        """
+        return token in STOP_WORDS
 
     def _token_features(self, index: int) -> Dict[str, Any]:
         """Return the features for each token in the sentence
@@ -635,6 +561,8 @@ class PreProcessor:
             "is_numeric": self._is_numeric(token),
             "is_unit": self._is_unit(token),
             "is_in_parens": self._is_inside_parentheses(index),
+            "is_stop_word": self._is_stop_word(token),
+            "is_after_comma": self._follows_comma(index),
         }
 
     def sentence_features(self) -> List[Dict[str, Any]]:

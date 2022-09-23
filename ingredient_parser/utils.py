@@ -5,7 +5,7 @@ from itertools import groupby
 from operator import itemgetter
 from typing import Generator, Iterator, List, Union
 
-from .preprocess import UNITS
+from ._constants import UNITS
 
 
 def find_idx(labels: List[str], key: str) -> List[int]:

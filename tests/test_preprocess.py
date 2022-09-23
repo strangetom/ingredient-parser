@@ -539,3 +539,19 @@ class TestPreProcess_follows_comma:
         input_sentence = "freshly ground black pepper, or white pepper, to taste"
         p = PreProcessor(input_sentence)
         assert p._follows_comma(8)
+
+
+class TestPreProcessor__is_stop_word:
+    def test_common(self, p):
+        """
+        Validate common stop words
+        """
+        for word in ["of", "in", "the", "or", "and", "a", "an", "at", "by"]:
+            assert p._is_stop_word(word)
+
+    def test_false(self, p):
+        """
+        Test non-stop words
+        """
+        for word in ["onion", "kg", "pound", "rice", "taste"]:
+            assert not p._is_stop_word(word)
