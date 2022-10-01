@@ -17,7 +17,11 @@ author = "Tom Strange"
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 extensions = ["sphinx.ext.autodoc", "sphinx.ext.napoleon", "sphinx_design"]
+
 autodoc_typehints = "none"
+napoleon_use_param = False
+napoleon_use_rtype = False
+napoleon_use_keyword = False
 
 templates_path = ["_templates"]
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]

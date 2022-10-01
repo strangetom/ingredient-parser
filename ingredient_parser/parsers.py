@@ -35,7 +35,7 @@ with pkg_resources.path(__package__, "model.crfsuite") as p:
 
 
 def parse_ingredient(sentence: str, confidence: bool = False) -> ParsedIngredient:
-    """Parse an ingredient senetence using CRF model to return structured data
+    """Parse an ingredient sentence using CRF model to return structured data
 
     Returned dictionary has the following fields and datatypes
 

@@ -47,7 +47,11 @@ class PreProcessor:
 
     Each input sentence goes through a cleaning process to tidy up the input into a
     standardised form.
-    The cleaning steps are as follows:
+
+    Notes
+    -----
+
+    The cleaning steps are as follows
 
     1. | Replace numbers given as words with the numeric equivalent.
        | e.g. one >> 1
@@ -67,7 +71,8 @@ class PreProcessor:
        | their singular form.
 
     Following the cleaning of the input sentence, it is tokenized into a list of tokens.
-    Each token is one of the following:
+
+    Each token is one of the following
 
     * A word, including . - and ' characters
     * Opening or closing parentheses
@@ -77,47 +82,57 @@ class PreProcessor:
     The features for each token are computed on demand using the ``sentence_features``
     method, which returns a list of dictionaries.
     Each dictionary is the feature set for each token.
-    The following features are generated:
 
-    word
-        The current token.
+    The following features are generated
 
-    pos
-        The part of speech tag for the current token.
+        word
+            The current token.
 
-    prev_pos+pos
-        The combined part of speech tag for the previous token and the current token.
+        pos
+            The part of speech tag for the current token.
 
-    pos+next_pos
-        The combined part of speech tag for the current token and the next token.
+        prev_pos+pos
+            The combined part of speech tag for the previous token and the current token.
 
-    prev_word
-        The previous token.
+        pos+next_pos
+            The combined part of speech tag for the current token and the next token.
 
-    prev_word2
-        The token before the previous token.
+        prev_word
+            The previous token.
 
-    next_word
-        The next token.
+        prev_word2
+            The token before the previous token.
 
-    next_word2
-        The token following the next token.
+        next_word
+            The next token.
 
-    is_capitalised
-        True if the token starts with a capital letter.
+        next_word2
+            The token following the next token.
 
-    is_numeric
-        True if the token is numeric, including ranges.
+        is_capitalised
+            True if the token starts with a capital letter.
 
-    is_unit
-        True if the token is a unit.
+        is_numeric
+            True if the token is numeric, including ranges.
+
+        is_unit
+            True if the token is a unit.
+
+        is_in_parens
+            True is token is inside parentheses
+
+        is_stop_word
+            True is token is a stop word
+
+        is_after_comma
+            True if token is after a comma in the sentence
 
     The sentence features can then be passed to the CRF model which will generate the
     parsed output.
 
     Parameters
     ----------
-    sentence : str
+    input_sentence : str
         Input ingredient sentence.
     defer_pos_tagging : bool
         Defer part of speech tagging until feature generation.
@@ -126,28 +141,31 @@ class PreProcessor:
 
     Attributes
     ----------
-    input: str
+    defer_pos_tagging : bool
+        Defer part of speech tagging until feature generation
+    input : str
         Input ingredient sentence.
-    sentence: str
+    pos_tags : List[str]
+        Part of speech tag for each token in the tokenized sentence.
+    sentence : str
         Input ingredient sentence, cleaned to standardised form.
     tokenized_sentence : List[str]
         Tokenised ingredient sentence.
-    pos_tags : List[str]
-        Part of speech tag for each token in the tokenized sentence.
     """
 
-    def __init__(self, sentence: str, defer_pos_tagging=False):
+    def __init__(self, input_sentence: str, defer_pos_tagging=False):
         """Initialisation
 
         Parameters
         ----------
-        sentence : str
-            Ingredient sentence
+        input_sentence : str
+            Input ingredient sentence
         defer_pos_tagging : bool, optional
             Defer part of speech tagging until feature generation
+
         """
-        self.input = sentence
-        self.sentence = self._clean(sentence)
+        self.input = input_sentence
+        self.sentence = self._clean(input_sentence)
         self.tokenized_sentence = REGEXP_TOKENIZER.tokenize(self.sentence)
         self.defer_pos_tagging = defer_pos_tagging
         if not defer_pos_tagging:
@@ -346,7 +364,8 @@ class PreProcessor:
         """Replace range in the form "<num> to <num" with
         standardised range "<num>-<num>".
 
-        For example:
+        For example
+        -----------
         1 to 2 -> 1-2
         8.5 to 12.5 -> 8.5-12.5
         16- to 9-
@@ -389,7 +408,9 @@ class PreProcessor:
 
     def _tag_partofspeech(self, tokens: List[str]) -> List[str]:
         """Tag tokens with part of speech using universal tagset
-        This function manually fixes tags that are incorrect in the context of:
+
+        This function manually fixes tags that are incorrect in the context of
+        ----------------------------------------------------------------------
         1. Change tags of numeric ranges to CD
         2. Change tag of "ground" from NN to VBD e.g. ground almonds
 
@@ -568,15 +589,10 @@ class PreProcessor:
     def sentence_features(self) -> List[Dict[str, Any]]:
         """Return features for all tokens in sentence
 
-        Parameters
-        ----------
-        sentence : str
-            Description
-
         Returns
         -------
         List[Dict[str, Any]]
-            Description
+            List of features for each token in sentence
         """
         if self.defer_pos_tagging:
             # If part of speech tagging was deferred, do it now
