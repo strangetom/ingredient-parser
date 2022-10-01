@@ -1,3 +1,4 @@
+/* Tweak cards on homepage */
 .sd-row {
     --sd-gutter-y: 1.5rem;
 }
@@ -11,6 +12,18 @@
     border-top: none !important;
 }
 
+/* Remove bullets from parameter lists in API docs */
+.field-list ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+/* Give <strong> a a different colour */
+strong {
+    color: var(--pst-color-secondary);
+}
+
+/* Set theme using gruvbox colours */
 html[data-theme=dark] {
     --pst-color-primary: #b8bb26;
     --pst-color-primary-text: #fff;
