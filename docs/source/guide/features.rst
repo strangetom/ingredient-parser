@@ -37,4 +37,4 @@ The ``sentence_features`` function of :class:`PreProcessor` return the features 
 
 .. attention::
     
-    It is likely that some of these features aren't necessary. There is a big chunk for the future to determine the most useful features.
+    It is likely that some of these features aren't necessary. There is a big chunk of work for the future to determine the most useful features.

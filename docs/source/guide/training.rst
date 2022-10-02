@@ -98,10 +98,10 @@ The current performance of the model is
 
     Sentence-level results:
         Total: 9277
-        Correct: 7880
-        -> 84.94%
+        Correct: 8017
+        -> 86.42%
 
     Word-level results:
-        Total: 53162
-        Correct: 50655
-        -> 95.28%
+        Total: 53495
+        Correct: 51379
+        -> 96.04%
