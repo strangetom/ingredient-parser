@@ -557,27 +557,9 @@ class PreProcessor:
             Dictionary of features for token at index
         """
         token = self.tokenized_sentence[index]
-        return {
+        features = {
             "word": token.lower(),
             "pos": self.pos_tags[index],
-            "prev_pos+pos": self.pos_tags[index]
-            if index == 0
-            else self.pos_tags[index - 1] + self.pos_tags[index],
-            "pos+next_pos": self.pos_tags[index]
-            if index == len(self.tokenized_sentence) - 1
-            else self.pos_tags[index] + self.pos_tags[index + 1],
-            "prev_word": ""
-            if index == 0
-            else self.tokenized_sentence[index - 1].lower(),
-            "prev_word2": ""
-            if index < 2
-            else self.tokenized_sentence[index - 2].lower(),
-            "next_word": ""
-            if index == len(self.tokenized_sentence) - 1
-            else self.tokenized_sentence[index + 1].lower(),
-            "next_word2": ""
-            if index >= len(self.tokenized_sentence) - 2
-            else self.tokenized_sentence[index + 2].lower(),
             "is_capitalised": self._is_capitalised(token),
             "is_numeric": self._is_numeric(token),
             "is_unit": self._is_unit(token),
@@ -585,6 +567,22 @@ class PreProcessor:
             "is_stop_word": self._is_stop_word(token),
             "is_after_comma": self._follows_comma(index),
         }
+
+        if index > 0:
+            features["prev_pos+pos"] = self.pos_tags[index - 1] + self.pos_tags[index]
+            features["prev_word"] = self.tokenized_sentence[index - 1].lower()
+
+        if index > 1:
+            features["prev_word2"] = self.tokenized_sentence[index - 2].lower()
+
+        if index < len(self.tokenized_sentence) - 1:
+            features["pos+next_pos"] = self.pos_tags[index] + self.pos_tags[index + 1]
+            features["next_word"] = self.tokenized_sentence[index + 1].lower()
+
+        if index < len(self.tokenized_sentence) - 2:
+            features["next_word2"] = self.tokenized_sentence[index + 2].lower()
+
+        return features
 
     def sentence_features(self) -> List[Dict[str, Any]]:
         """Return features for all tokens in sentence
