@@ -3,6 +3,11 @@
     --sd-gutter-y: 1.5rem;
 }
 
+.sd-card {
+    border: none !important;
+    background-color: var(--pst-color-on-background);
+}
+
 .sd-card-header {
     font-size: 2em;
     border-bottom: none !important;

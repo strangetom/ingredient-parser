@@ -110,8 +110,8 @@ Each of the functions are detailed below.
 Numbers represented in textual form e.g. "one", "two" are replaced with numeric forms.
 The replacements are predefined in a dictionary.
 
-.. literalinclude:: ../../../ingredient_parser/preprocess.py
-    :lines: 107-121
+.. literalinclude:: ../../../ingredient_parser/_constants.py
+    :lines: 79-91
     
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
@@ -131,7 +131,7 @@ Fractions represented by html entities (e.g. 0.5 as ``&frac12;``) are replaced w
 ``_replace_unicode_fractions``
 ++++++++++++++++++++++++++++++
 
-Fractions represented by Unicode fractions are replace a textual format (.e.g ½ as``1/2``), as defined by the dictionary in this function. Note that because the previous function replaced html fractions with Unicode fractions, the order of these functions is important.
+Fractions represented by Unicode fractions are replace a textual format (.e.g ½ as 1/2), as defined by the dictionary in this function. Note that because the previous function replaced html fractions with Unicode fractions, the order of these functions is important.
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
     :pyobject: PreProcessor._replace_unicode_fractions
@@ -146,7 +146,7 @@ Fractions represented in a textual format (e.g. 1/2, 3/4) are replaced with deci
 A regular expression is used to find these in the sentence. The regular expression also matches fractions greater than 1 (e.g. 1 1/2 is 1.5).
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
-    :lines: 11-13
+    :lines: 13-16
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
     :pyobject: PreProcessor._replace_fake_fractions
@@ -160,7 +160,7 @@ A space is enforced between quantities and units to make sure they are tokenized
 The regular expression that does this is quite simple.
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
-    :lines: 18-20
+    :lines: 21-23
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
     :pyobject: PreProcessor._split_quantity_and_units
@@ -181,7 +181,7 @@ where the numbers 1 and 2 represent any decimal value.
 The purpose of this is to ensure the range is kept as a single token.
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
-    :lines: 25-29
+    :lines: 28-33
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
     :pyobject: PreProcessor._replace_string_range
@@ -193,8 +193,8 @@ The purpose of this is to ensure the range is kept as a single token.
 
 Units are made singular. This is done using a predefined list of plural units and their singular form.
 
-.. literalinclude:: ../../../ingredient_parser/preprocess.py
-    :lines: 35-107
+.. literalinclude:: ../../../ingredient_parser/_constants.py
+    :lines: 4-77
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
     :pyobject: PreProcessor._singlarise_unit
@@ -219,4 +219,4 @@ The defined tokenizer splits the sentence according the following rules.
     Double quotes can be a unit (inch), which we would to identify.
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
-    :lines: 31-33
+    :lines: 35-38
