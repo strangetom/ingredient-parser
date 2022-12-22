@@ -5,6 +5,7 @@ from itertools import chain
 
 from .parsers import ParsedIngredient
 from .preprocess import PreProcessor
+from .utils import pluralise_units
 
 UNITS = {
     "box": ["box", "boxes", "package", "packages"],
@@ -88,9 +89,9 @@ def parse_ingredient_regex(sentence: str) -> ParsedIngredient:
     For this to work, a basic structure of the sentence is assumed:
     [optional quantity] [optional unit] [name], [comment]
 
-    The quantity regex matches integers, decimals and ranges. Sentences cleaned using
-    the PreProcessor class before being passed to the regular expression so fractions
-    and other formats for quantities are converted to those listed.
+    The quantity regex matches integers, decimals and ranges. Sentences are cleaned
+    using the PreProcessor class before being passed to the regular expression so
+    fractions and other formats for quantities are converted to those listed.
 
     The unit regex matches from a predefined list of units. If the unit in the sentence
     is not in this list, it will end up in the name.
@@ -155,7 +156,11 @@ quantity': '2', 'unit': 'medium', 'name': 'sweet potatoes',\
     if res is not None:
 
         parsed["quantity"] = (res.group("quantity") or "").strip()
-        parsed["unit"] = (res.group("unit") or "").strip()
+
+        unit = (res.group("unit") or "").strip()
+        if parsed["quantity"] != "1":
+            unit = pluralise_units(unit)
+        parsed["unit"] = unit
 
         # Split name by comma, but at most one split
         # This is attempt to split the comment from the name
