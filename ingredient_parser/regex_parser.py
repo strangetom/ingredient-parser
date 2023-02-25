@@ -142,6 +142,7 @@ def parse_ingredient_regex(sentence: str) -> ParsedIngredient:
 quantity': '2', 'unit': 'medium', 'name': 'sweet potatoes',\
 'comment': 'peeled and chopped into 1-inch cubes', 'other': ''}
     """
+    sentence = sentence.strip()
     parsed: ParsedIngredient = {
         "sentence": sentence,
         "quantity": "",
