@@ -216,10 +216,10 @@ def pluralise_units(sentence: str) -> str:
     '1.5 loaves bread'
     """
     for plural, singular in UNITS.items():
-        sentence = re.sub(rf"\b({singular})\b", plural, sentence)
+        sentence = re.sub(rf"\b({singular})\b", f"{plural}", sentence)
         # Make sure to match where unit might be capitalized e.g. Box
         sentence = re.sub(
-            rf"\b({singular.capitalize()})\b", plural.capitalize(), sentence
+            rf"\b({singular.capitalize()})\b", f"{plural.capitalize()}", sentence
         )
 
     return sentence
