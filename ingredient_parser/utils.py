@@ -217,9 +217,5 @@ def pluralise_units(sentence: str) -> str:
     """
     for plural, singular in UNITS.items():
         sentence = re.sub(rf"\b({singular})\b", f"{plural}", sentence)
-        # Make sure to match where unit might be capitalized e.g. Box
-        sentence = re.sub(
-            rf"\b({singular.capitalize()})\b", f"{plural.capitalize()}", sentence
-        )
 
     return sentence

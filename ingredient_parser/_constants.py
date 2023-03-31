@@ -75,6 +75,11 @@ UNITS = {
     "twists": "twist",
     "wedges": "wedge",
 }
+# Generate capitalized version of each entry in the UNITS dictionary
+_capitalized_units = {}
+for plural, singular in UNITS.items():
+    _capitalized_units[plural.capitalize()] = singular.capitalize()
+UNITS = UNITS | _capitalized_units
 
 # Strings and their numeric representation
 STRING_NUMBERS = {

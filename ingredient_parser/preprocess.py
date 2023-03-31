@@ -399,11 +399,6 @@ class PreProcessor:
         for plural, singular in UNITS.items():
             sentence = sentence.replace(plural, singular)
 
-            # We also need to do this for units that are capitalised.
-            # We can't make everything lower case yet, because we haven't extracted the
-            # features yet and one of the features is whether the token is capitalised.
-            sentence = sentence.replace(plural.capitalize(), singular.capitalize())
-
         return sentence
 
     def _tag_partofspeech(self, tokens: List[str]) -> List[str]:
