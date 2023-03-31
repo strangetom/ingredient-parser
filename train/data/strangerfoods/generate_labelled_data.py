@@ -118,18 +118,18 @@ def extract_features(ingredient: Dict[str, Any]) -> tuple[str, Features]:
     """
     quantity = ingredient["quantity"]
     unit = ingredient["unit"]
-    name = ingredient["ingredient"]
-    additional = ingredient["additional"]
+    name = ingredient["name"]
+    comment = ingredient["comment"]
 
     if additional == "":
         string = f"{quantity} {unit} {name}".strip()
     else:
-        string = f"{quantity} {unit} {name}, {ingredient['additional']}".strip()
+        string = f"{quantity} {unit} {name}, {comment}".strip()
 
     # Strip any duplicate spaces
     string = " ".join(string.split())
 
-    return string, Features(name, quantity, unit, additional)
+    return string, Features(name, quantity, unit, comment)
 
 
 if __name__ == "__main__":
