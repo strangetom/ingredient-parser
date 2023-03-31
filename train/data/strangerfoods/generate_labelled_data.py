@@ -121,7 +121,7 @@ def extract_features(ingredient: Dict[str, Any]) -> tuple[str, Features]:
     name = ingredient["name"]
     comment = ingredient["comment"]
 
-    if additional == "":
+    if comment == "":
         string = f"{quantity} {unit} {name}".strip()
     else:
         string = f"{quantity} {unit} {name}, {comment}".strip()
