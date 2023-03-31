@@ -155,6 +155,8 @@ class TestUtils_pluralise_units:
         assert pluralise_units("loaf") == "loaves"
         assert pluralise_units("leaf") == "leaves"
         assert pluralise_units("chunk") == "chunks"
+        assert pluralise_units("Box") == "Boxes"
+        assert pluralise_units("Wedge") == "Wedges"
 
     def test_embedded(self):
         """

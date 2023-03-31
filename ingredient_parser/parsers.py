@@ -78,11 +78,6 @@ def parse_ingredient(sentence: str, confidence: bool = False) -> ParsedIngredien
     quantity = " ".join([tokens[idx] for idx in find_idx(labels, "QTY")])
 
     unit = " ".join([tokens[idx] for idx in find_idx(labels, "UNIT")])
-    # If quantity is plural (i.e. not singular), make the units plural
-    # The condition here may need to be more robust
-    if quantity != "1":
-        unit = pluralise_units(unit)
-
     name = " ".join([tokens[idx] for idx in find_idx(labels, "NAME")])
 
     comment = join_adjacent(tokens, find_idx(labels, "COMMENT"))
@@ -96,6 +91,14 @@ def parse_ingredient(sentence: str, confidence: bool = False) -> ParsedIngredien
         other = [fix_punctuation(item) for item in other]
     else:
         other = fix_punctuation(other)
+
+    # If quantity is plural (i.e. not singular), make the units plural
+    # The condition here may need to be more robust
+    if quantity != "1":
+        unit = pluralise_units(unit)
+        name = pluralise_units(name)
+        comment = pluralise_units(comment)
+        other = pluralise_units(other)
 
     parsed: ParsedIngredient = {
         "sentence": sentence,
