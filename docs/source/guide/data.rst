@@ -109,9 +109,10 @@ Each of the functions are detailed below.
 
 Numbers represented in textual form e.g. "one", "two" are replaced with numeric forms.
 The replacements are predefined in a dictionary.
+For performance reasons, the regular expressions used to substitute the text with the number are precomiled and provided in the ``STRING_NUMBERS_REGEXES`` constant, which is a dictionary where the value is a tuple of (precompiled regex, substitute value).
 
 .. literalinclude:: ../../../ingredient_parser/_constants.py
-    :lines: 79-91
+    :lines: 85-104
     
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
@@ -194,7 +195,7 @@ The purpose of this is to ensure the range is kept as a single token.
 Units are made singular. This is done using a predefined list of plural units and their singular form.
 
 .. literalinclude:: ../../../ingredient_parser/_constants.py
-    :lines: 4-77
+    :lines: 5-83
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
     :pyobject: PreProcessor._singlarise_unit
