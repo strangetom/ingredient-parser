@@ -181,3 +181,7 @@ Thumbs.db
 # Editor backup files #
 #######################
 *~
+
+# PyPi credentials #
+####################
+.pypirc
