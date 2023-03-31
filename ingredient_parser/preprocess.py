@@ -8,7 +8,7 @@ from typing import Any, Dict, List
 from nltk.tag import pos_tag
 from nltk.tokenize import RegexpTokenizer
 
-from ._constants import STOP_WORDS, STRING_NUMBERS, UNITS
+from ._constants import STOP_WORDS, STRING_NUMBERS_REGEXES, UNITS
 
 # Regex pattern for fraction parts.
 # Matches 0+ numbers followed by 0+ white space characters followed by a number then
@@ -92,7 +92,8 @@ class PreProcessor:
             The part of speech tag for the current token.
 
         prev_pos+pos
-            The combined part of speech tag for the previous token and the current token.
+            The combined part of speech tag for the previous token and the current
+            token.
 
         pos+next_pos
             The combined part of speech tag for the current token and the next token.
@@ -242,11 +243,12 @@ class PreProcessor:
         str
             Ingredient sentence with string numbers replace with numeric values
         """
-        for s, n in STRING_NUMBERS.items():
-            # This is case insensitive so it replace e.g. "one" and "One"
-            # Only match if the string is preceeded by a non-word character or is at
-            # the start of the sentence
-            sentence = re.sub(rf"\b({s})\b", rf"{n}", sentence, flags=re.IGNORECASE)
+
+        # STRING_NUMBER_REGEXES is a dict where the values are a tuple of the compiled
+        # regular expression for matching a string number e.g. 'one', 'two' and the
+        # substitution numerical value for that string number.
+        for regex, substitution in STRING_NUMBERS_REGEXES.values():
+            sentence = regex.sub(rf"{substitution}", sentence)
 
         return sentence
 

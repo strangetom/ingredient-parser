@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import re
 
 # Plural and singular units
 UNITS = {
@@ -94,6 +95,13 @@ STRING_NUMBERS = {
     "eight": "8",
     "nine": "9",
 }
+# Precompile the regular expressions for matching the string numbers
+STRING_NUMBERS_REGEXES = {}
+for s, n in STRING_NUMBERS.items():
+    # This is case insensitive so it replace e.g. "one" and "One"
+    # Only match if the string is preceeded by a non-word character or is at
+    # the start of the sentence
+    STRING_NUMBERS_REGEXES[s] = (re.compile(rf"\b({s})\b", flags=re.IGNORECASE), n)
 
 # Stop words - high frequency grammatrical words
 # Taken from nltk.corpus.stopwords
