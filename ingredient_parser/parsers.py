@@ -97,8 +97,15 @@ def parse_ingredient(sentence: str, confidence: bool = False) -> ParsedIngredien
     if quantity != "1":
         unit = pluralise_units(unit)
         name = pluralise_units(name)
-        comment = pluralise_units(comment)
-        other = pluralise_units(other)
+        if isinstance(comment, list):
+            comment = [pluralise_units(item) for item in comment]
+        else:
+            comment = pluralise_units(comment)
+
+        if isinstance(other, list):
+            other = [pluralise_units(item) for item in other]
+        else:
+            other = pluralise_units(other)
 
     parsed: ParsedIngredient = {
         "sentence": sentence,
