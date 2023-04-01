@@ -18,10 +18,9 @@ FRACTION_PARTS_PATTERN = re.compile(r"(\d*\s*\d/\d+)")
 # Regex pattern for checking if token starts with a capital letter
 CAPITALISED_PATTERN = re.compile(r"^[A-Z]")
 
-# Regex pattern for finding quantity and units without space between them
-# or separated by a hyphen.
+# Regex pattern for finding quantity and units without space between them.
 # Assumes the quantity is always a number and the units always a letter
-QUANTITY_UNITS_PATTERN = re.compile(r"(\d)-?([a-zA-Z])")
+QUANTITY_UNITS_PATTERN = re.compile(r"(\d)([a-zA-Z])")
 
 # Regex pattern for matching a numeric range e.g. 1-2, 2-3
 RANGE_PATTERN = re.compile(r"\d+\s*\-\d+")
