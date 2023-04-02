@@ -4,19 +4,38 @@ import pytest
 
 from ingredient_parser import parse_ingredient
 
-# Load test data from test_parser.json
-sample_data = []
-with open("tests/test_parser.json", "r") as f:
-    test_vectors = f.read().splitlines()
-    for vector in test_vectors:
-        data = json.loads(vector)
-        sample_data.append(data)
+
+def load_test_cases(file: str):
+    """Load newline delimited json file of test cases
+
+    Parameters
+    ----------
+    file : str
+        Filename
+
+    Returns
+    -------
+    List[Dict[str,str]]
+        List of dicts of test cases.
+        Each dict contains:
+            sentence: the input sentence to parse
+            labels: the correct labels
+    """
+    sample_data = []
+    with open(file, "r") as f:
+        test_cases = f.read().splitlines()
+        for case in test_cases:
+            data = json.loads(case)
+            sample_data.append(data)
+
+    return sample_data
 
 
 class TestParser:
-    @pytest.mark.parametrize("data", sample_data)
-    def test_parser(self, data):
-        """Test parse_ingredient function of sample_data
+    @pytest.mark.parametrize("data", load_test_cases("tests/test_parser_simple.json"))
+    def test_parser_simple(self, data):
+        """Test simple cases of ingredient sentences that the parser should have no
+        issues getting correct
 
         Parameters
         ----------
