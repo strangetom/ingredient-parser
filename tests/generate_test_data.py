@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 
+import csv
 import json
 import random
+
+from typing import Dict, List
 
 
 def load_csv(csv_filename: str) -> tuple[List[str], List[Dict[str, str]]]:
@@ -38,7 +41,6 @@ def load_csv(csv_filename: str) -> tuple[List[str], List[Dict[str, str]]]:
 
 
 if __name__ == "__main__":
-
     # Load NYT and SF data
     SF_sentences, SF_labels = load_csv("train/data/strangerfoods/sf_labelled_data.csv")
     NYT_sentences, NYT_labels = load_csv(
