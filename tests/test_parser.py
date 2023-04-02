@@ -32,4 +32,4 @@ class TestParser:
         # parse_ingredient returns a dict with more keys than just the labels
         # so iterate through each label in true_labels and only check them.
         for key in true_labels:
-            assert parsed[key] == parsed[key]
+            assert parsed[key] == true_labels[key]
