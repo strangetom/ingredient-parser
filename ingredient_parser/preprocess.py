@@ -5,6 +5,7 @@ from fractions import Fraction
 from html import unescape
 from typing import Any, Dict, List
 
+from nltk.stem.porter import PorterStemmer
 from nltk.tag import pos_tag
 from nltk.tokenize import RegexpTokenizer
 
@@ -36,6 +37,8 @@ STRING_RANGE_PATTERN = re.compile(r"([\d\.]+)(-)?\s+(to|or)\s+([\d\.]+(-)?)")
 # The regex pattern matches the tokens: any word character
 # (including '.' and '-' and ' ) or ( or ) or , or "
 REGEXP_TOKENIZER = RegexpTokenizer(r"[\w\.\-\']+|\(|\)|,|\"", gaps=False)
+
+STEMMER = PorterStemmer()
 
 
 class PreProcessor:
@@ -85,18 +88,25 @@ class PreProcessor:
 
     The following features are generated
 
-        word
-            The current token.
+        stem
+            The current token, stemmed.
 
         pos
             The part of speech tag for the current token.
 
-        prev_pos+pos
-            The combined part of speech tag for the previous token and the current
-            token.
+        prev_pos
+            The part of speech tag for the previous token.
 
-        pos+next_pos
-            The combined part of speech tag for the current token and the next token.
+        prev_pos2
+            The part of speech tag for the token before the
+            previous token.
+
+        next_pos
+            The part of speech tag for the next token.
+
+        next_pos2
+            The part of speech tag for the token after the
+            next token.
 
         prev_word
             The previous token.
@@ -555,7 +565,7 @@ class PreProcessor:
         """
         token = self.tokenized_sentence[index]
         features = {
-            "word": token.lower(),
+            "stem": STEMMER.stem(token),
             "pos": self.pos_tags[index],
             "is_capitalised": self._is_capitalised(token),
             "is_numeric": self._is_numeric(token),
@@ -566,18 +576,20 @@ class PreProcessor:
         }
 
         if index > 0:
-            features["prev_pos+pos"] = self.pos_tags[index - 1] + self.pos_tags[index]
-            features["prev_word"] = self.tokenized_sentence[index - 1].lower()
+            features["prev_pos"] = self.pos_tags[index - 1]
+            features["prev_word"] = STEMMER.stem(self.tokenized_sentence[index - 1])
 
         if index > 1:
-            features["prev_word2"] = self.tokenized_sentence[index - 2].lower()
+            features["prev_pos2"] = self.pos_tags[index - 2]
+            features["prev_word2"] = STEMMER.stem(self.tokenized_sentence[index - 2])
 
         if index < len(self.tokenized_sentence) - 1:
-            features["pos+next_pos"] = self.pos_tags[index] + self.pos_tags[index + 1]
-            features["next_word"] = self.tokenized_sentence[index + 1].lower()
+            features["next_pos"] = self.pos_tags[index + 1]
+            features["next_word"] = STEMMER.stem(self.tokenized_sentence[index + 1])
 
         if index < len(self.tokenized_sentence) - 2:
-            features["next_word2"] = self.tokenized_sentence[index + 2].lower()
+            features["next_pos2"] = self.pos_tags[index + 2]
+            features["next_word2"] = STEMMER.stem(self.tokenized_sentence[index + 2])
 
         return features
 
