@@ -15,17 +15,25 @@ The `Ingredient Phrase Tagger <https://github.com/NYTimes/ingredient-phrase-tagg
 
 The features used for this model are a little different
 
-* The token
+* The stem of the token
 * The part of speech (POS) tag
-* The combined POS tags for the previous and current token
-* The combined POS tags for the current and next token
-* The previous token (or an empty string if the first token)
-* The token 2 tokens previous (or an empty string if the second or first token)
-* The next token (or an empty string if the last token)
-* The token 2 tokens after (or an empty string if the last or second last token)
 * Whether the token is capitalised
 * Whether the token is numeric
 * Whether the token is a unit (determined from the list of units)
+* Whether the token is inside parentheses
+* Whether the token is a stop word
+* Whether the token is after a comma
+
+If possible, based on the position of the token in the sentence, the following features are also added
+
+* The stem of the previous token
+* The POS tag for the previous token
+* The stem of the token before the previous token
+* The POS tag for the token before the previous token
+* The stem of the next token
+* The POS tag for the next token
+* The stem of the token after the next token
+* The POS tag for the token after the next token
 
 The ``_token_features`` function of :class:`PreProcessor` returns all these features as a dictionary.
 

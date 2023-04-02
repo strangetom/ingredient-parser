@@ -3,7 +3,7 @@
 import re
 from fractions import Fraction
 from html import unescape
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Union
 
 from nltk.stem.porter import PorterStemmer
 from nltk.tag import pos_tag
@@ -550,7 +550,7 @@ class PreProcessor:
         """
         return token in STOP_WORDS
 
-    def _token_features(self, index: int) -> Dict[str, Any]:
+    def _token_features(self, index: int) -> Dict[str, Union[str, bool]]:
         """Return the features for each token in the sentence
 
         Parameters
