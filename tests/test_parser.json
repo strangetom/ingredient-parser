@@ -2,94 +2,94 @@
 {"sentence": "1 tablespoon of ginger", "labels": {"name": "ginger", "quantity": "1", "unit": "tablespoon", "comment": "of"}}
 {"sentence": "2 to 3 small to medium-size leeks", "labels": {"name": "leeks", "quantity": "2-3", "unit": "small to medium-size", "comment": ""}}
 {"sentence": "1 15-ounce package refrigerated pie crusts", "labels": {"name": "pie crusts", "quantity": "1", "unit": "package", "comment": "15-ounce refrigerated"}}
-{"sentence": "2 tablespoons mirin", "labels": {"name": "mirin", "quantity": "2", "unit": "tablespoon", "comment": ""}}
-{"sentence": "3 tablespoons fresh lime juice", "labels": {"name": "lime juice", "quantity": "3", "unit": "tablespoon", "comment": "fresh"}}
+{"sentence": "2 tablespoons mirin", "labels": {"name": "mirin", "quantity": "2", "unit": "tablespoons", "comment": ""}}
+{"sentence": "3 tablespoons fresh lime juice", "labels": {"name": "lime juice", "quantity": "3", "unit": "tablespoons", "comment": "fresh"}}
 {"sentence": "1 teaspoon peanut oil", "labels": {"name": "peanut oil", "quantity": "1", "unit": "teaspoon", "comment": ""}}
-{"sentence": "1/2 cup chicken broth", "labels": {"name": "chicken broth", "quantity": "0.5", "unit": "cup", "comment": ""}}
-{"sentence": "2 tablespoons Dijon mustard", "labels": {"name": "dijon mustard", "quantity": "2", "unit": "tablespoon", "comment": ""}}
+{"sentence": "1/2 cup chicken broth", "labels": {"name": "chicken broth", "quantity": "0.5", "unit": "cups", "comment": ""}}
+{"sentence": "2 tablespoons Dijon mustard", "labels": {"name": "dijon mustard", "quantity": "2", "unit": "tablespoons", "comment": ""}}
 {"sentence": "1 4-pound duck", "labels": {"name": "duck", "quantity": "1", "unit": "", "comment": "4-pound"}}
 {"sentence": "1 teaspoon baking soda", "labels": {"name": "baking soda", "quantity": "1", "unit": "teaspoon", "comment": ""}}
 {"sentence": "1 egg", "labels": {"name": "egg", "quantity": "1", "unit": "", "comment": ""}}
-{"sentence": "3/4 pound zucchini", "labels": {"name": "zucchini", "quantity": "0.75", "unit": "pound", "comment": ""}}
+{"sentence": "3/4 pound zucchini", "labels": {"name": "zucchini", "quantity": "0.75", "unit": "pounds", "comment": ""}}
 {"sentence": "10 black peppercorns", "labels": {"name": "black peppercorns", "quantity": "10", "unit": "", "comment": ""}}
-{"sentence": "8 ounces feta cheese, crumbled", "labels": {"name": "feta cheese", "quantity": "8", "unit": "ounce", "comment": "crumbled"}}
-{"sentence": "2 tablespoons safflower oil", "labels": {"name": "safflower oil", "quantity": "2", "unit": "tablespoon", "comment": ""}}
+{"sentence": "8 ounces feta cheese, crumbled", "labels": {"name": "feta cheese", "quantity": "8", "unit": "ounces", "comment": "crumbled"}}
+{"sentence": "2 tablespoons safflower oil", "labels": {"name": "safflower oil", "quantity": "2", "unit": "tablespoons", "comment": ""}}
 {"sentence": "2 carrots, peeled and chopped", "labels": {"name": "carrots", "quantity": "2", "unit": "", "comment": "peeled and chopped"}}
 {"sentence": "Herb bouquet (13 sprigs parsley, 2 sprigs thyme, 1 bay leaf and 1 leaf of fresh celery tied in cheesecloth)", "labels": {"name": "herb bouquet", "quantity": "1", "unit": "", "comment": "(13 sprig parsley, 2 sprig thyme, 1 bay leaf and 1 leaf of fresh celery tied in cheesecloth)"}}
-{"sentence": "5 tablespoons unseasoned bread crumbs", "labels": {"name": "bread crumbs", "quantity": "5", "unit": "tablespoon", "comment": "unseasoned"}}
-{"sentence": "8 ounces pork tenderloin", "labels": {"name": "pork tenderloin", "quantity": "8", "unit": "ounce", "comment": ""}}
+{"sentence": "5 tablespoons unseasoned bread crumbs", "labels": {"name": "bread crumbs", "quantity": "5", "unit": "tablespoons", "comment": "unseasoned"}}
+{"sentence": "8 ounces pork tenderloin", "labels": {"name": "pork tenderloin", "quantity": "8", "unit": "ounces", "comment": ""}}
 {"sentence": "1 teaspoon finely chopped fresh tarragon, optional", "labels": {"name": "tarragon", "quantity": "1", "unit": "teaspoon", "comment": "finely chopped fresh, optional"}}
-{"sentence": "2 tablespoons potato starch", "labels": {"name": "potato", "quantity": "2", "unit": "tablespoon", "comment": "starch"}}
+{"sentence": "2 tablespoons potato starch", "labels": {"name": "potato", "quantity": "2", "unit": "tablespoons", "comment": "starch"}}
 {"sentence": "Orange sauce", "labels": {"name": "orange sauce", "quantity": "", "unit": "", "comment": ""}}
 {"sentence": "3 large eggs", "labels": {"name": "eggs", "quantity": "3", "unit": "large", "comment": ""}}
-{"sentence": "4 ounces unsalted butter", "labels": {"name": "unsalted butter", "quantity": "4", "unit": "ounce", "comment": ""}}
+{"sentence": "4 ounces unsalted butter", "labels": {"name": "unsalted butter", "quantity": "4", "unit": "ounces", "comment": ""}}
 {"sentence": "1 teaspoon herbes de Provence", "labels": {"name": "herbes de provence", "quantity": "1", "unit": "teaspoon", "comment": ""}}
 {"sentence": "1 cup heavy cream", "labels": {"name": "heavy cream", "quantity": "1", "unit": "cup", "comment": ""}}
-{"sentence": "2 cups buttermilk", "labels": {"name": "buttermilk", "quantity": "2", "unit": "cup", "comment": ""}}
+{"sentence": "2 cups buttermilk", "labels": {"name": "buttermilk", "quantity": "2", "unit": "cups", "comment": ""}}
 {"sentence": "1 cup vegetable shortening or lard", "labels": {"name": "vegetable shortening", "quantity": "1", "unit": "cup", "comment": "or lard"}}
 {"sentence": "Kosher salt", "labels": {"name": "kosher salt", "quantity": "", "unit": "", "comment": ""}}
-{"sentence": "1/8 teaspoon salt", "labels": {"name": "salt", "quantity": "0.125", "unit": "teaspoon", "comment": ""}}
+{"sentence": "1/8 teaspoon salt", "labels": {"name": "salt", "quantity": "0.125", "unit": "teaspoons", "comment": ""}}
 {"sentence": "40 large shrimp, peeled (remove vein if you like)", "labels": {"name": "shrimp", "quantity": "40", "unit": "large", "comment": "peeled (remove vein if you like)"}}
 {"sentence": "8 eggs", "labels": {"name": "eggs", "quantity": "8", "unit": "", "comment": ""}}
 {"sentence": "Red chili flakes for garnish", "labels": {"name": "red chili flakes", "quantity": "", "unit": "", "comment": "for garnish"}}
 {"sentence": "6 skinless, boneless blackfish fillets, about 6 ounces each (2 1/4 pounds total)", "labels": {"name": "blackfish", "quantity": "6", "unit": "fillet", "comment": "skinless, boneless, about 6 ounce each ( 2.25 pound total)"}}
-{"sentence": "1/4 cup Dijon mustard", "labels": {"name": "dijon mustard", "quantity": "0.25", "unit": "cup", "comment": ""}}
-{"sentence": "2 tablespoons sour cream", "labels": {"name": "sour cream", "quantity": "2", "unit": "tablespoon", "comment": ""}}
-{"sentence": "2 cloves minced garlic", "labels": {"name": "garlic", "quantity": "2", "unit": "clove", "comment": "minced"}}
-{"sentence": "3/4 cup finely shredded celery root", "labels": {"name": "celery root", "quantity": "0.75", "unit": "cup", "comment": "finely shredded"}}
+{"sentence": "1/4 cup Dijon mustard", "labels": {"name": "dijon mustard", "quantity": "0.25", "unit": "cups", "comment": ""}}
+{"sentence": "2 tablespoons sour cream", "labels": {"name": "sour cream", "quantity": "2", "unit": "tablespoons", "comment": ""}}
+{"sentence": "2 cloves minced garlic", "labels": {"name": "garlic", "quantity": "2", "unit": "cloves", "comment": "minced"}}
+{"sentence": "3/4 cup finely shredded celery root", "labels": {"name": "celery root", "quantity": "0.75", "unit": "cups", "comment": "finely shredded"}}
 {"sentence": "1 small onion, finely chopped", "labels": {"name": "onion", "quantity": "1", "unit": "small", "comment": "finely chopped"}}
 {"sentence": "8-pound crown roast of pork (ask butcher to prepare crown without any stuffing)", "labels": {"name": "crown roast of pork", "quantity": "1", "unit": "", "comment": "8-pound (ask butcher to prepare crown without any stuffing)"}}
-{"sentence": "2 cups plain nonfat yogurt", "labels": {"name": "yogurt", "quantity": "2", "unit": "cup", "comment": "plain nonfat"}}
+{"sentence": "2 cups plain nonfat yogurt", "labels": {"name": "yogurt", "quantity": "2", "unit": "cups", "comment": "plain nonfat"}}
 {"sentence": "1 egg", "labels": {"name": "egg", "quantity": "1", "unit": "", "comment": ""}}
-{"sentence": "1/4 cup balsamic vinegar", "labels": {"name": "balsamic vinegar", "quantity": "0.25", "unit": "cup", "comment": ""}}
-{"sentence": "2 teaspoons baking soda", "labels": {"name": "baking soda", "quantity": "2", "unit": "teaspoon", "comment": ""}}
-{"sentence": "2/3 cup port", "labels": {"name": "port", "quantity": "0.667", "unit": "cup", "comment": ""}}
-{"sentence": "5 to 6 tablespoons unsalted butter or vegetable oil", "labels": {"name": "unsalted butter", "quantity": "5-6", "unit": "tablespoon", "comment": "or vegetable oil"}}
-{"sentence": "2 tablespoons instant espresso powder", "labels": {"name": "instant espresso powder", "quantity": "2", "unit": "tablespoon", "comment": ""}}
-{"sentence": "3 tablespoons fresh lemon juice", "labels": {"name": "lemon juice", "quantity": "3", "unit": "tablespoon", "comment": "fresh"}}
-{"sentence": "1/2 teaspoon ground cardamom", "labels": {"name": "ground cardamom", "quantity": "0.5", "unit": "teaspoon", "comment": ""}}
+{"sentence": "1/4 cup balsamic vinegar", "labels": {"name": "balsamic vinegar", "quantity": "0.25", "unit": "cups", "comment": ""}}
+{"sentence": "2 teaspoons baking soda", "labels": {"name": "baking soda", "quantity": "2", "unit": "teaspoons", "comment": ""}}
+{"sentence": "2/3 cup port", "labels": {"name": "port", "quantity": "0.667", "unit": "cups", "comment": ""}}
+{"sentence": "5 to 6 tablespoons unsalted butter or vegetable oil", "labels": {"name": "unsalted butter", "quantity": "5-6", "unit": "tablespoons", "comment": "or vegetable oil"}}
+{"sentence": "2 tablespoons instant espresso powder", "labels": {"name": "instant espresso powder", "quantity": "2", "unit": "tablespoons", "comment": ""}}
+{"sentence": "3 tablespoons fresh lemon juice", "labels": {"name": "lemon juice", "quantity": "3", "unit": "tablespoons", "comment": "fresh"}}
+{"sentence": "1/2 teaspoon ground cardamom", "labels": {"name": "ground cardamom", "quantity": "0.5", "unit": "teaspoons", "comment": ""}}
 {"sentence": "Salt and freshly ground black pepper to taste", "labels": {"name": "salt and ground black pepper", "quantity": "", "unit": "", "comment": "freshly to taste"}}
-{"sentence": "2 tablespoons ocean trout (or salmon) caviar", "labels": {"name": "ocean trout (or salmon) caviar", "quantity": "2", "unit": "tablespoon", "comment": ""}}
+{"sentence": "2 tablespoons ocean trout (or salmon) caviar", "labels": {"name": "ocean trout (or salmon) caviar", "quantity": "2", "unit": "tablespoons", "comment": ""}}
 {"sentence": "Water", "labels": {"name": "water", "quantity": "", "unit": "", "comment": ""}}
-{"sentence": "1/2 teaspoon salt", "labels": {"name": "salt", "quantity": "0.5", "unit": "teaspoon", "comment": ""}}
+{"sentence": "1/2 teaspoon salt", "labels": {"name": "salt", "quantity": "0.5", "unit": "teaspoons", "comment": ""}}
 {"sentence": "1 cup whole, fresh cranberries", "labels": {"name": "cranberries", "quantity": "1", "unit": "cup", "comment": "whole, fresh"}}
-{"sentence": "1/2 cup coarsely chopped dry, roasted peanuts", "labels": {"name": "peanuts", "quantity": "0.5", "unit": "cup", "comment": "coarsely chopped dry, roasted"}}
+{"sentence": "1/2 cup coarsely chopped dry, roasted peanuts", "labels": {"name": "peanuts", "quantity": "0.5", "unit": "cups", "comment": "coarsely chopped dry, roasted"}}
 {"sentence": "Kosher salt", "labels": {"name": "kosher salt", "quantity": "", "unit": "", "comment": ""}}
 {"sentence": "Small handful of cilantro, with stems", "labels": {"name": "cilantro", "quantity": "", "unit": "", "comment": "small handful of, with stems"}}
 {"sentence": "1 fennel bulb, cut into 1/4-inch slices", "labels": {"name": "fennel", "quantity": "1", "unit": "bulb", "comment": "cut into 0.25-inch slice"}}
-{"sentence": "6 cups chicken stock or lightly salted water", "labels": {"name": "chicken stock", "quantity": "6", "unit": "cup", "comment": "or lightly salted water"}}
+{"sentence": "6 cups chicken stock or lightly salted water", "labels": {"name": "chicken stock", "quantity": "6", "unit": "cups", "comment": "or lightly salted water"}}
 {"sentence": "1 tablespoon Creole seasoning, or other seasonings of your choice", "labels": {"name": "creole seasoning", "quantity": "1", "unit": "tablespoon", "comment": "or other seasonings of your choice"}}
-{"sentence": "5 sprigs of thyme", "labels": {"name": "thyme", "quantity": "5", "unit": "sprig", "comment": "of"}}
-{"sentence": "8 cloves garlic, peeled", "labels": {"name": "garlic", "quantity": "8", "unit": "clove", "comment": "peeled"}}
-{"sentence": "2 tablespoons freshly grated lemon peel", "labels": {"name": "lemon peel", "quantity": "2", "unit": "tablespoon", "comment": "freshly grated"}}
-{"sentence": "1/4 cup light (not extra virgin) olive oil", "labels": {"name": "olive oil", "quantity": "0.25", "unit": "cup", "comment": "light (not extra virgin)"}}
+{"sentence": "5 sprigs of thyme", "labels": {"name": "thyme", "quantity": "5", "unit": "sprigs", "comment": "of"}}
+{"sentence": "8 cloves garlic, peeled", "labels": {"name": "garlic", "quantity": "8", "unit": "cloves", "comment": "peeled"}}
+{"sentence": "2 tablespoons freshly grated lemon peel", "labels": {"name": "lemon peel", "quantity": "2", "unit": "tablespoons", "comment": "freshly grated"}}
+{"sentence": "1/4 cup light (not extra virgin) olive oil", "labels": {"name": "olive oil", "quantity": "0.25", "unit": "cups", "comment": "light (not extra virgin)"}}
 {"sentence": "Salt and freshly ground pepper", "labels": {"name": "salt and freshly ground pepper", "quantity": "", "unit": "", "comment": ""}}
-{"sentence": "3/4 cup hazelnuts, toasted, skinned and ground", "labels": {"name": "hazelnuts", "quantity": "0.75", "unit": "cup", "comment": "toasted, skinned and ground"}}
-{"sentence": "4 tablespoons chopped fresh coriander or parsley", "labels": {"name": "coriander", "quantity": "4", "unit": "tablespoon", "comment": "chopped fresh or parsley"}}
+{"sentence": "3/4 cup hazelnuts, toasted, skinned and ground", "labels": {"name": "hazelnuts", "quantity": "0.75", "unit": "cups", "comment": "toasted, skinned and ground"}}
+{"sentence": "4 tablespoons chopped fresh coriander or parsley", "labels": {"name": "coriander", "quantity": "4", "unit": "tablespoons", "comment": "chopped fresh or parsley"}}
 {"sentence": "1 cup heavy cream", "labels": {"name": "heavy cream", "quantity": "1", "unit": "cup", "comment": ""}}
 {"sentence": "1 cup basmati rice", "labels": {"name": "basmati rice", "quantity": "1", "unit": "cup", "comment": ""}}
 {"sentence": "1 tablespoon soft unsalted butter", "labels": {"name": "unsalted butter", "quantity": "1", "unit": "tablespoon", "comment": "soft"}}
-{"sentence": "3 quarts chicken broth (homemade or low-sodium canned)", "labels": {"name": "chicken broth", "quantity": "3", "unit": "quart", "comment": "(homemade or low-sodium canned)"}}
-{"sentence": "3/4 cup granulated sugar", "labels": {"name": "granulated sugar", "quantity": "0.75", "unit": "cup", "comment": ""}}
+{"sentence": "3 quarts chicken broth (homemade or low-sodium canned)", "labels": {"name": "chicken broth", "quantity": "3", "unit": "quarts", "comment": "(homemade or low-sodium canned)"}}
+{"sentence": "3/4 cup granulated sugar", "labels": {"name": "granulated sugar", "quantity": "0.75", "unit": "cups", "comment": ""}}
 {"sentence": "Juice from 1/2 lemon", "labels": {"name": "lemon", "quantity": "0.5", "unit": "", "comment": "juice from"}}
 {"sentence": "3 small red onions, finely sliced", "labels": {"name": "red onions", "quantity": "3", "unit": "small", "comment": "finely sliced"}}
-{"sentence": "12 cups cold water", "labels": {"name": "water", "quantity": "12", "unit": "cup", "comment": "cold"}}
-{"sentence": "7 ounces milk chocolate, roughly chopped", "labels": {"name": "milk chocolate", "quantity": "7", "unit": "ounce", "comment": "roughly chopped"}}
-{"sentence": "1/4 cup safflower or corn oil", "labels": {"name": "oil", "quantity": "0.25", "unit": "cup", "comment": "safflower or corn"}}
-{"sentence": "2 cups coarsely chopped white part of leeks", "labels": {"name": "white part of leeks", "quantity": "2", "unit": "cup", "comment": "coarsely chopped"}}
-{"sentence": "3/4 cup grated parmesan cheese", "labels": {"name": "parmesan cheese", "quantity": "0.75", "unit": "cup", "comment": "grated"}}
-{"sentence": "2 1/2 cups flour", "labels": {"name": "flour", "quantity": "2.5", "unit": "cup", "comment": ""}}
-{"sentence": "1/2 cup heavy cream", "labels": {"name": "heavy cream", "quantity": "0.5", "unit": "cup", "comment": ""}}
+{"sentence": "12 cups cold water", "labels": {"name": "water", "quantity": "12", "unit": "cups", "comment": "cold"}}
+{"sentence": "7 ounces milk chocolate, roughly chopped", "labels": {"name": "milk chocolate", "quantity": "7", "unit": "ounces", "comment": "roughly chopped"}}
+{"sentence": "1/4 cup safflower or corn oil", "labels": {"name": "oil", "quantity": "0.25", "unit": "cups", "comment": "safflower or corn"}}
+{"sentence": "2 cups coarsely chopped white part of leeks", "labels": {"name": "white part of leeks", "quantity": "2", "unit": "cups", "comment": "coarsely chopped"}}
+{"sentence": "3/4 cup grated parmesan cheese", "labels": {"name": "parmesan cheese", "quantity": "0.75", "unit": "cups", "comment": "grated"}}
+{"sentence": "2 1/2 cups flour", "labels": {"name": "flour", "quantity": "2.5", "unit": "cups", "comment": ""}}
+{"sentence": "1/2 cup heavy cream", "labels": {"name": "heavy cream", "quantity": "0.5", "unit": "cups", "comment": ""}}
 {"sentence": "1 medium boiling potato, peeled and diced", "labels": {"name": "potato", "quantity": "1", "unit": "medium", "comment": "boiling, peeled and diced"}}
 {"sentence": "1 cup chicken broth", "labels": {"name": "chicken broth", "quantity": "1", "unit": "cup", "comment": ""}}
-{"sentence": "1/2 cup Cognac", "labels": {"name": "cognac", "quantity": "0.5", "unit": "cup", "comment": ""}}
+{"sentence": "1/2 cup Cognac", "labels": {"name": "cognac", "quantity": "0.5", "unit": "cups", "comment": ""}}
 {"sentence": "1 tablespoon safflower or peanut oil", "labels": {"name": "oil", "quantity": "1", "unit": "tablespoon", "comment": "safflower or peanut"}}
-{"sentence": "1/2 pound sweet Italian sausage, casing removed", "labels": {"name": "sweet italian sausage", "quantity": "0.5", "unit": "pound", "comment": "casing removed"}}
+{"sentence": "1/2 pound sweet Italian sausage, casing removed", "labels": {"name": "sweet italian sausage", "quantity": "0.5", "unit": "pounds", "comment": "casing removed"}}
 {"sentence": "Coarsely chopped fresh cilantro leaves for garnish, optional", "labels": {"name": "fresh cilantro leaves", "quantity": "", "unit": "", "comment": "coarsely chopped for garnish, optional"}}
-{"sentence": "1/4 teaspoon freshly ground black pepper", "labels": {"name": "ground black pepper", "quantity": "0.25", "unit": "teaspoon", "comment": "freshly"}}
-{"sentence": "1/2 cup coarsely chopped Italian parsley", "labels": {"name": "parsley", "quantity": "0.5", "unit": "cup", "comment": "coarsely chopped italian"}}
-{"sentence": "2 teaspoons chopped parsley", "labels": {"name": "parsley", "quantity": "2", "unit": "teaspoon", "comment": "chopped"}}
-{"sentence": "2 teaspoons Cognac", "labels": {"name": "cognac", "quantity": "2", "unit": "teaspoon", "comment": ""}}
+{"sentence": "1/4 teaspoon freshly ground black pepper", "labels": {"name": "ground black pepper", "quantity": "0.25", "unit": "teaspoons", "comment": "freshly"}}
+{"sentence": "1/2 cup coarsely chopped Italian parsley", "labels": {"name": "parsley", "quantity": "0.5", "unit": "cups", "comment": "coarsely chopped italian"}}
+{"sentence": "2 teaspoons chopped parsley", "labels": {"name": "parsley", "quantity": "2", "unit": "teaspoons", "comment": "chopped"}}
+{"sentence": "2 teaspoons Cognac", "labels": {"name": "cognac", "quantity": "2", "unit": "teaspoons", "comment": ""}}
 {"sentence": "Freshly ground black pepper to taste", "labels": {"name": "ground black pepper", "quantity": "", "unit": "", "comment": "freshly to taste"}}
 {"sentence": "1 teaspoon salt", "labels": {"name": "salt", "quantity": "1", "unit": "teaspoon", "comment": ""}}
 {"sentence": "1 teaspoon whole black caraway seeds or 1/2 teaspoon black mustard seeds", "labels": {"name": "black caraway seeds", "quantity": "1", "unit": "teaspoon", "comment": "whole, or 0.5 teaspoon black mustard seeds"}}
@@ -97,212 +97,212 @@
 {"sentence": "4 medium sized Boston or bibb lettuce leaves, washed", "labels": {"name": "lettuce", "quantity": "4", "unit": "medium", "comment": "sized boston or bibb leaves, washed"}}
 {"sentence": "Cayenne pepper", "labels": {"name": "cayenne pepper", "quantity": "", "unit": "", "comment": ""}}
 {"sentence": "1 tablespoon black peppercorns", "labels": {"name": "black peppercorns", "quantity": "1", "unit": "tablespoon", "comment": ""}}
-{"sentence": "1/2 teaspoon freshly ground black pepper", "labels": {"name": "ground black pepper", "quantity": "0.5", "unit": "teaspoon", "comment": "freshly"}}
-{"sentence": "1/3 to 1/2 cup fish stock", "labels": {"name": "fish stock", "quantity": "0.333-0.5", "unit": "cup", "comment": ""}}
+{"sentence": "1/2 teaspoon freshly ground black pepper", "labels": {"name": "ground black pepper", "quantity": "0.5", "unit": "teaspoons", "comment": "freshly"}}
+{"sentence": "1/3 to 1/2 cup fish stock", "labels": {"name": "fish stock", "quantity": "0.333-0.5", "unit": "cups", "comment": ""}}
 {"sentence": "2 whole chicken breasts (about 1 1/2 pounds)", "labels": {"name": "chicken breasts", "quantity": "2", "unit": "", "comment": "whole (about  1.5 pound)"}}
 {"sentence": "Salt to taste, if desired", "labels": {"name": "salt", "quantity": "", "unit": "", "comment": "to taste, if desired"}}
 {"sentence": "Salt to taste, if desired", "labels": {"name": "salt", "quantity": "", "unit": "", "comment": "to taste, if desired"}}
-{"sentence": "2 teaspoons lemon juice", "labels": {"name": "lemon juice", "quantity": "2", "unit": "teaspoon", "comment": ""}}
+{"sentence": "2 teaspoons lemon juice", "labels": {"name": "lemon juice", "quantity": "2", "unit": "teaspoons", "comment": ""}}
 {"sentence": "Boiling water", "labels": {"name": "water", "quantity": "", "unit": "", "comment": "boiling"}}
 {"sentence": "1 teaspoon cloves", "labels": {"name": "cloves", "quantity": "1", "unit": "teaspoon", "comment": ""}}
 {"sentence": "3 large chilis anchos", "labels": {"name": "chilis anchos", "quantity": "3", "unit": "large", "comment": ""}}
 {"sentence": "30 to 36 red, ripe strawberries, stems removed (see note)", "labels": {"name": "strawberries", "quantity": "30-36", "unit": "", "comment": "red, ripe, stems removed (see note)"}}
-{"sentence": "3/4 ounces combination of fresh lime and lemon juices", "labels": {"name": "lime and lemon juices", "quantity": "0.75", "unit": "ounce", "comment": "combination of fresh"}}
-{"sentence": "1 1/2 teaspoons finely chopped flat-leaf parsley", "labels": {"name": "parsley", "quantity": "1.5", "unit": "teaspoon", "comment": "finely chopped flat-leaf"}}
-{"sentence": "1/4 cup finely grated Parmesan cheese, optional", "labels": {"name": "parmesan cheese", "quantity": "0.25", "unit": "cup", "comment": "finely grated, optional"}}
-{"sentence": "1/2 cup dry white wine", "labels": {"name": "dry white wine", "quantity": "0.5", "unit": "cup", "comment": ""}}
-{"sentence": "12 sprigs fresh cilantro", "labels": {"name": "cilantro", "quantity": "12", "unit": "sprig", "comment": "fresh"}}
-{"sentence": "1/2 teaspoon ground ginger", "labels": {"name": "ground ginger", "quantity": "0.5", "unit": "teaspoon", "comment": ""}}
-{"sentence": "1/2 cup finely chopped fennel or celery", "labels": {"name": "fennel", "quantity": "0.5", "unit": "cup", "comment": "finely chopped or celery"}}
+{"sentence": "3/4 ounces combination of fresh lime and lemon juices", "labels": {"name": "lime and lemon juices", "quantity": "0.75", "unit": "ounces", "comment": "combination of fresh"}}
+{"sentence": "1 1/2 teaspoons finely chopped flat-leaf parsley", "labels": {"name": "parsley", "quantity": "1.5", "unit": "teaspoons", "comment": "finely chopped flat-leaf"}}
+{"sentence": "1/4 cup finely grated Parmesan cheese, optional", "labels": {"name": "parmesan cheese", "quantity": "0.25", "unit": "cups", "comment": "finely grated, optional"}}
+{"sentence": "1/2 cup dry white wine", "labels": {"name": "dry white wine", "quantity": "0.5", "unit": "cups", "comment": ""}}
+{"sentence": "12 sprigs fresh cilantro", "labels": {"name": "cilantro", "quantity": "12", "unit": "sprigs", "comment": "fresh"}}
+{"sentence": "1/2 teaspoon ground ginger", "labels": {"name": "ground ginger", "quantity": "0.5", "unit": "teaspoons", "comment": ""}}
+{"sentence": "1/2 cup finely chopped fennel or celery", "labels": {"name": "fennel", "quantity": "0.5", "unit": "cups", "comment": "finely chopped or celery"}}
 {"sentence": "1 teaspoon grated lemon rind", "labels": {"name": "lemon rind", "quantity": "1", "unit": "teaspoon", "comment": "grated"}}
-{"sentence": "2 tablespoons Chinese sesame paste", "labels": {"name": "sesame paste", "quantity": "2", "unit": "tablespoon", "comment": "chinese"}}
+{"sentence": "2 tablespoons Chinese sesame paste", "labels": {"name": "sesame paste", "quantity": "2", "unit": "tablespoons", "comment": "chinese"}}
 {"sentence": "1 cup matzoh meal", "labels": {"name": "matzoh meal", "quantity": "1", "unit": "cup", "comment": ""}}
-{"sentence": "2 cups fruity red wine, like a young Brunello, pinot noir, or Chianti", "labels": {"name": "red wine", "quantity": "2", "unit": "cup", "comment": "fruity, like a young brunello, pinot noir, or chianti"}}
+{"sentence": "2 cups fruity red wine, like a young Brunello, pinot noir, or Chianti", "labels": {"name": "red wine", "quantity": "2", "unit": "cups", "comment": "fruity, like a young brunello, pinot noir, or chianti"}}
 {"sentence": "1 egg yolk beaten with 1 teaspoon cold water", "labels": {"name": "egg yolk", "quantity": "1", "unit": "", "comment": "beaten with 1 teaspoon cold water"}}
-{"sentence": "2 teaspoons milk", "labels": {"name": "milk", "quantity": "2", "unit": "teaspoon", "comment": ""}}
+{"sentence": "2 teaspoons milk", "labels": {"name": "milk", "quantity": "2", "unit": "teaspoons", "comment": ""}}
 {"sentence": "Salt to taste, if desired", "labels": {"name": "salt", "quantity": "", "unit": "", "comment": "to taste, if desired"}}
-{"sentence": "4 ounces fresh soft goat cheese, crumbled", "labels": {"name": "goat cheese", "quantity": "4", "unit": "ounce", "comment": "fresh soft, crumbled"}}
-{"sentence": "1/2 pound pancetta, sliced 1/4-inch thick, then cut into 1/2-inch squares", "labels": {"name": "pancetta", "quantity": "0.5", "unit": "pound", "comment": "sliced 0.25-inch thick, then cut into 0.5-inch squares"}}
+{"sentence": "4 ounces fresh soft goat cheese, crumbled", "labels": {"name": "goat cheese", "quantity": "4", "unit": "ounces", "comment": "fresh soft, crumbled"}}
+{"sentence": "1/2 pound pancetta, sliced 1/4-inch thick, then cut into 1/2-inch squares", "labels": {"name": "pancetta", "quantity": "0.5", "unit": "pounds", "comment": "sliced 0.25-inch thick, then cut into 0.5-inch squares"}}
 {"sentence": "1 tablespoon lemon juice", "labels": {"name": "lemon juice", "quantity": "1", "unit": "tablespoon", "comment": ""}}
 {"sentence": "4 trout (about 3/4 to 1 pound each), cleaned, scaled, gills removed", "labels": {"name": "trout", "quantity": "4", "unit": "", "comment": "(about 0.75-1 pound each), cleaned, scaled, gills removed"}}
-{"sentence": "2 tablespoons sugar", "labels": {"name": "sugar", "quantity": "2", "unit": "tablespoon", "comment": ""}}
+{"sentence": "2 tablespoons sugar", "labels": {"name": "sugar", "quantity": "2", "unit": "tablespoons", "comment": ""}}
 {"sentence": "1 scant teaspoon dry yeast", "labels": {"name": "yeast", "quantity": "1", "unit": "scant teaspoon", "comment": "dry"}}
-{"sentence": "1/4 cup flour", "labels": {"name": "flour", "quantity": "0.25", "unit": "cup", "comment": ""}}
-{"sentence": "3 1-liter bottles club soda", "labels": {"name": "club soda", "quantity": "3", "unit": "bottle", "comment": "1-liter"}}
-{"sentence": "3 tablespoons Kahlua liqueur", "labels": {"name": "kahlua liqueur", "quantity": "3", "unit": "tablespoon", "comment": ""}}
+{"sentence": "1/4 cup flour", "labels": {"name": "flour", "quantity": "0.25", "unit": "cups", "comment": ""}}
+{"sentence": "3 1-liter bottles club soda", "labels": {"name": "club soda", "quantity": "3", "unit": "bottles", "comment": "1-liter"}}
+{"sentence": "3 tablespoons Kahlua liqueur", "labels": {"name": "kahlua liqueur", "quantity": "3", "unit": "tablespoons", "comment": ""}}
 {"sentence": "1 cup granulated sugar", "labels": {"name": "granulated sugar", "quantity": "1", "unit": "cup", "comment": ""}}
-{"sentence": "2 to 3 pounds sweet potatoes, peeled and grated, 4 to 6 cups", "labels": {"name": "sweet potatoes", "quantity": "2-3", "unit": "pound", "comment": "peeled and grated, 4-6 cup"}}
+{"sentence": "2 to 3 pounds sweet potatoes, peeled and grated, 4 to 6 cups", "labels": {"name": "sweet potatoes", "quantity": "2-3", "unit": "pounds", "comment": "peeled and grated, 4-6 cup"}}
 {"sentence": "Pinch of cayenne", "labels": {"name": "cayenne", "quantity": "", "unit": "pinch", "comment": "of"}}
-{"sentence": "2 teaspoons Vietnamese fish sauce", "labels": {"name": "vietnamese fish sauce", "quantity": "2", "unit": "teaspoon", "comment": ""}}
+{"sentence": "2 teaspoons Vietnamese fish sauce", "labels": {"name": "vietnamese fish sauce", "quantity": "2", "unit": "teaspoons", "comment": ""}}
 {"sentence": "1 tablespoon rosemary leaves, finely chopped", "labels": {"name": "rosemary leaves", "quantity": "1", "unit": "tablespoon", "comment": "finely chopped"}}
-{"sentence": "2 tablespoons parsley", "labels": {"name": "parsley", "quantity": "2", "unit": "tablespoon", "comment": ""}}
+{"sentence": "2 tablespoons parsley", "labels": {"name": "parsley", "quantity": "2", "unit": "tablespoons", "comment": ""}}
 {"sentence": "6 eggs, separated", "labels": {"name": "eggs", "quantity": "6", "unit": "", "comment": "separated"}}
-{"sentence": "1 1/2 tablespoons flour", "labels": {"name": "flour", "quantity": "1.5", "unit": "tablespoon", "comment": ""}}
+{"sentence": "1 1/2 tablespoons flour", "labels": {"name": "flour", "quantity": "1.5", "unit": "tablespoons", "comment": ""}}
 {"sentence": "1 cup chopped, pitted dates", "labels": {"name": "dates", "quantity": "1", "unit": "cup", "comment": "chopped, pitted"}}
-{"sentence": "1 1/2 teaspoons curry powder, or to taste", "labels": {"name": "curry powder", "quantity": "1.5", "unit": "teaspoon", "comment": "or to taste"}}
-{"sentence": "1/4 cup extra-virgin olive oil", "labels": {"name": "extra-virgin olive oil", "quantity": "0.25", "unit": "cup", "comment": ""}}
-{"sentence": "1 1/2 cups bulgur wheat", "labels": {"name": "bulgur wheat", "quantity": "1.5", "unit": "cup", "comment": ""}}
+{"sentence": "1 1/2 teaspoons curry powder, or to taste", "labels": {"name": "curry powder", "quantity": "1.5", "unit": "teaspoons", "comment": "or to taste"}}
+{"sentence": "1/4 cup extra-virgin olive oil", "labels": {"name": "extra-virgin olive oil", "quantity": "0.25", "unit": "cups", "comment": ""}}
+{"sentence": "1 1/2 cups bulgur wheat", "labels": {"name": "bulgur wheat", "quantity": "1.5", "unit": "cups", "comment": ""}}
 {"sentence": "Confectioners' sugar for garnish", "labels": {"name": "confectioners' sugar", "quantity": "", "unit": "", "comment": "for garnish"}}
-{"sentence": "1/4 cup olive oil", "labels": {"name": "olive oil", "quantity": "0.25", "unit": "cup", "comment": ""}}
-{"sentence": "1/2 cup water", "labels": {"name": "water", "quantity": "0.5", "unit": "cup", "comment": ""}}
-{"sentence": "2 tablespoons milk, approximately", "labels": {"name": "milk", "quantity": "2", "unit": "tablespoon", "comment": "approximately"}}
+{"sentence": "1/4 cup olive oil", "labels": {"name": "olive oil", "quantity": "0.25", "unit": "cups", "comment": ""}}
+{"sentence": "1/2 cup water", "labels": {"name": "water", "quantity": "0.5", "unit": "cups", "comment": ""}}
+{"sentence": "2 tablespoons milk, approximately", "labels": {"name": "milk", "quantity": "2", "unit": "tablespoons", "comment": "approximately"}}
 {"sentence": "Juice of 1 lemon", "labels": {"name": "lemon", "quantity": "1", "unit": "", "comment": "juice of"}}
 {"sentence": "1 tablespoon finely minced garlic", "labels": {"name": "garlic", "quantity": "1", "unit": "tablespoon", "comment": "finely minced"}}
 {"sentence": "1 cup milk", "labels": {"name": "milk", "quantity": "1", "unit": "cup", "comment": ""}}
-{"sentence": "2/3 cup cake flour", "labels": {"name": "cake flour", "quantity": "0.667", "unit": "cup", "comment": ""}}
-{"sentence": "2 teaspoons kosher salt, plus more to taste", "labels": {"name": "kosher salt", "quantity": "2", "unit": "teaspoon", "comment": "plus more to taste"}}
-{"sentence": "1/4 cup plain, unflavored yogurt", "labels": {"name": "yogurt", "quantity": "0.25", "unit": "cup", "comment": "plain, unflavored"}}
-{"sentence": "2 cups fresh cranberries", "labels": {"name": "cranberries", "quantity": "2", "unit": "cup", "comment": "fresh"}}
+{"sentence": "2/3 cup cake flour", "labels": {"name": "cake flour", "quantity": "0.667", "unit": "cups", "comment": ""}}
+{"sentence": "2 teaspoons kosher salt, plus more to taste", "labels": {"name": "kosher salt", "quantity": "2", "unit": "teaspoons", "comment": "plus more to taste"}}
+{"sentence": "1/4 cup plain, unflavored yogurt", "labels": {"name": "yogurt", "quantity": "0.25", "unit": "cups", "comment": "plain, unflavored"}}
+{"sentence": "2 cups fresh cranberries", "labels": {"name": "cranberries", "quantity": "2", "unit": "cups", "comment": "fresh"}}
 {"sentence": "1 tablespoon gelatin", "labels": {"name": "gelatin", "quantity": "1", "unit": "tablespoon", "comment": ""}}
 {"sentence": "1 cinnamon stick", "labels": {"name": "cinnamon stick", "quantity": "1", "unit": "", "comment": ""}}
 {"sentence": "Freshly ground pepper to taste", "labels": {"name": "ground pepper", "quantity": "", "unit": "", "comment": "freshly to taste"}}
 {"sentence": "Salt to taste if desired", "labels": {"name": "salt", "quantity": "", "unit": "", "comment": "to taste if desired"}}
 {"sentence": "Sea salt to taste", "labels": {"name": "salt", "quantity": "", "unit": "", "comment": "sea to taste"}}
-{"sentence": "2 tablespoons fat from cooking duck breasts", "labels": {"name": "fat", "quantity": "2", "unit": "tablespoon", "comment": "2 tablespoon from cooking duck breasts"}}
-{"sentence": "9 tablespoons (1 stick plus 1 tablespoon) unsalted butter at room temperature", "labels": {"name": "unsalted butter", "quantity": "9", "unit": "tablespoon", "comment": "(1 stick plus 1 tablespoon) at room temperature"}}
-{"sentence": "1/2 cup pearl barley", "labels": {"name": "pearl barley", "quantity": "0.5", "unit": "cup", "comment": ""}}
-{"sentence": "8 stalks celery, cut crosswise on a diagonal into thirds, leaves reserved", "labels": {"name": "celery", "quantity": "8", "unit": "stalk", "comment": "cut crosswise on a diagonal into thirds, leaves reserved"}}
-{"sentence": "1/2 cup fresh mint leaves, well washed, coarsely chopped", "labels": {"name": "mint leaves", "quantity": "0.5", "unit": "cup", "comment": "fresh, well washed, coarsely chopped"}}
+{"sentence": "2 tablespoons fat from cooking duck breasts", "labels": {"name": "fat", "quantity": "2", "unit": "tablespoons", "comment": "2 tablespoon from cooking duck breasts"}}
+{"sentence": "9 tablespoons (1 stick plus 1 tablespoon) unsalted butter at room temperature", "labels": {"name": "unsalted butter", "quantity": "9", "unit": "tablespoons", "comment": "(1 stick plus 1 tablespoon) at room temperature"}}
+{"sentence": "1/2 cup pearl barley", "labels": {"name": "pearl barley", "quantity": "0.5", "unit": "cups", "comment": ""}}
+{"sentence": "8 stalks celery, cut crosswise on a diagonal into thirds, leaves reserved", "labels": {"name": "celery", "quantity": "8", "unit": "stalks", "comment": "cut crosswise on a diagonal into thirds, leaves reserved"}}
+{"sentence": "1/2 cup fresh mint leaves, well washed, coarsely chopped", "labels": {"name": "mint leaves", "quantity": "0.5", "unit": "cups", "comment": "fresh, well washed, coarsely chopped"}}
 {"sentence": "Salt, optional", "labels": {"name": "salt", "quantity": "", "unit": "", "comment": "optional"}}
-{"sentence": "3 tablespoons sugar", "labels": {"name": "sugar", "quantity": "3", "unit": "tablespoon", "comment": ""}}
+{"sentence": "3 tablespoons sugar", "labels": {"name": "sugar", "quantity": "3", "unit": "tablespoons", "comment": ""}}
 {"sentence": "1 teaspoon", "labels": {"name": "teaspoon", "quantity": "1", "unit": "", "comment": ""}}
 {"sentence": "1 clove garlic, peeled", "labels": {"name": "garlic", "quantity": "1", "unit": "clove", "comment": "peeled"}}
 {"sentence": "Salt and freshly ground black pepper to taste", "labels": {"name": "salt and ground black pepper", "quantity": "", "unit": "", "comment": "freshly to taste"}}
 {"sentence": "1 duck liver", "labels": {"name": "duck liver", "quantity": "1", "unit": "", "comment": ""}}
-{"sentence": "1/2 teaspoon ground cumin", "labels": {"name": "ground cumin", "quantity": "0.5", "unit": "teaspoon", "comment": ""}}
-{"sentence": "1/2 cup imported black olives, pitted and coarsely chopped", "labels": {"name": "black olives", "quantity": "0.5", "unit": "cup", "comment": "imported, pitted and coarsely chopped"}}
+{"sentence": "1/2 teaspoon ground cumin", "labels": {"name": "ground cumin", "quantity": "0.5", "unit": "teaspoons", "comment": ""}}
+{"sentence": "1/2 cup imported black olives, pitted and coarsely chopped", "labels": {"name": "black olives", "quantity": "0.5", "unit": "cups", "comment": "imported, pitted and coarsely chopped"}}
 {"sentence": "1 egg, lightly beaten", "labels": {"name": "egg", "quantity": "1", "unit": "", "comment": "lightly beaten"}}
-{"sentence": "5 cups sliced rhubarb", "labels": {"name": "rhubarb", "quantity": "5", "unit": "cup", "comment": "sliced"}}
-{"sentence": "2 teaspoons pure chili powder", "labels": {"name": "chili powder", "quantity": "2", "unit": "teaspoon", "comment": "pure"}}
-{"sentence": "1/2 teaspoon coarsely ground black pepper, or to taste", "labels": {"name": "ground black pepper", "quantity": "0.5", "unit": "teaspoon", "comment": "coarsely or to taste"}}
+{"sentence": "5 cups sliced rhubarb", "labels": {"name": "rhubarb", "quantity": "5", "unit": "cups", "comment": "sliced"}}
+{"sentence": "2 teaspoons pure chili powder", "labels": {"name": "chili powder", "quantity": "2", "unit": "teaspoons", "comment": "pure"}}
+{"sentence": "1/2 teaspoon coarsely ground black pepper, or to taste", "labels": {"name": "ground black pepper", "quantity": "0.5", "unit": "teaspoons", "comment": "coarsely or to taste"}}
 {"sentence": "2 large poblano chilies, roasted, peeled, seeded and diced", "labels": {"name": "poblano chilies", "quantity": "2", "unit": "large", "comment": "roasted, peeled, seeded and diced"}}
 {"sentence": "1 teaspoon vanilla extract", "labels": {"name": "vanilla extract", "quantity": "1", "unit": "teaspoon", "comment": ""}}
 {"sentence": "1 lightly beaten egg", "labels": {"name": "egg", "quantity": "1", "unit": "", "comment": "lightly beaten"}}
 {"sentence": "Salt and freshly ground black pepper to taste", "labels": {"name": "salt and ground black pepper", "quantity": "", "unit": "", "comment": "freshly to taste"}}
-{"sentence": "1/2 cup sour cream", "labels": {"name": "sour cream", "quantity": "0.5", "unit": "cup", "comment": ""}}
+{"sentence": "1/2 cup sour cream", "labels": {"name": "sour cream", "quantity": "0.5", "unit": "cups", "comment": ""}}
 {"sentence": "Pinch salt", "labels": {"name": "salt", "quantity": "", "unit": "pinch", "comment": ""}}
 {"sentence": "1 mashed ripe banana", "labels": {"name": "banana", "quantity": "1", "unit": "", "comment": "ripe mashed"}}
-{"sentence": "4 cloves garlic, finely chopped", "labels": {"name": "garlic", "quantity": "4", "unit": "clove", "comment": "finely chopped"}}
+{"sentence": "4 cloves garlic, finely chopped", "labels": {"name": "garlic", "quantity": "4", "unit": "cloves", "comment": "finely chopped"}}
 {"sentence": "1 stalk celery, trimmed", "labels": {"name": "celery", "quantity": "1", "unit": "stalk", "comment": "trimmed"}}
-{"sentence": "1 1/2 cups sugar", "labels": {"name": "sugar", "quantity": "1.5", "unit": "cup", "comment": ""}}
-{"sentence": "1/2 cup fresh or canned chicken broth", "labels": {"name": "chicken broth", "quantity": "0.5", "unit": "cup", "comment": "fresh or canned"}}
-{"sentence": "6 cups lobster broth (or cold water)", "labels": {"name": "lobster broth", "quantity": "6", "unit": "cup", "comment": "(or cold water)"}}
+{"sentence": "1 1/2 cups sugar", "labels": {"name": "sugar", "quantity": "1.5", "unit": "cups", "comment": ""}}
+{"sentence": "1/2 cup fresh or canned chicken broth", "labels": {"name": "chicken broth", "quantity": "0.5", "unit": "cups", "comment": "fresh or canned"}}
+{"sentence": "6 cups lobster broth (or cold water)", "labels": {"name": "lobster broth", "quantity": "6", "unit": "cups", "comment": "(or cold water)"}}
 {"sentence": "1 tablespoon lemon juice", "labels": {"name": "lemon juice", "quantity": "1", "unit": "tablespoon", "comment": ""}}
-{"sentence": "1/4 cup finely chopped parsley", "labels": {"name": "parsley", "quantity": "0.25", "unit": "cup", "comment": "finely chopped"}}
-{"sentence": "1/2 cup finely chopped celery", "labels": {"name": "celery", "quantity": "0.5", "unit": "cup", "comment": "finely chopped"}}
+{"sentence": "1/4 cup finely chopped parsley", "labels": {"name": "parsley", "quantity": "0.25", "unit": "cups", "comment": "finely chopped"}}
+{"sentence": "1/2 cup finely chopped celery", "labels": {"name": "celery", "quantity": "0.5", "unit": "cups", "comment": "finely chopped"}}
 {"sentence": "Salt and freshly ground pepper to taste", "labels": {"name": "salt and ground pepper", "quantity": "", "unit": "", "comment": "freshly to taste"}}
-{"sentence": "1/4 cup unsweetened cocoa", "labels": {"name": "cocoa", "quantity": "0.25", "unit": "cup", "comment": "unsweetened"}}
-{"sentence": "1/2 teaspoon salt, or more, to taste", "labels": {"name": "salt", "quantity": "0.5", "unit": "teaspoon", "comment": "or more, to taste"}}
+{"sentence": "1/4 cup unsweetened cocoa", "labels": {"name": "cocoa", "quantity": "0.25", "unit": "cups", "comment": "unsweetened"}}
+{"sentence": "1/2 teaspoon salt, or more, to taste", "labels": {"name": "salt", "quantity": "0.5", "unit": "teaspoons", "comment": "or more, to taste"}}
 {"sentence": "1 tablespoon sherry vinegar", "labels": {"name": "sherry vinegar", "quantity": "1", "unit": "tablespoon", "comment": ""}}
-{"sentence": "2 teaspoons baking powder", "labels": {"name": "baking powder", "quantity": "2", "unit": "teaspoon", "comment": ""}}
+{"sentence": "2 teaspoons baking powder", "labels": {"name": "baking powder", "quantity": "2", "unit": "teaspoons", "comment": ""}}
 {"sentence": "1 cup all-purpose flour", "labels": {"name": "all-purpose flour", "quantity": "1", "unit": "cup", "comment": ""}}
 {"sentence": "2 egg yolks", "labels": {"name": "egg yolks", "quantity": "2", "unit": "", "comment": ""}}
 {"sentence": "2 apples, peeled, cored and sliced, or 6 ounces dried apples", "labels": {"name": "apples", "quantity": "2", "unit": "", "comment": "peeled, cored and sliced, or 6 ounce dried apples"}}
-{"sentence": "1 1/2 cup flour", "labels": {"name": "flour", "quantity": "1.5", "unit": "cup", "comment": ""}}
-{"sentence": "2 tablespoons fresh rosemary, minced", "labels": {"name": "rosemary", "quantity": "2", "unit": "tablespoon", "comment": "fresh, minced"}}
+{"sentence": "1 1/2 cup flour", "labels": {"name": "flour", "quantity": "1.5", "unit": "cups", "comment": ""}}
+{"sentence": "2 tablespoons fresh rosemary, minced", "labels": {"name": "rosemary", "quantity": "2", "unit": "tablespoons", "comment": "fresh, minced"}}
 {"sentence": "2 egg whites", "labels": {"name": "egg whites", "quantity": "2", "unit": "", "comment": ""}}
 {"sentence": "1 teaspoon cinnamon", "labels": {"name": "cinnamon", "quantity": "1", "unit": "teaspoon", "comment": ""}}
-{"sentence": "1/2 teaspoon nutmeg", "labels": {"name": "nutmeg", "quantity": "0.5", "unit": "teaspoon", "comment": ""}}
-{"sentence": "12 ounces mahi-mahi fillet", "labels": {"name": "mahi-mahi fillet", "quantity": "12", "unit": "ounce", "comment": ""}}
-{"sentence": "1/3 pound arugula, cut into 4-inch pieces", "labels": {"name": "arugula", "quantity": "0.333", "unit": "pound", "comment": "cut into 4-inch piece"}}
-{"sentence": "1/2 teaspoon sweet paprika", "labels": {"name": "sweet paprika", "quantity": "0.5", "unit": "teaspoon", "comment": ""}}
-{"sentence": "2 teaspoons sugar", "labels": {"name": "sugar", "quantity": "2", "unit": "teaspoon", "comment": ""}}
+{"sentence": "1/2 teaspoon nutmeg", "labels": {"name": "nutmeg", "quantity": "0.5", "unit": "teaspoons", "comment": ""}}
+{"sentence": "12 ounces mahi-mahi fillet", "labels": {"name": "mahi-mahi fillet", "quantity": "12", "unit": "ounces", "comment": ""}}
+{"sentence": "1/3 pound arugula, cut into 4-inch pieces", "labels": {"name": "arugula", "quantity": "0.333", "unit": "pounds", "comment": "cut into 4-inch piece"}}
+{"sentence": "1/2 teaspoon sweet paprika", "labels": {"name": "sweet paprika", "quantity": "0.5", "unit": "teaspoons", "comment": ""}}
+{"sentence": "2 teaspoons sugar", "labels": {"name": "sugar", "quantity": "2", "unit": "teaspoons", "comment": ""}}
 {"sentence": "1 teaspoon kosher salt, plus more to taste", "labels": {"name": "kosher salt", "quantity": "1", "unit": "teaspoon", "comment": "plus more to taste"}}
-{"sentence": "2 tablespoons finely chopped parsley", "labels": {"name": "parsley", "quantity": "2", "unit": "tablespoon", "comment": "finely chopped"}}
-{"sentence": "2 cloves garlic, roasted and peeled", "labels": {"name": "garlic", "quantity": "2", "unit": "clove", "comment": "roasted and peeled"}}
-{"sentence": "1/2 cup walnut pieces (or another variety of nut)", "labels": {"name": "walnut pieces", "quantity": "0.5", "unit": "cup", "comment": "(or another variety of nut)"}}
+{"sentence": "2 tablespoons finely chopped parsley", "labels": {"name": "parsley", "quantity": "2", "unit": "tablespoons", "comment": "finely chopped"}}
+{"sentence": "2 cloves garlic, roasted and peeled", "labels": {"name": "garlic", "quantity": "2", "unit": "cloves", "comment": "roasted and peeled"}}
+{"sentence": "1/2 cup walnut pieces (or another variety of nut)", "labels": {"name": "walnut pieces", "quantity": "0.5", "unit": "cups", "comment": "(or another variety of nut)"}}
 {"sentence": "4 medium carrots (about 10 ounces), peeled and cut into 1/2-inch pieces (2 cups)", "labels": {"name": "carrots", "quantity": "4", "unit": "medium", "comment": "(about 10 ounce), peeled and cut into 0.5-inch piece (2 cup)"}}
-{"sentence": "1 1/4 cups cooked and pureed fresh butternut squash, or 1 10-ounce package frozen squash, defrosted", "labels": {"name": "butternut squash", "quantity": "1.25", "unit": "cup", "comment": "cooked and pureed fresh, or 1 10-ounce package frozen squash, defrosted"}}
-{"sentence": "1 to 2 tablespoons vegetable oil", "labels": {"name": "vegetable oil", "quantity": "1-2", "unit": "tablespoon", "comment": ""}}
-{"sentence": "18-inch piece daikon, peeled, cooked and sliced into 1/2-inch rounds", "labels": {"name": "daikon", "quantity": "1", "unit": "piece", "comment": "18-inch, peeled, cooked and sliced into 0.5-inch rounds"}}
-{"sentence": "6 tablespoons butter", "labels": {"name": "butter", "quantity": "6", "unit": "tablespoon", "comment": ""}}
+{"sentence": "1 1/4 cups cooked and pureed fresh butternut squash, or 1 10-ounce package frozen squash, defrosted", "labels": {"name": "butternut squash", "quantity": "1.25", "unit": "cups", "comment": "cooked and pureed fresh, or 1 10-ounce package frozen squash, defrosted"}}
+{"sentence": "1 to 2 tablespoons vegetable oil", "labels": {"name": "vegetable oil", "quantity": "1-2", "unit": "tablespoons", "comment": ""}}
+{"sentence": "18-inch piece daikon, peeled, cooked and sliced into 1/2-inch rounds", "labels": {"name": "daikon", "quantity": "1", "unit": "pieces", "comment": "18-inch, peeled, cooked and sliced into 0.5-inch rounds"}}
+{"sentence": "6 tablespoons butter", "labels": {"name": "butter", "quantity": "6", "unit": "tablespoons", "comment": ""}}
 {"sentence": "1 cup dry red wine", "labels": {"name": "dry red wine", "quantity": "1", "unit": "cup", "comment": ""}}
 {"sentence": "4 medium shallots, peeled and cut into thin strips", "labels": {"name": "shallots", "quantity": "4", "unit": "medium", "comment": "peeled and cut into thin strip"}}
-{"sentence": "1/4 cup apple-cider vinegar", "labels": {"name": "apple-cider vinegar", "quantity": "0.25", "unit": "cup", "comment": ""}}
+{"sentence": "1/4 cup apple-cider vinegar", "labels": {"name": "apple-cider vinegar", "quantity": "0.25", "unit": "cups", "comment": ""}}
 {"sentence": "4 skirt steaks, about 1/2 pound each, trimmed of excess fat", "labels": {"name": "skirt steaks", "quantity": "4", "unit": "", "comment": "about 0.5 pound each, trimmed of excess fat"}}
-{"sentence": "1 1/2 cups celery root, finely diced", "labels": {"name": "celery root", "quantity": "1.5", "unit": "cup", "comment": "finely diced"}}
+{"sentence": "1 1/2 cups celery root, finely diced", "labels": {"name": "celery root", "quantity": "1.5", "unit": "cups", "comment": "finely diced"}}
 {"sentence": "12 blanched almonds, chopped", "labels": {"name": "slivered blanched almonds, unsalted pistachios", "quantity": "12", "unit": "", "comment": "chopped"}}
 {"sentence": "1 green pepper, cored, seeded and coarsely chopped", "labels": {"name": "green pepper", "quantity": "1", "unit": "", "comment": "cored, seeded and coarsely chopped"}}
 {"sentence": "1 onion, about 1/4 pound peeled and stuck with 2 whole cloves", "labels": {"name": "onion", "quantity": "1", "unit": "", "comment": "about 0.25 pound peeled and stuck with 2 whole clove"}}
-{"sentence": "8 tablespoons (1 stick) cold unsalted butter, cut into about 8 pieces", "labels": {"name": "unsalted butter", "quantity": "8", "unit": "tablespoon", "comment": "(1 stick) cold, cut into about 8 piece"}}
-{"sentence": "3 tablespoons margarine or butter", "labels": {"name": "margarine", "quantity": "3", "unit": "tablespoon", "comment": "or butter"}}
-{"sentence": "1/2 tablespoon ground cinnamon", "labels": {"name": "ground cinnamon", "quantity": "0.5", "unit": "tablespoon", "comment": ""}}
+{"sentence": "8 tablespoons (1 stick) cold unsalted butter, cut into about 8 pieces", "labels": {"name": "unsalted butter", "quantity": "8", "unit": "tablespoons", "comment": "(1 stick) cold, cut into about 8 piece"}}
+{"sentence": "3 tablespoons margarine or butter", "labels": {"name": "margarine", "quantity": "3", "unit": "tablespoons", "comment": "or butter"}}
+{"sentence": "1/2 tablespoon ground cinnamon", "labels": {"name": "ground cinnamon", "quantity": "0.5", "unit": "tablespoons", "comment": ""}}
 {"sentence": "1 lime, quartered", "labels": {"name": "lime", "quantity": "1", "unit": "", "comment": "quartered"}}
 {"sentence": "Salt", "labels": {"name": "salt", "quantity": "", "unit": "", "comment": ""}}
 {"sentence": "1 teaspoon soy sauce", "labels": {"name": "soy sauce", "quantity": "1", "unit": "teaspoon", "comment": ""}}
 {"sentence": "1 teaspoon finely chopped fresh tarragon, optional", "labels": {"name": "tarragon", "quantity": "1", "unit": "teaspoon", "comment": "finely chopped fresh, optional"}}
 {"sentence": "1 teaspoon chili powder", "labels": {"name": "chili powder", "quantity": "1", "unit": "teaspoon", "comment": ""}}
-{"sentence": "2 cups sugar", "labels": {"name": "sugar", "quantity": "2", "unit": "cup", "comment": ""}}
-{"sentence": "1/4 cup tomato juice", "labels": {"name": "tomato juice", "quantity": "0.25", "unit": "cup", "comment": ""}}
+{"sentence": "2 cups sugar", "labels": {"name": "sugar", "quantity": "2", "unit": "cups", "comment": ""}}
+{"sentence": "1/4 cup tomato juice", "labels": {"name": "tomato juice", "quantity": "0.25", "unit": "cups", "comment": ""}}
 {"sentence": "Homemade tomato sauce, for serving", "labels": {"name": "tomato sauce", "quantity": "", "unit": "", "comment": "homemade, for serving"}}
-{"sentence": "2 cups lentils, picked over and washed", "labels": {"name": "lentils", "quantity": "2", "unit": "cup", "comment": "picked over and washed"}}
-{"sentence": "2 cups grated fresh bread crumbs, preferably Italian semolina", "labels": {"name": "bread crumbs", "quantity": "2", "unit": "cup", "comment": "grated fresh, preferably italian semolina"}}
+{"sentence": "2 cups lentils, picked over and washed", "labels": {"name": "lentils", "quantity": "2", "unit": "cups", "comment": "picked over and washed"}}
+{"sentence": "2 cups grated fresh bread crumbs, preferably Italian semolina", "labels": {"name": "bread crumbs", "quantity": "2", "unit": "cups", "comment": "grated fresh, preferably italian semolina"}}
 {"sentence": "2 sage leaves", "labels": {"name": "sage leaves", "quantity": "2", "unit": "", "comment": ""}}
 {"sentence": "1 cup fresh or canned chicken broth", "labels": {"name": "chicken broth", "quantity": "1", "unit": "cup", "comment": "fresh or canned"}}
 {"sentence": "Freshly ground black pepper to taste", "labels": {"name": "ground black pepper", "quantity": "", "unit": "", "comment": "freshly to taste"}}
-{"sentence": "3 quarts chicken broth (homemade or low-sodium canned)", "labels": {"name": "chicken broth", "quantity": "3", "unit": "quart", "comment": "(homemade or low-sodium canned)"}}
-{"sentence": "1/4 cup vegetable oil", "labels": {"name": "vegetable oil", "quantity": "0.25", "unit": "cup", "comment": ""}}
-{"sentence": "1/4 teaspoon salt", "labels": {"name": "salt", "quantity": "0.25", "unit": "teaspoon", "comment": ""}}
-{"sentence": "2 1/4 cups unbleached all-purpose flour", "labels": {"name": "all-purpose flour", "quantity": "2.25", "unit": "cup", "comment": "unbleached"}}
-{"sentence": "2/3 cup vegetable shortening, plus 2 tablespoons", "labels": {"name": "vegetable shortening", "quantity": "0.667", "unit": "cup", "comment": "plus 2 tablespoon"}}
-{"sentence": "2 tablespoons sugar", "labels": {"name": "sugar", "quantity": "2", "unit": "tablespoon", "comment": ""}}
-{"sentence": "5 cups water", "labels": {"name": "water", "quantity": "5", "unit": "cup", "comment": ""}}
-{"sentence": "2 28-ounce cans crushed tomatoes", "labels": {"name": "crushed tomatoes", "quantity": "2", "unit": "can", "comment": "28-ounce"}}
+{"sentence": "3 quarts chicken broth (homemade or low-sodium canned)", "labels": {"name": "chicken broth", "quantity": "3", "unit": "quarts", "comment": "(homemade or low-sodium canned)"}}
+{"sentence": "1/4 cup vegetable oil", "labels": {"name": "vegetable oil", "quantity": "0.25", "unit": "cups", "comment": ""}}
+{"sentence": "1/4 teaspoon salt", "labels": {"name": "salt", "quantity": "0.25", "unit": "teaspoons", "comment": ""}}
+{"sentence": "2 1/4 cups unbleached all-purpose flour", "labels": {"name": "all-purpose flour", "quantity": "2.25", "unit": "cups", "comment": "unbleached"}}
+{"sentence": "2/3 cup vegetable shortening, plus 2 tablespoons", "labels": {"name": "vegetable shortening", "quantity": "0.667", "unit": "cups", "comment": "plus 2 tablespoon"}}
+{"sentence": "2 tablespoons sugar", "labels": {"name": "sugar", "quantity": "2", "unit": "tablespoons", "comment": ""}}
+{"sentence": "5 cups water", "labels": {"name": "water", "quantity": "5", "unit": "cups", "comment": ""}}
+{"sentence": "2 28-ounce cans crushed tomatoes", "labels": {"name": "crushed tomatoes", "quantity": "2", "unit": "cans", "comment": "28-ounce"}}
 {"sentence": "1-2 Hobnob biscuits, bashed to coarse crumbs", "labels": {"name": "hobnob biscuits", "quantity": "1-2", "unit": "", "comment": "bashed to coarse crumbs"}}
 {"sentence": "2 medium leeks", "labels": {"name": "leeks", "quantity": "2", "unit": "medium", "comment": ""}}
-{"sentence": "3 tbsp unsalted butter", "labels": {"name": "unsalted butter", "quantity": "3", "unit": "tbsp", "comment": ""}}
+{"sentence": "3 tbsp unsalted butter", "labels": {"name": "unsalted butter", "quantity": "3", "unit": "tbsps", "comment": ""}}
 {"sentence": "35 g black sesame seeds", "labels": {"name": "black sesame seeds", "quantity": "35", "unit": "g", "comment": ""}}
 {"sentence": "6 cloves garlic, crushed", "labels": {"name": "garlic", "quantity": "6", "unit": "cloves", "comment": "crushed"}}
 {"sentence": "4 spring onions, chopped", "labels": {"name": "spring onions", "quantity": "4", "unit": "", "comment": "chopped"}}
-{"sentence": "1x 400 g can chopped tomatoes", "labels": {"name": "chopped tomatoes", "quantity": "1x", "unit": "400 g can", "comment": ""}}
+{"sentence": "1x 400 g can chopped tomatoes", "labels": {"name": "chopped tomatoes", "quantity": "1x", "unit": "400 g cans", "comment": ""}}
 {"sentence": "50 g red wine", "labels": {"name": "red wine", "quantity": "50", "unit": "g", "comment": ""}}
 {"sentence": "25 g coriander stalks, roughly chopped plus 5 g picked leaves to garnish", "labels": {"name": "coriander stalks", "quantity": "25", "unit": "g", "comment": "roughly chopped  plus 5 g picked leaves  to garnish"}}
-{"sentence": "2 cup cherry tomatoes", "labels": {"name": "cherry tomatoes", "quantity": "2", "unit": "cup", "comment": ""}}
+{"sentence": "2 cup cherry tomatoes", "labels": {"name": "cherry tomatoes", "quantity": "2", "unit": "cups", "comment": ""}}
 {"sentence": "bunch mint", "labels": {"name": "mint", "quantity": "", "unit": "bunch", "comment": ""}}
-{"sentence": "handful of coriander leaves, chopped", "labels": {"name": "of coriander leaves", "quantity": "", "unit": "handful", "comment": "chopped"}}
+{"sentence": "handful of coriander leaves, chopped", "labels": {"name": "of coriander leaves", "quantity": "", "unit": "handfuls", "comment": "chopped"}}
 {"sentence": "6 small shallots, halved", "labels": {"name": "shallots", "quantity": "6", "unit": "small", "comment": "halved"}}
 {"sentence": "1 tbsp Dijon mustard, mustard", "labels": {"name": "dijon mustard", "quantity": "1", "unit": "tbsp", "comment": "mustard"}}
-{"sentence": "small handful fresh flat leaf parsley", "labels": {"name": "fresh flat leaf parsley", "quantity": "", "unit": "small handful", "comment": ""}}
+{"sentence": "small handful fresh flat leaf parsley", "labels": {"name": "fresh flat leaf parsley", "quantity": "", "unit": "small handfuls", "comment": ""}}
 {"sentence": "1 tbsp sweet smoked paprika", "labels": {"name": "sweet smoked paprika", "quantity": "1", "unit": "tbsp", "comment": ""}}
 {"sentence": "1 tbsp aji amarillo pepper paste (optional)", "labels": {"name": "aji amarillo pepper paste (optional)", "quantity": "1", "unit": "tbsp", "comment": ""}}
-{"sentence": "0.5 cup plus 2 tablespoons extra virgin olive oil, divided", "labels": {"name": "plus 2 tablespoons extra virgin olive oil", "quantity": "0.5", "unit": "cup", "comment": "divided"}}
+{"sentence": "0.5 cup plus 2 tablespoons extra virgin olive oil, divided", "labels": {"name": "plus 2 tablespoons extra virgin olive oil", "quantity": "0.5", "unit": "cups", "comment": "divided"}}
 {"sentence": "8 cutlets lean lamb", "labels": {"name": "lean lamb", "quantity": "8", "unit": "cutlets", "comment": ""}}
-{"sentence": "4 tsp kosher salt", "labels": {"name": "kosher salt", "quantity": "4", "unit": "tsp", "comment": ""}}
+{"sentence": "4 tsp kosher salt", "labels": {"name": "kosher salt", "quantity": "4", "unit": "tsps", "comment": ""}}
 {"sentence": "300 ml single cream", "labels": {"name": "single cream", "quantity": "300", "unit": "ml", "comment": ""}}
 {"sentence": "2 eggs", "labels": {"name": "eggs", "quantity": "2", "unit": "", "comment": ""}}
 {"sentence": "300 g sweet potatoes, cut into 2cm cubes", "labels": {"name": "sweet potatoes", "quantity": "300", "unit": "g", "comment": "cut into 2cm cubes"}}
 {"sentence": "200 g linguine", "labels": {"name": "linguine", "quantity": "200", "unit": "g", "comment": ""}}
 {"sentence": "1 clove garlic, chopped", "labels": {"name": "garlic", "quantity": "1", "unit": "clove", "comment": "chopped"}}
 {"sentence": "1 tbsp extra virgin olive oil", "labels": {"name": "extra virgin olive oil", "quantity": "1", "unit": "tbsp", "comment": ""}}
-{"sentence": "0.5 clove garlic, finely grated", "labels": {"name": "garlic", "quantity": "0.5", "unit": "clove", "comment": "finely grated"}}
+{"sentence": "0.5 clove garlic, finely grated", "labels": {"name": "garlic", "quantity": "0.5", "unit": "cloves", "comment": "finely grated"}}
 {"sentence": "1.5 limes, juiced", "labels": {"name": "limes", "quantity": "1.5", "unit": "", "comment": "juiced"}}
-{"sentence": "0.5 cup vegan sour cream", "labels": {"name": "vegan sour cream", "quantity": "0.5", "unit": "cup", "comment": ""}}
+{"sentence": "0.5 cup vegan sour cream", "labels": {"name": "vegan sour cream", "quantity": "0.5", "unit": "cups", "comment": ""}}
 {"sentence": "1 onion, finely chopped", "labels": {"name": "onion", "quantity": "1", "unit": "", "comment": "finely chopped"}}
 {"sentence": "35 g gochugaru", "labels": {"name": "gochugaru", "quantity": "35", "unit": "g", "comment": ""}}
 {"sentence": "225 g all purpose flour", "labels": {"name": "all purpose flour", "quantity": "225", "unit": "g", "comment": ""}}
 {"sentence": "300 ml milk", "labels": {"name": "milk", "quantity": "300", "unit": "ml", "comment": ""}}
 {"sentence": "1 tbsp olive oil", "labels": {"name": "olive oil", "quantity": "1", "unit": "tbsp", "comment": ""}}
-{"sentence": "handful fresh coriander, chopped", "labels": {"name": "fresh coriander", "quantity": "", "unit": "handful", "comment": "chopped"}}
+{"sentence": "handful fresh coriander, chopped", "labels": {"name": "fresh coriander", "quantity": "", "unit": "handfuls", "comment": "chopped"}}
 {"sentence": "1 ripe mango, peeled and cut into slices", "labels": {"name": "ripe mango", "quantity": "1", "unit": "", "comment": "peeled and cut into slices"}}
 {"sentence": "190 g bag spinach", "labels": {"name": "bag spinach", "quantity": "190", "unit": "g", "comment": ""}}
-{"sentence": "0.5 cup crumbled feta", "labels": {"name": "crumbled feta", "quantity": "0.5", "unit": "cup", "comment": ""}}
+{"sentence": "0.5 cup crumbled feta", "labels": {"name": "crumbled feta", "quantity": "0.5", "unit": "cups", "comment": ""}}
 {"sentence": "6 Plant Pioneers Chorizo Shroomdogs", "labels": {"name": "plant pioneers chorizo shroomdogs", "quantity": "6", "unit": "", "comment": ""}}
 {"sentence": "750 g baby new potatoes, halved", "labels": {"name": "baby new potatoes", "quantity": "750", "unit": "g", "comment": "halved"}}
 {"sentence": "0.5 mug grated Parmesan", "labels": {"name": "grated parmesan", "quantity": "0.5", "unit": "mug", "comment": ""}}
-{"sentence": "2 tsp vanilla extract", "labels": {"name": "vanilla extract", "quantity": "2", "unit": "tsp", "comment": ""}}
+{"sentence": "2 tsp vanilla extract", "labels": {"name": "vanilla extract", "quantity": "2", "unit": "tsps", "comment": ""}}
 {"sentence": "1 tsp ground cumin", "labels": {"name": "ground cumin", "quantity": "1", "unit": "tsp", "comment": ""}}
-{"sentence": "0.5 cup grated Parmesan cheese, or more to your liking", "labels": {"name": "grated parmesan cheese", "quantity": "0.5", "unit": "cup", "comment": "or more to your liking"}}
+{"sentence": "0.5 cup grated Parmesan cheese, or more to your liking", "labels": {"name": "grated parmesan cheese", "quantity": "0.5", "unit": "cups", "comment": "or more to your liking"}}
 {"sentence": "555 g refried beans", "labels": {"name": "refried beans", "quantity": "555", "unit": "g", "comment": ""}}
-{"sentence": "2 heaped tsp ground cumin", "labels": {"name": "ground cumin", "quantity": "2", "unit": "heaped tsp", "comment": ""}}
+{"sentence": "2 heaped tsp ground cumin", "labels": {"name": "ground cumin", "quantity": "2", "unit": "heaped tsps", "comment": ""}}
 {"sentence": "4 skinless boneless chicken breasts", "labels": {"name": "skinless boneless chicken breasts", "quantity": "4", "unit": "", "comment": ""}}
-{"sentence": "0.5x 30 g pack flat-leaf parsley, finely chopped", "labels": {"name": "flat-leaf parsley", "quantity": "0.5x", "unit": "30 g pack", "comment": "finely chopped"}}
+{"sentence": "0.5x 30 g pack flat-leaf parsley, finely chopped", "labels": {"name": "flat-leaf parsley", "quantity": "0.5x", "unit": "30 g packs", "comment": "finely chopped"}}
 {"sentence": "1 cup raw walnuts", "labels": {"name": "raw walnuts", "quantity": "1", "unit": "cup", "comment": ""}}
 {"sentence": "1 tbsp finely grated fresh ginger", "labels": {"name": "finely grated fresh ginger", "quantity": "1", "unit": "tbsp", "comment": ""}}
 {"sentence": "40 g parmesan, finely grated", "labels": {"name": "parmesan", "quantity": "40", "unit": "g", "comment": "finely grated"}}
 {"sentence": "salt and pepper", "labels": {"name": "salt and pepper", "quantity": "", "unit": "", "comment": ""}}
 {"sentence": "1 beaten egg", "labels": {"name": "beaten egg", "quantity": "1", "unit": "", "comment": ""}}
 {"sentence": "1 onion, chopped", "labels": {"name": "onion", "quantity": "1", "unit": "", "comment": "chopped"}}
-{"sentence": "0.5 tsp turmeric", "labels": {"name": "turmeric", "quantity": "0.5", "unit": "tsp", "comment": ""}}
+{"sentence": "0.5 tsp turmeric", "labels": {"name": "turmeric", "quantity": "0.5", "unit": "tsps", "comment": ""}}
 {"sentence": "4 salmon steaks, cut into bitesized pieces", "labels": {"name": "salmon steaks", "quantity": "4", "unit": "", "comment": "cut into bitesized pieces"}}
 {"sentence": "2 tablespoons balsamic vinegar", "labels": {"name": "balsamic vinegar", "quantity": "2", "unit": "tablespoons", "comment": ""}}
 {"sentence": "100 g vegetarian feta, crumbled", "labels": {"name": "vegetarian feta", "quantity": "100", "unit": "g", "comment": "crumbled"}}
@@ -313,18 +313,18 @@
 {"sentence": "200 g gluten-free flour", "labels": {"name": "gluten-free flour", "quantity": "200", "unit": "g", "comment": ""}}
 {"sentence": "1 tsp sea salt flakes, crushed", "labels": {"name": "sea salt flakes", "quantity": "1", "unit": "tsp", "comment": "crushed"}}
 {"sentence": "2 red chillies, deseeded and finely chopped", "labels": {"name": "red chillies", "quantity": "2", "unit": "", "comment": "deseeded and finely chopped"}}
-{"sentence": "2 tbsp olive oil", "labels": {"name": "olive oil", "quantity": "2", "unit": "tbsp", "comment": ""}}
+{"sentence": "2 tbsp olive oil", "labels": {"name": "olive oil", "quantity": "2", "unit": "tbsps", "comment": ""}}
 {"sentence": "1 large egg, beaten", "labels": {"name": "egg", "quantity": "1", "unit": "large", "comment": "beaten"}}
 {"sentence": "1 red onion, sliced", "labels": {"name": "red onion", "quantity": "1", "unit": "", "comment": "sliced"}}
-{"sentence": "0.25 tsp chilli flakes", "labels": {"name": "chilli flakes", "quantity": "0.25", "unit": "tsp", "comment": ""}}
-{"sentence": "2 tbsp mild curry paste", "labels": {"name": "mild curry paste", "quantity": "2", "unit": "tbsp", "comment": ""}}
+{"sentence": "0.25 tsp chilli flakes", "labels": {"name": "chilli flakes", "quantity": "0.25", "unit": "tsps", "comment": ""}}
+{"sentence": "2 tbsp mild curry paste", "labels": {"name": "mild curry paste", "quantity": "2", "unit": "tbsps", "comment": ""}}
 {"sentence": "a large thumb-sized piece of fresh ginger, peeled and finely shredded", "labels": {"name": "a large thumb-sized piece of fresh ginger", "quantity": "", "unit": "", "comment": "peeled and finely shredded"}}
 {"sentence": "juice of &frac12; lemon", "labels": {"name": "juice of &frac12; lemon", "quantity": "", "unit": "", "comment": ""}}
 {"sentence": "1 tbsp hot chilli sauce, plus extra to serve (optional)", "labels": {"name": "hot chilli sauce", "quantity": "1", "unit": "tbsp", "comment": "plus extra to serve (optional)"}}
 {"sentence": "0.5x 340 g tin sweetcorn", "labels": {"name": "sweetcorn", "quantity": "0.5x", "unit": "340 g tin", "comment": ""}}
 {"sentence": "1 onion, roughly chopped", "labels": {"name": "onion", "quantity": "1", "unit": "", "comment": "roughly chopped"}}
 {"sentence": "1 medium red onion, cut into wedges", "labels": {"name": "red onion", "quantity": "1", "unit": "medium", "comment": "cut into wedges"}}
-{"sentence": "2 tbsp tomato puree", "labels": {"name": "tomato puree", "quantity": "2", "unit": "tbsp", "comment": ""}}
+{"sentence": "2 tbsp tomato puree", "labels": {"name": "tomato puree", "quantity": "2", "unit": "tbsps", "comment": ""}}
 {"sentence": "250 g risotto rice", "labels": {"name": "risotto rice", "quantity": "250", "unit": "g", "comment": ""}}
 {"sentence": "300 ml single cream", "labels": {"name": "single cream", "quantity": "300", "unit": "ml", "comment": ""}}
 {"sentence": "400 g new potatoes, halved", "labels": {"name": "new potatoes", "quantity": "400", "unit": "g", "comment": "halved"}}
@@ -338,15 +338,15 @@
 {"sentence": "1 tbsp olive oil", "labels": {"name": "olive oil", "quantity": "1", "unit": "tbsp", "comment": ""}}
 {"sentence": "1 large onion, chopped", "labels": {"name": "onion", "quantity": "1", "unit": "large", "comment": "chopped"}}
 {"sentence": "1 tbsp thyme leaf, chopped", "labels": {"name": "thyme leaf", "quantity": "1", "unit": "tbsp", "comment": "chopped"}}
-{"sentence": "0.5 cup breadcrumbs", "labels": {"name": "breadcrumbs", "quantity": "0.5", "unit": "cup", "comment": ""}}
-{"sentence": "0.5 cup grated Pecorino or grated Parmesan cheese, plus more for serving", "labels": {"name": "grated pecorino or grated parmesan cheese", "quantity": "0.5", "unit": "cup", "comment": "plus more for serving"}}
+{"sentence": "0.5 cup breadcrumbs", "labels": {"name": "breadcrumbs", "quantity": "0.5", "unit": "cups", "comment": ""}}
+{"sentence": "0.5 cup grated Pecorino or grated Parmesan cheese, plus more for serving", "labels": {"name": "grated pecorino or grated parmesan cheese", "quantity": "0.5", "unit": "cups", "comment": "plus more for serving"}}
 {"sentence": "275 ml chicken stock", "labels": {"name": "chicken stock", "quantity": "275", "unit": "ml", "comment": ""}}
-{"sentence": "2 tsp ground cumin", "labels": {"name": "ground cumin", "quantity": "2", "unit": "tsp", "comment": ""}}
-{"sentence": "1x 400 g can chickpeas, rinsed and drained", "labels": {"name": "chickpeas", "quantity": "1x", "unit": "400 g can", "comment": "rinsed and drained"}}
-{"sentence": "4 tbsp olive oil", "labels": {"name": "olive oil", "quantity": "4", "unit": "tbsp", "comment": ""}}
+{"sentence": "2 tsp ground cumin", "labels": {"name": "ground cumin", "quantity": "2", "unit": "tsps", "comment": ""}}
+{"sentence": "1x 400 g can chickpeas, rinsed and drained", "labels": {"name": "chickpeas", "quantity": "1x", "unit": "400 g cans", "comment": "rinsed and drained"}}
+{"sentence": "4 tbsp olive oil", "labels": {"name": "olive oil", "quantity": "4", "unit": "tbsps", "comment": ""}}
 {"sentence": "3 cloves garlic, minced", "labels": {"name": "garlic", "quantity": "3", "unit": "cloves", "comment": "minced"}}
 {"sentence": "Cooked rice, for serving", "labels": {"name": "cooked rice", "quantity": "", "unit": "", "comment": "for serving"}}
-{"sentence": "3 tbsp freshly chopped coriander", "labels": {"name": "freshly chopped coriander", "quantity": "3", "unit": "tbsp", "comment": ""}}
+{"sentence": "3 tbsp freshly chopped coriander", "labels": {"name": "freshly chopped coriander", "quantity": "3", "unit": "tbsps", "comment": ""}}
 {"sentence": "2x 390 g carton chopped tomatoes", "labels": {"name": "chopped tomatoes", "quantity": "2x", "unit": "390 g carton", "comment": ""}}
 {"sentence": "1-2 tablespoons prepared chipotle paste", "labels": {"name": "prepared chipotle paste", "quantity": "1-2", "unit": "tablespoons", "comment": ""}}
 {"sentence": "1-2 sprigs rosemary, needles picked and finely chopped", "labels": {"name": "rosemary", "quantity": "1-2", "unit": "sprigs", "comment": "needles picked and finely chopped"}}
@@ -359,19 +359,19 @@
 {"sentence": "1 tbsp oil", "labels": {"name": "oil", "quantity": "1", "unit": "tbsp", "comment": ""}}
 {"sentence": "3 chicken breasts, cut into thin strips", "labels": {"name": "chicken breasts", "quantity": "3", "unit": "", "comment": "cut into thin strips"}}
 {"sentence": "750 g skinless, boneless chicken thighs", "labels": {"name": "skinless, boneless chicken thighs", "quantity": "750", "unit": "g", "comment": ""}}
-{"sentence": "1x 400 ml can coconut milk", "labels": {"name": "coconut milk", "quantity": "1x", "unit": "400 ml can", "comment": ""}}
+{"sentence": "1x 400 ml can coconut milk", "labels": {"name": "coconut milk", "quantity": "1x", "unit": "400 ml cans", "comment": ""}}
 {"sentence": "4 eggs, separated", "labels": {"name": "eggs", "quantity": "4", "unit": "", "comment": "separated"}}
 {"sentence": "2 sprigs rosemary, chopped", "labels": {"name": "rosemary", "quantity": "2", "unit": "sprigs", "comment": "chopped"}}
 {"sentence": "1 sprig rosemary, leaves finely chopped", "labels": {"name": "rosemary", "quantity": "1", "unit": "sprig", "comment": "leaves finely chopped"}}
 {"sentence": "500 g loin of pork", "labels": {"name": "loin of pork", "quantity": "500", "unit": "g", "comment": ""}}
 {"sentence": "1 tsp dried Italian oregano", "labels": {"name": "dried italian oregano", "quantity": "1", "unit": "tsp", "comment": ""}}
-{"sentence": "1x 200 g pack Tenderstem brocolli, stems halved if very long", "labels": {"name": "tenderstem brocolli", "quantity": "1x", "unit": "200 g pack", "comment": "stems halved if very long"}}
+{"sentence": "1x 200 g pack Tenderstem brocolli, stems halved if very long", "labels": {"name": "tenderstem brocolli", "quantity": "1x", "unit": "200 g packs", "comment": "stems halved if very long"}}
 {"sentence": "salt and black pepper", "labels": {"name": "salt and black pepper", "quantity": "", "unit": "", "comment": ""}}
 {"sentence": "1 tsp freshly ground black pepper", "labels": {"name": "freshly ground black pepper", "quantity": "1", "unit": "tsp", "comment": ""}}
-{"sentence": "1.5 tbsp cornflour", "labels": {"name": "cornflour", "quantity": "1.5", "unit": "tbsp", "comment": ""}}
-{"sentence": "2 tsp garam masala", "labels": {"name": "garam masala", "quantity": "2", "unit": "tsp", "comment": ""}}
+{"sentence": "1.5 tbsp cornflour", "labels": {"name": "cornflour", "quantity": "1.5", "unit": "tbsps", "comment": ""}}
+{"sentence": "2 tsp garam masala", "labels": {"name": "garam masala", "quantity": "2", "unit": "tsps", "comment": ""}}
 {"sentence": "1 clove garlic, minced", "labels": {"name": "garlic", "quantity": "1", "unit": "clove", "comment": "minced"}}
-{"sentence": "1x 500 g pack fresh puff pastry, or frozen and defrosted", "labels": {"name": "fresh puff pastry", "quantity": "1x", "unit": "500 g pack", "comment": "or frozen and defrosted"}}
+{"sentence": "1x 500 g pack fresh puff pastry, or frozen and defrosted", "labels": {"name": "fresh puff pastry", "quantity": "1x", "unit": "500 g packs", "comment": "or frozen and defrosted"}}
 {"sentence": "1 tbsp fish sauce", "labels": {"name": "fish sauce", "quantity": "1", "unit": "tbsp", "comment": ""}}
 {"sentence": "mint or basil leaves and a little shredded chilli (optional), to serve", "labels": {"name": "mint or basil leaves and a little shredded chilli (optional)", "quantity": "", "unit": "", "comment": "to serve"}}
 {"sentence": "fresh mint", "labels": {"name": "fresh mint", "quantity": "", "unit": "", "comment": ""}}
@@ -380,7 +380,7 @@
 {"sentence": "1 tbsp sake", "labels": {"name": "sake", "quantity": "1", "unit": "tbsp", "comment": ""}}
 {"sentence": "2 onion, 1 diced, 1 roughly chopped", "labels": {"name": "onion", "quantity": "2", "unit": "", "comment": "1 diced, 1 roughly chopped"}}
 {"sentence": "130 g all-purpose flour , divided, plus more as needed and for dusting", "labels": {"name": "all-purpose flour", "quantity": "130", "unit": "g", "comment": "divided, plus more as needed and for dusting"}}
-{"sentence": "0.5 tsp red-pepper flakes", "labels": {"name": "red-pepper flakes", "quantity": "0.5", "unit": "tsp", "comment": ""}}
+{"sentence": "0.5 tsp red-pepper flakes", "labels": {"name": "red-pepper flakes", "quantity": "0.5", "unit": "tsps", "comment": ""}}
 {"sentence": "3 cloves garlic, or more, lightly smashed and peeled", "labels": {"name": "garlic", "quantity": "3", "unit": "cloves", "comment": "or more, lightly smashed and peeled"}}
 {"sentence": "0.5 onion, finely chopped", "labels": {"name": "onion", "quantity": "0.5", "unit": "", "comment": "finely chopped"}}
 {"sentence": "1 onion, finely chopped", "labels": {"name": "onion", "quantity": "1", "unit": "", "comment": "finely chopped"}}
@@ -389,35 +389,35 @@
 {"sentence": "few drops sesame oil", "labels": {"name": "sesame oil", "quantity": "", "unit": "few drops", "comment": ""}}
 {"sentence": "12 large eggs, lightly whisked", "labels": {"name": "eggs", "quantity": "12", "unit": "large", "comment": "lightly whisked"}}
 {"sentence": "2 pork sausages, skins removed", "labels": {"name": "pork sausages", "quantity": "2", "unit": "", "comment": "skins removed"}}
-{"sentence": "2 tbsp olive oil", "labels": {"name": "olive oil", "quantity": "2", "unit": "tbsp", "comment": ""}}
-{"sentence": "0.5 tsp ground coriander", "labels": {"name": "ground coriander", "quantity": "0.5", "unit": "tsp", "comment": ""}}
+{"sentence": "2 tbsp olive oil", "labels": {"name": "olive oil", "quantity": "2", "unit": "tbsps", "comment": ""}}
+{"sentence": "0.5 tsp ground coriander", "labels": {"name": "ground coriander", "quantity": "0.5", "unit": "tsps", "comment": ""}}
 {"sentence": "50 g flaked almonds", "labels": {"name": "flaked almonds", "quantity": "50", "unit": "g", "comment": ""}}
 {"sentence": "1 tsp ground cinnamon", "labels": {"name": "ground cinnamon", "quantity": "1", "unit": "tsp", "comment": ""}}
 {"sentence": "8 medium chicken thighs, skin on and bone in", "labels": {"name": "chicken thighs", "quantity": "8", "unit": "medium", "comment": "skin on and bone in"}}
 {"sentence": "2x 400 g cans chopped tomatoes", "labels": {"name": "chopped tomatoes", "quantity": "2x", "unit": "400 g cans", "comment": ""}}
-{"sentence": "0.5 cup red split lentils", "labels": {"name": "red split lentils", "quantity": "0.5", "unit": "cup", "comment": ""}}
+{"sentence": "0.5 cup red split lentils", "labels": {"name": "red split lentils", "quantity": "0.5", "unit": "cups", "comment": ""}}
 {"sentence": "1 l vegetable stock", "labels": {"name": "vegetable stock", "quantity": "1", "unit": "l", "comment": ""}}
 {"sentence": "1 tsp grated fresh ginger", "labels": {"name": "grated fresh ginger", "quantity": "1", "unit": "tsp", "comment": ""}}
 {"sentence": "130 g unsalted butter, room temperature and cubed", "labels": {"name": "unsalted butter", "quantity": "130", "unit": "g", "comment": "room temperature and cubed"}}
-{"sentence": "2 tsp cumin seeds", "labels": {"name": "cumin seeds", "quantity": "2", "unit": "tsp", "comment": ""}}
-{"sentence": "3 tbsp soy sauce", "labels": {"name": "soy sauce", "quantity": "3", "unit": "tbsp", "comment": ""}}
-{"sentence": "0.25 cup tomato paste", "labels": {"name": "tomato paste", "quantity": "0.25", "unit": "cup", "comment": ""}}
+{"sentence": "2 tsp cumin seeds", "labels": {"name": "cumin seeds", "quantity": "2", "unit": "tsps", "comment": ""}}
+{"sentence": "3 tbsp soy sauce", "labels": {"name": "soy sauce", "quantity": "3", "unit": "tbsps", "comment": ""}}
+{"sentence": "0.25 cup tomato paste", "labels": {"name": "tomato paste", "quantity": "0.25", "unit": "cups", "comment": ""}}
 {"sentence": "3 chicken breasts, cut into small pieces", "labels": {"name": "chicken breasts", "quantity": "3", "unit": "", "comment": "cut into small pieces"}}
-{"sentence": "0.25 cup minced cilantro stems and leaves (reserve some leaves for garnish)", "labels": {"name": "minced cilantro stems and leaves (reserve some leaves for garnish)", "quantity": "0.25", "unit": "cup", "comment": ""}}
+{"sentence": "0.25 cup minced cilantro stems and leaves (reserve some leaves for garnish)", "labels": {"name": "minced cilantro stems and leaves (reserve some leaves for garnish)", "quantity": "0.25", "unit": "cups", "comment": ""}}
 {"sentence": "small bunch parsley, finely chopped", "labels": {"name": "parsley", "quantity": "", "unit": "small bunch", "comment": "finely chopped"}}
-{"sentence": "8 tbsp vegetable oil", "labels": {"name": "vegetable oil", "quantity": "8", "unit": "tbsp", "comment": ""}}
+{"sentence": "8 tbsp vegetable oil", "labels": {"name": "vegetable oil", "quantity": "8", "unit": "tbsps", "comment": ""}}
 {"sentence": "1x 400 g tin chopped tomatoes", "labels": {"name": "chopped tomatoes", "quantity": "1x", "unit": "400 g tin", "comment": ""}}
 {"sentence": "3-4 cloves garlic", "labels": {"name": "garlic", "quantity": "3-4", "unit": "cloves", "comment": ""}}
 {"sentence": "Pinch of salt", "labels": {"name": "pinch of salt", "quantity": "", "unit": "", "comment": ""}}
-{"sentence": "4 tsp baking powder", "labels": {"name": "baking powder", "quantity": "4", "unit": "tsp", "comment": ""}}
-{"sentence": "large handful coriander or parsley leaves", "labels": {"name": "coriander or parsley leaves", "quantity": "", "unit": "large handful", "comment": ""}}
+{"sentence": "4 tsp baking powder", "labels": {"name": "baking powder", "quantity": "4", "unit": "tsps", "comment": ""}}
+{"sentence": "large handful coriander or parsley leaves", "labels": {"name": "coriander or parsley leaves", "quantity": "", "unit": "large handfuls", "comment": ""}}
 {"sentence": "1 tsp clear honey", "labels": {"name": "clear honey", "quantity": "1", "unit": "tsp", "comment": ""}}
-{"sentence": "0.25 cup parmesan cheese, finely grated or shaved (omit for dairy-free)", "labels": {"name": "parmesan cheese", "quantity": "0.25", "unit": "cup", "comment": "finely grated or shaved (omit for dairy-free)"}}
+{"sentence": "0.25 cup parmesan cheese, finely grated or shaved (omit for dairy-free)", "labels": {"name": "parmesan cheese", "quantity": "0.25", "unit": "cups", "comment": "finely grated or shaved (omit for dairy-free)"}}
 {"sentence": "200 g chorizo sausage, diced", "labels": {"name": "chorizo sausage", "quantity": "200", "unit": "g", "comment": "diced"}}
 {"sentence": "paprika", "labels": {"name": "paprika", "quantity": "", "unit": "", "comment": ""}}
 {"sentence": "1-2 tablespoons prepared chipotle paste", "labels": {"name": "prepared chipotle paste", "quantity": "1-2", "unit": "tablespoons", "comment": ""}}
 {"sentence": "1 medium onion, sliced", "labels": {"name": "onion", "quantity": "1", "unit": "medium", "comment": "sliced"}}
-{"sentence": "1x 410 g can red kidney beans", "labels": {"name": "red kidney beans", "quantity": "1x", "unit": "410 g can", "comment": ""}}
+{"sentence": "1x 410 g can red kidney beans", "labels": {"name": "red kidney beans", "quantity": "1x", "unit": "410 g cans", "comment": ""}}
 {"sentence": "1 tbsp honey", "labels": {"name": "honey", "quantity": "1", "unit": "tbsp", "comment": ""}}
 {"sentence": "1 tsp golden caster sugar", "labels": {"name": "golden caster sugar", "quantity": "1", "unit": "tsp", "comment": ""}}
 {"sentence": "170 g frozen edamame, defrosted", "labels": {"name": "frozen edamame", "quantity": "170", "unit": "g", "comment": "defrosted"}}
@@ -432,9 +432,9 @@
 {"sentence": "150 g all purpose flour", "labels": {"name": "all purpose flour", "quantity": "150", "unit": "g", "comment": ""}}
 {"sentence": "1 bay leaf", "labels": {"name": "bay leaf", "quantity": "1", "unit": "", "comment": ""}}
 {"sentence": "1 tbsp vegetable oil", "labels": {"name": "vegetable oil", "quantity": "1", "unit": "tbsp", "comment": ""}}
-{"sentence": "0.5 tsp garlic powder", "labels": {"name": "garlic powder", "quantity": "0.5", "unit": "tsp", "comment": ""}}
+{"sentence": "0.5 tsp garlic powder", "labels": {"name": "garlic powder", "quantity": "0.5", "unit": "tsps", "comment": ""}}
 {"sentence": "480 ml chicken stock", "labels": {"name": "chicken stock", "quantity": "480", "unit": "ml", "comment": ""}}
-{"sentence": "0.5 tsp salt", "labels": {"name": "salt", "quantity": "0.5", "unit": "tsp", "comment": ""}}
+{"sentence": "0.5 tsp salt", "labels": {"name": "salt", "quantity": "0.5", "unit": "tsps", "comment": ""}}
 {"sentence": "6 oz sweet or hot Italian sausages, casings removed", "labels": {"name": "sweet or hot italian sausages", "quantity": "6", "unit": "oz", "comment": "casings removed"}}
 {"sentence": "1 tsp sea salt flakes, crushed", "labels": {"name": "sea salt flakes", "quantity": "1", "unit": "tsp", "comment": "crushed"}}
 {"sentence": "1 red chilli", "labels": {"name": "red chilli", "quantity": "1", "unit": "", "comment": ""}}
@@ -443,9 +443,9 @@
 {"sentence": "500 ml lamb or chicken stock", "labels": {"name": "lamb or chicken stock", "quantity": "500", "unit": "ml", "comment": ""}}
 {"sentence": "170 g self raising flour", "labels": {"name": "self raising flour", "quantity": "170", "unit": "g", "comment": ""}}
 {"sentence": "1 large red pepper, deseeded and diced", "labels": {"name": "red pepper", "quantity": "1", "unit": "large", "comment": "deseeded and diced"}}
-{"sentence": "4.5 tbsp rice vinegar", "labels": {"name": "rice vinegar", "quantity": "4.5", "unit": "tbsp", "comment": ""}}
-{"sentence": "1.5 tbsp pure vanilla extract", "labels": {"name": "pure vanilla extract", "quantity": "1.5", "unit": "tbsp", "comment": ""}}
-{"sentence": "0.5 tsp turmeric", "labels": {"name": "turmeric", "quantity": "0.5", "unit": "tsp", "comment": ""}}
+{"sentence": "4.5 tbsp rice vinegar", "labels": {"name": "rice vinegar", "quantity": "4.5", "unit": "tbsps", "comment": ""}}
+{"sentence": "1.5 tbsp pure vanilla extract", "labels": {"name": "pure vanilla extract", "quantity": "1.5", "unit": "tbsps", "comment": ""}}
+{"sentence": "0.5 tsp turmeric", "labels": {"name": "turmeric", "quantity": "0.5", "unit": "tsps", "comment": ""}}
 {"sentence": "1 small onion or shallot, finely chopped", "labels": {"name": "onion or shallot", "quantity": "1", "unit": "small", "comment": "finely chopped"}}
 {"sentence": "1 tbsp harissa paste", "labels": {"name": "harissa paste", "quantity": "1", "unit": "tbsp", "comment": ""}}
 {"sentence": "2 tomatoes, chopped", "labels": {"name": "tomatoes", "quantity": "2", "unit": "", "comment": "chopped"}}
@@ -454,13 +454,13 @@
 {"sentence": "1.5 cups sugar", "labels": {"name": "sugar", "quantity": "1.5", "unit": "cups", "comment": ""}}
 {"sentence": "1 red onion, cut into wedges", "labels": {"name": "red onion", "quantity": "1", "unit": "", "comment": "cut into wedges"}}
 {"sentence": "Salt and pepper to taste", "labels": {"name": "salt and pepper to taste", "quantity": "", "unit": "", "comment": ""}}
-{"sentence": "1.5 tbsp chopped rosemary", "labels": {"name": "chopped rosemary", "quantity": "1.5", "unit": "tbsp", "comment": ""}}
+{"sentence": "1.5 tbsp chopped rosemary", "labels": {"name": "chopped rosemary", "quantity": "1.5", "unit": "tbsps", "comment": ""}}
 {"sentence": "250 g penne", "labels": {"name": "penne", "quantity": "250", "unit": "g", "comment": ""}}
 {"sentence": "1 tsp nigella seeds", "labels": {"name": "nigella seeds", "quantity": "1", "unit": "tsp", "comment": ""}}
 {"sentence": "1 tbsp olive oil", "labels": {"name": "olive oil", "quantity": "1", "unit": "tbsp", "comment": ""}}
 {"sentence": "2 cloves garlic", "labels": {"name": "garlic", "quantity": "2", "unit": "cloves", "comment": ""}}
 {"sentence": "170 g plain flour", "labels": {"name": "plain flour", "quantity": "170", "unit": "g", "comment": ""}}
-{"sentence": "2 tbsp oil", "labels": {"name": "oil", "quantity": "2", "unit": "tbsp", "comment": ""}}
+{"sentence": "2 tbsp oil", "labels": {"name": "oil", "quantity": "2", "unit": "tbsps", "comment": ""}}
 {"sentence": "2 eating apples, peeled cored and cut into 8 wedges", "labels": {"name": "eating apples", "quantity": "2", "unit": "", "comment": "peeled  cored and cut into 8 wedges"}}
 {"sentence": "3 thyme sprigs", "labels": {"name": "thyme sprigs", "quantity": "3", "unit": "", "comment": ""}}
 {"sentence": "200 g butter, plus extra for greasing", "labels": {"name": "butter", "quantity": "200", "unit": "g", "comment": "plus extra for greasing"}}
@@ -472,7 +472,7 @@
 {"sentence": "60 g caster sugar", "labels": {"name": "caster sugar", "quantity": "60", "unit": "g", "comment": ""}}
 {"sentence": "150 g grated Italian style hard cheese", "labels": {"name": "grated italian style hard cheese", "quantity": "150", "unit": "g", "comment": ""}}
 {"sentence": "300 ml Greek Yoghurt", "labels": {"name": "greek yoghurt", "quantity": "300", "unit": "ml", "comment": ""}}
-{"sentence": "3 tbsp unsalted butter", "labels": {"name": "unsalted butter", "quantity": "3", "unit": "tbsp", "comment": ""}}
+{"sentence": "3 tbsp unsalted butter", "labels": {"name": "unsalted butter", "quantity": "3", "unit": "tbsps", "comment": ""}}
 {"sentence": "4 sweet potatoes", "labels": {"name": "sweet potatoes", "quantity": "4", "unit": "", "comment": ""}}
 {"sentence": "60 g finely shredded red cabbage", "labels": {"name": "finely shredded red cabbage", "quantity": "60", "unit": "g", "comment": ""}}
 {"sentence": "1 tbsp tomato puree", "labels": {"name": "tomato puree", "quantity": "1", "unit": "tbsp", "comment": ""}}
@@ -480,13 +480,13 @@
 {"sentence": "2 cups coarsely chopped onions", "labels": {"name": "coarsely chopped onions", "quantity": "2", "unit": "cups", "comment": ""}}
 {"sentence": "2 cloves garlic, finely chopped", "labels": {"name": "garlic", "quantity": "2", "unit": "cloves", "comment": "finely chopped"}}
 {"sentence": "100 g lighter soured cream", "labels": {"name": "lighter soured cream", "quantity": "100", "unit": "g", "comment": ""}}
-{"sentence": "0.5 tsp fine sea salt", "labels": {"name": "fine sea salt", "quantity": "0.5", "unit": "tsp", "comment": ""}}
+{"sentence": "0.5 tsp fine sea salt", "labels": {"name": "fine sea salt", "quantity": "0.5", "unit": "tsps", "comment": ""}}
 {"sentence": "100 g butter", "labels": {"name": "butter", "quantity": "100", "unit": "g", "comment": ""}}
-{"sentence": "1x 600 g pack sweet & crunchy stir fry veg or other stir fry pack", "labels": {"name": "sweet & crunchy stir fry veg or other stir fry pack", "quantity": "1x", "unit": "600 g pack", "comment": ""}}
+{"sentence": "1x 600 g pack sweet & crunchy stir fry veg or other stir fry pack", "labels": {"name": "sweet & crunchy stir fry veg or other stir fry pack", "quantity": "1x", "unit": "600 g packs", "comment": ""}}
 {"sentence": "1 tsp olive oil", "labels": {"name": "olive oil", "quantity": "1", "unit": "tsp", "comment": ""}}
 {"sentence": "2 skinless white fish fillets", "labels": {"name": "skinless white fish fillets", "quantity": "2", "unit": "", "comment": ""}}
 {"sentence": "25 g plain corn chips, crushed", "labels": {"name": "plain corn chips", "quantity": "25", "unit": "g", "comment": "crushed"}}
-{"sentence": "0.75 tsp ginger powder", "labels": {"name": "ginger powder", "quantity": "0.75", "unit": "tsp", "comment": ""}}
+{"sentence": "0.75 tsp ginger powder", "labels": {"name": "ginger powder", "quantity": "0.75", "unit": "tsps", "comment": ""}}
 {"sentence": "2 skinless chicken breasts", "labels": {"name": "skinless chicken breasts", "quantity": "2", "unit": "", "comment": ""}}
 {"sentence": "1 fat red chilli, chopped", "labels": {"name": "fat red chilli", "quantity": "1", "unit": "", "comment": "chopped"}}
 {"sentence": "1 medium pre-roasted chicken (about 2 kg), meat finely shredded", "labels": {"name": "pre-roasted chicken (about 2 kg)", "quantity": "1", "unit": "medium", "comment": "meat finely shredded"}}
@@ -496,5 +496,5 @@
 {"sentence": "200 g golden caster sugar", "labels": {"name": "golden caster sugar", "quantity": "200", "unit": "g", "comment": ""}}
 {"sentence": "2 cloves garlic, finely chopped", "labels": {"name": "garlic", "quantity": "2", "unit": "cloves", "comment": "finely chopped"}}
 {"sentence": "100 g green beans, finely chopped", "labels": {"name": "green beans", "quantity": "100", "unit": "g", "comment": "finely chopped"}}
-{"sentence": "small handful coriander, roughly chopped", "labels": {"name": "coriander", "quantity": "", "unit": "small handful", "comment": "roughly chopped"}}
+{"sentence": "small handful coriander, roughly chopped", "labels": {"name": "coriander", "quantity": "", "unit": "small handfuls", "comment": "roughly chopped"}}
 {"sentence": "450 g king prawns", "labels": {"name": "king prawns", "quantity": "450", "unit": "g", "comment": ""}}
