@@ -1,5 +1,6 @@
 import os
 import sys
+from datetime import date
 
 # Configuration file for the Sphinx documentation builder.
 #
@@ -10,7 +11,7 @@ import sys
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = "Ingredient Parser"
-copyright = "2022, Tom Strange"
+copyright = f"{date.today().year}, Tom Strange"
 author = "Tom Strange"
 
 # -- General configuration ---------------------------------------------------
