@@ -155,7 +155,6 @@ quantity': '2', 'unit': 'medium', 'name': 'sweet potatoes',\
     processed_sentence = PreProcessor(sentence)
     res = PARSER_PATTERN.match(processed_sentence.sentence)
     if res is not None:
-
         parsed["quantity"] = (res.group("quantity") or "").strip()
 
         unit = (res.group("unit") or "").strip()

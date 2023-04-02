@@ -70,13 +70,10 @@ def test_results_to_html(
     body.append(heading3)
 
     incorrect = 0
-    for (sentence, truth, prediction) in zip(
-        sentences, labels_truth, labels_prediction
-    ):
+    for sentence, truth, prediction in zip(sentences, labels_truth, labels_prediction):
         if truth != prediction:
             # Count mismatches and only include if greater than set limit
             if sum(i != j for i, j in zip(truth, prediction)) > minimum_mismatches:
-
                 tokens: List[str] = PreProcessor(
                     sentence, defer_pos_tagging=True
                 ).tokenized_sentence
@@ -128,8 +125,7 @@ def create_html_table(
     prediction_title.text = "Prediction"
     prediction_tr.append(prediction_title)
 
-    for (token, truth, prediction) in zip(tokens, labels_truth, labels_prediction):
-
+    for token, truth, prediction in zip(tokens, labels_truth, labels_prediction):
         token_td = ET.Element("td")
         token_td.text = token
 

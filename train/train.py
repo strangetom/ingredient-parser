@@ -98,7 +98,6 @@ def match_labels(tokenized_sentence: List[str], labels: Dict[str, str]) -> List[
 
     matched_labels = []
     for token in tokenized_sentence:
-
         # Convert to lower case because all labels are lower case.
         # Note that we couldn't do this earlier without losing information required for
         # feature extraction
@@ -198,7 +197,6 @@ def transform_to_dataset(
 def evaluate(
     X: List[str], predictions: List[List[str]], truths: List[List[str]]
 ) -> Stats:
-
     total_sentences = 0
     correct_sentences = 0
     total_words = 0
@@ -209,7 +207,6 @@ def evaluate(
         total_words_per_sentence = 0
 
         for token, p, t in zip(sentence, prediction, truth):
-
             total_words += 1
             total_words_per_sentence += 1
 
@@ -226,7 +223,6 @@ def evaluate(
 
 
 if __name__ == "__main__":
-
     parser = argparse.ArgumentParser(
         description="Train a CRF model to parse structured data from recipe \
                      ingredient sentences."
