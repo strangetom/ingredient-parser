@@ -1,38 +1,12 @@
 #!/usr/bin/env python3
 
 import re
-from itertools import chain
 
+from ._constants import UNITS
 from .parsers import ParsedIngredient
 from .preprocess import PreProcessor
 from .utils import pluralise_units
 
-UNITS = {
-    "box": ["box", "boxes", "package", "packages"],
-    "bunch": ["bunches", "bunch"],
-    "clove": ["cloves", "clove"],
-    "cup": ["cup", "cups", "mug", "mugs"],
-    "dimension": ["cm", "inch", "'"],
-    "ear": ["ears", "ear"],
-    "glass": ["glass", "glasses"],
-    "gram": ["g", "gram", "grams", "g can", "g cans", "g tin", "g tins"],
-    "handful": ["handful", "handfuls"],
-    "head": ["head", "heads"],
-    "kilogram": ["kg", "kilogram", "kilograms"],
-    "leaf": ["leaf", "leaves"],
-    "liter": ["l", "liter", "liters", "litre", "litres"],
-    "loaf": ["loaf, loaves"],
-    "milliliter": ["ml", "milliliter", "milliliters"],
-    "ounce": ["ounce", "ounces", "oz", "oz."],
-    "pinch": ["pinch", "pinches"],
-    "pound": ["pound", "pounds", "lb", "lbs", "lb.", "lbs."],
-    "rasher": ["rasher", "rashers"],
-    "sprig": ["sprig", "sprigs"],
-    "stick": ["stick", "sticks"],
-    "tablespoon": ["tbsp", "tbsps", "tablespoon", "tablespoons", "Tbsp"],
-    "teaspoon": ["tsp", "tsps", "teaspoon", "teaspoons"],
-    "wedge": ["wedge", "wedges"],
-}
 UNIT_MODIFIERS = [
     "big",
     "fat",
@@ -50,7 +24,7 @@ UNIT_MODIFIERS = [
     "thin",
 ]
 # Convert values to list
-UNITS_LIST = list(chain.from_iterable(UNITS.values()))
+UNITS_LIST = list(UNITS.values()) + list(UNITS.keys())
 # Sort list in order of decreasing length. This is important for the regex matching, so we don't match a shorter substring
 UNITS_LIST.sort(key=lambda x: len(x), reverse=True)
 
@@ -143,6 +117,7 @@ quantity': '2', 'unit': 'medium', 'name': 'sweet potatoes',\
 'comment': 'peeled and chopped into 1-inch cubes', 'other': ''}
     """
     sentence = sentence.strip()
+
     parsed: ParsedIngredient = {
         "sentence": sentence,
         "quantity": "",
@@ -155,20 +130,30 @@ quantity': '2', 'unit': 'medium', 'name': 'sweet potatoes',\
     processed_sentence = PreProcessor(sentence)
     res = PARSER_PATTERN.match(processed_sentence.sentence)
     if res is not None:
-        parsed["quantity"] = (res.group("quantity") or "").strip()
-
+        quantity = (res.group("quantity") or "").strip()
         unit = (res.group("unit") or "").strip()
-        if parsed["quantity"] != "1":
-            unit = pluralise_units(unit)
-        parsed["unit"] = unit
 
         # Split name by comma, but at most one split
         # This is attempt to split the comment from the name
-        name = res.group("name" or "").split(",", 1)
-        if len(name) > 1:
-            parsed["name"] = name[0].strip()
-            parsed["comment"] = name[1].strip()
+        name_group = res.group("name" or "").split(",", 1)
+        if len(name_group) > 1:
+            name = name_group[0].strip()
+            comment = name_group[1].strip()
         else:
-            parsed["name"] = name[0].strip()
+            name = name_group[0].strip()
+            comment = ""
+
+        if quantity != "1":
+            unit = pluralise_units(unit)
+            name = pluralise_units(name)
+            comment = pluralise_units(comment)
+
+        parsed["quantity"] = quantity
+        parsed["unit"] = unit
+        parsed["name"] = name
+        parsed["comment"] = comment
+
+    else:
+        parsed["name"] = sentence
 
     return parsed
