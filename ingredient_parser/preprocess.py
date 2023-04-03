@@ -238,7 +238,7 @@ class PreProcessor:
         for func in funcs:
             sentence = func(sentence)
 
-        return sentence
+        return sentence.strip()
 
     def _replace_string_numbers(self, sentence: str) -> str:
         """Replace string numbers (e.g. one, two) with numeric values (e.g. 1, 2)
