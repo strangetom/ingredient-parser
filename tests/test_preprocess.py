@@ -11,6 +11,26 @@ def p():
     return PreProcessor("", defer_pos_tagging=True)
 
 
+class TestPreProcessor__builtins__:
+    def test__str__(self):
+        """
+        Test PreProcessor __str__
+        """
+        p = PreProcessor("1/2 cup chicken broth")
+        truth = """Pre-processed recipe ingedient sentence
+\t    Input: 1/2 cup chicken broth
+\t  Cleaned: 0.5 cup chicken broth
+\tTokenized: ['0.5', 'cup', 'chicken', 'broth']"""
+        assert str(p) == truth
+
+    def test__repr__(self):
+        """
+        Test PreProessor __repr__
+        """
+        p = PreProcessor("1/2 cup chicken broth")
+        assert repr(p) == 'PreProcessor("1/2 cup chicken broth")'
+
+
 class TestPreProcessor_replace_string_numbers:
     def test_spaces(self, p):
         """
