@@ -143,7 +143,7 @@ quantity': '2', 'unit': 'medium', 'name': 'sweet potatoes',\
             name = name_group[0].strip()
             comment = ""
 
-        if quantity != "1":
+        if quantity != "1" and quantity != "":
             unit = pluralise_units(unit)
             name = pluralise_units(name)
             comment = pluralise_units(comment)
