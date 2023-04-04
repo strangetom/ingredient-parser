@@ -25,6 +25,8 @@ def load_test_cases(file: str):
     with open(file, "r") as f:
         test_cases = f.read().splitlines()
         for case in test_cases:
+            if case.startswith("#"):
+                continue
             data = json.loads(case)
             sample_data.append(data)
 
