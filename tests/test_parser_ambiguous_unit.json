@@ -1,0 +1,4 @@
+{"sentence": "3 garlic cloves", "labels": {"name": "garlic", "quantity": "3", "unit": "cloves", "comment": ""}}
+{"sentence": "3 cloves garlic", "labels": {"name": "garlic", "quantity": "3", "unit": "cloves", "comment": ""}}
+{"sentence": "8 cloves", "labels": {"name": "cloves", "quantity": "8", "unit": "", "comment": ""}}
+{"sentence": "handful of cloves", "labels": {"name": "cloves", "quantity": "", "unit": "handful", "comment": "of"}}
