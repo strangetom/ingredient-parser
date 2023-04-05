@@ -10,7 +10,7 @@
 {"sentence": "18 corn tortillas", "labels": {"name": "corn tortillas", "quantity": "18", "unit": "", "comment": ""}}
 {"sentence": "6 spring onions", "labels": {"name": "spring onions", "quantity": "6", "unit": "", "comment": ""}}
 {"sentence": "4 wholemeal burger buns", "labels": {"name": "wholemeal burger buns", "quantity": "4", "unit": "", "comment": ""}}
-{"sentence": "1.5 bay leaf", "labels": {"name": "bay leaves", "quantity": "1.5", "unit": "", "comment": ""}}
+{"sentence": "1.5 bay leaf", "labels": {"name": "bay leaf", "quantity": "1.5", "unit": "", "comment": ""}}
 {"sentence": "2 vine tomatoes", "labels": {"name": "vine tomatoes", "quantity": "2", "unit": "", "comment": ""}}
 {"sentence": "4 sweet potatoes", "labels": {"name": "sweet potatoes", "quantity": "4", "unit": "", "comment": ""}}
 {"sentence": "½ chicken stock pot", "labels": {"name": "chicken stock pot", "quantity": "0.5", "unit": "", "comment": ""}}
@@ -22,7 +22,7 @@
 {"sentence": "bunch spring onions", "labels": {"name": "spring onions", "quantity": "", "unit": "bunch", "comment": ""}}
 {"sentence": "handful coriander", "labels": {"name": "coriander", "quantity": "", "unit": "handful", "comment": ""}}
 {"sentence": "knob of butter", "labels": {"name": "of butter", "quantity": "", "unit": "knob", "comment": ""}}
-{"sentence": "large cup frozen peas", "labels": {"name": "frozen peas", "quantity": "", "unit": "large cup", "comment": ""}}
+{"sentence": "large cup peas", "labels": {"name": "peas", "quantity": "", "unit": "large cup", "comment": ""}}
 {"sentence": "small bunch basil", "labels": {"name": "basil", "quantity": "", "unit": "small bunch", "comment": ""}}
 {"sentence": "handful cherry tomatoes", "labels": {"name": "cherry tomatoes", "quantity": "", "unit": "handful", "comment": ""}}
 {"sentence": "large handful of dates", "labels": {"name": "of dates", "quantity": "", "unit": "large handful", "comment": ""}}
@@ -62,10 +62,10 @@
 {"sentence": "18 corn tortillas, or wheat if preferred", "labels": {"name": "corn tortillas", "quantity": "18", "unit": "", "comment": "or wheat if preferred"}}
 {"sentence": "6 spring onions, halved lengthways", "labels": {"name": "spring onions", "quantity": "6", "unit": "", "comment": "halved lengthways"}}
 {"sentence": "4 wholemeal burger buns, hotdog buns, or other bread", "labels": {"name": "wholemeal burger buns", "quantity": "4", "unit": "", "comment": "hotdog buns, or other bread"}}
-{"sentence": "1½ bay leaf, optional", "labels": {"name": "bay leaves", "quantity": "1.5", "unit": "", "comment": "optional"}}
+{"sentence": "1½ bay leaf, optional", "labels": {"name": "bay leaf", "quantity": "1.5", "unit": "", "comment": "optional"}}
 {"sentence": "2 vine tomatoes, peeled and quartered", "labels": {"name": "vine tomatoes", "quantity": "2", "unit": "", "comment": "peeled and quartered"}}
 {"sentence": "4 sweet potatoes, pricked all over with a fork", "labels": {"name": "sweet potatoes", "quantity": "4", "unit": "", "comment": "pricked all over with a fork"}}
-{"sentence": "½ chicken stock pot, or stock cube", "labels": {"name": "chicken stock pot", "quantity": "0.5", "unit": "", "comment": "or stock cubes"}}
+{"sentence": "½ chicken stock pot, or stock cube", "labels": {"name": "chicken stock pot", "quantity": "0.5", "unit": "", "comment": "or stock cube"}}
 {"sentence": "2 eating apples, peeled cored and cut into 8 wedges", "labels": {"name": "eating apples", "quantity": "2", "unit": "", "comment": "peeled cored and cut into 8 wedges"}}
 {"sentence": "¼ watermelon, cut into 1 cm cubes", "labels": {"name": "watermelon", "quantity": "0.25", "unit": "", "comment": "cut into 1 cm cubes"}}
 {"sentence": "2 skinless chicken breasts, skin on", "labels": {"name": "skinless chicken breasts", "quantity": "2", "unit": "", "comment": "skin on"}}
@@ -74,7 +74,7 @@
 {"sentence": "bunch spring onions, finely chopped", "labels": {"name": "spring onions", "quantity": "", "unit": "bunch", "comment": "finely chopped"}}
 {"sentence": "handful coriander, roughly chopped", "labels": {"name": "coriander", "quantity": "", "unit": "handful", "comment": "roughly chopped"}}
 {"sentence": "knob of butter, at room temperature", "labels": {"name": "of butter", "quantity": "", "unit": "knob", "comment": "at room temperature"}}
-{"sentence": "large cup frozen peas, defrosted", "labels": {"name": "frozen peas", "quantity": "", "unit": "large cup", "comment": "defrosted"}}
+{"sentence": "large cup peas, defrosted", "labels": {"name": "peas", "quantity": "", "unit": "large cup", "comment": "defrosted"}}
 {"sentence": "small bunch basil, shredded", "labels": {"name": "basil", "quantity": "", "unit": "small bunch", "comment": "shredded"}}
 {"sentence": "handful cherry tomatoes, about 8", "labels": {"name": "cherry tomatoes", "quantity": "", "unit": "handful", "comment": "about 8"}}
 {"sentence": "large handful of dates, pitted and finely chopped", "labels": {"name": "of dates", "quantity": "", "unit": "large handful", "comment": "pitted and finely chopped"}}

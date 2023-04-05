@@ -75,37 +75,33 @@ def parse_ingredient(sentence: str, confidence: bool = False) -> ParsedIngredien
     labels = TAGGER.tag(processed_sentence.sentence_features())
     scores = [TAGGER.marginal(label, i) for i, label in enumerate(labels)]
 
+    # Replurise tokens that were singularised if the label isn't UNIT
+    # For tokens with UNIT label, we'll deal with them below
+    for idx in processed_sentence.singularised_indices:
+        token = tokens[idx]
+        label = labels[idx]
+        if label != "UNIT":
+            tokens[idx] = pluralise_units(token)
+
     quantity = " ".join([tokens[idx] for idx in find_idx(labels, "QTY")])
-
     unit = " ".join([tokens[idx] for idx in find_idx(labels, "UNIT")])
-    name = " ".join([tokens[idx] for idx in find_idx(labels, "NAME")])
 
+    if quantity != "1" and quantity != "":
+        unit = pluralise_units(unit)
+
+    name = " ".join([tokens[idx] for idx in find_idx(labels, "NAME")])
     comment = join_adjacent(tokens, find_idx(labels, "COMMENT"))
+    other = join_adjacent(tokens, find_idx(labels, "OTHER"))
+
     if isinstance(comment, list):
         comment = [fix_punctuation(item) for item in comment]
     else:
         comment = fix_punctuation(comment)
 
-    other = join_adjacent(tokens, find_idx(labels, "OTHER"))
     if isinstance(other, list):
         other = [fix_punctuation(item) for item in other]
     else:
         other = fix_punctuation(other)
-
-    # If quantity is plural (i.e. not singular), make the units plural
-    # The condition here may need to be more robust
-    if quantity != "1" and quantity != "":
-        unit = pluralise_units(unit)
-        name = pluralise_units(name)
-        if isinstance(comment, list):
-            comment = [pluralise_units(item) for item in comment]
-        else:
-            comment = pluralise_units(comment)
-
-        if isinstance(other, list):
-            other = [pluralise_units(item) for item in other]
-        else:
-            other = pluralise_units(other)
 
     parsed: ParsedIngredient = {
         "sentence": sentence,
@@ -124,10 +120,8 @@ def parse_ingredient(sentence: str, confidence: bool = False) -> ParsedIngredien
             "comment": average(labels, scores, "COMMENT"),
             "other": average(labels, scores, "OTHER"),
         }
-        return parsed
 
-    else:
-        return parsed
+    return parsed
 
 
 def parse_multiple_ingredients(

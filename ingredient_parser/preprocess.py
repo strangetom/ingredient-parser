@@ -160,6 +160,9 @@ class PreProcessor:
         Part of speech tag for each token in the tokenized sentence.
     sentence : str
         Input ingredient sentence, cleaned to standardised form.
+    singularised_indices : List[int]
+        Indices of tokens in tokenised sentence that have been converted from plural
+        to singular
     tokenized_sentence : List[str]
         Tokenised ingredient sentence.
     """
@@ -175,12 +178,18 @@ class PreProcessor:
             Defer part of speech tagging until feature generation
 
         """
-        self.input = input_sentence
-        self.sentence = self._clean(input_sentence)
-        self.tokenized_sentence = REGEXP_TOKENIZER.tokenize(self.sentence)
-        self.defer_pos_tagging = defer_pos_tagging
+        self.input: str = input_sentence
+        self.sentence: str = self._clean(input_sentence)
+
+        _tokenised_sentence = REGEXP_TOKENIZER.tokenize(self.sentence)
+        (
+            self.tokenized_sentence,
+            self.singularised_indices,
+        ) = self._singlarise_units(_tokenised_sentence)
+
+        self.defer_pos_tagging: bool = defer_pos_tagging
         if not defer_pos_tagging:
-            self.pos_tags = self._tag_partofspeech(self.tokenized_sentence)
+            self.pos_tags: List[str] = self._tag_partofspeech(self.tokenized_sentence)
         else:
             self.pos_tags = []
 
@@ -232,7 +241,6 @@ class PreProcessor:
             self._replace_fake_fractions,
             self._split_quantity_and_units,
             self._replace_string_range,
-            self._singlarise_unit,
         ]
 
         for func in funcs:
@@ -394,24 +402,30 @@ class PreProcessor:
         """
         return STRING_RANGE_PATTERN.sub(r"\1-\4", sentence)
 
-    def _singlarise_unit(self, sentence: str) -> str:
-        """Singularise units
-        e.g. cups -> cup, tablespoons -> tablespoon
+    def _singlarise_units(self, tokenised_sentence: List[str]) -> List[int]:
+        """Singularise units in tokenised sentence and return list of singularised
+        indices e.g. cups -> cup, tablespoons -> tablespoon
 
         Parameters
         ----------
-        sentence : str
-            Ingredient sentnece
+        tokenised_sentence : List[str]
+            Tokenised sentence
 
         Returns
         -------
-        str
-            Ingredient sentence with units singularised
+        List[str]
+            Tokenised sentence with units singularised
+        List[int]
+            List of indices of tokenised sentence that have been singularised
         """
-        for plural, singular in UNITS.items():
-            sentence = sentence.replace(plural, singular)
+        singularised_indices = []
+        for idx, token in enumerate(tokenised_sentence):
+            singular = UNITS.get(token, None)
+            if singular is not None:
+                tokenised_sentence[idx] = singular
+                singularised_indices.append(idx)
 
-        return sentence
+        return (tokenised_sentence, singularised_indices)
 
     def _tag_partofspeech(self, tokens: List[str]) -> List[str]:
         """Tag tokens with part of speech using universal tagset
