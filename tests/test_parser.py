@@ -123,8 +123,30 @@ class TestParser:
         for key in true_labels:
             assert parsed[key] == true_labels[key]
 
+    @pytest.mark.parametrize(
+        "data", load_test_cases("tests/test_parser_multiple_units.json")
+    )
+    def test_parser_multiple_units(self, data):
+        """Test cases where there are multiple units in the sentence
 
-#class TestRegexParser:
+        Parameters
+        ----------
+        data : Dict[str, Dict[str, str]]
+            Dictionary of sample data with the following keys
+                sentence - the input sentence
+                labels - the correct labels the parser should return
+        """
+        sentence = data["sentence"]
+        true_labels = data["labels"]
+        parsed = parse_ingredient(sentence)
+
+        # parse_ingredient returns a dict with more keys than just the labels
+        # so iterate through each label in true_labels and only check them.
+        for key in true_labels:
+            assert parsed[key] == true_labels[key]
+
+
+# class TestRegexParser:
 #    @pytest.mark.parametrize("data", load_test_cases("tests/test_parser_simple.json"))
 #    def test_parser_simple(self, data):
 #        """Test simple cases of ingredient sentences that the regex parser should have
