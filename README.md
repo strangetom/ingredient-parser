@@ -52,8 +52,8 @@ The returned dictionary has the format
     "quantity": str,
     "unit": str,
     "name": str,
-    "comment": Union[List[str], str],
-    "other": Union[List[str], str]
+    "comment": str,
+    "other": str
 }
 ```
 

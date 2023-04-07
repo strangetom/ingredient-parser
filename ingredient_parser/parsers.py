@@ -23,8 +23,8 @@ class ParsedIngredient(TypedDict):
     quantity: str
     unit: str
     name: str
-    comment: Union[List[str], str]
-    other: Union[List[str], str]
+    comment: str
+    other: str
     confidence: NotRequired[Dict[str, float]]
 
 
@@ -46,8 +46,8 @@ def parse_ingredient(sentence: str, confidence: bool = False) -> ParsedIngredien
             "quantity": str,
             "unit": str,
             "name": str,
-            "comment": Union[List[str], str],
-            "other": Union[List[str], str],
+            "comment": str,
+            "other": str,
             "confidence": Dict[str, float] <- Optional
         }
 
@@ -91,15 +91,16 @@ def parse_ingredient(sentence: str, confidence: bool = False) -> ParsedIngredien
 
     name = " ".join([tokens[idx] for idx in find_idx(labels, "NAME")])
     comment = join_adjacent(tokens, find_idx(labels, "COMMENT"))
+
     other = join_adjacent(tokens, find_idx(labels, "OTHER"))
 
     if isinstance(comment, list):
-        comment = [fix_punctuation(item) for item in comment]
+        comment = ", ".join([fix_punctuation(item) for item in comment])
     else:
         comment = fix_punctuation(comment)
 
     if isinstance(other, list):
-        other = [fix_punctuation(item) for item in other]
+        other = ", ".join([fix_punctuation(item) for item in other])
     else:
         other = fix_punctuation(other)
 
