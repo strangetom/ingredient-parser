@@ -5,4 +5,4 @@
 {"sentence": "1/4 cup chopped fresh basil, optional", "labels": {"name": "basil", "quantity": "0.25", "unit": "cups", "comment": "chopped fresh, optional"}}
 {"sentence": "4 tablespoons regular or low-fat sour cream", "labels": {"name": "sour cream", "quantity": "4", "unit": "tablespoons", "comment": "regular or low-fat"}}
 {"sentence": "50 g toasted bread cubes", "labels": {"name": "bread cubes", "quantity": "50", "unit": "g", "comment": "toasted"}}
-{"sentence": "2/3 packet crumbled biscuits", "labels": {"name": "biscuits", "quantity": "0.333", "unit": "packet", "comment": "crumbled"}}
+{"sentence": "2/3 packet crumbled biscuits", "labels": {"name": "biscuits", "quantity": "0.667", "unit": "packets", "comment": "crumbled"}}
