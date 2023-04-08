@@ -63,14 +63,14 @@ The model provided in ```ingredient-parser/``` directory has the following accur
 
 ```
 Sentence-level results:
-	Total: 9277
-	Correct: 8017
-	-> 86.42%
+	Total: 9448
+	Correct: 8189
+	-> 86.67%
 
 Word-level results:
-	Total: 53495
-	Correct: 51379
-	-> 96.04%
+	Total: 54854
+	Correct: 52509
+	-> 95.73%
 ```
 
 ## Development

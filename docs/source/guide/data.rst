@@ -55,7 +55,12 @@ The following operations were done to clean up the data (note that this is not e
 * Adjectives that are a fundamental part of the ingredient identity should be part of the name
     This was mostly an inconsistency across the data, for example if the entry contained "red onion", sometimes this was labelled with a name of "red onion" and sometimes with a name of "onion" and a comment of "red".
 
-    A general rule was applied: if the adjective changes the ingredient in a way that the cook cannot, it should be part of the name. It is recognised that this can be subjective. Universal correctness is not the main goal of this, only consistency.
+    Two general rules were applied:  
+
+    1. **If the adjective changes the ingredient in a way that the chef cannot, it should be part of the name.**   
+    2. **If the adjective changes the item you would purchase in a shop, it should be part of the name.**
+    
+    It is recognised that this can be subjective. Universal correctness is not the main goal of this, only consistency.
 
     Examples of this:
 
@@ -64,7 +69,8 @@ The following operations were done to clean up the data (note that this is not e
     * soy/coconut/skim/whole milk
     * ground spices
     * extra-virgin olive oil
-    * ...
+    * fresh x/y/z
+
 * All units should be made singular
     This is to reduce the amount the model needs to learn. "teaspoon" and "teaspoons" are fundamentally the same unit, but because they are different words, the model could learn different associations.
 
