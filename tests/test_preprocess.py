@@ -537,6 +537,50 @@ class TestPreProcessor_is_inside_parentheses:
         assert p._is_inside_parentheses(6)
 
 
+class TestPreProcess_follows_plus:
+    def test_no_plus(self):
+        """
+        No "plus" in input
+        """
+        input_sentence = "freshly ground black pepper"
+        p = PreProcessor(input_sentence)
+        assert not p._follows_plus(2)
+
+    def test_before_plus(self):
+        """
+        Token index is before "plus"
+        """
+        input_sentence = "freshly ground black pepper, plus more to taste"
+        p = PreProcessor(input_sentence)
+        assert not p._follows_plus(1)
+
+    def test_after_plus(self):
+        """
+        Token index is after "plus"
+        """
+        input_sentence = "freshly ground black pepper, plus more to taste"
+        p = PreProcessor(input_sentence)
+        assert p._follows_plus(7)
+
+    def test_index_is_plus(self):
+        """
+        Token at index is "plus"
+        """
+        input_sentence = "freshly ground black pepper, plus more to taste"
+        p = PreProcessor(input_sentence)
+        assert not p._follows_plus(5)
+
+    def test_index_is_plus_and_follows_plus(self):
+        """
+        Token at index is "plus" and follows another "plus"
+        """
+        input_sentence = (
+            "freshly ground black pepper, plus white pepper, plus more to taste"
+        )
+        p = PreProcessor(input_sentence)
+        assert p._follows_plus(9)
+
+
 class TestPreProcess_follows_comma:
     def test_no_comma(self):
         """
