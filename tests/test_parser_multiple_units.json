@@ -12,8 +12,9 @@
 {"sentence": "5 sprigs basil, leaves julienned", "labels": {"name": "basil", "quantity": "5", "unit": "sprigs", "comment": "leaves julienned"}}
 {"sentence": "2 ounces red onion, enough for 1/2 cup chopped", "labels": {"name": "red onion", "quantity": "2", "unit": "ounces", "comment": "enough for 0.5 cup chopped"}}
 {"sentence": "2 bulbs garlic, separated into cloves but not peeled", "labels": {"name": "garlic", "quantity": "2", "unit": "bulbs", "comment": "separated into cloves but not peeled"}}
-{"sentence": "1 3- inch piece fresh ginger, cut in small slices", "labels": {"name": "fresh ginger", "quantity": "1", "unit": "piece", "comment": "3- inch, cut in small slices"}}
+{"sentence": "1 3-inch piece fresh ginger, cut in small slices", "labels": {"name": "fresh ginger", "quantity": "1", "unit": "piece", "comment": "3-inch, cut in small slices"}}
 {"sentence": "4 ounces Parmesan (about 1 cup grated)", "labels": {"name": "Parmesan", "quantity": "4", "unit": "ounces", "comment": "(about 1 cup grated)"}}
 {"sentence": "1 piece fresh ginger, 2 inches long, peeled", "labels": {"name": "fresh ginger", "quantity": "1", "unit": "piece", "comment": "2 inches long, peeled"}}
 {"sentence": "1 small head radicchio, leaves separated and halved", "labels": {"name": "radicchio", "quantity": "1", "unit": "small head", "comment": "leaves separated and halved"}}
 {"sentence": "1 head plus 2 cloves garlic", "labels": {"name": "garlic", "quantity": "1", "unit": "head", "comment": "plus 2 cloves"}}
+{"sentence": "1 tablespoon chopped fresh oregano or 1 teaspoon dried", "labels": {"name": "fresh oregano", "quantity": "1", "unit": "tablespoon", "comment": "chopped, or 1 teaspoon dried"}}
