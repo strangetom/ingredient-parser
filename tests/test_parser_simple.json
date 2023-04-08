@@ -105,7 +105,6 @@
 {"sentence": "2/3 cup vegetable shortening, plus 2 tablespoons", "labels": {"name": "vegetable shortening", "quantity": "0.667", "unit": "cups", "comment": "plus 2 tablespoons"}}
 {"sentence": "1-2 Hobnob biscuits, bashed to coarse crumbs", "labels": {"name": "Hobnob biscuits", "quantity": "1-2", "unit": "", "comment": "bashed to coarse crumbs"}}
 {"sentence": "4 spring onions, chopped", "labels": {"name": "spring onions", "quantity": "4", "unit": "", "comment": "chopped"}}
-{"sentence": "25 g coriander stalks, roughly chopped plus 5 g picked leaves to garnish", "labels": {"name": "coriander stalks", "quantity": "25", "unit": "g", "comment": "roughly chopped plus 5 g picked leaves to garnish"}}
 {"sentence": "6 small shallots, halved", "labels": {"name": "shallots", "quantity": "6", "unit": "small", "comment": "halved"}}
 {"sentence": "½ cup feta, crumbled", "labels": {"name": "feta", "quantity": "0.5", "unit": "cups", "comment": "crumbled"}}
 {"sentence": "750 g baby new potatoes, halved", "labels": {"name": "baby new potatoes", "quantity": "750", "unit": "g", "comment": "halved"}}
