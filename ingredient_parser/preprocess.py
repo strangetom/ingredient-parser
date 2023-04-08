@@ -511,6 +511,22 @@ class PreProcessor:
         """
         return "," in self.tokenized_sentence[:index]
 
+    def _follows_plus(self, index: int) -> bool:
+        """Return True if token at index follow "plus" of "+" by any amount in sentence.
+        If the token at the index is "plus" or "+", it doesn't count as following.
+        
+        Parameters
+        ----------
+        index : int
+            Index of token to check
+        
+        Returns
+        -------
+        bool
+            True if token follows "plus" of "+", else False
+        """
+        return "plus" in self.tokenized_sentence[:index] or "+" in self.tokenized_sentence[:index]
+
     def _is_capitalised(self, token: str) -> bool:
         """Return True if token starts with a capital letter
 
@@ -587,6 +603,7 @@ class PreProcessor:
             "is_in_parens": self._is_inside_parentheses(index),
             "is_stop_word": self._is_stop_word(token),
             "is_after_comma": self._follows_comma(index),
+            "is_after_plus": self._follows_plus(index),
         }
 
         if index > 0:
