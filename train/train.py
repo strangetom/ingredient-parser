@@ -14,9 +14,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import pycrfsuite
 from sklearn.model_selection import train_test_split
+from test_results_to_html import test_results_to_html
 
 from ingredient_parser import PreProcessor
-from test_results_to_html import test_results_to_html
 
 
 @dataclass

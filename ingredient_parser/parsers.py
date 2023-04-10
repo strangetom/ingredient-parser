@@ -3,7 +3,7 @@
 import argparse
 import importlib.resources as pkg_resources
 import json
-from typing import Dict, List, Union
+from typing import Dict, List
 
 import pycrfsuite
 from typing_extensions import NotRequired, TypedDict

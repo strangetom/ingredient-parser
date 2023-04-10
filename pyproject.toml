@@ -56,28 +56,15 @@ target-version = ["py39"]
 include = "\\.py$"
 extend-exclude = "\\.ipynb$"
 
-[tool.isort]
-profile = "black"
-src_paths = ["ingredient_parser", "train", "tests"]
-
-
-[tool.pyright]
-include = ["ingredient_parser"]
-exclude = ["**/__pycache__"]
-
-[tool.flake8]
-max-line-length = 88
-filename = "*.py"
-extend-ignore = [
-    # import ordering set by isort
-    "E402",
-    # line breaks set by black
-    "W503",
-    # spaces around colons set by black
-    "E203",
-]
+[tool.ruff]
+select = ["E", "F", "I"]
 exclude = [
     "**/__pycache__",
     ".git",
     "venv"
 ]
+line-length = 88
+
+[tool.pyright]
+include = ["ingredient_parser"]
+exclude = ["**/__pycache__"]
