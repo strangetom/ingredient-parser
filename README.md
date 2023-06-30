@@ -26,7 +26,7 @@ Import the ```parse_ingredient``` function and pass it an ingredient sentence.
  'quantity': '3',
  'unit': 'pound',
  'name': 'pork shoulder',
- 'comment': ', cut into 2-inch chunks',
+ 'comment': 'cut into 2-inch chunks',
  'other': ''}
 
 # Output confidence for each label
@@ -35,12 +35,12 @@ Import the ```parse_ingredient``` function and pass it an ingredient sentence.
  'quantity': '3',
  'unit': 'pound',
  'name': 'pork shoulder',
- 'comment': ', cut into 2-inch chunks',
+ 'comment': 'cut into 2-inch chunks',
  'other': '',
- 'confidence': {'quantity': 0.9986,
-  'unit': 0.9967,
-  'name': 0.9535,
-  'comment': 0.9967,
+ 'confidence': {'quantity': 0.9988,
+  'unit': 0.9969,
+  'name': 0.9698,
+  'comment': 0.9992,
   'other': 0}}
 ```
 
