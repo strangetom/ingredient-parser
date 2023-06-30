@@ -3,7 +3,6 @@
 import argparse
 import importlib.resources as pkg_resources
 import json
-from typing import Dict, List
 
 import pycrfsuite
 from typing_extensions import NotRequired, TypedDict
@@ -25,7 +24,7 @@ class ParsedIngredient(TypedDict):
     name: str
     comment: str
     other: str
-    confidence: NotRequired[Dict[str, float]]
+    confidence: NotRequired[dict[str, float]]
 
 
 # Create TAGGER object
@@ -48,7 +47,7 @@ def parse_ingredient(sentence: str, confidence: bool = False) -> ParsedIngredien
             "name": str,
             "comment": str,
             "other": str,
-            "confidence": Dict[str, float] <- Optional
+            "confidence": dict[str, float] <- Optional
         }
 
     Parameters
@@ -126,8 +125,8 @@ def parse_ingredient(sentence: str, confidence: bool = False) -> ParsedIngredien
 
 
 def parse_multiple_ingredients(
-    sentences: List[str], confidence: bool = False
-) -> List[ParsedIngredient]:
+    sentences: list[str], confidence: bool = False
+) -> list[ParsedIngredient]:
     """Parse multiple ingredient sentences in one go.
 
     This function accepts a list of sentences, with element of the list representing
@@ -138,14 +137,14 @@ def parse_multiple_ingredients(
 
     Parameters
     ----------
-    sentences : List[str]
+    sentences : list[str]
         List of sentences to parse
     confidence : bool, optional
         Return confidence scores for labels
 
     Returns
     -------
-    List[ParsedIngredient]
+    list[ParsedIngredient]
         List of dictionaries of structured data parsed from input sentences
 
     Examples

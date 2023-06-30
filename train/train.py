@@ -7,7 +7,6 @@ from collections import Counter
 from dataclasses import dataclass
 from itertools import chain
 from pathlib import Path
-from typing import Dict, List
 
 # Ensure the local ingredient_parser package can be found
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -29,7 +28,7 @@ class Stats:
     correct_words: int
 
 
-def load_csv(csv_filename: str) -> tuple[List[str], List[Dict[str, str]]]:
+def load_csv(csv_filename: str) -> tuple[list[str], list[dict[str, str]]]:
     """Load csv file generated py ```generate_training_testing_csv.py``` and parse
     contents into ingredients and labels lists
 
@@ -40,9 +39,9 @@ def load_csv(csv_filename: str) -> tuple[List[str], List[Dict[str, str]]]:
 
     Returns
     -------
-    List[str]
+    list[str]
         List of ingredient strings
-    List[Dict[str, str]]
+    list[dict[str, str]]
         List of dictionaries, each dictionary the ingredient labels
     """
     labels, sentences = [], []
@@ -62,7 +61,7 @@ def load_csv(csv_filename: str) -> tuple[List[str], List[Dict[str, str]]]:
     return sentences, labels
 
 
-def match_labels(tokenized_sentence: List[str], labels: Dict[str, str]) -> List[str]:
+def match_labels(tokenized_sentence: list[str], labels: dict[str, str]) -> list[str]:
     """Match a label to each token in the tokenized sentence
     Possible labels are: QTY, UNIT, NAME, COMMENT, OTHER, COMMA
 
@@ -82,15 +81,15 @@ def match_labels(tokenized_sentence: List[str], labels: Dict[str, str]) -> List[
 
     Parameters
     ----------
-    tokenized_sentence : List[str]
+    tokenized_sentence : list[str]
         Tokenized ingredient sentence
-    labels : Dict[str, str]
+    labels : dict[str, str]
         Labels for sentence as a dict. The dict keys are the labels, the dict values
         are the strings that match each label
 
     Returns
     -------
-    List[str]
+    list[str]
         List of labels for each token.
     """
 
@@ -123,20 +122,20 @@ def match_labels(tokenized_sentence: List[str], labels: Dict[str, str]) -> List[
     return matched_labels
 
 
-def invert_labels_dict(labels: Dict[str, str]) -> Dict[str, List[str]]:
+def invert_labels_dict(labels: dict[str, str]) -> dict[str, list[str]]:
     """Reverse the labels dictionary. Instead of having the labels as the key, tokenize
     the values and have each token as a key.
     If a token appears multiple times, the it has a list of labels
 
     Parameters
     ----------
-    labels : Dict[str, str]
+    labels : dict[str, str]
         Labels for an ingredient sentence as a dict, with labels as keys and sentences
         as values.
 
     Returns
     -------
-    Dict[str, List[str]]
+    dict[str, list[str]]
         Labels for an ingredient sentence as a dict, with tokens as keys and labels as
         values. The values are a list of labels, to account for a particular appearing
         multiple times in a ingredient sentence, possibly with different labels.
@@ -164,23 +163,23 @@ def invert_labels_dict(labels: Dict[str, str]) -> Dict[str, List[str]]:
 
 
 def transform_to_dataset(
-    sentences: List[str], labels: List[Dict[str, str]]
-) -> tuple[List[List[Dict[str, str]]], List[List[str]]]:
+    sentences: list[str], labels: list[dict[str, str]]
+) -> tuple[list[list[dict[str, str]]], list[list[str]]]:
     """Transform dataset into feature lists for each sentence
 
     Parameters
     ----------
-    sentences : List[str]
+    sentences : list[str]
         Sentences to transform
-    labels : List[Dict[str, str]]
+    labels : list[dict[str, str]]
         Labels for tokens in each sentence
 
     Returns
     -------
-    List[List[Dict[str, str]]]
+    list[list[dict[str, str]]]
         List of sentences transformed into features. Each sentence returns a list of
         dicts, with the dicts containing the features.
-    List[str]
+    list[str]
         List of labels transformed into QTY, UNIT, NAME, COMMENT, PUNCT or OTHER for
         each token
     """
@@ -195,7 +194,7 @@ def transform_to_dataset(
 
 
 def evaluate(
-    X: List[str], predictions: List[List[str]], truths: List[List[str]]
+    X: list[str], predictions: list[list[str]], truths: list[list[str]]
 ) -> Stats:
     total_sentences = 0
     correct_sentences = 0

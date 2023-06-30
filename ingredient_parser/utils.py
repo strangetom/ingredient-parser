@@ -3,12 +3,12 @@
 import re
 from itertools import groupby
 from operator import itemgetter
-from typing import Generator, Iterator, List, Union
+from typing import Generator, Iterator
 
 from ._constants import UNITS
 
 
-def find_idx(labels: List[str], key: str) -> List[int]:
+def find_idx(labels: list[str], key: str) -> list[int]:
     """Find indices of elements in list matching key.
 
     Return the indices of every element in the input list whose value is equal to the
@@ -18,14 +18,14 @@ def find_idx(labels: List[str], key: str) -> List[int]:
 
     Parameters
     ----------
-    labels : List[str]
+    labels : list[str]
         List to search for key in
     key : str
         Key to find in list
 
     Returns
     -------
-    List[int]
+    list[int]
         List of indices of elements with label key
         Includes elements with label COMMA if the element is previous to a key label
 
@@ -49,7 +49,7 @@ def find_idx(labels: List[str], key: str) -> List[int]:
     return matches
 
 
-def group_consecutive_idx(idx: List[int]) -> Generator[Iterator[int], None, None]:
+def group_consecutive_idx(idx: list[int]) -> Generator[Iterator[int], None, None]:
     """Yield groups of consecutive indices
 
     Given a list of integers, yield groups of integers where the value of each in a
@@ -57,12 +57,12 @@ def group_consecutive_idx(idx: List[int]) -> Generator[Iterator[int], None, None
 
     Parameters
     ----------
-    idx : List[int]
+    idx : list[int]
         List of indices
 
     Yields
     ------
-    List[List[int]]
+    list[list[int]]
         List of lists, where each sub-list contains consecutive indices
 
     Examples
@@ -75,7 +75,7 @@ def group_consecutive_idx(idx: List[int]) -> Generator[Iterator[int], None, None
         yield map(itemgetter(1), g)
 
 
-def join_adjacent(tokens: List[str], idx: List[int]) -> Union[str, List[str]]:
+def join_adjacent(tokens: list[str], idx: list[int]) -> str | list[str]:
     """Join tokens with adjacent indices in idx list into strings.
 
     Given a list of tokens and list of indices for token with a particular value,
@@ -90,19 +90,19 @@ def join_adjacent(tokens: List[str], idx: List[int]) -> Union[str, List[str]]:
 
     Parameters
     ----------
-    tokens : List[str]
+    tokens : list[str]
         List of ingredient sentence tokens
-    idx : List[int]
+    idx : list[int]
         Indices of tokens to group and join
 
     Returns
     -------
-    Union(str, List[str])
+    str | list[str]
         List of strings, with adjacent tokens joined
         If the list only contains one element, return as a string
 
     Examples
-    -------
+    --------
     >>> join_adjacent(["a", "b", "c", "d", "e", "f"], [0, 1, 3, 4, 5])
     ['a b', 'd e f']
     """
@@ -119,7 +119,7 @@ def join_adjacent(tokens: List[str], idx: List[int]) -> Union[str, List[str]]:
         return grouped
 
 
-def average(labels: List[str], scores: List[float], key: str) -> float:
+def average(labels: list[str], scores: list[float], key: str) -> float:
     """Average the scores for labels matching key
 
     Given a particular label (key), find the indices of the labels that have that key.
@@ -128,9 +128,9 @@ def average(labels: List[str], scores: List[float], key: str) -> float:
 
     Parameters
     ----------
-    labels : List[str]
+    labels : list[str]
         List of labels to search key for
-    scores : List[float]
+    scores : list[float]
         Confidence score for each label
     key : str
         Key to calculate confidence for

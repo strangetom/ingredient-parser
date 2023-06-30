@@ -3,7 +3,7 @@
 import re
 from fractions import Fraction
 from html import unescape
-from typing import Any, Dict, List, Union
+from typing import Any
 
 from nltk.stem.porter import PorterStemmer
 from nltk.tag import pos_tag
@@ -156,14 +156,14 @@ class PreProcessor:
         Defer part of speech tagging until feature generation
     input : str
         Input ingredient sentence.
-    pos_tags : List[str]
+    pos_tags : list[str]
         Part of speech tag for each token in the tokenized sentence.
     sentence : str
         Input ingredient sentence, cleaned to standardised form.
-    singularised_indices : List[int]
+    singularised_indices : list[int]
         Indices of tokens in tokenised sentence that have been converted from plural
         to singular
-    tokenized_sentence : List[str]
+    tokenized_sentence : list[str]
         Tokenised ingredient sentence.
     """
 
@@ -189,7 +189,7 @@ class PreProcessor:
 
         self.defer_pos_tagging: bool = defer_pos_tagging
         if not defer_pos_tagging:
-            self.pos_tags: List[str] = self._tag_partofspeech(self.tokenized_sentence)
+            self.pos_tags: list[str] = self._tag_partofspeech(self.tokenized_sentence)
         else:
             self.pos_tags = []
 
@@ -402,20 +402,22 @@ class PreProcessor:
         """
         return STRING_RANGE_PATTERN.sub(r"\1-\4", sentence)
 
-    def _singlarise_units(self, tokenised_sentence: List[str]) -> List[int]:
+    def _singlarise_units(
+        self, tokenised_sentence: list[str]
+    ) -> tuple[list[str], list[int]]:
         """Singularise units in tokenised sentence and return list of singularised
         indices e.g. cups -> cup, tablespoons -> tablespoon
 
         Parameters
         ----------
-        tokenised_sentence : List[str]
+        tokenised_sentence : list[str]
             Tokenised sentence
 
         Returns
         -------
-        List[str]
+        list[str]
             Tokenised sentence with units singularised
-        List[int]
+        list[int]
             List of indices of tokenised sentence that have been singularised
         """
         singularised_indices = []
@@ -427,7 +429,7 @@ class PreProcessor:
 
         return (tokenised_sentence, singularised_indices)
 
-    def _tag_partofspeech(self, tokens: List[str]) -> List[str]:
+    def _tag_partofspeech(self, tokens: list[str]) -> list[str]:
         """Tag tokens with part of speech using universal tagset
 
         This function manually fixes tags that are incorrect in the context of
@@ -438,12 +440,12 @@ class PreProcessor:
 
         Parameters
         ----------
-        tokens : List[str]
+        tokens : list[str]
             Tokenized ingredient sentence
 
         Returns
         -------
-        List[str]
+        list[str]
             List of part of speech tags
         """
         tags = []
@@ -590,7 +592,7 @@ class PreProcessor:
 
         Returns
         -------
-        Dict[str, Any]
+        dict[str, Any]
             Dictionary of features for token at index
         """
         token = self.tokenized_sentence[index]
@@ -624,12 +626,12 @@ class PreProcessor:
 
         return features
 
-    def sentence_features(self) -> List[Dict[str, Any]]:
+    def sentence_features(self) -> list[dict[str, Any]]:
         """Return features for all tokens in sentence
 
         Returns
         -------
-        List[Dict[str, Any]]
+        list[dict[str, Any]]
             List of features for each token in sentence
         """
         if self.defer_pos_tagging:

@@ -3,7 +3,6 @@
 import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
-from typing import List
 
 # Ensure the local ingredient_parser package can be found
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -12,9 +11,9 @@ from ingredient_parser import PreProcessor
 
 
 def test_results_to_html(
-    sentences: List[str],
-    labels_truth: List[List[str]],
-    labels_prediction: List[List[str]],
+    sentences: list[str],
+    labels_truth: list[list[str]],
+    labels_prediction: list[list[str]],
     minimum_mismatches: int = 0,
 ) -> None:
     """Output results for test vectors that failed to label entire sentence with the
@@ -22,11 +21,11 @@ def test_results_to_html(
 
     Parameters
     ----------
-    sentences : List[str]
+    sentences : list[str]
         List of ingredient sentences
-    labels_truth : List[List[str]]
+    labels_truth : list[list[str]]
         True labels for sentence
-    labels_prediction : List[List[str]]
+    labels_prediction : list[list[str]]
         Predicted labels for sentence
     """
     html = ET.Element("html")
@@ -74,7 +73,7 @@ def test_results_to_html(
         if truth != prediction:
             # Count mismatches and only include if greater than set limit
             if sum(i != j for i, j in zip(truth, prediction)) > minimum_mismatches:
-                tokens: List[str] = PreProcessor(
+                tokens: list[str] = PreProcessor(
                     sentence, defer_pos_tagging=True
                 ).tokenized_sentence
                 table = create_html_table(tokens, truth, prediction)
@@ -96,17 +95,17 @@ def test_results_to_html(
 
 
 def create_html_table(
-    tokens: List[str], labels_truth: List[str], labels_prediction: List[str]
+    tokens: list[str], labels_truth: list[str], labels_prediction: list[str]
 ) -> ET.Element:
     """Create HTM table for a sentence to show tokens, true labels and predicted labels
 
     Parameters
     ----------
-    tokens : List[str]
+    tokens : list[str]
         List of tokens for sentence
-    labels_truth : List[str]
+    labels_truth : list[str]
         True labels for each token
-    labels_prediction : List[str]
+    labels_prediction : list[str]
         Predicted labels for each token
     """
     table = ET.Element("table")
