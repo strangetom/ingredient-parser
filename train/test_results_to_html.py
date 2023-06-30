@@ -2,6 +2,7 @@
 
 import sys
 import xml.etree.ElementTree as ET
+from collections import Counter
 from pathlib import Path
 
 # Ensure the local ingredient_parser package can be found
@@ -14,6 +15,7 @@ def test_results_to_html(
     sentences: list[str],
     labels_truth: list[list[str]],
     labels_prediction: list[list[str]],
+    sentence_sources: list[str],
     minimum_mismatches: int = 0,
 ) -> None:
     """Output results for test vectors that failed to label entire sentence with the
@@ -27,6 +29,10 @@ def test_results_to_html(
         True labels for sentence
     labels_prediction : list[list[str]]
         Predicted labels for sentence
+    sentence_sources : list[str]
+        List of sentence sources, either NYT of SF
+    minimum_mismatches : int, optional
+        Minimum number of token mismatches in sentence
     """
     html = ET.Element("html")
     head = ET.Element("head")
@@ -68,8 +74,10 @@ def test_results_to_html(
     heading3.text = f"Showing results with more than {minimum_mismatches} mismatches."
     body.append(heading3)
 
-    incorrect = 0
-    for sentence, truth, prediction in zip(sentences, labels_truth, labels_prediction):
+    incorrect = []
+    for sentence, src, truth, prediction in zip(
+        sentences, sentence_sources, labels_truth, labels_prediction
+    ):
         if truth != prediction:
             # Count mismatches and only include if greater than set limit
             if sum(i != j for i, j in zip(truth, prediction)) > minimum_mismatches:
@@ -78,14 +86,15 @@ def test_results_to_html(
                 ).tokenized_sentence
                 table = create_html_table(tokens, truth, prediction)
                 p = ET.Element("p")
-                p.text = sentence
+                p.text = f"[{src}] {sentence}"
                 body.append(p)
                 body.append(table)
 
-                incorrect += 1
+                incorrect.append(src)
 
+    src_count = Counter(incorrect)
     heading2 = ET.Element("h2")
-    heading2.text = f"{incorrect:,} incorrect sentences."
+    heading2.text = f"{len(incorrect):,} incorrect sentences. [{src_count['NYT']} NYT, {src_count['SF']} SF]"
     body.insert(1, heading2)
 
     ET.indent(html, space="    ")
