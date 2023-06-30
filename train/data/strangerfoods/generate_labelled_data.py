@@ -145,7 +145,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-o",
         "--output",
-        default="data/strangerfoods/sf_labelled_data.csv",
+        default="train/data/strangerfoods/sf_labelled_data.csv",
         help="Output csv file for labelled data",
     )
     args = parser.parse_args()
