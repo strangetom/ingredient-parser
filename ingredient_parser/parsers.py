@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
 import argparse
-import importlib.resources as pkg_resources
 import json
+from importlib.resources import as_file, files
 
 import pycrfsuite
 from typing_extensions import NotRequired, TypedDict
@@ -29,7 +29,7 @@ class ParsedIngredient(TypedDict):
 
 # Create TAGGER object
 TAGGER = pycrfsuite.Tagger()
-with pkg_resources.path(__package__, "model.crfsuite") as p:
+with as_file(files(__package__) / "model.crfsuite") as p:
     TAGGER.open(str(p))
 
 
