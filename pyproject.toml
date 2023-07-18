@@ -9,7 +9,7 @@ dynamic = ["version"]
 description = "A Python package to parse structured information from recipe ingredient sentences"
 readme = "README.md"
 license = { file="LICENSE"}
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 keywords = ["recipe", "ingredient", "ingredients", "nlp", "parsing" ]
 authors = [
     { name="Tom Strange", email="tpstrange@gmail.com"},
@@ -20,7 +20,8 @@ classifiers = [
     "Natural Language :: English",
     "Operating System :: OS Independent",
     "Programming Language :: Python",
-    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
     "Topic :: Text Processing :: Linguistic",
 ]
 dependencies = [
