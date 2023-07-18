@@ -240,6 +240,7 @@ class PreProcessor:
             self._replace_unicode_fractions,
             self._replace_fake_fractions,
             self._split_quantity_and_units,
+            self._remove_unit_trailing_period,
             self._replace_string_range,
         ]
 
@@ -379,6 +380,26 @@ class PreProcessor:
             Ingredient sentence with spaces inserted between quantity and units
         """
         return QUANTITY_UNITS_PATTERN.sub(r"\1 \2", sentence)
+
+    def _remove_unit_trailing_period(self, sentence: str) -> str:
+        """Remove trailling periods from units e.g. tsp. -> tsp
+
+        Parameters
+        ----------
+        sentence : str
+            Ingredient sentence
+
+        Returns
+        -------
+        str
+            Ingredient sentence with trailing periods from units removed
+        """
+        units = ["tsp.", "tsps.", "tbsp.", "tbsps.", "lb.", "lbs.", "oz."]
+        for unit in units:
+            unit_no_period = unit.replace(".", "")
+            sentence = sentence.replace(unit, unit_no_period)
+
+        return sentence
 
     def _replace_string_range(self, sentence: str) -> str:
         """Replace range in the form "<num> to <num" with
