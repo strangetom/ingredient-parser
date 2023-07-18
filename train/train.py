@@ -280,6 +280,9 @@ if __name__ == "__main__":
     ingredients_train = NYT_sentences_train + SF_sentences_train
     labels_train = NYT_labels_train + SF_labels_train
     ingredients_test = NYT_sentences_test + SF_sentences_test
+    ingredients_test_source = ["NYT"] * len(NYT_sentences_test) + ["SF"] * len(
+        SF_sentences_test
+    )
     labels_test = NYT_labels_test + SF_labels_test
     print(f"[INFO] {len(ingredients_train)+len(ingredients_test):,} total vectors")
     print(f"[INFO] {len(ingredients_train):,} training vectors.")
@@ -328,4 +331,10 @@ if __name__ == "__main__":
     )
 
     if args.detailed_results:
-        test_results_to_html(ingredients_test, y_test, y_pred, minimum_mismatches=2)
+        test_results_to_html(
+            ingredients_test,
+            y_test,
+            y_pred,
+            ingredients_test_source,
+            minimum_mismatches=2,
+        )
