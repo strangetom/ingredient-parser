@@ -89,6 +89,25 @@ for plural, singular in UNITS.items():
     _capitalized_units[plural.capitalize()] = singular.capitalize()
 UNITS = UNITS | _capitalized_units
 
+
+# Units that can be part of the name
+# e.g. 1 teaspoon ground cloves, or 5 bay leaves
+AMBIGUOUS_UNITS = [
+    "cloves",
+    "leaves",
+    "slabs",
+    "wedges",
+]
+# Extend list automatically to include singular and capitalized forms
+_ambiguous_units_alt_forms = []
+for amb_unit in AMBIGUOUS_UNITS:
+    _ambiguous_units_alt_forms.append(amb_unit.capitalize())
+    _ambiguous_units_alt_forms.append(UNITS[amb_unit])
+    _ambiguous_units_alt_forms.append(UNITS[amb_unit.capitalize()])
+
+AMBIGUOUS_UNITS.extend(_ambiguous_units_alt_forms)
+
+
 # Strings and their numeric representation
 STRING_NUMBERS = {
     "half": "0.5",

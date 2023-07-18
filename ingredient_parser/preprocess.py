@@ -9,7 +9,7 @@ from nltk.stem.porter import PorterStemmer
 from nltk.tag import pos_tag
 from nltk.tokenize import RegexpTokenizer
 
-from ._constants import STOP_WORDS, STRING_NUMBERS_REGEXES, UNITS
+from ._constants import AMBIGUOUS_UNITS, STOP_WORDS, STRING_NUMBERS_REGEXES, UNITS
 
 # Regex pattern for fraction parts.
 # Matches 0+ numbers followed by 0+ white space characters followed by a number then
@@ -582,7 +582,22 @@ class PreProcessor:
         """
         return token in STOP_WORDS
 
-    def _token_features(self, index: int) -> Dict[str, Union[str, bool]]:
+    def _is_ambiguous_unit(self, token: str) -> bool:
+        """Return True if token is in AMBIGUOUS_UNITS list
+
+        Parameters
+        ----------
+        token : str
+            Token to check
+
+        Returns
+        -------
+        bool
+            True if token is in AMBIGUOUS_UNITS, else False
+        """
+        return token in AMBIGUOUS_UNITS
+
+    def _token_features(self, index: int) -> dict[str, str | bool]:
         """Return the features for each token in the sentence
 
         Parameters
@@ -602,6 +617,7 @@ class PreProcessor:
             "is_capitalised": self._is_capitalised(token),
             "is_numeric": self._is_numeric(token),
             "is_unit": self._is_unit(token),
+            "is_ambiguous": self._is_ambiguous_unit(token),
             "is_in_parens": self._is_inside_parentheses(index),
             "is_stop_word": self._is_stop_word(token),
             "is_after_comma": self._follows_comma(index),
