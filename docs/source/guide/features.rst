@@ -23,6 +23,7 @@ The features used for this model are a little different
 * Whether the token is inside parentheses
 * Whether the token is a stop word
 * Whether the token is after a comma
+* Whether the token follows a + symbol
 
 If possible, based on the position of the token in the sentence, the following features are also added
 

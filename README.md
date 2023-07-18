@@ -80,12 +80,8 @@ The development dependencies are in the ```requirements-dev.txt``` file.
 Note that development includes training the model.
 
 * ```Black``` is used for code formatting.
-* ```isort``` is used for import sorting.
-
-* ```flake8``` is used for linting. Note the line length standard (E501) is ignored.
-
+* ```ruff``` is used for linting. 
 * ```pyright``` is used for type static analysis.
-
 * ```pytest``` is used for tests, with ```coverage``` being used for test coverage.
 
 The documentation dependencies are in the ```requirement-doc.txt``` file.

@@ -118,7 +118,7 @@ The replacements are predefined in a dictionary.
 For performance reasons, the regular expressions used to substitute the text with the number are precomiled and provided in the ``STRING_NUMBERS_REGEXES`` constant, which is a dictionary where the value is a tuple of (precompiled regex, substitute value).
 
 .. literalinclude:: ../../../ingredient_parser/_constants.py
-    :lines: 85-104
+    :lines: 111-130
     
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
@@ -153,7 +153,7 @@ Fractions represented in a textual format (e.g. 1/2, 3/4) are replaced with deci
 A regular expression is used to find these in the sentence. The regular expression also matches fractions greater than 1 (e.g. 1 1/2 is 1.5).
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
-    :lines: 13-16
+    :lines: 14-17
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
     :pyobject: PreProcessor._replace_fake_fractions
@@ -167,11 +167,22 @@ A space is enforced between quantities and units to make sure they are tokenized
 The regular expression that does this is quite simple.
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
-    :lines: 21-23
+    :lines: 22-24
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
     :pyobject: PreProcessor._split_quantity_and_units
     :dedent: 4
+
+
+``_remove_unit_trailing_period``
+++++++++++++++++++++++++++++++++
+
+Units with a trailing period have the period removed.
+
+.. literalinclude:: ../../../ingredient_parser/preprocess.py
+    :pyobject: PreProcessor._remove_unit_trailing_period
+    :dedent: 4
+
 
 ``_replace_string_range``
 +++++++++++++++++++++++++
@@ -188,7 +199,7 @@ where the numbers 1 and 2 represent any decimal value.
 The purpose of this is to ensure the range is kept as a single token.
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
-    :lines: 28-33
+    :lines: 29-34
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
     :pyobject: PreProcessor._replace_string_range
@@ -204,7 +215,7 @@ Units are made singular. This is done using a predefined list of plural units an
     :lines: 5-83
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
-    :pyobject: PreProcessor._singlarise_unit
+    :pyobject: PreProcessor._singlarise_units
     :dedent: 4
 
 2. Tokenize the cleaned sentence
@@ -226,4 +237,4 @@ The defined tokenizer splits the sentence according the following rules.
     Double quotes can be a unit (inch), which we would to identify.
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
-    :lines: 35-38
+    :lines: 36-39
