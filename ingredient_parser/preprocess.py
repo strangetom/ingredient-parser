@@ -34,9 +34,12 @@ RANGE_PATTERN = re.compile(r"\d+\s*\-\d+")
 STRING_RANGE_PATTERN = re.compile(r"([\d\.]+)(-)?\s+(to|or)\s+([\d\.]+(-)?)")
 
 # Predefine tokenizer
-# The regex pattern matches the tokens: any word character
-# (including '.' and '-' and ' ) or ( or ) or , or "
-REGEXP_TOKENIZER = RegexpTokenizer(r"[\w\.\-\']+|\(|\)|,|\"", gaps=False)
+# We are going to split an sentence between substrings that match the following groups
+# a) letters and any punctuation, except
+# b) open and close parentheses, open and close brackets, open and close braces, quote, comma
+group_a = r"[\w!\#\$\£\€%\&'\*\+\-\./:;>=<\?@\\\^_`\|\~]+"
+group_b = r"[\(\)\[\]\{\}\,\"]"
+REGEXP_TOKENIZER = RegexpTokenizer(rf"{group_a}|{group_b}", gaps=False)
 
 STEMMER = PorterStemmer()
 
