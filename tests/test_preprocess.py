@@ -375,7 +375,9 @@ class TestPreProcessor_remove_unit_trailing_period:
         "tsps." is replaced by "tsps"
         """
         input_sentence = "2 tsps. ground cinnamon"
-        assert p._remove_unit_trailing_period(input_sentence) == "2 tsps ground cinnamon"
+        assert (
+            p._remove_unit_trailing_period(input_sentence) == "2 tsps ground cinnamon"
+        )
 
     def test_tbsp(self, p):
         """
@@ -396,7 +398,11 @@ class TestPreProcessor_remove_unit_trailing_period:
         "oz." is replaced by "oz"
         """
         input_sentence = "1 12oz. can chopped tomatoes"
-        assert p._remove_unit_trailing_period(input_sentence) == "1 12oz can chopped tomatoes"
+        assert (
+            p._remove_unit_trailing_period(input_sentence)
+            == "1 12oz can chopped tomatoes"
+        )
+
 
 class TestPreProcessor_singlarise_units:
     def test_embedded(self, p):
