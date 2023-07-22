@@ -97,7 +97,7 @@ def match_labels(tokenized_sentence: list[str], labels: dict[str, str]) -> list[
 
     matched_labels = []
     for token in tokenized_sentence:
-        # Convert to lower case because all labels are lower case.
+        # Convert to lower case because all labels are lower case (see load_csv function)
         # Note that we couldn't do this earlier without losing information required for
         # feature extraction
         token = token.lower()
