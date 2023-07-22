@@ -55,10 +55,11 @@ The following operations were done to clean up the data (note that this is not e
 * Adjectives that are a fundamental part of the ingredient identity should be part of the name
     This was mostly an inconsistency across the data, for example if the entry contained "red onion", sometimes this was labelled with a name of "red onion" and sometimes with a name of "onion" and a comment of "red".
 
-    Two general rules were applied:  
+    Three general rules were applied:  
 
     1. **If the adjective changes the ingredient in a way that the chef cannot, it should be part of the name.**   
     2. **If the adjective changes the item you would purchase in a shop, it should be part of the name.**
+    3. **If the adjectve changes the item in a way that the chef would not expect to do as part of the recipe, it should be part of the name.**
     
     It is recognised that this can be subjective. Universal correctness is not the main goal of this, only consistency.
 
@@ -70,9 +71,20 @@ The following operations were done to clean up the data (note that this is not e
     * ground spices
     * extra-virgin olive oil
     * fresh x/y/z
+    * ice water
+    * cooked chicken
 
 * All units should be made singular
     This is to reduce the amount the model needs to learn. "teaspoon" and "teaspoons" are fundamentally the same unit, but because they are different words, the model could learn different associations.
+
+* Where alternative ingredients are given in the sentence, these should be part of the name if the alternative is in the same quantity, or the comment if it is a different quantity.
+    For example:
+
+    * ``3 tablespoons butter or olive oil, or a mixture`` should have the name as ``butter or olive oil``
+
+    however
+
+    * ``4 shoots spring shallots or 4 shallots, minced`` should have the name as ``spring shallots`` and the comment as ``or 4 shallots, minced`` because there are different quantities of spring shallots to shallots.
 
 :doc:`Data Cleaning Todo List <clean>` contains a list of possible further data cleaning steps.
 
