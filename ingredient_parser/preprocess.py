@@ -36,8 +36,11 @@ STRING_RANGE_PATTERN = re.compile(r"([\d\.]+)(-)?\s+(to|or)\s+([\d\.]+(-)?)")
 # Predefine tokenizer
 # We are going to split an sentence between substrings that match the following groups
 # a) letters and any punctuation, except
-# b) open and close parentheses, open and close brackets, open and close braces, quote, comma
-group_a = r"[\w!\#\$\£\€%\&'\*\+\-\./:;>=<\?@\\\^_`\|\~]+"
+# b) open and close parentheses, open and close brackets, open and close braces,
+# quote, comma
+# The following punctuation is deliberately left out of the these groups so that 
+# they are removed: backslash
+group_a = r"[\w!\#\$\£\€%\&'\*\+\-\.:;>=<\?@\^_`\\\|\~]+"
 group_b = r"[\(\)\[\]\{\}\,\"]"
 REGEXP_TOKENIZER = RegexpTokenizer(rf"{group_a}|{group_b}", gaps=False)
 

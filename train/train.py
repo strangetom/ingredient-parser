@@ -294,6 +294,12 @@ if __name__ == "__main__":
 
     print("[INFO] Training model with training data.")
     trainer = pycrfsuite.Trainer(verbose=False)
+    trainer.set_params(
+        {
+            "feature.possible_states": True,
+            "feature.possible_transitions": True,
+        }
+    )
     for X, y in zip(X_train, y_train):
         trainer.append(X, y)
     trainer.train(args.save_model)
