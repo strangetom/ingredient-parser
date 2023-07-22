@@ -89,15 +89,16 @@ def generate_rows(recipes: List[Dict[str, Any]]) -> tuple[List[str], List[Featur
 
     for recipe in recipes:
         for ingredient in recipe["ingredients"]:
-            if isinstance(ingredient, dict):
-                ingredrient_string, features = extract_features(ingredient)
-                ingredients_list.append(ingredrient_string)
-                features_list.append(features)
-            elif isinstance(ingredient, list):
-                for ingred in ingredient[1:]:  # skip first row
+            if "group" in ingredient.keys():
+                for ingred in ingredient["items"]:
                     ingredrient_string, features = extract_features(ingred)
                     ingredients_list.append(ingredrient_string)
                     features_list.append(features)
+            else:
+                ingredrient_string, features = extract_features(ingredient)
+                ingredients_list.append(ingredrient_string)
+                features_list.append(features)
+
 
     return ingredients_list, features_list
 

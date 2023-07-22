@@ -9,26 +9,6 @@ input,name,quantity,unit,comment
 "1x 400 g can lentils, drained",lentils,1x,400 g can,drained
 200 g bag baby spinach,bag baby spinach,200,g,
 150 ml coconut yogurt,coconut yogurt,150,ml,
-"4 boneless pork chops, 1"" thick",boneless pork chops,4,,"1"" thick"
-"salt, to taste",salt,,,to taste
-"white pepper, to taste",white pepper,,,to taste
-225 g all purpose flour,all purpose flour,225,g,
-"1 egg, beaten",egg,1,,beaten
-1 tbsp water,water,1,tbsp,
-80 g Panko breadcrumbs,Panko breadcrumbs,80,g,
-60 ml Dashi,Dashi,60,ml,
-120 ml water,water,120,ml,
-1 inch square Kombu,square Kombu,1,inch,
-3 tbsp Bonito flakes,Bonito flakes,3,tbsp,
-"1 yellow onion, thinly sliced",yellow onion,1,,thinly sliced
-1 tbsp mirin,mirin,1,tbsp,
-2.5 tbsp shirodashi,shirodashi,2.5,tbsp,
-1 tbsp sake,sake,1,tbsp,
-1 tbsp soy sauce,soy sauce,1,tbsp,
-"2 eggs, beaten",eggs,2,,beaten
-780 g cooked rice,cooked rice,780,g,
-2 tbsp Bonito flakes,Bonito flakes,2,tbsp,
-"1 green onions, thinly sliced, for garnish",green onions,1,,"thinly sliced, for garnish"
 "3 skin-on (or skinless) salmon fillets, roughly 6 oz each",skin-on (or skinless) salmon fillets,3,,roughly 6 oz each
 "2 tbsp olive oil, plus more for drizzling",olive oil,2,tbsp,plus more for drizzling
 Kosher salt and black pepper,Kosher salt and black pepper,,,
@@ -538,16 +518,6 @@ soy sauce,soy sauce,,,
 850 ml vegetable stock,vegetable stock,850,ml,
 1 tin tomatoes,tomatoes,1,tin,
 coriander leaves to garnish,coriander leaves to garnish,,,
-1x 280 g block firm tofu,firm tofu,1x,280 g block,
-150 g cornflour,cornflour,150,g,
-"vegetable oil, for frying",vegetable oil,,,for frying
-2 lemons,lemons,2,,
-250 ml orange juice,orange juice,250,ml,
-100 g sweet chilli sauce,sweet chilli sauce,100,g,
-"1 tbsp Sriracha, or other chilli sauce",Sriracha,1,tbsp,or other chilli sauce
-3 tbsp soy sauce,soy sauce,3,tbsp,
-"1 spring onion, to serve",spring onion,1,,to serve
-"1 tsp sesame seeds, to serve",sesame seeds,1,tsp,to serve
 Salt to taste,Salt to taste,,,
 3 tbsp olive oil,olive oil,3,tbsp,
 "3 cloves garlic, or more, lightly smashed and peeled",garlic,3,cloves,"or more, lightly smashed and peeled"
@@ -1588,6 +1558,22 @@ Freshly cracked black pepper to taste,Freshly cracked black pepper to taste,,,
 "3 tbsp small capers, rinsed",small capers,3,tbsp,rinsed
 "handful basil leaves, large ones torn",basil leaves,,handful,large ones torn
 Parmesan (optional),Parmesan (optional),,,
+"3 tablespoons sesame oil, or olive oil",sesame oil,3,tablespoons,or olive oil
+1.5 pounds ground chicken (or ground pork),ground chicken (or ground pork),1.5,pounds,
+black pepper and chili flakes,black pepper and chili flakes,,,
+3 tablespoons salted butter,salted butter,3,tablespoons,
+1-3 tablespoons Thai red curry paste,Thai red curry paste,1-3,tablespoons,
+"3-4 cloves garlic, chopped",garlic,3-4,cloves,chopped
+"1 tablespoon fresh ginger, chopped",fresh ginger,1,tablespoon,chopped
+"2 bell peppers, sliced",bell peppers,2,,sliced
+1.5 cups fresh pineapple chunks,fresh pineapple chunks,1.5,cups,
+1 cup cashews or peanuts,cashews or peanuts,1,cup,
+0.5 cups tamari or soy sauce,tamari or soy sauce,0.5,cups,
+1-2 tablespoons honey or real maple syrup,honey or real maple syrup,1-2,tablespoons,
+"0.5 cups fresh cilantro, chopped",fresh cilantro,0.5,cups,chopped
+"4 green onions, chopped",green onions,4,,chopped
+"0.25 cups fresh chopped Thai basil, or basil",fresh chopped Thai basil,0.25,cups,or basil
+"sweet Thai chili sauce and sesame seeds, for topping, (optional)","sweet Thai chili sauce and sesame seeds, for topping",,,(optional)
 1 tbsp olive oil,olive oil,1,tbsp,
 "1 onion, chopped",onion,1,,chopped
 "1 clove garlic, chopped",garlic,1,clove,chopped
@@ -1990,6 +1976,24 @@ black pepper,black pepper,,,
 "1 egg, beaten",egg,1,,beaten
 140 g frozen peas with mint,frozen peas with mint,140,g,
 2 tbsp half-fat creme fraiche,half-fat creme fraiche,2,tbsp,
+0.25 cups olive oil,olive oil,0.25,cups,
+3 tablespoons lemon juice,lemon juice,3,tablespoons,
+"1 clove garlic, finely minced",garlic,1,clove,finely minced
+1 teaspoon dijon mustard,dijon mustard,1,teaspoon,
+"0.5 teaspoons oregano, dried",oregano,0.5,teaspoons,dried
+0.5 teaspoons salt,salt,0.5,teaspoons,
+Freshly ground black pepper,Freshly ground black pepper,,,
+10 oz orzo,orzo,10,oz,
+1.5 cups halved cherry or grape tomatoes,halved cherry or grape tomatoes,1.5,cups,
+"2 persian cucumbers, sliced and quartered (or 1 cucumber, sliced and quartered)",persian cucumbers,2,,"sliced and quartered (or 1 cucumber, sliced and quartered)"
+"1 red bell pepper, diced",red bell pepper,1,,diced
+"0.5 cups pitted kalamata olives, chopped or sliced",pitted kalamata olives,0.5,cups,chopped or sliced
+"0.5 cups pitted green olives, chopped or sliced",pitted green olives,0.5,cups,chopped or sliced
+"0.333 cups pepperoncini, sliced",pepperoncini,0.333,cups,sliced
+"0.25 cups red onion, thinly sliced",red onion,0.25,cups,thinly sliced
+0.5 cups feta crumbles,feta crumbles,0.5,cups,
+"0.333 cups fresh basil, chopped",fresh basil,0.333,cups,chopped
+"0.25 cups fresh parsley, chopped",fresh parsley,0.25,cups,chopped
 8 oz butter,butter,8,oz,
 3 tbsp caster sugar,caster sugar,3,tbsp,
 5.5 oz plain flour,plain flour,5.5,oz,
@@ -2511,17 +2515,6 @@ Parsley garnish,Parsley garnish,,,
 1 tsp smoked paprika,smoked paprika,1,tsp,
 0.5 tsp cayenne (optional),cayenne (optional),0.5,tsp,
 0.5 tsp black pepper,black pepper,0.5,tsp,
-"200 g butter, plus extra for greasing",butter,200,g,plus extra for greasing
-200 g pistachios,pistachios,200,g,
-50 g walnuts,walnuts,50,g,
-50 g pecans,pecans,50,g,
-3 tbsp honey,honey,3,tbsp,
-2x 270 g pack filo pastry,filo pastry,2x,270 g pack,
-250 g golden caster sugar,golden caster sugar,250,g,
-50 g honey,honey,50,g,
-2 tsp orange blossom water,orange blossom water,2,tsp,
-0.5 tsp ground cinnamon,ground cinnamon,0.5,tsp,
-0.25 tsp ground cardamom (from 3 pods),ground cardamom (from 3 pods),0.25,tsp,
 "450 g peeled potatoes, cut into chunks",peeled potatoes,450,g,cut into chunks
 2 eggs,eggs,2,,
 225 g skinless smoked haddock fillets,skinless smoked haddock fillets,225,g,
@@ -2620,6 +2613,15 @@ Freshly ground pepper to taste,Freshly ground pepper to taste,,,
 175 g couscous,couscous,175,g,
 "50 g soft dried apricots, diced",soft dried apricots,50,g,diced
 "handful flat-leaf parsley, roughly chopped",flat-leaf parsley,,handful,roughly chopped
+"1 kg boneless, skinless chicken thighs","boneless, skinless chicken thighs",1,kg,
+2 heaped tablespoons rose harissa,rose harissa,2,heaped tablespoons,
+150 g Greek yogurt,Greek yogurt,150,g,
+finely grated zest and juice of 1 unwaxed lemon,finely grated zest and juice of 1 unwaxed lemon,,,
+Maldon sea salt flakes and freshly ground black pepper,Maldon sea salt flakes and freshly ground black pepper,,,
+flatbreads,flatbreads,,,
+coriander leaves,coriander leaves,,,
+"spring onions, thinly sliced",spring onions,,,thinly sliced
+lemon wedges,lemon wedges,,,
 275 g dried macaroni,dried macaroni,275,g,
 700 g ready-made fresh three cheese sauce,ready-made fresh three cheese sauce,700,g,
 "grating of whole nutmeg, nutmeg",of whole nutmeg,,grating,nutmeg
@@ -4693,6 +4695,20 @@ juice and zest of &frac12; lemon,juice and zest of &frac12; lemon,,,
 salt and black pepper,salt and black pepper,,,
 300 g Greek-style yoghurt,Greek-style yoghurt,300,g,
 "1 lemon, quartered",lemon,1,,quartered
+75 g unsalted butter,unsalted butter,75,g,
+2x 400 g can chopped tomatoes,chopped tomatoes,2x,400 g can,
+"200 g cherry tomatoes, halved",cherry tomatoes,200,g,halved
+"1 onion, peeled and coarsely grated",onion,1,,peeled and coarsely grated
+2 sprigs of thyme,of thyme,2,sprigs,
+"1 clove garlic, finely grated",garlic,1,clove,finely grated
+pinch of chilli flakes,of chilli flakes,,pinch,
+"8 raw, unshelled tiger prawns","raw, unshelled tiger prawns",8,,
+"1x 400 g can chickpeas, drained",chickpeas,1x,400 g can,drained
+125 g baby spinach,baby spinach,125,g,
+"400 g skinless white fish, like cod loin, cut into 4 cm (1.5 in) pieces",skinless white fish,400,g,"like cod loin, cut into 4 cm (1.5 in) pieces"
+"juice of 0.5-1 lemon, to taste",juice of 0.5-1 lemon,,,to taste
+sea salt and freshly ground black pepper,sea salt and freshly ground black pepper,,,
+"crusty bread, to serve",crusty bread,,,to serve
 "300 g dried spirali, or other pasta shape",dried spirali,300,g,or other pasta shape
 200 g fresh peas or frozen petits pois,fresh peas or frozen petits pois,200,g,
 1 red chilli,red chilli,1,,
@@ -5926,6 +5942,12 @@ pinch of chilli flakes,pinch of chilli flakes,,,
 1 bay leaf,bay leaf,1,,
 12 kaiser rolls or hamburger buns,kaiser rolls or hamburger buns,12,,
 12 slices cheddar cheese (optional),slices cheddar cheese (optional),12,,
+"160 g soft dates, pits removed",soft dates,160,g,pits removed
+68 g roasted unsalted cashews,roasted unsalted cashews,68,g,
+2 tbsp Dutch processed cocoa powder,Dutch processed cocoa powder,2,tbsp,
+1 tbsp toasted sesame seeds,toasted sesame seeds,1,tbsp,
+1 tbsp ground flaxseeds,ground flaxseeds,1,tbsp,
+1.5 tbsp peanut butter,peanut butter,1.5,tbsp,
 "900 g fresh fish fillets, such as cod or haddock, cut into large chunks",fresh fish fillets,900,g,"such as cod or haddock, cut into large chunks"
 2-3 tbsp olive oil,olive oil,2-3,tbsp,
 "1 red onion, finely chopped",red onion,1,,finely chopped
@@ -6022,7 +6044,7 @@ freshly squeezed juice of 1 lemon,freshly squeezed juice of 1 lemon,,,
 2 tbsp olive oil,olive oil,2,tbsp,
 "4 tbsp butter, melted",butter,4,tbsp,melted
 2 tbsp vegetable oil,vegetable oil,2,tbsp,
-1 cup + 2 tablespoon lukewarm water,+ 2 tablespoon lukewarm water,1,cup,
+1 cup plus 2 tablespoon lukewarm water,plus 2 tablespoon lukewarm water,1,cup,
 "0.75 lbs mozzarella cheese, sliced",mozzarella cheese,0.75,lbs,sliced
 "1 lb Italian sweet or hot sausage, cooked and sliced; or about 3 cup of the sauteed vegetables of your choice",Italian sweet or hot sausage,1,lb,cooked and sliced; or about 3 cup of the sauteed vegetables of your choice
 "1x 28-oz can plum tomatoes, lightly crushed; or 28-ounce can diced or chopped tomatoes",plum tomatoes,1x,28-oz can,lightly crushed; or 28-ounce can diced or chopped tomatoes
@@ -6638,6 +6660,13 @@ pinch of red pepper flakes,of red pepper flakes,,pinch,
 4 cod fillets (about 125-150 g each),cod fillets (about 125-150 g each),4,,
 "zest 1 lemon, then cut into wedges",zest 1 lemon,,,then cut into wedges
 "handful coriander, roughly chopped",coriander,,handful,roughly chopped
+"2.25 cups all-purpose flour,",all-purpose flour,2.25,cups, 
+0.25 teaspoons salt,salt,0.25,teaspoons,
+"1 cup unsalted butter, softened to room temperature",unsalted butter,1,cup,softened to room temperature
+1 cup packed light brown sugar,packed light brown sugar,1,cup,
+0.333 cups packed dark brown sugar,packed dark brown sugar,0.333,cups,
+1.5 tsp pure vanilla extract,pure vanilla extract,1.5,tsp,
+"0.667 cups coarse sugar, optional, for rolling",coarse sugar,0.667,cups,"optional, for rolling"
 1 litre semi-skimmed milk,semi-skimmed milk,1,litre,
 2 bay leaves,bay leaves,2,,
 10 black peppercorns,black peppercorns,10,,
@@ -7426,21 +7455,6 @@ Blue dragon thai green curry pack,Blue dragon thai green curry pack,,,
 fish sauce,fish sauce,,,
 pinch of caster sugar,of caster sugar,,pinch,
 0.5 mug rice,rice,0.5,mug,
-0.5 cups mayonnaise,mayonnaise,0.5,cups,
-"0.25 cups bread and butter pickle chips, finely chopped, plus 1 tablespoons pickle brine",bread and butter pickle chips,0.25,cups,"finely chopped, plus 1 tablespoons pickle brine"
-"1 small shallot, finely chopped",shallot,1,small,finely chopped
-2 tablespoons coarsely chopped fresh dill,coarsely chopped fresh dill,2,tablespoons,
-"2 tablespoons (drained) capers, coarsely chopped",(drained) capers,2,tablespoons,coarsely chopped
-1 teaspoon soy sauce or tamari,soy sauce or tamari,1,teaspoon,
-Kosher salt,Kosher salt,,,
-1 cup vegetable oil,vegetable oil,1,cup,
-0.25 cups all-purpose flour,all-purpose flour,0.25,cups,
-"2 large eggs, lightly beaten",eggs,2,large,lightly beaten
-2 cups panko bread crumbs,panko bread crumbs,2,cups,
-"4 flounder fillets (about 1 pounds), halved crosswise",flounder fillets (about 1 pounds),4,,halved crosswise
-Kosher salt,Kosher salt,,,
-4 soft white buns,soft white buns,4,,
-4 slices American cheese or Cheddar,American cheese or Cheddar,4,slices,
 1-2 tbsp olive or rapeseed oil,olive or rapeseed oil,1-2,tbsp,
 4 boneless skinless chicken breasts,boneless skinless chicken breasts,4,,
 "1 onion, cut into wedges",onion,1,,cut into wedges
@@ -7744,7 +7758,7 @@ generous pinch saffron threads,saffron threads,,generous pinch,
 1.5 tbsp honey,honey,1.5,tbsp,
 "1 tbsp finely chopped parsley, or chopped toasted blanched almonds",finely chopped parsley,1,tbsp,or chopped toasted blanched almonds
 "cooked couscous, to serve",cooked couscous,,,to serve
-0.25 cupsg granulated sugar,granulated sugar,0.25,cupsg,
+0.25 cups granulated sugar,granulated sugar,0.25,cups,
 "1-2 tbsps lime zest, finely grated",lime zest,1-2,tbsps,finely grated
 "2 tbsps fresh mint, finely chopped",fresh mint,2,tbsps,finely chopped
 1.5 cups all-purpose flour,all-purpose flour,1.5,cups,
@@ -8058,12 +8072,7 @@ salt and black pepper,salt and black pepper,,,
 15 g cornflour,cornflour,15,g,
 "500 g potatoes, peeled",potatoes,500,g,peeled
 0.5 tsps all-purpose seasoning (such as Schwartz 'Season-All' spice mix),all-purpose seasoning (such as Schwartz 'Season-All' spice mix),0.5,tsps,
-80 g steamed green vegetables (+ 35 kcal per serving),steamed green vegetables (+ 35 kcal per serving),80,g,
-"3.5 cups ricotta or famer's cheese, drained and densely packed",ricotta or famer's cheese,3.5,cups,drained and densely packed
-"0.375 cup honey, plus another &frac34; or a cup",honey,0.375,cup,plus another &frac34; or a cup
-"1.25 cup flour, whole-wheat (more authentic) or white",flour,1.25,cup,whole-wheat (more authentic) or white
-"1 egg, beaten",egg,1,,beaten
-poppyseeds,poppyseeds,,,
+80 g steamed green vegetables,steamed green vegetables,80,g,
 1.5 tbsp olive oil,olive oil,1.5,tbsp,
 1 tsp ground turmeric,ground turmeric,1,tsp,
 0.5 tsp ground coriander,ground coriander,0.5,tsp,
