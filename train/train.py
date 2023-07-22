@@ -2,14 +2,9 @@
 
 import argparse
 import csv
-import sys
 from collections import Counter
 from dataclasses import dataclass
 from itertools import chain
-from pathlib import Path
-
-# Ensure the local ingredient_parser package can be found
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import pycrfsuite
 from sklearn.model_selection import train_test_split
