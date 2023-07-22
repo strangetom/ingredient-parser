@@ -13,33 +13,33 @@ from ._constants import AMBIGUOUS_UNITS, STOP_WORDS, STRING_NUMBERS_REGEXES, UNI
 
 # Regex pattern for fraction parts.
 # Matches 0+ numbers followed by 0+ white space characters followed by a number then
-# a forward slash then another number
+# a forward slash then another number.
 FRACTION_PARTS_PATTERN = re.compile(r"(\d*\s*\d/\d+)")
 
-# Regex pattern for checking if token starts with a capital letter
+# Regex pattern for checking if token starts with a capital letter.
 CAPITALISED_PATTERN = re.compile(r"^[A-Z]")
 
 # Regex pattern for finding quantity and units without space between them.
-# Assumes the quantity is always a number and the units always a letter
+# Assumes the quantity is always a number and the units always a letter.
 QUANTITY_UNITS_PATTERN = re.compile(r"(\d)([a-zA-Z])")
 
-# Regex pattern for matching a numeric range e.g. 1-2, 2-3
+# Regex pattern for matching a numeric range e.g. 1-2, 2-3.
 RANGE_PATTERN = re.compile(r"\d+\s*\-\d+")
 
-# Regex pattern for matching a range in string format e.g. 1 to 2, 8.5 to 12, 4 or 5
-# Assumes fake fractions and unicode fraction have already been replaced
+# Regex pattern for matching a range in string format e.g. 1 to 2, 8.5 to 12, 4 or 5.
+# Assumes fake fractions and unicode fraction have already been replaced.
 # Allows the range to include a hyphen after each number, which are captured in
-# separate groups
-# Captures the two number in the range in separate capture groups
+# separate groups.
+# Captures the two number in the range in separate capture groups.
 STRING_RANGE_PATTERN = re.compile(r"([\d\.]+)(-)?\s+(to|or)\s+([\d\.]+(-)?)")
 
-# Predefine tokenizer
+# Define tokenizer.
 # We are going to split an sentence between substrings that match the following groups
 # a) letters and any punctuation, except
 # b) open and close parentheses, open and close brackets, open and close braces,
-# quote, comma
-# The following punctuation is deliberately left out of the these groups so that 
-# they are removed: backslash
+# quote, comma.
+# The following punctuation is deliberately left out of the these groups so that
+# they are removed: backslash.
 group_a = r"[\w!\#\$\£\€%\&'\*\+\-\.:;>=<\?@\^_`\\\|\~]+"
 group_b = r"[\(\)\[\]\{\}\,\"]"
 REGEXP_TOKENIZER = RegexpTokenizer(rf"{group_a}|{group_b}", gaps=False)
@@ -64,7 +64,7 @@ class PreProcessor:
 
     1. | Replace numbers given as words with the numeric equivalent.
        | e.g. one >> 1
-    2. | Replace fractions given in html mark up with the unicide representation.
+    2. | Replace fractions given in html markup with the unicide representation.
        | e.g. &frac12; >> ½
     3. | Replace unicode fractions with the equivalent decimal form. Decimals are
        | rounded to 3 a maximum of decimal places.
@@ -73,20 +73,20 @@ class PreProcessor:
        | decimal form
        | e.g. 1/2 >> 0.5
     5. | A space is enforced between quantities and units
-    6. | Numeric ranges indicated in words using "to" or "or" are replaced with a
+    6. | Remove trailing periods from units
+       | e.g. tsp. >> tsp
+    7. | Numeric ranges indicated in words using "to" or "or" are replaced with a
        | standard numeric form
        | e.g. 1 or 2 >> 1-2; 10 to 12 >> 10-12
-    7. | Units are made singular. This step uses a predefined list of plural units and
+    8. | Units are made singular. This step uses a predefined list of plural units and
        | their singular form.
 
     Following the cleaning of the input sentence, it is tokenized into a list of tokens.
 
     Each token is one of the following
 
-    * A word, including . - and ' characters
-    * Opening or closing parentheses
-    * Comma
-    * Speech marks, "
+    * A word, including most punctuation marks
+    * Opening or closing parentheses, braces, brackets; comma; speech marks
 
     The features for each token are computed on demand using the ``sentence_features``
     method, which returns a list of dictionaries.
