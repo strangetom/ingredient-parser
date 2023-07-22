@@ -14,9 +14,7 @@ from ._constants import AMBIGUOUS_UNITS, STOP_WORDS, STRING_NUMBERS_REGEXES, UNI
 # Regex pattern for fraction parts.
 # Matches 0+ numbers followed by 0+ white space characters followed by a number then
 # a forward slash then another number.
-# (?!\-) is a negative look ahead so the pattern doesn't match if the last digit is
-# immediately followed by a hyphen.
-FRACTION_PARTS_PATTERN = re.compile(r"(\d*\s*\d/\d+)(?!\-)")
+FRACTION_PARTS_PATTERN = re.compile(r"(\d*\s*\d/\d+)")
 
 # Regex pattern for checking if token starts with a capital letter.
 CAPITALISED_PATTERN = re.compile(r"^[A-Z]")
