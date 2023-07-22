@@ -401,6 +401,7 @@ class PreProcessor:
             Ingredient sentence with trailing periods from units removed
         """
         units = ["tsp.", "tsps.", "tbsp.", "tbsps.", "lb.", "lbs.", "oz."]
+        units.extend([u.capitalize() for u in units])
         for unit in units:
             unit_no_period = unit.replace(".", "")
             sentence = sentence.replace(unit, unit_no_period)
