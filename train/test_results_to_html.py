@@ -94,7 +94,7 @@ def test_results_to_html(
 
     src_count = Counter(incorrect)
     heading2 = ET.Element("h2")
-    heading2.text = f"{len(incorrect):,} incorrect sentences. [{src_count['NYT']} NYT, {src_count['SF']} SF]"
+    heading2.text = f"{len(incorrect):,} incorrect sentences. [{src_count['NYT']} NYT, {src_count['SF']} SF, {src_count['CS']} CS]"
     body.insert(1, heading2)
 
     ET.indent(html, space="    ")

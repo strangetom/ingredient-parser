@@ -228,6 +228,7 @@ if __name__ == "__main__":
     )
     parser.add_argument("--nyt", help="Path to input csv file for NYTimes data")
     parser.add_argument("--sf", help="Path to input csv file for StrangerFoods data")
+    parser.add_argument("--cookstr", help="Path to input csv file for Cookstr data")
     parser.add_argument(
         "-s",
         "--split",
@@ -240,7 +241,7 @@ if __name__ == "__main__":
         "--number",
         default=30000,
         type=int,
-        help="Number of entries from NYTimes dataset to use (train+test)",
+        help="Maximum of entries from a dataset to use (train+test)",
     )
     parser.add_argument(
         "-m",
@@ -259,6 +260,7 @@ if __name__ == "__main__":
     print("[INFO] Loading training data.")
     SF_sentences, SF_labels = load_csv(args.sf)
     NYT_sentences, NYT_labels = load_csv(args.nyt)
+    CS_sentences, CS_labels = load_csv(args.cookstr)
 
     (
         NYT_sentences_train,
@@ -276,14 +278,24 @@ if __name__ == "__main__":
         SF_labels_train,
         SF_labels_test,
     ) = train_test_split(SF_sentences, SF_labels, test_size=args.split)
-
-    ingredients_train = NYT_sentences_train + SF_sentences_train
-    labels_train = NYT_labels_train + SF_labels_train
-    ingredients_test = NYT_sentences_test + SF_sentences_test
-    ingredients_test_source = ["NYT"] * len(NYT_sentences_test) + ["SF"] * len(
-        SF_sentences_test
+    (
+        CS_sentences_train,
+        CS_sentences_test,
+        CS_labels_train,
+        CS_labels_test,
+    ) = train_test_split(
+        CS_sentences[: args.number], CS_labels[: args.number], test_size=args.split
     )
-    labels_test = NYT_labels_test + SF_labels_test
+
+    ingredients_train = NYT_sentences_train + SF_sentences_train + CS_sentences_train
+    labels_train = NYT_labels_train + SF_labels_train + CS_labels_train
+    ingredients_test = NYT_sentences_test + SF_sentences_test + CS_sentences_test
+    ingredients_test_source = (
+        ["NYT"] * len(NYT_sentences_test)
+        + ["SF"] * len(SF_sentences_test)
+        + ["CS"] * len(CS_sentences_test)
+    )
+    labels_test = NYT_labels_test + SF_labels_test + CS_labels_test
     print(f"[INFO] {len(ingredients_train)+len(ingredients_test):,} total vectors")
     print(f"[INFO] {len(ingredients_train):,} training vectors.")
     print(f"[INFO] {len(ingredients_test):,} testing vectors.")
