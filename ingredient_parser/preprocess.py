@@ -24,14 +24,14 @@ CAPITALISED_PATTERN = re.compile(r"^[A-Z]")
 QUANTITY_UNITS_PATTERN = re.compile(r"(\d)([a-zA-Z])")
 
 # Regex pattern for matching a numeric range e.g. 1-2, 2-3.
-RANGE_PATTERN = re.compile(r"\d+\s*\-\d+")
+RANGE_PATTERN = re.compile(r"\d+\s*[\-–—]\d+")
 
 # Regex pattern for matching a range in string format e.g. 1 to 2, 8.5 to 12, 4 or 5.
 # Assumes fake fractions and unicode fraction have already been replaced.
-# Allows the range to include a hyphen after each number, which are captured in
-# separate groups.
+# Allows the range to include a hyphen/em-dash/en-dash after each number, 
+# which are captured in separate groups.
 # Captures the two number in the range in separate capture groups.
-STRING_RANGE_PATTERN = re.compile(r"([\d\.]+)(-)?\s+(to|or)\s+([\d\.]+(-)?)")
+STRING_RANGE_PATTERN = re.compile(r"([\d\.]+)([\-–—])?\s+(to|or)\s+([\d\.]+([\-–—])?)")
 
 # Define tokenizer.
 # We are going to split an sentence between substrings that match the following groups
