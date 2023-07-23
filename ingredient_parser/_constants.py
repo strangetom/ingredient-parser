@@ -50,6 +50,7 @@ UNITS = {
     "ml": "ml",
     "mugs": "mug",
     "ounces": "ounce",
+    "oz": "oz",
     "packs": "pack",
     "packages": "package",
     "packets": "packet",
