@@ -23,7 +23,9 @@ class Stats:
     correct_words: int
 
 
-def load_csv(csv_filename: str) -> tuple[list[str], list[dict[str, str]]]:
+def load_csv(
+    csv_filename: str, max_rows: int
+) -> tuple[list[str], list[dict[str, str]]]:
     """Load csv file generated py ```generate_training_testing_csv.py``` and parse
     contents into ingredients and labels lists
 
@@ -31,10 +33,12 @@ def load_csv(csv_filename: str) -> tuple[list[str], list[dict[str, str]]]:
     ----------
     csv_filename : str
         Name of csv file
+    max_rows : int
+        Maximum number of rows to read
 
     Returns
     -------
-    list[str]
+    tuple[list[str], list[dict[str, str]]]
         List of ingredient strings
     list[dict[str, str]]
         List of dictionaries, each dictionary the ingredient labels
@@ -43,7 +47,7 @@ def load_csv(csv_filename: str) -> tuple[list[str], list[dict[str, str]]]:
     with open(csv_filename, "r") as f:
         reader = csv.reader(f)
         next(reader)  # skip first row
-        for row in reader:
+        for i, row in enumerate(reader):
             sentences.append(row[0])
             labels.append(
                 {
@@ -53,6 +57,10 @@ def load_csv(csv_filename: str) -> tuple[list[str], list[dict[str, str]]]:
                     "comment": row[4].strip().lower(),
                 }
             )
+
+            if i == (max_rows - 1):
+                break
+
     return sentences, labels
 
 
@@ -92,7 +100,8 @@ def match_labels(tokenized_sentence: list[str], labels: dict[str, str]) -> list[
 
     matched_labels = []
     for token in tokenized_sentence:
-        # Convert to lower case because all labels are lower case (see load_csv function)
+        # Convert to lower case because all labels are lower case
+        # (see load_csv function)
         # Note that we couldn't do this earlier without losing information required for
         # feature extraction
         token = token.lower()
@@ -253,9 +262,9 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     print("[INFO] Loading training data.")
-    SF_sentences, SF_labels = load_csv(args.sf)
-    NYT_sentences, NYT_labels = load_csv(args.nyt)
-    CS_sentences, CS_labels = load_csv(args.cookstr)
+    SF_sentences, SF_labels = load_csv(args.sf, args.number)
+    NYT_sentences, NYT_labels = load_csv(args.nyt, args.number)
+    CS_sentences, CS_labels = load_csv(args.cookstr, args.number)
 
     (
         NYT_sentences_train,
@@ -263,8 +272,8 @@ if __name__ == "__main__":
         NYT_labels_train,
         NYT_labels_test,
     ) = train_test_split(
-        NYT_sentences[: args.number],
-        NYT_labels[: args.number],
+        NYT_sentences,
+        NYT_labels,
         test_size=args.split,
     )
     (
@@ -278,9 +287,7 @@ if __name__ == "__main__":
         CS_sentences_test,
         CS_labels_train,
         CS_labels_test,
-    ) = train_test_split(
-        CS_sentences[: args.number], CS_labels[: args.number], test_size=args.split
-    )
+    ) = train_test_split(CS_sentences, CS_labels, test_size=args.split)
 
     ingredients_train = NYT_sentences_train + SF_sentences_train + CS_sentences_train
     labels_train = NYT_labels_train + SF_labels_train + CS_labels_train
