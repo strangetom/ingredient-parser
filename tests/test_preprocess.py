@@ -404,6 +404,51 @@ class TestPreProcessor_remove_unit_trailing_period:
         )
 
 
+class TestPreProcessor_replace_string_range:
+    def test_integers(self, p):
+        """
+        Test range with format <num> or <num> where <num> are integers
+        """
+        input_sentence = "4 9 or 10 inch flour tortillas"
+        assert p._replace_string_range(input_sentence) == "4 9-10 inch flour tortillas"
+
+    def test_decimals(self, p):
+        """
+        Test range with format <num> or <num> where <num> are decimals
+        """
+        input_sentence = "1 15.5 or 16 ounce can black beans"
+        assert (
+            p._replace_string_range(input_sentence) == "1 15.5-16 ounce can black beans"
+        )
+
+    def test_hyphens(self, p):
+        """
+        Test range where the numbers are followed by hyphens
+        """
+        input_sentence = "1 6- or 7-ounce can of wild salmon"
+        assert (
+            p._replace_string_range(input_sentence) == "1 6-7-ounce can of wild salmon"
+        )
+
+    def test_en_dash(self, p):
+        """
+        Test range where the numbers are followed by en-dashes
+        """
+        input_sentence = "1 6– or 7–ounce can of wild salmon"
+        assert (
+            p._replace_string_range(input_sentence) == "1 6-7–ounce can of wild salmon"
+        )
+
+    def test_en_dash(self, p):
+        """
+        Test range where the numbers are followed by em-dashes
+        """
+        input_sentence = "1 6— or 7—ounce can of wild salmon"
+        assert (
+            p._replace_string_range(input_sentence) == "1 6-7—ounce can of wild salmon"
+        )
+
+
 class TestPreProcessor_singlarise_units:
     def test_embedded(self, p):
         """
@@ -570,6 +615,13 @@ class TestPreProcessor_is_inside_parentheses:
         input_sentence = "8-10 teaspoons pine nuts (ground), toasted"
         p = PreProcessor(input_sentence)
         assert p._is_inside_parentheses(6)
+
+    def test_multiple_parens(self):
+        input_sentence = "8-10 teaspoons (10 ml) pine nuts (ground), toasted"
+        p = PreProcessor(input_sentence)
+        assert p._is_inside_parentheses(3)
+        assert not p._is_inside_parentheses(6)
+        assert p._is_inside_parentheses(9)
 
 
 class TestPreProcess_follows_plus:

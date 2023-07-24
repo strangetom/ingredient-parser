@@ -606,10 +606,18 @@ class PreProcessor:
         if self.tokenized_sentence[index] in ["(", ")"]:
             return True
 
-        return (
-            "(" in self.tokenized_sentence[:index]
-            and ")" in self.tokenized_sentence[index + 1 :]
-        )
+        open_parens, closed_parens = [], []
+        for i, token in enumerate((self.tokenized_sentence)):
+            if token == "(":
+                open_parens.append(i)
+            elif token == ")":
+                closed_parens.append(i)
+
+        for start, end in zip(open_parens, closed_parens):
+            if start < index < end:
+                return True
+
+        return False
 
     def _is_stop_word(self, token: str) -> bool:
         """Return True if token is in STOP_WORDS set
