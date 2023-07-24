@@ -28,7 +28,7 @@ RANGE_PATTERN = re.compile(r"\d+\s*[\-–—]\d+")
 
 # Regex pattern for matching a range in string format e.g. 1 to 2, 8.5 to 12, 4 or 5.
 # Assumes fake fractions and unicode fraction have already been replaced.
-# Allows the range to include a hyphen/em-dash/en-dash after each number, 
+# Allows the range to include a hyphen/em-dash/en-dash after each number,
 # which are captured in separate groups.
 # Captures the two number in the range in separate capture groups.
 STRING_RANGE_PATTERN = re.compile(r"([\d\.]+)([\-–—])?\s+(to|or)\s+([\d\.]+([\-–—])?)")
@@ -41,7 +41,7 @@ STRING_RANGE_PATTERN = re.compile(r"([\d\.]+)([\-–—])?\s+(to|or)\s+([\d\.]+(
 # The following punctuation is deliberately left out of the these groups so that
 # they are removed: backslash.
 group_a = r"[\w!\#\$\£\€%\&'\*\+\-\.:;>=<\?@\^_`\\\|\~]+"
-group_b = r"[\(\)\[\]\{\}\,\"]"
+group_b = r"[\(\)\[\]\{\}\,\"/]"
 REGEXP_TOKENIZER = RegexpTokenizer(rf"{group_a}|{group_b}", gaps=False)
 
 STEMMER = PorterStemmer()
@@ -557,6 +557,22 @@ class PreProcessor:
         """
         return "plus" in self.tokenized_sentence[:index]
 
+    def _follows_slash(self, index: int) -> bool:
+        """Return True if token at index follow / by any amount in sentence.
+        If the token at the index is /, it doesn't count as following.
+
+        Parameters
+        ----------
+        index : int
+            Index of token to check
+
+        Returns
+        -------
+        bool
+            True if token follows /, else False
+        """
+        return "/" in self.tokenized_sentence[:index]
+
     def _is_capitalised(self, token: str) -> bool:
         """Return True if token starts with a capital letter
 
@@ -650,6 +666,7 @@ class PreProcessor:
             "is_stop_word": self._is_stop_word(token),
             "is_after_comma": self._follows_comma(index),
             "is_after_plus": self._follows_plus(index),
+            "is_after_slash": self._follows_slash(index),
         }
 
         if index > 0:
