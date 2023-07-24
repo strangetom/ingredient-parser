@@ -24,14 +24,13 @@ CAPITALISED_PATTERN = re.compile(r"^[A-Z]")
 QUANTITY_UNITS_PATTERN = re.compile(r"(\d)([a-zA-Z])")
 
 # Regex pattern for matching a numeric range e.g. 1-2, 2-3.
-RANGE_PATTERN = re.compile(r"\d+\s*[\-–—]\d+")
+RANGE_PATTERN = re.compile(r"\d+\s*[\-]\d+")
 
 # Regex pattern for matching a range in string format e.g. 1 to 2, 8.5 to 12, 4 or 5.
 # Assumes fake fractions and unicode fraction have already been replaced.
-# Allows the range to include a hyphen/em-dash/en-dash after each number,
-# which are captured in separate groups.
+# Allows the range to include a hyphen, which are captured in separate groups.
 # Captures the two number in the range in separate capture groups.
-STRING_RANGE_PATTERN = re.compile(r"([\d\.]+)([\-–—])?\s+(to|or)\s+([\d\.]+([\-–—])?)")
+STRING_RANGE_PATTERN = re.compile(r"([\d\.]+)(\-)?\s+(to|or)\s+([\d\.]+(\-)?)")
 
 # Define tokenizer.
 # We are going to split an sentence between substrings that match the following groups
@@ -62,23 +61,24 @@ class PreProcessor:
 
     The cleaning steps are as follows
 
-    1. | Replace numbers given as words with the numeric equivalent.
+    1. | Replace all en-dashes and em-dashes with hyphens.
+    2. | Replace numbers given as words with the numeric equivalent.
        | e.g. one >> 1
-    2. | Replace fractions given in html markup with the unicide representation.
+    3. | Replace fractions given in html markup with the unicide representation.
        | e.g. &frac12; >> ½
-    3. | Replace unicode fractions with the equivalent decimal form. Decimals are
+    4. | Replace unicode fractions with the equivalent decimal form. Decimals are
        | rounded to 3 a maximum of decimal places.
        | e.g. ½ >> 0.5
-    4. | Replace "fake" fractions represented by 1/2, 2/3 etc. with the equivalent
+    5. | Replace "fake" fractions represented by 1/2, 2/3 etc. with the equivalent
        | decimal form
        | e.g. 1/2 >> 0.5
-    5. | A space is enforced between quantities and units
-    6. | Remove trailing periods from units
+    6. | A space is enforced between quantities and units
+    7. | Remove trailing periods from units
        | e.g. tsp. >> tsp
-    7. | Numeric ranges indicated in words using "to" or "or" are replaced with a
+    8. | Numeric ranges indicated in words using "to" or "or" are replaced with a
        | standard numeric form
        | e.g. 1 or 2 >> 1-2; 10 to 12 >> 10-12
-    8. | Units are made singular. This step uses a predefined list of plural units and
+    9. | Units are made singular. This step uses a predefined list of plural units and
        | their singular form.
 
     Following the cleaning of the input sentence, it is tokenized into a list of tokens.
@@ -241,6 +241,7 @@ class PreProcessor:
         # List of funtions to apply to sentence
         # Note that the order matters
         funcs = [
+            self._replace_en_em_dash,
             self._replace_string_numbers,
             self._replace_html_fractions,
             self._replace_unicode_fractions,
@@ -254,6 +255,21 @@ class PreProcessor:
             sentence = func(sentence)
 
         return sentence.strip()
+
+    def _replace_en_em_dash(self, sentence: str) -> str:
+        """Replace en-dashes and em-dashes with hyphens.
+        
+        Parameters
+        ----------
+        sentence : str
+            Ingredient sentence
+        
+        Returns
+        -------
+        str
+            Ingredient sentence with en and em dashes replaced with hyphens
+        """
+        return sentence.replace("–", "-").replace("—", "-")
 
     def _replace_string_numbers(self, sentence: str) -> str:
         """Replace string numbers (e.g. one, two) with numeric values (e.g. 1, 2)
