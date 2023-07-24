@@ -616,6 +616,13 @@ class TestPreProcessor_is_inside_parentheses:
         p = PreProcessor(input_sentence)
         assert p._is_inside_parentheses(6)
 
+    def test_multiple_parens(self):
+        input_sentence = "8-10 teaspoons (10 ml) pine nuts (ground), toasted"
+        p = PreProcessor(input_sentence)
+        assert p._is_inside_parentheses(3)
+        assert not p._is_inside_parentheses(6)
+        assert p._is_inside_parentheses(9)
+
 
 class TestPreProcess_follows_plus:
     def test_no_plus(self):

@@ -28,7 +28,7 @@ RANGE_PATTERN = re.compile(r"\d+\s*[\-–—]\d+")
 
 # Regex pattern for matching a range in string format e.g. 1 to 2, 8.5 to 12, 4 or 5.
 # Assumes fake fractions and unicode fraction have already been replaced.
-# Allows the range to include a hyphen/em-dash/en-dash after each number, 
+# Allows the range to include a hyphen/em-dash/en-dash after each number,
 # which are captured in separate groups.
 # Captures the two number in the range in separate capture groups.
 STRING_RANGE_PATTERN = re.compile(r"([\d\.]+)([\-–—])?\s+(to|or)\s+([\d\.]+([\-–—])?)")
@@ -590,10 +590,18 @@ class PreProcessor:
         if self.tokenized_sentence[index] in ["(", ")"]:
             return True
 
-        return (
-            "(" in self.tokenized_sentence[:index]
-            and ")" in self.tokenized_sentence[index + 1 :]
-        )
+        open_parens, closed_parens = [], []
+        for i, token in enumerate((self.tokenized_sentence)):
+            if token == "(":
+                open_parens.append(i)
+            elif token == ")":
+                closed_parens.append(i)
+
+        for start, end in zip(open_parens, closed_parens):
+            if start < index < end:
+                return True
+
+        return False
 
     def _is_stop_word(self, token: str) -> bool:
         """Return True if token is in STOP_WORDS set
