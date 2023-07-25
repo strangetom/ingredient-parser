@@ -6,6 +6,7 @@ import re
 UNITS = {
     "bags": "bag",
     "bars": "bar",
+    "batches": "batch",
     "bottles": "bottle",
     "boxes": "box",
     "branches": "branch",
