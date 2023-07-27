@@ -99,7 +99,6 @@ def generate_rows(recipes: List[Dict[str, Any]]) -> tuple[List[str], List[Featur
                 ingredients_list.append(ingredrient_string)
                 features_list.append(features)
 
-
     return ingredients_list, features_list
 
 
@@ -146,7 +145,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-o",
         "--output",
-        default="train/data/strangerfoods/sf_labelled_data.csv",
+        default="train/data/strangerfoods/sf-labelled-data.csv",
         help="Output csv file for labelled data",
     )
     args = parser.parse_args()

@@ -5,6 +5,7 @@ import csv
 from collections import Counter
 from dataclasses import dataclass
 from itertools import chain
+from pathlib import Path
 
 import pycrfsuite
 from sklearn.model_selection import train_test_split
@@ -43,6 +44,9 @@ def load_csv(
     list[dict[str, str]]
         List of dictionaries, each dictionary the ingredient labels
     """
+    if "cookstr" in csv_filename:
+        max_rows = 4000
+
     labels, sentences = [], []
     with open(csv_filename, "r") as f:
         reader = csv.reader(f)
@@ -230,9 +234,14 @@ if __name__ == "__main__":
         description="Train a CRF model to parse structured data from recipe \
                      ingredient sentences."
     )
-    parser.add_argument("--nyt", help="Path to input csv file for NYTimes data")
-    parser.add_argument("--sf", help="Path to input csv file for StrangerFoods data")
-    parser.add_argument("--cookstr", help="Path to input csv file for Cookstr data")
+    parser.add_argument(
+        "--datasets",
+        "-d",
+        help="Datasets in csv format",
+        action="extend",
+        dest="datasets",
+        nargs="+",
+    )
     parser.add_argument(
         "-s",
         "--split",
@@ -254,50 +263,35 @@ if __name__ == "__main__":
         help="Path to save model to",
     )
     parser.add_argument(
-        "-d",
-        "--detailed_results",
+        "--html",
         action="store_true",
         help="Output a markdown file containing detailed results.",
     )
     args = parser.parse_args()
 
     print("[INFO] Loading training data.")
-    SF_sentences, SF_labels = load_csv(args.sf, args.number)
-    NYT_sentences, NYT_labels = load_csv(args.nyt, args.number)
-    CS_sentences, CS_labels = load_csv(args.cookstr, args.number)
 
-    (
-        NYT_sentences_train,
-        NYT_sentences_test,
-        NYT_labels_train,
-        NYT_labels_test,
-    ) = train_test_split(
-        NYT_sentences,
-        NYT_labels,
-        test_size=args.split,
-    )
-    (
-        SF_sentences_train,
-        SF_sentences_test,
-        SF_labels_train,
-        SF_labels_test,
-    ) = train_test_split(SF_sentences, SF_labels, test_size=args.split)
-    (
-        CS_sentences_train,
-        CS_sentences_test,
-        CS_labels_train,
-        CS_labels_test,
-    ) = train_test_split(CS_sentences, CS_labels, test_size=args.split)
+    ingredients_train = []
+    labels_train = []
+    ingredients_test = []
+    ingredients_test_source = []
+    labels_test = []
 
-    ingredients_train = NYT_sentences_train + SF_sentences_train + CS_sentences_train
-    labels_train = NYT_labels_train + SF_labels_train + CS_labels_train
-    ingredients_test = NYT_sentences_test + SF_sentences_test + CS_sentences_test
-    ingredients_test_source = (
-        ["NYT"] * len(NYT_sentences_test)
-        + ["SF"] * len(SF_sentences_test)
-        + ["CS"] * len(CS_sentences_test)
-    )
-    labels_test = NYT_labels_test + SF_labels_test + CS_labels_test
+    for dataset in args.datasets:
+        dataset_id = Path(dataset).name.split("-")[0]
+        dataset_sents, dataset_labels = load_csv(dataset, args.number)
+
+        # Split the data into training and testing sets
+        (sents_train, sents_test, lbls_train, lbls_test) = train_test_split(
+            dataset_sents, dataset_labels, test_size=args.split
+        )
+
+        ingredients_train.extend(sents_train)
+        labels_train.extend(lbls_train)
+        ingredients_test.extend(sents_test)
+        labels_test.extend(lbls_test)
+        ingredients_test_source.extend([dataset_id] * len(sents_test))
+
     print(f"[INFO] {len(ingredients_train)+len(ingredients_test):,} total vectors")
     print(f"[INFO] {len(ingredients_train):,} training vectors.")
     print(f"[INFO] {len(ingredients_test):,} testing vectors.")
@@ -350,7 +344,7 @@ if __name__ == "__main__":
         f"\tPredicted in test data: {pred_label_count['OTHER']} ({pred_other_pc:.2f}%)"
     )
 
-    if args.detailed_results:
+    if args.html:
         test_results_to_html(
             ingredients_test,
             y_test,
