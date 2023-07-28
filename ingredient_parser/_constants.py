@@ -63,6 +63,7 @@ UNITS = {
     "racks": "rack",
     "rashers": "rasher",
     "rectangles": "rectangle",
+    "ribs": "rib",
     "quarts": "quart",
     "scoops": "scoop",
     "segments": "segment",
