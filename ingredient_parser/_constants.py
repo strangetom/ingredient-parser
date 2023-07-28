@@ -112,7 +112,6 @@ AMBIGUOUS_UNITS.extend(_ambiguous_units_alt_forms)
 
 # Strings and their numeric representation
 STRING_NUMBERS = {
-    "half": "0.5",
     "one": "1",
     "two": "2",
     "three": "3",
