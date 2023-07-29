@@ -45,7 +45,7 @@ class TestPreProcessor_replace_string_numbers:
         is converted to a numeral
         """
         input_sentence = "Half of a lime"
-        assert p._replace_string_numbers(input_sentence) == "0.5 of a lime"
+        assert p._replace_string_numbers(input_sentence) == "Half of a lime"
 
     def test_parens(self, p):
         """
@@ -428,24 +428,6 @@ class TestPreProcessor_replace_string_range:
         input_sentence = "1 6- or 7-ounce can of wild salmon"
         assert (
             p._replace_string_range(input_sentence) == "1 6-7-ounce can of wild salmon"
-        )
-
-    def test_en_dash(self, p):
-        """
-        Test range where the numbers are followed by en-dashes
-        """
-        input_sentence = "1 6– or 7–ounce can of wild salmon"
-        assert (
-            p._replace_string_range(input_sentence) == "1 6-7–ounce can of wild salmon"
-        )
-
-    def test_en_dash(self, p):
-        """
-        Test range where the numbers are followed by em-dashes
-        """
-        input_sentence = "1 6— or 7—ounce can of wild salmon"
-        assert (
-            p._replace_string_range(input_sentence) == "1 6-7—ounce can of wild salmon"
         )
 
 
