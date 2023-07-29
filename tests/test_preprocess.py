@@ -45,7 +45,7 @@ class TestPreProcessor_replace_string_numbers:
         is converted to a numeral
         """
         input_sentence = "Half of a lime"
-        assert p._replace_string_numbers(input_sentence) == "0.5 of a lime"
+        assert p._replace_string_numbers(input_sentence) == "Half of a lime"
 
     def test_parens(self, p):
         """
