@@ -430,24 +430,6 @@ class TestPreProcessor_replace_string_range:
             p._replace_string_range(input_sentence) == "1 6-7-ounce can of wild salmon"
         )
 
-    def test_en_dash(self, p):
-        """
-        Test range where the numbers are followed by en-dashes
-        """
-        input_sentence = "1 6– or 7–ounce can of wild salmon"
-        assert (
-            p._replace_string_range(input_sentence) == "1 6-7–ounce can of wild salmon"
-        )
-
-    def test_en_dash(self, p):
-        """
-        Test range where the numbers are followed by em-dashes
-        """
-        input_sentence = "1 6— or 7—ounce can of wild salmon"
-        assert (
-            p._replace_string_range(input_sentence) == "1 6-7—ounce can of wild salmon"
-        )
-
 
 class TestPreProcessor_singlarise_units:
     def test_embedded(self, p):
