@@ -62,6 +62,7 @@ UNITS = {
     "pounds": "pound",
     "racks": "rack",
     "rashers": "rasher",
+    "recipes": "recipe",
     "rectangles": "rectangle",
     "ribs": "rib",
     "quarts": "quart",
@@ -85,6 +86,7 @@ UNITS = {
     "tsps": "tsp",
     "twists": "twist",
     "wedges": "wedge",
+    "wheels": "wheel",
 }
 # Generate capitalized version of each entry in the UNITS dictionary
 _capitalized_units = {}
