@@ -2,7 +2,8 @@
 
 import argparse
 
-from train import load_csv, match_labels
+from train import match_labels
+from training_utils import load_csv
 from ingredient_parser import PreProcessor
 
 

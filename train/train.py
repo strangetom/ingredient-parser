@@ -12,6 +12,7 @@ from sklearn.model_selection import train_test_split
 from test_results_to_html import test_results_to_html
 
 from ingredient_parser import PreProcessor
+from training_utils import load_csv
 
 
 @dataclass
@@ -22,50 +23,6 @@ class Stats:
     correct_sentences: int
     total_words: int
     correct_words: int
-
-
-def load_csv(
-    csv_filename: str, max_rows: int
-) -> tuple[list[str], list[dict[str, str]]]:
-    """Load csv file generated py ```generate_training_testing_csv.py``` and parse
-    contents into ingredients and labels lists
-
-    Parameters
-    ----------
-    csv_filename : str
-        Name of csv file
-    max_rows : int
-        Maximum number of rows to read
-
-    Returns
-    -------
-    tuple[list[str], list[dict[str, str]]]
-        List of ingredient strings
-    list[dict[str, str]]
-        List of dictionaries, each dictionary the ingredient labels
-    """
-    if "cookstr" in csv_filename:
-        max_rows = 4000
-
-    labels, sentences = [], []
-    with open(csv_filename, "r") as f:
-        reader = csv.reader(f)
-        next(reader)  # skip first row
-        for i, row in enumerate(reader):
-            sentences.append(row[0])
-            labels.append(
-                {
-                    "name": row[1].strip().lower(),
-                    "quantity": row[2].strip().lower(),
-                    "unit": row[3].strip().lower(),
-                    "comment": row[4].strip().lower(),
-                }
-            )
-
-            if i == (max_rows - 1):
-                break
-
-    return sentences, labels
 
 
 def match_labels(tokenized_sentence: list[str], labels: dict[str, str]) -> list[str]:
