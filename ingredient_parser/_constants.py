@@ -84,6 +84,7 @@ UNITS = {
     "strips": "strip",
     "tablespoons": "tablespoon",
     "tbsps": "tbsp",
+    "tbs": "tb",
     "teaspoons": "teaspoon",
     "tsps": "tsp",
     "twists": "twist",
