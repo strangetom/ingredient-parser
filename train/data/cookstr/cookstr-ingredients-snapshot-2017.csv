@@ -230,7 +230,7 @@ Vegetable shortening for greasing the pan,Vegetable shortening,,,for greasing th
 1 cup coarsely chopped sweet onion,sweet onion,1,cup,coarsely chopped 
 "1 large yellow onion, cut into ½-inch dice (about 2 cups)",yellow onion,1,large,cut into 0.5-inch dice (about 2 cup)
 4 good knobs of butter,butter,4,good knob,of
-"2 celery ribs, strings removed, chopped",celery ribs,2,,"strings removed, chopped"
+"2 celery ribs, strings removed, chopped",celery,2,rib,"strings removed, chopped"
 1 tbsp (15 mL) grated ginger root,ginger root,1,tbsp,grated (15 mL)
 "2 large, black-ripe plantains, peeled and cut into ½-inch cubes",plantains,2,large,"black-ripe, peeled and cut into 0.5-inch cube"
 1/3 cup brewed coffee,brewed coffee,0.333,cup,
@@ -450,7 +450,7 @@ About 1 cup grated Pecorino Romano or Parmesan cheese,Pecorino Romano or Parmesa
 1 small onion (for about ½ cup chopped),onion,1,small,(for about 0.5 cup chopped)
 1 large onion diced,onion,1,large,diced
 1/4 cup sweet paprika,sweet paprika,0.25,cup,
-"1 celery rib, cut into large pieces",celery rib,1,,cut into large piece
+"1 celery rib, cut into large pieces",celery,1,rib,cut into large piece
 ¼ cup tarragon vinegar,tarragon vinegar,0.25,cup,
 "2 lb (900 g) paleron of beef or same amount of shoulder or neck, cut into 1½-inch (4-cm) pieces",paleron of beef or same amount of shoulder or neck,2,lb,(900 g)  cut into 1.5-inch (4-cm) piece
 "¼ teaspoon cumin seeds, crushed",cumin seeds,0.25,teaspoon,crushed
@@ -546,7 +546,7 @@ Chopped fresh parsley and/or cilantro (coriander),fresh parsley and/or cilantro 
 1 pinch of salt,salt,1,pinch,of
 "6 thin asparagus spears, tough ends and tips removed",asparagus spears,6,thin,tough ends and tips removed
 1/3 cup Dutch-processed cocoa powder,Dutch-processed cocoa powder,0.333,cup,
-About 3½ to 4 cups unbleached all-purpose flour,all-purpose flour,3.5-4,cup,About 
+About 3½ to 4 cups unbleached all-purpose flour,all-purpose flour,3.5-4,cup,About unbleached
 1 cup fresh raspberries,fresh raspberries,1,cup,
 ½ cup coarsely chopped cilantro,cilantro,0.5,cup,coarsely chopped 
 "½ teaspoon nutmeg, optional",nutmeg,0.5,teaspoon,optional
@@ -1618,7 +1618,7 @@ Additional sugar for sprinkling the dough,Additional sugar for sprinkling the do
 "1 fresh thyme sprig, or ½ teaspoon dried leaf thyme (optional)",fresh thyme sprig,1,,or 0.5 teaspoon dried leaf thyme (optional)
 ¼ cup Cognac,Cognac,0.25,cup,
 "2 extra-large or jumbo eggs, lightly beaten",eggs,2,extra-large ,"or jumbo, lightly beaten"
-"One 3- to 4-pound 7-bone roast or boneless chuck rump roast, patted dry",7-bone roast or boneless chuck rump roast,1,,"3-4-pound, patted dry"
+"One 3- to 4-pound T-bone roast or boneless chuck rump roast, patted dry",T-bone roast or boneless chuck rump roast,1,,"3-4-pound, patted dry"
 "6- to 8-inch-long piece of Toulouse-type sausage (fresh pork sausage), cut into 6 to 8 pieces",Toulouse-type sausage (fresh pork sausage),,,"6-8-inch-long piece of, cut into 6-8 piece"
 "1 large leek (white and green parts), roughly chopped",leek,1,large,"(white and green parts), roughly chopped"
 1/3 cup organic palm fruit oil shortening,organic palm fruit oil shortening,0.333,cup,
@@ -2499,7 +2499,7 @@ Juice of 1 lemon or lime,lemon or lime,1,,Juice of
 "½ fresh hot chile pepper, preferably Scotch bonnet, seeded and minced",fresh hot chile pepper,0.5,,"preferably Scotch bonnet, seeded and minced"
 2 teaspoons ground coriander,ground coriander,2,teaspoon,
 1½ pounds italian sausage,italian sausage,1.5,pound,
-"1¾ pounds lean, boneless beef stew meat, chuck or bottom round, trimmed of fat and cut into 1½-inch chunks",lean,1.75,pound,"boneless beef stew meat, chuck or bottom round, trimmed of fat and cut into 1.5-inch chunk"
+"1¾ pounds lean, boneless beef stew meat, chuck or bottom round, trimmed of fat and cut into 1½-inch chunks",boneless beef stew meat,1.75,pound,"lean, chuck or bottom round, trimmed of fat and cut into 1.5-inch chunk"
 2 tablespoons mango or other store-bought chutney,mango,2,tablespoon,or other store-bought chutney
 ½ cup (4 ounces/113 grams) unsalted butter,unsalted butter,0.5,cup,(4 ounce/113 gram)
 "2 pounds (about 15) firm ripe green figs, sterns trimmed, cut into ½-inch-thick wedges",firm green figs,2,pound,"ripe, (about 15) sterns trimmed, cut into 0.5-inch-thick wedge"
@@ -3302,7 +3302,7 @@ Lemon wedqes,Lemon wedqes,,,
 "7 medium-size very firm (almost unripe) yellow or green tomatoes, left whole",yellow or green tomatoes,7,medium-size,very firm (almost unripe) left whole
 ½ cup diced zucchini,diced zucchini,0.5,cup,
 "2 to 3 small kohlrabi, stem, root and ends trimmed, peeled and quartered",kohlrabi,2-3,small,"stem, root and ends trimmed, peeled and quartered"
-"1 pound boneless, skinless chicken breast halves or thighs, cut into ¾-inch pieces",boneless,1,pound,"skinless chicken breast halves or thighs, cut into 0.75-inch piece"
+"1 pound boneless, skinless chicken breast halves or thighs, cut into ¾-inch pieces",boneless skinless chicken breast halves ,1,pound,"or thighs, cut into 0.75-inch piece"
 A good lug of olive oil,olive oil,,,A good lug of 
 ¾ cup chopped walnuts,walnuts,0.75,cup,chopped 
 2 tbsp soy sauce 25 mL,soy sauce,2,tbsp,25 mL
@@ -4326,7 +4326,7 @@ Cooked whole artichokes,artichokes,,,Cooked whole
 "1/3 pound Reblochon cheese or any soft, washed-rind cheese such as Brie)",Reblochon cheese or any soft,0.333,pound,washed-rind cheese such as Brie)
 "3 whole red pimientos, diced",red pimientos,3,,"whole, diced"
 small handful freshly chopped mint,mint,,small handful ,freshly chopped 
-"5 celery ribs, cut into ½-inch dice",celery ribs,5,,cut into 0.5-inch dice
+"5 celery ribs, cut into ½-inch dice",celery,5,rib,cut into 0.5-inch dice
 Hot pepper sauce,Hot pepper sauce,,,
 1/3 cup plus 1 tablespoon heavy cream,heavy cream,0.333,cup,plus 1 tablespoon 
 3 tablespoons fermented soybean paste (tuong in Vietnamese; dao jiao in Thai),fermented soybean paste,3,tablespoon,(tuong in Vietnamese; dao jiao in Thai)
@@ -5198,7 +5198,7 @@ Creme Anglaise,Creme Anglaise,,,
 "10 cloves garlic, peeled and left whole",garlic,10,clove,peeled and left whole
 5 cloves garlic,garlic,5,clove,
 2 tbsp (25 mL) butter,butter,2,tbsp,(25 mL)
-"4 ounces skinless, boneless chicken breast, thinly sliced across the grain",skinless,4,ounce,"boneless chicken breast, thinly sliced across the grain"
+"4 ounces skinless, boneless chicken breast, thinly sliced across the grain",skinless boneless chicken breast,4,ounce,thinly sliced across the grain
 "1 dried red chili pepper, cut in 3 pieces, seeds removed",dried red chili pepper,1,,"cut in 3 piece, seeds removed"
 "¼ cup sesame seeds, lightly toasted",sesame seeds,0.25,cup,lightly toasted
 About 2/3 cup Fine Dried Bread Crumbs,Bread Crumbs,0.667,cup,"About, Fine Dried "
@@ -5630,7 +5630,7 @@ Salt and fresh-ground black pepper,Salt and fresh-ground black pepper,,,
 "1 medium orange bell pepper, cut into ¼-inch dice (1½ cups)",orange bell pepper,1,medium,cut into 0.25-inch dice (1.5 cup)
 1 tablespoon whiskey,whiskey,1,tablespoon,
 "2 medium onions, cut into ¼-inch dice",onions,2,medium,cut into 0.25-inch dice
-"1¼ pounds boneless, skinless chicken breasts, cut into 1½-inch cubes",boneless,1.25,pound,"skinless chicken breasts, cut into 1.5-inch cube"
+"1¼ pounds boneless, skinless chicken breasts, cut into 1½-inch cubes","boneless, skinless chicken breasts",1.25,pound,cut into 1.5-inch cube
 2 to 4 tablespoons unsalted or clarified butter (see Notes),unsalted or clarified butter,2-4,tablespoon,(see Notes)
 2 cups soybean or other vegetable oil,soybean or other vegetable oil,2,cup,
 2 sprigs fresh oregano or marjoram,fresh oregano or marjoram,2,sprig,
@@ -6104,7 +6104,7 @@ Salt and fresh ground pepper to taste,Salt and fresh ground pepper to taste,,,
 5 cups (1.25 L) chicken broth,chicken broth,5,cup,(1.25 L)
 3 tablespoons dry chicken gravy mix,dry chicken gravy mix,3,tablespoon,
 ½ cup soy sauce,soy sauce,0.5,cup,
-"1 celery rib, cut into ½-inch-thick slices",celery rib,1,,cut into 0.5-inch-thick slice
+"1 celery rib, cut into ½-inch-thick slices",celery,1,rib,cut into 0.5-inch-thick slice
 1½ tablespoons ketchup,ketchup,1.5,tablespoon,
 "9x5-inch loaf pan, buttered and lined with parchment or wax paper",x5-inches loaves pan,9,,buttered and lined with parchment or wax paper
 Gold or yellow food coloring,Gold or yellow food coloring,,,
@@ -6155,7 +6155,7 @@ Ice cream machine,Ice cream machine,,,
 "1 6-ounce can tuna in olive oil, drained",6-ounce can tuna in olive oil,1,,drained
 "A baking dish or shallow casserole, 9 by 13 inches or similar size","A baking dish or shallow casserole, 9 by 13 inches or similar size",,,
 Maldon or other sea salt,Maldon or other sea salt,,,
-"4 boneless, skinless chicken breasts, medium (about 6 ounces each)",boneless,4,,"skinless chicken breasts, medium (about 6 ounce each)"
+"4 boneless, skinless chicken breasts, medium (about 6 ounces each)","boneless, skinless chicken breasts",4,,medium (about 6 ounce each)
 "2 medium carrots, peeled and cut into 2-inch pieces",carrots,2,medium,peeled and cut into 2-inch piece
 1 cup (4 ½ ounces/128 grams) all-purpose flour,all-purpose flour,1,cup,(4.5 ounce/128 gram)
 "1½ pounds firm tofu, drained and cut in half through the thickness",firm tofu,1.5,pound,drained and cut in half through the thickness
@@ -6419,7 +6419,7 @@ Two 14 to 16 ounce blocks firm tofu,14-16 ounces blocks firm tofu,2,,
 "1½ cups hot Chicken Stock or canned reduced-sodium chicken broth, or as needed",hot Chicken Stock or canned reduced-sodium chicken broth,1.5,cup,or as needed
 "6 ounces bourbon, rye, scotch, or brandy",bourbon,6,ounce,"rye, scotch, or brandy"
 A pat of butter,A pat of butter,,,
-½ cup currants or golden raisins (optional),currants or golden raisins (optional),0.5,cup,
+½ cup currants or golden raisins (optional),currants or golden raisins,0.5,cup,(optional)
 "1 small red bell pepper, seeded and cut into 1-inch squares",red bell pepper,1,small,seeded and cut into 1-inch square
 "1–2 shallots, peeled and finely chopped (about 2 tablespoons)",–2 shallots,1,,peeled and finely chopped (about 2 tablespoon)
 "4 cups (250 g) finely chopped fresh herbs (dill, chives, flat-leafed parsley, and cilantro)",finely chopped fresh herbs (dill,4,cup,"(250 g), chives, flat-leafed parsley, and cilantro)"
@@ -6643,7 +6643,7 @@ Sour cream or crème fraîche,Sour cream or crème fraîche,,,
 "1 or 2 celery stalks, cut into bite-size pieces",celery,1-2,stalk,cut into bite-size piece
 "12 oz (350g) char-sui pork, thinly sliced",char-sui pork,12,oz,"(350 g), thinly sliced"
 "4 ounces unsweetened chocolate, finely chopped",unsweetened chocolate,4,ounce,finely chopped
-"Two 5- to 6-ounce boneless, skinless chicken breasts",5-6-ounces boneless,2,,skinless chicken breasts
+"Two 5- to 6-ounce boneless, skinless chicken breasts","boneless, skinless chicken breasts",2,,5-6-ounces
 "1½ cups flour (scooped, see Notes)",flour (scooped,1.5,cup,see Notes)
 2 ounces (¼ cup) extra virgin olive oil,( 0.25 cups) extra virgin olive oil,2,ounce,
 "½ cup (125 mL) pecans, toasted (see notes) and chopped",pecans,0.5,cup,"(125 mL), toasted (see notes) and chopped"
@@ -6719,7 +6719,7 @@ Braised Kale,Braised Kale,,,
 1 cup whole-milk cottage cheese,whole-milk cottage cheese,1,cup,
 "1 clove garlic, halved",garlic,1,clove,halved
 1 1/3 cup raisins,raisins,1.333,cup,
-"2 celery ribs, cut into large pieces",celery ribs,2,,cut into large piece
+"2 celery ribs, cut into large pieces",celery,2,rib,cut into large piece
 4 cups cleaned fresh spinach,cleaned fresh spinach,4,cup,
 12 natural-colored glacé cherries,natural-colored glacé cherries,12,,
 3 cups chopped sweet onion,chopped sweet onion,3,cup,
@@ -7198,7 +7198,7 @@ juice of a quarter to half a lemon (to taste),lemon,0.25-0.5,,juice of a a (to t
 ¼ confectioners sugar,confectioners sugar,0.25,,
 ½ cup cilantro,cilantro,0.5,cup,
 2 tsp (10 mL) freshly squeezed lemon juice,lemon juice,2,tsp,(10 mL) freshly squeezed
-"1 boneless, skinless chicken breast, roasted or grilled, chopped",boneless,1,,"skinless chicken breast, roasted or grilled, chopped"
+"1 boneless, skinless chicken breast, roasted or grilled, chopped","boneless, skinless chicken breast",1,,"roasted or grilled, chopped"
 "8 small fresh leeks (about 1 pound), white portion only, trimmed and rinsed",fresh leeks (about 1 pounds),8,small,"white portion only, trimmed and rinsed"
 Surefire Cream Cheese Crust,Surefire Cream Cheese Crust,,,
 1 tbsp molasses,molasses,1,tbsp,
@@ -7724,7 +7724,7 @@ Bunch of fresh thyme,Bunch of fresh thyme,,,
 ½ cup Madeira or port,Madeira or port,0.5,cup,
 Pinch of sugar (see Note),Pinch of sugar (see Note),,,
 1 tablespoon plus 1 teaspoon chopped garlic,plus 1 teaspoon chopped garlic,1,tablespoon,
-"¾ pound boneless, skinless deli chicken, diced",boneless,0.75,pound,"skinless deli chicken, diced"
+"¾ pound boneless, skinless deli chicken, diced","boneless, skinless deli chicken",0.75,pound,diced
 Milk chocolate for shavings (optional),Milk chocolate for shavings (optional),,,
 3 dozen small pearl onions,pearl onions,3,small,dozen
 1 tablespoon rice syrup,rice syrup,1,tablespoon,
@@ -7828,7 +7828,7 @@ Chopped parsley,Chopped parsley,,,
 1 cup (250 ml) elbow or wagon wheel macaroni,elbow or wagon wheel macaroni,1,cup,(250 ml)
 "12 large basil leaves, cut into fine ribbons",basil leaves,12,large,cut into fine ribbons
 ½ cup fruity white wine,fruity white wine,0.5,cup,
-"1½ pounds boneless, skinned chicken breasts, thighs or a combination, cut into 1-inch chunks",boneless,1.5,pound,"skinned chicken breasts, thighs or a combination, cut into 1-inch chunk"
+"1½ pounds boneless, skinned chicken breasts, thighs or a combination, cut into 1-inch chunks","boneless, skinned chicken breasts",1.5,pound,"thighs or a combination, cut into 1-inch chunk"
 1 tablespoon black peppercorns,black peppercorns,1,tablespoon,
 "3 tomatoes, peeled, seeded and chopped",tomatoes,3,,"peeled, seeded and chopped"
 "2 quarts seltzer, as needed",seltzer,2,quart,as needed
@@ -8468,7 +8468,7 @@ Freshly grated Parmigiano-Reggiano,Freshly grated Parmigiano-Reggiano,,,
 "1 pound Idaho potatoes, peeled and sliced 1/8 inch thick (3 cups)",Idaho potatoes,1,pound,peeled and sliced 0.125 inch thick (3 cup)
 1¼ cups (½ pound) dried black beans,( 0.5 pounds) dried black beans,1.25,cup,
 12 thin slices prosciutto di Parma or San Daniele,prosciutto di Parma or San Daniele,12,thin slice,
-"2 celery ribs, chopped (about 11/3 cups)",celery ribs,2,,chopped (about 3.667 cup)
+"2 celery ribs, chopped (about 11/3 cups)",celery,2,rib,chopped (about 3.667 cup)
 1 lb (500 g) rapini (broccoli rabe),rapini (broccoli rabe),1,lb,(500 g)
 "½ to 1 teaspoon salt, or to taste",-1 teaspoons salt,0.5,,or to taste
 1 teaspoon crumbled or powdered dried sage,crumbled or powdered dried sage,1,teaspoon,
@@ -9037,7 +9037,7 @@ Corn oil,Corn oil,,,
 "8 ounces shiitakes, stemmed, cleaned, and cut in half",shiitakes,8,ounce,"stemmed, cleaned, and cut in half"
 "3 green onions, finely chopped",green onions,3,,finely chopped
 One recipe Vegetable Stock,recipe Vegetable Stock,1,,
-"1 large celery rib, cut into ¼-inch-thick slices",celery rib,1,large,cut into 0.25-inch-thick slice
+"1 large celery rib, cut into ¼-inch-thick slices",celery,1,large rib,cut into 0.25-inch-thick slice
 "2 whole scallions, crushed",whole scallions,2,,crushed
 "1 bouquet garni: 2 bay leaves and a bunch of fresh thyme, tied together with household string",bouquet garni: 2 bay leaves and a bunch of fresh thyme,1,,tied together with household string
 ½ cup (4 ounces/113 grams) fresh lemon juice,fresh lemon juice,0.5,cup,(4 ounce/113 gram)
@@ -11249,7 +11249,7 @@ About 1 cup olive oil,About 1 cup olive oil,,,
 ¾ cup red lentils,red lentils,0.75,cup,
 1½ teaspoons toasted (dark) sesame oil,toasted (dark) sesame oil,1.5,teaspoon,
 "3 garlic cloves, minced (about 1½ teaspoons)",garlic cloves,3,,minced (about 1.5 teaspoon)
-"1 celery rib, minced",celery rib,1,,minced
+"1 celery rib, minced",celery,1,rib,minced
 11?2 cups (12 ounces) heavy cream,?2 cups heavy cream,11,,(12 ounce)
 "1 pound ripe plum tomatoes, cored and cut lengthwise in half",ripe plum tomatoes,1,pound,cored and cut lengthwise in half
 "1 extra large egg yolk, at room temperature",extra large egg yolk,1,,at room temperature
@@ -11660,7 +11660,7 @@ A 3½-to-4-pound chicken,A 3½-to-4-pound chicken,,,
 "4 shallots, thinly sliced",shallots,4,,thinly sliced
 7 large eggs,eggs,7,large,
 1½ teaspoons minced shallot,minced shallot,1.5,teaspoon,
-3 envelopes unflavored gelatin (about 3 tablespoons),unflavored gelatin (about 3 tablespoons),3,envelope,
+3 envelopes unflavored gelatin (about 3 tablespoons),unflavored gelatin,3,envelope,(about 3 tablespoons)
 1 recipe basic or fried polenta,recipe basic or fried polenta,1,,
 1 cup coarsely chopped pecans toasted,coarsely chopped pecans toasted,1,cup,
 "200g/7oz chard or spinach, washed and roughly sliced (including stalks)",g/7 oz chard or spinach,200,,washed and roughly sliced (including stalk)
@@ -11824,7 +11824,7 @@ Banana Cake,Banana Cake,,,
 "3 to 4 ounces assorted (black, salmon, and golden) caviars",assorted (black,3-4,ounce,"salmon, and golden) caviars"
 ¼ cup red or white wine vinegar,red or white wine vinegar,0.25,cup,
 "2 celery stalks, with leaves, chopped",celery,2,stalk,"with leaf, chopped"
-"2 celery ribs, cut in 1-inch chunks (about 2 cups)",celery ribs,2,,cut in 1-inch chunk (about 2 cup)
+"2 celery ribs, cut in 1-inch chunks (about 2 cups)",celery,2,rib,cut in 1-inch chunk (about 2 cup)
 "1 plump garlic clove, minced",plump garlic clove,1,,minced
 "Bouquet garni, made with 1 bay leaf 3 sprigs parsley and 3 sprigs fresh thyme tied in cheesecloth","Bouquet garni, made with 1 bay leaf 3 sprigs parsley and 3 sprigs fresh thyme tied in cheesecloth",,,
 ½ cup sunflower seed butter,sunflower seed butter,0.5,cup,
@@ -12016,7 +12016,7 @@ Paprika (optional),Paprika (optional),,,
 "½ cucumber, seeded and diced",cucumber,0.5,,seeded and diced
 2 tablespoons Cognac (optional),Cognac (optional),2,tablespoon,
 "3 garlic cloves, crushed, or more to taste",garlic cloves,3,,"crushed, or more to taste"
-"1 bouquet garni (6 parsley stalks, 1 celery rib, 1 bay leaf, 5 black peppercorns, 3 fresh thyme sprigs, tied in cheesecloth)",bouquet garni (6 parsley stalks,1,,"1 celery rib, 1 bay leaf, 5 black peppercorns, 3 fresh thyme sprig, tied in cheesecloth)"
+"1 bouquet garni (6 parsley stalks, 1 celery rib, 1 bay leaf, 5 black peppercorns, 3 fresh thyme sprigs, tied in cheesecloth)",bouquet garni,1,,"(6 parsley stalks, 1 celery rib, 1 bay leaf, 5 black peppercorns, 3 fresh thyme sprig, tied in cheesecloth)"
 "1 large onion, thinly sliced into rings",onion,1,large,thinly sliced into rings
 2 cups (packed) dark brown sugar,(packed) dark brown sugar,2,cup,
 1 teaspoon chopped fresh thyme leaves,chopped fresh thyme leaves,1,teaspoon,
@@ -12141,7 +12141,7 @@ Scant ¼ cup cashew nuts,Scant ¼ cup cashew nuts,,,
 "1 onion, studded with 3 whole cloves",onion,1,,studded with 3 whole clove
 1 pound ground lamb or ground beef round,ground lamb or ground beef round,1,pound,
 4 tablespoons seasoned rice vinegar,rice vinegar,4,tablespoon,seasoned 
-"Celery ribs, cleaned and trimmed, for garnish","Celery ribs, cleaned and trimmed, for garnish",,,
+"Celery ribs, cleaned and trimmed, for garnish",Celery,,rib,"cleaned and trimmed, for garnish"
 "1 tablespoon minced Serrano ham or prosciutto, cut from a 1/8-inch-thick slice",minced Serrano ham or prosciutto,1,tablespoon,cut from a 0.125-inch-thick slice
 "2 yellow onions, peeled and quartered",yellow onions,2,,peeled and quartered
 ½ cup pecans,pecans,0.5,cup,
@@ -12470,7 +12470,6 @@ Pork lard or vegetable oil for frying,Pork lard or vegetable oil for frying,,,
 "1/3 cup sugar, divided",sugar,0.333,cup,divided
 "Sea salt and pepper, to taste","Sea salt and pepper, to taste",,,
 "1¾ lb (800g) fresh strawberries, raspberries, and/or blueberries",fresh strawberries,1.75,lb,"(800 g), raspberries, and/or blueberries"
-"1/2 carrot, cut into medium dice1/2 celery rib, cut into medium dice",carrot,0.5,,"cut into medium dice0.5 celery rib, cut into medium dice"
 2-quart steamed pudding mold with cover or 2-quart pudding basin and electric mixer,-quarts steamed pudding mold with cover or 2-quarts pudding basin and electric mixer,2,,
 7 homegrown tomatoes,homegrown tomatoes,7,,
 1 fresh pineapple for garnish,fresh pineapple for garnish,1,,
@@ -13740,7 +13739,7 @@ Pickapeppa,Pickapeppa,,,
 "½ cup unsweetened flaked or shredded coconut, toasted 125 mL",unsweetened flaked or shredded coconut,0.5,cup,toasted 125 mL
 2 cups dried black mission figs (about 10 ounces),dried black mission figs (about 10 ounces),2,cup,
 "3 boneless, skinless chicken breast halves",boneless,3,,skinless chicken breast halves
-"1 celery rib, chopped",celery rib,1,,chopped
+"1 celery rib, chopped",celery,1,rib,chopped
 1 slice Scotch bonnet pepper (any color),Scotch bonnet pepper (any color),1,slice,
 "¼ cup cored, seeded, and minced green pepper",cored,0.25,cup,"seeded, and minced green pepper"
 1¼ cups hulled and halved strawberries,hulled and halved strawberries,1.25,cup,
@@ -14071,7 +14070,7 @@ Freshly ground white pepper to taste,Freshly ground white pepper to taste,,,
 "6 slices bacon, cooked, drained and crumbled (optional)",bacon,6,slice,"cooked, drained and crumbled (optional)"
 "10 scallions, ends trimmed and cut into 1-inch lengths",scallions,10,,ends trimmed and cut into 1-inch length
 2 teaspoons tomato paste,tomato paste,2,teaspoon,
-"1 small celery rib with leaves, chopped",celery rib with leaves,1,small,chopped
+"1 small celery rib with leaves, chopped",celery with leaves,1,small rib,chopped
 "6 ounces Italian Fontina cheese, coarsely grated",Italian Fontina cheese,6,ounce,coarsely grated
 3½ cups bread flour,bread flour,3.5,cup,
 1 cup (approximately 4 ounces) chopped blanched almonds,(approximately 4 ounces) chopped blanched almonds,1,cup,
@@ -14411,7 +14410,7 @@ Eight 6- or 7-inch sun-dried tomato crêpes,6-7-inches sun-dried tomato crêpes,
 12 oz (350g) chicken livers,chicken livers,12,oz,(350 g)
 Coarse sea salt or kosher salt to taste,Coarse sea salt or kosher salt to taste,,,
 Lemon wedges or vinegar (optional),Lemon wedges or vinegar (optional),,,
-"2 celery ribs, finely chopped",celery ribs,2,,finely chopped
+"2 celery ribs, finely chopped",celery,2,rib,finely chopped
 2 sourdough hamburger buns or kaiser rolls,sourdough hamburger buns or kaiser rolls,2,,
 1 teaspoon dried basil (optional),dried basil (optional),1,teaspoon,
 "Sanding sugar, optional","Sanding sugar, optional",,,
@@ -15538,7 +15537,7 @@ Fresh thyme for decoration,Fresh thyme for decoration,,,
 "1 bunch watercress, stems trimmed",watercress,1,bunch,stem trimmed
 "1/3 cup creamy Roquefort cheese, at room temperature",creamy Roquefort cheese,0.333,cup,at room temperature
 "8 slices of white bread, preferably day-old",of white bread,8,slice,preferably day-old
-"3 celery ribs with leaves, coarsely chopped",celery ribs with leaves,3,,coarsely chopped
+"3 celery ribs with leaves, coarsely chopped",celery with leaves,3,rib,coarsely chopped
 8 ounces fresh shiitake mushrooms,fresh shiitake mushrooms,8,ounce,
 1 teaspoon brandy,brandy,1,teaspoon,
 5 cups finely chopped kale,finely chopped kale,5,cup,
@@ -17484,7 +17483,7 @@ Butter for the pan,Butter for the pan,,,
 "2 cups red kidney beans, cooked or canned, drained",red kidney beans,2,cup,"cooked or canned, drained"
 ½ cup julienned jicama,julienned jicama,0.5,cup,
 "2 baking or Idaho potatoes (about 1½ pounds), peeled and cut into quarters",baking or Idaho potatoes (about 1.5 pounds),2,,peeled and cut into quarters
-"2 celery ribs, with leaves",celery ribs,2,,with leaf
+"2 celery ribs, with leaves",celery,2,rib,with leaf
 2 tablespoons chopped peanuts,chopped peanuts,2,tablespoon,
 "1 medium-size onion, finely chopped",onion,1,medium-size,finely chopped
 5 ounces Gorgonzola cheese,Gorgonzola cheese,5,ounce,
@@ -17821,7 +17820,7 @@ Kosher or sea salt to taste,Kosher or sea salt to taste,,,
 2 sprigs fresh sage,fresh sage,2,sprig,
 1 teaspoon minced fresh marjoram,minced fresh marjoram,1,teaspoon,
 2 handfuls mesclun salad mix,mesclun salad mix,2,handful,
-"2 celery ribs, cut into 1-inch pieces (1 cup)",celery ribs,2,,cut into 1-inch piece (1 cup)
+"2 celery ribs, cut into 1-inch pieces (1 cup)",celery,2,rib,cut into 1-inch piece (1 cup)
 3 tablespoons (45 mL) ice water,ice water,3,tablespoon,(45 mL)
 Crumbled crisp bacon,Crumbled crisp bacon,,,
 "3 eggs, at room temperature",eggs,3,,at room temperature
@@ -18389,7 +18388,7 @@ One 14-ounce can chicken broth,14-ounce can chicken broth,1,,
 "1/3 cup fresh basil, coasrsely chopped",fresh basil,0.333,cup,coasrsely chopped
 6½ cups unbleached flour,unbleached flour,6.5,cup,
 "1 small yellow summer squash, cut into ¼-inch strips",yellow summer squash,1,small,cut into 0.25-inch strip
-"1 celery rib, sliced",celery rib,1,,sliced
+"1 celery rib, sliced",celery,1,rib,sliced
 ½ tablespoon olive oil,olive oil,0.5,tablespoon,
 "½ cup (125 mL) large green olives, pitted and roughly chopped",large green olives,0.5,cup,"(125 mL), pitted and roughly chopped"
 1¼ tsp (6 mL) baking soda,baking soda,1.25,tsp,(6 mL)
@@ -18688,7 +18687,7 @@ Sesame crackers,Sesame crackers,,,
 "2 cups canola oil, or enough to reach halfway up the cake when frying",canola oil,2,cup,or enough to reach halfway up the cake when frying
 "2 large white onions, halved and thinly sliced",white onions,2,large,halved and thinly sliced
 "2 sticks butter (½ pound), at room temperature",butter ( 0.5 pounds),2,stick,at room temperature
-"3 celery ribs with leaves, chopped fine",celery ribs with leaves,3,,chopped fine
+"3 celery ribs with leaves, chopped fine",celery with leaves,3,rib,chopped fine
 1 quart red currant juice (see Note),red currant juice (see Note),1,quart,
 "1/3 cup chopped pecans, toasted",chopped pecans,0.333,cup,toasted
 "3 cloves garlic, minced, plus 5 whole cloves",garlic,3,clove,"minced, plus 5 whole clove"
@@ -20812,7 +20811,7 @@ Bread basket,Bread basket,,,
 "1 bunch (6) green onions, chopped",(6) green onions,1,bunch,chopped
 Salt and lots of freshly ground pepper to taste,Salt and lots of freshly ground pepper to taste,,,
 1 cup (6 ounces) whole peeled chestnuts,whole peeled chestnuts,1,cup,(6 ounce)
-"2 celery ribs, diced",celery ribs,2,,diced
+"2 celery ribs, diced",celery,2,rib,diced
 2 teaspoons sugar,sugar,2,teaspoon,
 "2 teaspoons Chinese salted black beans (see Notes), rinsed and drained",Chinese salted black beans (see Notes),2,teaspoon,rinsed and drained
 "3 green bell peppers, cored, seeds and pith removed, and thinly sliced",green bell peppers,3,,"cored, seeds and pith removed, and thinly sliced"
@@ -21095,7 +21094,7 @@ Dash freshly ground pepper,Dash freshly ground pepper,,,
 "10 medium-size fresh, ripe plum tomatoes, peeled and coarsely chopped",fresh,10,medium-size,"ripe plum tomatoes, peeled and coarsely chopped"
 Ice,Ice,,,
 "1 clove garlic, minced or pressed",garlic,1,clove,minced or pressed
-1 celery rib,celery rib,1,,
+1 celery rib,celery,1,rib,
 "1 large egg white, beaten, for the glaze",egg white,1,large,"beaten, for the glaze"
 "1 pound boneless, skinless red snapper or rockfish fillets, cut into 1-inch pieces",boneless,1,pound,"skinless red snapper or rockfish fillet, cut into 1-inch piece"
 "2 cups plus 3 tablespoons/11 ounces/311 grams unbleached all purpose flour (use only Gold Medal, King Arthur, or Pillsbury)",plus 3 tablespoons/11 ounces/311 grams unbleached all purpose flour (use only Gold Medal,2,cup,"King Arthur, or Pillsbury)"
@@ -23519,7 +23518,7 @@ Mini chocolate chips,Mini chocolate chips,,,
 2 tsp (10 ml) toasted caraway seeds (see tips),toasted caraway seeds (see tips),2,tsp,(10 ml)
 "2 tablespoons plus 2 teaspoons kosher salt, or to taste",plus 2 teaspoons kosher salt,2,tablespoon,or to taste
 "1 large lemon, sliced into 8 rounds",lemon,1,large,sliced into 8 rounds
-"2 celery ribs, including a few leaves",celery ribs,2,,including a few leaf
+"2 celery ribs, including a few leaves",celery,2,rib,including a few leaf
 6 cherry tomatoes,cherry tomatoes,6,,
 1 teaspoon dried sweet basil leaves,dried sweet basil leaves,1,teaspoon,
 "3 large shallots, diced",shallots,3,large,diced
@@ -23801,7 +23800,7 @@ Vegetable oil cooking spray or muffin papers,Vegetable oil cooking spray or muff
 ½ cup Creole mustard,Creole mustard,0.5,cup,
 1/4 cup chicken broth or water,chicken broth or water,0.25,cup,
 4 tbsp lamb or beef stock,lamb or beef stock,4,tbsp,
-"2 celery ribs, cut into 1-inch-long pencil strips",celery ribs,2,,cut into 1-inch-long pencil strip
+"2 celery ribs, cut into 1-inch-long pencil strips",celery,2,rib,cut into 1-inch-long pencil strip
 "4 ounces (115 g) tomatoes, broiled (see Notes)",tomatoes,4,ounce,"(115 g), broiled (see Notes)"
 ½ Tb butter cut into pea-sized dots,Tb butter cut into pea-sized dots,0.5,,
 Sesame seeds,Sesame seeds,,,
@@ -24788,7 +24787,7 @@ Flaxseeds to sprinkle on loaves,Flaxseeds to sprinkle on loaves,,,
 "½ loaf french bread, sliced and toasted",french bread,0.5,loaf,sliced and toasted
 "6 radishes, grated",radishes,6,,grated
 "5 cloves garlic, peeled",garlic,5,clove,peeled
-"4 outer celery ribs, in 6-inch lengths",outer celery ribs,4,,in 6-inch length
+"4 outer celery ribs, in 6-inch lengths",outer celery,4,rib,in 6-inch length
 Chilled 7-UP as needed,Chilled 7-UP as needed,,,
 4½ teaspoons vinegar,vinegar,4.5,teaspoon,
 "¼ cup chopped mint, plus a little extra for garnish",chopped mint,0.25,cup,plus a little extra for garnish
@@ -25357,7 +25356,7 @@ Hot red pepper flakes or freshly ground black pepper to taste,Hot red pepper fla
 "1 carrot, peeled and finely chopped",carrot,1,,peeled and finely chopped
 "1 teaspoon freshly ground black pepper, plus additional to sprinkle over the ribs before cooking",freshly ground black pepper,1,teaspoon,plus additional to sprinkle over the rib before cooking
 Potato purée (recipe follows),Potato purée (recipe follows),,,
-"2 celery ribs, cut into ¼-inch slices",celery ribs,2,,cut into 0.25-inch slice
+"2 celery ribs, cut into ¼-inch slices",celery,2,rib,cut into 0.25-inch slice
 3 tablespoons plus 1 teaspoon vegetable oil,plus 1 teaspoons vegetable oil,3,tablespoon,
 "1 extra-large egg, separated (the white should be chilled)",extra-large egg,1,,separated (the white should be chilled)
 "7 ounces ditalini, tubetti or other small pasta tubes",ditalini,7,ounce,tubetti or other small pasta tubes
@@ -27453,7 +27452,7 @@ One 5-pound brisket (ask for the less fatty first cut),5-pound brisket (ask for 
 ½ cup sofrito (below),sofrito (below),0.5,cup,
 "6 whole green onions, smashed",whole green onions,6,,smashed
 "1 bunch green onions, white and green parts only, cut into 1/8-inch slices",green onions,1,bunch,"white and green parts only, cut into 0.125-inch slice"
-"1 small celery rib, chopped",celery rib,1,small,chopped
+"1 small celery rib, chopped",celery,1,small rib,chopped
 "4 garlic cloves, chopped coarse",garlic cloves,4,,chopped coarse
 1 tablespoon garlic powder,garlic powder,1,tablespoon,
 "5 garlic cloves, crushed",garlic cloves,5,,crushed
@@ -28071,7 +28070,7 @@ Sugar 2 tablespoons plus 3/4 cup (25 grams plus 150 grams),Sugar 2 tablespoons p
 2 tablespoons finely minced shallots,finely minced shallots,2,tablespoon,
 1 tablespoon crispy dried onions or deep-fried scallions for garnish (optional),crispy dried onions or deep-fried scallions for garnish (optional),1,tablespoon,
 "½ cup olive oil, plus extra to cover",olive oil,0.5,cup,plus extra to cover
-"4 inner celery ribs, cut on the diagonal into ½-inch-thick slices",inner celery ribs,4,,cut on the diagonal into 0.5-inch-thick slice
+"4 inner celery ribs, cut on the diagonal into ½-inch-thick slices",inner celery,4,rib,cut on the diagonal into 0.5-inch-thick slice
 "2 Tbs. peanut oil, or vegetable",Tbs. peanut oil,2,,or vegetable
 "2 lemons, peeled, cut into segments, seeded (see headnote)",lemons,2,,"peeled, cut into segment, seeded (see headnote)"
 2 tablespoons Ginger Paste,Ginger Paste,2,tablespoon,
@@ -28568,7 +28567,7 @@ Vegan butter,Vegan butter,,,
 2 teaspoons dried mint,dried mint,2,teaspoon,
 "2 Granny Smith apples, cored, and thinly sliced",Granny Smith apples,2,,"cored, and thinly sliced"
 ½ cup (165 g) sliced cooked pork (optional),sliced cooked pork (optional),0.5,cup,(165 g)
-"1 celery rib, diced",celery rib,1,,diced
+"1 celery rib, diced",celery,1,rib,diced
 "2 oz (60 g) Swiss cheese, thinly sliced",Swiss cheese,2,oz,"(60 g), thinly sliced"
 "4 (4-ounce) beef tenderloin medallions, trimmed (The star of the show.)",beef tenderloin medallions,4,,"(4-ounce), trimmed (The star of the show.)"
 4 Tbs (½ stick) butter,Tbs ( 0.5 sticks) butter,4,,
@@ -29114,7 +29113,7 @@ Fettuccine cutter,Fettuccine cutter,,,
 ½ cup (125 mL) liquid honey,liquid honey,0.5,cup,(125 mL)
 "4 oz (125 g) bittersweet or semisweet chocolate, chopped",bittersweet or semisweet chocolate,4,oz,"(125 g), chopped"
 "¼ cup (½ stick) butter, softened, divided use",( 0.5 sticks) butter,0.25,cup,"softened, divided use"
-"2 celery ribs, chopped",celery ribs,2,,chopped
+"2 celery ribs, chopped",celery,2,rib,chopped
 "3 medium carrots, for white stock",carrots,3,medium,for white stock
 "6 large ripe tomatoes, peeled, and seeded",ripe tomatoes,6,large,"peeled, and seeded"
 "1 teaspoon brown sugar, or to taste (optional)",brown sugar,1,teaspoon,or to taste (optional)
@@ -29370,7 +29369,7 @@ Warm water as needed,Warm water as needed,,,
 3 tablespoons minced fresh ginger,minced fresh ginger,3,tablespoon,
 3 cups (750 mL) chapati flour (atta) (see Notes),(see Notes),3,cup,(750 mL) chapati flour (atta)
 2 cups thinly sliced celery,thinly sliced celery,2,cup,
-"3 celery ribs, unpeeled and cut into large pieces",celery ribs,3,,unpeeled and cut into large piece
+"3 celery ribs, unpeeled and cut into large pieces",celery,3,rib,unpeeled and cut into large piece
 "2 medium cloves garlic, chopped",garlic,2,medium clove,chopped
 8 oz (225 g) light brown sugar,light brown sugar,8,oz,(225 g)
 1 cup long- or short-grain white rice,long- or short-grain white rice,1,cup,
@@ -30323,7 +30322,7 @@ Not-Your-Store-Bought Potato Blintzes (prepared through Step 2),Not-Your-Store-B
 "½ pounds medium shrimp, poached, peeled, and deveined",medium shrimp,0.5,pound,"poached, peeled, and deveined"
 "3 small green onions, finely chopped",green onions,3,small,finely chopped
 1 tablespoon finely sliced chives,finely sliced chives,1,tablespoon,
-"1 celery rib, roughly chopped",celery rib,1,,roughly chopped
+"1 celery rib, roughly chopped",celery,1,rib,roughly chopped
 The prepared sauce base,The prepared sauce base,,,
 1 bunch beet greens (10 to 12 ounces),beet greens,1,bunch,(10-12 ounce)
 "1 pound cabbage, quartered and cut into thin ribbons",cabbage,1,pound,quartered and cut into thin ribbons
@@ -30461,7 +30460,7 @@ Six 6-ounce black cod fillets,6-ounces black cod fillets,6,,
 1 to 2 cups cooked cannellini or kidney beans,cooked cannellini or kidney beans,1-2,cup,
 "1 small carrot, peeled and cut into julienne",carrot,1,small,peeled and cut into julienne
 "1 large egg, at room temperature, beaten with 2 teaspoons cold water",egg,1,large,"at room temperature, beaten with 2 teaspoon cold water"
-"2 celery ribs, coarsely chopped (about 1/3 cups)",celery ribs,2,,coarsely chopped (about 0.333 cup)
+"2 celery ribs, coarsely chopped (about 1/3 cups)",celery,2,rib,coarsely chopped (about 0.333 cup)
 3 tablespoons flour,flour,3,tablespoon,
 4 tablespoons fish sauce (nam pla),fish sauce (nam pla),4,tablespoon,
 ¾ cup crumbled queso blanco,crumbled queso blanco,0.75,cup,
@@ -32521,9 +32520,9 @@ About a dozen fresh basil leaves (optional),About a dozen fresh basil leaves (op
 "1 tablespoon instant coffee, such as Medalia D’Oro",instant coffee,1,tablespoon,such as Medalia D’Oro
 6 simmered shiitake mushrooms (3 ounces),simmered shiitake mushrooms,6,,(3 ounce)
 "One 1 ½-to 2-pound sea bass, scaled, gutted, and cleaned (or two 6-ounce fillets)",1.5-to 2-pound sea bass,1,,"scaled, gutted, and cleaned (or 2 6-ounce fillet)"
-"1 celery rib, trimmed and cut into chunks",celery rib,1,,trimmed and cut into chunk
+"1 celery rib, trimmed and cut into chunks",celery,1,rib,trimmed and cut into chunk
 "3 garlic cloves, minced",garlic cloves,3,,minced
-"4 celery ribs, trimmed and cut on the diagonal into 1/2-inch pieces",celery ribs,4,,trimmed and cut on the diagonal into 0.5-inch piece
+"4 celery ribs, trimmed and cut on the diagonal into 1/2-inch pieces",celery,4,rib,trimmed and cut on the diagonal into 0.5-inch piece
 ¼ tsp (1mL) freshly ground black pepper,freshly ground black pepper,0.25,tsp,(1 mL)
 "1 package (10 ounces) frozen corn, thawed and well drained",frozen corn,1,package,"(10 ounce), thawed and well drained"
 3 extra-large eggs,extra-large eggs,3,,
@@ -33184,7 +33183,7 @@ Grated zest and juice of 2 lemons,lemons,2,,Grated zest and juice of
 "1 head butterhead or other lettuce, chopped",butterhead or other lettuce,1,head,chopped
 "1 Caribbean bird chile (or Thai chile), seeded and minced",Caribbean bird chile (or Thai chile),1,,seeded and minced
 "Fresh parsley, optional","Fresh parsley, optional",,,
-"2 celery ribs, halved",celery ribs,2,,halved
+"2 celery ribs, halved",celery,2,rib,halved
 2 1/3 cups whole wheat flour,whole wheat flour,2.333,cup,
 "1 whole (5-pound) beef brisket, untrimmed",whole beef brisket,1,,"(5-pound), untrimmed"
 "2 ounces fresh mozzarella cheese, cut into 4 equal pieces",fresh mozzarella cheese,2,ounce,cut into 4 equal piece
@@ -34304,7 +34303,7 @@ About 30 large pimiento-stuffed green olives or pitted green or black olives,Abo
 1 cup shredded green or red cabbage,shredded green or red cabbage,1,cup,
 7 cups light cream,light cream,7,cup,
 Pinch of paprika,Pinch of paprika,,,
-"1 celery rib, coarsely chopped",celery rib,1,,coarsely chopped
+"1 celery rib, coarsely chopped",celery,1,rib,coarsely chopped
 ½ cup wheat berries,wheat berries,0.5,cup,
 2 tablespoons lemon juice,lemon juice,2,tablespoon,
 1 1/2 cups (330 g) firmly packed dark brown sugar,firmly packed dark brown sugar,1.5,cup,(330 g)
@@ -34690,7 +34689,7 @@ Mexican chocolate (recipe follows),Mexican chocolate (recipe follows),,,
 1 whole egg (see Notes),whole egg (see Notes),1,,
 1 dried bay leaf,dried bay leaf,1,,
 "A few oil-cured black olives, for garnish","A few oil-cured black olives, for garnish",,,
-"2 celery ribs, cut into 2-inch pieces",celery ribs,2,,cut into 2-inch piece
+"2 celery ribs, cut into 2-inch pieces",celery,2,rib,cut into 2-inch piece
 2 to 3 tablespoons low-salt Cajun seasoning,low-salt Cajun seasoning,2-3,tablespoon,
 "3 cups all-purpose flour, and more as needed",all-purpose flour,3,cup,and more as needed
 "Plum preserves, or apple sauce, for serving","Plum preserves, or apple sauce, for serving",,,
@@ -34751,7 +34750,7 @@ Glass,Glass,,,
 6 double rib pork chops,double rib pork chops,6,,
 "1 large egg, raw",egg,1,large,raw
 "36 curry leaves, roughly torn (optional)",curry leaves,36,,roughly torn (optional)
-"4 celery ribs, chopped",celery ribs,4,,chopped
+"4 celery ribs, chopped",celery,4,rib,chopped
 ¼ cup (50 mL) tomato paste,tomato paste,0.25,cup,(50 mL)
 "10 celery stalks, finely chopped",celery stalks,10,,finely chopped
 Pinch of ground saffron (optional),Pinch of ground saffron (optional),,,
@@ -34905,7 +34904,7 @@ About ½ cup Wild Mushroom Vinaigrette (recipe above),About ½ cup Wild Mushroom
 1 tablespoon plus 1 teaspoon grainy mustard,plus 1 teaspoon grainy mustard,1,tablespoon,
 1/8 tsp (0.5 mL) freshly grated nutmeg,freshly grated nutmeg,0.125,tsp,(0.5 mL)
 "½ cup dried Bing or tart cherries (if large, cut in half)",dried Bing or tart cherries (if large,0.5,cup,cut in half)
-"2 celery ribs, cut in half",celery ribs,2,,cut in half
+"2 celery ribs, cut in half",celery,2,rib,cut in half
 2 tablespoons unsweetened dried cherries,unsweetened dried cherries,2,tablespoon,
 1 tablespoon (15 mL) sugar,sugar,1,tablespoon,(15 mL)
 "Herb: ¾ cup (2 ounces/57 grams) chopped mixed fresh herbs (I like ½ cup/1 ½ ounces/43 grams flat-leaf parsley, ¼ cup/3/4 ounce/20 grams chives, and 1 teaspoon thyme)","Herb: ¾ cup chopped mixed fresh herbs (I like ½ cup/1 ½ ounces/43 grams flat-leaf parsley, ¼ cup/3/4 ounce/20 grams chives, and 1 teaspoon thyme)",,,(2 ounce/57 gram)
@@ -35191,7 +35190,7 @@ Sugar as needed,Sugar as needed,,,
 "4 stalks lemongrass, chopped",lemongrass,4,stalk,chopped
 2 tablespoons shredded sweetened coconut,shredded sweetened coconut,2,tablespoon,
 "6 slices crisp bacon, diced",crisp bacon,6,slice,diced
-"3 medium celery ribs, finely chopped",celery ribs,3,medium,finely chopped
+"3 medium celery ribs, finely chopped",celery,3,medium rib,finely chopped
 Frozen yoghurt or low-fat ice cream,Frozen yoghurt or low-fat ice cream,,,
 "Chopped fresh cilantro, including stems, for garnish","Chopped fresh cilantro, including stems, for garnish",,,
 "2 large onions, cut into 1- inch dice",onions,2,large,cut into 1- inch dice
@@ -37636,7 +37635,7 @@ Eight 6- or 7-inch savory crêpes,6-7-inches savory crêpes,8,,
 "4 ounces (about 1 cup) whole blanched almonds, finely ground in the food processor",(about 1 cups) whole blanched almonds,4,ounce,finely ground in the food processor
 2 tablespoons white or black poppy seeds,white or black poppy seeds,2,tablespoon,
 2 tablespoons plain nonfat Greekstyle yogurt,plain nonfat Greekstyle yogurt,2,tablespoon,
-"1 celery rib, cut into thirds",celery rib,1,,cut into thirds
+"1 celery rib, cut into thirds",celery,1,rib,cut into thirds
 About 80 square wonton wrappers,About 80 square wonton wrappers,,,
 2-3 teaspoons fresh lemon juice,fresh lemon juice,2-3,teaspoon,
 4 medium potatoes (about 1 lb [500 g]),potatoes (about 1 lbs [500 g]),4,medium,
@@ -38091,7 +38090,7 @@ Small strip of lemon zest,Small strip of lemon zest,,,
 2 teaspoons water,water,2,teaspoon,
 ¼ tsp (1 mL) ground nutmeg,ground nutmeg,0.25,tsp,(1 mL)
 "2 cinnamon sticks (each 3 inches long), broken into smaller pieces",cinnamon sticks (each 3 inches long),2,,broken into smaller piece
-"1 small tender celery rib, finely chopped",tender celery rib,1,small,finely chopped
+"1 small tender celery rib, finely chopped",tender celery rib,1,small rib,finely chopped
 ½ cup imported green lentils,imported green lentils,0.5,cup,
 "4 fresh tarragon sprigs, for garnish",fresh tarragon sprigs,4,,for garnish
 2 ½ tablespoons turbinado sugar,turbinado sugar,2.5,tablespoon,
@@ -38123,7 +38122,7 @@ Leaves from 1 sprig thyme,Leaves from 1 sprig thyme,,,
 3 cups pitted black cherries (see Notes),pitted black cherries (see Notes),3,cup,
 "400g/14oz mushrooms, brushed clean and torn",g/14 oz mushrooms,400,,brushed clean and torn
 "Butter, for cooking","Butter, for cooking",,,
-"2 celery ribs, halved lengthwise and cut into thin slices",celery ribs,2,,halved lengthwise and cut into thin slice
+"2 celery ribs, halved lengthwise and cut into thin slices",celery ribs,2,rib,halved lengthwise and cut into thin slice
 "2 cups sliced young onions, red and white if possible",sliced young onions,2,cup,red and white if possible
 ¼ cup lightly packed brown sugar,lightly packed brown sugar,0.25,cup,
 3 pounds small white turnips,small white turnips,3,pound,
@@ -38642,7 +38641,7 @@ Zest and 1 tablespoon juice from 1 large untreated lemon,Zest and 1 tablespoon j
 "8 slices stale baguette, crusts removed",stale baguette,8,slice,crusts removed
 "6 ounces dried rice sticks, soaked 15 minutes in cold water to soften, then drained",dried rice sticks,6,ounce,"soaked 15 minutes in cold water to soften, then drained"
 "1 large carrot, sliced into short ribbons using a vegetable peeler (about 1 cup)",carrot,1,large,sliced into short ribbons using a vegetable peeler (about 1 cup)
-"1 fresh bouquet garni, with 1 celery rib, 4 thyme sprigs, and 1 bay leaf tied together with kitchen twine",fresh bouquet garni,1,,"with 1 celery rib, 4 thyme sprig, and 1 bay leaf tied together with kitchen twine"
+"1 fresh bouquet garni, with 1 celery rib, 4 thyme sprigs, and 1 bay leaf tied together with kitchen twine",fresh bouquet garni,1,rib,"with 1 celery rib, 4 thyme sprig, and 1 bay leaf tied together with kitchen twine"
 "One 15 oz (420g) can white kidney (cannellini) beans, drained and rinsed",15  beans,1,oz,"(420 g) can white kidney (cannellini), drained and rinsed"
 ½ teaspoon coarse sea salt or kosher salt,coarse sea salt or kosher salt,0.5,teaspoon,
 2 tablespoons fresh lemon juice or red wine vinegar (optional),fresh lemon juice or red wine vinegar (optional),2,tablespoon,
@@ -38724,7 +38723,7 @@ Sea salt/pepper to taste,Sea salt/pepper to taste,,,
 2 medium-size carrots cut in half (no need to peel them),carrots cut in 0.5 (no need to peel them),2,medium-size,
 2 tablespoons very finely chopped onion,very finely chopped onion,2,tablespoon,
 Roasted potatoes or toast,Roasted potatoes or toast,,,
-"2 celery ribs, chopped (about 1 1/3 cups)",celery ribs,2,,chopped (about 1.333 cup)
+"2 celery ribs, chopped (about 1 1/3 cups)",celery ribs,2,rib,chopped (about 1.333 cup)
 ½ a stick of cinnamon,a sticks of cinnamon,0.5,,
 "1 cup Madeira, medium sweetness",Madeira,1,cup,medium sweetness
 "2 medium carrots, shredded",carrots,2,medium,shredded
@@ -40106,7 +40105,7 @@ One 28 oz (800g) can petite diced tomatoes,28  can petite diced tomatoes,1,oz,(8
 3 tablespoons chili powder,chili powder,3,tablespoon,
 "3 tablespoons unsalted butter, plus 3 tablespoons, melted",unsalted butter,3,tablespoon,"plus 3 tablespoon, melted"
 "½ cup roasted unsalted cashews, chopped",roasted unsalted cashews,0.5,cup,chopped
-"3 celery ribs, cut into small dice",celery ribs,3,,cut into small dice
+"3 celery ribs, cut into small dice",celery ribs,3,rib,cut into small dice
 5–6 × 1lb (450g) glass canning jars,–6 × 1 lbs glasses canning jars,5,,(450 g)
 1 tablespoon shredded fresh ginger (use the large holes of a box grater),shredded fresh ginger (use the large holes of a box grater),1,tablespoon,
 Four 8-inch flour tortillas,8-inches flour tortillas,4,,
@@ -40416,7 +40415,7 @@ Few pats of butter,Few pats of butter,,,
 "2 tablespoons paprika, preferably hot Hungarian",paprika,2,tablespoon,preferably hot Hungarian
 "3/4 cup organic raw almonds, roughly chopped",organic raw almonds,0.75,cup,roughly chopped
 "5 tbsp cold butter, diced, plus more for greasing the baking dish",butter,5,tbsp,"cold, diced, plus more for greasing the baking dish"
-"2 celery ribs, roughly chopped",celery ribs,2,,roughly chopped
+"2 celery ribs, roughly chopped",celery ribs,2,rib,roughly chopped
 "½ (28-ounce) can peeled plum tomatoes, drained, seeded, and diced",cans peeled plum tomatoes,0.5,,"(28-ounce), drained, seeded, and diced"
 2-3 tablespoons light or dark soy sauce,light or dark soy sauce,2-3,tablespoon,
 8 large fresh sage leaves,fresh sage leaves,8,large,
@@ -40719,7 +40718,7 @@ grated zest of 1 orange,orange,1,,grated zest of
 Handful flat-leaf parsley,Handful flat-leaf parsley,,,
 "2 or 3 large oranges, peeled and sectioned",oranges,2-3,large,peeled and sectioned
 Seared and Roasted Chicken or Duck Breasts,Seared and Roasted Chicken or Duck Breasts,,,
-"1 celery rib with top, coarsely chopped",celery rib with top,1,,coarsely chopped
+"1 celery rib with top, coarsely chopped",celery rib with top,1,rib,coarsely chopped
 2/3 cup Japanese soy sauce,Japanese soy sauce,0.667,cup,
 "1 carrot, cut into thin strips",carrot,1,,cut into thin strip
 1 cup red seedless grapes,red seedless grapes,1,cup,
@@ -41170,7 +41169,7 @@ Pumpkin and Yam Soup,Pumpkin and Yam Soup,,,
 Kernels cut from 3 ears fresh sweet corn,Kernels cut from 3 ears fresh sweet corn,,,
 4 or 5 black cardamom pods,black cardamom pods,4-5,,
 ¼ cup fresh lemon juice,fresh lemon juice,0.25,cup,
-"2 medium celery ribs, chopped",celery ribs,2,medium,chopped
+"2 medium celery ribs, chopped",celery ribs,2,medium rib,chopped
 "2 yellow onions, quartered, and 2 quarters each stuck with 1 whole clove",yellow onions,2,,"quartered, and 2 quarters each stuck with 1 whole clove"
 "1½ pounds celeriac (celery root), peeled and very thinly sliced",celeriac (celery root),1.5,pound,peeled and very thinly sliced
 1 tablespoon fine dried bread crumbs,fine dried bread crumbs,1,tablespoon,
@@ -42399,7 +42398,7 @@ Juice of ½ lemon,lemon,0.5,,Juice of
 "2 cups shredded cheddar, smoked cheddar, or Fontina cheese (optional)",shredded cheddar,2,cup,"smoked cheddar, or Fontina cheese (optional)"
 1 cucumber spear or mint sprig,cucumber spear or mint sprig,1,,
 4 ounces butter,butter,4,ounce,
-"1 medium celery rib, chopped",celery rib,1,medium,chopped
+"1 medium celery rib, chopped",celery rib,1,medium rib,chopped
 ½ teaspoon salt (possibly more),salt (possibly more),0.5,teaspoon,
 1 tablespoon mixed peppercorns,mixed peppercorns,1,tablespoon,
 4-inch ring cutter or pint-size,-inches ring cutter or pints-size,4,,
@@ -43080,7 +43079,7 @@ Two 4-inch-long strips lemon zest (removed with a vegetable peeler),4-inches-lon
 "One 20-ounce can chickpeas, drained, rinsed in cold water, and drained again",20-ounce can chickpeas,1,,"drained, rinsed in cold water, and drained again"
 1 quart apple cider,apple cider,1,quart,
 3 tablespoons sweet or smoked paprika,sweet or smoked paprika,3,tablespoon,
-"6 each, cut into bite sized pieces: carrots, celery ribs",each,6,,"cut into bite sized piece: carrots, celery rib"
+"6 each, cut into bite sized pieces: carrots, celery ribs",each,6,rib,"cut into bite sized piece: carrots, celery rib"
 ¼ cup peanut butter (see Notes),peanut butter (see Notes),0.25,cup,
 2 tablespoons chicken fat skimmed from soup,chicken fat skimmed from soup,2,tablespoon,
 Whipped cream or vanilla ice cream for garnish,Whipped cream or vanilla ice cream for garnish,,,
@@ -43800,7 +43799,7 @@ About 1 to 2 tablespoons strained fresh lemon juice (optional),About 1 to 2 tabl
 "Kosher salt or sugar to taste, whichever you prefer","Kosher salt or sugar to taste, whichever you prefer",,,
 2 cups whole wheat pastry flour,whole wheat pastry flour,2,cup,
 1 cup thawed frozen peas or blanched fresh peas,thawed frozen peas or blanched fresh peas,1,cup,
-"2 celery ribs with leaves, cut into 3 or 4 pieces",celery ribs with leaves,2,,cut into 3-4 piece
+"2 celery ribs with leaves, cut into 3 or 4 pieces",celery ribs with leaves,2,rib,cut into 3-4 piece
 3 tablespoons confectioners’ sugar,confectioners’ sugar,3,tablespoon,
 "1 large whole carrot, peeled",whole carrot,1,large,peeled
 ¼ teaspoon grated orange rind,grated orange rind,0.25,teaspoon,
@@ -44633,7 +44632,7 @@ One 30-ounce can pozole blanco (white hominy),30-ounce can pozole blanco (white 
 4 large fresh basil leaves,fresh basil leaves,4,large,
 "2 teaspoons minced fresh sage, or ½ teaspoon dried sage",minced fresh sage,2,teaspoon,or 0.5 teaspoon dried sage
 1 tablespoon finely chopped fresh oregano,finely chopped fresh oregano,1,tablespoon,
-"2 to 3 celery ribs with leaves, split lengthwise twice, then chopped",celery ribs with leaves,2-3,,"split lengthwise twice, then chopped"
+"2 to 3 celery ribs with leaves, split lengthwise twice, then chopped",celery ribs with leaves,2-3,rib,"split lengthwise twice, then chopped"
 Eight 26-inch lengths of kitchen string for tying the tamales,26-inches lengths of kitchen string for tying the tamales,8,,
 1 cup coarsely chopped walnuts,coarsely chopped walnuts,1,cup,
 Hot red pepper sauce,Hot red pepper sauce,,,
@@ -45057,7 +45056,7 @@ Leftover parsley and herb trimmings,Leftover parsley and herb trimmings,,,
 "1 shallot, finely chopped (if unavailable, use 1 tablespoon minced mild onion)",shallot,1,,"finely chopped (if unavailable, use 1 tablespoon minced mild onion)"
 4 teaspoons prepared English mustard,prepared English mustard,4,teaspoon,
 1-2 teaspoons trout roe or other type of roe,trout roe or other type of roe,1-2,teaspoon,
-"1 celery rib, cut into ¼-inch dice",celery rib,1,,cut into 0.25-inch dice
+"1 celery rib, cut into ¼-inch dice",celery rib,1,rib,cut into 0.25-inch dice
 ¼ teaspoon coarse sea salt,coarse sea salt,0.25,teaspoon,
 1 shoulder of lamb (approx. 5½ pounds),shoulder of lamb (approx. 5.5 pounds),1,,
 ¼ cup blanched whole almonds,blanched whole almonds,0.25,cup,
@@ -46103,7 +46102,7 @@ Large stainless-steel saucepan,Large stainless-steel saucepan,,,
 1 teaspoon cold unsalted butter,cold unsalted butter,1,teaspoon,
 1 tablespoon sweet paprika,sweet paprika,1,tablespoon,
 "½ large red onion, chopped",red onion,0.5,large,chopped
-"2 celery ribs with leaves, cut up",celery ribs with leaves,2,,cut up
+"2 celery ribs with leaves, cut up",celery ribs with leaves,2,rib,cut up
 ¼ cup (2 ounces/56 grams) sake,sake,0.25,cup,(2 ounce/56 gram)
 ½ cup finely sliced red onion,finely sliced red onion,0.5,cup,
 "2 large onions, peeled and chopped",onions,2,large,peeled and chopped
@@ -46535,7 +46534,7 @@ Freshly ground black pepper,Freshly ground black pepper,,,
 "5 cups artisanal bread, cut into 1-inch cubes",artisanal bread,5,cup,cut into 1-inch cube
 2 quarts Seafood Stock or Chicken Stock,Seafood Stock or Chicken Stock,2,quart,
 "1 pound green beans, ends trimmed",green beans,1,pound,ends trimmed
-"1 celery rib, finely chopped",celery rib,1,,finely chopped
+"1 celery rib, finely chopped",celery rib,1,rib,finely chopped
 ¼ cup fresh lime Juice,fresh lime Juice,0.25,cup,
 "1 large cucumber, peeled, seeded, and diced (about ½ cups)",cucumber,1,large,"peeled, seeded, and diced (about 0.5 cup)"
 "3 scallions, trimmed, smashed flat with the side of a cleaver, and cut into 1½-inch lengths",scallions,3,,"trimmed, smashed flat with the side of a cleaver, and cut into 1.5-inch length"
@@ -46707,7 +46706,7 @@ Black goma (black sesame seeds),Black goma (black sesame seeds),,,
 "½ cup peeled, seeded, and finely diced tomato",peeled,0.5,cup,"seeded, and finely diced tomato"
 ½ cup amaranth or teft,amaranth or teft,0.5,cup,
 "2 lemons, cut into wedges",lemons,2,,cut into wedge
-"2 large celery ribs, cut into ¼-inch-thick slices",celery ribs,2,large,cut into 0.25-inch-thick slice
+"2 large celery ribs, cut into ¼-inch-thick slices",celery ribs,2,large rib,cut into 0.25-inch-thick slice
 1 teaspoons vanilla extract,vanilla extract,1,teaspoon,
 1/4 cup warm (110º -115) F water,warm (110º -115) F water,0.25,cup,
 "7 oz (210 g) semisweet chocolate, chopped",semisweet chocolate,7,oz,"(210 g), chopped"
@@ -46991,7 +46990,7 @@ Pastry bag,Pastry bag,,,
 "1 generous tablespoon thinly sliced fresh chives, plus more for garnish (if unavailable, mince the deeper green part of a scallion)",thinly sliced fresh chives,1,generous tablespoon,"plus more for garnish (if unavailable, mince the deeper green part of a scallion)"
 2 tablespoons finely chopped green onion,finely chopped green onion,2,tablespoon,
 1 bunch of fresh dillweed with flowers,of fresh dillweed with flowers,1,bunch,
-"1 medium celery rib with leaves, chopped",celery rib with leaves,1,medium,chopped
+"1 medium celery rib with leaves, chopped",celery rib with leaves,1,medium rib,chopped
 4 7-ounce skate wing fillets,7-ounces skate wing fillets,4,,
 One 3- to 4-pound pork butt or loin roast,3-4-pound pork butt or loin roast,1,,
 1 tbsp (15 ml) packed brown sugar,packed brown sugar,1,tbsp,(15 ml)
