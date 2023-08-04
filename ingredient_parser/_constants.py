@@ -21,6 +21,7 @@ UNITS = {
     "cm": "cm",
     "cubes": "cube",
     "cups": "cup",
+    "cutlets": "cutlet",
     "dashes": "dash",
     "dollops": "dollop",
     "drops": "drop",
