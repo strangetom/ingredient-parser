@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import argparse
-import csv
 from collections import Counter
 from dataclasses import dataclass
 from itertools import chain
