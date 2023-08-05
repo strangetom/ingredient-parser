@@ -278,13 +278,15 @@ if __name__ == "__main__":
     print("Sentence-level results:")
     print(f"\tTotal: {stats.total_sentences}")
     print(f"\tCorrect: {stats.correct_sentences}")
-    print(f"\t-> {100*stats.correct_sentences/stats.total_sentences:.2f}%")
+    print(f"\tIncorrect: {stats.total_sentences - stats.correct_sentences}")
+    print(f"\t-> {100*stats.correct_sentences/stats.total_sentences:.2f}% correct")
 
     print()
     print("Word-level results:")
     print(f"\tTotal: {stats.total_words}")
     print(f"\tCorrect: {stats.correct_words}")
-    print(f"\t-> {100*stats.correct_words/stats.total_words:.2f}%")
+    print(f"\tIncorrect: {stats.total_words - stats.correct_words}")
+    print(f"\t-> {100*stats.correct_words/stats.total_words:.2f}% correct")
 
     # Calculate some starts about the OTHER label
     train_label_count = Counter(chain.from_iterable(y_train))
