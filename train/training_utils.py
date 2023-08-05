@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import csv
+from pathlib import Path
 
 
 def load_csv(
@@ -40,5 +41,8 @@ def load_csv(
 
             if i == (max_rows - 1):
                 break
+
+    filename = Path(csv_filename).name
+    print(f"[INFO] Loaded {i+1} vectors from {filename}")
 
     return sentences, labels
