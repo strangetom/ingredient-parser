@@ -95,7 +95,7 @@ def create_html_table(
         tr.append(dataset_td)
 
         index_td = ET.Element("td", attrib={"class": "row"})
-        index_td.text = str(dataset_idx)
+        index_td.text = str(dataset_idx + 2)
         tr.append(index_td)
 
         sentence_td = ET.Element("td", attrib={"class": "row"})
@@ -228,7 +228,7 @@ if __name__ == "__main__":
     unmatched_indices = set(range(len(sentences)))
     # This set contains the index of each entry in the dataframe
     # Once an input has been matched, we will remove it's index from this set
-    # If the index is not in the set, we cannot match it again, 
+    # If the index is not in the set, we cannot match it again,
     # nor will we find matches for it
     for i, sentence in tqdm(
         enumerate(sentences), total=len(sentences), unit="sentence"
