@@ -1,3 +1,2 @@
 nltk
 python-crfsuite
-typing-extensions

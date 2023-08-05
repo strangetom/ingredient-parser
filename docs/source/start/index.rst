@@ -43,9 +43,9 @@ The ``parse_ingredient`` function takes an ingredient sentence and return the st
 
     >>> from ingredient_parser import parse_ingredient
     >>> parse_ingredient("2 yellow onions, finely chopped")
-    {'sentence': '2 yellow onions, finely chopped', 'quantity': '2', 'unit': '', 'name': 'yellow onions', 'comment': 'finely chopped', 'other': ''}
+    ParsedIngredient(sentence='2 yellow onions, finely chopped', quantity='2', unit='', name='yellow onions', comment='finely chopped', other='', confidence=ParsedIngredientConfidence(quantity=0.9978, unit=0, name=0.9575, comment=0.9992, other=0))
 
-The returned dictionary contains the following fields:
+The returned dataclass contains the following fields:
 
 sentence
     The input sentence passed to the ``parse_ingredient`` function.
@@ -65,13 +65,9 @@ comment
 other
     Anything else not identified in one of the other fields. This is a string, or a list or strings if the words that are identified as other are not all adjacent in the input.
 
+confidence
+    The confience associated with the parsed data in each of the other fields (except sentence). The confidence is a value between 0 (no confidence) and 1 (complete confidence).
 
-An optional ``confidence`` argument can be passed to the ``parse_ingredient`` function, which will include an extra entry in the returned dictionary containing the confidence associated with each field. The confidence is a value between 0 (no confidence) and 1 (complete confidence).
-
-.. code:: python
-
-    >>> parse_ingredient("2 yellow onions, finely chopped", confidence=True)
-    {'sentence': '2 yellow onions, finely chopped', 'quantity': '2', 'unit': '', 'name': 'yellow onions', 'comment': 'finely chopped', 'other': '', 'confidence': {'quantity': 0.9941, 'unit': 0, 'name': 0.9281, 'comment': 0.9957, 'other': 0}}
 
 Multiple ingredient sentences
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -87,6 +83,8 @@ The ``parse_multiple_ingredients`` function is provided as a convenience functio
         "2 large garlic cloves, finely grated",
     ]
     >>> parse_multiple_ingredients(sentences)
-    [{'sentence': '3 tablespoons fresh lime juice, plus lime wedges for serving', 'quantity': '3', 'unit': 'tablespoon', 'name': 'lime juice', 'comment': ['fresh', 'plus lime wedges for serving'], 'other': ''}, {'sentence': '2 tablespoons extra-virgin olive oil', 'quantity': '2', 'unit': 'tablespoon', 'name': 'extra-virgin olive oil', 'comment': '', 'other': ''}, {'sentence': '2 large garlic cloves, finely grated', 'quantity': '2', 'unit': 'clove', 'name': 'garlic', 'comment': 'finely grated', 'other': 'large'}]
-
-This function also accepts the optional ``confidence`` argument which, when ``True`` will return the confidence for each field in the dictionaries.
+    [
+        ParsedIngredient(sentence='3 tablespoons fresh lime juice, plus lime wedges for serving', quantity='3', unit='tablespoons', name='fresh lime juice', comment='plus lime wedges for serving', other='', confidence=ParsedIngredientConfidence(quantity=0.9994, unit=0.9995, name=0.9917, comment=0.992, other=0)),
+        ParsedIngredient(sentence='2 tablespoons extra-virgin olive oil', quantity='2', unit='tablespoons', name='extra-virgin olive oil', comment='', other='', confidence=ParsedIngredientConfidence(quantity=0.9997, unit=0.9985, name=0.9929, comment=0, other=0)),
+        ParsedIngredient(sentence='2 large garlic cloves, finely grated', quantity='2', unit='large cloves', name='garlic', comment='finely grated', other='', confidence=ParsedIngredientConfidence(quantity=0.9993, unit=0.943, name=0.9903, comment=0.9993, other=0))
+    ]

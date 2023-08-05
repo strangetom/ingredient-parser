@@ -87,45 +87,9 @@ def parse_ingredient_regex(sentence: str) -> ParsedIngredient:
     Returns
     -------
     ParsedIngredient
-        Dictionary of structured data parsed from input string
-
-    Examples
-    --------
-    >>> parse_ingredient_regex("2 yellow onions, finely chopped")
-    {'sentence': '2 yellow onions, finely chopped', 'quantity': '2', 'unit': '',\
-'name': 'yellow onions', 'comment': 'finely chopped', 'other': ''}
-
-    >>> parse_ingredient_regex("100 ml milk")
-    {'sentence': '100 ml milk', quantity': '100', 'unit': 'ml', 'name': 'milk',\
-'comment': '', 'other': ''}
-
-    >>> parse_ingredient_regex("1 onion, finely chopped")
-    {'sentence': '1 onion, finely chopped', quantity': '1', 'unit': '',\
-'name': 'onion', 'comment': 'finely chopped', 'other': ''}
-
-    >>> parse_ingredient_regex("2 1/2 cups plain flour")
-    {'sentnece': '2 1/2 cups plain flour', quantity': '2.5', 'unit': 'cups',\
-'name': 'plain flour', 'comment': '', 'other': ''}
-
-    >>> parse_ingredient_regex("2 1/2 cups plain flour")
-    {'sentnece': '12 heaped tsp ground cumin', quantity': '12', 'unit': 'heaped tsp',\
-'name': 'ground cumin', 'comment': '', 'other': ''}
-
-    >>> parse_ingredient_regex("2 1/2 cups plain flour")
-    {'sentnece': '2 medium sweet potatoes, peeled and chopped into 1-inch cubes',\
-quantity': '2', 'unit': 'medium', 'name': 'sweet potatoes',\
-'comment': 'peeled and chopped into 1-inch cubes', 'other': ''}
+        ParsedIngredient object of structured data parsed from input string
     """
     sentence = sentence.strip()
-
-    parsed: ParsedIngredient = {
-        "sentence": sentence,
-        "quantity": "",
-        "unit": "",
-        "name": "",
-        "comment": "",
-        "other": "",
-    }
 
     processed_sentence = PreProcessor(sentence)
     res = PARSER_PATTERN.match(processed_sentence.sentence)
@@ -148,12 +112,22 @@ quantity': '2', 'unit': 'medium', 'name': 'sweet potatoes',\
             name = pluralise_units(name)
             comment = pluralise_units(comment)
 
-        parsed["quantity"] = quantity
-        parsed["unit"] = unit
-        parsed["name"] = name
-        parsed["comment"] = comment
+        return ParsedIngredient(
+            sentence=sentence,
+            quantity=quantity,
+            unit=unit,
+            name=name,
+            comment=comment,
+            other="",
+            confidence=None,
+        )
 
-    else:
-        parsed["name"] = sentence
-
-    return parsed
+    return ParsedIngredient(
+        sentence=sentence,
+        quantity="",
+        unit="",
+        name="",
+        comment="",
+        other="",
+        confidence=None,
+    )

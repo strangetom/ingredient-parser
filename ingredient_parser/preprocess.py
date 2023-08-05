@@ -258,12 +258,12 @@ class PreProcessor:
 
     def _replace_en_em_dash(self, sentence: str) -> str:
         """Replace en-dashes and em-dashes with hyphens.
-        
+
         Parameters
         ----------
         sentence : str
             Ingredient sentence
-        
+
         Returns
         -------
         str
