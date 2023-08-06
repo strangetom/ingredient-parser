@@ -21,11 +21,11 @@
 {"sentence": "thumbnail-size piece ginger", "labels": {"name": "ginger", "quantity": "", "unit": "thumbnail-size piece", "comment": ""}}
 {"sentence": "bunch spring onions", "labels": {"name": "spring onions", "quantity": "", "unit": "bunch", "comment": ""}}
 {"sentence": "handful coriander", "labels": {"name": "coriander", "quantity": "", "unit": "handful", "comment": ""}}
-{"sentence": "knob of butter", "labels": {"name": "of butter", "quantity": "", "unit": "knob", "comment": ""}}
+{"sentence": "knob of butter", "labels": {"name": "butter", "quantity": "", "unit": "knob", "comment": "of"}}
 {"sentence": "large cup peas", "labels": {"name": "peas", "quantity": "", "unit": "large cup", "comment": ""}}
 {"sentence": "small bunch basil", "labels": {"name": "basil", "quantity": "", "unit": "small bunch", "comment": ""}}
 {"sentence": "handful cherry tomatoes", "labels": {"name": "cherry tomatoes", "quantity": "", "unit": "handful", "comment": ""}}
-{"sentence": "large handful of dates", "labels": {"name": "of dates", "quantity": "", "unit": "large handful", "comment": ""}}
+{"sentence": "large handful of dates", "labels": {"name": "dates", "quantity": "", "unit": "large handful", "comment": "of"}}
 {"sentence": "small eating apple", "labels": {"name": "eating apple", "quantity": "", "unit": "small", "comment": ""}}
 # <quantity> <unit> <ingredient>
 {"sentence": "2 tablespoons mirin", "labels": {"name": "mirin", "quantity": "2", "unit": "tablespoons", "comment": ""}}
