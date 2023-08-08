@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import re
+import string
 from fractions import Fraction
 from html import unescape
 from typing import Any
@@ -381,8 +382,18 @@ class PreProcessor:
             "\xbd": "1/2",
         }
         for f_unicode, f_ascii in fractions.items():
-            # Insert space before ascii fraction to avoid merging into a single token
-            sentence = sentence.replace(f_unicode, f" {f_ascii}")
+            # We want to avoid merging the replaced fraction into the previous token
+            # e.g. 1½ into 11/2, so we need to first find the match and if the
+            # character before it is not punctuation, insert a space before the
+            # replacement
+            idx = sentence.find(f_unicode)
+            if idx != -1:
+                if idx == 0 or sentence[idx - 1] in string.punctuation:
+                    sentence = sentence.replace(f_unicode, f_ascii)
+                else:
+                    # Insert space before ascii fraction to avoid merging
+                    # into previous token
+                    sentence = sentence.replace(f_unicode, f" {f_ascii}")
 
         return sentence
 

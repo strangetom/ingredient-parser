@@ -311,6 +311,13 @@ class TestPreProcessor_replace_unicode_fractions:
         input_sentence = "3 ⅞ potatoes"
         assert p._replace_unicode_fractions(input_sentence) == "3  7/8 potatoes"
 
+    def test_punctuation_prior_to_fraction(self, p):
+        """
+        The unicode fraction ¼-½ is converted to 1/4-1/2
+        """
+        input_sentence = "¼-½ cups wine"
+        assert p._replace_unicode_fractions(input_sentence) == "1/4-1/2 cups wine"
+
 
 class TestPreProcessor_replace_fake_fractions:
     def test_less_than_one(self, p):
