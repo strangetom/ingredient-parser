@@ -323,24 +323,21 @@ class PreProcessor:
             Ingredient sentence with fractions replaced with decimals
         """
         matches = FRACTION_PARTS_PATTERN.findall(sentence)
+
+        if not matches:
+            return sentence
+
         # This is a bit of a hack.
         # If a fraction appears multiple times but in different forms e.g. 1/2 and
         # 1 1/2, then
         # we need to replace the longest one first, otherwise both instance of 1/2
         # would be replaced at the same time which would mean that the instance of
         # 1 1/2 would end up as 1 0.5 instead of 1.5
+        # Before we sort, we need to strip any space from the start and end.
+        matches = [match.strip() for match in matches]
         matches.sort(key=len, reverse=True)
 
-        if not matches:
-            return sentence
-
         for match in matches:
-            # The regex pattern will capture the space before a fraction if the fraction
-            # doesn't have a whole number in front of it.
-            # Therefore, if the match starts with a space, remove it.
-            if match.startswith(" "):
-                match = match[1:]
-
             split = match.split()
             summed = float(sum(Fraction(s) for s in split))
             rounded = round(summed, 3)
