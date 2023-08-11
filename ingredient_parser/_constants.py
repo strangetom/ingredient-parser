@@ -75,6 +75,7 @@ UNITS = {
     "segments": "segment",
     "shakes": "shake",
     "sheets": "sheet",
+    "shots": "shot",
     "shoots": "shoot",
     "slabs": "slab",
     "slices": "slice",
