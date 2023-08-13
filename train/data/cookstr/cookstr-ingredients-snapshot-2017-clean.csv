@@ -157,7 +157,7 @@ Grated Parmesan cheese,Parmesan cheese,,,Grated
 Handful of baby spinach,baby spinach,,handful,of
 "1 small jalapeño (or ¼ habanero), seeded and minced",jalapeño,1,small,"(or 0.25 habanero), seeded and minced"
 ½ cup (112 g) margarine,margarine,0.5,cup,(112 g)
-"¾ cup strong brewed coffee, cooled",strong brewed coffee,0.75,cup,cooled
+"¾ cup strong brewed coffee, cooled",coffee,0.75,cup,"strong brewed, cooled"
 "1 to 2 fresh hot green chiles, minced",fresh hot green chiles,1-2,,minced
 "1 large jalapeno chile, finely diced",jalapeno chile,1,large,finely diced
 ¼ teaspoon chipotle chile powder (optional),chipotle chile powder,0.25,teaspoon,(optional)
@@ -345,7 +345,7 @@ Grated zest of 3 limes,limes,3,,Grated zest of
 "1 cup chicken broth, preferably homemade",chicken broth,1,cup,preferably homemade
 "1 large egg, beaten with ½ teaspoon salt, to glaze",egg,1,large,"beaten with 0.5 teaspoon salt, to glaze"
 "8 tablespoons (1 stick) unsalted butter, cut into cubes",unsalted butter,8,tablespoon,(1 stick) cut into cube
-"6 anchovy fillets in oil, drained and finely chopped",anchovy fillets,6,,"in oil, drained and finely chopped"
+"6 anchovy fillets in oil, drained and finely chopped",anchovy fillets in oil,6,,drained and finely chopped
 2 cups canned concentrated tomato purée,canned concentrated tomato purée,2,cup,
 1 teaspoon (5 grams/.2 ounce) instant yeast,instant yeast,1,teaspoon,(5 gram/.2 ounce) 
 "1 package (8 oz/250 g) cream cheese, softened (see Notes)",cream cheese,1,package,(8 oz/250 g) softened (see Notes)
@@ -499,7 +499,7 @@ One 1½- to 1¾-pound boneless pork loin,boneless pork loin,1,,1.5-1.75-pound
 "1 pound white mushrooms, stemmed and quartered (about 5 cups)",white mushrooms,1,pound,stemmed and quartered (about 5 cup)
 2½ tablespoons minced fresh ginger,fresh ginger,2.5,tablespoon,minced 
 "½ medium-size yellow or white onion, finely chopped",yellow or white onion,0.5,medium-size,finely chopped
-"3 tablespoons plus 2 teaspoons fresh lemon juice (from about 2 lemons), plus more if desired",fresh lemon juice (from about 2 lemons),3,tablespoon,"plus 2 teaspoon (from about 2 lemons), plus more if desired"
+"3 tablespoons plus 2 teaspoons fresh lemon juice (from about 2 lemons), plus more if desired",fresh lemon juice,3,tablespoon,"plus 2 teaspoon (from about 2 lemons), plus more if desired"
 "2 shallots, peeled and finely chopped",shallots,2,,peeled and finely chopped
 "1 pint beef stock, plus extra hot water for topping up",beef stock,1,pint,plus extra hot water for topping up
 "About ¼ pound pancetta, cut into ¾-inch slices, then into ¾-inch cubes",pancetta,0.25,pound,"About, cut into ¾-inch slice, then into ¾-inch cube"
@@ -2143,7 +2143,7 @@ Pinch of fenugreek seeds,fenugreek seeds,,pinch,of
 "2 tablespoons coarsely chopped imported black olives, preferably Kalamata",black olives,2,tablespoon,"coarsely chopped imported, preferably Kalamata"
 Remaining Deli Rub,Remaining Deli Rub,,,
 ½ tablespoon whole cloves,whole cloves,0.5,tablespoon,
-"2 ounces pancetta, or salt pork, diced",pancetta,2,ounce,"or salt pork, diced"
+"2 ounces pancetta, or salt pork, diced",pancetta or salt pork,2,ounce,diced
 "1 cup turkey or chicken stock, as needed",turkey or chicken stock,1,cup,as needed
 Bread crumbs,Bread crumbs,,,
 ½ pound uncooked ground lean beef,ground lean beef,0.5,pound,uncooked 
@@ -2249,7 +2249,7 @@ Jicama sticks,Jicama sticks,,,
 ½ cup light cream,light cream,0.5,cup,
 "Semolina flour, for sprinkling on the work surface",Semolina flour,,,for sprinkling on the work surface
 12 ounces hot Italian sausage links,hot Italian sausage links,12,ounce,
-2 tablespoons coarsely cracked black peppercorns,coarsely cracked black peppercorns,2,tablespoon,
+2 tablespoons coarsely cracked black peppercorns,black peppercorns,2,tablespoon,coarsely cracked 
 1 cup millet,millet,1,cup,
 "1 medium shallot, diced fine",shallot,1,medium,diced fine
 "454 g/1 lb/4 cups apples, cored and roughly chopped into 1-inch pieces or smaller; don’t peel (I like Galas)",apples,454,g,/1 lb/4 cup cored and roughly chopped into 1-inch piece or smaller; don’t peel (I like Galas)
@@ -2465,7 +2465,7 @@ One 13.75-ounce can beef broth,beef broth,1,can,13.75-ounce
 "1 zucchini (with peel), chopped",zucchini,1,,"(with peel), chopped"
 "Whiskey, 1½ teaspoons",Whiskey,1.5,teaspoon,
 1 teaspoon chopped garlic,garlic,1,teaspoon,chopped 
-2 tbsp (25 mL) strong brewed coffee or coffee-flavored liqueur,strong brewed coffee or coffee-flavored liqueur,2,tbsp,(25 mL)
+2 tbsp (25 mL) strong brewed coffee or coffee-flavored liqueur,coffee,2,tbsp,"strong brewed (25 mL), or coffee-flavored liqueur"
 1 ounce fresh dill,fresh dill,1,ounce,
 "1 to 2 tablespoons dried bread crumbs, as needed",dried bread crumbs,1-2,tablespoon,as needed
 "5 cups (56 ounces) canned Italian plum tomatoes, drained (reserve juices), seeded, and chopped",canned Italian plum tomatoes,5,cup,"(56 ounce), drained (reserve juices), seeded, and chopped"
@@ -2825,7 +2825,7 @@ Lemon wedges and cilantro sprigs for garnish,Lemon wedges and cilantro sprigs,,,
 3 tablespoons finely minced fresh oregano,fresh oregano,3,tablespoon,finely minced 
 ¼ cup golden raisins,golden raisins,0.25,cup,
 1 package frozen peas,frozen peas,1,package,
-"2 anchovy fillets in oil, minced",anchovy fillets,2,,"in oil, minced"
+"2 anchovy fillets in oil, minced",anchovy fillets in oil,2,,minced
 1 cup finely cut celery,celery,1,cup,finely cut 
 1 teaspoon (5 mL) vanilla,vanilla,1,teaspoon,(5 mL)
 "Blueberries, raspberries, and strawberries, for serving","Blueberries, raspberries, and strawberries",,,for serving
@@ -3093,7 +3093,7 @@ Small bundle of dry grapevine clippings that have been soaked in water for 2 hou
 1 cup packed fresh basil leaves,fresh basil leaves,1,cup,packed 
 100g/3 ½ oz stale breadcrumbs,stale breadcrumbs,100,g,/3.5 oz
 "8 Italian ladyfingers (savoiardi) or biscotti, to serve",Italian ladyfingers (savoiardi) or biscotti,8,,to serve
-1 long strip lemon zest,long strip lemon zest,1,,
+1 long strip lemon zest,lemon zest,1,long strip,
 8 oz (225g) small cooked shrimp,shrimp,8,oz,small cooked (225 g)
 "1 pound sea scallops, preferably “dry” (see Notes)",sea scallops,1,pound,preferably “dry” (see Notes)
 13oz apricot jelly,apricot jelly,13,oz,
@@ -3669,7 +3669,7 @@ One pound dry beans,dry beans,1,pound,
 "Juice of 2 lemons, strained of seeds",lemons,2,,"Juice of, strained of seeds"
 "1/8 teaspoon ground nutmeg, preferably freshly grated",ground nutmeg,0.125,teaspoon,preferably freshly grated
 "1/2 lb. bacon, cooked and crumbled",bacon,0.5,lb,cooked and crumbled
-2 tbsp avocado or olive oil 30 mL,avocado or olive oil 30 mL,2,tbsp,
+2 tbsp avocado or olive oil 30 mL,avocado or olive oil,2,tbsp,30 mL
 ½ cup orange marmalade (see Notes),orange marmalade,0.5,cup,(see Notes)
 "Court bouillon, (double the recipe but do not use double quantity of wine)",Court bouillon,,,(double the recipe but do not use double quantity of wine)
 "2 medium-size ripe tomatoes, peeled, seeded, and cut into 3/4-inch dice",tomatoes,2,medium-size,"ripe, peeled, seeded, and cut into 0.75-inch dice"
@@ -3732,7 +3732,7 @@ Eighteen 1-inch-thick zucchini slices,zucchini,18,slice,1-inch-thick
 6 ounces (168 g) granulated sugar,granulated sugar,6,ounce,(168 g)
 1 cup chopped dark chocolate or mini chips,dark chocolate or mini chips,1,cup,chopped 
 ½ to ¾ teaspoon salt to taste,salt,0.5-0.75,teaspoon,to taste
-a little lukewarm water,lukewarm water,,,a little 
+a little lukewarm water,a little lukewarm water,,,
 "1½ cups espresso coffee, made with 1½ cups water and 9 teaspoons instant espresso powder",espresso coffee,1.5,cup,made with 1.5 cup water and 9 teaspoon instant espresso powder
 1½ cups milk,milk,1.5,cup,
 "5 pounds (2.3 kg) mixed chicken parts (necks, backs, Wings, and legs), preferably from grain-fed chickens, defrosted if frozen, rinsed and drained",mixed chicken parts,5,pound,"(2.3 kg), (necks, backs, Wings, and legs), preferably from grain-fed chickens, defrosted if frozen, rinsed and drained"
@@ -5382,7 +5382,7 @@ About 2 cups coarse sea salt,coarse sea salt,2,cup,About
 2 handfuls of fresh Cilantro,fresh Cilantro,2,handful,of 
 1 tablespoon light rum or ½ teaspoon rum flavoring,light rum,1,tablespoon,or 0.5 teaspoon rum flavoring
 "10 cups water, or as needed",water,10,cup,or as needed
-"1¼ cups (300 ml) strong brewed coffee, cooled to room temperature (see Notes)",strong brewed coffee,1.25,cup,"(300 ml), cooled to room temperature (see Notes)"
+"1¼ cups (300 ml) strong brewed coffee, cooled to room temperature (see Notes)",coffee,1.25,cup,"(300 ml) strong brewed, cooled to room temperature (see Notes)"
 Garlic cloves,Garlic,,clove,
 "1/4 cup tahini, homemade or store bought",tahini,0.25,cup,homemade or store bought
 ½ cup pomegranate seeds,pomegranate seeds,0.5,cup,
@@ -6345,7 +6345,7 @@ Zest and juice of 4 lemons,lemons,4,,Zest and juice of
 Strained juice of 1 large lemon,lemon,1,large,Strained juice of
 2 large beets,beets,2,large,
 ½ tsp (2 ml) grated ginger root,ginger root,0.5,tsp,grated (2 ml)
-A little milk,milk,,,A little 
+A little milk,A little milk,,,
 ½ cup fig jam,fig jam,0.5,cup,
 Juice and julienned zest of 1 orange,orange,1,,Juice and julienned zest of
 "5 pounds veal bones, preferably meaty leg bones, cut into 2-inch chunks",veal bones,5,pound,"preferably meaty leg bones, cut into 2-inch chunk"
@@ -9478,7 +9478,7 @@ Banana Ice Cream,Banana Ice Cream,,,
 1 tablespoon Calvados,Calvados,1,tablespoon,
 1 tablespoon whole milk,whole milk,1,tablespoon,
 2 tsp (10 ml) dried oregano leaves,dried oregano leaves,2,tsp,(10 ml)
-"1½ cups sweetened, shredded coconut, toasted, plus more for garnish (see Love Note 1)",sweetened,1.5,cup,"shredded coconut, toasted, plus more for garnish (see Love Note 1)"
+"1½ cups sweetened, shredded coconut, toasted, plus more for garnish (see Love Note 1)",coconut,1.5,cup,"sweetened, shredded, toasted, plus more for garnish (see Love Note 1)"
 Turbinado sugar,Turbinado sugar,,,
 "24 dried Indian red chiles, broken in half, 12 with seeds removed",dried Indian red chiles,24,,"broken in half, 12 with seeds removed"
 1 handful cilantro leaves,cilantro leaves,1,handful,
@@ -9583,7 +9583,7 @@ scant 1 cup sugar,sugar,1,scant cup,
 "18 to 20 medium strawberries, hulled, or 1 mango, peeled, pitted, and sliced, or 2 nectarines, peeled, pitted, and quartered",strawberries,18-20,medium,"hulled, or 1 mango, peeled, pitted, and sliced, or 2 nectarines, peeled, pitted, and quartered"
 "1 head radicchio, halved",radicchio,1,head,halved
 2 cups Beb’s Barbecue Sauce,Beb’s Barbecue Sauce,2,cup,
-small sprig parsley including stalks,parsley,,small sprig ,including stalks
+small sprig parsley including stalks,parsley including stalks,,small sprig ,
 2 to 3 tablespoons unsalted butter,unsalted butter,2-3,tablespoon,
 ½ teaspoon peperoncino flakes,peperoncino flakes,0.5,teaspoon,
 "One 28-ounce can low-sodium stewed tomatoes, chopped, with liquid",low-sodium stewed tomatoes,1,can,"28-ounce chopped, with liquid"
