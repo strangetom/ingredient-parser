@@ -5,8 +5,14 @@ import xml.etree.ElementTree as ET
 from itertools import pairwise
 from pathlib import Path
 
+from nltk.tokenize import RegexpTokenizer
 from tqdm import tqdm
 from training_utils import load_csv
+
+# Tokeniser from preprocess.py
+group_a = r"[\w!\#\$\£\€%\&'\*\+\-\.:;>=<\?@\^_`\\\|\~]+"
+group_b = r"[\(\)\[\]\{\}\,\"/]"
+REGEXP_TOKENIZER = RegexpTokenizer(rf"{group_a}|{group_b}", gaps=False)
 
 
 def score_sentence_similarity(first: str, second: str) -> float:
@@ -34,17 +40,12 @@ def score_sentence_similarity(first: str, second: str) -> float:
         # Indentical sentences have maximum score of 1
         return 1
 
-    if len(first) < 2 or len(second) < 2:
-        # If either sentence has 0 or 1 character we can't generate bigrams,
-        # so the score is 0
-        return 0
+    first_tokens = set(REGEXP_TOKENIZER.tokenize(first))
+    second_tokens = set(REGEXP_TOKENIZER.tokenize(second))
 
-    first_bigrams = {"".join(pair) for pair in pairwise(first)}
-    second_bigrams = {"".join(pair) for pair in pairwise(second)}
+    intersection = first_tokens & second_tokens
 
-    intersection = first_bigrams & second_bigrams
-
-    return 2.0 * len(intersection) / (len(first_bigrams) + len(second_bigrams))
+    return 2.0 * len(intersection) / (len(first_tokens) + len(second_tokens))
 
 
 def create_html_table(
@@ -242,7 +243,7 @@ if __name__ == "__main__":
         matches = [
             i + j
             for j, score in enumerate(scores)
-            if score > 0.8 and i + j in unmatched_indices
+            if score > 0.85 and i + j in unmatched_indices
         ]
 
         for m in matches:
