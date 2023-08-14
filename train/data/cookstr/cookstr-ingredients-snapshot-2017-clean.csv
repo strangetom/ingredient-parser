@@ -730,7 +730,7 @@ Unsweetened cocoa powder,cocoa powder,,,Unsweetened
 "24 large green olives stuffed with pimientos, onions, or jalapeños, plus 1 teaspoon of brine from the jar","green olives stuffed with pimientos, onions, or jalapeños",24,large,plus 1 teaspoon of brine from the jar
 1 cup ricotta,ricotta,1,cup,
 "2 cups all purpose flour, or more if needed",all purpose flour,2,cup,or more if needed
-4 thin lemon wedges,lemon wedges,4,thin,
+4 thin lemon wedges,lemon,4,thin wedge,
 "½ cup semi-sweet chocolate morsels, melted and cooled",semi-sweet chocolate morsels,0.5,cup,melted and cooled
 Granulated sugar for sprinkling,Granulated sugar,,,for sprinkling
 3 cups (12 ounces) shredded Gruyere cheese,Gruyere cheese,3,cup,"(12 ounce), shredded "
@@ -904,7 +904,7 @@ About 1 ½ cups beef or chicken broth,beef or chicken broth,1.5,cup,About
 2 tbsp (25 mL) freshly squeezed lemon juice (see Note),lemon juice,2,tbsp,(25 mL) (see Note) freshly squeezed
 2 cups Greek yogurt,Greek yogurt,2,cup,
 Coarse salt,coarse salt,,,
-1/3 cup freshly squeezed orange juice,orange juice,0.333,cup, freshly squeezed
+1/3 cup freshly squeezed orange juice,freshly squeezed orange juice,0.333,cup,
 2½ cups (625 mL) all purpose flour,all purpose flour,2.5,cup,(625 mL)
 2 oz (60 g) unsweetened chocolate,chocolate,2,oz,unsweetened (60 g)
 "6 to 8 drops red or green food coloring, or as desired",red or green food coloring,6-8,drop,or as desired
@@ -1561,7 +1561,7 @@ dried red pepper flakes to taste,dried red pepper flakes to taste,,,
 2 teaspoons peeled and minced garlic,garlic,2,teaspoon,peeled and minced 
 4 teaspoons Thai green curry paste,Thai green curry paste,4,teaspoon,
 ¼ cup (50 mL) coffee-flavored liqueur,coffee-flavored liqueur,0.25,cup,(50 mL)
-1 cup stone-ground cornmeal,stone-ground cornmeal,1,cup,
+1 cup stone-ground cornmeal,cornmeal,1,cup,stone-ground 
 4 slices (½-inch/1 cm thick slices) sourdough bread,sourdough bread,4,slice,(0.5-inch/1 cm thick slice) 
 1 tablespoon coarse sea salt,coarse sea salt,1,tablespoon,
 "1 fresh red chilli, finely chopped",fresh red chilli,1,,finely chopped
@@ -5685,7 +5685,7 @@ Few sprigs parsley,parsley,,sprig,few
 2 tablespoons coarsely chopped fresh cilantro leaves (optional),fresh cilantro leaves,2,tablespoon,coarsely chopped (optional)
 1 1/2 teaspoons all-purpose flour stirred together with 1 tablespoon water,all-purpose flour,1.5,teaspoon,stirred together with 1 tablespoons water
 "1 small cucumber, peeled, seeded, and chopped, plus extra for serving",cucumber,1,small,"peeled, seeded, and chopped, plus extra for serving"
-1 cup heavy (whipping) cream,heavy (whipping) cream,1,cup,
+1 cup heavy (whipping) cream,heavy cream,1,cup,(whipping) 
 "2 tablespoons shoyu, or to taste",shoyu,2,tablespoon,or to taste
 ¼ teaspoon dried peppercorns,dried peppercorns,0.25,teaspoon,
 "1 small carrot, peeled and grated",carrot,1,small,peeled and grated
@@ -6653,7 +6653,7 @@ Coconut Peanut Sauce,Coconut Peanut Sauce,,,
 1/4 cup white wine,white wine,0.25,cup,
 "6 large Idaho potatoes, peeled",Idaho potatoes,6,large,peeled
 5 tbsp Mango Lime Salsa (recipe follows),Mango Lime Salsa,5,tbsp,(recipe follows)
-2 quarts chicken stock or canned low-sodium chicken broth,chicken stock or canned low-sodium chicken broth,2,quart,
+2 quarts chicken stock or canned low-sodium chicken broth,chicken stock,2,quart,or canned low-sodium chicken broth
 "2 cups canned Italian-style tomatoes, crushed, with juices",Italian-style tomatoes,2,cup,"canned, crushed, with juices"
 Kosher or sea salt,Kosher or sea salt,,,
 4½ cups unbleached all purpose flour,all purpose flour,4.5,cup,unbleached 
@@ -7627,7 +7627,7 @@ Chopped fresh parsley for garnish,fresh parsley,,,"Chopped, for garnish"
 3 blood oranges (enough to make 3 cups orange sections),blood oranges,3,,(enough to make 3 cups orange sections)
 "5 oz (140g) semisweet chocolate, chopped",chocolate,5,oz,"semisweet (140 g), chopped"
 ½ small head radicchio,radicchio,0.5,small head,
-1 whole egg,whole egg,1,,
+1 whole egg,egg,1,,whole 
 Drops of wine vinegar or lemon juice as needed,wine vinegar or lemon juice,,drop,"of, as needed"
 "2 cups blueberries, huckleberries, blackberries, or others",blueberries,2,cup,"huckleberries, blackberries, or others"
 "1 lime, cut in half",lime,1,,cut in half
@@ -7656,7 +7656,7 @@ Drops of wine vinegar or lemon juice as needed,wine vinegar or lemon juice,,drop
 2 tbsp (25 mL) 2% milk,2% milk,2,tbsp,(25 mL)
 "1 teaspoon grapeseed oil, corn oil, or other neutral oil",grapeseed oil,1,teaspoon,"corn oil, or other neutral oil"
 "3 tbsp (45g) unsalted butter, melted",unsalted butter,3,tbsp,(45 g) melted
-"2 tablespoons canola, peanut, or walnut oil",canola,2,tablespoon,"peanut, or walnut oil"
+"2 tablespoons canola, peanut, or walnut oil","canola, peanut, or walnut oil",2,tablespoon,
 "1 lime cut into 6 wedges, for garnish",lime,1,,"cut into 6 wedge, for garnish"
 ½ cup plus 2 tablespoons (3 ounces/85 grams) all-purpose flour,all-purpose flour,0.5,cup,plus 2 tablespoon (3 ounce/85 gram)
 "2 large cloves garlic, bruised",garlic,2,large clove,bruised
@@ -9298,7 +9298,7 @@ Extremely Flaky Sour Cream Crust,Extremely Flaky Sour Cream Crust,,,
 ¼ cup corn flour or cornmeal,corn flour or cornmeal,0.25,cup,
 One 8-ounce package cream cheese,cream cheese,1,package,8-ounce 
 1 to 1½ pounds pasta,pasta,1-1.5,pound,
-2 whole garlic cloves,whole garlic cloves,2,,
+2 whole garlic cloves,garlic,2,clove,whole
 "1 large red onion, peeled and quartered",red onion,1,large,peeled and quartered
 ½ teaspoon ground cinnamon or 1 teaspoon cherry or mint extract,ground cinnamon,0.5,teaspoon,or 1 teaspoons cherry or mint extract
 ½ teaspoon ground cardamom (optional),ground cardamom,0.5,teaspoon,(optional)
