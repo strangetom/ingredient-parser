@@ -43,6 +43,6 @@ def load_csv(
                 break
 
     filename = Path(csv_filename).name
-    print(f"[INFO] Loaded {i+1} vectors from {filename}")
+    print(f"[INFO] Loaded {i+1} vectors from {filename}.")
 
     return sentences, labels
