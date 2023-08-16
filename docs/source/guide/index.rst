@@ -7,6 +7,5 @@ This user guide provided more in depth information about the data used to train 
    :maxdepth: 2
 
    The data <data>
-   Data cleaning todo list <clean>
    The features <features>
    Training the model <training>

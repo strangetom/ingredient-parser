@@ -20,10 +20,12 @@ The features used for this model are a little different
 * Whether the token is capitalised
 * Whether the token is numeric
 * Whether the token is a unit (determined from the list of units)
+* Whether the token is an ambiguous unit
 * Whether the token is inside parentheses
 * Whether the token is a stop word
 * Whether the token is after a comma
 * Whether the token follows a + symbol
+* Whether the token is after a forward slash
 
 If possible, based on the position of the token in the sentence, the following features are also added
 

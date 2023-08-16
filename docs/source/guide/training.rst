@@ -14,8 +14,9 @@ The training and testing data is transformed to get it's features and correct la
 
 .. code:: python
 
-    X_train, y_train = transform_to_dataset(ingredients_train, labels_train)
-    X_test, y_test = transform_to_dataset(ingredients_test, labels_test)
+        transformed_sents, transformed_labels = transform_to_dataset(
+            dataset_sents, dataset_labels
+        )
 
 Getting the labels for each input is a bit weird. The datasets are organised in a way that means we have a string the represents the input, a string for the quantity, a string for the unit, a string for the name, and a string for the comment. 
 
@@ -62,18 +63,24 @@ With the data ready, we can now train the model using `python-crfuite <https://g
     import pycrfsuite
 
     trainer = pycrfsuite.Trainer(verbose=False)
-    for X, y in zip(X_train, y_train):
+    trainer.set_params(
+        {
+            "feature.possible_states": True,
+            "feature.possible_transitions": True,
+        }
+    )
+    for X, y in zip(features_train, truth_train):
         trainer.append(X, y)
-    trainer.train("model.crfsuite")
+    trainer.train(args.save_model)
 
 This trains the model and saves the model to the file specified.
-This is relatively quick the train, it takes ~30 seconds on a laptop with an Intel Core 15-10300H and 16 GB of RAM. No GPU is required.
+This is relatively quick the train, it takes ~90 seconds on a laptop with an Intel Core 15-10300H and 16 GB of RAM. No GPU is required.
 
 All of the above steps are implemented in the ``train/train.py`` script. The following command will execute the script and train the model on both datasets.
 
 .. code:: bash
 
-    python train/train.py --nyt train/data/nytimes/nyt-ingredients-snapshot-2015.csv --sf train/data/strangerfoods/sf_labelled_data.csv
+    python train/train.py --datasets train/data/nytimes/nyt-ingredients-snapshot-2015.csv train/data/strangerfoods/sf-labelled-data.csv train/data/cookstr/cookstr-ingredients-snapshot-2017-clean.csv
 
 Evaluating the model
 ^^^^^^^^^^^^^^^^^^^^
@@ -88,9 +95,9 @@ Two metrics are used to evaluate the model:
 .. code:: python
 
     tagger = pycrfsuite.Tagger()
-    tagger.open("model.crfsuite")
-    y_pred = [tagger.tag(X) for X in X_test]
-    stats = evaluate(X_test, y_pred, y_test)
+    tagger.open(args.save_model)
+    labels_pred = [tagger.tag(X) for X in features_test]
+    stats = evaluate(labels_pred, truth_test)
 
 The current performance of the model is
 
@@ -108,4 +115,4 @@ The current performance of the model is
         Incorrect: 2817
         -> 96.25% correct
 
-There will always be some variation in model performance each time the model is trained, because the training data is partitioned randomly each time. If the model is representing the training data well, then the variation in performance metrics should be small (i.e. ⪅ 1%).
+There will always be some variation in model performance each time the model is trained, because the training data is partitioned randomly each time. If the model is representing the training data well, then the variation in performance metrics should be small (i.e. << 1%).

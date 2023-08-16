@@ -4,7 +4,7 @@ The Data
 Data sources
 ^^^^^^^^^^^^
 
-There are two sources of data which are used to train the model, each with their own advantages and disadvantages.
+There are three sources of data which are used to train the model, each with their own advantages and disadvantages.
 
 StrangerFoods
 ~~~~~~~~~~~~~
@@ -24,10 +24,23 @@ The New York Times released a dataset of labelled ingredients in their `Ingredie
 * The dataset primarily uses imperial/US customary units
 * The dataset is large, roughly 178,000 entries
 
-The two datasets have different advantages and disadvantages, therefore combining the two should yield an improvement over using either on their own.
+Cookstr
+~~~~~~~
 
-Cleaning the New York Times dataset
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+The Cookstr dataset is derived from 7918 recipes scraped from `<cookstr.com>`_ (no longer available) between 2017-06 and 2017-07. The scraped data can be found at https://archive.org/details/recipes-en-201706.
+
+* The dataset is unlabelled and will need labelling manually.
+* The dataset primarily uses imperial/US customary units, although many ingredients give the quantity in multiple units
+* The dataset is medium sized, roughly 40,000 entries
+
+The three datasets have different advantages and disadvantages, therefore combining the two should yield an improvement over using any on their own.
+
+Cleaning the New York Times dataset labels
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. tip::
+    
+    The details described in this section also apply to how the labelling was performed for the Cookstr dataset.
 
 The New York Times dataset has gone through, and continues to go through, the very manual process of cleaning the data. This process is there to ensure that the labels assigned to each token in each ingredient sentence are correct and consistent across the dataset. In general, the idea is to avoid modifying the input sentence and only correct the labels for each, although entries have been removed where there is too much missing information or the entry is not actually an ingredient sentence (a few recipe instructions have been found mixed into the data).
 
@@ -86,8 +99,6 @@ The following operations were done to clean up the data (note that this is not e
 
     * ``4 shoots spring shallots or 4 shallots, minced`` should have the name as ``spring shallots`` and the comment as ``or 4 shallots, minced`` because there are different quantities of spring shallots to shallots.
 
-:doc:`Data Cleaning Todo List <clean>` contains a list of possible further data cleaning steps.
-
 Processing the data
 ^^^^^^^^^^^^^^^^^^^
 
@@ -130,7 +141,7 @@ The replacements are predefined in a dictionary.
 For performance reasons, the regular expressions used to substitute the text with the number are precomiled and provided in the ``STRING_NUMBERS_REGEXES`` constant, which is a dictionary where the value is a tuple of (precompiled regex, substitute value).
 
 .. literalinclude:: ../../../ingredient_parser/_constants.py
-    :lines: 111-130
+    :lines: 123-141
     
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
@@ -211,7 +222,7 @@ where the numbers 1 and 2 represent any decimal value.
 The purpose of this is to ensure the range is kept as a single token.
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
-    :lines: 29-34
+    :lines: 29-33
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
     :pyobject: PreProcessor._replace_string_range
@@ -224,7 +235,7 @@ The purpose of this is to ensure the range is kept as a single token.
 Units are made singular. This is done using a predefined list of plural units and their singular form.
 
 .. literalinclude:: ../../../ingredient_parser/_constants.py
-    :lines: 5-83
+    :lines: 5-102
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
     :pyobject: PreProcessor._singlarise_units
@@ -237,16 +248,7 @@ Once the input has been cleaned, it can be split into tokens. Each token represe
 
 The tokenizer in created using NLTK's Regular Expression tokenizer. The splits an string input according the a regular expression.
 
-The defined tokenizer splits the sentence according the following rules.
-
-* Word characters, full stops, hyphens and apostrophes that are adjacent are kept together as a token.
-    This effectively converts word to tokens, with some special cases like keeping ranges as a single token.
-* Open and closing parentheses become tokens on their own.
-    Parentheses are difficult to handle because they can appear directly adjacent to word, so we separate them into tokens on their own.
-* Commas become a token.
-    Same argument as for parentheses.
-* Double quotes/speech marks become a token.
-    Double quotes can be a unit (inch), which we would to identify.
+The defined tokenizer splits the sentence according the following rules:
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
-    :lines: 36-39
+    :lines: 35-44
