@@ -45,16 +45,16 @@ The model provided in ```ingredient-parser/``` directory has the following accur
 
 ```
 Sentence-level results:
-	Total: 11280
-	Correct: 9861
-	Incorrect: 1419
-	-> 87.42% correct
+	Total: 12030
+	Correct: 10776
+	Incorrect: 1254
+	-> 89.58% correct
 
 Word-level results:
-	Total: 69154
-	Correct: 66144
-	Incorrect: 3010
-	-> 95.65% correct
+	Total: 75146
+	Correct: 72329
+	Incorrect: 2817
+	-> 96.25% correct
 ```
 
 ## Development

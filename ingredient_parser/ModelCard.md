@@ -10,7 +10,7 @@
 
 Date: August 2023
 
-Version: The model version is the same has the ingredient_parser_nlp package version.
+Version: The model version is the same has the `ingredient_parser_nlp` package version.
 
 ### Model Type
 
@@ -75,7 +75,7 @@ There are 3 datasets used to train and evaluate model performance.
 
 2. Cookstr, originally found as part of https://archive.org/details/recipes-en-201706.
 
-   The first 6,000 sentences are used in the training and evaluation of the model.
+   The first 10,000 sentences are used in the training and evaluation of the model.
 
 3. StrangerFoods, found at https://strangerfoods.org
 
@@ -91,9 +91,9 @@ The model has the following performance metrics:
 
 | Word level accuracy | Sentence level accuracy |
 | ------------------- | ----------------------- |
-| 87.42%              | 95.65%                  |
+| 96.25%              | 89.58%                  |
 
-Due to the randomisation of the selection of training and evaluation data, the word level accuracy metric can vary by ±1% and the sentence level accuracy can vary by ±0.5% between model training runs.
+Due to the randomisation of the selection of training and evaluation data, the word level accuracy metric can vary by ±0.3 pp and the sentence level accuracy can vary by ±0.8 pp between model training runs.
 
 ## Ethical Considerations
 

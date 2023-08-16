@@ -17,6 +17,7 @@ class ParsedIngredientConfidence:
 
     The confidence is a value between 0 (no confidence) and 1 (complete confidence).
     """
+
     quantity: float
     unit: float
     name: float
@@ -36,6 +37,7 @@ class ParsedIngredient:
     * Other: Any tokens in the input sentence that were not labelled
     * Confidence: A ParsedIngredientConfidence object, or None
     """
+
     sentence: str
     quantity: str
     unit: str
