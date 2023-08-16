@@ -2,20 +2,40 @@
 
 import argparse
 import json
+from dataclasses import dataclass
 from importlib.resources import as_file, files
 
 import pycrfsuite
-from typing_extensions import NotRequired, TypedDict
 
 from .preprocess import PreProcessor
 from .utils import average, find_idx, fix_punctuation, join_adjacent, pluralise_units
 
 
-class ParsedIngredient(TypedDict):
+@dataclass
+class ParsedIngredientConfidence:
+    """Dataclass for holding the confidence values for each of the parsed values.
 
-    """Return type for parse_ingredient function.
+    The confidence is a value between 0 (no confidence) and 1 (complete confidence).
+    """
 
-    This specifies the dictionary keys and datatypes for their associated values.
+    quantity: float
+    unit: float
+    name: float
+    comment: float
+    other: float
+
+
+@dataclass
+class ParsedIngredient:
+    """Dataclass for holding the parsed values for an input sentence.
+
+    * Sentence: The original input sentence
+    * Quantity: The parsed quantity from the input sentence, or an empty string
+    * Unit: The parsed unit from the input sentence, or an empty string
+    * Name: The parsed name from the input sentence, or an empty string
+    * Comment: The parsed comment from the input sentence, or an empty string
+    * Other: Any tokens in the input sentence that were not labelled
+    * Confidence: A ParsedIngredientConfidence object, or None
     """
 
     sentence: str
@@ -24,7 +44,7 @@ class ParsedIngredient(TypedDict):
     name: str
     comment: str
     other: str
-    confidence: NotRequired[dict[str, float]]
+    confidence: ParsedIngredientConfidence | None
 
 
 # Create TAGGER object
@@ -33,40 +53,18 @@ with as_file(files(__package__) / "model.crfsuite") as p:
     TAGGER.open(str(p))
 
 
-def parse_ingredient(sentence: str, confidence: bool = False) -> ParsedIngredient:
+def parse_ingredient(sentence: str) -> ParsedIngredient:
     """Parse an ingredient sentence using CRF model to return structured data
-
-    Returned dictionary has the following fields and datatypes
-
-    .. code-block:: python
-
-        {
-            "sentence": str,
-            "quantity": str,
-            "unit": str,
-            "name": str,
-            "comment": str,
-            "other": str,
-            "confidence": dict[str, float] <- Optional
-        }
 
     Parameters
     ----------
     sentence : str
         Ingredient sentence to parse
-    confidence : bool, optional
-        Return confidence scores for labels
 
     Returns
     -------
     ParsedIngredient
-        Dictionary of structured data parsed from input string
-
-    Examples
-    ------
-    >>> parse_ingredient("2 yellow onions, finely chopped")
-    {'sentence': '2 yellow onions, finely chopped', 'quantity': '2', \
-    'unit': '', 'name': 'yellow onions', 'comment': 'finely chopped', 'other': ''}
+        ParsedIngredient object of structured data parsed from input string
     """
 
     processed_sentence = PreProcessor(sentence)
@@ -103,30 +101,26 @@ def parse_ingredient(sentence: str, confidence: bool = False) -> ParsedIngredien
     else:
         other = fix_punctuation(other)
 
-    parsed: ParsedIngredient = {
-        "sentence": sentence,
-        "quantity": quantity,
-        "unit": unit,
-        "name": fix_punctuation(name),
-        "comment": comment,
-        "other": other,
-    }
+    confidence = ParsedIngredientConfidence(
+        quantity=average(labels, scores, "QTY"),
+        unit=average(labels, scores, "UNIT"),
+        name=average(labels, scores, "NAME"),
+        comment=average(labels, scores, "COMMENT"),
+        other=average(labels, scores, "OTHER"),
+    )
 
-    if confidence:
-        parsed["confidence"] = {
-            "quantity": average(labels, scores, "QTY"),
-            "unit": average(labels, scores, "UNIT"),
-            "name": average(labels, scores, "NAME"),
-            "comment": average(labels, scores, "COMMENT"),
-            "other": average(labels, scores, "OTHER"),
-        }
-
-    return parsed
+    return ParsedIngredient(
+        sentence=sentence,
+        quantity=quantity,
+        unit=unit,
+        name=fix_punctuation(name),
+        comment=comment,
+        other=other,
+        confidence=confidence,
+    )
 
 
-def parse_multiple_ingredients(
-    sentences: list[str], confidence: bool = False
-) -> list[ParsedIngredient]:
+def parse_multiple_ingredients(sentences: list[str]) -> list[ParsedIngredient]:
     """Parse multiple ingredient sentences in one go.
 
     This function accepts a list of sentences, with element of the list representing
@@ -139,13 +133,12 @@ def parse_multiple_ingredients(
     ----------
     sentences : list[str]
         List of sentences to parse
-    confidence : bool, optional
-        Return confidence scores for labels
 
     Returns
     -------
     list[ParsedIngredient]
-        List of dictionaries of structured data parsed from input sentences
+        List of ParsedIngredient objects of structured data parsed 
+        from input sentences
 
     Examples
     ------
@@ -166,7 +159,7 @@ def parse_multiple_ingredients(
     """
     parsed = []
     for sent in sentences:
-        parsed.append(parse_ingredient(sent, confidence))
+        parsed.append(parse_ingredient(sent))
 
     return parsed
 
@@ -176,14 +169,8 @@ if __name__ == "__main__":
         description="Parse ingredient into structured data"
     )
     parser.add_argument("-s", "--string", help="Ingredient string to parse")
-    parser.add_argument(
-        "-c",
-        "--confidence",
-        action="store_true",
-        help="Return confidence scores for labels",
-    )
     args = parser.parse_args()
 
     if args.string is not None:
-        parsed = parse_ingredient(args.string, args.confidence)
-        print(json.dumps(parsed, indent=2))
+        parsed = parse_ingredient(args.string)
+        print(json.dumps(parsed.__dict__, indent=2))

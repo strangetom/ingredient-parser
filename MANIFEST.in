@@ -1,2 +1,3 @@
 include ingredient_parser/model.crfsuite
+include ingredient_parser/ModelCard.md
 prune */__pycache__

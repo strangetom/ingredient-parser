@@ -97,13 +97,15 @@ The current performance of the model is
 .. code::
 
     Sentence-level results:
-        Total: 9448
-        Correct: 8189
-        -> 86.67%
+        Total: 12030
+        Correct: 10776
+        Incorrect: 1254
+        -> 89.58% correct
 
     Word-level results:
-        Total: 54854
-        Correct: 52509
-        -> 95.73%
+        Total: 75146
+        Correct: 72329
+        Incorrect: 2817
+        -> 96.25% correct
 
 There will always be some variation in model performance each time the model is trained, because the training data is partitioned randomly each time. If the model is representing the training data well, then the variation in performance metrics should be small (i.e. ⪅ 1%).

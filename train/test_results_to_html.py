@@ -86,15 +86,17 @@ def test_results_to_html(
                 ).tokenized_sentence
                 table = create_html_table(tokens, truth, prediction)
                 p = ET.Element("p")
-                p.text = f"[{src}] {sentence}"
+                p.text = f"[{src.upper()}] {sentence}"
                 body.append(p)
                 body.append(table)
 
                 incorrect.append(src)
 
     src_count = Counter(incorrect)
+    src_count_str = "".join([f"{k.upper()}: {v}, " for k, v in src_count.items()])
+
     heading2 = ET.Element("h2")
-    heading2.text = f"{len(incorrect):,} incorrect sentences. [{src_count['NYT']} NYT, {src_count['SF']} SF]"
+    heading2.text = f"{len(incorrect):,} incorrect sentences. [{src_count_str}]"
     body.insert(1, heading2)
 
     ET.indent(html, space="    ")

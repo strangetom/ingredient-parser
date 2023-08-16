@@ -22,39 +22,21 @@ Import the ```parse_ingredient``` function and pass it an ingredient sentence.
 >>> from ingredient_parser import parse_ingredient
 
 >>> parse_ingredient("3 pounds pork shoulder, cut into 2-inch chunks")
-{'sentence': '3 pounds pork shoulder, cut into 2-inch chunks',
- 'quantity': '3',
- 'unit': 'pound',
- 'name': 'pork shoulder',
- 'comment': 'cut into 2-inch chunks',
- 'other': ''}
-
-# Output confidence for each label
->>> parse_ingredient("3 pounds pork shoulder, cut into 2-inch chunks", confidence=True)
-{'sentence': '3 pounds pork shoulder, cut into 2-inch chunks',
- 'quantity': '3',
- 'unit': 'pound',
- 'name': 'pork shoulder',
- 'comment': 'cut into 2-inch chunks',
- 'other': '',
- 'confidence': {'quantity': 0.9988,
-  'unit': 0.9969,
-  'name': 0.9698,
-  'comment': 0.9992,
-  'other': 0}}
-```
-
-The returned dictionary has the format
-
-```python
-{
-    "sentence": str,
-    "quantity": str,
-    "unit": str,
-    "name": str,
-    "comment": str,
-    "other": str
-}
+ParsedIngredient(
+    sentence='3 pounds pork should, cut into 2-inch chunks', 
+    quantity='3', 
+    unit='pounds', 
+    name='pork shoulder', 
+    comment='cut into 2-inch chunks', 
+    other='', 
+    confidence=ParsedIngredientConfidence(
+        quantity=0.9986, 
+        unit=0.9972, 
+        name=0.8474, 
+        comment=0.9991, 
+        other=0
+    )
+)
 ```
 
 ## Model accuracy
@@ -63,14 +45,16 @@ The model provided in ```ingredient-parser/``` directory has the following accur
 
 ```
 Sentence-level results:
-	Total: 9448
-	Correct: 8189
-	-> 86.67%
+	Total: 12030
+	Correct: 10776
+	Incorrect: 1254
+	-> 89.58% correct
 
 Word-level results:
-	Total: 54854
-	Correct: 52509
-	-> 95.73%
+	Total: 75146
+	Correct: 72329
+	Incorrect: 2817
+	-> 96.25% correct
 ```
 
 ## Development

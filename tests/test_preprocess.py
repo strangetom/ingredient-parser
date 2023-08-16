@@ -650,6 +650,48 @@ class TestPreProcess_follows_plus:
         assert p._follows_plus(9)
 
 
+class TestPreProcess_follows_slash:
+    def test_no_slash(self):
+        """
+        No / in input
+        """
+        input_sentence = "4 cups freshly made Mashed Potatoes"
+        p = PreProcessor(input_sentence)
+        assert not p._follows_slash(2)
+
+    def test_before_slash(self):
+        """
+        Token index is before /
+        """
+        input_sentence = "4 cups/850 g freshly made Mashed Potatoes"
+        p = PreProcessor(input_sentence)
+        assert not p._follows_slash(1)
+
+    def test_after_slash(self):
+        """
+        Token index is after "plus"
+        """
+        input_sentence = "4 cups/850 g freshly made Mashed Potatoes"
+        p = PreProcessor(input_sentence)
+        assert p._follows_slash(3)
+
+    def test_index_is_slash(self):
+        """
+        Token at index is "plus"
+        """
+        input_sentence = "4 cups/850 g freshly made Mashed Potatoes"
+        p = PreProcessor(input_sentence)
+        assert not p._follows_slash(2)
+
+    def test_index_is_slash_and_follows_slash(self):
+        """
+        Token at index is "plus" and follows another "plus"
+        """
+        input_sentence = "4 cups/850 g/30 oz freshly made Mashed Potatoes"
+        p = PreProcessor(input_sentence)
+        assert p._follows_slash(5)
+
+
 class TestPreProcess_follows_comma:
     def test_no_comma(self):
         """

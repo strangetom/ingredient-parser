@@ -6,3 +6,4 @@ build
 twine
 pytest
 coverage
+tqdm

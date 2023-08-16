@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
 
 import argparse
-import csv
 from collections import Counter
 from dataclasses import dataclass
 from itertools import chain
+from pathlib import Path
 
 import pycrfsuite
 from sklearn.model_selection import train_test_split
 from test_results_to_html import test_results_to_html
 
 from ingredient_parser import PreProcessor
+from training_utils import load_csv
 
 
 @dataclass
@@ -23,37 +24,14 @@ class Stats:
     correct_words: int
 
 
-def load_csv(csv_filename: str) -> tuple[list[str], list[dict[str, str]]]:
-    """Load csv file generated py ```generate_training_testing_csv.py``` and parse
-    contents into ingredients and labels lists
+@dataclass
+class DataVectors:
+    """Dataclass to store the loaded and transformed inputs"""
 
-    Parameters
-    ----------
-    csv_filename : str
-        Name of csv file
-
-    Returns
-    -------
-    list[str]
-        List of ingredient strings
-    list[dict[str, str]]
-        List of dictionaries, each dictionary the ingredient labels
-    """
-    labels, sentences = [], []
-    with open(csv_filename, "r") as f:
-        reader = csv.reader(f)
-        next(reader)  # skip first row
-        for row in reader:
-            sentences.append(row[0])
-            labels.append(
-                {
-                    "name": row[1].strip().lower(),
-                    "quantity": row[2].strip().lower(),
-                    "unit": row[3].strip().lower(),
-                    "comment": row[4].strip().lower(),
-                }
-            )
-    return sentences, labels
+    sentences: list[str]
+    features: list[list[dict[str, str]]]
+    labels: list[list[str]]
+    source: list[str]
 
 
 def match_labels(tokenized_sentence: list[str], labels: dict[str, str]) -> list[str]:
@@ -92,7 +70,8 @@ def match_labels(tokenized_sentence: list[str], labels: dict[str, str]) -> list[
 
     matched_labels = []
     for token in tokenized_sentence:
-        # Convert to lower case because all labels are lower case (see load_csv function)
+        # Convert to lower case because all labels are lower case
+        # (see load_csv function)
         # Note that we couldn't do this earlier without losing information required for
         # feature extraction
         token = token.lower()
@@ -188,19 +167,79 @@ def transform_to_dataset(
     return X, y
 
 
-def evaluate(
-    X: list[str], predictions: list[list[str]], truths: list[list[str]]
-) -> Stats:
+def load_and_transform(datasets: list[str], number: int) -> DataVectors:
+    """Load raw data from csv files and transform into format required for training.
+
+    Parameters
+    ----------
+    datasets : list[str]
+        List of csv files to load raw data from
+    number : int
+        Maximum number of inputs to load from each csv file
+
+    Returns
+    -------
+    DataVectors
+        Dataclass holding:
+            raw input sentences,
+            features extracted from sentences,
+            labels for sentences
+            source dataset of sentences
+    """
+    print("[INFO] Loading and transforming training data.")
+    sentences = []
+    features = []
+    labels = []
+    source = []
+
+    for dataset in datasets:
+        dataset_id = Path(dataset).name.split("-")[0]
+        dataset_sents, dataset_labels = load_csv(dataset, number)
+
+        # Transform from csv format to training format
+        print(f"[INFO] Transforming '{dataset_id}' vectors.")
+        transformed_sents, transformed_labels = transform_to_dataset(
+            dataset_sents, dataset_labels
+        )
+
+        sentences.extend(dataset_sents)
+        features.extend(transformed_sents)
+        labels.extend(transformed_labels)
+        source.extend([dataset_id] * len(dataset_sents))
+
+    print(f"[INFO] {len(sentences):,} total vectors")
+    return DataVectors(sentences, features, labels, source)
+
+
+def evaluate(predictions: list[list[str]], truths: list[list[str]]) -> Stats:
+    """Calculate statistics on the predicted labels for the test data.
+
+    Parameters
+    ----------
+    predictions : list[list[str]]
+        Predicted labels for each test sentence
+    truths : list[list[str]]
+        True labels for each test sentence
+
+    Returns
+    -------
+    Stats
+        Dataclass holding the following statistics:
+            total sentences,
+            correctly labelled sentnces,
+            total words,
+            correctly labelled words
+    """
     total_sentences = 0
     correct_sentences = 0
     total_words = 0
     correct_words = 0
 
-    for sentence, prediction, truth in zip(X, predictions, truths):
+    for prediction, truth in zip(predictions, truths):
         correct_words_per_sentence = 0
         total_words_per_sentence = 0
 
-        for token, p, t in zip(sentence, prediction, truth):
+        for p, t in zip(prediction, truth):
             total_words += 1
             total_words_per_sentence += 1
 
@@ -221,8 +260,14 @@ if __name__ == "__main__":
         description="Train a CRF model to parse structured data from recipe \
                      ingredient sentences."
     )
-    parser.add_argument("--nyt", help="Path to input csv file for NYTimes data")
-    parser.add_argument("--sf", help="Path to input csv file for StrangerFoods data")
+    parser.add_argument(
+        "--datasets",
+        "-d",
+        help="Datasets in csv format",
+        action="extend",
+        dest="datasets",
+        nargs="+",
+    )
     parser.add_argument(
         "-s",
         "--split",
@@ -235,7 +280,7 @@ if __name__ == "__main__":
         "--number",
         default=30000,
         type=int,
-        help="Number of entries from NYTimes dataset to use (train+test)",
+        help="Maximum of entries from a dataset to use (train+test)",
     )
     parser.add_argument(
         "-m",
@@ -244,48 +289,32 @@ if __name__ == "__main__":
         help="Path to save model to",
     )
     parser.add_argument(
-        "-d",
-        "--detailed_results",
+        "--html",
         action="store_true",
         help="Output a markdown file containing detailed results.",
     )
     args = parser.parse_args()
 
-    print("[INFO] Loading training data.")
-    SF_sentences, SF_labels = load_csv(args.sf)
-    NYT_sentences, NYT_labels = load_csv(args.nyt)
-
+    vectors = load_and_transform(args.datasets, args.number)
+    # Split data into train and test sets
     (
-        NYT_sentences_train,
-        NYT_sentences_test,
-        NYT_labels_train,
-        NYT_labels_test,
+        sentences_train,
+        sentences_test,
+        features_train,
+        features_test,
+        truth_train,
+        truth_test,
+        source_train,
+        source_test,
     ) = train_test_split(
-        NYT_sentences[: args.number],
-        NYT_labels[: args.number],
+        vectors.sentences,
+        vectors.features,
+        vectors.labels,
+        vectors.source,
         test_size=args.split,
     )
-    (
-        SF_sentences_train,
-        SF_sentences_test,
-        SF_labels_train,
-        SF_labels_test,
-    ) = train_test_split(SF_sentences, SF_labels, test_size=args.split)
-
-    ingredients_train = NYT_sentences_train + SF_sentences_train
-    labels_train = NYT_labels_train + SF_labels_train
-    ingredients_test = NYT_sentences_test + SF_sentences_test
-    ingredients_test_source = ["NYT"] * len(NYT_sentences_test) + ["SF"] * len(
-        SF_sentences_test
-    )
-    labels_test = NYT_labels_test + SF_labels_test
-    print(f"[INFO] {len(ingredients_train)+len(ingredients_test):,} total vectors")
-    print(f"[INFO] {len(ingredients_train):,} training vectors.")
-    print(f"[INFO] {len(ingredients_test):,} testing vectors.")
-
-    print("[INFO] Transforming vectors")
-    X_train, y_train = transform_to_dataset(ingredients_train, labels_train)
-    X_test, y_test = transform_to_dataset(ingredients_test, labels_test)
+    print(f"[INFO] {len(features_train):,} training vectors.")
+    print(f"[INFO] {len(features_test):,} testing vectors.")
 
     print("[INFO] Training model with training data.")
     trainer = pycrfsuite.Trainer(verbose=False)
@@ -295,33 +324,35 @@ if __name__ == "__main__":
             "feature.possible_transitions": True,
         }
     )
-    for X, y in zip(X_train, y_train):
+    for X, y in zip(features_train, truth_train):
         trainer.append(X, y)
     trainer.train(args.save_model)
 
     print("[INFO] Evaluating model with test data.")
     tagger = pycrfsuite.Tagger()
     tagger.open(args.save_model)
-    y_pred = [tagger.tag(X) for X in X_test]
+    labels_pred = [tagger.tag(X) for X in features_test]
 
-    stats = evaluate(ingredients_test, y_pred, y_test)
+    stats = evaluate(labels_pred, truth_test)
     print("Sentence-level results:")
     print(f"\tTotal: {stats.total_sentences}")
     print(f"\tCorrect: {stats.correct_sentences}")
-    print(f"\t-> {100*stats.correct_sentences/stats.total_sentences:.2f}%")
+    print(f"\tIncorrect: {stats.total_sentences - stats.correct_sentences}")
+    print(f"\t-> {100*stats.correct_sentences/stats.total_sentences:.2f}% correct")
 
     print()
     print("Word-level results:")
     print(f"\tTotal: {stats.total_words}")
     print(f"\tCorrect: {stats.correct_words}")
-    print(f"\t-> {100*stats.correct_words/stats.total_words:.2f}%")
+    print(f"\tIncorrect: {stats.total_words - stats.correct_words}")
+    print(f"\t-> {100*stats.correct_words/stats.total_words:.2f}% correct")
 
     # Calculate some starts about the OTHER label
-    train_label_count = Counter(chain.from_iterable(y_train))
+    train_label_count = Counter(chain.from_iterable(truth_train))
     train_other_pc = 100 * train_label_count["OTHER"] / train_label_count.total()
-    test_label_count = Counter(chain.from_iterable(y_test))
+    test_label_count = Counter(chain.from_iterable(truth_test))
     test_other_pc = 100 * test_label_count["OTHER"] / test_label_count.total()
-    pred_label_count = Counter(chain.from_iterable(y_pred))
+    pred_label_count = Counter(chain.from_iterable(labels_pred))
     pred_other_pc = 100 * pred_label_count["OTHER"] / pred_label_count.total()
     print()
     print("OTHER labels:")
@@ -331,11 +362,11 @@ if __name__ == "__main__":
         f"\tPredicted in test data: {pred_label_count['OTHER']} ({pred_other_pc:.2f}%)"
     )
 
-    if args.detailed_results:
+    if args.html:
         test_results_to_html(
-            ingredients_test,
-            y_test,
-            y_pred,
-            ingredients_test_source,
+            sentences_test,
+            truth_test,
+            labels_pred,
+            source_test,
             minimum_mismatches=2,
         )

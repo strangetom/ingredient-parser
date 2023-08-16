@@ -40,7 +40,7 @@ STRING_RANGE_PATTERN = re.compile(r"([\d\.]+)(\-)?\s+(to|or)\s+([\d\.]+(\-)?)")
 # The following punctuation is deliberately left out of the these groups so that
 # they are removed: backslash.
 group_a = r"[\w!\#\$\£\€%\&'\*\+\-\.:;>=<\?@\^_`\\\|\~]+"
-group_b = r"[\(\)\[\]\{\}\,\"]"
+group_b = r"[\(\)\[\]\{\}\,\"/]"
 REGEXP_TOKENIZER = RegexpTokenizer(rf"{group_a}|{group_b}", gaps=False)
 
 STEMMER = PorterStemmer()
@@ -173,7 +173,9 @@ class PreProcessor:
         Tokenised ingredient sentence.
     """
 
-    def __init__(self, input_sentence: str, defer_pos_tagging=False):
+    def __init__(
+        self, input_sentence: str, defer_pos_tagging=False, show_debug_output=False
+    ):
         """Initialisation
 
         Parameters
@@ -184,6 +186,7 @@ class PreProcessor:
             Defer part of speech tagging until feature generation
 
         """
+        self.show_debug_output = show_debug_output
         self.input: str = input_sentence
         self.sentence: str = self._clean(input_sentence)
 
@@ -253,17 +256,19 @@ class PreProcessor:
 
         for func in funcs:
             sentence = func(sentence)
+            if self.show_debug_output:
+                print(f"{func.__name__}: {sentence}")
 
         return sentence.strip()
 
     def _replace_en_em_dash(self, sentence: str) -> str:
         """Replace en-dashes and em-dashes with hyphens.
-        
+
         Parameters
         ----------
         sentence : str
             Ingredient sentence
-        
+
         Returns
         -------
         str
@@ -323,24 +328,21 @@ class PreProcessor:
             Ingredient sentence with fractions replaced with decimals
         """
         matches = FRACTION_PARTS_PATTERN.findall(sentence)
+
+        if not matches:
+            return sentence
+
         # This is a bit of a hack.
         # If a fraction appears multiple times but in different forms e.g. 1/2 and
         # 1 1/2, then
         # we need to replace the longest one first, otherwise both instance of 1/2
         # would be replaced at the same time which would mean that the instance of
         # 1 1/2 would end up as 1 0.5 instead of 1.5
+        # Before we sort, we need to strip any space from the start and end.
+        matches = [match.strip() for match in matches]
         matches.sort(key=len, reverse=True)
 
-        if not matches:
-            return sentence
-
         for match in matches:
-            # The regex pattern will capture the space before a fraction if the fraction
-            # doesn't have a whole number in front of it.
-            # Therefore, if the match starts with a space, remove it.
-            if match.startswith(" "):
-                match = match[1:]
-
             split = match.split()
             summed = float(sum(Fraction(s) for s in split))
             rounded = round(summed, 3)
@@ -573,6 +575,22 @@ class PreProcessor:
         """
         return "plus" in self.tokenized_sentence[:index]
 
+    def _follows_slash(self, index: int) -> bool:
+        """Return True if token at index follow / by any amount in sentence.
+        If the token at the index is /, it doesn't count as following.
+
+        Parameters
+        ----------
+        index : int
+            Index of token to check
+
+        Returns
+        -------
+        bool
+            True if token follows /, else False
+        """
+        return "/" in self.tokenized_sentence[:index]
+
     def _is_capitalised(self, token: str) -> bool:
         """Return True if token starts with a capital letter
 
@@ -674,6 +692,7 @@ class PreProcessor:
             "is_stop_word": self._is_stop_word(token),
             "is_after_comma": self._follows_comma(index),
             "is_after_plus": self._follows_plus(index),
+            "is_after_slash": self._follows_slash(index),
         }
 
         if index > 0:

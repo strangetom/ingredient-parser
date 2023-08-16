@@ -53,7 +53,7 @@ class TestParser:
         # parse_ingredient returns a dict with more keys than just the labels
         # so iterate through each label in true_labels and only check them.
         for key in true_labels:
-            assert parsed[key] == true_labels[key]
+            assert parsed.__dict__[key] == true_labels[key]
 
     @pytest.mark.parametrize(
         "data", load_test_cases("tests/test_parser_alternate_unit_position.json")
@@ -75,7 +75,7 @@ class TestParser:
         # parse_ingredient returns a dict with more keys than just the labels
         # so iterate through each label in true_labels and only check them.
         for key in true_labels:
-            assert parsed[key] == true_labels[key]
+            assert parsed.__dict__[key] == true_labels[key]
 
     @pytest.mark.parametrize(
         "data", load_test_cases("tests/test_parser_ambiguous_unit.json")
@@ -98,7 +98,7 @@ class TestParser:
         # parse_ingredient returns a dict with more keys than just the labels
         # so iterate through each label in true_labels and only check them.
         for key in true_labels:
-            assert parsed[key] == true_labels[key]
+            assert parsed.__dict__[key] == true_labels[key]
 
     @pytest.mark.parametrize(
         "data", load_test_cases("tests/test_parser_comment_before_name.json")
@@ -121,7 +121,7 @@ class TestParser:
         # parse_ingredient returns a dict with more keys than just the labels
         # so iterate through each label in true_labels and only check them.
         for key in true_labels:
-            assert parsed[key] == true_labels[key]
+            assert parsed.__dict__[key] == true_labels[key]
 
     @pytest.mark.parametrize(
         "data", load_test_cases("tests/test_parser_multiple_units.json")
@@ -143,7 +143,7 @@ class TestParser:
         # parse_ingredient returns a dict with more keys than just the labels
         # so iterate through each label in true_labels and only check them.
         for key in true_labels:
-            assert parsed[key] == true_labels[key]
+            assert parsed.__dict__[key] == true_labels[key]
 
 
 # class TestRegexParser:
