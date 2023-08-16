@@ -173,7 +173,9 @@ class PreProcessor:
         Tokenised ingredient sentence.
     """
 
-    def __init__(self, input_sentence: str, defer_pos_tagging=False):
+    def __init__(
+        self, input_sentence: str, defer_pos_tagging=False, show_debug_output=False
+    ):
         """Initialisation
 
         Parameters
@@ -184,6 +186,7 @@ class PreProcessor:
             Defer part of speech tagging until feature generation
 
         """
+        self.show_debug_output = show_debug_output
         self.input: str = input_sentence
         self.sentence: str = self._clean(input_sentence)
 
@@ -253,6 +256,8 @@ class PreProcessor:
 
         for func in funcs:
             sentence = func(sentence)
+            if self.show_debug_output:
+                print(f"{func.__name__}: {sentence}")
 
         return sentence.strip()
 
