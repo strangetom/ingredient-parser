@@ -27,7 +27,6 @@ classifiers = [
 dependencies = [
     "nltk",
     "python-crfsuite",
-    "typing-extensions",
 ]
 
 [project.urls]
