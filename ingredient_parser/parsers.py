@@ -77,11 +77,11 @@ def parse_ingredient(sentence: str) -> ParsedIngredient:
     for idx in processed_sentence.singularised_indices:
         token = tokens[idx]
         label = labels[idx]
-        if label != "UNIT":
+        if label != "PRIMARY_UNIT":
             tokens[idx] = pluralise_units(token)
 
-    quantity = " ".join([tokens[idx] for idx in find_idx(labels, "QTY")])
-    unit = " ".join([tokens[idx] for idx in find_idx(labels, "UNIT")])
+    quantity = " ".join([tokens[idx] for idx in find_idx(labels, "PRIMARY_QTY")])
+    unit = " ".join([tokens[idx] for idx in find_idx(labels, "PRIMARY_UNIT")])
 
     if quantity != "1" and quantity != "":
         unit = pluralise_units(unit)
@@ -102,8 +102,8 @@ def parse_ingredient(sentence: str) -> ParsedIngredient:
         other = fix_punctuation(other)
 
     confidence = ParsedIngredientConfidence(
-        quantity=average(labels, scores, "QTY"),
-        unit=average(labels, scores, "UNIT"),
+        quantity=average(labels, scores, "PRIMARY_QTY"),
+        unit=average(labels, scores, "PRIMARY_UNIT"),
         name=average(labels, scores, "NAME"),
         comment=average(labels, scores, "COMMENT"),
         other=average(labels, scores, "OTHER"),
