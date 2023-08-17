@@ -35,7 +35,9 @@ def load_csv(
                     "name": row[1].strip().lower(),
                     "quantity": row[2].strip().lower(),
                     "unit": row[3].strip().lower(),
-                    "comment": row[4].strip().lower(),
+                    "alt_quantity": row[4].strip().lower(),
+                    "alt_unit": row[5].strip().lower(),
+                    "comment": row[6].strip().lower(),
                 }
             )
 

@@ -57,7 +57,9 @@ def write_csv(
     """
     with open(output, "w", newline="") as f:
         writer = csv.writer(f)
-        writer.writerow(["input", "name", "quantity", "unit", "comment"])
+        writer.writerow(
+            ["input", "name", "quantity", "unit", "alt_quantity", "alt_unit", "comment"]
+        )
         for ingredient, features in zip(ingredient_rows, feature_rows):
             writer.writerow(
                 [
@@ -65,6 +67,8 @@ def write_csv(
                     features.name,
                     features.quantity,
                     features.unit,
+                    "",
+                    "",
                     features.comment,
                 ]
             )
