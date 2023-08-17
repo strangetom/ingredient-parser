@@ -157,11 +157,7 @@ def parse_multiple_ingredients(sentences: list[str]) -> list[ParsedIngredient]:
 {'sentence': '2 large garlic cloves, finely grated', 'quantity': '2',\
 'unit': 'clove', 'name': 'garlic', 'comment': 'finely grated', 'other': 'large'}]
     """
-    parsed = []
-    for sent in sentences:
-        parsed.append(parse_ingredient(sent))
-
-    return parsed
+    return [parse_ingredient(sent) for sent in sentences]
 
 
 if __name__ == "__main__":
