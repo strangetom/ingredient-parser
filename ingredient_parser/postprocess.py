@@ -20,7 +20,7 @@ class IngredientAmount:
 
 
 @dataclass
-class IngredientString:
+class IngredientText:
     """Dataclass for holding parsed ingredient strings"""
 
     text: str
@@ -188,9 +188,9 @@ def postprocess_amounts(
 
 def postprocess(
     tokens: list[str], labels: list[str], scores: list[float], selected: str
-) -> IngredientString:
+) -> IngredientText:
     """Process tokens, labels and scores with selected label into an
-    IngredientString object.
+    IngredientText object.
 
     Parameters
     ----------
@@ -205,7 +205,7 @@ def postprocess(
 
     Returns
     -------
-    IngredientString
+    IngredientText
         Object containing ingredient comment text and confidencee
     """
 

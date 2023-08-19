@@ -7,7 +7,7 @@ import pycrfsuite
 
 from .postprocess import (
     IngredientAmount,
-    IngredientString,
+    IngredientText,
     pluralise_units,
     postprocess,
     postprocess_amounts,
@@ -29,9 +29,9 @@ class ParsedIngredient:
 
     sentence: str
     amount: list[IngredientAmount]
-    name: IngredientString | None
-    comment: IngredientString | None
-    other: IngredientString | None
+    name: IngredientText | None
+    comment: IngredientText | None
+    other: IngredientText | None
 
 
 # Create TAGGER object
