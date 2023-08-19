@@ -21,7 +21,7 @@ CAPITALISED_PATTERN = re.compile(r"^[A-Z]")
 
 # Regex pattern for finding quantity and units without space between them.
 # Assumes the quantity is always a number and the units always a letter.
-QUANTITY_UNITS_PATTERN = re.compile(r"(\d)([a-zA-Z])")
+QUANTITY_UNITS_PATTERN = re.compile(r"(\d)\-?([a-zA-Z])")
 
 # Regex pattern for matching a numeric range e.g. 1-2, 2-3.
 RANGE_PATTERN = re.compile(r"\d+\s*[\-]\d+")
@@ -39,8 +39,8 @@ STRING_RANGE_PATTERN = re.compile(r"([\d\.]+)(\-)?\s+(to|or)\s+([\d\.]+(\-)?)")
 # quote, comma.
 # The following punctuation is deliberately left out of the these groups so that
 # they are removed: backslash.
-group_a = r"[\w!\#\$\£\€%\&'\*\+\-\.:;>=<\?@\^_`\\\|\~]+"
-group_b = r"[\(\)\[\]\{\}\,\"/]"
+group_a = r"[\w!\#\$\£\€%\&'\*\+\-\.>=<\?@\^_`\\\|\~]+"
+group_b = r"[\(\)\[\]\{\}\,\"/:;]"
 REGEXP_TOKENIZER = RegexpTokenizer(rf"{group_a}|{group_b}", gaps=False)
 
 STEMMER = PorterStemmer()
@@ -621,14 +621,14 @@ class PreProcessor:
             True if index is inside parantheses or is parenthesis, else False
         """
         # If it's "(" or ")", return True
-        if self.tokenized_sentence[index] in ["(", ")"]:
+        if self.tokenized_sentence[index] in ["(", ")", "[", "]"]:
             return True
 
         open_parens, closed_parens = [], []
         for i, token in enumerate((self.tokenized_sentence)):
-            if token == "(":
+            if token == "(" or token == "[":
                 open_parens.append(i)
-            elif token == ")":
+            elif token == ")" or token == "]":
                 closed_parens.append(i)
 
         for start, end in zip(open_parens, closed_parens):
