@@ -116,10 +116,8 @@ def invert_labels_dict(labels: dict[str, str]) -> dict[str, list[str]]:
     """
     labels_map = {
         "name": "NAME",
-        "unit": "PRIMARY_UNIT",
-        "quantity": "PRIMARY_QTY",
-        "alt_unit": "ALTERNATIVE_UNIT",
-        "alt_quantity": "ALTERNATIVE_QTY",
+        "unit": "UNIT",
+        "quantity": "QTY",
         "comment": "COMMENT",
     }
 
