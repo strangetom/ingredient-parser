@@ -9,6 +9,8 @@ from typing import Generator, Iterator
 
 from ._constants import UNITS
 
+WORD_CHAR = re.compile(r"\w")
+
 
 @dataclass
 class IngredientAmount:
@@ -60,40 +62,30 @@ def pluralise_units(sentence: str) -> str:
     return sentence
 
 
-def fix_punctuation(sentence: str) -> str:
-    """Fix punctuation when joining a list into a string
-
-    1. Remove the ", " from start of the sentence
-    2. Remove the space following an opening parens "(" and the space preceeding a
-       closing parens ")" caused by using " ".join to turn a list into a sentence
-    3. Remove the space preceeding a comma
+def remove_isolated_punctuation(parts: list[str]) -> list[int]:
+    """Find elements in list that comprise a single punctuation character.
 
     Parameters
     ----------
-    sentence : str
-        Sentence in which to fix punctuation
+    parts : list[str]
+        List of tokens with single label, grouped if consecutive
 
     Returns
     -------
-    str
-        Modified sentence
+    list[int]
+        Indices of elements in parts to keep
 
     Examples
-    -------
-    >>> fix_punctuation(", some words")
-    'some words'
+    --------
 
-    >>> fix_punctuation("( text in brackets )")
-    '(text in brackets)'
-
-    >>> fix_punctuation("a comma follows this text ,")
-    'a comma follows this text,'
+    Deleted Parameters
+    ------------------
+    sentence : str
+        Sentence in which to fix punctuation
     """
-    # Let's not have any sentence fragments start with a comma
-    if sentence.startswith(", "):
-        sentence = sentence[2:]
-
-    return sentence.replace("( ", "(").replace(" )", ")").replace(" ,", ",")
+    # Only keep a part if contains a word character
+    idx_to_keep = [i for i, part in enumerate(parts) if WORD_CHAR.search(part)]
+    return idx_to_keep
 
 
 def group_consecutive_idx(idx: list[int]) -> Generator[Iterator[int], None, None]:
@@ -221,10 +213,52 @@ def postprocess(
         parts.append(joined)
         confidence_parts.append(confidence)
 
+    idx = remove_isolated_punctuation(parts)
+    parts = [parts[i] for i in idx]
+    confidence_parts = [confidence_parts[i] for i in idx]
+
+    text = ", ".join(parts)
+    text = fix_punctuation(text)
+
     if len(parts) == 0:
         return None
 
-    return IngredientString(
-        text=fix_punctuation(", ".join(parts)),
+    return IngredientText(
+        text=text,
         confidence=round(mean(confidence_parts), 6),
     )
+
+
+def fix_punctuation(text: str) -> str:
+    # Remove leading comma
+    if text.startswith(", "):
+        text = text[2:]
+
+    # Remove trailing comma
+    if text.endswith(","):
+        text = text[:-1]
+
+    # Correct space following open parens or before close parens
+    text = text.replace("( ", "(").replace(" )", ")")
+
+    # If parens isn't a pair, remove
+    idx_to_remove = []
+    stack = []
+    for i, char in enumerate(text):
+        if char == "(":
+            # Add index to stack when we find an opening parens
+            stack.append(i)
+        elif char == ")":
+            if len(stack) == 0:
+                # If the stack is empty, we've found a dangling closing parens
+                idx_to_remove.append(i)
+            else:
+                # Remove last added index from stack when we find a closing parens
+                stack.pop()
+
+    # Insert anything left in stack into idx_to_remove
+    idx_to_remove.extend(stack)
+
+    text = "".join(char for i, char in enumerate(text) if i not in idx_to_remove)
+
+    return text
