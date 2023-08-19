@@ -2,27 +2,11 @@
 
 import re
 
-from ._constants import UNITS
+from ._constants import UNITS, UNIT_MODIFIERS
 from .parsers import ParsedIngredient
 from .preprocess import PreProcessor
-from .utils import pluralise_units
+from .postprocess import pluralise_units
 
-UNIT_MODIFIERS = [
-    "big",
-    "fat",
-    "generous",
-    "healthy",
-    "heaped",
-    "heaping",
-    "large",
-    "medium",
-    "medium-size",
-    "medium-sized",
-    "scant",
-    "small",
-    "thick",
-    "thin",
-]
 # Convert values to list
 UNITS_LIST = list(UNITS.values()) + list(UNITS.keys())
 # Sort list in order of decreasing length. This is important for the regex matching, so we don't match a shorter substring

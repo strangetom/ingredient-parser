@@ -1,28 +1,18 @@
 #!/usr/bin/env python3
 
-import argparse
-import json
 from dataclasses import dataclass
 from importlib.resources import as_file, files
 
 import pycrfsuite
 
+from .postprocess import (
+    IngredientAmount,
+    IngredientString,
+    pluralise_units,
+    postprocess,
+    postprocess_amounts,
+)
 from .preprocess import PreProcessor
-from .utils import average, find_idx, fix_punctuation, join_adjacent, pluralise_units
-
-
-@dataclass
-class ParsedIngredientConfidence:
-    """Dataclass for holding the confidence values for each of the parsed values.
-
-    The confidence is a value between 0 (no confidence) and 1 (complete confidence).
-    """
-
-    quantity: float
-    unit: float
-    name: float
-    comment: float
-    other: float
 
 
 @dataclass
@@ -30,21 +20,18 @@ class ParsedIngredient:
     """Dataclass for holding the parsed values for an input sentence.
 
     * Sentence: The original input sentence
-    * Quantity: The parsed quantity from the input sentence, or an empty string
-    * Unit: The parsed unit from the input sentence, or an empty string
-    * Name: The parsed name from the input sentence, or an empty string
-    * Comment: The parsed comment from the input sentence, or an empty string
+    * Quantity: The parsed quantities from the input sentence
+    * Unit: The parsed units from the input sentence
+    * Name: The parsed name from the input sentence
+    * Comment: The parsed comment from the input sentence
     * Other: Any tokens in the input sentence that were not labelled
-    * Confidence: A ParsedIngredientConfidence object, or None
     """
 
     sentence: str
-    quantity: str
-    unit: str
-    name: str
-    comment: str
-    other: str
-    confidence: ParsedIngredientConfidence | None
+    amount: list[IngredientAmount]
+    name: IngredientString | None
+    comment: IngredientString | None
+    other: IngredientString | None
 
 
 # Create TAGGER object
@@ -77,46 +64,20 @@ def parse_ingredient(sentence: str) -> ParsedIngredient:
     for idx in processed_sentence.singularised_indices:
         token = tokens[idx]
         label = labels[idx]
-        if label != "PRIMARY_UNIT":
+        if label != "UNIT":
             tokens[idx] = pluralise_units(token)
 
-    quantity = " ".join([tokens[idx] for idx in find_idx(labels, "PRIMARY_QTY")])
-    unit = " ".join([tokens[idx] for idx in find_idx(labels, "PRIMARY_UNIT")])
-
-    if quantity != "1" and quantity != "":
-        unit = pluralise_units(unit)
-
-    name = " ".join([tokens[idx] for idx in find_idx(labels, "NAME")])
-    comment = join_adjacent(tokens, find_idx(labels, "COMMENT"))
-
-    other = join_adjacent(tokens, find_idx(labels, "OTHER"))
-
-    if isinstance(comment, list):
-        comment = ", ".join([fix_punctuation(item) for item in comment])
-    else:
-        comment = fix_punctuation(comment)
-
-    if isinstance(other, list):
-        other = ", ".join([fix_punctuation(item) for item in other])
-    else:
-        other = fix_punctuation(other)
-
-    confidence = ParsedIngredientConfidence(
-        quantity=average(labels, scores, "PRIMARY_QTY"),
-        unit=average(labels, scores, "PRIMARY_UNIT"),
-        name=average(labels, scores, "NAME"),
-        comment=average(labels, scores, "COMMENT"),
-        other=average(labels, scores, "OTHER"),
-    )
+    amounts = postprocess_amounts(tokens, labels, scores)
+    name = postprocess(tokens, labels, scores, "NAME")
+    comment = postprocess(tokens, labels, scores, "COMMENT")
+    other = postprocess(tokens, labels, scores, "OTHER")
 
     return ParsedIngredient(
         sentence=sentence,
-        quantity=quantity,
-        unit=unit,
-        name=fix_punctuation(name),
+        amount=amounts,
+        name=name,
         comment=comment,
         other=other,
-        confidence=confidence,
     )
 
 
@@ -137,36 +98,7 @@ def parse_multiple_ingredients(sentences: list[str]) -> list[ParsedIngredient]:
     Returns
     -------
     list[ParsedIngredient]
-        List of ParsedIngredient objects of structured data parsed 
+        List of ParsedIngredient objects of structured data parsed
         from input sentences
-
-    Examples
-    ------
-    >>> parse_multiple_ingredients(sentences)
-    >>> sentences = [
-        "3 tablespoons fresh lime juice, plus lime wedges for serving",
-        "2 tablespoons extra-virgin olive oil",
-        "2 large garlic cloves, finely grated",
-    ]
-    [{'sentence': '3 tablespoons fresh lime juice, plus lime wedges for serving',\
-'quantity': '3', 'unit': 'tablespoon', 'name': 'lime juice',\
-'comment': ['fresh', 'plus lime wedges for serving'], 'other': ''},\
-{'sentence': '2 tablespoons extra-virgin olive oil', 'quantity': '2',\
-'unit': 'tablespoon', 'name': 'extra-virgin olive oil', 'comment': '',\
-'other': ''},\
-{'sentence': '2 large garlic cloves, finely grated', 'quantity': '2',\
-'unit': 'clove', 'name': 'garlic', 'comment': 'finely grated', 'other': 'large'}]
     """
     return [parse_ingredient(sent) for sent in sentences]
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Parse ingredient into structured data"
-    )
-    parser.add_argument("-s", "--string", help="Ingredient string to parse")
-    args = parser.parse_args()
-
-    if args.string is not None:
-        parsed = parse_ingredient(args.string)
-        print(json.dumps(parsed.__dict__, indent=2))

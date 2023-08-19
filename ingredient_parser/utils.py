@@ -9,7 +9,7 @@ from itertools import groupby
 from operator import itemgetter
 from typing import Generator, Iterator
 
-from ._constants import UNITS
+from ._constants import UNITS, UNIT_MODIFIERS
 
 
 def find_idx(labels: list[str], key: str) -> list[int]:
@@ -51,32 +51,6 @@ def find_idx(labels: list[str], key: str) -> list[int]:
 
         prev_el = el
     return matches
-
-
-def group_consecutive_idx(idx: list[int]) -> Generator[Iterator[int], None, None]:
-    """Yield groups of consecutive indices
-
-    Given a list of integers, yield groups of integers where the value of each in a
-    group is adjacent to the previous element's value.
-
-    Parameters
-    ----------
-    idx : list[int]
-        List of indices
-
-    Yields
-    ------
-    list[list[int]]
-        List of lists, where each sub-list contains consecutive indices
-
-    Examples
-    -------
-    >>> groups = group_consecutive_idx([0, 1, 2, 4, 5, 6, 8, 9])
-    >>> [list(g) for g in groups]
-    [[0, 1, 2], [4, 5, 6], [8, 9]]
-    """
-    for k, g in groupby(enumerate(idx), key=lambda x: x[0] - x[1]):
-        yield map(itemgetter(1), g)
 
 
 def join_adjacent(tokens: list[str], idx: list[int]) -> str | list[str]:
@@ -154,75 +128,6 @@ def average(labels: list[str], scores: list[float], key: str) -> float:
 
     average = sum(score_list) / len(score_list)
     return round(average, 4)
-
-
-def fix_punctuation(sentence: str) -> str:
-    """Fix punctuation when joining a list into a string
-
-    1. Remove the ", " from start of the sentence
-    2. Remove the space following an opening parens "(" and the space preceeding a
-       closing parens ")" caused by using " ".join to turn a list into a sentence
-    3. Remove the space preceeding a comma
-
-    Parameters
-    ----------
-    sentence : str
-        Sentence in which to fix punctuation
-
-    Returns
-    -------
-    str
-        Modified sentence
-
-    Examples
-    -------
-    >>> fix_punctuation(", some words")
-    'some words'
-
-    >>> fix_punctuation("( text in brackets )")
-    '(text in brackets)'
-
-    >>> fix_punctuation("a comma follows this text ,")
-    'a comma follows this text,'
-    """
-    # Let's not have any sentence fragments start with a comma
-    if sentence.startswith(", "):
-        sentence = sentence[2:]
-
-    return sentence.replace("( ", "(").replace(" )", ")").replace(" ,", ",")
-
-
-def pluralise_units(sentence: str) -> str:
-    """Pluralise units in the sentence.
-
-    Use the same UNITS dictionary as PreProcessor to make any units in sentence plural
-
-    Parameters
-    ----------
-    sentence : str
-        Input sentence
-
-    Returns
-    -------
-    str
-        Input sentence with any words in the values of UNITS replaced with their plural
-        version
-
-    Examples
-    --------
-    >>> pluralise_units("2 bag")
-    '2 bags'
-
-    >>> pluralise_units("13 ounce")
-    '13 ounces'
-
-    >>> pluralise_units("1.5 loaf bread")
-    '1.5 loaves bread'
-    """
-    for plural, singular in UNITS.items():
-        sentence = re.sub(rf"\b({singular})\b", f"{plural}", sentence)
-
-    return sentence
 
 
 def show_model_card() -> None:
