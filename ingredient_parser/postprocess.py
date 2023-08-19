@@ -165,7 +165,7 @@ def postprocess_amounts(
         combined_score = round(mean(group["score"]), 6)
 
         # Pluralise the units if appropriate
-        if quantity != 1 and quantity != "":
+        if quantity != "1" and quantity != "":
             combined_unit = pluralise_units(combined_unit)
 
         amount = IngredientAmount(
