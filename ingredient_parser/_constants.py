@@ -101,6 +101,23 @@ for plural, singular in UNITS.items():
     _capitalized_units[plural.capitalize()] = singular.capitalize()
 UNITS = UNITS | _capitalized_units
 
+# Words that can modifiy a unit
+UNIT_MODIFIERS = [
+    "big",
+    "fat",
+    "generous",
+    "healthy",
+    "heaped",
+    "heaping",
+    "large",
+    "medium",
+    "medium-size",
+    "medium-sized",
+    "scant",
+    "small",
+    "thick",
+    "thin",
+]
 
 # Units that can be part of the name
 # e.g. 1 teaspoon ground cloves, or 5 bay leaves
