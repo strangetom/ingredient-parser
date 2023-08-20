@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 
-from itertools import islice
 import collections
+from itertools import islice
 from typing import Any, Iterator
+
 
 def consume(iterator: Iterator, n: int) -> None:
     """Advance the iterator n-steps ahead. If n is none, consume entirely.
     See consume from https://docs.python.org/3/library/itertools.html#itertools-recipes
-    
+
     Parameters
     ----------
     iterator : Iterator
@@ -21,6 +22,7 @@ def consume(iterator: Iterator, n: int) -> None:
     else:
         # Advance to the empty slice starting at position n
         next(islice(iterator, n, n), None)
+
 
 def match_pattern(
     tokens: list[str], labels: list[str], pattern: list[str]
