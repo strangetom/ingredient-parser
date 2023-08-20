@@ -1,7 +1,26 @@
 #!/usr/bin/env python3
 
-from typing import Any
+from itertools import islice
+import collections
+from typing import Any, Iterator
 
+def consume(iterator: Iterator, n: int) -> None:
+    """Advance the iterator n-steps ahead. If n is none, consume entirely.
+    See consume from https://docs.python.org/3/library/itertools.html#itertools-recipes
+    
+    Parameters
+    ----------
+    iterator : Iterator
+        Iterator to advance.
+    n : int
+        Number of iterations to advance by.
+    """
+    if n is None:
+        # Feed the entire iterator into a zero-length deque
+        collections.deque(iterator, maxlen=0)
+    else:
+        # Advance to the empty slice starting at position n
+        next(islice(iterator, n, n), None)
 
 def match_pattern(
     tokens: list[str], labels: list[str], pattern: list[str]
@@ -38,7 +57,7 @@ def match_pattern(
     Returns
     -------
     list[tuple[int]]
-        List of matching lists of token.
+        Tuple of start index end index for matching pattern.
     """
 
     if len(tokens) != len(labels):
@@ -50,11 +69,15 @@ def match_pattern(
 
     plen = len(pattern)
     matches = []
-    for i in range(len(labels)):
+
+    indices = iter(range(len(labels)))
+    for i in indices:
         # Short circuit: If the label[i] is not equal to the first element of pattern
         # skip to next iteration
         if labels[i] == pattern[0] and labels[i : i + plen] == pattern:
             matches.append((i, i + plen))
+            # Advance iterator to prevent overlapping matches
+            consume(indices, plen)
 
     return matches
 
