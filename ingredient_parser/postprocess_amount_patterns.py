@@ -227,7 +227,7 @@ def fallback_pattern(
             groups.append({"quantity": token, "unit": [], "score": [score]})
 
             # If QTY preceeded by appoximate token, mark as approximate
-            if i > 0 and tokens[i - 1] in approximate_tokens:
+            if i > 0 and tokens[i - 1].lower() in approximate_tokens:
                 groups[-1]["flag"] = IngredientAmountFlags.APPROXIMATE
 
         elif label == "UNIT":
@@ -242,7 +242,7 @@ def fallback_pattern(
             groups[-1]["score"].append(score)
 
             # If following token implies amount is singular, mark as singular
-            if i < len(tokens) and tokens[i + 1] in per_unit_tokens:
+            if i < len(tokens) and tokens[i + 1].lower() in per_unit_tokens:
                 groups[-1]["flag"] = IngredientAmountFlags.SINGULAR
 
         prev_label = label
