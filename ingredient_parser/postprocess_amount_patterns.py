@@ -145,11 +145,16 @@ def sizable_unit_pattern(
     amount_groups = []
     for pattern in patterns:
         for match in match_pattern(tokens, labels, pattern):
-            matching_tokens = tokens[match[0] : match[1]]
-            matching_scores = scores[match[0] : match[1]]
             # If the pattern ends with one of end_units, we have found a match for
             # this pattern!
-            if matching_tokens[-1] in end_units:
+            start, stop = match
+            if tokens[stop - 1] in end_units:
+                # Pop matches out of tokens and scores
+                matching_tokens = [tokens.pop(start) for i in range(start, stop)]
+                matching_scores = [scores.pop(start) for i in range(start, stop)]
+                # Also pop matches out of labels, but we don't actually need them
+                _ = [labels.pop(start) for i in range(start, stop)]
+
                 # The first pair is the first and last items
                 first = {
                     "quantity": matching_tokens.pop(0),
@@ -161,13 +166,21 @@ def sizable_unit_pattern(
                 for i in range(0, len(matching_tokens), 2):
                     quantity = matching_tokens[i]
                     unit = matching_tokens[i + 1]
-                    scores = matching_scores[i : i + 1]
+                    score = matching_scores[i : i + 1]
                     group = {
                         "quantity": quantity,
                         "unit": [unit],
-                        "score": scores,
+                        "score": score,
                     }
                     amount_groups.append(group)
+
+    if len(amount_groups) == 0:
+        # If we haven't found any matches so far, return empty list
+        # so consumers of the output of this function know there was no match.
+        return []
+
+    # Mop up any remaining amounts that didn't fit the pattern.
+    amount_groups.extend(fallback_pattern(tokens, labels, scores))
 
     return amount_groups
 
