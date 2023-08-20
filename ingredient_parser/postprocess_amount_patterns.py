@@ -1,8 +1,14 @@
 #!/usr/bin/env python3
 
 import collections
+from enum import Flag
 from itertools import islice
 from typing import Any, Iterator
+
+
+class IngredientAmountFlags(Flag):
+    APPROXIMATE = 0
+    SINGULAR = 1
 
 
 def consume(iterator: Iterator, n: int) -> None:
@@ -173,6 +179,7 @@ def sizable_unit_pattern(
                         "quantity": quantity,
                         "unit": [unit],
                         "score": score,
+                        "flag": IngredientAmountFlags.SINGULAR,
                     }
                     amount_groups.append(group)
 
@@ -210,11 +217,18 @@ def fallback_pattern(
             unit: list[str]
             score: list[float]
     """
+    approximate_tokens = ["about", "approx.", "approximately"]
+    per_unit_tokens = ["each"]
+
     groups = []
     prev_label = None
-    for token, label, score in zip(tokens, labels, scores):
+    for i, (token, label, score) in enumerate(zip(tokens, labels, scores)):
         if label == "QTY":
             groups.append({"quantity": token, "unit": [], "score": [score]})
+
+            # If QTY preceeded by appoximate token, mark as approximate
+            if i > 0 and tokens[i - 1] in approximate_tokens:
+                groups[-1]["flag"] = IngredientAmountFlags.APPROXIMATE
 
         elif label == "UNIT":
             # No quantity found yet, so create a group without a quantity
@@ -226,6 +240,10 @@ def fallback_pattern(
 
             groups[-1]["unit"].append(token)
             groups[-1]["score"].append(score)
+
+            # If following token implies amount is singular, mark as singular
+            if i < len(tokens) and tokens[i + 1] in per_unit_tokens:
+                groups[-1]["flag"] = IngredientAmountFlags.SINGULAR
 
         prev_label = label
 

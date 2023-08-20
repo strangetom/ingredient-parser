@@ -8,7 +8,11 @@ from statistics import mean
 from typing import Generator, Iterator
 
 from ._constants import UNITS
-from .postprocess_amount_patterns import fallback_pattern, sizable_unit_pattern
+from .postprocess_amount_patterns import (
+    fallback_pattern,
+    IngredientAmountFlags,
+    sizable_unit_pattern,
+)
 
 WORD_CHAR = re.compile(r"\w")
 
@@ -20,6 +24,7 @@ class IngredientAmount:
     quantity: str
     unit: str
     confidence: float
+    flags: IngredientAmountFlags
 
 
 @dataclass
@@ -207,6 +212,7 @@ def postprocess_amounts(
             quantity=quantity,
             unit=combined_unit,
             confidence=combined_score,
+            flags=group.get("flag", None),
         )
         amounts.append(amount)
 
