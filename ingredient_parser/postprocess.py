@@ -8,6 +8,7 @@ from statistics import mean
 from typing import Generator, Iterator
 
 from ._constants import UNITS
+from .postprocess_amount_patterns import fallback_pattern, sizable_unit_pattern
 
 WORD_CHAR = re.compile(r"\w")
 
@@ -60,6 +61,53 @@ def pluralise_units(sentence: str) -> str:
         sentence = re.sub(rf"\b({singular})\b", f"{plural}", sentence)
 
     return sentence
+
+
+def fix_punctuation(text: str) -> str:
+    """Fix some common punctuation errors that result from combining tokens of the
+    same label together.
+
+    Parameters
+    ----------
+    text : str
+        Text resulting from combining tokens with same label
+
+    Returns
+    -------
+    str
+        Text, with punctuation errors fixed
+    """
+    # Remove leading comma
+    if text.startswith(", "):
+        text = text[2:]
+
+    # Remove trailing comma
+    if text.endswith(","):
+        text = text[:-1]
+
+    # Correct space following open parens or before close parens
+    text = text.replace("( ", "(").replace(" )", ")")
+
+    # Remove parentheses that aren't part of a matching pair
+    idx_to_remove = []
+    stack = []
+    for i, char in enumerate(text):
+        if char == "(":
+            # Add index to stack when we find an opening parens
+            stack.append(i)
+        elif char == ")":
+            if len(stack) == 0:
+                # If the stack is empty, we've found a dangling closing parens
+                idx_to_remove.append(i)
+            else:
+                # Remove last added index from stack when we find a closing parens
+                stack.pop()
+
+    # Insert anything left in stack into idx_to_remove
+    idx_to_remove.extend(stack)
+    text = "".join(char for i, char in enumerate(text) if i not in idx_to_remove)
+
+    return text
 
 
 def remove_isolated_punctuation(parts: list[str]) -> list[int]:
@@ -139,24 +187,11 @@ def postprocess_amounts(
     list[IngredientAmount]
         List of IngredientAmount objects
     """
-    groups = []
-    prev_label = None
-    for token, label, score in zip(tokens, labels, scores):
-        if label == "QTY":
-            groups.append({"quantity": token, "unit": [], "score": [score]})
 
-        elif label == "UNIT":
-            # No quantity found yet, so create a group without a quantity
-            if len(groups) == 0:
-                groups.append({"quantity": "", "unit": [], "score": []})
-
-            if prev_label == "COMMA":
-                groups[-1]["unit"].append(",")
-
-            groups[-1]["unit"].append(token)
-            groups[-1]["score"].append(score)
-
-        prev_label = label
+    if match := sizable_unit_pattern(tokens, labels, scores):
+        groups = match
+    else:
+        groups = fallback_pattern(tokens, labels, scores)
 
     amounts = []
     for group in groups:
@@ -227,38 +262,3 @@ def postprocess(
         text=text,
         confidence=round(mean(confidence_parts), 6),
     )
-
-
-def fix_punctuation(text: str) -> str:
-    # Remove leading comma
-    if text.startswith(", "):
-        text = text[2:]
-
-    # Remove trailing comma
-    if text.endswith(","):
-        text = text[:-1]
-
-    # Correct space following open parens or before close parens
-    text = text.replace("( ", "(").replace(" )", ")")
-
-    # If parens isn't a pair, remove
-    idx_to_remove = []
-    stack = []
-    for i, char in enumerate(text):
-        if char == "(":
-            # Add index to stack when we find an opening parens
-            stack.append(i)
-        elif char == ")":
-            if len(stack) == 0:
-                # If the stack is empty, we've found a dangling closing parens
-                idx_to_remove.append(i)
-            else:
-                # Remove last added index from stack when we find a closing parens
-                stack.pop()
-
-    # Insert anything left in stack into idx_to_remove
-    idx_to_remove.extend(stack)
-
-    text = "".join(char for i, char in enumerate(text) if i not in idx_to_remove)
-
-    return text
