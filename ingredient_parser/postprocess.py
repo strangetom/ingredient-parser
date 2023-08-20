@@ -9,8 +9,8 @@ from typing import Generator, Iterator
 
 from ._constants import UNITS
 from .postprocess_amount_patterns import (
-    fallback_pattern,
     IngredientAmountFlags,
+    fallback_pattern,
     sizable_unit_pattern,
 )
 

@@ -7,8 +7,8 @@ from typing import Any, Iterator
 
 
 class IngredientAmountFlags(Flag):
-    APPROXIMATE = 0
-    SINGULAR = 1
+    APPROXIMATE = 1
+    SINGULAR = 2
 
 
 def consume(iterator: Iterator, n: int) -> None:
@@ -142,6 +142,7 @@ def sizable_unit_pattern(
         "jar",
         "package",
         "packet",
+        "piece",
         "tin",
     ]
 
@@ -242,8 +243,12 @@ def fallback_pattern(
             groups[-1]["score"].append(score)
 
             # If following token implies amount is singular, mark as singular
-            if i < len(tokens) and tokens[i + 1].lower() in per_unit_tokens:
-                groups[-1]["flag"] = IngredientAmountFlags.SINGULAR
+            if i < len(tokens) - 1 and tokens[i + 1].lower() in per_unit_tokens:
+                # Check if flag already set
+                if groups[-1].get("flag", None):
+                    groups[-1]["flag"] |= IngredientAmountFlags.SINGULAR
+                else:
+                    groups[-1]["flag"] = IngredientAmountFlags.SINGULAR
 
         prev_label = label
 
