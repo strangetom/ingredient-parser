@@ -7,9 +7,8 @@ from operator import itemgetter
 from statistics import mean
 from typing import Generator, Iterator
 
-from ._constants import UNITS
 from .postprocess_amount_patterns import (
-    IngredientAmountFlags,
+    IngredientAmount,
     fallback_pattern,
     sizable_unit_pattern,
 )
@@ -18,54 +17,11 @@ WORD_CHAR = re.compile(r"\w")
 
 
 @dataclass
-class IngredientAmount:
-    """Dataclass for holding ingredient amount, comprising a quantity and a unit."""
-
-    quantity: str
-    unit: str
-    confidence: float
-    flags: IngredientAmountFlags
-
-
-@dataclass
 class IngredientText:
     """Dataclass for holding parsed ingredient strings"""
 
     text: str
     confidence: float
-
-
-def pluralise_units(sentence: str) -> str:
-    """Pluralise units in the sentence.
-
-    Use the same UNITS dictionary as PreProcessor to make any units in sentence plural
-
-    Parameters
-    ----------
-    sentence : str
-        Input sentence
-
-    Returns
-    -------
-    str
-        Input sentence with any words in the values of UNITS replaced with their plural
-        version
-
-    Examples
-    --------
-    >>> pluralise_units("2 bag")
-    '2 bags'
-
-    >>> pluralise_units("13 ounce")
-    '13 ounces'
-
-    >>> pluralise_units("1.5 loaf bread")
-    '1.5 loaves bread'
-    """
-    for plural, singular in UNITS.items():
-        sentence = re.sub(rf"\b({singular})\b", f"{plural}", sentence)
-
-    return sentence
 
 
 def fix_punctuation(text: str) -> str:
@@ -198,25 +154,7 @@ def postprocess_amounts(
     else:
         groups = fallback_pattern(tokens, labels, scores)
 
-    amounts = []
-    for group in groups:
-        quantity = group["quantity"]
-        combined_unit = " ".join(group["unit"])
-        combined_score = round(mean(group["score"]), 6)
-
-        # Pluralise the units if appropriate
-        if quantity != "1" and quantity != "":
-            combined_unit = pluralise_units(combined_unit)
-
-        amount = IngredientAmount(
-            quantity=quantity,
-            unit=combined_unit,
-            confidence=combined_score,
-            flags=group.get("flag", None),
-        )
-        amounts.append(amount)
-
-    return amounts
+    return groups
 
 
 def postprocess(

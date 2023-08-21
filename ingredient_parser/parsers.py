@@ -5,10 +5,10 @@ from importlib.resources import as_file, files
 
 import pycrfsuite
 
+from ._utils import pluralise_units
 from .postprocess import (
     IngredientAmount,
     IngredientText,
-    pluralise_units,
     postprocess,
     postprocess_amounts,
 )
@@ -27,11 +27,11 @@ class ParsedIngredient:
     * Other: Any tokens in the input sentence that were not labelled
     """
 
-    sentence: str
-    amount: list[IngredientAmount]
     name: IngredientText | None
+    amount: list[IngredientAmount]
     comment: IngredientText | None
     other: IngredientText | None
+    sentence: str
 
 
 # Create TAGGER object

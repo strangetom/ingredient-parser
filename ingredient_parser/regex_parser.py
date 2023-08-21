@@ -5,7 +5,7 @@ import re
 from ._constants import UNITS, UNIT_MODIFIERS
 from .parsers import ParsedIngredient
 from .preprocess import PreProcessor
-from .postprocess import pluralise_units
+from ._utils import pluralise_units
 
 # Convert values to list
 UNITS_LIST = list(UNITS.values()) + list(UNITS.keys())

@@ -1,14 +1,23 @@
 #!/usr/bin/env python3
 
 import collections
-from enum import Flag
+from dataclasses import dataclass
 from itertools import islice
+from statistics import mean
 from typing import Any, Iterator
 
+from ._utils import pluralise_units
 
-class IngredientAmountFlags(Flag):
-    APPROXIMATE = 1
-    SINGULAR = 2
+
+@dataclass
+class IngredientAmount:
+    """Dataclass for holding ingredient amount, comprising a quantity and a unit."""
+
+    quantity: str
+    unit: str
+    confidence: float
+    APPROXIMATE: bool = False
+    SINGULAR: bool = False
 
 
 def consume(iterator: Iterator, n: int) -> None:
@@ -92,7 +101,7 @@ def match_pattern(
 
 def sizable_unit_pattern(
     tokens: list[str], labels: list[str], scores: list[float]
-) -> list[dict[str, Any]]:
+) -> list[IngredientAmount]:
     """Identify sentences which match the pattern where there is a quantity-unit pair
     split by one or mroe quantity-unit pairs e.g.
 
@@ -103,8 +112,8 @@ def sizable_unit_pattern(
 
     For example, for the sentence: 1 28 ounce can; the correct amounts are:
     [
-        {"quantity": "1", "unit": ["can"], "score": [...]},
-        {"quantity": "28", "unit": ["ounce"], "score": [...]},
+        IngredientAmount(quantity="1", unit="can", score=0.9...),
+        IngredientAmount(uantity="28", unit="ounce", score=0.9...),
     ]
 
     Parameters
@@ -118,12 +127,8 @@ def sizable_unit_pattern(
 
     Returns
     -------
-    list[dict[str, Any]]
-        List of dictionaries for each set of amounts.
-        The dictionary contains:
-            quantity: str
-            unit: list[str]
-            score: list[float]
+    list[IngredientAmount]
+        List of IngredientAmount objects
     """
     # We assume that the pattern will not be longer than the first element defined here.
     patterns = [
@@ -151,7 +156,7 @@ def sizable_unit_pattern(
     scores = [score for score, label in zip(scores, labels) if label in ["QTY", "UNIT"]]
     labels = [label for label in labels if label in ["QTY", "UNIT"]]
 
-    amount_groups = []
+    amounts = []
     for pattern in patterns:
         for match in match_pattern(tokens, labels, pattern):
             # If the pattern ends with one of end_units, we have found a match for
@@ -164,35 +169,35 @@ def sizable_unit_pattern(
                 # Also pop matches out of labels, but we don't actually need them
                 _ = [labels.pop(start) for i in range(start, stop)]
 
-                # The first pair is the first and last items
-                first = {
-                    "quantity": matching_tokens.pop(0),
-                    "unit": [matching_tokens.pop(-1)],
-                    "score": [matching_scores.pop(0), matching_scores.pop(-1)],
-                }
-                amount_groups.append(first)
+                # The first amount is the first and last items
+                first = IngredientAmount(
+                    quantity=matching_tokens.pop(0),
+                    unit=matching_tokens.pop(-1),
+                    confidence=mean([matching_scores.pop(0), matching_scores.pop(-1)]),
+                )
+                amounts.append(first)
 
                 for i in range(0, len(matching_tokens), 2):
                     quantity = matching_tokens[i]
                     unit = matching_tokens[i + 1]
-                    score = matching_scores[i : i + 1]
-                    group = {
-                        "quantity": quantity,
-                        "unit": [unit],
-                        "score": score,
-                        "flag": IngredientAmountFlags.SINGULAR,
-                    }
-                    amount_groups.append(group)
+                    confidence = matching_scores[i : i + 1]
+                    amount = IngredientAmount(
+                        quantity=quantity,
+                        unit=unit,
+                        confidence=confidence,
+                        SINGULAR=True,
+                    )
+                    amounts.append(amount)
 
-    if len(amount_groups) == 0:
+    if len(amounts) == 0:
         # If we haven't found any matches so far, return empty list
         # so consumers of the output of this function know there was no match.
         return []
 
     # Mop up any remaining amounts that didn't fit the pattern.
-    amount_groups.extend(fallback_pattern(tokens, labels, scores))
+    amounts.extend(fallback_pattern(tokens, labels, scores))
 
-    return amount_groups
+    return amounts
 
 
 def fallback_pattern(
@@ -218,38 +223,146 @@ def fallback_pattern(
             unit: list[str]
             score: list[float]
     """
-    approximate_tokens = ["about", "approx.", "approximately"]
-    per_unit_tokens = ["each"]
-
-    groups = []
-    prev_label = None
+    amounts = []
     for i, (token, label, score) in enumerate(zip(tokens, labels, scores)):
         if label == "QTY":
-            groups.append({"quantity": token, "unit": [], "score": [score]})
+            # Whenever we come across a new QTY, create new IngredientAmount
+            amounts.append(
+                IngredientAmount(quantity=token, unit=[], confidence=[score])
+            )
 
-            # If QTY preceeded by appoximate token, mark as approximate
-            if i > 0 and tokens[i - 1].lower() in approximate_tokens:
-                groups[-1]["flag"] = IngredientAmountFlags.APPROXIMATE
+        if label == "UNIT":
+            if len(amounts) == 0:
+                # Not come across a QTY yet, so create IngredientAmount
+                # with no quantity
+                amounts.append(IngredientAmount(quantity="", unit=[], confidence=[]))
 
-        elif label == "UNIT":
-            # No quantity found yet, so create a group without a quantity
-            if len(groups) == 0:
-                groups.append({"quantity": "", "unit": [], "score": []})
+            if i > 0 and labels[i - 1] == "COMMA":
+                # If previous token was a comma, append to unit of last IngredientAmount
+                amounts[-1].unit.append(",")
 
-            if prev_label == "COMMA":
-                groups[-1]["unit"].append(",")
+            # Append token and score for unit to last IngredientAmount
+            amounts[-1].unit.append(token)
+            amounts[-1].confidence.append(score)
 
-            groups[-1]["unit"].append(token)
-            groups[-1]["score"].append(score)
+        # Check if any flags should be set
+        if is_approximate(i, tokens, labels):
+            amounts[-1].APPROXIMATE = True
 
-            # If following token implies amount is singular, mark as singular
-            if i < len(tokens) - 1 and tokens[i + 1].lower() in per_unit_tokens:
-                # Check if flag already set
-                if groups[-1].get("flag", None):
-                    groups[-1]["flag"] |= IngredientAmountFlags.SINGULAR
-                else:
-                    groups[-1]["flag"] = IngredientAmountFlags.SINGULAR
+        if is_singular(i, tokens, labels):
+            amounts[-1].SINGULAR = True
 
-        prev_label = label
+        if is_singular_and_approximate(i, tokens, labels):
+            amounts[-1].APPROXIMATE = True
+            amounts[-1].SINGULAR = True
 
-    return groups
+    # Second pass to fix unit and confidence
+    # Unit needs converting to a string and making plural if appropriate
+    # Confidence needs averaging
+    for amount in amounts:
+        combined_unit = " ".join(amount.unit)
+        # Pluralise the units if appropriate
+        if amount.quantity != "1" and amount.quantity != "":
+            combined_unit = pluralise_units(combined_unit)
+
+        amount.unit = combined_unit
+        amount.confidence = round(mean(amount.confidence), 6)
+
+    return amounts
+
+
+def is_approximate(i: int, tokens: list[str], labels: list[str]) -> bool:
+    """Return True is token at current index is approximate, determined
+    by the token label being QTY and the previous token being in a list of
+    approximate tokens.
+
+    Parameters
+    ----------
+    i : int
+        Index of current token
+    tokens : list[str]
+        List of all tokens
+    labels : list[str]
+        List of all token labels
+
+    Returns
+    -------
+    bool
+        True if current token is approximate
+    """
+    approximate_tokens = ["about", "approx.", "approximately", "nearly"]
+
+    if i == 0:
+        return False
+
+    if labels[i] == "QTY" and tokens[i - 1].lower() in approximate_tokens:
+        return True
+
+    return False
+
+
+def is_singular(i: int, tokens: list[str], labels: list[str]) -> bool:
+    """Return True is token at current index is singular, determined
+    by the token label being UNIT and the next token being in a list of
+    singular tokens.
+
+    Parameters
+    ----------
+    i : int
+        Index of current token
+    tokens : list[str]
+        List of all tokens
+    labels : list[str]
+        List of all token labels
+
+    Returns
+    -------
+    bool
+        True if current token is singular
+    """
+    singular_tokens = ["each"]
+
+    if i == len(tokens) - 1:
+        return False
+
+    if labels[i] == "UNIT" and tokens[i + 1].lower() in singular_tokens:
+        return True
+
+    return False
+
+
+def is_singular_and_approximate(i: int, tokens: list[str], labels: list[str]) -> bool:
+    """Return True if the current token is approximate and singular, determined by the
+    token label being QTY and is preceeded by a token in a list of singular tokens, then
+    token in a list of approximate tokens.
+
+    e.g. each nearly 3 ...
+
+    Parameters
+    ----------
+    i : int
+        Index of current token
+    tokens : list[str]
+        List of all tokens
+    labels : list[str]
+        List of all token labels
+
+    Returns
+    -------
+    bool
+        True if current token is singular
+    """
+    approximate_tokens = ["about", "approx.", "approximately", "nearly"]
+    singular_tokens = ["each"]
+
+    if i < 2:
+        return False
+
+    if (
+        labels[i] == "QTY"
+        and tokens[i - 1].lower() in approximate_tokens
+        and tokens[i - 2].lower() in singular_tokens
+    ):
+        return True
+
+    return False
