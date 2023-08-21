@@ -159,7 +159,7 @@ def postprocess_amounts(
 
 def postprocess(
     tokens: list[str], labels: list[str], scores: list[float], selected: str
-) -> IngredientText:
+) -> IngredientText | None:
     """Process tokens, labels and scores with selected label into an
     IngredientText object.
 

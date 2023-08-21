@@ -2,7 +2,6 @@
 
 import argparse
 import xml.etree.ElementTree as ET
-from itertools import pairwise
 from pathlib import Path
 
 from nltk.tokenize import RegexpTokenizer

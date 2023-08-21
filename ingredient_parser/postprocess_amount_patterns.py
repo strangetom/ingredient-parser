@@ -4,7 +4,7 @@ import collections
 from dataclasses import dataclass
 from itertools import islice
 from statistics import mean
-from typing import Any, Iterator
+from typing import Iterator
 
 from ._utils import pluralise_units
 
