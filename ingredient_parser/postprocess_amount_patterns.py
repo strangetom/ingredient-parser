@@ -41,7 +41,7 @@ def consume(iterator: Iterator, n: int) -> None:
 
 def match_pattern(
     tokens: list[str], labels: list[str], pattern: list[str]
-) -> list[tuple[int]]:
+) -> list[tuple[int, int]]:
     """Find a pattern of labels and return the indicesof the start and end of match.
 
     For example, consider the sentence:
@@ -180,7 +180,8 @@ def sizable_unit_pattern(
                 for i in range(0, len(matching_tokens), 2):
                     quantity = matching_tokens[i]
                     unit = matching_tokens[i + 1]
-                    confidence = matching_scores[i : i + 1]
+                    confidence = mean(matching_scores[i : i + 1])
+
                     amount = IngredientAmount(
                         quantity=quantity,
                         unit=unit,
@@ -202,7 +203,7 @@ def sizable_unit_pattern(
 
 def fallback_pattern(
     tokens: list[str], labels: list[str], scores: list[float]
-) -> list[dict[str, Any]]:
+) -> list[IngredientAmount]:
     """Fallback pattern for grouping quantities and units into amounts.
 
     Parameters
