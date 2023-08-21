@@ -30,7 +30,7 @@ RANGE_PATTERN = re.compile(r"\d+\s*[\-]\d+")
 # Assumes fake fractions and unicode fraction have already been replaced.
 # Allows the range to include a hyphen, which are captured in separate groups.
 # Captures the two number in the range in separate capture groups.
-STRING_RANGE_PATTERN = re.compile(r"([\d\.]+)(\-)?\s+(to|or)\s+([\d\.]+(\-)?)")
+STRING_RANGE_PATTERN = re.compile(r"([\d\.]+)(\-)?\s*(to|or)\s*(\-)*\s*([\d\.]+(\-)?)")
 
 # Define tokenizer.
 # We are going to split an sentence between substrings that match the following groups
@@ -446,7 +446,7 @@ class PreProcessor:
         str
             Ingredient sentence with string ranges replaced with standardised range
         """
-        return STRING_RANGE_PATTERN.sub(r"\1-\4", sentence)
+        return STRING_RANGE_PATTERN.sub(r"\1-\5", sentence)
 
     def _singlarise_units(
         self, tokenised_sentence: list[str]
