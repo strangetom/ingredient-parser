@@ -26,16 +26,15 @@ def load_csv(
     """
     labels, sentences = [], []
     with open(csv_filename, "r") as f:
-        reader = csv.reader(f)
-        next(reader)  # skip first row
+        reader = csv.DictReader(f)
         for i, row in enumerate(reader):
-            sentences.append(row[0])
+            sentences.append(row["input"])
             labels.append(
                 {
-                    "name": row[1].strip().lower(),
-                    "quantity": row[2].strip().lower(),
-                    "unit": row[3].strip().lower(),
-                    "comment": row[4].strip().lower(),
+                    "name": row["name"].strip().lower(),
+                    "quantity": row["quantity"].strip().lower(),
+                    "unit": row["unit"].strip().lower(),
+                    "comment": row["comment"].strip().lower(),
                 }
             )
 
