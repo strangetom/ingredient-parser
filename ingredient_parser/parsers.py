@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from dataclasses import dataclass
 from importlib.resources import as_file, files
 
 import pycrfsuite
@@ -66,3 +67,52 @@ def parse_multiple_ingredients(sentences: list[str]) -> list[ParsedIngredient]:
         from input sentences
     """
     return [parse_ingredient(sent) for sent in sentences]
+
+
+@dataclass
+class ParserDebugInfo:
+    """Dataclass for holding intermediate objects generated during
+    ingredient sentence parsing.
+    """
+
+    sentence: str
+    PreProcessor: PreProcessor
+    PostProcessor: PostProcessor
+    Tagger = TAGGER
+
+
+def debug_parser(sentence: str) -> ParserDebugInfo:
+    """Return object containing all intermediate objects used in the parsing of
+    a sentence.
+
+    Parameters
+    ----------
+    sentence : str
+        Ingredient sentence to parse
+
+    Returns
+    -------
+    ParserDebugInfo
+        ParserDebugInfo object containing the PreProcessor object, PostProcessor
+        object and Tagger.
+    """
+    processed_sentence = PreProcessor(sentence)
+    tokens = processed_sentence.tokenized_sentence
+    labels = TAGGER.tag(processed_sentence.sentence_features())
+    scores = [TAGGER.marginal(label, i) for i, label in enumerate(labels)]
+
+    # Replurise tokens that were singularised if the label isn't UNIT
+    # For tokens with UNIT label, we'll deal with them below
+    for idx in processed_sentence.singularised_indices:
+        token = tokens[idx]
+        label = labels[idx]
+        if label != "UNIT":
+            tokens[idx] = pluralise_units(token)
+
+    postprocessed_sentence = PostProcessor(sentence, tokens, labels, scores)
+
+    return ParserDebugInfo(
+        sentence=sentence,
+        PreProcessor=processed_sentence,
+        PostProcessor=postprocessed_sentence,
+    )
