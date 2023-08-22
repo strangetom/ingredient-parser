@@ -1,38 +1,12 @@
 #!/usr/bin/env python3
 
-from dataclasses import dataclass
 from importlib.resources import as_file, files
 
 import pycrfsuite
 
 from ._utils import pluralise_units
-from .postprocess import (
-    IngredientAmount,
-    IngredientText,
-    postprocess,
-    postprocess_amounts,
-)
+from .postprocess import ParsedIngredient, PostProcessor
 from .preprocess import PreProcessor
-
-
-@dataclass
-class ParsedIngredient:
-    """Dataclass for holding the parsed values for an input sentence.
-
-    * Sentence: The original input sentence
-    * Quantity: The parsed quantities from the input sentence
-    * Unit: The parsed units from the input sentence
-    * Name: The parsed name from the input sentence
-    * Comment: The parsed comment from the input sentence
-    * Other: Any tokens in the input sentence that were not labelled
-    """
-
-    name: IngredientText | None
-    amount: list[IngredientAmount]
-    comment: IngredientText | None
-    other: IngredientText | None
-    sentence: str
-
 
 # Create TAGGER object
 TAGGER = pycrfsuite.Tagger()
@@ -67,18 +41,8 @@ def parse_ingredient(sentence: str) -> ParsedIngredient:
         if label != "UNIT":
             tokens[idx] = pluralise_units(token)
 
-    amounts = postprocess_amounts(tokens, labels, scores)
-    name = postprocess(tokens, labels, scores, "NAME")
-    comment = postprocess(tokens, labels, scores, "COMMENT")
-    other = postprocess(tokens, labels, scores, "OTHER")
-
-    return ParsedIngredient(
-        sentence=sentence,
-        amount=amounts,
-        name=name,
-        comment=comment,
-        other=other,
-    )
+    postprocessed_sentence = PostProcessor(sentence, tokens, labels, scores)
+    return postprocessed_sentence.parsed()
 
 
 def parse_multiple_ingredients(sentences: list[str]) -> list[ParsedIngredient]:
