@@ -2,7 +2,7 @@ import json
 
 import pytest
 
-from ingredient_parser import parse_ingredient, parse_ingredient_regex
+from ingredient_parser import parse_ingredient
 
 
 def load_test_cases(file: str):
@@ -144,26 +144,3 @@ class TestParser:
         # so iterate through each label in true_labels and only check them.
         for key in true_labels:
             assert parsed.__dict__[key] == true_labels[key]
-
-
-# class TestRegexParser:
-#    @pytest.mark.parametrize("data", load_test_cases("tests/test_parser_simple.json"))
-#    def test_parser_simple(self, data):
-#        """Test simple cases of ingredient sentences that the regex parser should have
-#        no issues getting correct
-#
-#        Parameters
-#        ----------
-#        data : Dict[str, Dict[str, str]]
-#            Dictionary of sample data with the following keys
-#                sentence - the input sentence
-#                labels - the correct labels the parser should return
-#        """
-#        sentence = data["sentence"]
-#        true_labels = data["labels"]
-#        parsed = parse_ingredient_regex(sentence)
-#
-#        # parse_ingredient returns a dict with more keys than just the labels
-#        # so iterate through each label in true_labels and only check them.
-#        for key in true_labels:
-#            assert parsed[key] == true_labels[key]
