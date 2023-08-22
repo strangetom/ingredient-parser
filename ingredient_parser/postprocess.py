@@ -78,9 +78,9 @@ class PostProcessor:
     """Recipe ingredient sentence PostProcessor class.
 
     Performs the necessary postprocessing on the sentence tokens and labels and scores
-    for the tokens after tagging with the CRF model in order to return a coherent 
+    for the tokens after tagging with the CRF model in order to return a coherent
     structure of parsed information.
-    
+
     Attributes
     ----------
     labels : list[str]
@@ -100,6 +100,30 @@ class PostProcessor:
         self.tokens = tokens
         self.labels = labels
         self.scores = scores
+
+    def __repr__(self) -> str:
+        """__repr__ method
+
+        Returns
+        -------
+        str
+            String representation of initialised object
+        """
+        return f'PostProcessor("{self.sentence}")'
+
+    def __str__(self) -> str:
+        """__str__ method
+
+        Returns
+        -------
+        str
+            Human readble string representation of object
+        """
+        _str = [
+            "Post-processed recipe ingedient sentence",
+            f"\t{list(zip(self.tokens, self.labels))}",
+        ]
+        return "\n".join(_str)
 
     def parsed(self) -> ParsedIngredient:
         """Return parsed ingredient data
