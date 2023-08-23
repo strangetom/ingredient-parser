@@ -1,8 +1,12 @@
 #!/usr/bin/env python3
 
 import csv
+import sys
 from dataclasses import dataclass
 from pathlib import Path
+
+# Ensure the local ingredient_parser package can be found
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from ingredient_parser import PreProcessor
 

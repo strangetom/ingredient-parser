@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
 
 import argparse
+import sys
+from pathlib import Path
 
-from train import match_labels
-from training_utils import load_csv
+# Ensure the local ingredient_parser package can be found
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from training_utils import load_csv, match_labels
+
 from ingredient_parser import PreProcessor
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
