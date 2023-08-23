@@ -75,8 +75,9 @@ def test_results_to_html(
     body.append(heading3)
 
     incorrect = []
-    for sentence, src, truth, prediction in zip(
-        sentences, sentence_sources, labels_truth, labels_prediction
+    # Sort by sentence sort
+    for src, sentence, truth, prediction in sorted(
+        zip(sentence_sources, sentences, labels_truth, labels_prediction)
     ):
         if truth != prediction:
             # Count mismatches and only include if greater than set limit
@@ -156,7 +157,3 @@ def create_html_table(
     table.append(prediction_tr)
 
     return table
-
-
-if __name__ == "__main__":
-    raise NotImplementedError()
