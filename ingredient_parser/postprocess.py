@@ -173,7 +173,7 @@ class PostProcessor:
             parts.append(joined)
             confidence_parts.append(confidence)
 
-        keep_idx = self._remove_isolated_punctuation(parts)
+        keep_idx = self._remove_isolated_punctuation_and_duplicates(parts)
         parts = [parts[i] for i in keep_idx]
         confidence_parts = [confidence_parts[i] for i in keep_idx]
 
@@ -256,8 +256,11 @@ class PostProcessor:
 
         return text
 
-    def _remove_isolated_punctuation(self, parts: list[str]) -> list[int]:
-        """Find elements in list that comprise a single punctuation character.
+    def _remove_isolated_punctuation_and_duplicates(
+        self, parts: list[str]
+    ) -> list[int]:
+        """Find elements in list that comprise a single punctuation character or are a
+        duplicate of the previous element and discard their indices.
 
         Parameters
         ----------
@@ -269,16 +272,15 @@ class PostProcessor:
         list[int]
             Indices of elements in parts to keep
 
-        Examples
-        --------
-
-        Deleted Parameters
-        ------------------
-        sentence : str
-            Sentence in which to fix punctuation
         """
         # Only keep a part if contains a word character
-        idx_to_keep = [i for i, part in enumerate(parts) if WORD_CHAR.search(part)]
+        idx_to_keep = []
+        for i, part in enumerate(parts):
+            if i == 0 and WORD_CHAR.search(part):
+                idx_to_keep.append(i)
+            elif WORD_CHAR.search(part) and part != parts[i - 1]:
+                idx_to_keep.append(i)
+
         return idx_to_keep
 
     def _group_consecutive_idx(
