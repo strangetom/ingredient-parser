@@ -81,7 +81,7 @@ class ParserDebugInfo:
     Tagger = TAGGER
 
 
-def debug_parser(sentence: str) -> ParserDebugInfo:
+def inspect_parser(sentence: str) -> ParserDebugInfo:
     """Return object containing all intermediate objects used in the parsing of
     a sentence.
 
