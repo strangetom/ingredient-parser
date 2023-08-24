@@ -202,13 +202,10 @@ class PostProcessor:
         list[IngredientAmount]
             List of IngredientAmount objects
         """
-
         if match := self._sizable_unit_pattern():
-            groups = match
+            return match
         else:
-            groups = self._fallback_pattern(self.tokens, self.labels, self.scores)
-
-        return groups
+            return self._fallback_pattern(self.tokens, self.labels, self.scores)
 
     def _fix_punctuation(self, text: str) -> str:
         """Fix some common punctuation errors that result from combining tokens of the
@@ -310,7 +307,7 @@ class PostProcessor:
         for k, g in groupby(enumerate(idx), key=lambda x: x[0] - x[1]):
             yield map(itemgetter(1), g)
 
-    def _sizable_unit_pattern(self) -> list[IngredientAmount]:
+    def _sizable_unit_pattern(self) -> list[IngredientAmount] | None:
         """Identify sentences which match the pattern where there is a
         quantity-unit pair split by one or mroe quantity-unit pairs e.g.
 
@@ -404,12 +401,19 @@ class PostProcessor:
         if len(amounts) == 0:
             # If we haven't found any matches so far, return empty list
             # so consumers of the output of this function know there was no match.
-            return []
+            return None
 
-        # Mop up any remaining amounts that didn't fit the pattern.
-        amounts.extend(self._fallback_pattern(tokens, labels, scores))
+        # Make units plural if appropriate
+        for amount in amounts:
+            if amount.quantity != "1" and amount.quantity != "":
+                amount.unit = pluralise_units(amount.unit)
 
-        return amounts
+        # Mop up any remaining amounts that didn't fit the pattern and have a guess
+        # at where to insert them so they are in the order they appear in the sentnece.
+        if tokens != [] and self.tokens.index(tokens[0]) < match[0]:
+            return self._fallback_pattern(tokens, labels, scores) + amounts
+        else:
+            return amounts + self._fallback_pattern(tokens, labels, scores)
 
     def _match_pattern(
         self, tokens: list[str], labels: list[str], pattern: list[str]
