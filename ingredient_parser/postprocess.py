@@ -160,9 +160,10 @@ class PostProcessor:
         IngredientText
             Object containing ingredient comment text and confidencee
         """
-
+        # Select indices of tokens, labels and scores for selected label
         idx = [i for i, label in enumerate(self.labels) if label == selected]
 
+        # Join consecutive tokens together and average their score
         parts = []
         confidence_parts = []
         for group in self._group_consecutive_idx(idx):
@@ -173,10 +174,15 @@ class PostProcessor:
             parts.append(joined)
             confidence_parts.append(confidence)
 
+        # Find the indices of the joined tokens list where the element
+        # if a single punctuation mark or is the same as the previous element
+        # in the list
         keep_idx = self._remove_isolated_punctuation_and_duplicates(parts)
         parts = [parts[i] for i in keep_idx]
         confidence_parts = [confidence_parts[i] for i in keep_idx]
 
+        # Join all the parts together into a single string and fix any
+        # punctuation weirdness as a result.
         text = ", ".join(parts)
         text = self._fix_punctuation(text)
 
@@ -193,9 +199,9 @@ class PostProcessor:
         QTY labels with any following UNIT labels, up to the next QTY label.
 
         The confidence is the average confidence of all labels in the IngredientGroup.
-
-        This assumes that the QTY label for an amount always preceeds any associated
-        UNIT labels.
+    
+        If the sequence of QTY and UNIT labels matches the "sizble unit" pattern, determine
+        the amounts in a different way.
 
         Returns
         -------
@@ -318,8 +324,8 @@ class PostProcessor:
 
         For example, for the sentence: 1 28 ounce can; the correct amounts are:
         [
-            IngredientAmount(quantity="1", unit="can", score=0.9...),
-            IngredientAmount(uantity="28", unit="ounce", score=0.9...),
+            IngredientAmount(quantity="1", unit="can", score=0.x...),
+            IngredientAmount(uantity="28", unit="ounce", score=0.x...),
         ]
 
         Returns
@@ -328,7 +334,7 @@ class PostProcessor:
             List of IngredientAmount objects
         """
         # We assume that the pattern will not be longer than the first element
-        # defined here.
+        # defined in patterns.
         patterns = [
             ["QTY", "QTY", "UNIT", "QTY", "UNIT", "QTY", "UNIT", "UNIT"],
             ["QTY", "QTY", "UNIT", "QTY", "UNIT", "UNIT"],
@@ -349,7 +355,7 @@ class PostProcessor:
             "tin",
         ]
 
-        # Only keep QTY and UNIT tokens
+        # Downselect to just QTY and UNIT tokens, scores and labels
         tokens = [
             token
             for token, label in zip(self.tokens, self.labels)
@@ -385,6 +391,7 @@ class PostProcessor:
                     )
                     amounts.append(first)
 
+                    # And create the IngredientAmount object for the pairs in between
                     for i in range(0, len(matching_tokens), 2):
                         quantity = matching_tokens[i]
                         unit = matching_tokens[i + 1]
@@ -398,9 +405,9 @@ class PostProcessor:
                         )
                         amounts.append(amount)
 
+        # If we haven't found any matches so far, return None so consumers
+        # of the output of this function know there was no match.
         if len(amounts) == 0:
-            # If we haven't found any matches so far, return empty list
-            # so consumers of the output of this function know there was no match.
             return None
 
         # Make units plural if appropriate
@@ -478,6 +485,8 @@ class PostProcessor:
         self, tokens: list[str], labels: list[str], scores: list[float]
     ) -> list[IngredientAmount]:
         """Fallback pattern for grouping quantities and units into amounts.
+        This is done simply by grouping a QTY with all following UNIT until
+        the next QTY.
 
         Parameters
         ----------
@@ -533,7 +542,7 @@ class PostProcessor:
                 amounts[-1].APPROXIMATE = True
                 amounts[-1].SINGULAR = True
 
-        # Second pass to fix unit and confidence
+        # Loop through IngredientAmounts to fix unit and confidence
         # Unit needs converting to a string and making plural if appropriate
         # Confidence needs averaging
         for amount in amounts:
