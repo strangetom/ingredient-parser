@@ -1,11 +1,45 @@
 Model Guide
 ===========
 
-This user guide provided more in depth information about the data used to train the model, the features extracted from the data and the process of training and evulating the model.
+This user guide provided more in depth information about the pipelines of training the model and for parsing a sentence.
+
+Training Pipeline
+^^^^^^^^^^^^^^^^^
+The training pipeline is shown below.
+
+
+The steps are described in more detail:
+   
+`Loading the data <data>`_  
+
+`Normalisation <normalisation>`_  
+
+`Extracting features <features>`_  
+
+`Training the model <training>`_  
+
+
+Parsing Pipeline
+^^^^^^^^^^^^^^^^
+
+The parsing pipeline is shown below.
+
+   
+The cleaning and feature extraction steps are as above.
+
+`Labelling <labelling>`_  
+
+`Post-processing <postprocess>`_
+
+
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
+   :hidden:
 
-   The data <data>
-   The features <features>
+   Loading the data <data>
+   Normalisation <normalisation>
+   Extracting the features <features>
    Training the model <training>
+   Using the model <usage>
+   Post-processing the model output <postprocessing>

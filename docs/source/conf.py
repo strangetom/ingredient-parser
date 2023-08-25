@@ -19,7 +19,7 @@ author = "Tom Strange"
 
 extensions = ["sphinx.ext.autodoc", "sphinx.ext.napoleon", "sphinx_design"]
 
-autodoc_typehints = "none"
+#autodoc_typehints = "none"
 napoleon_use_param = False
 napoleon_use_rtype = False
 napoleon_use_keyword = False

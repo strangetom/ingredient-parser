@@ -1,5 +1,31 @@
-Feature Selection
+Feature selection
 =================
+
+Feature calculation is done for each token in the sentence, so first the normamlised sentence must be tokenised.
+
+Tokenization
+^^^^^^^^^^^^
+
+Once the input sentence has been normalised, it can be split into tokens. Each token represents a single unit of the sentence. These are not necessarily the same as a word because we might want to handle punctuation and compound words in particular ways.
+
+The tokenizer in created using NLTK's Regular Expression tokenizer. The splits an string input according the a regular expression.
+
+The defined tokenizer splits the sentence according the following rules:
+
+.. literalinclude:: ../../../ingredient_parser/preprocess.py
+    :lines: 35-44
+
+This splits the sentence apart into wherever there is a space or a punctation mark in ``group_b``.
+
+.. code:: python
+
+    >>> from Preprocess import PreProcessor
+    >>> p = PreProcessor("1/2 cup orange juice, freshly squeezed")
+    >>> p.tokenised_sentence
+    ['0.5', 'cup', 'orange', 'juice', ',', 'freshly', 'squeezed']
+
+Features Calculation
+^^^^^^^^^^^^^^^^^^^^
 
 The features for each of each token in each sentence need to be selected and extracted.
 
@@ -48,4 +74,4 @@ The ``sentence_features`` function of :class:`PreProcessor` return the features 
 
 .. attention::
     
-    It is likely that some of these features aren't necessary. There is a big chunk of work for the future to determine the most useful features.
+    It is likely that some of these features aren't necessary. There is a chunk of work for the future to determine the most useful features.
