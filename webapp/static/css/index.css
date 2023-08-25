@@ -1,0 +1,103 @@
+@import 'colours.css';
+
+body {
+  font-family: sans-serif;
+  margin: 0 auto;
+  padding: 0;
+  line-height: 1.5;
+  max-width: 100ch;
+  background-color: var(--bg-s);
+  color: var(--fg);
+}
+main {
+  margin: 0 auto;
+}
+
+h1 {
+  text-align: center;
+}
+
+input {
+  font-size: 1.4rem;  
+  width: 100%;
+  padding: .2em .5em;
+  box-sizing: border-box;
+}
+
+.QTY {
+  background-color: var(--green);
+}
+.UNIT {
+  background-color: var(--yellow);
+}
+.NAME {
+  background-color: var(--aqua);
+}
+.COMMENT {
+  background-color: var(--purple);
+}
+.OTHER {
+  background-color: var(--red);
+}
+.COMMA {
+  background-color: var(--gray);
+}
+.AMOUNT {
+  background: linear-gradient(90deg, var(--green), var(--yellow));
+}
+
+.sentence {
+  font-size: 1.2rem;
+  text-align: center;
+}
+.sentence span {
+  padding: 0 1ch;
+  color: var(--bg);
+}
+
+.cards {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.card {
+  border: 1px solid black;
+  border-radius: 0.5rem;
+  width: 24%;
+  margin: 1rem 0;
+  min-height: 5rem;
+  background-color: var(--bg-3);
+  box-shadow: var(--small-shadow);
+}
+
+.card hr {
+  height: 2px;
+  background-color: var(--bg-2);
+  border: none;
+}
+
+.card h3 {
+  color: var(--bg);
+  margin: 0;
+  padding: .2rem 1rem;
+  font-size: 1rem;
+  border-radius: .5rem .5rem 0 0 ;
+}
+
+.card h2 {
+  font-size: 1.4rem;
+  margin: .25rem .25rem .25rem 1rem;
+  font-weight: normal;
+  display: inline-block;
+}
+
+.card .flag {
+  display: inline-block;
+  margin: .25rem;
+  font-size: 1.2rem;
+  background-color: var(--bg-1);
+  color: var(--fg);
+  padding: 0.1rem 0.5rem;
+  border-radius: var(--small-radius);
+}
