@@ -178,7 +178,10 @@ class PreProcessor:
     """
 
     def __init__(
-        self, input_sentence: str, defer_pos_tagging: bool=False, show_debug_output: bool=False
+        self,
+        input_sentence: str,
+        defer_pos_tagging: bool = False,
+        show_debug_output: bool = False,
     ):
         """Initialisation
 
@@ -262,7 +265,7 @@ class PreProcessor:
 
         for func in funcs:
             sentence = func(sentence)
-            
+
             if self.show_debug_output:
                 print(f"{func.__name__}: {sentence}")
 

@@ -199,7 +199,7 @@ class PostProcessor:
         QTY labels with any following UNIT labels, up to the next QTY label.
 
         The confidence is the average confidence of all labels in the IngredientGroup.
-    
+
         If the sequence of QTY and UNIT labels matches the "sizable unit" pattern, determine
         the amounts in a different way.
 
