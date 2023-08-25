@@ -28,30 +28,39 @@
                 <div class="card">
                     <h3 class="NAME">Name</h3>
                     <h2>{{ name.text }}</h2>
+                    <h4>{{ "%.2f"|format(100*name.confidence) }}%</h4>
                 </div>
 
                 <div class="card">
                     <h3 class="AMOUNT">Amount</h3>
                     {%- for amount in amounts -%}
-                        <h2>{{ amount.quantity }} {{ amount.unit }}</h2>
-                        {%- if amount.APPROXIMATE -%}
-                        <span class="flag">~</span>
-                        {%- endif -%}
-                        {%- if amount.SINGULAR -%}
-                        <span class="flag">1</span>
-                        {%- endif -%}
-                        <br>
+                        <h2>
+                            {{ amount.quantity }} {{ amount.unit }}
+                            {%- if amount.APPROXIMATE -%}
+                            <span class="flag">~</span>
+                            {%- endif -%}
+                            {%- if amount.SINGULAR -%}
+                            <span class="flag">1</span>
+                            {%- endif -%}
+                        </h2>
                     {%- endfor -%}
+                    <h4>
+                        {%- for amount in amounts -%}
+                        {{ "%.2f"|format(100*amount.confidence) }}%&nbsp;&nbsp;
+                        {%- endfor -%}
+                    </h4>
                 </div>
 
                 <div class="card">
                     <h3 class="COMMENT">Comment</h3>
                     <h2>{{ comment.text }}</h2>
+                    <h4>{{ "%.2f"|format(100*comment.confidence) }}%</h4>
                 </div>
 
                 <div class="card">
                     <h3 class="OTHER">Other</h3>
                     <h2>{{ other.text }}</h2>
+                    <h4>{{ "%.2f"|format(100*other.confidence) }}%</h4>
                 </div>
             </section>
             {%- endif -%}

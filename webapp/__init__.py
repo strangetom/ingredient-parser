@@ -4,6 +4,7 @@
 from flask import Flask, render_template, request
 
 from ingredient_parser import inspect_parser
+from ingredient_parser.postprocess import IngredientText
 
 app = Flask(__name__)
 
@@ -33,8 +34,8 @@ def home():
         display=True,
         sentence=sentence,
         tokens=zip(parser_info.PostProcessor.tokens, parser_info.PostProcessor.labels),
-        name=parsed.name,
+        name=parsed.name if parsed.name is not None else IngredientText("", 0),
         amounts=parsed.amount,
-        comment=parsed.comment,
-        other=parsed.other,
+        comment=parsed.comment if parsed.comment is not None else IngredientText("", 0),
+        other=parsed.other if parsed.other is not None else IngredientText("", 0),
     )
