@@ -132,7 +132,7 @@ if __name__ == "__main__":
         {
             "feature.possible_states": True,
             "feature.possible_transitions": True,
-            "c1": 0,
+            "c1": 0.2,
             "c2": 1,
         }
     )
@@ -180,5 +180,5 @@ if __name__ == "__main__":
             truth_test,
             labels_pred,
             source_test,
-            minimum_mismatches=2,
+            minimum_mismatches=1,
         )
