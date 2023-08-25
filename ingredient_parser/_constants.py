@@ -101,7 +101,7 @@ for plural, singular in UNITS.items():
     _capitalized_units[plural.capitalize()] = singular.capitalize()
 UNITS = UNITS | _capitalized_units
 
-# Words that can modifiy a unit
+# Words that can modify a unit
 UNIT_MODIFIERS = [
     "big",
     "fat",
@@ -163,11 +163,11 @@ STRING_NUMBERS = {
 STRING_NUMBERS_REGEXES = {}
 for s, n in STRING_NUMBERS.items():
     # This is case insensitive so it replace e.g. "one" and "One"
-    # Only match if the string is preceeded by a non-word character or is at
+    # Only match if the string is preceded by a non-word character or is at
     # the start of the sentence
     STRING_NUMBERS_REGEXES[s] = (re.compile(rf"\b({s})\b", flags=re.IGNORECASE), n)
 
-# Stop words - high frequency grammatrical words
+# Stop words - high frequency grammatical words
 # Taken from nltk.corpus.stopwords
 STOP_WORDS = [
     "i",

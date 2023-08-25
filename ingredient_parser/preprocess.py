@@ -64,7 +64,7 @@ class PreProcessor:
     1. | Replace all en-dashes and em-dashes with hyphens.
     2. | Replace numbers given as words with the numeric equivalent.
        | e.g. one >> 1
-    3. | Replace fractions given in html markup with the unicide representation.
+    3. | Replace fractions given in html markup with the unicode representation.
        | e.g. &frac12; >> ½
     4. | Replace unicode fractions with the equivalent decimal form. Decimals are
        | rounded to 3 a maximum of decimal places.
@@ -155,11 +155,15 @@ class PreProcessor:
         Defer part of speech tagging until feature generation.
         Part of speech tagging is an expensive operation and it's not always needed when
         using this class.
+    show_debug_output : bool, optional
+        If True, print out each stage of the sentence normalisation
 
     Attributes
     ----------
     defer_pos_tagging : bool
         Defer part of speech tagging until feature generation
+    show_debug_output : bool
+        If True, print out each stage of the sentence normalisation
     input : str
         Input ingredient sentence.
     pos_tags : list[str]
@@ -174,7 +178,7 @@ class PreProcessor:
     """
 
     def __init__(
-        self, input_sentence: str, defer_pos_tagging=False, show_debug_output=False
+        self, input_sentence: str, defer_pos_tagging: bool=False, show_debug_output: bool=False
     ):
         """Initialisation
 
@@ -184,11 +188,13 @@ class PreProcessor:
             Input ingredient sentence
         defer_pos_tagging : bool, optional
             Defer part of speech tagging until feature generation
+        show_debug_output : bool, optional
+            If True, print out each stage of the sentence normalisation
 
         """
         self.show_debug_output = show_debug_output
         self.input: str = input_sentence
-        self.sentence: str = self._clean(input_sentence)
+        self.sentence: str = self._normalise(input_sentence)
 
         _tokenised_sentence = REGEXP_TOKENIZER.tokenize(self.sentence)
         (
@@ -218,18 +224,18 @@ class PreProcessor:
         Returns
         -------
         str
-            Human readble string representation of object
+            Human readable string representation of object
         """
         _str = [
-            "Pre-processed recipe ingedient sentence",
+            "Pre-processed recipe ingredient sentence",
             f"\t    Input: {self.input}",
             f"\t  Cleaned: {self.sentence}",
             f"\tTokenized: {self.tokenized_sentence}",
         ]
         return "\n".join(_str)
 
-    def _clean(self, sentence: str) -> str:
-        """Clean sentence prior to feature extraction
+    def _normalise(self, sentence: str) -> str:
+        """Normalise sentence prior to feature extraction
 
         Parameters
         ----------
@@ -239,9 +245,9 @@ class PreProcessor:
         Returns
         -------
         str
-            Clean ingredient sentence
+            Normalised ingredient sentence
         """
-        # List of funtions to apply to sentence
+        # List of functions to apply to sentence
         # Note that the order matters
         funcs = [
             self._replace_en_em_dash,
@@ -256,6 +262,7 @@ class PreProcessor:
 
         for func in funcs:
             sentence = func(sentence)
+            
             if self.show_debug_output:
                 print(f"{func.__name__}: {sentence}")
 
@@ -391,7 +398,7 @@ class PreProcessor:
     def _split_quantity_and_units(self, sentence: str) -> str:
         """Insert space between quantity and unit
         This currently finds any instances of a number followed directly by a letter
-        with no space inbetween.
+        with no space in between.
 
         Parameters
         ----------
@@ -406,7 +413,7 @@ class PreProcessor:
         return QUANTITY_UNITS_PATTERN.sub(r"\1 \2", sentence)
 
     def _remove_unit_trailing_period(self, sentence: str) -> str:
-        """Remove trailling periods from units e.g. tsp. -> tsp
+        """Remove trailing periods from units e.g. tsp. -> tsp
 
         Parameters
         ----------
@@ -618,7 +625,7 @@ class PreProcessor:
         Returns
         -------
         bool
-            True if index is inside parantheses or is parenthesis, else False
+            True if index is inside parentheses or is parenthesis, else False
         """
         # If it's "(" or ")", return True
         if self.tokenized_sentence[index] in ["(", ")", "[", "]"]:

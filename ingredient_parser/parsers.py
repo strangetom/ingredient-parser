@@ -34,7 +34,7 @@ def parse_ingredient(sentence: str) -> ParsedIngredient:
     labels = TAGGER.tag(processed_sentence.sentence_features())
     scores = [TAGGER.marginal(label, i) for i, label in enumerate(labels)]
 
-    # Replurise tokens that were singularised if the label isn't UNIT
+    # Re-pluralise tokens that were singularised if the label isn't UNIT
     # For tokens with UNIT label, we'll deal with them below
     for idx in processed_sentence.singularised_indices:
         token = tokens[idx]
@@ -101,7 +101,7 @@ def inspect_parser(sentence: str) -> ParserDebugInfo:
     labels = TAGGER.tag(processed_sentence.sentence_features())
     scores = [TAGGER.marginal(label, i) for i, label in enumerate(labels)]
 
-    # Replurise tokens that were singularised if the label isn't UNIT
+    # Re-plurise tokens that were singularised if the label isn't UNIT
     # For tokens with UNIT label, we'll deal with them below
     for idx in processed_sentence.singularised_indices:
         token = tokens[idx]

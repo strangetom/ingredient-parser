@@ -86,7 +86,7 @@ class PostProcessor:
     labels : list[str]
         List of labels for tokens.
     scores : list[float]
-        Confience associated with the label for each token.
+        Confidence associated with the label for each token.
     sentence : str
         Original ingredient sentence.
     tokens : list[str]
@@ -117,10 +117,10 @@ class PostProcessor:
         Returns
         -------
         str
-            Human readble string representation of object
+            Human readable string representation of object
         """
         _str = [
-            "Post-processed recipe ingedient sentence",
+            "Post-processed recipe ingredient sentence",
             f"\t{list(zip(self.tokens, self.labels))}",
         ]
         return "\n".join(_str)
@@ -158,7 +158,7 @@ class PostProcessor:
         Returns
         -------
         IngredientText
-            Object containing ingredient comment text and confidencee
+            Object containing ingredient comment text and confidence
         """
         # Select indices of tokens, labels and scores for selected label
         idx = [i for i, label in enumerate(self.labels) if label == selected]
@@ -200,7 +200,7 @@ class PostProcessor:
 
         The confidence is the average confidence of all labels in the IngredientGroup.
     
-        If the sequence of QTY and UNIT labels matches the "sizble unit" pattern, determine
+        If the sequence of QTY and UNIT labels matches the "sizable unit" pattern, determine
         the amounts in a different way.
 
         Returns
@@ -315,7 +315,7 @@ class PostProcessor:
 
     def _sizable_unit_pattern(self) -> list[IngredientAmount] | None:
         """Identify sentences which match the pattern where there is a
-        quantity-unit pair split by one or mroe quantity-unit pairs e.g.
+        quantity-unit pair split by one or more quantity-unit pairs e.g.
 
         * 1 28 ounce can
         * 2 17.3 oz (484g) package
@@ -325,7 +325,7 @@ class PostProcessor:
         For example, for the sentence: 1 28 ounce can; the correct amounts are:
         [
             IngredientAmount(quantity="1", unit="can", score=0.x...),
-            IngredientAmount(uantity="28", unit="ounce", score=0.x...),
+            IngredientAmount(quantity="28", unit="ounce", score=0.x...),
         ]
 
         Returns
@@ -355,7 +355,7 @@ class PostProcessor:
             "tin",
         ]
 
-        # Downselect to just QTY and UNIT tokens, scores and labels
+        # Down select to just QTY and UNIT tokens, scores and labels
         tokens = [
             token
             for token, label in zip(self.tokens, self.labels)
@@ -416,7 +416,7 @@ class PostProcessor:
                 amount.unit = pluralise_units(amount.unit)
 
         # Mop up any remaining amounts that didn't fit the pattern and have a guess
-        # at where to insert them so they are in the order they appear in the sentnece.
+        # at where to insert them so they are in the order they appear in the sentence.
         if tokens != [] and self.tokens.index(tokens[0]) < match[0]:
             return self._fallback_pattern(tokens, labels, scores) + amounts
         else:
@@ -425,7 +425,7 @@ class PostProcessor:
     def _match_pattern(
         self, tokens: list[str], labels: list[str], pattern: list[str]
     ) -> list[tuple[int, int]]:
-        """Find a pattern of labels and return the indicesof the start and end of match.
+        """Find a pattern of labels and return the indices of the start and end of match.
 
         For example, consider the sentence:
         One 15-ounce can diced tomatoes, with liquid
@@ -499,7 +499,7 @@ class PostProcessor:
 
         Returns
         -------
-        list[dict[str, Any]]
+        list[IngredientAmount]
             List of dictionaries for each set of amounts.
             The dictionary contains:
                 quantity: str
@@ -614,7 +614,7 @@ class PostProcessor:
         self, i: int, tokens: list[str], labels: list[str]
     ) -> bool:
         """Return True if the current token is approximate and singular, determined
-        by the token label being QTY and is preceeded by a token in a list of singular
+        by the token label being QTY and is preceded by a token in a list of singular
         tokens, then token in a list of approximate tokens.
 
         e.g. each nearly 3 ...
