@@ -305,7 +305,7 @@ class PostProcessor:
             List of lists, where each sub-list contains consecutive indices
 
         Examples
-        -------
+        --------
         >>> groups = group_consecutive_idx([0, 1, 2, 4, 5, 6, 8, 9])
         >>> [list(g) for g in groups]
         [[0, 1, 2], [4, 5, 6], [8, 9]]

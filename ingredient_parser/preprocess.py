@@ -283,6 +283,16 @@ class PreProcessor:
         -------
         str
             Ingredient sentence with en and em dashes replaced with hyphens
+
+        Examples
+        --------
+        >>> p = PreProcessor("")
+        >>> p._replace_en_em_dash("2 cups flour – white or self-raising")
+        "2 cups flour - white or self-raising"
+
+        >>> p = PreProcessor("")
+        >>> p._replace_en_em_dash("3–4 sirloin steaks")
+        "3-4 sirloin steaks"
         """
         return sentence.replace("–", "-").replace("—", "-")
 
@@ -298,6 +308,16 @@ class PreProcessor:
         -------
         str
             Ingredient sentence with string numbers replace with numeric values
+
+        Examples
+        --------
+        >>> p = PreProcessor("")
+        >>> p._replace_string_numbers("three large onions")
+        "3 large onions"
+
+        >>> p = PreProcessor("")
+        >>> p._replace_string_numbers("twelve bonbons")
+        "12 bonbons"
         """
 
         # STRING_NUMBER_REGEXES is a dict where the values are a tuple of the compiled
@@ -320,6 +340,12 @@ class PreProcessor:
         -------
         str
             Ingredient sentence with html fractions replaced
+
+        Examples
+        --------
+        >>> p = PreProcessor("")
+        >>> p._replace_html_fractions("1&frac34; cups tomato ketchup")
+        "1¾ cups tomato ketchup"
         """
         return unescape(sentence)
 
@@ -336,6 +362,16 @@ class PreProcessor:
         -------
         str
             Ingredient sentence with fractions replaced with decimals
+
+        Examples
+        --------
+        >>> p = PreProcessor("")
+        >>> p._replace_fake_fractions("1/2 cup icing sugar")
+        "0.5 cup icing sugar"
+
+        >>> p = PreProcessor("")
+        >>> p._replace_fake_fractions("2 3/4 pound chickpeas")
+        "2.75 pound chickpeas"
         """
         matches = FRACTION_PARTS_PATTERN.findall(sentence)
 
@@ -374,6 +410,16 @@ class PreProcessor:
         -------
         str
             Ingredient sentence with unicode fractions replaced
+
+        Examples
+        --------
+        >>> p = PreProcessor("")
+        >>> p._replace_unicode_fractions("½ cup icing sugar")
+        "1/2 cup icing sugar"
+        
+        >>> p = PreProcessor("")
+        >>> p._replace_unicode_fractions("3⅓ cups warm water")
+        "3 1/3 cups warm water"
         """
         fractions = {
             "\u215b": "1/8",
@@ -412,6 +458,16 @@ class PreProcessor:
         -------
         str
             Ingredient sentence with spaces inserted between quantity and units
+
+        Examples
+        --------
+        >>> p = PreProcessor("")
+        >>> p._split_quantity_and_units("100g green beans")
+        "100 g green beans"
+        
+        >>> p = PreProcessor("")
+        >>> p._split_quantity_and_units("2-pound red peppers, sliced")
+        "2 pound red peppers, sliced"
         """
         return QUANTITY_UNITS_PATTERN.sub(r"\1 \2", sentence)
 
@@ -427,6 +483,16 @@ class PreProcessor:
         -------
         str
             Ingredient sentence with trailing periods from units removed
+
+        Examples
+        --------
+        >>> p = PreProcessor("")
+        >>> p._remove_unit_trailing_period("1 tsp. garlic powder")
+        "1 tsp garlic powder"
+        
+        >>> p = PreProcessor("")
+        >>> p._remove_unit_trailing_period("5 oz. chopped tomatoes")
+        "5 oz chopped tomatoes"
         """
         units = ["tsp.", "tsps.", "tbsp.", "tbsps.", "lb.", "lbs.", "oz."]
         units.extend([u.capitalize() for u in units])
@@ -455,6 +521,16 @@ class PreProcessor:
         -------
         str
             Ingredient sentence with string ranges replaced with standardised range
+
+        Examples
+        --------
+        >>> p = PreProcessor("")
+        >>> p._replace_string_range("1 to 2 mashed bananas")
+        "1-2 mashed bananas"
+        
+        >>> p = PreProcessor("")
+        >>> p._replace_string_range("4- or 6- large apples")
+        "5-6 large apples"
         """
         return STRING_RANGE_PATTERN.sub(r"\1-\5", sentence)
 
