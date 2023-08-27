@@ -17,6 +17,15 @@
                 <input id="sentence" name="sentence" type="search" autocomplete="off" value="{{ sentence }}"/>
             </form>
 
+            <p class="key">
+                Key: 
+                <span class="QTY">Quantity</span>
+                <span class="UNIT">Unit</span>
+                <span class="NAME">Name</span>
+                <span class="COMMENT">Comment</span>
+                <span class="OTHER">Other</span>
+            </p>
+
             {%- if display -%}
             <p class="sentence">
                 {%- for token, label in tokens -%}
@@ -35,7 +44,8 @@
                     <h3 class="AMOUNT">Amount</h3>
                     {%- for amount in amounts -%}
                         <h2>
-                            {{ amount.quantity }} {{ amount.unit }}
+                            <span class="amount-qty">{{ amount.quantity }}</span> 
+                            <span class="amount-unit">{{ amount.unit }}</span>
                             {%- if amount.APPROXIMATE -%}
                             <span class="flag">~</span>
                             {%- endif -%}
