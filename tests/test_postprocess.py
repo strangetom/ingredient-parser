@@ -163,6 +163,24 @@ class TestPostProcessor_remove_isolated_punctuation_and_duplicates:
         assert p._remove_isolated_punctuation_and_duplicates(input_list) == [0, 3]
 
 
+class TestUtils_group_consecutive_indices:
+    def test_single_group(self, p):
+        """
+        Return single group
+        """
+        input_indices = [0, 1, 2, 3, 4]
+        groups = p._group_consecutive_idx(input_indices)
+        assert [list(g) for g in groups] == [input_indices]
+
+    def test_multiple_groups(self, p):
+        """
+        Return groups of consecutive indices
+        """
+        input_indices = [0, 1, 2, 4, 5, 6, 8, 9]
+        groups = p._group_consecutive_idx(input_indices)
+        assert [list(g) for g in groups] == [[0, 1, 2], [4, 5, 6], [8, 9]]
+
+
 class TestPostProcessor_sizable_unit_pattern:
     def test_long_pattern(self):
         """
