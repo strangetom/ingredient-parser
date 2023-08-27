@@ -200,8 +200,8 @@ class PostProcessor:
 
         The confidence is the average confidence of all labels in the IngredientGroup.
 
-        If the sequence of QTY and UNIT labels matches the "sizable unit" pattern, determine
-        the amounts in a different way.
+        If the sequence of QTY and UNIT labels matches the "sizable unit" pattern,
+        determine the amounts in a different way.
 
         Returns
         -------
@@ -370,7 +370,7 @@ class PostProcessor:
 
         amounts = []
         for pattern in patterns:
-            for match in self._match_pattern(tokens, labels, pattern):
+            for match in self._match_pattern(labels, pattern):
                 # If the pattern ends with one of end_units, we have found a match for
                 # this pattern!
                 start, stop = match
@@ -423,9 +423,10 @@ class PostProcessor:
             return amounts + self._fallback_pattern(tokens, labels, scores)
 
     def _match_pattern(
-        self, tokens: list[str], labels: list[str], pattern: list[str]
+        self, labels: list[str], pattern: list[str]
     ) -> list[tuple[int, int]]:
-        """Find a pattern of labels and return the indices of the start and end of match.
+        """Find a pattern of labels and return the indices of the start and end of
+        the pattern.
 
         For example, consider the sentence:
         One 15-ounce can diced tomatoes, with liquid
@@ -440,11 +441,6 @@ class PostProcessor:
         Then we get:
         [(0, 3)]
 
-        Raises
-        ------
-        ValueError
-            When the length of tokens and labels are not equal.
-
         Parameters
         ----------
         tokens : list[str]
@@ -457,13 +453,10 @@ class PostProcessor:
         Returns
         -------
         list[tuple[int]]
-            Tuple of start index end index for matching pattern.
+            Tuple of start index and end index for matching pattern.
         """
 
-        if len(tokens) != len(labels):
-            raise ValueError("The length of tokens and labels must be the same.")
-
-        if len(pattern) > len(tokens):
+        if len(pattern) > len(labels):
             # We can never find a match.
             return []
 
