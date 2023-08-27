@@ -337,7 +337,7 @@ class TestPostProcessor_sizable_unit_pattern:
 
 
 class TestPostProcessor_match_pattern:
-    def test_long_pattern(self, p):
+    def test_long_pattern_match(self, p):
         """
         Test that correct start and stop indices are returned for long pattern
         """
@@ -358,7 +358,7 @@ class TestPostProcessor_match_pattern:
 
         assert p._match_pattern(labels, pattern) == [(2, 10)]
 
-    def test_meidum_pattern(self, p):
+    def test_medium_pattern_match(self, p):
         """
         Test that correct start and stop indices are returned for medium pattern
         """
@@ -376,7 +376,7 @@ class TestPostProcessor_match_pattern:
 
         assert p._match_pattern(labels, pattern) == [(0, 6)]
 
-    def test_long_pattern(self, p):
+    def test_short_pattern_match(self, p):
         """
         Test that correct start and stop indices are returned for long pattern
         """
