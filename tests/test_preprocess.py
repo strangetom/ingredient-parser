@@ -17,7 +17,7 @@ class TestPreProcessor__builtins__:
         Test PreProcessor __str__
         """
         p = PreProcessor("1/2 cup chicken broth")
-        truth = """Pre-processed recipe ingedient sentence
+        truth = """Pre-processed recipe ingredient sentence
 \t    Input: 1/2 cup chicken broth
 \t  Cleaned: 0.5 cup chicken broth
 \tTokenized: ['0.5', 'cup', 'chicken', 'broth']"""
@@ -29,6 +29,38 @@ class TestPreProcessor__builtins__:
         """
         p = PreProcessor("1/2 cup chicken broth")
         assert repr(p) == 'PreProcessor("1/2 cup chicken broth")'
+
+
+class TestPreProcessor_normalise:
+    def test_normalise(self):
+        """
+        The sentence is normalised
+        """
+        input_sentence = "1 to 1 1/2 tbsp. mint sauce"
+        p = PreProcessor(input_sentence, defer_pos_tagging=True)
+        assert p.sentence == "1-1.5 tbsp mint sauce"
+
+
+class TestPreProcessor_replace_en_em_dash:
+    def test_en_dash(self, p):
+        """
+        The en-dash is replaced with a hyphen.
+        """
+        input_sentence = "2 cups flour – white or self-raising"
+        assert (
+            p._replace_en_em_dash(input_sentence)
+            == "2 cups flour - white or self-raising"
+        )
+
+    def test_em_dash(self, p):
+        """
+        The em-dash is replaced with a hyphen.
+        """
+        input_sentence = "2 cups flour — white or self-raising"
+        assert (
+            p._replace_en_em_dash(input_sentence)
+            == "2 cups flour - white or self-raising"
+        )
 
 
 class TestPreProcessor_replace_string_numbers:
@@ -368,6 +400,13 @@ class TestPreProcessor_split_quantity_and_units:
         input_sentence = '2.5" square chocolate'
         assert p._split_quantity_and_units(input_sentence) == '2.5" square chocolate'
 
+    def test_hyphen_seperator(self, p):
+        """
+        The hyphen between the quantity and unit is replaced by a space
+        """
+        input_sentence = "2-pound whole chicken"
+        assert p._split_quantity_and_units(input_sentence) == "2 pound whole chicken"
+
 
 class TestPreProcessor_remove_unit_trailing_period:
     def test_tsp(self, p):
@@ -477,6 +516,22 @@ class TestPreProcessor_singlarise_units:
         tokenised_sentence, indices = p._singlarise_units(input_sentence)
         assert tokenised_sentence == ["2", "tablespoon", "plus", "2", "teaspoon"]
         assert indices == [1, 4]
+
+
+class TestPreProcessor_tag_partofspeech:
+    """Test overrides for part of speech tagging"""
+
+    def test_range(self, p):
+        """
+        The token is tagged as "CD"
+        """
+        assert p._tag_partofspeech(["3-4"]) == ["CD"]
+
+    def test_ground(self, p):
+        """
+        The token is tagged as "VBD"
+        """
+        assert p._tag_partofspeech(["ground"]) == ["VBD"]
 
 
 class TestPreProcessor_is_unit:
@@ -734,7 +789,7 @@ class TestPreProcess_follows_comma:
         assert p._follows_comma(8)
 
 
-class TestPreProcessor__is_stop_word:
+class TestPreProcessor_is_stop_word:
     def test_common(self, p):
         """
         Validate common stop words
@@ -748,3 +803,35 @@ class TestPreProcessor__is_stop_word:
         """
         for word in ["onion", "kg", "pound", "rice", "taste"]:
             assert not p._is_stop_word(word)
+
+
+class TestPreProcessor_is_ambiguous_unit:
+    def test_clove(self, p):
+        """
+        Clove is indicated as ambiguous unit
+        """
+        assert p._is_ambiguous_unit("clove")
+
+    def test_leaves(self, p):
+        """
+        Leaves is indicated as ambiguous unit
+        """
+        assert p._is_ambiguous_unit("leaves")
+
+    def test_slabs(self, p):
+        """
+        Clove is indicated as ambiguous unit
+        """
+        assert p._is_ambiguous_unit("slab")
+
+    def test_wedges(self, p):
+        """
+        Clove is indicated as ambiguous unit
+        """
+        assert p._is_ambiguous_unit("wedges")
+
+    def test_cup(self, p):
+        """
+        Cup is not indicated as ambiguous unit
+        """
+        assert not p._is_ambiguous_unit("cup")
