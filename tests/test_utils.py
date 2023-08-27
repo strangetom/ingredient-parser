@@ -1,5 +1,3 @@
-import pytest
-
 from ingredient_parser._utils import pluralise_units
 
 

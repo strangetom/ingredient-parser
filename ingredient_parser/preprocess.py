@@ -416,7 +416,7 @@ class PreProcessor:
         >>> p = PreProcessor("")
         >>> p._replace_unicode_fractions("½ cup icing sugar")
         "1/2 cup icing sugar"
-        
+
         >>> p = PreProcessor("")
         >>> p._replace_unicode_fractions("3⅓ cups warm water")
         "3 1/3 cups warm water"
@@ -464,7 +464,7 @@ class PreProcessor:
         >>> p = PreProcessor("")
         >>> p._split_quantity_and_units("100g green beans")
         "100 g green beans"
-        
+
         >>> p = PreProcessor("")
         >>> p._split_quantity_and_units("2-pound red peppers, sliced")
         "2 pound red peppers, sliced"
@@ -489,7 +489,7 @@ class PreProcessor:
         >>> p = PreProcessor("")
         >>> p._remove_unit_trailing_period("1 tsp. garlic powder")
         "1 tsp garlic powder"
-        
+
         >>> p = PreProcessor("")
         >>> p._remove_unit_trailing_period("5 oz. chopped tomatoes")
         "5 oz chopped tomatoes"
@@ -527,7 +527,7 @@ class PreProcessor:
         >>> p = PreProcessor("")
         >>> p._replace_string_range("1 to 2 mashed bananas")
         "1-2 mashed bananas"
-        
+
         >>> p = PreProcessor("")
         >>> p._replace_string_range("4- or 6- large apples")
         "5-6 large apples"

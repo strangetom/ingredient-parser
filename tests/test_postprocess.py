@@ -2,9 +2,9 @@ import pytest
 
 from ingredient_parser import PostProcessor
 from ingredient_parser.postprocess import (
-    ParsedIngredient,
     IngredientAmount,
     IngredientText,
+    ParsedIngredient,
 )
 
 
@@ -34,7 +34,8 @@ class TestPostProcessor__builtins__:
         Test PostProcessor __str__
         """
         truth = """Post-processed recipe ingredient sentence
-\t[('2', 'QTY'), ('14', 'QTY'), ('ounce', 'UNIT'), ('can', 'UNIT'), ('coconut', 'NAME'), ('milk', 'NAME')]"""
+\t[('2', 'QTY'), ('14', 'QTY'), ('ounce', 'UNIT'), ('can', 'UNIT'), \
+('coconut', 'NAME'), ('milk', 'NAME')]"""
         assert str(p) == truth
 
     def test__repr__(self, p):
