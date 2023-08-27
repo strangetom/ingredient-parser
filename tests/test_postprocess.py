@@ -5,6 +5,7 @@ from ingredient_parser.postprocess import (
     IngredientAmount,
     IngredientText,
     ParsedIngredient,
+    consume,
 )
 
 
@@ -26,6 +27,27 @@ def p():
     ]
 
     return PostProcessor(sentence, tokens, labels, scores)
+
+
+class Test_consume:
+    def test_conume(self):
+        """
+        Test iterator advances by specified amount
+        """
+        it = iter(range(0, 10))
+        assert next(it) == 0
+        consume(it, 2)
+        assert next(it) == 3
+
+    def test_consume_all(self):
+        """
+        Test iterator is consumed completely
+        """
+        it = iter(range(0, 10))
+        assert next(it) == 0
+        consume(it, None)
+        with pytest.raises(StopIteration):
+            next(it)
 
 
 class TestPostProcessor__builtins__:
@@ -450,6 +472,121 @@ class TestPostProcessor_match_pattern:
         ]
 
         assert p._match_pattern(labels, pattern) == [(0, 4), (5, 9)]
+
+
+class TestPostProcessor_fallback_pattern:
+    def test_basic(self, p):
+        """
+        Test that a single IngredientAmount object with quantity "3" and
+        unit "large handfuls" is returned.
+        """
+
+        tokens = ["3", "large", "handful", "cherry", "tomatoes"]
+        labels = ["QTY", "UNIT", "UNIT", "NAME", "NAME"]
+        scores = [0] * len(tokens)
+
+        expected = [IngredientAmount(quantity="3", unit="large handfuls", confidence=0)]
+
+        assert p._fallback_pattern(tokens, labels, scores) == expected
+
+    def test_no_quantity(self, p):
+        """
+        Test that a single IngredientAmount object with no quantity and
+        unit "large handfuls" is returned.
+        """
+
+        tokens = ["1", "green", ",", "large", "pepper"]
+        labels = ["QTY", "NAME", "COMMA", "UNIT", "NAME"]
+        scores = [0] * len(tokens)
+
+        expected = [IngredientAmount(quantity="1", unit=", large", confidence=0)]
+
+        assert p._fallback_pattern(tokens, labels, scores) == expected
+
+    def test_comma_before_unit(self, p):
+        """
+        Test that a single IngredientAmount object with no quantity and
+        unit "large handfuls" is returned.
+        """
+
+        tokens = ["bunch", "of", "basil", "leaves"]
+        labels = ["UNIT", "COMMENT", "NAME", "NAME"]
+        scores = [0] * len(tokens)
+
+        expected = [IngredientAmount(quantity="", unit="bunch", confidence=0)]
+
+        assert p._fallback_pattern(tokens, labels, scores) == expected
+
+    def test_approximate(self, p):
+        """
+        Test that a single IngredientAmount object with the APPROXIMATE flag set
+        is returned
+        """
+        tokens = ["About", "2", "cup", "flour"]
+        labels = ["COMMENT", "QTY", "UNIT", "NAME"]
+        scores = [0] * len(tokens)
+
+        expected = [
+            IngredientAmount(
+                quantity="2",
+                unit="cups",
+                confidence=0,
+                APPROXIMATE=True,
+            )
+        ]
+
+        assert p._fallback_pattern(tokens, labels, scores) == expected
+
+    def test_singular(self, p):
+        """
+        Test that a single IngredientAmount object with the SINGULAR flag set
+        is returned
+        """
+        tokens = ["2", "bananas", ",", "4", "ounce", "each"]
+        labels = ["QTY", "NAME", "COMMA", "QTY", "UNIT", "COMMENT"]
+        scores = [0] * len(tokens)
+
+        expected = [
+            IngredientAmount(
+                quantity="2",
+                unit="",
+                confidence=0,
+            ),
+            IngredientAmount(
+                quantity="4",
+                unit="ounces",
+                confidence=0,
+                SINGULAR=True,
+            ),
+        ]
+
+        assert p._fallback_pattern(tokens, labels, scores) == expected
+
+    def test_singular_and_approximate(self, p):
+        """
+        Test that a single IngredientAmount object with the APPROXIMATE and
+        SINGULAR flags set is returned
+        """
+        tokens = ["2", "bananas", ",", "each", "about", "4", "ounce"]
+        labels = ["QTY", "NAME", "COMMA", "COMMENT", "COMMENT", "QTY", "UNIT"]
+        scores = [0] * len(tokens)
+
+        expected = [
+            IngredientAmount(
+                quantity="2",
+                unit="",
+                confidence=0,
+            ),
+            IngredientAmount(
+                quantity="4",
+                unit="ounces",
+                confidence=0,
+                SINGULAR=True,
+                APPROXIMATE=True,
+            ),
+        ]
+
+        assert p._fallback_pattern(tokens, labels, scores) == expected
 
 
 class TestPostProcessor_is_approximate:
