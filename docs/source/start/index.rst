@@ -31,8 +31,10 @@ You can install ``ingredient_parser`` from PyPi with ``pip``:
     
     >>> python -m pip install ingredient_parser_nlp
 
-This will download and install the package and it's dependencies.
+This will download and install the package and it's dependencies:
 
+* `NLTK <https://www.nltk.org/>`_
+* `python-crfsuite <https://python-crfsuite.readthedocs.io/en/latest/>`_
 
 Usage
 ^^^^^

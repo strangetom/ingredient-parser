@@ -61,6 +61,14 @@ Training the model
 
 With the data ready, we can now train the model using `python-crfuite <https://github.com/scrapinghub/python-crfsuite>`_.
 
+.. note::
+
+    To train the model, you will need the additional dependencies listed in ``requirements-dev.txt``. These can be installed by running the command:
+
+    .. code::
+
+        >>> python -m pip install -r requirements-dev.txt
+
 .. code:: python
     
     import pycrfsuite
@@ -81,7 +89,7 @@ With the data ready, we can now train the model using `python-crfuite <https://g
 
 This trains the model and saves the model to the file specified.
 
-This is relatively quick the train, it takes less than 2 minutes on a laptop with an Intel Core 15-10300H and 16 GB of RAM. No GPU is required.
+This is relatively quick the train, it takes about 2-3 minutes on a laptop with an Intel Core 15-10300H and 16 GB of RAM. No GPU is required.
 
 All of the above steps are implemented in the ``train/train.py`` script. The following command will execute the script and train the model on both datasets.
 
