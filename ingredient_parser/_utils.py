@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 
+import collections
 import os
 import platform
 import re
 import subprocess
 from importlib.resources import as_file, files
+from itertools import islice
+from typing import Iterator
 
 from ._constants import UNITS
 
@@ -40,6 +43,37 @@ def pluralise_units(sentence: str) -> str:
         sentence = re.sub(rf"\b({singular})\b", f"{plural}", sentence)
 
     return sentence
+
+
+def consume(iterator: Iterator, n: int) -> None:
+    """Advance the iterator n-steps ahead. If n is none, consume entirely.
+    See consume from https://docs.python.org/3/library/itertools.html#itertools-recipes
+
+    Parameters
+    ----------
+    iterator : Iterator
+        Iterator to advance.
+    n : int
+        Number of iterations to advance by.
+
+    Examples
+    --------
+    >>> it = iter(range(10))
+    >>> consume(it, 3)
+    >>> next(it)
+    3
+
+    >>> it = iter(range(10))
+    >>> consume(it, None)
+    >>> next(it)
+    StopIteration
+    """
+    if n is None:
+        # Feed the entire iterator into a zero-length deque
+        collections.deque(iterator, maxlen=0)
+    else:
+        # Advance to the empty slice starting at position n
+        next(islice(iterator, n, n), None)
 
 
 def show_model_card() -> None:

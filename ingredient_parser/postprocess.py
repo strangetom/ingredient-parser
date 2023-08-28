@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
 
-import collections
 import re
 from dataclasses import dataclass
-from itertools import groupby, islice
+from itertools import groupby
 from operator import itemgetter
 from statistics import mean
 from typing import Generator, Iterator
 
-from ._utils import pluralise_units
+from ._utils import consume, pluralise_units
 
 WORD_CHAR = re.compile(r"\w")
 
@@ -52,25 +51,6 @@ class ParsedIngredient:
     comment: IngredientText | None
     other: IngredientText | None
     sentence: str
-
-
-def consume(iterator: Iterator, n: int) -> None:
-    """Advance the iterator n-steps ahead. If n is none, consume entirely.
-    See consume from https://docs.python.org/3/library/itertools.html#itertools-recipes
-
-    Parameters
-    ----------
-    iterator : Iterator
-        Iterator to advance.
-    n : int
-        Number of iterations to advance by.
-    """
-    if n is None:
-        # Feed the entire iterator into a zero-length deque
-        collections.deque(iterator, maxlen=0)
-    else:
-        # Advance to the empty slice starting at position n
-        next(islice(iterator, n, n), None)
 
 
 class PostProcessor:
@@ -493,11 +473,7 @@ class PostProcessor:
         Returns
         -------
         list[IngredientAmount]
-            List of dictionaries for each set of amounts.
-            The dictionary contains:
-                quantity: str
-                unit: list[str]
-                score: list[float]
+            List of IngredientAmount objects
         """
         amounts = []
         for i, (token, label, score) in enumerate(zip(tokens, labels, scores)):
