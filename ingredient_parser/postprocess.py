@@ -17,7 +17,25 @@ SINGULAR_TOKENS = ["each"]
 
 @dataclass
 class IngredientAmount:
-    """Dataclass for holding ingredient amount, comprising a quantity and a unit."""
+    """Dataclass for holding a parsed ingredient amount, comprising the following 
+    attributes.
+    
+    Attributes
+    ----------
+    quantity : str
+        Parsed ingredient quantity
+    unit : str
+        Unit of parsed ingredient quantity
+    confidence : float
+        Confidence of parsed ingredient amount, between 0 and 1.
+        This is the average confidence of all tokens that contribute to this object.
+    APPROXIMATE : bool, optional
+        When True, indicates that the amount is approximate.
+        Default is False.
+    SINGULAR : bool, optional
+        When True, indicates if the amount refers to a singular item of the ingredient.
+        Default is False.
+    """
 
     quantity: str
     unit: str
@@ -28,7 +46,18 @@ class IngredientAmount:
 
 @dataclass
 class IngredientText:
-    """Dataclass for holding parsed ingredient strings"""
+    """Dataclass for holding a parsed ingredient string, comprising the following 
+    attributes.
+
+    Attributes
+    ----------
+    text : str
+        Parsed text from ingredient.
+        This is comprised of all tokens with the same label.
+    confidence : float
+        Confidence of parsed ingredient amount, between 0 and 1.
+        This is the average confidence of all tokens that contribute to this object.
+    """
 
     text: str
     confidence: float
@@ -38,12 +67,23 @@ class IngredientText:
 class ParsedIngredient:
     """Dataclass for holding the parsed values for an input sentence.
 
-    * Sentence: The original input sentence
-    * Quantity: The parsed quantities from the input sentence
-    * Unit: The parsed units from the input sentence
-    * Name: The parsed name from the input sentence
-    * Comment: The parsed comment from the input sentence
-    * Other: Any tokens in the input sentence that were not labelled
+    Attributes
+    ----------
+    
+    name : IngredientText | None
+        Ingredient name parsed from input sentence.
+        If no ingredient name was found, this is None.
+    amount : List[IngredientAmount]
+        List of IngredientAmount objects, each representing a matching quantity and 
+        unit pair parsed from the sentence.
+    comment : IngredientText | None
+        Ingredient comment parsed from input sentence.
+        If no ingredient comment was found, this is None.
+    other : IngredientText | None
+        Any input sentence tokens that were labelled as OTHER.
+        If no tokens were labelled as OTHER, this is None.
+    sentence : str
+        Normalised input sentence
     """
 
     name: IngredientText | None

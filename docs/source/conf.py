@@ -47,7 +47,7 @@ html_context = {"default_mode": "dark"}
 
 html_theme_options = {
     "collapse_navigation": True,
-    "pygment_light_style": "gruvbox-light",
     "pygment_dark_style": "gruvbox-dark",
+    "navbar_end": ["navbar-icon-links"],
     "github_url": "https://github.com/strangetom/ingredient-parser",
 }

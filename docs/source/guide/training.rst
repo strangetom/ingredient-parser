@@ -3,7 +3,7 @@ Training the model
 
 The model chosen is a Condition Random Fields (CRF) model. This was selected largely because the New York Times work on this used the same model quite successfully, and CRF models are commonly used in sequence labelling machine learning applications.
 
-However, rather than re-using the same tools and process the New York Times did, this model is trained and tested using `python-crfsuite <https://github.com/scrapinghub/python-crfsuite>`_.
+However, rather than re-using the same tools and process the New York Times did, this model is trained and evaluated using `python-crfsuite <https://github.com/scrapinghub/python-crfsuite>`_.
 
 To train the model, the datasets are combined and transformed so that we have the input sentence and the true labels for each token in the input sentnece.
 
@@ -47,14 +47,12 @@ The ``match_label`` function attempts to do this.
 
 Note that two new labels are introduced in this step, that do not appear in the labelled data.
 
-The ``OTHER`` labels is used for any tokens that cannot be matched to a label.
-
-The ``COMMA`` label is used to label commas, specifically. This is done because commas are particular difficult for the model to learn the correct label for, since they can legitimately appear almost anywhere in a sentence. Post-processing of the model output if used to return the commas to the most likely position, but this is not necessary for training.
-
-Occassionally a token cannot be matched to a label, which is usually due to one of two causes:
+The ``OTHER`` labels is used for any tokens that cannot be matched to a label. Occassionally a token cannot be matched to a label, which is usually due to one of two causes:
 
 1. The token is simply missing from the label fields in the csv file. This is easy enough to rectify.
 2. The normalisation and tokensiation processes have not resulted in the tokens assumed when the dataset was labelled. There are some known cases that result in this situation that hopefully be rectified in the future.
+
+The ``COMMA`` label is used to label commas, specifically. This is done because commas are particular difficult for the model to learn the correct label for, since they can legitimately appear almost anywhere in a sentence. Post-processing of the model output if used to return the commas to the most likely position, but this is not necessary for training.
 
 The data is then split into training and testing sets. A split of 75% training, 25% testing is used be default and data in the training and testing sets are randomised using ``sklearn``'s ``model_selection.train_test_split`` function.
 

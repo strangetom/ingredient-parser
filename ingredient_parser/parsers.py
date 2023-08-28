@@ -73,6 +73,18 @@ def parse_multiple_ingredients(sentences: list[str]) -> list[ParsedIngredient]:
 class ParserDebugInfo:
     """Dataclass for holding intermediate objects generated during
     ingredient sentence parsing.
+    
+    Attributes
+    ----------
+    sentence : str
+        Input ingredient sentence.
+    PreProcessor : PreProcessor
+        PreProcessor object created using input sentence.
+    PostProcessor : PostProcessor
+        PostProcessor object created using tokens, labels and scores from
+        input sentence.
+    Tagger : pycrfsuite.Tagger
+        CRF model tagger object.
     """
 
     sentence: str

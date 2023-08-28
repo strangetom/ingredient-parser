@@ -18,7 +18,12 @@ The normalisation of the input sentence is done immediately when the :class:`Pre
     :pyobject: PreProcessor._normalise
     :dedent: 4
 
+.. tip::
+
+    By setting ``show_debug_output=True`` when instantiating the :class:`PreProcessor` class, the sentence will be printed out at each step of the normalisation process.
+
 Each of the normalisation functions are detailed below.
+
 
 ``_replace_en_em_dash``
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -128,7 +133,9 @@ The purpose of this is to ensure the range is kept as a single token.
 ``_singlarise_unit``
 ^^^^^^^^^^^^^^^^^^^^
 
-Units are made singular. This is done using a predefined list of plural units and their singular form.
+Units are made singular using a predefined list of plural units and their singular form.
+
+This step is actually performed after tokenisation (see :doc:`Extracting the features <features>`) and we keep track of the index of each token that has been singularised. This is so we can automatically re-pluralise only the tokens that were singularised after the labeling by the model.
 
 .. literalinclude:: ../../../ingredient_parser/_constants.py
     :lines: 5-102

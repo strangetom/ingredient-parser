@@ -12,30 +12,35 @@ The training pipeline is shown below.
   :alt: Training pipeline
 
 
-1. **Load data**
+Load data
+~~~~~~~~~
 
 The data is loaded from the source csv files.
 The data is transformed  from the method of labeling used in the csv to match the correct label to each token in the input sentence.
    
 See :doc:`Loading the data <data>` for more information.
 
-2. **Normalise**
+Normalise
+~~~~~~~~~
 
 The input sentences are normalised to clean up particular sentence features into a standard format. The sentence is then tokenised.
 
 See :doc:`Normalisation <normalisation>` for more information.
 
-3. **Extract features**
+Extract features
+~~~~~~~~~~~~~~~~
 
 The features for each token are extracted. These features are used to train the model or, once the model has been trained, label each token.
 
 See :doc:`Extracting features <features>` for more information.
 
-4. **Train**
+Train
+~~~~~
 
 The Conditional Random Fields model is trained on 75% of the training data.
 
-5. **Evaluate**
+Evaluate
+~~~~~~~~
 
 The remaining 25% of the training data is used to evaluate the performane of the model on data the model has not encountered before.
 
@@ -51,15 +56,17 @@ The parsing pipeline is shown below.
   :width: 300
   :alt: Parsing pipeline
    
-The **Normalise** and **Extract features** steps are they same as above.
+The `Normalise`_ and `Extract features`_ steps are the same as above.
 
-3. **Label**
+Label
+~~~~~
 
 The features for each token in the sentence are fed into the CRF model which returns a label and the confidence for the label for each token in the setnence.
 
 See :doc:`Using the model <usage>` for more information.
 
-4. **Post-process**
+Post-process
+~~~~~~~~~~~~
 
 The token labels go through a post-processing step to build the object that is output from the `parse_ingredient` function.
 

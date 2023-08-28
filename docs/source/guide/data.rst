@@ -38,7 +38,7 @@ The three datasets have different advantages and disadvantages, therefore combin
 Labelling the data
 ^^^^^^^^^^^^^^^^^^
 
-.. tip::
+.. note::
     
     The details described in this section also apply to how the labelling was performed for the Cookstr dataset.
 
@@ -48,7 +48,7 @@ The New York Times dataset has gone through, and continues to go through, the ve
 
 The model is currently trained using the first 30,000 entries of the New York Times dataset, so the labelling efforts have primarily been focussed on that subset.
 
-.. note::
+.. tip::
 
     The impact of the consistent labelling can be seen by training the model using the full New York Times dataset, where the majority of the data has not been consistently labelled. The model performance drops significantly: ~5% reduction to both word and sentence metrics.
 
@@ -99,9 +99,11 @@ The following operations were done to clean up the labelling (note that this is 
 
     * ``4 shoots spring shallots or 4 shallots, minced`` should have the name as ``spring shallots`` and the comment as ``or 4 shallots, minced`` because there are different quantities of spring shallots to shallots.
 
-.. note::
+.. warning::
 
     The labelling processing is very manual and as such has not been completed on all of the available data. The labelling has been completed for the following subsets of the datasets:
 
     * The first 30,000 sentences of the New York Times dataset
     * The first 10,000 sentences of the Cookstr dataset
+
+    If the model is trained on more of the available data, then the performance will likely worsen.

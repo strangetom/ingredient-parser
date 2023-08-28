@@ -28,7 +28,7 @@ The general steps are as follows:
 .. literalinclude:: ../../../ingredient_parser/postprocess.py
     :pyobject: PostProcessor._postprocess
 
-The output of this function is an ``IngredientText`` object:
+The output of this function is an :class:`IngredientText` object:
 
 .. literalinclude:: ../../../ingredient_parser/postprocess.py
     :pyobject: IngredientText
@@ -36,7 +36,7 @@ The output of this function is an ``IngredientText`` object:
 Amount
 ^^^^^^
 
-The QTY and UNIT labels are combined into an ``IngredientAmount`` object
+The QTY and UNIT labels are combined into an :class:`IngredientAmount` object
 
 .. literalinclude:: ../../../ingredient_parser/postprocess.py
     :pyobject: IngredientAmount
@@ -59,15 +59,17 @@ There are two amounts identified: **0.75 cups** and **170 g**.
 IngredientAmount flags
 ++++++++++++++++++++++
 
-``IngredientAmount`` objects have a number of flags that can be set.
+:class:`IngredientAmount` objects have a number of flags that can be set.
 
 **APPROXIMATE**
 
-This is set when the QTY is preceded by a word such as `about`, `approximately`.
+This is set to True when the QTY is preceded by a word such as `about`, `approximately` and indicates if the amount is approximate.
 
 **SINGULAR**
 
-This is set when the amount is followed by a word such as `each`, or the amount is the inner amount in the special case below, for example in **2 14 ounce cans coconut milk**, the **14 ounce** amount is singular.
+This is set to True when the amount is followed by a word such as `each` and indicates that the amount refers to a singular item of the ingredient.
+
+There is also a special case (below), where an inner amount that inside a QTY-UNIT pair will be marked as SINGULAR.
 
 Special cases for amounts
 +++++++++++++++++++++++++
