@@ -7,16 +7,39 @@ Training Pipeline
 ^^^^^^^^^^^^^^^^^
 The training pipeline is shown below.
 
+.. image:: /_static/training-pipline.svg
+  :width: 600
+  :alt: Training pipeline
 
-The steps are described in more detail:
+
+1. **Load data**
+
+The data is loaded from the source csv files.
+The data is transformed  from the method of labeling used in the csv to match the correct label to each token in the input sentence.
    
-`Loading the data <data>`_  
+See :doc:`Loading the data <data>` for more information.
 
-`Normalisation <normalisation>`_  
+2. **Normalise**
 
-`Extracting features <features>`_  
+The input sentences are normalised to clean up particular sentence features into a standard format. The sentence is then tokenised.
 
-`Training the model <training>`_  
+See :doc:`Normalisation <normalisation>` for more information.
+
+3. **Extract features**
+
+The features for each token are extracted. These features are used to train the model or, once the model has been trained, label each token.
+
+See :doc:`Extracting features <features>` for more information.
+
+4. **Train**
+
+The Conditional Random Fields model is trained on 75% of the training data.
+
+5. **Evaluate**
+
+The remaining 25% of the training data is used to evaluate the performane of the model on data the model has not encountered before.
+
+See :doc:`Training the model <training>` for more information.
 
 
 Parsing Pipeline
@@ -24,14 +47,23 @@ Parsing Pipeline
 
 The parsing pipeline is shown below.
 
+.. image:: /_static/parsing-pipline.svg
+  :width: 300
+  :alt: Parsing pipeline
    
-The cleaning and feature extraction steps are as above.
+The **Normalise** and **Extract features** steps are they same as above.
 
-`Labelling <labelling>`_  
+3. **Label**
 
-`Post-processing <postprocess>`_
+The features for each token in the sentence are fed into the CRF model which returns a label and the confidence for the label for each token in the setnence.
 
+See :doc:`Using the model <usage>` for more information.
 
+4. **Post-process**
+
+The token labels go through a post-processing step to build the object that is output from the `parse_ingredient` function.
+
+See :doc:`Post-processing <postprocessing>` for more information.
 
 .. toctree::
    :maxdepth: 1

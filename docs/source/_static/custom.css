@@ -124,3 +124,11 @@ html[data-theme=light] {
     --pst-color-link: var(--pst-color-primary);
     --pst-color-link-hover: var(--pst-color-secondary)
 }
+
+/* Remove background from images in dark theme and add it for light theme */
+html[data-theme=dark] .bd-content img:not(.only-dark):not(.dark-light) {
+    background: revert;
+}
+html[data-theme=light] .bd-content img:not(.only-dark):not(.dark-light) {
+    background: var(--pst-color-muted-highlight);
+}
