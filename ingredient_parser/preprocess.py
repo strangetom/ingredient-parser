@@ -39,7 +39,7 @@ STRING_RANGE_PATTERN = re.compile(r"([\d\.]+)(\-)?\s*(to|or)\s*(\-)*\s*([\d\.]+(
 # quote, comma.
 # The following punctuation is deliberately left out of the these groups so that
 # they are removed: backslash.
-group_a = r"[\w!\#\$\£\€%\&'\*\+\-\.>=<\?@\^_`\\\|\~]+"
+group_a = r"[\w!\#\$\£\€%\&'\*\+\-\.>=<\?@\^_`\\\|\~’]+"
 group_b = r"[\(\)\[\]\{\}\,\"/:;]"
 REGEXP_TOKENIZER = RegexpTokenizer(rf"{group_a}|{group_b}", gaps=False)
 
