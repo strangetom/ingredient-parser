@@ -9,7 +9,7 @@ from nltk.stem.porter import PorterStemmer
 from nltk.tag import pos_tag
 from nltk.tokenize import RegexpTokenizer
 
-from ._constants import AMBIGUOUS_UNITS, STOP_WORDS, STRING_NUMBERS_REGEXES, UNITS
+from ._constants import AMBIGUOUS_UNITS, STRING_NUMBERS_REGEXES, UNITS
 
 # Regex pattern for fraction parts.
 # Matches 0+ numbers followed by 0+ white space characters followed by a number then
@@ -723,21 +723,6 @@ class PreProcessor:
 
         return False
 
-    def _is_stop_word(self, token: str) -> bool:
-        """Return True if token is in STOP_WORDS set
-
-        Parameters
-        ----------
-        token : str
-            Token to check
-
-        Returns
-        -------
-        bool
-            True if token is a stop word, else False.
-        """
-        return token in STOP_WORDS
-
     def _is_ambiguous_unit(self, token: str) -> bool:
         """Return True if token is in AMBIGUOUS_UNITS list
 
@@ -775,7 +760,6 @@ class PreProcessor:
             "is_unit": self._is_unit(token),
             "is_ambiguous": self._is_ambiguous_unit(token),
             "is_in_parens": self._is_inside_parentheses(index),
-            "is_stop_word": self._is_stop_word(token),
             "is_after_comma": self._follows_comma(index),
             "is_after_plus": self._follows_plus(index),
             "is_after_slash": self._follows_slash(index),
