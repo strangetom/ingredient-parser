@@ -91,7 +91,7 @@ The model has the following performance metrics:
 
 | Word level accuracy | Sentence level accuracy |
 | ------------------- | ----------------------- |
-| 96.25%              | 89.58%                  |
+| 96.28%              | 89.60%                  |
 
 Due to the randomisation of the selection of training and evaluation data, the word level accuracy metric can vary by ±0.3 pp and the sentence level accuracy can vary by ±0.8 pp between model training runs.
 
