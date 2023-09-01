@@ -58,6 +58,7 @@ extend-exclude = "\\.ipynb$"
 
 [tool.ruff]
 select = ["E", "F", "I"]
+ignore = ["E402"]
 exclude = [
     "**/__pycache__",
     ".git",
