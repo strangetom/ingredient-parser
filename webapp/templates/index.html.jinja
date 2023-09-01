@@ -24,6 +24,8 @@
                 <span class="NAME">Name</span>
                 <span class="COMMENT">Comment</span>
                 <span class="OTHER">Other</span>
+                <span class="flag">1</span> Singular
+                <span class="flag">~</span> Approximate
             </p>
 
             {%- if display -%}
@@ -43,9 +45,13 @@
                 <div class="card">
                     <h3 class="AMOUNT">Amount</h3>
                     {%- for amount in amounts -%}
-                        <h2>
-                            <span class="amount-qty">{{ amount.quantity }}</span> 
-                            <span class="amount-unit">{{ amount.unit }}</span>
+                        <h2 class="amounts">
+                            <div class="QTY amount-val">
+                                <span>{{ amount.quantity }}</span> 
+                            </div>
+                            <div class="UNIT amount-val">
+                                <span>{{ amount.unit }}</span>
+                            </div>
                             {%- if amount.APPROXIMATE -%}
                             <span class="flag">~</span>
                             {%- endif -%}

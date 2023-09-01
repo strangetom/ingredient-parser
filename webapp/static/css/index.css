@@ -72,6 +72,12 @@ input {
   border-radius: 3px;
   color: var(--bg);
 }
+.key .flag {
+  margin: .25rem;
+  background-color: var(--bg-2);
+  color: var(--fg);
+  padding: 0.1rem 0.5rem;
+}
 
 .cards {
   display: flex;
@@ -103,7 +109,7 @@ input {
   margin: 0;
   padding: .2rem 1rem;
   font-size: 1rem;
-  border-radius: .5rem .5rem 0 0 ;
+  border-radius: .5rem .5rem 0 0;
 }
 
 .card h4 {
@@ -132,11 +138,26 @@ input {
   color: var(--fg);
   padding: 0.1rem 0.5rem;
   border-radius: var(--small-radius);
+  height: fit-content;
 }
 
-.card .amount-qty {
-  color: var(--green-alt);
+.card h2.amounts {
+  display: flex;
+  gap: .25rem;
+  margin: .25rem;
+  flex-flow: 0;
 }
-.card .amount-unit {
-  color: var(--yellow-alt);
+.card .amount-val {
+  background-color: var(--bg-2);
+  border-radius: .5rem;
+  width: fit-content;
+  height: fit-content;
+  padding: 0 .5rem;
+  box-shadow: var(--small-shadow);
+}
+.card div.QTY {
+  border: 2px solid var(--green);
+}
+.card div.UNIT {
+  border: 2px solid var(--yellow);
 }
