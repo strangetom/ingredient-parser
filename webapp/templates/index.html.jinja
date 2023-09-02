@@ -46,12 +46,16 @@
                     <h3 class="AMOUNT">Amount</h3>
                     {%- for amount in amounts -%}
                         <h2 class="amounts">
+                            {%- if amount.quantity != "" -%}
                             <div class="QTY amount-val">
                                 <span>{{ amount.quantity }}</span> 
                             </div>
+                            {%- endif -%}
+                            {%- if amount.unit != "" -%}
                             <div class="UNIT amount-val">
                                 <span>{{ amount.unit }}</span>
                             </div>
+                            {%- endif -%}
                             {%- if amount.APPROXIMATE -%}
                             <span class="flag">~</span>
                             {%- endif -%}
