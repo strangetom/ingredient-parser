@@ -623,6 +623,9 @@ class PreProcessor:
             parts = token.split("-")
             return all([self._is_numeric(part) for part in parts])
 
+        if token == "dozen":
+            return True
+
         try:
             float(token)
             return True

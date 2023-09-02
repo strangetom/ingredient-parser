@@ -17,9 +17,9 @@ SINGULAR_TOKENS = ["each"]
 
 @dataclass
 class IngredientAmount:
-    """Dataclass for holding a parsed ingredient amount, comprising the following 
+    """Dataclass for holding a parsed ingredient amount, comprising the following
     attributes.
-    
+
     Attributes
     ----------
     quantity : str
@@ -46,7 +46,7 @@ class IngredientAmount:
 
 @dataclass
 class IngredientText:
-    """Dataclass for holding a parsed ingredient string, comprising the following 
+    """Dataclass for holding a parsed ingredient string, comprising the following
     attributes.
 
     Attributes
@@ -69,12 +69,12 @@ class ParsedIngredient:
 
     Attributes
     ----------
-    
+
     name : IngredientText | None
         Ingredient name parsed from input sentence.
         If no ingredient name was found, this is None.
     amount : List[IngredientAmount]
-        List of IngredientAmount objects, each representing a matching quantity and 
+        List of IngredientAmount objects, each representing a matching quantity and
         unit pair parsed from the sentence.
     comment : IngredientText | None
         Ingredient comment parsed from input sentence.
@@ -517,11 +517,19 @@ class PostProcessor:
         """
         amounts = []
         for i, (token, label, score) in enumerate(zip(tokens, labels, scores)):
-            if label == "QTY":
+            if label == "QTY" and token != "dozen":
                 # Whenever we come across a new QTY, create new IngredientAmount
                 amounts.append(
                     IngredientAmount(quantity=token, unit=[], confidence=[score])
                 )
+            elif label == "QTY" and token == "dozen":
+                if labels[i - 1] == "QTY":
+                    amounts[-1].quantity = amounts[-1].quantity + " dozen"
+                    amounts[-1].confidence.append(score)
+                else:
+                    amounts.append(
+                        IngredientAmount(quantity=token, unit=[], confidence=[score])
+                    )
 
             if label == "UNIT":
                 if len(amounts) == 0:
