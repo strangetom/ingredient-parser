@@ -35,6 +35,11 @@ strong {
     border-bottom: 1px solid var(--pst-color-on-surface);
 }
 
+/* Use colour with better contrast against dark background */
+a:visited {
+    color: var(--pst-color-warning-highlight);
+}
+
 /* Set theme using gruvbox colours */
 html[data-theme=dark] {
     --pst-color-primary: #b8bb26;
