@@ -14,14 +14,34 @@ WORD_CHAR = re.compile(r"\w")
 APPROXIMATE_TOKENS = ["about", "approx.", "approximately", "nearly"]
 SINGULAR_TOKENS = ["each"]
 
-# Dictionary used to build and set IngredientAmount attributes
-AMOUNT_ATTRIBUTES = {
-    "quantity": "",
-    "unit": [],
-    "confidence": [],
-    "APPROXIMATE": False,
-    "SINGULAR": False,
-}
+
+@dataclass
+class _PartialIngredientAmount:
+    """Dataclass for holding the information for an ingredient amount whilst it's being
+    built up.
+
+    Attributes
+    ----------
+    quantity : str
+        Parsed ingredient quantity
+    unit : list[str] | str
+        Unit or unit tokens of parsed ingredient quantity
+    confidence : list[float] | float
+        Average confidence of all tokens or list of confidences for each token of parsed
+        ingredient amount, between 0 and 1.
+    APPROXIMATE : bool, optional
+        When True, indicates that the amount is approximate.
+        Default is False.
+    SINGULAR : bool, optional
+        When True, indicates if the amount refers to a singular item of the ingredient.
+        Default is False.
+    """
+
+    quantity: str
+    unit: list[str] | str
+    confidence: list[float] | float
+    APPROXIMATE: bool = False
+    SINGULAR: bool = False
 
 
 @dataclass
@@ -535,37 +555,42 @@ class PostProcessor:
                 # unless the token is "dozen" and the previous label was QTY, in which
                 # case we combine modify the quantity of the previous amount.
                 if token == "dozen" and labels[i - 1] == "QTY":
-                    amounts[-1]["quantity"] = amounts[-1]["quantity"] + " dozen"
-                    amounts[-1]["confidence"].append(score)
+                    amounts[-1].quantity = amounts[-1].quantity + " dozen"
+                    amounts[-1].confidence.append(score)
                 else:
-                    amounts.append(AMOUNT_ATTRIBUTES.copy())
-                    amounts[-1]["quantity"] = token
+                    amounts.append(
+                        _PartialIngredientAmount(quantity=token, unit=[], confidence=[])
+                    )
 
             if label == "UNIT":
                 if amounts == []:
                     # Not come across a QTY yet, so create IngredientAmount
                     # with no quantity
-                    amounts.append(AMOUNT_ATTRIBUTES.copy())
+                    amounts.append(
+                        _PartialIngredientAmount(
+                            quantity="", unit=[token], confidence=[]
+                        )
+                    )
 
                 if i > 0 and labels[i - 1] == "COMMA":
                     # If previous token was a comma, append to unit
                     # of last IngredientAmount
-                    amounts[-1]["unit"].append(",")
+                    amounts[-1].unit.append(",")
 
                 # Append token and score for unit to last IngredientAmount
-                amounts[-1]["unit"].append(token)
-                amounts[-1]["confidence"].append(score)
+                amounts[-1].unit.append(token)
+                amounts[-1].confidence.append(score)
 
             # Check if any flags should be set
             if self._is_approximate(i, tokens, labels):
-                amounts[-1]["APPROXIMATE"] = True
+                amounts[-1].APPROXIMATE = True
 
             if self._is_singular(i, tokens, labels):
-                amounts[-1]["SINGULAR"] = True
+                amounts[-1].SINGULAR = True
 
             if self._is_singular_and_approximate(i, tokens, labels):
-                amounts[-1]["APPROXIMATE"] = True
-                amounts[-1]["SINGULAR"] = True
+                amounts[-1].APPROXIMATE = True
+                amounts[-1].SINGULAR = True
 
         # Loop through amounts list to fix unit and confidence
         # Unit needs converting to a string and making plural if appropriate
@@ -573,15 +598,16 @@ class PostProcessor:
         # Then convert to IngredientAmount object
         processed_amounts = []
         for amount in amounts:
-            combined_unit = " ".join(amount["unit"])
+            combined_unit = " ".join(amount.unit)
             # Pluralise the units if appropriate
-            if amount["quantity"] != "1" and amount["quantity"] != "":
+            if amount.quantity != "1" and amount.quantity != "":
                 combined_unit = pluralise_units(combined_unit)
 
-            amount["unit"] = combined_unit
-            amount["confidence"] = round(mean(amount["confidence"]), 6)
+            amount.unit = combined_unit
+            amount.confidence = round(mean(amount.confidence), 6)
 
-            processed_amounts.append(IngredientAmount(**amount))
+            # Convert to an IngredientAmount object for returning
+            processed_amounts.append(IngredientAmount(**amount.__dict__))
 
         return amounts
 
