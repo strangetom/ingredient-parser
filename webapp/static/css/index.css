@@ -27,7 +27,7 @@ input {
   background-color: var(--bg-2);
   border: 1px solid var(--fg-2);
   box-shadow: var(--big-shadow);
-  border-radius: 3px;
+  border-radius: var(--small-radius);
 }
 
 .QTY {
@@ -60,6 +60,12 @@ input {
   padding: 0 1ch;
   color: var(--bg);
 }
+.sentence span:first-of-type {
+  border-radius: var(--small-radius) 0 0 var(--small-radius);
+}
+.sentence span:last-of-type {
+  border-radius: 0 var(--small-radius) var(--small-radius) 0;
+}
 
 .key {
   font-size: 0.9rem;
@@ -69,7 +75,7 @@ input {
 .key span {
   padding: 0 1ch;
   margin: 0 .2ch;
-  border-radius: 3px;
+  border-radius: var(--small-radius);
   color: var(--bg);
 }
 .key .flag {
@@ -87,7 +93,7 @@ input {
 
 .card {
   border: 1px solid black;
-  border-radius: 0.5rem;
+  border-radius: var(--medium-radius);
   width: 24%;
   margin: 1rem 0;
   min-height: 5rem;
@@ -109,7 +115,7 @@ input {
   margin: 0;
   padding: .2rem 1rem;
   font-size: 1rem;
-  border-radius: .5rem .5rem 0 0;
+  border-radius: var(--medium-radius) var(--medium-radius) 0 0;
 }
 
 .card h4 {
@@ -118,7 +124,7 @@ input {
   margin: .5rem 0 0 0;
   padding: .2rem 1rem;
   font-size: .9rem;
-  border-radius: 0 0 .5rem .5rem ;
+  border-radius: 0 0 var(--medium-radius) var(--medium-radius) ;
   text-align: right;
 }
 
@@ -149,7 +155,7 @@ input {
 }
 .card .amount-val {
   background-color: var(--bg-2);
-  border-radius: .5rem;
+  border-radius: var(--medium-radius);
   width: fit-content;
   height: fit-content;
   padding: 0 .5rem;
