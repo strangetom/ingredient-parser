@@ -553,7 +553,9 @@ class PostProcessor:
                     amounts[-1].confidence.append(score)
                 else:
                     amounts.append(
-                        _PartialIngredientAmount(quantity=token, unit=[], confidence=[])
+                        _PartialIngredientAmount(
+                            quantity=token, unit=[], confidence=[score]
+                        )
                     )
 
             if label == "UNIT":
@@ -562,7 +564,7 @@ class PostProcessor:
                     # with no quantity
                     amounts.append(
                         _PartialIngredientAmount(
-                            quantity="", unit=[token], confidence=[]
+                            quantity="", unit=[token], confidence=[score]
                         )
                     )
 
