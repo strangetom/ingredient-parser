@@ -568,7 +568,7 @@ class PostProcessor:
                     # with no quantity
                     amounts.append(
                         _PartialIngredientAmount(
-                            quantity="", unit=[token], confidence=[score]
+                            quantity="", unit=[], confidence=[score]
                         )
                     )
 
@@ -609,7 +609,7 @@ class PostProcessor:
             # Convert to an IngredientAmount object for returning
             processed_amounts.append(IngredientAmount(**amount.__dict__))
 
-        return amounts
+        return processed_amounts
 
     def _is_approximate(self, i: int, tokens: list[str], labels: list[str]) -> bool:
         """Return True is token at current index is approximate, determined
