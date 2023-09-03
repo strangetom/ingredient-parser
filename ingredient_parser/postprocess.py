@@ -420,11 +420,15 @@ class PostProcessor:
                     matching_indices.extend(match)
 
                     # The first amount is the first and last items
+                    # Note that this cannot be singular, but may be approximate
                     first = IngredientAmount(
                         quantity=matching_tokens.pop(0),
                         unit=matching_tokens.pop(-1),
                         confidence=mean(
                             [matching_scores.pop(0), matching_scores.pop(-1)]
+                        ),
+                        APPROXIMATE=self._is_approximate(
+                            match[0], self.tokens, self.labels
                         ),
                     )
                     amounts.append(first)
@@ -453,12 +457,12 @@ class PostProcessor:
             if amount.quantity != "1" and amount.quantity != "":
                 amount.unit = pluralise_units(amount.unit)
 
-        # Mop up any remaining amounts that didn't fit the pattern 
+        # Mop up any remaining amounts that didn't fit the pattern
         tokens = [tkn for i, tkn in enumerate(self.tokens) if i not in matching_indices]
         labels = [lbl for i, lbl in enumerate(self.labels) if i not in matching_indices]
         scores = [scr for i, scr in enumerate(self.scores) if i not in matching_indices]
         idx = [i for i, _ in enumerate(self.tokens) if i not in matching_indices]
-        
+
         # Have a guess at where to insert them so they are in the order they appear in
         # the sentence.
         if tokens != [] and idx[0] < match[0]:
