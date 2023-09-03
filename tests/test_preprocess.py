@@ -351,6 +351,7 @@ class TestPreProcessor_replace_unicode_fractions:
         input_sentence = "¼-½ teaspoon"
         assert p._replace_unicode_fractions(input_sentence) == " 1/4-1/2 teaspoon"
 
+
 class TestPreProcessor_replace_fake_fractions:
     def test_less_than_one(self, p):
         """

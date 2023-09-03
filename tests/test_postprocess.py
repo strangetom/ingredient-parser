@@ -593,6 +593,32 @@ class TestPostProcessor_fallback_pattern:
 
         assert p._fallback_pattern(tokens, labels, scores) == expected
 
+    def test_dozen(self, p):
+        """
+        Test that the token "dozen" is combined with the preceding QTY token in a
+        single IngredientAmount object.
+        """
+        tokens = ["2", "dozen", "bananas", ",", "each", "about", "4", "ounce"]
+        labels = ["QTY", "QTY", "NAME", "COMMA", "COMMENT", "COMMENT", "QTY", "UNIT"]
+        scores = [0] * len(tokens)
+
+        expected = [
+            IngredientAmount(
+                quantity="2 dozen",
+                unit="",
+                confidence=0,
+            ),
+            IngredientAmount(
+                quantity="4",
+                unit="ounces",
+                confidence=0,
+                SINGULAR=True,
+                APPROXIMATE=True,
+            ),
+        ]
+
+        assert p._fallback_pattern(tokens, labels, scores) == expected
+
 
 class TestPostProcessor_is_approximate:
     def test_is_approximate_about(self, p):
