@@ -378,7 +378,7 @@ class TestPostProcessor_sizable_unit_pattern:
 
 
 class TestPostProcessor_match_pattern:
-    def test_long_pattern_match(self, p):
+    def test_long_pattern_match(self):
         """
         Test that correct start and stop indices are returned for long pattern
         """
@@ -396,10 +396,11 @@ class TestPostProcessor_match_pattern:
             "UNIT",
             "UNIT",
         ]
+        p = PostProcessor("", [], labels, [])
 
-        assert p._match_pattern(labels, pattern) == [(2, 10)]
+        assert p._match_pattern(pattern) == [[2, 3, 4, 5, 6, 7, 8, 9]]
 
-    def test_medium_pattern_match(self, p):
+    def test_medium_pattern_match(self):
         """
         Test that correct start and stop indices are returned for medium pattern
         """
@@ -414,10 +415,11 @@ class TestPostProcessor_match_pattern:
             "UNIT",
             "UNIT",
         ]
+        p = PostProcessor("", [], labels, [])
 
-        assert p._match_pattern(labels, pattern) == [(0, 6)]
+        assert p._match_pattern(pattern) == [[0, 1, 2, 3, 4, 5]]
 
-    def test_short_pattern_match(self, p):
+    def test_short_pattern_match(self):
         """
         Test that correct start and stop indices are returned for long pattern
         """
@@ -434,10 +436,11 @@ class TestPostProcessor_match_pattern:
             "UNIT",
             "UNIT",
         ]
+        p = PostProcessor("", [], labels, [])
 
-        assert p._match_pattern(labels, pattern) == [(2, 6)]
+        assert p._match_pattern(pattern) == [[2, 3, 4, 5]]
 
-    def test_impossible_match(self, p):
+    def test_impossible_match(self):
         """
         Test that empty list is returned when match is impossible beacause pattern
         is longer than list of labels
@@ -450,10 +453,11 @@ class TestPostProcessor_match_pattern:
             "UNIT",
             "UNIT",
         ]
+        p = PostProcessor("", [], labels, [])
 
-        assert p._match_pattern(labels, pattern) == []
+        assert p._match_pattern(pattern) == []
 
-    def test_multiple_matches(self, p):
+    def test_multiple_matches(self):
         """
         Test that multiple non-overlapping matches are returned
         """
@@ -470,8 +474,9 @@ class TestPostProcessor_match_pattern:
             "UNIT",
             "UNIT",
         ]
+        p = PostProcessor("", [], labels, [])
 
-        assert p._match_pattern(labels, pattern) == [(0, 4), (5, 9)]
+        assert p._match_pattern(pattern) == [[0, 1, 2, 3], [5, 6, 7, 8]]
 
 
 class TestPostProcessor_fallback_pattern:
