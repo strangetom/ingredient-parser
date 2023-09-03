@@ -404,31 +404,20 @@ class PostProcessor:
             "tin",
         ]
 
-        # Down select to just QTY and UNIT tokens, scores and labels
-        tokens = [
-            token
-            for token, label in zip(self.tokens, self.labels)
-            if label in ["QTY", "UNIT"]
-        ]
-        scores = [
-            score
-            for score, label in zip(self.scores, self.labels)
-            if label in ["QTY", "UNIT"]
-        ]
-        labels = [label for label in self.labels if label in ["QTY", "UNIT"]]
-
         amounts = []
+        matching_indices = []
         for pattern in patterns:
-            for match in self._match_pattern(labels, pattern):
+            for match in self._match_pattern(pattern):
                 # If the pattern ends with one of end_units, we have found a match for
                 # this pattern!
-                start, stop = match
-                if tokens[stop - 1] in end_units:
-                    # Pop matches out of tokens and scores
-                    matching_tokens = [tokens.pop(start) for i in range(start, stop)]
-                    matching_scores = [scores.pop(start) for i in range(start, stop)]
-                    # Also pop matches out of labels, but we don't actually need them
-                    _ = [labels.pop(start) for i in range(start, stop)]
+                if self.tokens[match[-1]] in end_units:
+                    # Get tokens and scores that are part of match
+                    matching_tokens = [self.tokens[i] for i in match]
+                    matching_scores = [self.scores[i] for i in match]
+
+                    # Keep track of indices of matching elements so we can
+                    # remove them later
+                    matching_indices.extend(match)
 
                     # The first amount is the first and last items
                     first = IngredientAmount(
@@ -464,18 +453,22 @@ class PostProcessor:
             if amount.quantity != "1" and amount.quantity != "":
                 amount.unit = pluralise_units(amount.unit)
 
-        # Mop up any remaining amounts that didn't fit the pattern and have a guess
-        # at where to insert them so they are in the order they appear in the sentence.
-        if tokens != [] and self.tokens.index(tokens[0]) < match[0]:
+        # Mop up any remaining amounts that didn't fit the pattern 
+        tokens = [tkn for i, tkn in enumerate(self.tokens) if i not in matching_indices]
+        labels = [lbl for i, lbl in enumerate(self.labels) if i not in matching_indices]
+        scores = [scr for i, scr in enumerate(self.scores) if i not in matching_indices]
+        idx = [i for i, _ in enumerate(self.tokens) if i not in matching_indices]
+        
+        # Have a guess at where to insert them so they are in the order they appear in
+        # the sentence.
+        if tokens != [] and idx[0] < match[0]:
             return self._fallback_pattern(tokens, labels, scores) + amounts
         else:
             return amounts + self._fallback_pattern(tokens, labels, scores)
 
-    def _match_pattern(
-        self, labels: list[str], pattern: list[str]
-    ) -> list[tuple[int, int]]:
-        """Find a pattern of labels and return the indices of the start and end of
-        the pattern.
+    def _match_pattern(self, pattern: list[str]) -> list[list[int]]:
+        """Find a pattern of labels and return the indices of the labels that match the
+        pattern. The pattern matching ignores labels that are not part of the pattern.
 
         For example, consider the sentence:
         One 15-ounce can diced tomatoes, with liquid
@@ -488,36 +481,37 @@ class PostProcessor:
         ["QTY", "QTY", "UNIT", "UNIT"]
 
         Then we get:
-        [(0, 3)]
+        [[0, 1, 2, 3]]
 
         Parameters
         ----------
-        tokens : list[str]
-            List of tokens to return matching pattern from.
-        labels : list[str]
-            List of labels to find matching pattern in.
         pattern : list[str]
             Pattern to match inside labels.
 
         Returns
         -------
-        list[tuple[int]]
-            Tuple of start index and end index for matching pattern.
+        list[list[int]]
+            List of label index lists that match the pattern.
         """
 
-        if len(pattern) > len(labels):
+        if len(pattern) > len(self.labels):
             # We can never find a match.
             return []
 
         plen = len(pattern)
-        matches = []
+        plabels = set(pattern)
 
+        # Select just the labels and indices of labels that are in the pattern.
+        labels = [label for label in self.labels if label in plabels]
+        idx = [i for i, label in enumerate(self.labels) if label in plabels]
+
+        matches = []
         indices = iter(range(len(labels)))
         for i in indices:
             # Short circuit: If the label[i] is not equal to the first element
             # of pattern skip to next iteration
             if labels[i] == pattern[0] and labels[i : i + plen] == pattern:
-                matches.append((i, i + plen))
+                matches.append(idx[i : i + plen])
                 # Advance iterator to prevent overlapping matches
                 consume(indices, plen)
 
