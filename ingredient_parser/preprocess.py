@@ -32,6 +32,13 @@ RANGE_PATTERN = re.compile(r"\d+\s*[\-]\d+")
 # Captures the two number in the range in separate capture groups.
 STRING_RANGE_PATTERN = re.compile(r"([\d\.]+)(\-)?\s*(to|or)\s*(\-)*\s*([\d\.]+(\-)?)")
 
+# Regex pattern to match hyphen followed by a number. This is used to fix ranges
+# following the replacement of unicode fractions with fake fractions.
+# The pattern any characters up to a hyphen followed by a space followed by a number.
+# The parts before and after that space are cpatured in groups so we can reconstitute
+# the sentence without that middle space.
+BROKEN_RANGE_PATTERN = re.compile(r"(.*\-)\s(\d.*)")
+
 # Define tokenizer.
 # We are going to split an sentence between substrings that match the following groups
 # a) letters and any punctuation, except
@@ -439,8 +446,13 @@ class PreProcessor:
             "\xbd": "1/2",
         }
         for f_unicode, f_ascii in fractions.items():
-            # Insert space before ascii fraction to avoid merging into a single token
+            # Insert space before ascii fraction to avoid merging into the
+            # previous token.
             sentence = sentence.replace(f_unicode, f" {f_ascii}")
+
+        # Because we inserted the space before the fake fraction, we might have broken
+        # some ranges by adding a space after the hyphen, so let's fix that.
+        sentence = BROKEN_RANGE_PATTERN.sub(r"\1\2", sentence)
 
         return sentence
 
