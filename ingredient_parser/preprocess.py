@@ -615,6 +615,16 @@ class PreProcessor:
         -------
         bool
             True if token is a unit, else False
+
+        Examples
+        --------
+        >>> p = PreProcessor("")
+        >>> p._is_unit("cup")
+        True
+
+        >>> p = PreProcessor("")
+        >>> p._is_unit("beef")
+        False
         """
         return token.lower() in UNITS.values()
 
