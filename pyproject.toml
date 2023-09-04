@@ -52,7 +52,7 @@ testpaths = [
 ]
 
 [tool.black]
-target-version = ["py39"]
+target-version = ["py310", "py311"]
 include = "\\.py$"
 extend-exclude = "\\.ipynb$"
 
