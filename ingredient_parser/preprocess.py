@@ -630,6 +630,24 @@ class PreProcessor:
         -------
         bool
             True if token is numeric, else False
+
+        Examples
+        --------
+        >>> p = PreProcessor("")
+        >>> p._is_numeric("1")
+        True
+
+        >>> p = PreProcessor("")
+        >>> p._is_numeric("1-2")
+        True
+
+        >>> p = PreProcessor("")
+        >>> p._is_numeric("dozen")
+        True
+
+        >>> p = PreProcessor("")
+        >>> p._is_numeric("beef")
+        False
         """
         if "-" in token:
             parts = token.split("-")
@@ -704,6 +722,16 @@ class PreProcessor:
         -------
         bool
             True if token starts with a capital letter, else False
+
+        Examples
+        --------
+        >>> p = PreProcessor("")
+        >>> p._is_capitalised("Chicken")
+        True
+
+        >>> p = PreProcessor("")
+        >>> p._is_capitalised("chicken")
+        False
         """
         return CAPITALISED_PATTERN.match(token) is not None
 
@@ -750,6 +778,20 @@ class PreProcessor:
         -------
         bool
             True if token is in AMBIGUOUS_UNITS, else False
+
+        Examples
+        --------
+        >>> p = PreProcessor("")
+        >>> p._is_ambiguous_unit("cloves")
+        True
+
+        >>> p = PreProcessor("")
+        >>> p._is_ambiguous_unit("wedge")
+        True
+
+        >>> p = PreProcessor("")
+        >>> p._is_ambiguous_unit("leaf")
+        True
         """
         return token in AMBIGUOUS_UNITS
 
