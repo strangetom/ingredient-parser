@@ -226,7 +226,7 @@ class PostProcessor:
         # Find the indices of the joined tokens list where the element
         # if a single punctuation mark or is the same as the previous element
         # in the list
-        keep_idx = self._remove_isolated_punctuation_and_duplicates(parts)
+        keep_idx = self._remove_isolated_punctuation_and_duplicate_indices(parts)
         parts = [parts[i] for i in keep_idx]
         confidence_parts = [confidence_parts[i] for i in keep_idx]
 
@@ -275,6 +275,16 @@ class PostProcessor:
         -------
         str
             Text, with punctuation errors fixed
+
+        Examples
+        --------
+        >>> p = PostProcessor("", [], [], [])
+        >>> p._fix_punctuation(", some words ( inside ),")
+        "some words (inside)"
+
+        >>> p = PostProcessor("", [], [], [])
+        >>> p._fix_punctuation("(unmatched parenthesis (inside)(")
+        "unmatched parenthesis (inside)"
         """
         # Remove leading comma
         if text.startswith(", "):
@@ -308,7 +318,7 @@ class PostProcessor:
 
         return text
 
-    def _remove_isolated_punctuation_and_duplicates(
+    def _remove_isolated_punctuation_and_duplicate_indices(
         self, parts: list[str]
     ) -> list[int]:
         """Find elements in list that comprise a single punctuation character or are a
@@ -324,6 +334,19 @@ class PostProcessor:
         list[int]
             Indices of elements in parts to keep
 
+        Examples
+        --------
+        >>> p = PostProcessor("", [], [], [])
+        >>> p._remove_isolated_punctuation_and_duplicate_indices(
+            ["word", ",", "with, comma"],
+        )
+        [0, 2]
+
+        >>> p = PostProcessor("", [], [], [])
+        >>> p._remove_isolated_punctuation_and_duplicate_indices(
+            ["word", "word", "another"],
+        )
+        [0, 2]
         """
         # Only keep a part if contains a word character
         idx_to_keep = []
@@ -629,6 +652,16 @@ class PostProcessor:
         -------
         bool
             True if current token is approximate
+
+        Examples
+        --------
+        >>> p = PostProcessor("", [], [], [])
+        >>> p._is_approximate(1, ["about", "3", "cups"], ["COMMENT", "QTY", "UNIT"])
+        True
+
+        >>> p = PostProcessor("", [], [], [])
+        >>> p._is_approximate(1, ["approx.", "250", "g"], ["COMMENT", "QTY", "UNIT"])
+        True
         """
         if i == 0:
             return False
@@ -656,6 +689,12 @@ class PostProcessor:
         -------
         bool
             True if current token is singular
+
+        Examples
+        --------
+        >>> p = PostProcessor("", [], [], [])
+        >>> p._is_approximate(1, [3", "oz", "each"], ["QTY", "UNIT", "COMMENT"])
+        True
         """
         if i == len(tokens) - 1:
             return False
@@ -687,6 +726,16 @@ class PostProcessor:
         -------
         bool
             True if current token is singular
+
+        Examples
+        --------
+        >>> p = PostProcessor("", [], [], [])
+        >>> p._is_approximate(
+            1,
+            ["nearly", "3", "oz", "each"],
+            ["COMMENT", "QTY", "UNIT", "COMMENT"],
+        )
+        True
         """
         if i < 2:
             return False

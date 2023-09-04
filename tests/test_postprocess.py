@@ -149,41 +149,59 @@ class TestPostProcessor_fix_punctuation:
         assert p._fix_punctuation(input_sentence) == "finely (chopped) diced"
 
 
-class TestPostProcessor_remove_isolated_punctuation_and_duplicates:
+class TestPostProcessor_remove_isolated_punctuation_and_duplicate_indices:
     def test_isolated_punctuation(self, p):
         """
         Test that index of "(" element is not returned
         """
         input_list = ["finely", "(", "chopped"]
-        assert p._remove_isolated_punctuation_and_duplicates(input_list) == [0, 2]
+        assert p._remove_isolated_punctuation_and_duplicate_indices(input_list) == [
+            0,
+            2,
+        ]
 
     def test_no_isolated_punctuation(self, p):
         """
         Test all indices are returned
         """
         input_list = ["finely", "chopped", "or", "diced"]
-        assert p._remove_isolated_punctuation_and_duplicates(input_list) == [0, 1, 2, 3]
+        assert p._remove_isolated_punctuation_and_duplicate_indices(input_list) == [
+            0,
+            1,
+            2,
+            3,
+        ]
 
     def test_adjacent_duplicate(self, p):
         """
         Test that index of second "finely" is not returned
         """
         input_list = ["finely", "finely", "chopped"]
-        assert p._remove_isolated_punctuation_and_duplicates(input_list) == [0, 2]
+        assert p._remove_isolated_punctuation_and_duplicate_indices(input_list) == [
+            0,
+            2,
+        ]
 
     def test_non_adjacent_duplicate(self, p):
         """
         Test that index of non-adjacent duplicate is returned
         """
         input_list = ["finely", "chopped", "finely"]
-        assert p._remove_isolated_punctuation_and_duplicates(input_list) == [0, 1, 2]
+        assert p._remove_isolated_punctuation_and_duplicate_indices(input_list) == [
+            0,
+            1,
+            2,
+        ]
 
     def test_isolated_punc_and_duplicates(self, p):
         """
         Test that index of "(" and second "finely" elements are not returned
         """
         input_list = ["finely", "finely", "(", "chopped"]
-        assert p._remove_isolated_punctuation_and_duplicates(input_list) == [0, 3]
+        assert p._remove_isolated_punctuation_and_duplicate_indices(input_list) == [
+            0,
+            3,
+        ]
 
 
 class TestUtils_group_consecutive_indices:
