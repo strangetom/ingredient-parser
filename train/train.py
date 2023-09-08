@@ -8,7 +8,7 @@ from itertools import chain
 import pycrfsuite
 from sklearn.model_selection import train_test_split
 from test_results_to_html import test_results_to_html
-from training_utils import load_datasets
+from training_utils import DataVectors, load_datasets
 
 
 @dataclass
@@ -36,7 +36,7 @@ def evaluate(predictions: list[list[str]], truths: list[list[str]]) -> Stats:
     Stats
         Dataclass holding the following statistics:
             total sentences,
-            correctly labelled sentnces,
+            correctly labelled sentences,
             total words,
             correctly labelled words
     """
@@ -63,6 +63,96 @@ def evaluate(predictions: list[list[str]], truths: list[list[str]]) -> Stats:
             correct_sentences += 1
 
     return Stats(total_sentences, correct_sentences, total_words, correct_words)
+
+
+def train(vectors: DataVectors, split: float, save_model: str, html: bool) -> Stats:
+    """Train model using vectors, splitting the vectors into a train and evaluation
+    set based on <split>. The trained model is saved to <save_model>.
+
+    Parameters
+    ----------
+    vectors : DataVectors
+        Vectors loaded from training csv files
+    split : float
+        Fraction of vectors to use for evaluation.
+    save_model : str
+        Path to save trained model to.
+    html : bool
+        If True, write html file of incorrect evaluation sentences
+        and print out detals about OTHER labels
+
+    Returns
+    -------
+    Stats
+        Statistics evaluating the model
+    """
+    # Split data into train and test sets
+    (
+        sentences_train,
+        sentences_test,
+        features_train,
+        features_test,
+        truth_train,
+        truth_test,
+        source_train,
+        source_test,
+    ) = train_test_split(
+        vectors.sentences,
+        vectors.features,
+        vectors.labels,
+        vectors.source,
+        test_size=split,
+    )
+    print(f"[INFO] {len(features_train):,} training vectors.")
+    print(f"[INFO] {len(features_test):,} testing vectors.")
+
+    print("[INFO] Training model with training data.")
+    trainer = pycrfsuite.Trainer(verbose=False)
+    trainer.set_params(
+        {
+            "feature.possible_states": True,
+            "feature.possible_transitions": True,
+            "c1": 0.2,
+            "c2": 1,
+        }
+    )
+    for X, y in zip(features_train, truth_train):
+        trainer.append(X, y)
+    trainer.train(save_model)
+
+    print("[INFO] Evaluating model with test data.")
+    tagger = pycrfsuite.Tagger()
+    tagger.open(save_model)
+    labels_pred = [tagger.tag(X) for X in features_test]
+
+    if html:
+        test_results_to_html(
+            sentences_test,
+            truth_test,
+            labels_pred,
+            source_test,
+            minimum_mismatches=1,
+        )
+
+        # Calculate some starts about the OTHER label
+        train_label_count = Counter(chain.from_iterable(truth_train))
+        train_other_pc = 100 * train_label_count["OTHER"] / train_label_count.total()
+        test_label_count = Counter(chain.from_iterable(truth_test))
+        test_other_pc = 100 * test_label_count["OTHER"] / test_label_count.total()
+        pred_label_count = Counter(chain.from_iterable(labels_pred))
+        pred_other_pc = 100 * pred_label_count["OTHER"] / pred_label_count.total()
+        print("OTHER labels:")
+        print(
+            f"\tIn training data: {train_label_count['OTHER']} ({train_other_pc:.2f}%)"
+        )
+        print(f"\tIn test data: {test_label_count['OTHER']} ({test_other_pc:.2f}%)")
+        print(
+            f"\tPredicted in test data: {pred_label_count['OTHER']} ({pred_other_pc:.2f}%)"
+        )
+        print()
+
+    stats = evaluate(labels_pred, truth_test)
+    return stats
 
 
 if __name__ == "__main__":
@@ -106,46 +196,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     vectors = load_datasets(args.datasets, args.number)
-    # Split data into train and test sets
-    (
-        sentences_train,
-        sentences_test,
-        features_train,
-        features_test,
-        truth_train,
-        truth_test,
-        source_train,
-        source_test,
-    ) = train_test_split(
-        vectors.sentences,
-        vectors.features,
-        vectors.labels,
-        vectors.source,
-        test_size=args.split,
-    )
-    print(f"[INFO] {len(features_train):,} training vectors.")
-    print(f"[INFO] {len(features_test):,} testing vectors.")
+    stats = train(vectors, args.split, args.save_model, args.html)
 
-    print("[INFO] Training model with training data.")
-    trainer = pycrfsuite.Trainer(verbose=False)
-    trainer.set_params(
-        {
-            "feature.possible_states": True,
-            "feature.possible_transitions": True,
-            "c1": 0.2,
-            "c2": 1,
-        }
-    )
-    for X, y in zip(features_train, truth_train):
-        trainer.append(X, y)
-    trainer.train(args.save_model)
-
-    print("[INFO] Evaluating model with test data.")
-    tagger = pycrfsuite.Tagger()
-    tagger.open(args.save_model)
-    labels_pred = [tagger.tag(X) for X in features_test]
-
-    stats = evaluate(labels_pred, truth_test)
     print("Sentence-level results:")
     print(f"\tTotal: {stats.total_sentences}")
     print(f"\tCorrect: {stats.correct_sentences}")
@@ -158,27 +210,3 @@ if __name__ == "__main__":
     print(f"\tCorrect: {stats.correct_words}")
     print(f"\tIncorrect: {stats.total_words - stats.correct_words}")
     print(f"\t-> {100*stats.correct_words/stats.total_words:.2f}% correct")
-
-    # Calculate some starts about the OTHER label
-    train_label_count = Counter(chain.from_iterable(truth_train))
-    train_other_pc = 100 * train_label_count["OTHER"] / train_label_count.total()
-    test_label_count = Counter(chain.from_iterable(truth_test))
-    test_other_pc = 100 * test_label_count["OTHER"] / test_label_count.total()
-    pred_label_count = Counter(chain.from_iterable(labels_pred))
-    pred_other_pc = 100 * pred_label_count["OTHER"] / pred_label_count.total()
-    print()
-    print("OTHER labels:")
-    print(f"\tIn training data: {train_label_count['OTHER']} ({train_other_pc:.2f}%)")
-    print(f"\tIn test data: {test_label_count['OTHER']} ({test_other_pc:.2f}%)")
-    print(
-        f"\tPredicted in test data: {pred_label_count['OTHER']} ({pred_other_pc:.2f}%)"
-    )
-
-    if args.html:
-        test_results_to_html(
-            sentences_test,
-            truth_test,
-            labels_pred,
-            source_test,
-            minimum_mismatches=1,
-        )
