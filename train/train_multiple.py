@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
 import argparse
-import json
+import time
+from statistics import mean, stdev
 
 from training_utils import load_datasets
 
@@ -54,14 +55,29 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    with open("aggregate.txt", "w") as f:
-        f.write("")
-
     vectors = load_datasets(args.datasets, args.number)
+
+    eval_results = []
     for i in range(args.runs):
         print(f"[INFO] Training run: {i+1:02}")
+        start_time = time.time()
         stats = train(vectors, args.split, args.save_model, args.html)
+        eval_results.append(stats)
+        print(f"[INFO] Model trained in {time.time()-start_time:.1f} seconds")
 
-        with open("aggregate.txt", "a") as f:
-            json_string = json.dumps(stats.__dict__)
-            f.write(json_string + "\n")
+    word_accuracies, sentence_accuracies = [], []
+    for result in eval_results:
+        sentence_accuracies.append(result.correct_sentences / result.total_sentences)
+        word_accuracies.append(result.correct_words / result.total_words)
+
+    sentence_mean = 100 * mean(sentence_accuracies)
+    sentence_uncertainty = 3 * 100 * stdev(sentence_accuracies)
+    print()
+    print("Average sentence-level accuracy:")
+    print(f"\t-> {sentence_mean:.2f}% ± {sentence_uncertainty:.2f}%")
+
+    word_mean = 100 * mean(word_accuracies)
+    word_uncertainty = 3 * 100 * stdev(word_accuracies)
+    print()
+    print("Average word-level accuracy:")
+    print(f"\t-> {word_mean:.2f}% ± {word_uncertainty:.2f}%")
