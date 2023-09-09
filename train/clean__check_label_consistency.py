@@ -6,7 +6,8 @@ from pathlib import Path
 
 from nltk.tokenize import RegexpTokenizer
 from tqdm import tqdm
-from training_utils import load_csv
+
+from .training_utils import load_csv
 
 # Tokeniser from preprocess.py
 group_a = r"[\w!\#\$\£\€%\&'\*\+\-\.:;>=<\?@\^_`\\\|\~]+"
@@ -190,28 +191,15 @@ def results_to_html(
         f.write(ET.tostring(html, encoding="unicode", method="html"))
 
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="""Data cleaning helper function.\n
-        Check the consistency of labels for similar sentences."""
-    )
-    parser.add_argument(
-        "--datasets",
-        "-d",
-        action="extend",
-        dest="datasets",
-        nargs="+",
-        help="Datasets in csv format",
-    )
-    parser.add_argument(
-        "-n",
-        "--number",
-        default=30000,
-        type=int,
-        help="Number of entries in dataset to check",
-    )
-    args = parser.parse_args()
+def check_label_consistency(args: argparse.Namespace) -> None:
+    """Check label consistency across dataset(s) by identifying similar
+    sentences and showing how their tokens are labelled.
 
+    Parameters
+    ----------
+    args : argparse.Namespace
+        Cleaning utility configuration
+    """
     print("[INFO] Loading dataset.")
     sentences, labels, sentence_source = [], [], []
     for dataset in args.datasets:

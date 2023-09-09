@@ -1,14 +1,17 @@
 #!/usr/bin/env python3
 
 import argparse
+import time
 from collections import Counter
 from dataclasses import dataclass
 from itertools import chain
+from statistics import mean, stdev
 
 import pycrfsuite
 from sklearn.model_selection import train_test_split
-from test_results_to_html import test_results_to_html
-from training_utils import DataVectors, load_datasets
+
+from .test_results_to_html import test_results_to_html
+from .training_utils import DataVectors, load_datasets
 
 
 @dataclass
@@ -65,7 +68,9 @@ def evaluate(predictions: list[list[str]], truths: list[list[str]]) -> Stats:
     return Stats(total_sentences, correct_sentences, total_words, correct_words)
 
 
-def train(vectors: DataVectors, split: float, save_model: str, html: bool) -> Stats:
+def train_model(
+    vectors: DataVectors, split: float, save_model: str, html: bool
+) -> Stats:
     """Train model using vectors, splitting the vectors into a train and evaluation
     set based on <split>. The trained model is saved to <save_model>.
 
@@ -87,6 +92,9 @@ def train(vectors: DataVectors, split: float, save_model: str, html: bool) -> St
         Statistics evaluating the model
     """
     # Split data into train and test sets
+    # The stratify argument means that each dataset is represented proprtionally
+    # in the train and tests sets, avoiding the possibility that train or tests sets
+    # contain data from one dataset disproportionally.
     (
         sentences_train,
         sentences_test,
@@ -102,6 +110,7 @@ def train(vectors: DataVectors, split: float, save_model: str, html: bool) -> St
         vectors.labels,
         vectors.source,
         test_size=split,
+        stratify=vectors.source,
     )
     print(f"[INFO] {len(features_train):,} training vectors.")
     print(f"[INFO] {len(features_test):,} testing vectors.")
@@ -134,69 +143,35 @@ def train(vectors: DataVectors, split: float, save_model: str, html: bool) -> St
             minimum_mismatches=1,
         )
 
-        # Calculate some starts about the OTHER label
-        train_label_count = Counter(chain.from_iterable(truth_train))
-        train_other_pc = 100 * train_label_count["OTHER"] / train_label_count.total()
-        test_label_count = Counter(chain.from_iterable(truth_test))
-        test_other_pc = 100 * test_label_count["OTHER"] / test_label_count.total()
-        pred_label_count = Counter(chain.from_iterable(labels_pred))
-        pred_other_pc = 100 * pred_label_count["OTHER"] / pred_label_count.total()
-        print("OTHER labels:")
-        print(
-            f"\tIn training data: {train_label_count['OTHER']} ({train_other_pc:.2f}%)"
-        )
-        print(f"\tIn test data: {test_label_count['OTHER']} ({test_other_pc:.2f}%)")
-        print(
-            f"\tPredicted in test data: {pred_label_count['OTHER']} ({pred_other_pc:.2f}%)"
-        )
-        print()
+    # Calculate some starts about the OTHER label
+    train_label_count = Counter(chain.from_iterable(truth_train))
+    train_other_pc = 100 * train_label_count["OTHER"] / train_label_count.total()
+    test_label_count = Counter(chain.from_iterable(truth_test))
+    test_other_pc = 100 * test_label_count["OTHER"] / test_label_count.total()
+    pred_label_count = Counter(chain.from_iterable(labels_pred))
+    pred_other_pc = 100 * pred_label_count["OTHER"] / pred_label_count.total()
+    print("OTHER labels:")
+    print(f"\tIn training data: {train_label_count['OTHER']} ({train_other_pc:.2f}%)")
+    print(f"\tIn test data: {test_label_count['OTHER']} ({test_other_pc:.2f}%)")
+    print(
+        f"\tPredicted in test data: {pred_label_count['OTHER']} ({pred_other_pc:.2f}%)"
+    )
+    print()
 
     stats = evaluate(labels_pred, truth_test)
     return stats
 
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Train a CRF model to parse structured data from recipe \
-                     ingredient sentences."
-    )
-    parser.add_argument(
-        "--datasets",
-        "-d",
-        help="Datasets in csv format",
-        action="extend",
-        dest="datasets",
-        nargs="+",
-    )
-    parser.add_argument(
-        "-s",
-        "--split",
-        default=0.25,
-        type=float,
-        help="Fraction of data to be used for testing",
-    )
-    parser.add_argument(
-        "-n",
-        "--number",
-        default=30000,
-        type=int,
-        help="Maximum of entries from a dataset to use (train+test)",
-    )
-    parser.add_argument(
-        "-m",
-        "--save-model",
-        default="ingredient_parser/model.crfsuite",
-        help="Path to save model to",
-    )
-    parser.add_argument(
-        "--html",
-        action="store_true",
-        help="Output a markdown file containing detailed results.",
-    )
-    args = parser.parse_args()
+def train_single(args: argparse.Namespace) -> None:
+    """Train CRF model once.
 
+    Parameters
+    ----------
+    args : argparse.Namespace
+        Model training configuration
+    """
     vectors = load_datasets(args.datasets, args.number)
-    stats = train(vectors, args.split, args.save_model, args.html)
+    stats = train_model(vectors, args.split, args.save_model, args.html)
 
     print("Sentence-level results:")
     print(f"\tTotal: {stats.total_sentences}")
@@ -210,3 +185,40 @@ if __name__ == "__main__":
     print(f"\tCorrect: {stats.correct_words}")
     print(f"\tIncorrect: {stats.total_words - stats.correct_words}")
     print(f"\t-> {100*stats.correct_words/stats.total_words:.2f}% correct")
+
+
+def train_multiple(args: argparse.Namespace) -> None:
+    """Train model multiple times and calculate average performance
+    and performance uncertainty.
+
+    Parameters
+    ----------
+    args : argparse.Namespace
+        Model training configuration
+    """
+    vectors = load_datasets(args.datasets, args.number)
+
+    eval_results = []
+    for i in range(args.runs):
+        print(f"[INFO] Training run: {i+1:02}")
+        start_time = time.time()
+        stats = train_model(vectors, args.split, args.save_model, args.html)
+        eval_results.append(stats)
+        print(f"[INFO] Model trained in {time.time()-start_time:.1f} seconds")
+
+    word_accuracies, sentence_accuracies = [], []
+    for result in eval_results:
+        sentence_accuracies.append(result.correct_sentences / result.total_sentences)
+        word_accuracies.append(result.correct_words / result.total_words)
+
+    sentence_mean = 100 * mean(sentence_accuracies)
+    sentence_uncertainty = 3 * 100 * stdev(sentence_accuracies)
+    print()
+    print("Average sentence-level accuracy:")
+    print(f"\t-> {sentence_mean:.2f}% ± {sentence_uncertainty:.2f}%")
+
+    word_mean = 100 * mean(word_accuracies)
+    word_uncertainty = 3 * 100 * stdev(word_accuracies)
+    print()
+    print("Average word-level accuracy:")
+    print(f"\t-> {word_mean:.2f}% ± {word_uncertainty:.2f}%")
