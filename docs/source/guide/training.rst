@@ -91,11 +91,11 @@ This trains the model and saves the model to the file specified.
 
 This is relatively quick the train, it takes about 2-3 minutes on a laptop with an Intel Core 15-10300H and 16 GB of RAM. No GPU is required.
 
-All of the above steps are implemented in the ``train/train.py`` script. The following command will execute the script and train the model on both datasets.
+All of the above steps are implemented in the ``train.py`` script. The following command will execute the script and train the model on both datasets.
 
 .. code:: bash
 
-    >>> python train/train.py --datasets train/data/nytimes/nyt-ingredients-snapshot-2015.csv train/data/strangerfoods/sf-labelled-data.csv train/data/cookstr/cookstr-ingredients-snapshot-2017-clean.csv
+    >>> python train.py train --datasets train/data/nytimes/nyt-ingredients-snapshot-2015.csv train/data/strangerfoods/sf-labelled-data.csv train/data/cookstr/cookstr-ingredients-snapshot-2017-clean.csv
 
 Evaluating the model
 ^^^^^^^^^^^^^^^^^^^^
@@ -131,3 +131,11 @@ The current performance of the model is
         -> 96.28% correct
 
 There will always be some variation in model performance each time the model is trained, because the training data is partitioned randomly each time. If the model is representing the training data well, then the variation in performance metrics should be small (i.e. << 1%).
+
+The model training process can be executed multiple times to obtain the average performance and the uncertainty in the performance, by running the following command:
+
+.. code:: bash
+
+    >>> python train.py multiple --datasets train/data/nytimes/nyt-ingredients-snapshot-2015.csv train/data/strangerfoods/sf-labelled-data.csv train/data/cookstr/cookstr-ingredients-snapshot-2017-clean.csv --runs 10
+
+where the ``--runs`` argument sets the number of training cycles to run.
