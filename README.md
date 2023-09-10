@@ -23,20 +23,17 @@ Import the ```parse_ingredient``` function and pass it an ingredient sentence.
 
 >>> parse_ingredient("3 pounds pork shoulder, cut into 2-inch chunks")
 ParsedIngredient(
-    sentence='3 pounds pork should, cut into 2-inch chunks', 
-    quantity='3', 
-    unit='pounds', 
-    name='pork shoulder', 
-    comment='cut into 2-inch chunks', 
-    other='', 
-    confidence=ParsedIngredientConfidence(
-        quantity=0.9986, 
-        unit=0.9972, 
-        name=0.8474, 
-        comment=0.9991, 
-        other=0
-    )
-)
+    name=IngredientText(text='pork shoulder', 
+                        confidence=0.989491),
+    amount=[IngredientAmount(quantity='3',
+                             unit='pounds',
+                             confidence=0.998649,
+                             APPROXIMATE=False,
+                             SINGULAR=False)],
+    comment=IngredientText(text='cut into 2 inch chunks',
+                           confidence=0.997456),
+    other=None,
+    sentence='3 pounds pork shoulder, cut into 2-inch chunks')
 ```
 
 ## Model accuracy
