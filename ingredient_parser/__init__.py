@@ -1,13 +1,14 @@
-from .parsers import parse_ingredient, parse_multiple_ingredients
+from ._utils import show_model_card
+from .parsers import inspect_parser, parse_ingredient, parse_multiple_ingredients
+from .postprocess import PostProcessor
 from .preprocess import PreProcessor
-from .regex_parser import parse_ingredient_regex
-from .utils import show_model_card
 
 __all__ = [
+    "inspect_parser",
     "parse_ingredient",
     "parse_multiple_ingredients",
-    "parse_ingredient_regex",
     "PreProcessor",
+    "PostProcessor",
     "show_model_card",
 ]
 

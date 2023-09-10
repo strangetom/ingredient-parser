@@ -1,51 +1,13 @@
 #!/usr/bin/env python3
 
-import argparse
-import json
 from dataclasses import dataclass
 from importlib.resources import as_file, files
 
 import pycrfsuite
 
+from ._utils import pluralise_units
+from .postprocess import ParsedIngredient, PostProcessor
 from .preprocess import PreProcessor
-from .utils import average, find_idx, fix_punctuation, join_adjacent, pluralise_units
-
-
-@dataclass
-class ParsedIngredientConfidence:
-    """Dataclass for holding the confidence values for each of the parsed values.
-
-    The confidence is a value between 0 (no confidence) and 1 (complete confidence).
-    """
-
-    quantity: float
-    unit: float
-    name: float
-    comment: float
-    other: float
-
-
-@dataclass
-class ParsedIngredient:
-    """Dataclass for holding the parsed values for an input sentence.
-
-    * Sentence: The original input sentence
-    * Quantity: The parsed quantity from the input sentence, or an empty string
-    * Unit: The parsed unit from the input sentence, or an empty string
-    * Name: The parsed name from the input sentence, or an empty string
-    * Comment: The parsed comment from the input sentence, or an empty string
-    * Other: Any tokens in the input sentence that were not labelled
-    * Confidence: A ParsedIngredientConfidence object, or None
-    """
-
-    sentence: str
-    quantity: str
-    unit: str
-    name: str
-    comment: str
-    other: str
-    confidence: ParsedIngredientConfidence | None
-
 
 # Create TAGGER object
 TAGGER = pycrfsuite.Tagger()
@@ -72,7 +34,7 @@ def parse_ingredient(sentence: str) -> ParsedIngredient:
     labels = TAGGER.tag(processed_sentence.sentence_features())
     scores = [TAGGER.marginal(label, i) for i, label in enumerate(labels)]
 
-    # Replurise tokens that were singularised if the label isn't UNIT
+    # Re-pluralise tokens that were singularised if the label isn't UNIT
     # For tokens with UNIT label, we'll deal with them below
     for idx in processed_sentence.singularised_indices:
         token = tokens[idx]
@@ -80,44 +42,8 @@ def parse_ingredient(sentence: str) -> ParsedIngredient:
         if label != "UNIT":
             tokens[idx] = pluralise_units(token)
 
-    quantity = " ".join([tokens[idx] for idx in find_idx(labels, "QTY")])
-    unit = " ".join([tokens[idx] for idx in find_idx(labels, "UNIT")])
-
-    if quantity != "1" and quantity != "":
-        unit = pluralise_units(unit)
-
-    name = " ".join([tokens[idx] for idx in find_idx(labels, "NAME")])
-    comment = join_adjacent(tokens, find_idx(labels, "COMMENT"))
-
-    other = join_adjacent(tokens, find_idx(labels, "OTHER"))
-
-    if isinstance(comment, list):
-        comment = ", ".join([fix_punctuation(item) for item in comment])
-    else:
-        comment = fix_punctuation(comment)
-
-    if isinstance(other, list):
-        other = ", ".join([fix_punctuation(item) for item in other])
-    else:
-        other = fix_punctuation(other)
-
-    confidence = ParsedIngredientConfidence(
-        quantity=average(labels, scores, "QTY"),
-        unit=average(labels, scores, "UNIT"),
-        name=average(labels, scores, "NAME"),
-        comment=average(labels, scores, "COMMENT"),
-        other=average(labels, scores, "OTHER"),
-    )
-
-    return ParsedIngredient(
-        sentence=sentence,
-        quantity=quantity,
-        unit=unit,
-        name=fix_punctuation(name),
-        comment=comment,
-        other=other,
-        confidence=confidence,
-    )
+    postprocessed_sentence = PostProcessor(sentence, tokens, labels, scores)
+    return postprocessed_sentence.parsed()
 
 
 def parse_multiple_ingredients(sentences: list[str]) -> list[ParsedIngredient]:
@@ -137,40 +63,68 @@ def parse_multiple_ingredients(sentences: list[str]) -> list[ParsedIngredient]:
     Returns
     -------
     list[ParsedIngredient]
-        List of ParsedIngredient objects of structured data parsed 
+        List of ParsedIngredient objects of structured data parsed
         from input sentences
-
-    Examples
-    ------
-    >>> parse_multiple_ingredients(sentences)
-    >>> sentences = [
-        "3 tablespoons fresh lime juice, plus lime wedges for serving",
-        "2 tablespoons extra-virgin olive oil",
-        "2 large garlic cloves, finely grated",
-    ]
-    [{'sentence': '3 tablespoons fresh lime juice, plus lime wedges for serving',\
-'quantity': '3', 'unit': 'tablespoon', 'name': 'lime juice',\
-'comment': ['fresh', 'plus lime wedges for serving'], 'other': ''},\
-{'sentence': '2 tablespoons extra-virgin olive oil', 'quantity': '2',\
-'unit': 'tablespoon', 'name': 'extra-virgin olive oil', 'comment': '',\
-'other': ''},\
-{'sentence': '2 large garlic cloves, finely grated', 'quantity': '2',\
-'unit': 'clove', 'name': 'garlic', 'comment': 'finely grated', 'other': 'large'}]
     """
-    parsed = []
-    for sent in sentences:
-        parsed.append(parse_ingredient(sent))
-
-    return parsed
+    return [parse_ingredient(sent) for sent in sentences]
 
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Parse ingredient into structured data"
+@dataclass
+class ParserDebugInfo:
+    """Dataclass for holding intermediate objects generated during
+    ingredient sentence parsing.
+
+    Attributes
+    ----------
+    sentence : str
+        Input ingredient sentence.
+    PreProcessor : PreProcessor
+        PreProcessor object created using input sentence.
+    PostProcessor : PostProcessor
+        PostProcessor object created using tokens, labels and scores from
+        input sentence.
+    Tagger : pycrfsuite.Tagger
+        CRF model tagger object.
+    """
+
+    sentence: str
+    PreProcessor: PreProcessor
+    PostProcessor: PostProcessor
+    Tagger = TAGGER
+
+
+def inspect_parser(sentence: str) -> ParserDebugInfo:
+    """Return object containing all intermediate objects used in the parsing of
+    a sentence.
+
+    Parameters
+    ----------
+    sentence : str
+        Ingredient sentence to parse
+
+    Returns
+    -------
+    ParserDebugInfo
+        ParserDebugInfo object containing the PreProcessor object, PostProcessor
+        object and Tagger.
+    """
+    processed_sentence = PreProcessor(sentence)
+    tokens = processed_sentence.tokenized_sentence
+    labels = TAGGER.tag(processed_sentence.sentence_features())
+    scores = [TAGGER.marginal(label, i) for i, label in enumerate(labels)]
+
+    # Re-plurise tokens that were singularised if the label isn't UNIT
+    # For tokens with UNIT label, we'll deal with them below
+    for idx in processed_sentence.singularised_indices:
+        token = tokens[idx]
+        label = labels[idx]
+        if label != "UNIT":
+            tokens[idx] = pluralise_units(token)
+
+    postprocessed_sentence = PostProcessor(sentence, tokens, labels, scores)
+
+    return ParserDebugInfo(
+        sentence=sentence,
+        PreProcessor=processed_sentence,
+        PostProcessor=postprocessed_sentence,
     )
-    parser.add_argument("-s", "--string", help="Ingredient string to parse")
-    args = parser.parse_args()
-
-    if args.string is not None:
-        parsed = parse_ingredient(args.string)
-        print(json.dumps(parsed.__dict__, indent=2))

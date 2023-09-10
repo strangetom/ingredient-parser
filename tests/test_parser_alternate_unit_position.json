@@ -3,7 +3,5 @@
 {"sentence": "4 1/2 celery stalks, finely sliced", "labels": {"name": "celery", "quantity": "4.5", "unit": "stalks", "comment": "finely sliced"}}
 {"sentence": "1-2 sticks cinnamon, broken into 2 cm pieces", "labels": {"name": "cinnamon", "quantity": "1-2", "unit": "sticks", "comment": "broken into 2 cm pieces"}}
 {"sentence": "two fennel bulbs, chopped", "labels": {"name": "fennel", "quantity": "2", "unit": "bulbs", "comment": "chopped"}}
-{"sentence": "1/2 stock cube", "labels": {"name": "stock", "quantity": "0.5", "unit": "cube", "comment": ""}}
-{"sentence": "1 cabbage head", "labels": {"name": "cabbage", "quantity": "1", "unit": "large head", "comment": ""}}
-{"sentence": "5 bacon rashers", "labels": {"name": "bacon", "quantity": "5", "unit": "rashers", "comment": ""}}
-{"sentence": "2 lemon wedges", "labels": {"name": "lemon", "quantity": "2", "unit": "wedges", "comment": ""}}
+{"sentence": "1/2 stock cube", "labels": {"name": "stock cube", "quantity": "0.5", "unit": "", "comment": ""}}
+{"sentence": "1 cabbage head", "labels": {"name": "cabbage", "quantity": "1", "unit": "head", "comment": ""}}

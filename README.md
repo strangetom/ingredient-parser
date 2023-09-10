@@ -41,31 +41,32 @@ ParsedIngredient(
 
 ## Model accuracy
 
-The model provided in ```ingredient-parser/``` directory has the following accuracy on a test data set of 25% of the total  data used:
+The model used for labelling tokens in sentences, provided in ```ingredient-parser/``` directory has the following accuracy on a test data set of 25% of the total  data used:
 
 ```
 Sentence-level results:
-	Total: 12030
-	Correct: 10776
-	Incorrect: 1254
-	-> 89.58% correct
+	Total: 12044
+	Correct: 10834
+	Incorrect: 1210
+	-> 89.95% correct
 
 Word-level results:
-	Total: 75146
-	Correct: 72329
-	Incorrect: 2817
-	-> 96.25% correct
+	Total: 76299
+	Correct: 73430
+	Incorrect: 2869
+	-> 96.24% correct
 ```
 
 ## Development
 
-The development dependencies are in the ```requirements-dev.txt``` file.
+The development dependencies are in the ```requirements-dev.txt``` file. Details on the training process can be found in the [Model Guide](https://ingredient-parser.readthedocs.io/en/latest/guide/index.html) documentation.
 
-Note that development includes training the model.
+There is a simple webapp for testing the parser with ingredient sentences and showing the parsed output. To run the webapp, run the command
 
-* ```Black``` is used for code formatting.
-* ```ruff``` is used for linting. 
-* ```pyright``` is used for type static analysis.
-* ```pytest``` is used for tests, with ```coverage``` being used for test coverage.
+```bash
+>>> flask --app webapp run
+```
+
+This requires the development dependencies to be installed.
 
 The documentation dependencies are in the ```requirement-doc.txt``` file.

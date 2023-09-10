@@ -1,5 +1,5 @@
 Utilities
 ==========
 
-.. automodule:: ingredient_parser.utils
+.. automodule:: ingredient_parser._utils
    :members:
