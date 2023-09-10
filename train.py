@@ -124,7 +124,7 @@ if __name__ == "__main__":
         train_single(args)
     elif args.command == "multiple":
         train_multiple(args)
-    elif args.command == "clean":
+    elif args.command == "utility":
         if args.utility == "missing":
             find_missing_labels(args)
         elif args.utility == "consistency":
