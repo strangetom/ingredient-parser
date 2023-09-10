@@ -4,10 +4,10 @@ This dataset is derived from 10599 recipes scraped from [bbc.co.uk/food](https:/
 
 The `bbc-ingredients-snapshot-2017.csv` file was derived from the source data with the following steps:
 
-1. Load `cookstr-recipes.json`
+1. Load `bbccouk-recipes.json`
 
    ```python
-   with open("recipes-en-201706/cookstr-recipes.json", "r") as f:
+   with open("recipes-en-201706/bbccouk-recipes.json", "r") as f:
        lines = f.readlines()
    recipes = [json.loads(l) for l in lines]
    ```
@@ -24,4 +24,4 @@ The `bbc-ingredients-snapshot-2017.csv` file was derived from the source data wi
                ingredients.add(i)
    ```
 
-   This list contains 63195 sentences
+   This list contains 63195 unique sentences
