@@ -35,11 +35,7 @@ def find_missing_labels(args: argparse.Namespace) -> None:
         if "OTHER" in token_labels:
             matches.append(f"{i+2}: {sentence}")
 
-            if args.print:
-                print(f"{i+2}: {sentence}")
-                print(p.tokenized_sentence)
-                print(token_labels)
-                print("")
-
-    with open("clean__find_missing_label.txt", "w") as f:
-        f.write("\n".join(matches))
+            print(f"{i+2}: {sentence}")
+            print(p.tokenized_sentence)
+            print(token_labels)
+            print("")

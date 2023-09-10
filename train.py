@@ -94,14 +94,14 @@ if __name__ == "__main__":
         help="Number of times to run the training and evaluation of the model.",
     )
 
-    clean_help = "Utilities to aid cleaning training data."
-    clean_parser = subparsers.add_parser("clean", help=clean_help)
-    clean_parser.add_argument(
+    utility_help = "Utilities to aid cleaning training data."
+    utility_parser = subparsers.add_parser("utility", help=utility_help)
+    utility_parser.add_argument(
         "utility",
         choices=["missing", "consistency"],
         help="Cleaning utility to execute",
     )
-    clean_parser.add_argument(
+    utility_parser.add_argument(
         "--datasets",
         "-d",
         help="Datasets in csv format",
@@ -110,15 +110,12 @@ if __name__ == "__main__":
         nargs="+",
         required=True,
     )
-    clean_parser.add_argument(
+    utility_parser.add_argument(
         "-n",
         "--number",
         default=30000,
         type=int,
         help="Number of entries in dataset to check",
-    )
-    clean_parser.add_argument(
-        "-p", "--print", action="store_true", help="Print results to terminal"
     )
 
     args = parser.parse_args()
