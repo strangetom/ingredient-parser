@@ -73,7 +73,7 @@ def parse_multiple_ingredients(sentences: list[str]) -> list[ParsedIngredient]:
 class ParserDebugInfo:
     """Dataclass for holding intermediate objects generated during
     ingredient sentence parsing.
-    
+
     Attributes
     ----------
     sentence : str
