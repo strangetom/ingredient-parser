@@ -11,7 +11,7 @@ from ._utils import consume, pluralise_units
 
 WORD_CHAR = re.compile(r"\w")
 
-APPROXIMATE_TOKENS = ["about", "approx.", "approximately", "nearly"]
+APPROXIMATE_TOKENS = ["about", "approx.", "approximately", "nearly", "roughly"]
 SINGULAR_TOKENS = ["each"]
 
 
