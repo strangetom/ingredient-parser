@@ -41,20 +41,20 @@ ParsedIngredient(
 
 ## Model accuracy
 
-The model provided in ```ingredient-parser/``` directory has the following accuracy on a test data set of 25% of the total  data used:
+The model used for labelling tokens in sentences, provided in ```ingredient-parser/``` directory has the following accuracy on a test data set of 25% of the total  data used:
 
 ```
 Sentence-level results:
-	Total: 12045
-	Correct: 10792
-	Incorrect: 1253
-	-> 89.60% correct
+	Total: 12044
+	Correct: 10834
+	Incorrect: 1210
+	-> 89.95% correct
 
 Word-level results:
-	Total: 75730
-	Correct: 72912
-	Incorrect: 2818
-	-> 96.28% correct
+	Total: 76299
+	Correct: 73430
+	Incorrect: 2869
+	-> 96.24% correct
 ```
 
 ## Development
