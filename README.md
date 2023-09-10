@@ -38,7 +38,7 @@ ParsedIngredient(
 
 ## Model accuracy
 
-The model used for labelling tokens in sentences, provided in ```ingredient-parser/``` directory has the following accuracy on a test data set of 25% of the total  data used:
+The model used for labelling tokens in sentences, provided in the ```ingredient-parser/``` directory, has the following accuracy on a test data set of 25% of the total  data used:
 
 ```
 Sentence-level results:
