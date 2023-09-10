@@ -99,58 +99,6 @@ class PreProcessor:
     method, which returns a list of dictionaries.
     Each dictionary is the feature set for each token.
 
-    The following features are generated
-
-        stem
-            The current token, stemmed.
-
-        pos
-            The part of speech tag for the current token.
-
-        prev_pos
-            The part of speech tag for the previous token.
-
-        prev_pos2
-            The part of speech tag for the token before the
-            previous token.
-
-        next_pos
-            The part of speech tag for the next token.
-
-        next_pos2
-            The part of speech tag for the token after the
-            next token.
-
-        prev_word
-            The previous token.
-
-        prev_word2
-            The token before the previous token.
-
-        next_word
-            The next token.
-
-        next_word2
-            The token following the next token.
-
-        is_capitalised
-            True if the token starts with a capital letter.
-
-        is_numeric
-            True if the token is numeric, including ranges.
-
-        is_unit
-            True if the token is a unit.
-
-        is_in_parens
-            True is token is inside parentheses
-
-        is_stop_word
-            True is token is a stop word
-
-        is_after_comma
-            True if token is after a comma in the sentence
-
     The sentence features can then be passed to the CRF model which will generate the
     parsed output.
 
