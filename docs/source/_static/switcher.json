@@ -1,12 +1,12 @@
 [
     {
-        "name": "v0.1.0-beta5 (dev)",
+        "name": "v0.1.0-beta6 (dev)",
         "version": "0.1.0-beta5",
         "url": "https://ingredient-parser.readthedocs.io/en/latest/"
     },
     {
-        "name": "0.1.0-beta4 (release)",
-        "version": "0.1.0-beta4",
-        "url": "https://ingredient-parser.readthedocs.io/en/0.1.0-beta4-hotfix/"
+        "name": "v0.1.0-beta5 (release)",
+        "version": "0.1.0-beta5",
+        "url": "https://ingredient-parser.readthedocs.io/en/0.1.0-beta5/"
     }
 ]
