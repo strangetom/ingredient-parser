@@ -14,9 +14,9 @@ Version: The model version is the same has the `ingredient_parser_nlp` package v
 
 ### Model Type
 
-Natural language model for parsing structured information from recipe ingredient sentences.
+Natural language model for labelling tokens in a recipe ingredient sentence.
 
-The model is a Conditional Random Fields (CRF) model, implemented using [pycrfsuite](https://github.com/scrapinghub/python-crfsuite). A pre-processing step is required before a sentence can be presented to the model, which performs a number of text normalisation operations. See [preprocess.py](https://github.com/strangetom/ingredient-parser/blob/master/ingredient_parser/preprocess.py). 
+The model is a Conditional Random Fields (CRF) model, implemented using [pycrfsuite](https://github.com/scrapinghub/python-crfsuite). A pre-processing step is required before a sentence can be presented to the model, which performs a number of text normalisation operations. See [preprocess.py](https://github.com/strangetom/ingredient-parser/blob/master/ingredient_parser/preprocess.py). A postprocesing step takes the model output and interprets the tokens and labels to generate a structured representation of the ingredient sentence.
 
 ### License
 
@@ -32,12 +32,12 @@ The ingredient parser model parses structured information from English language 
 
 ### Primary Intended Uses
 
-- Parse the following information from English language recipe ingredient sentences:
-  - Quantity of ingredient
-  - Unit of ingredient
-  - Name of ingredient
-  - Comment
-  - Other, for text that cannot be classified into one of the above labels
+- Label tokens in English language recipe ingredient sentences with one of the following labels:
+  - QTY: Quantity of ingredient
+  - UNIT: Unit of ingredient
+  - NAME: Name of ingredient
+  - COMMENT: Comment in ingredient sentence
+  - OTHER, for text that cannot be classified into one of the above labels
 
 ### Primary Intended Users
 
@@ -45,9 +45,9 @@ The ingredient parser model parses structured information from English language 
 
 ### Out-of-Scope Uses
 
-- The model only support English language sentences.
-- The model only supports the Latin alphabet and standard special characters.
-- The model only supports parsing one ingredient sentence at a time. Attempting to pass a string containing multiple sentences is not supported and has not been tested.
+- Token labelling for sentences in languages other than English.
+- Token labelling for sentences written in scripts other than the Latin alphabet using standard special characters.
+- Labelling multiple sentences simultaneously. Attempting to pass a string containing multiple sentences is not supported and has not been tested.
 
 ## Limitations
 
