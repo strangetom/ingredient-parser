@@ -3,7 +3,6 @@
 import re
 from fractions import Fraction
 from html import unescape
-from typing import Any
 
 from nltk.stem.porter import PorterStemmer
 from nltk.tag import pos_tag
@@ -747,7 +746,7 @@ class PreProcessor:
 
         Returns
         -------
-        dict[str, Any]
+        dict[str, str | bool]
             Dictionary of features for token at index
         """
         token = self.tokenized_sentence[index]
@@ -781,12 +780,12 @@ class PreProcessor:
 
         return features
 
-    def sentence_features(self) -> list[dict[str, Any]]:
+    def sentence_features(self) -> list[dict[str, str | bool]]:
         """Return features for all tokens in sentence
 
         Returns
         -------
-        list[dict[str, Any]]
+        list[dict[str, str | bool]]
             List of features for each token in sentence
         """
         if self.defer_pos_tagging:
