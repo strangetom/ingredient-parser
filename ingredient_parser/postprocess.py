@@ -140,6 +140,9 @@ class PostProcessor:
         Original ingredient sentence.
     tokens : list[str]
         List of tokens for original ingredient sentence.
+    consumed : list[int]
+        List of indices of tokens consumed as part of setting the APPROXIMATE and
+        SINGULAR flags. These tokens should not end up in the parsed output.
     """
 
     def __init__(
@@ -149,6 +152,7 @@ class PostProcessor:
         self.tokens = tokens
         self.labels = labels
         self.scores = scores
+        self.consumed = []
 
     def __repr__(self) -> str:
         """__repr__ method
@@ -210,7 +214,12 @@ class PostProcessor:
             Object containing ingredient comment text and confidence
         """
         # Select indices of tokens, labels and scores for selected label
-        idx = [i for i, label in enumerate(self.labels) if label == selected]
+        # Do not include tokens, labels and scores in self.consumed
+        idx = [
+            i
+            for i, label in enumerate(self.labels)
+            if label == selected and i not in self.consumed
+        ]
 
         # Join consecutive tokens together and average their score
         parts = []
@@ -260,7 +269,7 @@ class PostProcessor:
         if match := self._sizable_unit_pattern():
             return match
         else:
-            return self._fallback_pattern(self.tokens, self.labels, self.scores)
+            return self._fallback_pattern(self.tokens, self.labels, self.scores, [])
 
     def _fix_punctuation(self, text: str) -> str:
         """Fix some common punctuation errors that result from combining tokens of the
@@ -481,17 +490,26 @@ class PostProcessor:
                 amount.unit = pluralise_units(amount.unit)
 
         # Mop up any remaining amounts that didn't fit the pattern
-        tokens = [tkn for i, tkn in enumerate(self.tokens) if i not in matching_indices]
-        labels = [lbl for i, lbl in enumerate(self.labels) if i not in matching_indices]
-        scores = [scr for i, scr in enumerate(self.scores) if i not in matching_indices]
-        idx = [i for i, _ in enumerate(self.tokens) if i not in matching_indices]
+        leftover_tokens = [
+            tkn for i, tkn in enumerate(self.tokens) if i not in matching_indices
+        ]
+        leftover_idx = [
+            i for i, _ in enumerate(self.tokens) if i not in matching_indices
+        ]
 
         # Have a guess at where to insert them so they are in the order they appear in
         # the sentence.
-        if tokens != [] and idx[0] < match[0]:
-            return self._fallback_pattern(tokens, labels, scores) + amounts
+        if leftover_tokens != [] and leftover_idx[0] < match[0]:
+            return (
+                self._fallback_pattern(
+                    self.tokens, self.labels, self.scores, matching_indices
+                )
+                + amounts
+            )
         else:
-            return amounts + self._fallback_pattern(tokens, labels, scores)
+            return amounts + self._fallback_pattern(
+                self.tokens, self.labels, self.scores, matching_indices
+            )
 
     def _match_pattern(self, pattern: list[str]) -> list[list[int]]:
         """Find a pattern of labels and return the indices of the labels that match the
@@ -545,7 +563,11 @@ class PostProcessor:
         return matches
 
     def _fallback_pattern(
-        self, tokens: list[str], labels: list[str], scores: list[float]
+        self,
+        tokens: list[str],
+        labels: list[str],
+        scores: list[float],
+        skip: list[int],
     ) -> list[IngredientAmount]:
         """Fallback pattern for grouping quantities and units into amounts.
         This is done simply by grouping a QTY with all following UNIT until
@@ -563,6 +585,8 @@ class PostProcessor:
             Labels for input sentence tokens
         scores : list[float]
             Scores for each label
+        skip : list[int]
+            List of indices to skip, because they've been postprocessed elsewhere
 
         Returns
         -------
@@ -571,6 +595,9 @@ class PostProcessor:
         """
         amounts = []
         for i, (token, label, score) in enumerate(zip(tokens, labels, scores)):
+            if i in skip:
+                continue
+
             if label == "QTY":
                 # Whenever we come across a new QTY, create new IngredientAmount,
                 # unless the token is "dozen" and the previous label was QTY, in which
@@ -639,6 +666,8 @@ class PostProcessor:
         by the token label being QTY and the previous token being in a list of
         approximate tokens.
 
+        If returning True, also add index of i - 1 token to self.consumed list.
+
         Parameters
         ----------
         i : int
@@ -667,6 +696,8 @@ class PostProcessor:
             return False
 
         if labels[i] == "QTY" and tokens[i - 1].lower() in APPROXIMATE_TOKENS:
+            # Mark i - 1 element as consumed
+            self.consumed.append(i - 1)
             return True
 
         return False
@@ -675,6 +706,8 @@ class PostProcessor:
         """Return True is token at current index is singular, determined
         by the token label being UNIT and the next token being in a list of
         singular tokens.
+
+        If returning True, also add index of i + 1 token to self.consumed list.
 
         Parameters
         ----------
@@ -700,6 +733,8 @@ class PostProcessor:
             return False
 
         if labels[i] == "UNIT" and tokens[i + 1].lower() in SINGULAR_TOKENS:
+            # Mark i + 1 element as consumed
+            self.consumed.append(i + 1)
             return True
 
         return False
@@ -710,6 +745,9 @@ class PostProcessor:
         """Return True if the current token is approximate and singular, determined
         by the token label being QTY and is preceded by a token in a list of singular
         tokens, then token in a list of approximate tokens.
+
+        If returning True, also add index of i - 1 and i - 2 tokens to
+        self.consumed list.
 
         e.g. each nearly 3 ...
 
@@ -745,6 +783,9 @@ class PostProcessor:
             and tokens[i - 1].lower() in APPROXIMATE_TOKENS
             and tokens[i - 2].lower() in SINGULAR_TOKENS
         ):
+            # Mark i - 1 and i - 2 elements as consumed
+            self.consumed.append(i - 1)
+            self.consumed.append(i - 2)
             return True
 
         return False
