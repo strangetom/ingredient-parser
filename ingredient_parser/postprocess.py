@@ -105,6 +105,9 @@ class ParsedIngredient:
     amount : List[IngredientAmount]
         List of IngredientAmount objects, each representing a matching quantity and
         unit pair parsed from the sentence.
+    preparation : IngredientText | None
+        Ingredient preparation instructions parsed from sentence.
+        If not ingredient preparation instruction was found, this is None.
     comment : IngredientText | None
         Ingredient comment parsed from input sentence.
         If no ingredient comment was found, this is None.
@@ -117,6 +120,7 @@ class ParsedIngredient:
 
     name: IngredientText | None
     amount: list[IngredientAmount]
+    preparation: IngredientText | None
     comment: IngredientText | None
     other: IngredientText | None
     sentence: str
@@ -188,6 +192,7 @@ class PostProcessor:
         """
         amounts = self._postprocess_amounts()
         name = self._postprocess("NAME")
+        preparation = self._postprocess("PREP")
         comment = self._postprocess("COMMENT")
         other = self._postprocess("OTHER")
 
@@ -195,6 +200,7 @@ class PostProcessor:
             sentence=self.sentence,
             amount=amounts,
             name=name,
+            preparation=preparation,
             comment=comment,
             other=other,
         )
