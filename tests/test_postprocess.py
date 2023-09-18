@@ -508,10 +508,11 @@ class TestPostProcessor_fallback_pattern:
         tokens = ["3", "large", "handful", "cherry", "tomatoes"]
         labels = ["QTY", "UNIT", "UNIT", "NAME", "NAME"]
         scores = [0] * len(tokens)
+        skip = []
 
         expected = [IngredientAmount(quantity="3", unit="large handfuls", confidence=0)]
 
-        assert p._fallback_pattern(tokens, labels, scores) == expected
+        assert p._fallback_pattern(tokens, labels, scores, skip) == expected
 
     def test_no_quantity(self, p):
         """
@@ -522,10 +523,11 @@ class TestPostProcessor_fallback_pattern:
         tokens = ["1", "green", ",", "large", "pepper"]
         labels = ["QTY", "NAME", "COMMA", "UNIT", "NAME"]
         scores = [0] * len(tokens)
+        skip = []
 
         expected = [IngredientAmount(quantity="1", unit=", large", confidence=0)]
 
-        assert p._fallback_pattern(tokens, labels, scores) == expected
+        assert p._fallback_pattern(tokens, labels, scores, skip) == expected
 
     def test_comma_before_unit(self, p):
         """
@@ -536,10 +538,11 @@ class TestPostProcessor_fallback_pattern:
         tokens = ["bunch", "of", "basil", "leaves"]
         labels = ["UNIT", "COMMENT", "NAME", "NAME"]
         scores = [0] * len(tokens)
+        skip = []
 
         expected = [IngredientAmount(quantity="", unit="bunch", confidence=0)]
 
-        assert p._fallback_pattern(tokens, labels, scores) == expected
+        assert p._fallback_pattern(tokens, labels, scores, skip) == expected
 
     def test_approximate(self, p):
         """
@@ -549,6 +552,7 @@ class TestPostProcessor_fallback_pattern:
         tokens = ["About", "2", "cup", "flour"]
         labels = ["COMMENT", "QTY", "UNIT", "NAME"]
         scores = [0] * len(tokens)
+        skip = []
 
         expected = [
             IngredientAmount(
@@ -559,32 +563,27 @@ class TestPostProcessor_fallback_pattern:
             )
         ]
 
-        assert p._fallback_pattern(tokens, labels, scores) == expected
+        assert p._fallback_pattern(tokens, labels, scores, skip) == expected
 
     def test_singular(self, p):
         """
         Test that a single IngredientAmount object with the SINGULAR flag set
         is returned
         """
-        tokens = ["2", "bananas", ",", "4", "ounce", "each"]
-        labels = ["QTY", "NAME", "COMMA", "QTY", "UNIT", "COMMENT"]
+        tokens = ["1", "28", "ounce", "can", "or", "400", "g", "chickpeas"]
+        labels = ["QTY", "QTY", "UNIT", "UNIT", "COMMENT", "QTY", "UNIT", "NAME"]
         scores = [0] * len(tokens)
+        skip = [0, 1, 2, 3]
 
         expected = [
             IngredientAmount(
-                quantity="2",
-                unit="",
+                quantity="400",
+                unit="g",
                 confidence=0,
-            ),
-            IngredientAmount(
-                quantity="4",
-                unit="ounces",
-                confidence=0,
-                SINGULAR=True,
-            ),
+            )
         ]
 
-        assert p._fallback_pattern(tokens, labels, scores) == expected
+        assert p._fallback_pattern(tokens, labels, scores, skip) == expected
 
     def test_singular_and_approximate(self, p):
         """
@@ -594,6 +593,7 @@ class TestPostProcessor_fallback_pattern:
         tokens = ["2", "bananas", ",", "each", "about", "4", "ounce"]
         labels = ["QTY", "NAME", "COMMA", "COMMENT", "COMMENT", "QTY", "UNIT"]
         scores = [0] * len(tokens)
+        skip = []
 
         expected = [
             IngredientAmount(
@@ -610,7 +610,7 @@ class TestPostProcessor_fallback_pattern:
             ),
         ]
 
-        assert p._fallback_pattern(tokens, labels, scores) == expected
+        assert p._fallback_pattern(tokens, labels, scores, skip) == expected
 
     def test_dozen(self, p):
         """
@@ -620,6 +620,7 @@ class TestPostProcessor_fallback_pattern:
         tokens = ["2", "dozen", "bananas", ",", "each", "about", "4", "ounce"]
         labels = ["QTY", "QTY", "NAME", "COMMA", "COMMENT", "COMMENT", "QTY", "UNIT"]
         scores = [0] * len(tokens)
+        skip = []
 
         expected = [
             IngredientAmount(
@@ -636,7 +637,34 @@ class TestPostProcessor_fallback_pattern:
             ),
         ]
 
-        assert p._fallback_pattern(tokens, labels, scores) == expected
+        assert p._fallback_pattern(tokens, labels, scores, skip) == expected
+
+    def test_skip(self, p):
+        """
+        Test that the token "dozen" is combined with the preceding QTY token in a
+        single IngredientAmount object.
+        """
+        tokens = ["2", "dozen", "bananas", ",", "each", "about", "4", "ounce"]
+        labels = ["QTY", "QTY", "NAME", "COMMA", "COMMENT", "COMMENT", "QTY", "UNIT"]
+        scores = [0] * len(tokens)
+        skip = []
+
+        expected = [
+            IngredientAmount(
+                quantity="2 dozen",
+                unit="",
+                confidence=0,
+            ),
+            IngredientAmount(
+                quantity="4",
+                unit="ounces",
+                confidence=0,
+                SINGULAR=True,
+                APPROXIMATE=True,
+            ),
+        ]
+
+        assert p._fallback_pattern(tokens, labels, scores, skip) == expected
 
 
 class TestPostProcessor_is_approximate:

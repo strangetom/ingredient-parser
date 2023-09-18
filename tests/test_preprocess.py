@@ -599,6 +599,12 @@ class TestPreProcessor_is_numeric:
         """
         assert not p._is_numeric("red-wine")
 
+    def test_dozen(self, p):
+        """
+        "dozen" is numeric
+        """
+        assert p._is_numeric("dozen")
+
 
 class TestPreProcessor_is_capitalised:
     def test_capitalised(self, p):
