@@ -36,6 +36,7 @@ def home():
         tokens=zip(parser_info.PostProcessor.tokens, parser_info.PostProcessor.labels),
         name=parsed.name if parsed.name is not None else IngredientText("", 0),
         amounts=parsed.amount,
+        preparation=parsed.preparation if parsed.preparation is not None else IngredientText("", 0),
         comment=parsed.comment if parsed.comment is not None else IngredientText("", 0),
         other=parsed.other if parsed.other is not None else IngredientText("", 0),
     )

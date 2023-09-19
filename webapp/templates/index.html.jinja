@@ -22,6 +22,7 @@
                 <span class="QTY">Quantity</span>
                 <span class="UNIT">Unit</span>
                 <span class="NAME">Name</span>
+                <span class="PREP">Prep</span>
                 <span class="COMMENT">Comment</span>
                 <span class="OTHER">Other</span>
                 <span class="flag">1</span> Singular
@@ -69,6 +70,12 @@
                         {{ "%.2f"|format(100*amount.confidence) }}%&nbsp;&nbsp;
                         {%- endfor -%}
                     </h4>
+                </div>
+
+                <div class="card">
+                    <h3 class="PREP">Preparation</h3>
+                    <h2>{{ preparation.text }}</h2>
+                    <h4>{{ "%.2f"|format(100*preparation.confidence) }}%</h4>
                 </div>
 
                 <div class="card">
