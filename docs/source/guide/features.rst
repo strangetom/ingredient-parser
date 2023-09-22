@@ -64,13 +64,13 @@ If possible, based on the position of the token in the sentence, the following f
 * The stem of the token after the next token
 * The POS tag for the token after the next token
 
-The ``_token_features`` function of :class:`PreProcessor` returns all these features as a dictionary.
+The :func:`_token_features` function of :class:`PreProcessor` returns all these features as a dictionary.
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
     :pyobject: PreProcessor._token_features
     :dedent: 4
 
-The ``sentence_features`` function of :class:`PreProcessor` return the features for all tokens in the sentence in a list.
+The :func:`sentence_features` function of :class:`PreProcessor` return the features for all tokens in the sentence in a list.
 
 .. attention::
     

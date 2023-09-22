@@ -87,4 +87,4 @@ There are some particular cases where the combination of QTY and UNIT labels tha
     [IngredientAmount(quantity='2', unit='cans', confidence=0.9901127131948666, APPROXIMATE=False, SINGULAR=False),
     IngredientAmount(quantity='14', unit='ounces', confidence=0.979053978856428, APPROXIMATE=False, SINGULAR=True)]
 
-Identifying and handling this pattern of QTY and UNIT labels is done by the ``PostProcessor._sizable_unit_pattern()`` function.
+Identifying and handling this pattern of QTY and UNIT labels is done by the :func:`PostProcessor._sizable_unit_pattern()` function.

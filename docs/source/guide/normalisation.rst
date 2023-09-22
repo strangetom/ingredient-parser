@@ -12,7 +12,7 @@ The :class:`PreProcessor` class handles the sentence normalisation for us.
     >>> p.sentence
     '0.5 cup orange juice, freshly squeezed'
 
-The normalisation of the input sentence is done immediately when the :class:`PreProcessor` class is instantiated. The ``_normalise`` method of the :class:`PreProcessor` class is called, which executes a number of steps to clean up the input sentence.
+The normalisation of the input sentence is done immediately when the :class:`PreProcessor` class is instantiated. The :func:`_normalise` method of the :class:`PreProcessor` class is called, which executes a number of steps to clean up the input sentence.
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
     :pyobject: PreProcessor._normalise

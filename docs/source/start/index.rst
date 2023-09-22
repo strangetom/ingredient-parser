@@ -39,9 +39,9 @@ This will download and install the package and it's dependencies:
 Usage
 ^^^^^
 
-The primary functionality of this package is provided by the ``parse_ingredient`` function.
+The primary functionality of this package is provided by the :func:`parse_ingredient` function.
 
-The ``parse_ingredient`` function takes an ingredient sentence and return the structered data extracted from it.
+The :func:`parse_ingredient` function takes an ingredient sentence and return the structered data extracted from it.
 
 .. code:: python
 
@@ -62,7 +62,7 @@ The ``parse_ingredient`` function takes an ingredient sentence and return the st
 The returned dataclass contains the following fields:
 
 sentence
-    The input sentence passed to the ``parse_ingredient`` function.
+    The input sentence passed to the :func:`parse_ingredient` function.
 
 amount
     The amounts parsed from the sentence. Each amount has a quantity and a unit, plus optional flags indicating if the amount is approximate or is for a singular item.
@@ -82,7 +82,7 @@ Each of the fields (except sentence) has a confidence value associated with it. 
 Multiple ingredient sentences
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The ``parse_multiple_ingredients`` function is provided as a convenience function. It accepts a list of ingredient sentences as it's input and returns a list of dictionaries with the parsed information.
+The :func:`parse_multiple_ingredients` function is provided as a convenience function. It accepts a list of ingredient sentences as it's input and returns a list of dictionaries with the parsed information.
 
 .. code:: python
 
