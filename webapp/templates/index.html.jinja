@@ -39,7 +39,7 @@
             <table>
                 <tbody>
                     <tr>
-                        <td class="type">Name</td>
+                        <td class="type NAME">Name</td>
                         <td>
                             {{ name.text }}
                             {%- if name.confidence > 0 -%}
@@ -50,7 +50,7 @@
                         </td>
                     </tr>
                     <tr>
-                        <td class="type">Amount</td>
+                        <td class="type AMOUNT">Amount</td>
                         <td>
                         {%- for amount in amounts -%}
                             <span class="amount">
@@ -74,7 +74,7 @@
                         </td>
                     </tr>
                     <tr>
-                        <td class="type">Preparation</td>
+                        <td class="type PREP">Preparation</td>
                         <td>
                             {{ preparation.text }}
                             {%- if preparation.confidence > 0 -%}
@@ -85,7 +85,7 @@
                         </td>
                     </tr>
                     <tr>
-                        <td class="type">Comment</td>
+                        <td class="type COMMENT">Comment</td>
                         <td>
                             {{ comment.text }}
                             {%- if comment.confidence > 0 -%}
@@ -96,7 +96,7 @@
                         </td>
                     </tr>
                     <tr>
-                        <td class="type">Other</td>
+                        <td class="type OTHER">Other</td>
                         <td>
                             {{ other.text }}
                             {%- if other.confidence > 0 -%}

@@ -31,29 +31,29 @@ input {
 }
 
 .QTY {
-  background-color: var(--green);
+  --color: var(--green);
 }
 .UNIT {
-  background-color: var(--yellow);
+  --color: var(--yellow);
 }
 .NAME {
-  background-color: var(--aqua);
+  --color: var(--aqua);
 }
 .COMMENT {
-  background-color: var(--purple);
+  --color: var(--purple);
 }
 .OTHER {
-  background-color: var(--red);
+  --color: var(--red);
 }
 .PREP {
-  background-color: var(--blue-alt);
+  --color: var(--blue-alt);
 }
 .COMMA {
-  background-color: var(--gray);
+  --color: var(--gray);
 }
 .AMOUNT {
   /* Mix of --green and --yellow */
-  background-color: #B8981E;
+  --color: #B8981E;
 }
 
 .sentence {
@@ -62,6 +62,7 @@ input {
 }
 .sentence span {
   padding: 0 1ch;
+  background-color: var(--color);
   color: var(--bg);
 }
 .sentence span:first-of-type {
@@ -72,13 +73,14 @@ input {
 }
 
 .key {
-  font-size: 0.9rem;
+  font-size: .9rem;
   text-align: center;
   color: var(--fg-2);
 }
 .key span {
   padding: 0 1ch;
   margin: 0 .2ch;
+  background-color: var(--color);
   border-radius: var(--small-radius);
   color: var(--bg);
 }
@@ -86,15 +88,16 @@ input {
   margin: .25rem;
   background-color: var(--bg-2);
   color: var(--fg);
-  padding: 0.1rem 0.5rem;
+  padding: .1rem .5rem;
 }
 
 table {
   margin: 0 auto;
   width: 90%;
   font-size: 1.2rem;
-  border: 3px solid var(--bg-3);
+  border: 3px solid var(--fg-3);
   border-radius: var(--medium-radius);
+  border-collapse: collapse;
 }
 tr:nth-of-type(odd) {
   background-color: var(--bg-2);
@@ -104,7 +107,9 @@ tr:nth-of-type(even) {
 }
 
 td {
-  padding: 0.25rem .5rem;
+  position: relative;
+  padding: 0 .5rem;
+  border: 1px solid var(--fg-3);
 }
 td:first-of-type {
   width: 15ch;
@@ -113,26 +118,27 @@ td:first-of-type {
 .type {
   font-weight: bold;
   text-transform: uppercase;
+  padding: .25rem .5rem;
+  border-left: 5px solid var(--color);
 }
 
 .amount {
   display: inline-block;
-  background-color: var(--bg-3);
-  border-radius: var(--small-radius);
-  margin-right: 0.5rem;
-  padding: 0 0.25rem;
+  border-right: 1px solid var(--fg-4);
+  margin: 0 .5rem 0 0;
+  padding-right: .25rem;
 }
 .amount span {
-  margin: 0.25rem;
+  margin: .25rem;
 }
 
 .amount .flag {
   display: inline-block;
   margin: .25rem;
-  font-size: 0.8rem;
+  font-size: .8rem;
   background-color: var(--bg-s);
   color: var(--fg);
-  padding: 0.1rem 0.5rem;
+  padding: .1rem .5rem;
   border-radius: var(--small-radius);
   height: fit-content;
 }
@@ -141,7 +147,8 @@ td:first-of-type {
   float: right;
   font-size: 1rem;
   margin: .2rem 0;
-  padding: 0 0.5rem;
+  padding: 0 .5rem;
   border-radius: var(--medium-radius);
+  background-color: var(--color);
   color: var(--bg);
 }
