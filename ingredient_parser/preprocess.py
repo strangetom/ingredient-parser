@@ -248,7 +248,7 @@ class PreProcessor:
         >>> p._replace_en_em_dash("3–4 sirloin steaks")
         "3-4 sirloin steaks"
         """
-        return sentence.replace("–", "-").replace("—", "-")
+        return sentence.replace("–", "-").replace("—", " - ")
 
     def _replace_string_numbers(self, sentence: str) -> str:
         """Replace string numbers (e.g. one, two) with numeric values (e.g. 1, 2)
