@@ -52,25 +52,43 @@
                     <tr>
                         <td class="type AMOUNT">Amount</td>
                         <td>
+                        {%- if amounts | length == 1-%}
+                        {%- if amounts[0].quantity != "" -%}
+                        <span class="amount-QTY">{{ amounts[0].quantity }}</span> 
+                        {%- endif -%}
+                        {%- if amounts[0].unit != "" -%}
+                        <span class="amount-UNIT">{{ amounts[0].unit }}</span>
+                        {%- endif -%}
+                        {%- if amounts[0].APPROXIMATE -%}
+                        <span class="flag">~</span>
+                        {%- endif -%}
+                        {%- if amounts[0].SINGULAR -%}
+                        <span class="flag">1</span>
+                        {%- endif -%}
+                        <span class="confidence AMOUNT">
+                            {{ "%.2f"|format(100*amounts[0].confidence) }}%
+                        </span>
+                        {%- else -%}
                         {%- for amount in amounts -%}
-                            <span class="amount">
-                                {%- if amount.quantity != "" -%}
-                                <span class="amount-QTY">{{ amount.quantity }}</span> 
-                                {%- endif -%}
-                                {%- if amount.unit != "" -%}
-                                <span class="amount-UNIT">{{ amount.unit }}</span>
-                                {%- endif -%}
-                                {%- if amount.APPROXIMATE -%}
-                                <span class="flag">~</span>
-                                {%- endif -%}
-                                {%- if amount.SINGULAR -%}
-                                <span class="flag">1</span>
-                                {%- endif -%}
-                                <span class="confidence AMOUNT">
-                                    {{ "%.2f"|format(100*amount.confidence) }}%
-                                </span>
+                        <span class="amount">
+                            {%- if amount.quantity != "" -%}
+                            <span class="amount-QTY">{{ amount.quantity }}</span> 
+                            {%- endif -%}
+                            {%- if amount.unit != "" -%}
+                            <span class="amount-UNIT">{{ amount.unit }}</span>
+                            {%- endif -%}
+                            {%- if amount.APPROXIMATE -%}
+                            <span class="flag">~</span>
+                            {%- endif -%}
+                            {%- if amount.SINGULAR -%}
+                            <span class="flag">1</span>
+                            {%- endif -%}
+                            <span class="confidence AMOUNT">
+                                {{ "%.2f"|format(100*amount.confidence) }}%
                             </span>
+                        </span>
                         {%- endfor -%}
+                        {%- endif -%}
                         </td>
                     </tr>
                     <tr>

@@ -5,7 +5,7 @@ body {
   margin: 0 auto;
   padding: 0;
   line-height: 1.5;
-  max-width: 100ch;
+  max-width: 90ch;
   background-color: var(--bg-s);
   color: var(--fg);
 }
@@ -86,14 +86,14 @@ input {
 }
 .key .flag {
   margin: .25rem;
-  background-color: var(--bg-2);
+  background-color: var(--bg-3);
   color: var(--fg);
   padding: .1rem .5rem;
 }
 
 table {
   margin: 0 auto;
-  width: 90%;
+  width: 95%;
   font-size: 1.2rem;
   border: 3px solid var(--fg-3);
   border-radius: var(--medium-radius);
@@ -136,7 +136,7 @@ td:first-of-type {
   display: inline-block;
   margin: .25rem;
   font-size: .8rem;
-  background-color: var(--bg-s);
+  background-color: var(--bg-3);
   color: var(--fg);
   padding: .1rem .5rem;
   border-radius: var(--small-radius);
@@ -151,4 +151,5 @@ td:first-of-type {
   border-radius: var(--medium-radius);
   background-color: var(--color);
   color: var(--bg);
+  box-shadow: var(--small-shadow);
 }
