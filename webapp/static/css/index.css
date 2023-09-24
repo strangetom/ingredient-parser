@@ -135,10 +135,10 @@ td:first-of-type {
 .amount .flag {
   display: inline-block;
   margin: .25rem;
-  font-size: .8rem;
+  font-size: 1rem;
   background-color: var(--bg-3);
   color: var(--fg);
-  padding: .1rem .5rem;
+  padding: 0 .5rem;
   border-radius: var(--small-radius);
   height: fit-content;
 }
