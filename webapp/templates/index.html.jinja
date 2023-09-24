@@ -54,7 +54,7 @@
                         <td>
                         {%- if amounts | length == 1-%}
                         {%- if amounts[0].quantity != "" -%}
-                        <span class="amount-QTY">{{ amounts[0].quantity }}</span> 
+                        <span class="amount-QTY">{{ amounts[0].quantity }}&nbsp;</span> 
                         {%- endif -%}
                         {%- if amounts[0].unit != "" -%}
                         <span class="amount-UNIT">{{ amounts[0].unit }}</span>
