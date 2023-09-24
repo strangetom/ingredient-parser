@@ -453,7 +453,7 @@ class PreProcessor:
         >>> p._remove_unit_trailing_period("5 oz. chopped tomatoes")
         "5 oz chopped tomatoes"
         """
-        units = ["tsp.", "tsps.", "tbsp.", "tbsps.", "lb.", "lbs.", "oz."]
+        units = ["tsp.", "tsps.", "tbsp.", "tbsps.", "tbs.", "tb.", "lb.", "lbs.", "oz."]
         units.extend([u.capitalize() for u in units])
         for unit in units:
             unit_no_period = unit.replace(".", "")
