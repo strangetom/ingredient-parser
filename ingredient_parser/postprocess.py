@@ -439,6 +439,7 @@ class PostProcessor:
             "package",
             "packet",
             "piece",
+            "slice",
             "tin",
         ]
 
