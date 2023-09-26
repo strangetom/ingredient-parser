@@ -37,7 +37,7 @@ Has the following associated labelling:
 
 We have match each token in the input sentence to the correct label. This is not possible to get 100% correct, especially if a word appears multiple times in a sentence with different contexts and therefore different labels. 
 
-The ``match_label`` function attempts to do this.
+The :func:`match_label` function attempts to do this.
 
 .. literalinclude:: ../../../train/training_utils.py
     :pyobject: match_labels
@@ -54,7 +54,7 @@ The ``OTHER`` labels is used for any tokens that cannot be matched to a label. O
 
 The ``COMMA`` label is used to label commas, specifically. This is done because commas are particular difficult for the model to learn the correct label for, since they can legitimately appear almost anywhere in a sentence. Post-processing of the model output if used to return the commas to the most likely position, but this is not necessary for training.
 
-The data is then split into training and testing sets. A split of 75% training, 25% testing is used be default and data in the training and testing sets are randomised using ``sklearn``'s ``model_selection.train_test_split`` function.
+The data is then split into training and testing sets. A split of 75% training, 25% testing is used be default and data in the training and testing sets are randomised using ``sklearn``'s :func:`model_selection.train_test_split` function.
 
 Training the model
 ^^^^^^^^^^^^^^^^^^
