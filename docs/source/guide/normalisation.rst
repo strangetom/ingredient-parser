@@ -63,10 +63,24 @@ Fractions represented by html entities (e.g. 0.5 as ``&frac12;``) are replaced w
 ``_replace_unicode_fractions``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Fractions represented by Unicode fractions are replace a textual format (.e.g ½ as 1/2), as defined by the dictionary in this function. The next step (``_replace_fake_fractions``) will turn these into decimal numbers.
+Fractions represented by Unicode fractions are replaced a textual format (.e.g ½ as 1/2), as defined by the dictionary in this function. The next step (``_replace_fake_fractions``) will turn these into decimal numbers.
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
     :pyobject: PreProcessor._replace_unicode_fractions
+    :dedent: 4
+
+``_combine_quantities_split_by_and``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Fractional quantities split by 'and' e.g. 1 and 1/2 are replaced by the decimal equivalent.
+
+A regular expression is used to find these in the sentence.
+
+.. literalinclude:: ../../../ingredient_parser/preprocess.py
+    :lines: 41-43
+
+.. literalinclude:: ../../../ingredient_parser/preprocess.py
+    :pyobject: PreProcessor._combine_quantities_split_by_and
     :dedent: 4
 
 
@@ -78,7 +92,7 @@ Fractions represented in a textual format (e.g. 1/2, 3/4) are replaced with deci
 A regular expression is used to find these in the sentence. The regular expression also matches fractions greater than 1 (e.g. 1 1/2 is 1.5).
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
-    :lines: 14-17
+    :lines: 13-16
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
     :pyobject: PreProcessor._replace_fake_fractions
@@ -91,7 +105,7 @@ A regular expression is used to find these in the sentence. The regular expressi
 A space is enforced between quantities and units to make sure they are tokenized to separate tokens. If an quantity and unit are joined by a hyphen, this is also replaced by a space.
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
-    :lines: 22-24
+    :lines: 21-23
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
     :pyobject: PreProcessor._split_quantity_and_units
@@ -123,7 +137,7 @@ where the numbers 1 and 2 represent any decimal value.
 The purpose of this is to ensure the range is kept as a single token.
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
-    :lines: 29-33
+    :lines: 28-32
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
     :pyobject: PreProcessor._replace_string_range

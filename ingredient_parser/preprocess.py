@@ -38,6 +38,10 @@ STRING_RANGE_PATTERN = re.compile(r"([\d\.]+)(\-)?\s*(to|or)\s*(\-)*\s*([\d\.]+(
 # the sentence without that middle space.
 BROKEN_RANGE_PATTERN = re.compile(r"(.*\-)\s(\d.*)")
 
+# Regeax pattern to match quantities split by "and" e.g. 1 and 1/2.
+# Capture the whole match, and the quantites before and after the "and".
+FRACTION_SPLIT_AND_PATTERN = re.compile(r"((\d*)\sand\s(\d/\d+))")
+
 # Define tokenizer.
 # We are going to split an sentence between substrings that match the following groups
 # a) letters and any punctuation, except
@@ -211,6 +215,7 @@ class PreProcessor:
             self._replace_string_numbers,
             self._replace_html_fractions,
             self._replace_unicode_fractions,
+            self._combine_quantities_split_by_and,
             self._replace_fake_fractions,
             self._split_quantity_and_units,
             self._remove_unit_trailing_period,
@@ -347,6 +352,39 @@ class PreProcessor:
             summed = float(sum(Fraction(s) for s in split))
             rounded = round(summed, 3)
             sentence = sentence.replace(match, f"{rounded:g}")
+
+        return sentence
+
+    def _combine_quantities_split_by_and(self, sentence: str) -> str:
+        """Combine fractional quantities split by 'and' into single value.
+
+        Parameters
+        ----------
+        sentence : str
+            Ingredient sentence
+
+        Returns
+        -------
+        str
+            Ingredient sentence with split fractions replaced with
+            single decimal value.
+
+        Examples
+        --------
+        >>> p = PreProcessor("")
+        >>> p._combine_quantities_split_by_and("1 and 1/2 tsp fine grain sea salt")
+        "1.5 tsp fine grain salt"
+
+        >>> p = PreProcessor("")
+        >>> p._combine_quantities_split_by_and("1 and 1/4 cups dark chocolate morsels")
+        "1.25 cups dark chocolate morsels"
+        """
+        matches = FRACTION_SPLIT_AND_PATTERN.findall(sentence)
+
+        for match in matches:
+            combined_quantity = float(Fraction(match[1]) + Fraction(match[2]))
+            rounded = round(combined_quantity, 3)
+            sentence = sentence.replace(match[0], f"{rounded:g}")
 
         return sentence
 
