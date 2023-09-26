@@ -43,7 +43,7 @@ The replacements are predefined in a dictionary.
 For performance reasons, the regular expressions used to substitute the text with the number are precomiled and provided in the ``STRING_NUMBERS_REGEXES`` constant, which is a dictionary where the value is a tuple of (precompiled regex, substitute value).
 
 .. literalinclude:: ../../../ingredient_parser/_constants.py
-    :lines: 140-168
+    :lines: 140-167
     
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
