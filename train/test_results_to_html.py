@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 
+import inspect
 import sys
 import xml.etree.ElementTree as ET
 from collections import Counter
 from pathlib import Path
+from typing import Callable
 
 # Ensure the local ingredient_parser package can be found
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -16,7 +18,7 @@ def test_results_to_html(
     labels_truth: list[list[str]],
     labels_prediction: list[list[str]],
     sentence_sources: list[str],
-    minimum_mismatches: int = 0,
+    mismatch_condition: Callable,
 ) -> None:
     """Output results for test vectors that failed to label entire sentence with the
     truth labels in HTML format.
@@ -31,8 +33,9 @@ def test_results_to_html(
         Predicted labels for sentence
     sentence_sources : list[str]
         List of sentence sources, either NYT of SF
-    minimum_mismatches : int, optional
-        Minimum number of token mismatches in sentence
+    mismatch_condition : Callable
+        Condition used to determine which sentences to include based
+        on the number of matches
     """
     html = ET.Element("html")
     head = ET.Element("head")
@@ -71,7 +74,8 @@ def test_results_to_html(
     body.append(heading)
 
     heading3 = ET.Element("h3")
-    heading3.text = f"Showing results with more than {minimum_mismatches} mismatches."
+    cond = format_mismatch_condition(mismatch_condition)
+    heading3.text = f"Showing results where number of label mismatches {cond}."
     body.append(heading3)
 
     incorrect = []
@@ -81,7 +85,7 @@ def test_results_to_html(
     ):
         if truth != prediction:
             # Count mismatches and only include if greater than set limit
-            if sum(i != j for i, j in zip(truth, prediction)) > minimum_mismatches:
+            if mismatch_condition(sum(i != j for i, j in zip(truth, prediction))):
                 tokens: list[str] = PreProcessor(
                     sentence, defer_pos_tagging=True
                 ).tokenized_sentence
@@ -157,3 +161,21 @@ def create_html_table(
     table.append(prediction_tr)
 
     return table
+
+
+def format_mismatch_condition(mismatch_condition: Callable) -> str:
+    """Format condition in mismatch_condition as a string
+
+    Parameters
+    ----------
+    mismatch_condition : Callable
+        mismatch_condition lambda function
+
+    Returns
+    -------
+    str
+        Text of conditions
+    """
+    src = inspect.getsource(mismatch_condition).strip()
+    condition = src.replace("lambda x: x", "").replace(",", "").strip()
+    return condition
