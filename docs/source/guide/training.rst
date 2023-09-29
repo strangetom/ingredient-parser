@@ -65,9 +65,9 @@ With the data ready, we can now train the model using `python-crfuite <https://g
 
     To train the model, you will need the additional dependencies listed in ``requirements-dev.txt``. These can be installed by running the command:
 
-    .. code::
+    .. code:: bash
 
-        >>> python -m pip install -r requirements-dev.txt
+        $ python -m pip install -r requirements-dev.txt
 
 .. code:: python
     
