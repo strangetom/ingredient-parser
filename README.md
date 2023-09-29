@@ -6,7 +6,7 @@ The Ingredient Parser package is a Python package for parsing structured informa
 
 ## Documentation
 
-Documentation on using the package and training the model can be found at https://ingredient-parser.readthedocs.io/en/latest/.
+Documentation on using the package and training the model can be found at https://ingredient-parser.readthedocs.io/.
 
 ## Quick Start
 
@@ -20,20 +20,19 @@ Import the ```parse_ingredient``` function and pass it an ingredient sentence.
 
 ```python
 >>> from ingredient_parser import parse_ingredient
-
 >>> parse_ingredient("3 pounds pork shoulder, cut into 2-inch chunks")
 ParsedIngredient(
-    name=IngredientText(text='pork shoulder', 
-                        confidence=0.989491),
-    amount=[IngredientAmount(quantity='3',
-                             unit='pounds',
-                             confidence=0.998649,
-                             APPROXIMATE=False,
-                             SINGULAR=False)],
-    comment=IngredientText(text='cut into 2 inch chunks',
-                           confidence=0.997456),
-    other=None,
-    sentence='3 pounds pork shoulder, cut into 2-inch chunks')
+    name=IngredientText(text='pork shoulder', confidence=0.997265), 
+    amount=[IngredientAmount(quantity='3', 
+                             unit='pounds', 
+                             confidence=0.9991, 
+                             APPROXIMATE=False, 
+                             SINGULAR=False)], 
+    preparation=IngredientText(text='cut into 2 inch chunks', confidence=0.986157),
+    comment=None, 
+    other=None, 
+    sentence='3 pounds pork shoulder, cut into 2-inch chunks'
+)
 ```
 
 ## Model accuracy
