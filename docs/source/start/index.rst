@@ -47,17 +47,20 @@ The :func:`parse_ingredient` function takes an ingredient sentence and return th
 
     >>> from ingredient_parser import parse_ingredient
     >>> parse_ingredient("2 yellow onions, finely chopped")
-    ParsedIngredient(
-        name=IngredientText(text='yellow onions', confidence=0.972281),
-        amount=[IngredientAmount(quantity='2',
-                                 unit='',
-                                 confidence=0.996454,
-                                 APPROXIMATE=False,
-                                 SINGULAR=False)],
-        comment=IngredientText(text='finely chopped',
-                                confidence=0.999458),
-        other=None,
-        sentence='2 yellow onions, finely chopped')
+        ParsedIngredient(
+            name=IngredientText(text='yellow onions', confidence=0.967262),
+            amount=[IngredientAmount(quantity='2',
+                                     unit='',
+                                     confidence=0.997084,
+                                     APPROXIMATE=False,
+                                     SINGULAR=False)],
+            preparation=IngredientText(text='finely chopped',
+                                       confidence=0.995751),
+            comment=None,
+            other=None,
+            sentence='2 yellow onions, finely chopped'
+        )
+
 
 The returned dataclass contains the following fields:
 
@@ -95,39 +98,39 @@ The :func:`parse_multiple_ingredients` function is provided as a convenience fun
     >>> parse_multiple_ingredients(sentences)
     [
         ParsedIngredient(
-                name=IngredientText(text='fresh lime juice',
-                                    confidence=0.987798),
-                amount=[IngredientAmount(quantity='3',
-                                         unit='tablespoons',
-                                         confidence=0.999379,
-                                         APPROXIMATE=False,
-                                         SINGULAR=False)],
-                comment=IngredientText(text='plus lime wedges for serving',
-                                       confidence=0.994899),
-                other=None,
-                sentence='3 tablespoons fresh lime juice, plus lime wedges for serving'),
+            name=IngredientText(text='fresh lime juice', confidence=0.991891),
+            amount=[IngredientAmount(quantity='3', 
+                                     unit='tablespoons', 
+                                     confidence=0.999459, 
+                                     APPROXIMATE=False, 
+                                     SINGULAR=False)], 
+            preparation=None, 
+            comment=IngredientText(text='plus lime wedges for serving', confidence=0.995029),
+            other=None, 
+            sentence='3 tablespoons fresh lime juice, plus lime wedges for serving'
+        ), 
         ParsedIngredient(
-                name=IngredientText(text='extra-virgin olive oil',
-                                    confidence=0.994513),
-                amount=[IngredientAmount(quantity='2',
-                                         unit='tablespoons',
-                                         confidence=0.99891,
-                                         APPROXIMATE=False,
-                                         SINGULAR=False)],
-                comment=None,
-                other=None,
-                sentence='2 tablespoons extra-virgin olive oil'),
+            name=IngredientText(text='extra-virgin olive oil', confidence=0.996531), 
+            amount=[IngredientAmount(quantity='2', 
+                                     unit='tablespoons', 
+                                     confidence=0.999259, 
+                                     APPROXIMATE=False, 
+                                     SINGULAR=False)], 
+            preparation=None, 
+            comment=None, 
+            other=None, 
+            sentence='2 tablespoons extra-virgin olive oil'
+        ), 
         ParsedIngredient(
-                name=IngredientText(text='garlic', 
-                                    confidence=0.991054),
-                amount=[IngredientAmount(quantity='2',
-                                         unit='large cloves',
-                                         confidence=0.955468,
-                                         APPROXIMATE=False,
-                                         SINGULAR=False)],
-                comment=IngredientText(text='finely grated',
-                                       confidence=0.999252),
-                other=None,
-                sentence='2 large garlic cloves, finely grated')
+            name=IngredientText(text='garlic', confidence=0.992021), 
+            amount=[IngredientAmount(quantity='2', 
+                                     unit='large cloves', 
+                                     confidence=0.983268, 
+                                     APPROXIMATE=False, 
+                                     SINGULAR=False)], 
+            preparation=IngredientText(text='finely grated', confidence=0.997482), 
+            comment=None, 
+            other=None, 
+            sentence='2 large garlic cloves, finely grated'
+        )
     ]
-
