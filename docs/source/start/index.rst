@@ -29,7 +29,7 @@ You can install ``ingredient_parser`` from PyPi with ``pip``:
 
 .. code:: bash
     
-    >>> python -m pip install ingredient_parser_nlp
+    $ python -m pip install ingredient_parser_nlp
 
 This will download and install the package and it's dependencies:
 

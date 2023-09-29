@@ -6,6 +6,7 @@ With the model trained, it can be used to label the tokens of an ingredient sent
 * QTY
 * UNIT
 * NAME
+* PREP
 * COMMENT
 * OTHER
 * COMMA

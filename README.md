@@ -13,7 +13,7 @@ Documentation on using the package and training the model can be found at https:
 Install the package using pip
 
 ```bash
-python -m pip install ingredient-parser-nlp
+$ python -m pip install ingredient-parser-nlp
 ```
 
 Import the ```parse_ingredient``` function and pass it an ingredient sentence.
@@ -61,7 +61,7 @@ The development dependencies are in the ```requirements-dev.txt``` file. Details
 There is a simple web app for testing the parser with ingredient sentences and showing the parsed output. To run the web app, run the command
 
 ```bash
->>> flask --app webapp run
+$ flask --app webapp run
 ```
 
 ![Screen shot of web app](docs/source/_static/app-screenshot.png)

@@ -95,7 +95,7 @@ All of the above steps are implemented in the ``train.py`` script. The following
 
 .. code:: bash
 
-    >>> python train.py train --datasets train/data/nytimes/nyt-ingredients-snapshot-2015.csv train/data/strangerfoods/sf-labelled-data.csv train/data/cookstr/cookstr-ingredients-snapshot-2017-clean.csv
+    $ python train.py train --datasets train/data/nytimes/nyt-ingredients-snapshot-2015.csv train/data/strangerfoods/sf-labelled-data.csv train/data/cookstr/cookstr-ingredients-snapshot-2017-clean.csv
 
 Evaluating the model
 ^^^^^^^^^^^^^^^^^^^^
