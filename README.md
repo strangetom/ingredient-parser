@@ -58,12 +58,14 @@ Word-level results:
 
 The development dependencies are in the ```requirements-dev.txt``` file. Details on the training process can be found in the [Model Guide](https://ingredient-parser.readthedocs.io/en/latest/guide/index.html) documentation.
 
-There is a simple webapp for testing the parser with ingredient sentences and showing the parsed output. To run the webapp, run the command
+There is a simple web app for testing the parser with ingredient sentences and showing the parsed output. To run the web app, run the command
 
 ```bash
 >>> flask --app webapp run
 ```
 
+![Screen shot of web app](docs/source/_static/app-screenshot.png)
+
 This requires the development dependencies to be installed.
 
-The documentation dependencies are in the ```requirement-doc.txt``` file.
+The dependencies for building the documentation are in the ```requirement-doc.txt``` file.
