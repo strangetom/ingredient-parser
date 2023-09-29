@@ -136,6 +136,6 @@ The model training process can be executed multiple times to obtain the average 
 
 .. code:: bash
 
-    >>> python train.py multiple --datasets train/data/nytimes/nyt-ingredients-snapshot-2015.csv train/data/strangerfoods/sf-labelled-data.csv train/data/cookstr/cookstr-ingredients-snapshot-2017-clean.csv --runs 10
+    $ python train.py multiple --datasets train/data/nytimes/nyt-ingredients-snapshot-2015.csv train/data/strangerfoods/sf-labelled-data.csv train/data/cookstr/cookstr-ingredients-snapshot-2017-clean.csv --runs 10
 
 where the ``--runs`` argument sets the number of training cycles to run.
