@@ -33,14 +33,14 @@ STRING_RANGE_PATTERN = re.compile(r"([\d\.]+)(\-)?\s*(to|or)\s*(\-)*\s*([\d\.]+(
 
 # Regex pattern to match hyphen followed by a number. This is used to fix ranges
 # following the replacement of unicode fractions with fake fractions.
-# The pattern any characters up to a hyphen followed by a space followed by a number.
-# The parts before and after that space are cpatured in groups so we can reconstitute
-# the sentence without that middle space.
+# The pattern captures any characters up to a hyphen followed by a space followed
+# by a number. The parts before and after that space are cpatured in groups so we
+# can reconstitute the sentence without that middle space.
 BROKEN_RANGE_PATTERN = re.compile(r"(.*\-)\s(\d.*)")
 
 # Regeax pattern to match quantities split by "and" e.g. 1 and 1/2.
 # Capture the whole match, and the quantites before and after the "and".
-FRACTION_SPLIT_AND_PATTERN = re.compile(r"((\d*)\sand\s(\d/\d+))")
+FRACTION_SPLIT_AND_PATTERN = re.compile(r"((\d+)\sand\s(\d/\d+))")
 
 # Define tokenizer.
 # We are going to split an sentence between substrings that match the following groups
