@@ -132,7 +132,7 @@ td:first-of-type {
   margin: .25rem;
 }
 
-.amount .flag {
+table .flag {
   display: inline-block;
   margin: .25rem;
   font-size: 1rem;
