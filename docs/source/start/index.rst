@@ -49,19 +49,19 @@ The :func:`parse_ingredient` function takes an ingredient sentence and return th
 
     >>> from ingredient_parser import parse_ingredient
     >>> parse_ingredient("2 yellow onions, finely chopped")
-        ParsedIngredient(
-            name=IngredientText(text='yellow onions', confidence=0.967262),
-            amount=[IngredientAmount(quantity='2',
-                                     unit='',
-                                     confidence=0.997084,
-                                     APPROXIMATE=False,
-                                     SINGULAR=False)],
-            preparation=IngredientText(text='finely chopped',
-                                       confidence=0.995751),
-            comment=None,
-            other=None,
-            sentence='2 yellow onions, finely chopped'
-        )
+    ParsedIngredient(
+        name=IngredientText(text='yellow onions', confidence=0.967262),
+        amount=[IngredientAmount(quantity='2',
+                                 unit='',
+                                 confidence=0.997084,
+                                 APPROXIMATE=False,
+                                 SINGULAR=False)],
+        preparation=IngredientText(text='finely chopped',
+                                   confidence=0.995751),
+        comment=None,
+        other=None,
+        sentence='2 yellow onions, finely chopped'
+    )
 
 
 The returned dataclass contains the following fields:

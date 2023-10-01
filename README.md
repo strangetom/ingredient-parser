@@ -67,4 +67,4 @@ $ flask --app webapp run
 
 This requires the development dependencies to be installed.
 
-The dependencies for building the documentation are in the ```requirement-doc.txt``` file.
+The dependencies for building the documentation are in the ```requirements-doc.txt``` file.
