@@ -7,3 +7,4 @@ twine
 pytest
 coverage
 tqdm
+Flask

@@ -6,66 +6,65 @@ The Ingredient Parser package is a Python package for parsing structured informa
 
 ## Documentation
 
-Documentation on using the package and training the model can be found at https://ingredient-parser.readthedocs.io/en/latest/.
+Documentation on using the package and training the model can be found at https://ingredient-parser.readthedocs.io/.
 
 ## Quick Start
 
 Install the package using pip
 
 ```bash
-python -m pip install ingredient-parser-nlp
+$ python -m pip install ingredient-parser-nlp
 ```
 
 Import the ```parse_ingredient``` function and pass it an ingredient sentence.
 
 ```python
 >>> from ingredient_parser import parse_ingredient
-
 >>> parse_ingredient("3 pounds pork shoulder, cut into 2-inch chunks")
 ParsedIngredient(
-    sentence='3 pounds pork should, cut into 2-inch chunks', 
-    quantity='3', 
-    unit='pounds', 
-    name='pork shoulder', 
-    comment='cut into 2-inch chunks', 
-    other='', 
-    confidence=ParsedIngredientConfidence(
-        quantity=0.9986, 
-        unit=0.9972, 
-        name=0.8474, 
-        comment=0.9991, 
-        other=0
-    )
+    name=IngredientText(text='pork shoulder', confidence=0.997265), 
+    amount=[IngredientAmount(quantity='3', 
+                             unit='pounds', 
+                             confidence=0.9991, 
+                             APPROXIMATE=False, 
+                             SINGULAR=False)], 
+    preparation=IngredientText(text='cut into 2 inch chunks', confidence=0.986157),
+    comment=None, 
+    other=None, 
+    sentence='3 pounds pork shoulder, cut into 2-inch chunks'
 )
 ```
 
 ## Model accuracy
 
-The model provided in ```ingredient-parser/``` directory has the following accuracy on a test data set of 25% of the total  data used:
+The model used for labelling tokens in sentences, provided in the ```ingredient-parser/``` directory, has the following accuracy on a test data set of 25% of the total  data used:
 
 ```
 Sentence-level results:
-	Total: 12030
-	Correct: 10776
-	Incorrect: 1254
-	-> 89.58% correct
+	Total: 10001
+	Correct: 9120
+	Incorrect: 881
+	-> 91.19% correct
 
 Word-level results:
-	Total: 75146
-	Correct: 72329
-	Incorrect: 2817
-	-> 96.25% correct
+	Total: 64466
+	Correct: 62230
+	Incorrect: 2236
+	-> 96.53% correct
 ```
 
 ## Development
 
-The development dependencies are in the ```requirements-dev.txt``` file.
+The development dependencies are in the ```requirements-dev.txt``` file. Details on the training process can be found in the [Model Guide](https://ingredient-parser.readthedocs.io/en/latest/guide/index.html) documentation.
 
-Note that development includes training the model.
+There is a simple web app for testing the parser with ingredient sentences and showing the parsed output. To run the web app, run the command
 
-* ```Black``` is used for code formatting.
-* ```ruff``` is used for linting. 
-* ```pyright``` is used for type static analysis.
-* ```pytest``` is used for tests, with ```coverage``` being used for test coverage.
+```bash
+$ flask --app webapp run
+```
 
-The documentation dependencies are in the ```requirement-doc.txt``` file.
+![Screen shot of web app](docs/source/_static/app-screenshot.png)
+
+This requires the development dependencies to be installed.
+
+The dependencies for building the documentation are in the ```requirement-doc.txt``` file.

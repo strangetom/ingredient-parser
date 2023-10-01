@@ -9,16 +9,20 @@ Given a recipe ingredient such as
 
 we want to extract information about the quantity, units, name and comment. For the example above:
 
-.. code:: python
+.. list-table::
 
-    {
-        "quantity": "200",
-        "unit": "g",
-        "name": "plain flour",
-        "comment": "sifted",
-    }
+    * - Quantity
+      - Unit
+      - Name
+      - Preparation
+      - Comment
+    * - 200
+      - g
+      - plain flour
+      - sifted
+      - 
 
-This package uses a natural language model trained on thousands of example ingredient sentence. The condition random fields model has been trained on data from two main sources. The New York Times released a large dataset when they did some similar work in 2015 in their `Ingredient Phrase Tagger <https://github.com/nytimes/ingredient-phrase-tagger>`_ repository. I have also gathered a (much smaller) dataset from recipes, which is also used to train the model.
+This package uses a natural language model trained on thousands of example ingredient sentences. A Condition Random Fields model has been trained on data from three sources. The New York Times released a large dataset when they did some similar work in 2015 in their `Ingredient Phrase Tagger <https://github.com/nytimes/ingredient-phrase-tagger>`_ repository. A dump of recipes taken from Cookstr in 2017. I have also gathered a (much smaller) dataset from recipes, which is also used to train the model.
 
 Installation
 ^^^^^^^^^^^^
@@ -27,52 +31,66 @@ You can install ``ingredient_parser`` from PyPi with ``pip``:
 
 .. code:: bash
     
-    python -m pip install ingredient_parser_nlp
+    $ python -m pip install ingredient_parser_nlp
 
-This will download and install the package,  plus it's dependencies.
+This will download and install the package and it's dependencies:
 
+* `NLTK <https://www.nltk.org/>`_
+* `python-crfsuite <https://python-crfsuite.readthedocs.io/en/latest/>`_
 
 Usage
 ^^^^^
 
-The primary functionality of this package is provided by the ``parse_ingredient`` function.
+The primary functionality of this package is provided by the :func:`parse_ingredient` function.
 
-The ``parse_ingredient`` function takes an ingredient sentence and return the structered data extracted from it.
+The :func:`parse_ingredient` function takes an ingredient sentence and return the structered data extracted from it.
 
 .. code:: python
 
     >>> from ingredient_parser import parse_ingredient
     >>> parse_ingredient("2 yellow onions, finely chopped")
-    ParsedIngredient(sentence='2 yellow onions, finely chopped', quantity='2', unit='', name='yellow onions', comment='finely chopped', other='', confidence=ParsedIngredientConfidence(quantity=0.9978, unit=0, name=0.9575, comment=0.9992, other=0))
+        ParsedIngredient(
+            name=IngredientText(text='yellow onions', confidence=0.967262),
+            amount=[IngredientAmount(quantity='2',
+                                     unit='',
+                                     confidence=0.997084,
+                                     APPROXIMATE=False,
+                                     SINGULAR=False)],
+            preparation=IngredientText(text='finely chopped',
+                                       confidence=0.995751),
+            comment=None,
+            other=None,
+            sentence='2 yellow onions, finely chopped'
+        )
+
 
 The returned dataclass contains the following fields:
 
 sentence
-    The input sentence passed to the ``parse_ingredient`` function.
+    The input sentence passed to the :func:`parse_ingredient` function.
 
-quantity
-    The quantity of the ingredient sentence, or an empty string. This will always be a numeric in a string.
-
-unit
-    The units of the ingredient sentence, or an empty string.
+amount
+    The amounts parsed from the sentence. Each amount has a quantity and a unit, plus optional flags indicating if the amount is approximate or is for a singular item.
 
 name
-    The name of the ingredient sentence, or an empty string.
+    The name of the ingredient sentence, or None.
+
+preparation
+    The preparation notes for the ingredient. This is a string, or None is there are no preparation notes for the ingredient.
 
 comment
-    The comment from the ingredient sentence. This is a string, or a list or strings if the words that make the comments are not all adjacent in the input.
+    The comment from the ingredient sentence. This is a string, or None if there is no comment.
 
 other
-    Anything else not identified in one of the other fields. This is a string, or a list or strings if the words that are identified as other are not all adjacent in the input.
+    Anything else not identified in one of the other fields. This is a string, or None is there is nothing identified as other.
 
-confidence
-    The confience associated with the parsed data in each of the other fields (except sentence). The confidence is a value between 0 (no confidence) and 1 (complete confidence).
+Each of the fields (except sentence) has a confidence value associated with it. This is a value between 0 and 1, where 0 represents no confidence and 1 represent full confidence. This is the confidence that the natural language model has that the given label is correct.
 
 
 Multiple ingredient sentences
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The ``parse_multiple_ingredients`` function is provided as a convenience function. It accepts a list of ingredient sentences as it's input and returns a list of dictionaries with the parsed information.
+The :func:`parse_multiple_ingredients` function is provided as a convenience function. It accepts a list of ingredient sentences as it's input and returns a list of dictionaries with the parsed information.
 
 .. code:: python
 
@@ -84,7 +102,40 @@ The ``parse_multiple_ingredients`` function is provided as a convenience functio
     ]
     >>> parse_multiple_ingredients(sentences)
     [
-        ParsedIngredient(sentence='3 tablespoons fresh lime juice, plus lime wedges for serving', quantity='3', unit='tablespoons', name='fresh lime juice', comment='plus lime wedges for serving', other='', confidence=ParsedIngredientConfidence(quantity=0.9994, unit=0.9995, name=0.9917, comment=0.992, other=0)),
-        ParsedIngredient(sentence='2 tablespoons extra-virgin olive oil', quantity='2', unit='tablespoons', name='extra-virgin olive oil', comment='', other='', confidence=ParsedIngredientConfidence(quantity=0.9997, unit=0.9985, name=0.9929, comment=0, other=0)),
-        ParsedIngredient(sentence='2 large garlic cloves, finely grated', quantity='2', unit='large cloves', name='garlic', comment='finely grated', other='', confidence=ParsedIngredientConfidence(quantity=0.9993, unit=0.943, name=0.9903, comment=0.9993, other=0))
+        ParsedIngredient(
+            name=IngredientText(text='fresh lime juice', confidence=0.991891),
+            amount=[IngredientAmount(quantity='3', 
+                                     unit='tablespoons', 
+                                     confidence=0.999459, 
+                                     APPROXIMATE=False, 
+                                     SINGULAR=False)], 
+            preparation=None, 
+            comment=IngredientText(text='plus lime wedges for serving', confidence=0.995029),
+            other=None, 
+            sentence='3 tablespoons fresh lime juice, plus lime wedges for serving'
+        ), 
+        ParsedIngredient(
+            name=IngredientText(text='extra-virgin olive oil', confidence=0.996531), 
+            amount=[IngredientAmount(quantity='2', 
+                                     unit='tablespoons', 
+                                     confidence=0.999259, 
+                                     APPROXIMATE=False, 
+                                     SINGULAR=False)], 
+            preparation=None, 
+            comment=None, 
+            other=None, 
+            sentence='2 tablespoons extra-virgin olive oil'
+        ), 
+        ParsedIngredient(
+            name=IngredientText(text='garlic', confidence=0.992021), 
+            amount=[IngredientAmount(quantity='2', 
+                                     unit='large cloves', 
+                                     confidence=0.983268, 
+                                     APPROXIMATE=False, 
+                                     SINGULAR=False)], 
+            preparation=IngredientText(text='finely grated', confidence=0.997482), 
+            comment=None, 
+            other=None, 
+            sentence='2 large garlic cloves, finely grated'
+        )
     ]

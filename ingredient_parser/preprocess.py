@@ -3,13 +3,12 @@
 import re
 from fractions import Fraction
 from html import unescape
-from typing import Any
 
 from nltk.stem.porter import PorterStemmer
 from nltk.tag import pos_tag
 from nltk.tokenize import RegexpTokenizer
 
-from ._constants import AMBIGUOUS_UNITS, STOP_WORDS, STRING_NUMBERS_REGEXES, UNITS
+from ._constants import AMBIGUOUS_UNITS, STRING_NUMBERS_REGEXES, UNITS
 
 # Regex pattern for fraction parts.
 # Matches 0+ numbers followed by 0+ white space characters followed by a number then
@@ -21,7 +20,7 @@ CAPITALISED_PATTERN = re.compile(r"^[A-Z]")
 
 # Regex pattern for finding quantity and units without space between them.
 # Assumes the quantity is always a number and the units always a letter.
-QUANTITY_UNITS_PATTERN = re.compile(r"(\d)([a-zA-Z])")
+QUANTITY_UNITS_PATTERN = re.compile(r"(\d)\-?([a-zA-Z])")
 
 # Regex pattern for matching a numeric range e.g. 1-2, 2-3.
 RANGE_PATTERN = re.compile(r"\d+\s*[\-]\d+")
@@ -30,7 +29,18 @@ RANGE_PATTERN = re.compile(r"\d+\s*[\-]\d+")
 # Assumes fake fractions and unicode fraction have already been replaced.
 # Allows the range to include a hyphen, which are captured in separate groups.
 # Captures the two number in the range in separate capture groups.
-STRING_RANGE_PATTERN = re.compile(r"([\d\.]+)(\-)?\s+(to|or)\s+([\d\.]+(\-)?)")
+STRING_RANGE_PATTERN = re.compile(r"([\d\.]+)(\-)?\s*(to|or)\s*(\-)*\s*([\d\.]+(\-)?)")
+
+# Regex pattern to match hyphen followed by a number. This is used to fix ranges
+# following the replacement of unicode fractions with fake fractions.
+# The pattern captures any characters up to a hyphen followed by a space followed
+# by a number. The parts before and after that space are cpatured in groups so we
+# can reconstitute the sentence without that middle space.
+BROKEN_RANGE_PATTERN = re.compile(r"(.*\-)\s(\d.*)")
+
+# Regeax pattern to match quantities split by "and" e.g. 1 and 1/2.
+# Capture the whole match, and the quantites before and after the "and".
+FRACTION_SPLIT_AND_PATTERN = re.compile(r"((\d+)\sand\s(\d/\d+))")
 
 # Define tokenizer.
 # We are going to split an sentence between substrings that match the following groups
@@ -39,8 +49,8 @@ STRING_RANGE_PATTERN = re.compile(r"([\d\.]+)(\-)?\s+(to|or)\s+([\d\.]+(\-)?)")
 # quote, comma.
 # The following punctuation is deliberately left out of the these groups so that
 # they are removed: backslash.
-group_a = r"[\w!\#\$\£\€%\&'\*\+\-\.:;>=<\?@\^_`\\\|\~]+"
-group_b = r"[\(\)\[\]\{\}\,\"/]"
+group_a = r"[\w!\#\$\£\€%\&'\*\+\-\.>=<\?@\^_`\\\|\~’]+"
+group_b = r"[\(\)\[\]\{\}\,\"/:;]"
 REGEXP_TOKENIZER = RegexpTokenizer(rf"{group_a}|{group_b}", gaps=False)
 
 STEMMER = PorterStemmer()
@@ -64,7 +74,7 @@ class PreProcessor:
     1. | Replace all en-dashes and em-dashes with hyphens.
     2. | Replace numbers given as words with the numeric equivalent.
        | e.g. one >> 1
-    3. | Replace fractions given in html markup with the unicide representation.
+    3. | Replace fractions given in html markup with the unicode representation.
        | e.g. &frac12; >> ½
     4. | Replace unicode fractions with the equivalent decimal form. Decimals are
        | rounded to 3 a maximum of decimal places.
@@ -92,58 +102,6 @@ class PreProcessor:
     method, which returns a list of dictionaries.
     Each dictionary is the feature set for each token.
 
-    The following features are generated
-
-        stem
-            The current token, stemmed.
-
-        pos
-            The part of speech tag for the current token.
-
-        prev_pos
-            The part of speech tag for the previous token.
-
-        prev_pos2
-            The part of speech tag for the token before the
-            previous token.
-
-        next_pos
-            The part of speech tag for the next token.
-
-        next_pos2
-            The part of speech tag for the token after the
-            next token.
-
-        prev_word
-            The previous token.
-
-        prev_word2
-            The token before the previous token.
-
-        next_word
-            The next token.
-
-        next_word2
-            The token following the next token.
-
-        is_capitalised
-            True if the token starts with a capital letter.
-
-        is_numeric
-            True if the token is numeric, including ranges.
-
-        is_unit
-            True if the token is a unit.
-
-        is_in_parens
-            True is token is inside parentheses
-
-        is_stop_word
-            True is token is a stop word
-
-        is_after_comma
-            True if token is after a comma in the sentence
-
     The sentence features can then be passed to the CRF model which will generate the
     parsed output.
 
@@ -155,11 +113,15 @@ class PreProcessor:
         Defer part of speech tagging until feature generation.
         Part of speech tagging is an expensive operation and it's not always needed when
         using this class.
+    show_debug_output : bool, optional
+        If True, print out each stage of the sentence normalisation
 
     Attributes
     ----------
     defer_pos_tagging : bool
         Defer part of speech tagging until feature generation
+    show_debug_output : bool
+        If True, print out each stage of the sentence normalisation
     input : str
         Input ingredient sentence.
     pos_tags : list[str]
@@ -174,7 +136,10 @@ class PreProcessor:
     """
 
     def __init__(
-        self, input_sentence: str, defer_pos_tagging=False, show_debug_output=False
+        self,
+        input_sentence: str,
+        defer_pos_tagging: bool = False,
+        show_debug_output: bool = False,
     ):
         """Initialisation
 
@@ -184,11 +149,13 @@ class PreProcessor:
             Input ingredient sentence
         defer_pos_tagging : bool, optional
             Defer part of speech tagging until feature generation
+        show_debug_output : bool, optional
+            If True, print out each stage of the sentence normalisation
 
         """
         self.show_debug_output = show_debug_output
         self.input: str = input_sentence
-        self.sentence: str = self._clean(input_sentence)
+        self.sentence: str = self._normalise(input_sentence)
 
         _tokenised_sentence = REGEXP_TOKENIZER.tokenize(self.sentence)
         (
@@ -218,18 +185,18 @@ class PreProcessor:
         Returns
         -------
         str
-            Human readble string representation of object
+            Human readable string representation of object
         """
         _str = [
-            "Pre-processed recipe ingedient sentence",
+            "Pre-processed recipe ingredient sentence",
             f"\t    Input: {self.input}",
             f"\t  Cleaned: {self.sentence}",
             f"\tTokenized: {self.tokenized_sentence}",
         ]
         return "\n".join(_str)
 
-    def _clean(self, sentence: str) -> str:
-        """Clean sentence prior to feature extraction
+    def _normalise(self, sentence: str) -> str:
+        """Normalise sentence prior to feature extraction
 
         Parameters
         ----------
@@ -239,15 +206,16 @@ class PreProcessor:
         Returns
         -------
         str
-            Clean ingredient sentence
+            Normalised ingredient sentence
         """
-        # List of funtions to apply to sentence
+        # List of functions to apply to sentence
         # Note that the order matters
         funcs = [
             self._replace_en_em_dash,
             self._replace_string_numbers,
             self._replace_html_fractions,
             self._replace_unicode_fractions,
+            self._combine_quantities_split_by_and,
             self._replace_fake_fractions,
             self._split_quantity_and_units,
             self._remove_unit_trailing_period,
@@ -256,6 +224,7 @@ class PreProcessor:
 
         for func in funcs:
             sentence = func(sentence)
+
             if self.show_debug_output:
                 print(f"{func.__name__}: {sentence}")
 
@@ -273,8 +242,18 @@ class PreProcessor:
         -------
         str
             Ingredient sentence with en and em dashes replaced with hyphens
+
+        Examples
+        --------
+        >>> p = PreProcessor("")
+        >>> p._replace_en_em_dash("2 cups flour – white or self-raising")
+        "2 cups flour - white or self-raising"
+
+        >>> p = PreProcessor("")
+        >>> p._replace_en_em_dash("3–4 sirloin steaks")
+        "3-4 sirloin steaks"
         """
-        return sentence.replace("–", "-").replace("—", "-")
+        return sentence.replace("–", "-").replace("—", " - ")
 
     def _replace_string_numbers(self, sentence: str) -> str:
         """Replace string numbers (e.g. one, two) with numeric values (e.g. 1, 2)
@@ -288,6 +267,16 @@ class PreProcessor:
         -------
         str
             Ingredient sentence with string numbers replace with numeric values
+
+        Examples
+        --------
+        >>> p = PreProcessor("")
+        >>> p._replace_string_numbers("three large onions")
+        "3 large onions"
+
+        >>> p = PreProcessor("")
+        >>> p._replace_string_numbers("twelve bonbons")
+        "12 bonbons"
         """
 
         # STRING_NUMBER_REGEXES is a dict where the values are a tuple of the compiled
@@ -310,6 +299,12 @@ class PreProcessor:
         -------
         str
             Ingredient sentence with html fractions replaced
+
+        Examples
+        --------
+        >>> p = PreProcessor("")
+        >>> p._replace_html_fractions("1&frac34; cups tomato ketchup")
+        "1¾ cups tomato ketchup"
         """
         return unescape(sentence)
 
@@ -326,6 +321,16 @@ class PreProcessor:
         -------
         str
             Ingredient sentence with fractions replaced with decimals
+
+        Examples
+        --------
+        >>> p = PreProcessor("")
+        >>> p._replace_fake_fractions("1/2 cup icing sugar")
+        "0.5 cup icing sugar"
+
+        >>> p = PreProcessor("")
+        >>> p._replace_fake_fractions("2 3/4 pound chickpeas")
+        "2.75 pound chickpeas"
         """
         matches = FRACTION_PARTS_PATTERN.findall(sentence)
 
@@ -350,6 +355,39 @@ class PreProcessor:
 
         return sentence
 
+    def _combine_quantities_split_by_and(self, sentence: str) -> str:
+        """Combine fractional quantities split by 'and' into single value.
+
+        Parameters
+        ----------
+        sentence : str
+            Ingredient sentence
+
+        Returns
+        -------
+        str
+            Ingredient sentence with split fractions replaced with
+            single decimal value.
+
+        Examples
+        --------
+        >>> p = PreProcessor("")
+        >>> p._combine_quantities_split_by_and("1 and 1/2 tsp fine grain sea salt")
+        "1.5 tsp fine grain salt"
+
+        >>> p = PreProcessor("")
+        >>> p._combine_quantities_split_by_and("1 and 1/4 cups dark chocolate morsels")
+        "1.25 cups dark chocolate morsels"
+        """
+        matches = FRACTION_SPLIT_AND_PATTERN.findall(sentence)
+
+        for match in matches:
+            combined_quantity = float(Fraction(match[1]) + Fraction(match[2]))
+            rounded = round(combined_quantity, 3)
+            sentence = sentence.replace(match[0], f"{rounded:g}")
+
+        return sentence
+
     def _replace_unicode_fractions(self, sentence: str) -> str:
         """Replace unicode fractions with a 'fake' ascii equivalent.
         The ascii equivalent is used because the replace_fake_fractions function can
@@ -364,6 +402,16 @@ class PreProcessor:
         -------
         str
             Ingredient sentence with unicode fractions replaced
+
+        Examples
+        --------
+        >>> p = PreProcessor("")
+        >>> p._replace_unicode_fractions("½ cup icing sugar")
+        "1/2 cup icing sugar"
+
+        >>> p = PreProcessor("")
+        >>> p._replace_unicode_fractions("3⅓ cups warm water")
+        "3 1/3 cups warm water"
         """
         fractions = {
             "\u215b": "1/8",
@@ -383,15 +431,20 @@ class PreProcessor:
             "\xbd": "1/2",
         }
         for f_unicode, f_ascii in fractions.items():
-            # Insert space before ascii fraction to avoid merging into a single token
+            # Insert space before ascii fraction to avoid merging into the
+            # previous token.
             sentence = sentence.replace(f_unicode, f" {f_ascii}")
+
+        # Because we inserted the space before the fake fraction, we might have broken
+        # some ranges by adding a space after the hyphen, so let's fix that.
+        sentence = BROKEN_RANGE_PATTERN.sub(r"\1\2", sentence)
 
         return sentence
 
     def _split_quantity_and_units(self, sentence: str) -> str:
         """Insert space between quantity and unit
         This currently finds any instances of a number followed directly by a letter
-        with no space inbetween.
+        with no space in between.
 
         Parameters
         ----------
@@ -402,11 +455,21 @@ class PreProcessor:
         -------
         str
             Ingredient sentence with spaces inserted between quantity and units
+
+        Examples
+        --------
+        >>> p = PreProcessor("")
+        >>> p._split_quantity_and_units("100g green beans")
+        "100 g green beans"
+
+        >>> p = PreProcessor("")
+        >>> p._split_quantity_and_units("2-pound red peppers, sliced")
+        "2 pound red peppers, sliced"
         """
         return QUANTITY_UNITS_PATTERN.sub(r"\1 \2", sentence)
 
     def _remove_unit_trailing_period(self, sentence: str) -> str:
-        """Remove trailling periods from units e.g. tsp. -> tsp
+        """Remove trailing periods from units e.g. tsp. -> tsp
 
         Parameters
         ----------
@@ -417,8 +480,28 @@ class PreProcessor:
         -------
         str
             Ingredient sentence with trailing periods from units removed
+
+        Examples
+        --------
+        >>> p = PreProcessor("")
+        >>> p._remove_unit_trailing_period("1 tsp. garlic powder")
+        "1 tsp garlic powder"
+
+        >>> p = PreProcessor("")
+        >>> p._remove_unit_trailing_period("5 oz. chopped tomatoes")
+        "5 oz chopped tomatoes"
         """
-        units = ["tsp.", "tsps.", "tbsp.", "tbsps.", "lb.", "lbs.", "oz."]
+        units = [
+            "tsp.",
+            "tsps.",
+            "tbsp.",
+            "tbsps.",
+            "tbs.",
+            "tb.",
+            "lb.",
+            "lbs.",
+            "oz.",
+        ]
         units.extend([u.capitalize() for u in units])
         for unit in units:
             unit_no_period = unit.replace(".", "")
@@ -445,8 +528,18 @@ class PreProcessor:
         -------
         str
             Ingredient sentence with string ranges replaced with standardised range
+
+        Examples
+        --------
+        >>> p = PreProcessor("")
+        >>> p._replace_string_range("1 to 2 mashed bananas")
+        "1-2 mashed bananas"
+
+        >>> p = PreProcessor("")
+        >>> p._replace_string_range("4- or 6- large apples")
+        "5-6 large apples"
         """
-        return STRING_RANGE_PATTERN.sub(r"\1-\4", sentence)
+        return STRING_RANGE_PATTERN.sub(r"\1-\5", sentence)
 
     def _singlarise_units(
         self, tokenised_sentence: list[str]
@@ -517,6 +610,16 @@ class PreProcessor:
         -------
         bool
             True if token is a unit, else False
+
+        Examples
+        --------
+        >>> p = PreProcessor("")
+        >>> p._is_unit("cup")
+        True
+
+        >>> p = PreProcessor("")
+        >>> p._is_unit("beef")
+        False
         """
         return token.lower() in UNITS.values()
 
@@ -532,10 +635,31 @@ class PreProcessor:
         -------
         bool
             True if token is numeric, else False
+
+        Examples
+        --------
+        >>> p = PreProcessor("")
+        >>> p._is_numeric("1")
+        True
+
+        >>> p = PreProcessor("")
+        >>> p._is_numeric("1-2")
+        True
+
+        >>> p = PreProcessor("")
+        >>> p._is_numeric("dozen")
+        True
+
+        >>> p = PreProcessor("")
+        >>> p._is_numeric("beef")
+        False
         """
         if "-" in token:
             parts = token.split("-")
             return all([self._is_numeric(part) for part in parts])
+
+        if token == "dozen":
+            return True
 
         try:
             float(token)
@@ -575,22 +699,6 @@ class PreProcessor:
         """
         return "plus" in self.tokenized_sentence[:index]
 
-    def _follows_slash(self, index: int) -> bool:
-        """Return True if token at index follow / by any amount in sentence.
-        If the token at the index is /, it doesn't count as following.
-
-        Parameters
-        ----------
-        index : int
-            Index of token to check
-
-        Returns
-        -------
-        bool
-            True if token follows /, else False
-        """
-        return "/" in self.tokenized_sentence[:index]
-
     def _is_capitalised(self, token: str) -> bool:
         """Return True if token starts with a capital letter
 
@@ -603,6 +711,16 @@ class PreProcessor:
         -------
         bool
             True if token starts with a capital letter, else False
+
+        Examples
+        --------
+        >>> p = PreProcessor("")
+        >>> p._is_capitalised("Chicken")
+        True
+
+        >>> p = PreProcessor("")
+        >>> p._is_capitalised("chicken")
+        False
         """
         return CAPITALISED_PATTERN.match(token) is not None
 
@@ -618,17 +736,17 @@ class PreProcessor:
         Returns
         -------
         bool
-            True if index is inside parantheses or is parenthesis, else False
+            True if index is inside parentheses or is parenthesis, else False
         """
         # If it's "(" or ")", return True
-        if self.tokenized_sentence[index] in ["(", ")"]:
+        if self.tokenized_sentence[index] in ["(", ")", "[", "]"]:
             return True
 
         open_parens, closed_parens = [], []
         for i, token in enumerate((self.tokenized_sentence)):
-            if token == "(":
+            if token == "(" or token == "[":
                 open_parens.append(i)
-            elif token == ")":
+            elif token == ")" or token == "]":
                 closed_parens.append(i)
 
         for start, end in zip(open_parens, closed_parens):
@@ -636,21 +754,6 @@ class PreProcessor:
                 return True
 
         return False
-
-    def _is_stop_word(self, token: str) -> bool:
-        """Return True if token is in STOP_WORDS set
-
-        Parameters
-        ----------
-        token : str
-            Token to check
-
-        Returns
-        -------
-        bool
-            True if token is a stop word, else False.
-        """
-        return token in STOP_WORDS
 
     def _is_ambiguous_unit(self, token: str) -> bool:
         """Return True if token is in AMBIGUOUS_UNITS list
@@ -664,6 +767,20 @@ class PreProcessor:
         -------
         bool
             True if token is in AMBIGUOUS_UNITS, else False
+
+        Examples
+        --------
+        >>> p = PreProcessor("")
+        >>> p._is_ambiguous_unit("cloves")
+        True
+
+        >>> p = PreProcessor("")
+        >>> p._is_ambiguous_unit("wedge")
+        True
+
+        >>> p = PreProcessor("")
+        >>> p._is_ambiguous_unit("leaf")
+        True
         """
         return token in AMBIGUOUS_UNITS
 
@@ -677,7 +794,7 @@ class PreProcessor:
 
         Returns
         -------
-        dict[str, Any]
+        dict[str, str | bool]
             Dictionary of features for token at index
         """
         token = self.tokenized_sentence[index]
@@ -689,10 +806,8 @@ class PreProcessor:
             "is_unit": self._is_unit(token),
             "is_ambiguous": self._is_ambiguous_unit(token),
             "is_in_parens": self._is_inside_parentheses(index),
-            "is_stop_word": self._is_stop_word(token),
             "is_after_comma": self._follows_comma(index),
             "is_after_plus": self._follows_plus(index),
-            "is_after_slash": self._follows_slash(index),
         }
 
         if index > 0:
@@ -713,12 +828,12 @@ class PreProcessor:
 
         return features
 
-    def sentence_features(self) -> list[dict[str, Any]]:
+    def sentence_features(self) -> list[dict[str, str | bool]]:
         """Return features for all tokens in sentence
 
         Returns
         -------
-        list[dict[str, Any]]
+        list[dict[str, str | bool]]
             List of features for each token in sentence
         """
         if self.defer_pos_tagging:

@@ -19,7 +19,7 @@ author = "Tom Strange"
 
 extensions = ["sphinx.ext.autodoc", "sphinx.ext.napoleon", "sphinx_design"]
 
-autodoc_typehints = "none"
+# autodoc_typehints = "none"
 napoleon_use_param = False
 napoleon_use_rtype = False
 napoleon_use_keyword = False
@@ -47,7 +47,11 @@ html_context = {"default_mode": "dark"}
 
 html_theme_options = {
     "collapse_navigation": True,
-    "pygment_light_style": "gruvbox-light",
     "pygment_dark_style": "gruvbox-dark",
+    "navbar_end": ["version-switcher", "navbar-icon-links"],
     "github_url": "https://github.com/strangetom/ingredient-parser",
+    "switcher": {
+        "json_url": "https://ingredient-parser.readthedocs.io/en/latest/_static/switcher.json",
+        "version_match": version,
+    }
 }

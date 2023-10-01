@@ -52,12 +52,13 @@ testpaths = [
 ]
 
 [tool.black]
-target-version = ["py39"]
+target-version = ["py310", "py311"]
 include = "\\.py$"
 extend-exclude = "\\.ipynb$"
 
 [tool.ruff]
 select = ["E", "F", "I"]
+ignore = ["E402"]
 exclude = [
     "**/__pycache__",
     ".git",

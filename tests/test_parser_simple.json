@@ -61,7 +61,6 @@
 {"sentence": "1 red onion, finely chopped", "labels": {"name": "red onion", "quantity": "1", "unit": "", "comment": "finely chopped"}}
 {"sentence": "18 corn tortillas, or wheat if preferred", "labels": {"name": "corn tortillas", "quantity": "18", "unit": "", "comment": "or wheat if preferred"}}
 {"sentence": "6 spring onions, halved lengthways", "labels": {"name": "spring onions", "quantity": "6", "unit": "", "comment": "halved lengthways"}}
-{"sentence": "4 wholemeal burger buns, hotdog buns, or other bread", "labels": {"name": "wholemeal burger buns", "quantity": "4", "unit": "", "comment": "hotdog buns, or other bread"}}
 {"sentence": "1½ bay leaf, optional", "labels": {"name": "bay leaf", "quantity": "1.5", "unit": "", "comment": "optional"}}
 {"sentence": "2 vine tomatoes, peeled and quartered", "labels": {"name": "vine tomatoes", "quantity": "2", "unit": "", "comment": "peeled and quartered"}}
 {"sentence": "4 sweet potatoes, pricked all over with a fork", "labels": {"name": "sweet potatoes", "quantity": "4", "unit": "", "comment": "pricked all over with a fork"}}
@@ -73,11 +72,10 @@
 {"sentence": "thumbnail-size piece ginger, peeled and grated", "labels": {"name": "ginger", "quantity": "", "unit": "thumbnail-size piece", "comment": "peeled and grated"}}
 {"sentence": "bunch spring onions, finely chopped", "labels": {"name": "spring onions", "quantity": "", "unit": "bunch", "comment": "finely chopped"}}
 {"sentence": "handful coriander, roughly chopped", "labels": {"name": "coriander", "quantity": "", "unit": "handful", "comment": "roughly chopped"}}
-{"sentence": "knob of butter, at room temperature", "labels": {"name": "of butter", "quantity": "", "unit": "knob", "comment": "at room temperature"}}
+{"sentence": "knob of butter, at room temperature", "labels": {"name": "butter", "quantity": "", "unit": "knob", "comment": "of, at room temperature"}}
 {"sentence": "large cup peas, defrosted", "labels": {"name": "peas", "quantity": "", "unit": "large cup", "comment": "defrosted"}}
 {"sentence": "small bunch basil, shredded", "labels": {"name": "basil", "quantity": "", "unit": "small bunch", "comment": "shredded"}}
-{"sentence": "handful cherry tomatoes, about 8", "labels": {"name": "cherry tomatoes", "quantity": "", "unit": "handful", "comment": "about 8"}}
-{"sentence": "large handful of dates, pitted and finely chopped", "labels": {"name": "of dates", "quantity": "", "unit": "large handful", "comment": "pitted and finely chopped"}}
+{"sentence": "large handful of dates, pitted and finely chopped", "labels": {"name": "dates", "quantity": "", "unit": "large handful", "comment": "of, pitted and finely chopped"}}
 {"sentence": "small eating apple, quartered, cored and grated", "labels": {"name": "eating apple", "quantity": "", "unit": "small", "comment": "quartered, cored and grated"}}
 # <quantity> <unit> <ingredient>, <comment>
 {"sentence": "8 ounces feta cheese, crumbled", "labels": {"name": "feta cheese", "quantity": "8", "unit": "ounces", "comment": "crumbled"}}
@@ -91,7 +89,7 @@
 {"sentence": "1/2 pound sweet Italian sausage, casing removed", "labels": {"name": "sweet Italian sausage", "quantity": "0.5", "unit": "pounds", "comment": "casing removed"}}
 {"sentence": "2 teaspoons parsley, chopped", "labels": {"name": "parsley", "quantity": "2", "unit": "teaspoons", "comment": "chopped"}}
 {"sentence": "1 tablespoon butter, at room temperature", "labels": {"name": "butter", "quantity": "1", "unit": "tablespoon", "comment": "at room temperature"}}
-{"sentence": "2 to 3 pounds sweet potatoes, peeled and grated, 4 to 6 cups", "labels": {"name": "sweet potatoes", "quantity": "2-3", "unit": "pounds", "comment": "peeled and grated, 4-6 cups"}}
+{"sentence": "2 to 3 pounds sweet potatoes, peeled and grated", "labels": {"name": "sweet potatoes", "quantity": "2-3", "unit": "pounds", "comment": "peeled and grated"}}
 {"sentence": "1 1/2 teaspoons curry powder, or to taste", "labels": {"name": "curry powder", "quantity": "1.5", "unit": "teaspoons", "comment": "or to taste"}}
 {"sentence": "2 tablespoons milk, approximately", "labels": {"name": "milk", "quantity": "2", "unit": "tablespoons", "comment": "approximately"}}
 {"sentence": "1 tablespoon garlic, finely minced", "labels": {"name": "garlic", "quantity": "1", "unit": "tablespoon", "comment": "finely minced"}}
@@ -111,7 +109,7 @@
 {"sentence": "40 g parmesan, finely grated", "labels": {"name": "parmesan", "quantity": "40", "unit": "g", "comment": "finely grated"}}
 {"sentence": "4 salmon steaks, cut into bitesized pieces", "labels": {"name": "salmon steaks", "quantity": "4", "unit": "", "comment": "cut into bitesized pieces"}}
 {"sentence": "100 g vegetarian feta, crumbled", "labels": {"name": "vegetarian feta", "quantity": "100", "unit": "g", "comment": "crumbled"}}
-{"sentence": "1 medium carrot, peeled cut in &frac14;-inch dice", "labels": {"name": "carrot", "quantity": "1", "unit": "medium", "comment": "peeled cut in 0.25-inch dice"}}
+{"sentence": "1 medium carrot, peeled cut in &frac14;-inch dice", "labels": {"name": "carrot", "quantity": "1", "unit": "medium", "comment": "peeled cut in 0.25 inch dice"}}
 {"sentence": "2 large green chillies, finely sliced into rounds", "labels": {"name": "green chillies", "quantity": "2", "unit": "large", "comment": "finely sliced into rounds"}}
 {"sentence": "3 cloves garlic, finely chopped", "labels": {"name": "garlic", "quantity": "3", "unit": "cloves", "comment": "finely chopped"}}
 {"sentence": "1 large red pepper, deseeded and diced", "labels": {"name": "red pepper", "quantity": "1", "unit": "large", "comment": "deseeded and diced"}}
