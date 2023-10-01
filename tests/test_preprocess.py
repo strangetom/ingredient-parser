@@ -59,7 +59,7 @@ class TestPreProcessor_replace_en_em_dash:
         input_sentence = "2 cups flour — white or self-raising"
         assert (
             p._replace_en_em_dash(input_sentence)
-            == "2 cups flour - white or self-raising"
+            == "2 cups flour  -  white or self-raising"
         )
 
 
@@ -350,6 +350,36 @@ class TestPreProcessor_replace_unicode_fractions:
         """
         input_sentence = "¼-½ teaspoon"
         assert p._replace_unicode_fractions(input_sentence) == " 1/4-1/2 teaspoon"
+
+
+class TestPreProcessor_combine_quantities_split_by_and:
+    def test_half(self, p):
+        """
+        "1 and 1/2" is replaced by 1.5
+        """
+        input_sentence = "1 and 1/2 tsp salt"
+        assert p._combine_quantities_split_by_and(input_sentence) == "1.5 tsp salt"
+
+    def test_quarter(self, p):
+        """
+        "1 and 1/4" is replaced by 1.25
+        """
+        input_sentence = "1 and 1/4 tsp salt"
+        assert p._combine_quantities_split_by_and(input_sentence) == "1.25 tsp salt"
+
+    def test_three_quarters(self, p):
+        """
+        "1 and 3/4" is replaced by 1.75
+        """
+        input_sentence = "1 and 3/4 tsp salt"
+        assert p._combine_quantities_split_by_and(input_sentence) == "1.75 tsp salt"
+
+    def test_third(self, p):
+        """
+        "1 and 1/3" is replaced by 1.333
+        """
+        input_sentence = "1 and 1/3 tsp salt"
+        assert p._combine_quantities_split_by_and(input_sentence) == "1.333 tsp salt"
 
 
 class TestPreProcessor_replace_fake_fractions:

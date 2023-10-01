@@ -140,7 +140,7 @@ def train_model(
             truth_test,
             labels_pred,
             source_test,
-            minimum_mismatches=1,
+            lambda x: x == 1,
         )
 
     # Calculate some starts about the OTHER label

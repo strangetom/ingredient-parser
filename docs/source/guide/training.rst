@@ -29,10 +29,12 @@ Has the following associated labelling:
     * - Quantity
       - Unit
       - Name
+      - Preparation
       - Comment
     * - 1
       - cup
       - plum tomatoes
+      - 
       - canned, with juice
 
 We have match each token in the input sentence to the correct label. This is not possible to get 100% correct, especially if a word appears multiple times in a sentence with different contexts and therefore different labels. 
@@ -65,9 +67,9 @@ With the data ready, we can now train the model using `python-crfuite <https://g
 
     To train the model, you will need the additional dependencies listed in ``requirements-dev.txt``. These can be installed by running the command:
 
-    .. code::
+    .. code:: bash
 
-        >>> python -m pip install -r requirements-dev.txt
+        $ python -m pip install -r requirements-dev.txt
 
 .. code:: python
     
@@ -95,7 +97,7 @@ All of the above steps are implemented in the ``train.py`` script. The following
 
 .. code:: bash
 
-    >>> python train.py train --datasets train/data/nytimes/nyt-ingredients-snapshot-2015.csv train/data/strangerfoods/sf-labelled-data.csv train/data/cookstr/cookstr-ingredients-snapshot-2017-clean.csv
+    $ python train.py train --datasets train/data/nytimes/nyt-ingredients-snapshot-2015.csv train/data/strangerfoods/sf-labelled-data.csv train/data/cookstr/cookstr-ingredients-snapshot-2017-clean.csv
 
 Evaluating the model
 ^^^^^^^^^^^^^^^^^^^^
@@ -119,16 +121,17 @@ The current performance of the model is
 .. code::
 
     Sentence-level results:
-        Total: 12044
-        Correct: 10834
-        Incorrect: 1210
-        -> 89.95% correct
+        Total: 10001
+        Correct: 9120
+        Incorrect: 881
+        -> 91.19% correct
 
     Word-level results:
-        Total: 76299
-        Correct: 73430
-        Incorrect: 2869
-        -> 96.24% correct
+        Total: 64466
+        Correct: 62230
+        Incorrect: 2236
+        -> 96.53% correct
+
 
 There will always be some variation in model performance each time the model is trained, because the training data is partitioned randomly each time. If the model is representing the training data well, then the variation in performance metrics should be small (i.e. << 1%).
 
@@ -136,6 +139,6 @@ The model training process can be executed multiple times to obtain the average 
 
 .. code:: bash
 
-    >>> python train.py multiple --datasets train/data/nytimes/nyt-ingredients-snapshot-2015.csv train/data/strangerfoods/sf-labelled-data.csv train/data/cookstr/cookstr-ingredients-snapshot-2017-clean.csv --runs 10
+    $ python train.py multiple --datasets train/data/nytimes/nyt-ingredients-snapshot-2015.csv train/data/strangerfoods/sf-labelled-data.csv train/data/cookstr/cookstr-ingredients-snapshot-2017-clean.csv --runs 10
 
 where the ``--runs`` argument sets the number of training cycles to run.

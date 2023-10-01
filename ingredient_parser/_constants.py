@@ -30,7 +30,6 @@ UNITS = {
     "ears": "ear",
     "envelopes": "envelope",
     "feet": "foot",
-    "fillets": "fillet",
     "g": "g",
     "gallons": "gallon",
     "glasses": "glass",

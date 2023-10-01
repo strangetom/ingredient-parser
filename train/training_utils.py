@@ -51,6 +51,7 @@ def load_csv(
                     "name": row["name"].strip().lower(),
                     "quantity": row["quantity"].strip().lower(),
                     "unit": row["unit"].strip().lower(),
+                    "preparation": row["preparation"].strip().lower(),
                     "comment": row["comment"].strip().lower(),
                 }
             )
@@ -193,6 +194,7 @@ def invert_labels_dict(labels: dict[str, str]) -> dict[str, list[str]]:
         "unit": "UNIT",
         "quantity": "QTY",
         "comment": "COMMENT",
+        "preparation": "PREP",
     }
 
     token_dict = {}

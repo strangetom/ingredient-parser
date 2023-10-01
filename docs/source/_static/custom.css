@@ -97,3 +97,8 @@ html[data-theme=dark] {
 html[data-theme=dark] .bd-content img:not(.only-dark):not(.dark-light) {
     background: revert;
 }
+
+/* Fix text colour in search box on search result page */
+input.form-control {
+    color: var(--pst-color-text-base)
+}

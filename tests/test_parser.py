@@ -33,6 +33,11 @@ def dict_to_ParsedIngredient(data: dict[str, str]) -> ParsedIngredient:
     else:
         name = None
 
+    if true_prep := labels.get("preparation", None):
+        preparation = IngredientText(text=true_prep, confidence=0)
+    else:
+        preparation = None
+
     if true_comment := labels.get("comment", None):
         comment = IngredientText(text=true_comment, confidence=0)
     else:
@@ -45,7 +50,12 @@ def dict_to_ParsedIngredient(data: dict[str, str]) -> ParsedIngredient:
     )
 
     return ParsedIngredient(
-        name=name, amount=[amount], comment=comment, other=None, sentence=sentence
+        name=name,
+        amount=[amount],
+        preparation=preparation,
+        comment=comment,
+        other=None,
+        sentence=sentence,
     )
 
 

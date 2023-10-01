@@ -10,10 +10,10 @@ The following dataclass is defined which will be output from the ``parse_ingredi
 
 Each of the fields in the dataclass has to be determined from the output of the model. The :class:`PostProcessor` class handles this for us. 
 
-Name, Comment, Other
-^^^^^^^^^^^^^^^^^^^^
+Name, Preparation, Comment, Other
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-For each of the labels NAME, COMMENT and OTHER, the process of combining the tokens for each labels is the same.
+For each of the labels NAME, PREP, COMMENT and OTHER, the process of combining the tokens for each labels is the same.
 
 The general steps are as follows:
 
