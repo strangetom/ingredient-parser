@@ -29,10 +29,12 @@ Has the following associated labelling:
     * - Quantity
       - Unit
       - Name
+      - Preparation
       - Comment
     * - 1
       - cup
       - plum tomatoes
+      - 
       - canned, with juice
 
 We have match each token in the input sentence to the correct label. This is not possible to get 100% correct, especially if a word appears multiple times in a sentence with different contexts and therefore different labels. 

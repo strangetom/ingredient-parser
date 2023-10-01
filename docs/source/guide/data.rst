@@ -4,16 +4,7 @@ Loading the data
 Data sources
 ^^^^^^^^^^^^
 
-There are three sources of data which are used to train the model, each with their own advantages and disadvantages.
-
-StrangerFoods
-~~~~~~~~~~~~~
-
-The recipes from my website: https://strangerfoods.org. 
-
-* The dataset is extremely clean and well labelled. (Having very clean data is not necessarily useful since it won't reflect the kinds of sentences that we might come across in the wild.)
-* The dataset primarily uses metric units
-* The dataset is small, roughly 7100 entries
+There are two sources of data which are used to train the model, each with their own advantages and disadvantages.
 
 New York Times
 ~~~~~~~~~~~~~~
@@ -41,8 +32,6 @@ Labelling the data
 .. note::
     
     The details described in this section also apply to how the labelling was performed for the Cookstr dataset.
-
-    It does not apply to the Stranger Foods dataset which is automatically generated.
 
 The New York Times dataset has gone through, and continues to go through, the very manual process of labelling the training data. This process is there to ensure that the labels assigned to each token in each ingredient sentence are correct and consistent across the dataset. In general, the idea is to avoid modifying the input sentence and only correct the labels for each, although entries have been removed where there is too much missing information or the entry is not actually an ingredient sentence (a few recipe instructions have been found mixed into the data).
 

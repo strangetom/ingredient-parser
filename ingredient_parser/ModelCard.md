@@ -36,6 +36,7 @@ The ingredient parser model parses structured information from English language 
   - QTY: Quantity of ingredient
   - UNIT: Unit of ingredient
   - NAME: Name of ingredient
+  - PREP: Preparation notes for the ingredient
   - COMMENT: Comment in ingredient sentence
   - OTHER, for text that cannot be classified into one of the above labels
 
@@ -54,10 +55,11 @@ The ingredient parser model parses structured information from English language 
 The model has been trained on datasets that have limitations.
 
 - The New York Times dataset contains sentences that largely follow a consistent style, use US customary units, and often refer to ingredients or brands found only in the USA.
-- The Cookstr dataset contains sentences that use US customary units as the primary unit, and often refer to ingredients or brands found only in the USA.
-- The StrangerFoods dataset is based on information collated from a large number of sources. Due to the way in which the data extracted from the source database, the sentences are automatically labelled, which introduces inconsistencies.
+- The Cookstr dataset contains sentences that use US customary units as the primary unit, and often refer to ingredients or brands found only in the USA. Sentences often include amours in multiple unit formats (US customary, metric).
 
-Certain sentence formats, such as consecutive numbers that should not be combined (e.g. 1 2-ounce steak) are not well managed in the preprocessing step and can result in unexpected parsing results.
+Certain sentence formats, such as consecutive numbers that should not be combined (e.g. 1 1/2-ounce steak) are not well managed in the preprocessing step and can result in unexpected parsing results. 
+
+Long sentences increase the likelihood of the model mislabelling tokens.
 
 ## Metrics
 
@@ -67,7 +69,7 @@ Sentence level accuracy measures the percentage of ingredient sentences where al
 
 ## Training and Evaluation Data
 
-There are 3 datasets used to train and evaluate model performance.
+There are 2 datasets used to train and evaluate model performance.
 
 1. New York Times, originally found at https://github.com/nytimes/ingredient-phrase-tagger.
 
@@ -77,11 +79,7 @@ There are 3 datasets used to train and evaluate model performance.
 
    The first 10,000 sentences are used in the training and evaluation of the model.
 
-3. StrangerFoods, found at https://strangerfoods.org
-
-   All sentences are used in the training and evaluation of the model.
-
-The New York Times and Cookstr datasets have been through extensive cleaning to make the data consistent. The cleaned versions of the data are found in the repository for the ingredient_parser_nlp package: https://github.com/strangetom/ingredient-parser
+Both datasets have been through extensive cleaning to make the data consistent. The cleaned versions of the data are found in the repository for the ingredient_parser_nlp package: https://github.com/strangetom/ingredient-parser
 
 The model is trained on a randomised set of 75% of the total data, and evaluated on the remaining 25%.
 

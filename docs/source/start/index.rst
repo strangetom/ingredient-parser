@@ -14,11 +14,13 @@ we want to extract information about the quantity, units, name and comment. For 
     * - Quantity
       - Unit
       - Name
+      - Preparation
       - Comment
     * - 200
       - g
       - plain flour
       - sifted
+      - 
 
 This package uses a natural language model trained on thousands of example ingredient sentences. A Condition Random Fields model has been trained on data from three sources. The New York Times released a large dataset when they did some similar work in 2015 in their `Ingredient Phrase Tagger <https://github.com/nytimes/ingredient-phrase-tagger>`_ repository. A dump of recipes taken from Cookstr in 2017. I have also gathered a (much smaller) dataset from recipes, which is also used to train the model.
 
@@ -72,6 +74,9 @@ amount
 
 name
     The name of the ingredient sentence, or None.
+
+preparation
+    The preparation notes for the ingredient. This is a string, or None is there are no preparation notes for the ingredient.
 
 comment
     The comment from the ingredient sentence. This is a string, or None if there is no comment.
