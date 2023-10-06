@@ -8,7 +8,12 @@ from nltk.stem.porter import PorterStemmer
 from nltk.tag import pos_tag
 from nltk.tokenize import RegexpTokenizer
 
-from ._constants import AMBIGUOUS_UNITS, STRING_NUMBERS_REGEXES, UNITS
+from ._constants import (
+    AMBIGUOUS_UNITS,
+    STRING_NUMBERS_REGEXES,
+    UNICODE_FRACTIONS,
+    UNITS,
+)
 
 # Regex pattern for fraction parts.
 # Matches 0+ numbers followed by 0+ white space characters followed by a number then
@@ -30,13 +35,6 @@ RANGE_PATTERN = re.compile(r"\d+\s*[\-]\d+")
 # Allows the range to include a hyphen, which are captured in separate groups.
 # Captures the two number in the range in separate capture groups.
 STRING_RANGE_PATTERN = re.compile(r"([\d\.]+)(\-)?\s*(to|or)\s*(\-)*\s*([\d\.]+(\-)?)")
-
-# Regex pattern to match hyphen followed by a number. This is used to fix ranges
-# following the replacement of unicode fractions with fake fractions.
-# The pattern captures any characters up to a hyphen followed by a space followed
-# by a number. The parts before and after that space are cpatured in groups so we
-# can reconstitute the sentence without that middle space.
-BROKEN_RANGE_PATTERN = re.compile(r"(.*\-)\s(\d.*)")
 
 # Regeax pattern to match quantities split by "and" e.g. 1 and 1/2.
 # Capture the whole match, and the quantites before and after the "and".
@@ -407,37 +405,18 @@ class PreProcessor:
         --------
         >>> p = PreProcessor("")
         >>> p._replace_unicode_fractions("½ cup icing sugar")
-        "1/2 cup icing sugar"
+        " 1/2 cup icing sugar"
 
         >>> p = PreProcessor("")
         >>> p._replace_unicode_fractions("3⅓ cups warm water")
         "3 1/3 cups warm water"
-        """
-        fractions = {
-            "\u215b": "1/8",
-            "\u215c": "3/8",
-            "\u215d": "5/8",
-            "\u215e": "7/8",
-            "\u2159": "1/6",
-            "\u215a": "5/6",
-            "\u2155": "1/5",
-            "\u2156": "2/5",
-            "\u2157": "3/5",
-            "\u2158": "4/5",
-            "\xbc": "1/4",
-            "\xbe": "3/4",
-            "\u2153": "1/3",
-            "\u2154": "2/3",
-            "\xbd": "1/2",
-        }
-        for f_unicode, f_ascii in fractions.items():
-            # Insert space before ascii fraction to avoid merging into the
-            # previous token.
-            sentence = sentence.replace(f_unicode, f" {f_ascii}")
 
-        # Because we inserted the space before the fake fraction, we might have broken
-        # some ranges by adding a space after the hyphen, so let's fix that.
-        sentence = BROKEN_RANGE_PATTERN.sub(r"\1\2", sentence)
+        >>> p = PreProcessor("")
+        >>> p._replace_unicode_fractions("¼-½ teaspoon")
+        "1/4-1/2 teaspoon"
+        """
+        for f_unicode, f_ascii in UNICODE_FRACTIONS.items():
+            sentence = sentence.replace(f_unicode, f_ascii)
 
         return sentence
 

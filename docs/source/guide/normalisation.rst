@@ -65,6 +65,11 @@ Fractions represented by html entities (e.g. 0.5 as ``&frac12;``) are replaced w
 
 Fractions represented by Unicode fractions are replaced a textual format (.e.g ½ as 1/2), as defined by the dictionary in this function. The next step (``_replace_fake_fractions``) will turn these into decimal numbers.
 
+We have to handle two cases: where the character before the unicode fraction is a hyphen and where it is not. In the latter case, we want to insert a space before the replacement so we don't accidently merge with the character before. However, if the character before is a hyphen, we don't want to do this because we could end up splitting a range up.
+
+.. literalinclude:: ../../../ingredient_parser/_constants.py
+    :lines: 169-205
+
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
     :pyobject: PreProcessor._replace_unicode_fractions
     :dedent: 4

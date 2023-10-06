@@ -165,3 +165,41 @@ for s, n in STRING_NUMBERS.items():
     # Only match if the string is preceded by a non-word character or is at
     # the start of the sentence
     STRING_NUMBERS_REGEXES[s] = (re.compile(rf"\b({s})\b", flags=re.IGNORECASE), n)
+
+# Unicode fractions and their replacements as fake fractions
+# Most of the time we need to insert a space in front of the replacement so we don't
+# merge the replacement with the previous token i.e. 1½ != 11/2
+# However, if the prior chaacter is a hyphen, we don't want to insert a space as this
+# will mess up any ranges
+UNICODE_FRACTIONS = {
+    "-\u215b": "-1/8",
+    "-\u215c": "-3/8",
+    "-\u215d": "-5/8",
+    "-\u215e": "-7/8",
+    "-\u2159": "-1/6",
+    "-\u215a": "-5/6",
+    "-\u2155": "-1/5",
+    "-\u2156": "-2/5",
+    "-\u2157": "-3/5",
+    "-\u2158": "-4/5",
+    "-\xbc": "-1/4",
+    "-\xbe": "-3/4",
+    "-\u2153": "-1/3",
+    "-\u2154": "-2/3",
+    "-\xbd": "-1/2",
+    "\u215b": " 1/8",
+    "\u215c": " 3/8",
+    "\u215d": " 5/8",
+    "\u215e": " 7/8",
+    "\u2159": " 1/6",
+    "\u215a": " 5/6",
+    "\u2155": " 1/5",
+    "\u2156": " 2/5",
+    "\u2157": " 3/5",
+    "\u2158": " 4/5",
+    "\xbc": " 1/4",
+    "\xbe": " 3/4",
+    "\u2153": " 1/3",
+    "\u2154": " 2/3",
+    "\xbd": " 1/2",
+}
