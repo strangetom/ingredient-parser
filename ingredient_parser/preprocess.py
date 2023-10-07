@@ -36,7 +36,9 @@ RANGE_PATTERN = re.compile(r"\d+\s*[\-]\d+")
 # Assumes fake fractions and unicode fraction have already been replaced.
 # Allows the range to include a hyphen, which are captured in separate groups.
 # Captures the two number in the range in separate capture groups.
-STRING_RANGE_PATTERN = re.compile(r"([\d\.]+)(\-)?\s*(to|or)\s*(\-)*\s*([\d\.]+(\-)?)")
+STRING_RANGE_PATTERN = re.compile(
+    r"([\d\.]+)\s*(\-)?\s*(to|or)\s*(\-)*\s*([\d\.]+(\-)?)"
+)
 
 # Regeax pattern to match quantities split by "and" e.g. 1 and 1/2.
 # Capture the whole match, and the quantites before and after the "and".
