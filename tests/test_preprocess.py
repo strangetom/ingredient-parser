@@ -445,6 +445,24 @@ class TestPreProcessor_split_quantity_and_units:
         input_sentence = "2-pound whole chicken"
         assert p._split_quantity_and_units(input_sentence) == "2 pound whole chicken"
 
+    def test_unit_then_number(self, p):
+        """
+        A space is inserted between adjacent number and letters
+        """
+        input_sentence = "2lb1oz cherry tomatoes"
+        assert (
+            p._split_quantity_and_units(input_sentence) == "2 lb 1 oz cherry tomatoes"
+        )
+
+    def test_unit_hyphen_number(self, p):
+        """
+        A space is inserted between the letter and hyphen, and hyphen and number
+        """
+        input_sentence = "2lb-1oz cherry tomatoes"
+        assert (
+            p._split_quantity_and_units(input_sentence) == "2 lb - 1 oz cherry tomatoes"
+        )
+
 
 class TestPreProcessor_remove_unit_trailing_period:
     def test_tsp(self, p):

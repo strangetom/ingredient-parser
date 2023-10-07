@@ -26,6 +26,8 @@ CAPITALISED_PATTERN = re.compile(r"^[A-Z]")
 # Regex pattern for finding quantity and units without space between them.
 # Assumes the quantity is always a number and the units always a letter.
 QUANTITY_UNITS_PATTERN = re.compile(r"(\d)\-?([a-zA-Z])")
+UNITS_QUANTITY_PATTERN = re.compile(r"([a-zA-Z])(\d)")
+UNITS_HYPHEN_QUANTITY_PATTERN = re.compile(r"([a-zA-Z])\-(\d)")
 
 # Regex pattern for matching a numeric range e.g. 1-2, 2-3.
 RANGE_PATTERN = re.compile(r"\d+\s*[\-]\d+")
@@ -423,7 +425,8 @@ class PreProcessor:
     def _split_quantity_and_units(self, sentence: str) -> str:
         """Insert space between quantity and unit
         This currently finds any instances of a number followed directly by a letter
-        with no space in between.
+        with no space or a hyphen in between. It also finds any letters followed directly
+        by a number with no space in between.
 
         Parameters
         ----------
@@ -444,8 +447,18 @@ class PreProcessor:
         >>> p = PreProcessor("")
         >>> p._split_quantity_and_units("2-pound red peppers, sliced")
         "2 pound red peppers, sliced"
+
+        >>> p = PreProcessor("")
+        >>> p._split_quantity_and_units("2lb1oz cherry tomatoes")
+        "2 lb 1 oz cherry tomatoes"
+
+        >>> p = PreProcessor("")
+        >>> p._split_quantity_and_units("2lb-1oz cherry tomatoes")
+        "2 lb - 1 oz cherry tomatoes"
         """
-        return QUANTITY_UNITS_PATTERN.sub(r"\1 \2", sentence)
+        sentence = QUANTITY_UNITS_PATTERN.sub(r"\1 \2", sentence)
+        sentence = UNITS_QUANTITY_PATTERN.sub(r"\1 \2", sentence)
+        return UNITS_HYPHEN_QUANTITY_PATTERN.sub(r"\1 - \2", sentence)
 
     def _remove_unit_trailing_period(self, sentence: str) -> str:
         """Remove trailing periods from units e.g. tsp. -> tsp

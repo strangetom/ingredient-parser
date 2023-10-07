@@ -97,7 +97,7 @@ Fractions represented in a textual format (e.g. 1/2, 3/4) are replaced with deci
 A regular expression is used to find these in the sentence. The regular expression also matches fractions greater than 1 (e.g. 1 1/2 is 1.5).
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
-    :lines: 13-16
+    :lines: 18-21
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
     :pyobject: PreProcessor._replace_fake_fractions
@@ -110,7 +110,7 @@ A regular expression is used to find these in the sentence. The regular expressi
 A space is enforced between quantities and units to make sure they are tokenized to separate tokens. If an quantity and unit are joined by a hyphen, this is also replaced by a space.
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
-    :lines: 21-23
+    :lines: 26-30
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
     :pyobject: PreProcessor._split_quantity_and_units
@@ -142,7 +142,7 @@ where the numbers 1 and 2 represent any decimal value.
 The purpose of this is to ensure the range is kept as a single token.
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
-    :lines: 28-32
+    :lines: 35-39
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
     :pyobject: PreProcessor._replace_string_range
