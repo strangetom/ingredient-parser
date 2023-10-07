@@ -437,7 +437,7 @@ class PreProcessor:
     def _split_quantity_and_units(self, sentence: str) -> str:
         """Insert space between quantity and unit
         This currently finds any instances of a number followed directly by a letter
-        with no space or a hyphen in between. It also finds any letters followed 
+        with no space or a hyphen in between. It also finds any letters followed
         directly by a number with no space in between.
 
         Parameters
