@@ -53,7 +53,7 @@ clarified butter,clarified butter,,,,
 100ml/3½oz walnut oil,walnut oil,100 3.5,ml oz,,/
 ½ tsp Worcestershire sauce,Worcestershire sauce,0.5,tsp,,
 500g/1lb 2oz beef mince,beef mince,500 1 2,g lb oz,,/
-"500g/1lb 2oz baby carrots, leaf bases left on",baby carrots,500 1 2,g lb oz,,leaf bases left on /
+"500g/1lb 2oz baby carrots, leaf bases left on",baby carrots,500 1 2,g lb oz,leaf bases left on,/
 "1 tbsp coriander, chopped (save a few pretty bits for the finished dish)",coriander,1,tbsp,chopped,(save a few pretty bits for the finished dish)
 ½ tsp cream of tartar,cream of tartar,0.5,tsp,,
 "1 courgette, sliced into ribbons with a potato peeler",courgette,1,,sliced into ribbons with a potato peeler,
@@ -296,7 +296,7 @@ yellow food colouring gel,yellow food colouring gel,,,,
 "3 large potatoes, chopped into cubes",potatoes,3,large,chopped into cubes,
 "6 baby artichokes, peeled and choke removed, sliced",baby artichokes,6,,"peeled and choke removed, sliced",
 "4 slices brioche, toasted and buttered",brioche,4,slice,toasted and buttered,
-"½ vanilla pod, split lengthways","vanilla pod, split lengthways",0.5,,,
+"½ vanilla pod, split lengthways",vanilla pod,0.5,,split lengthways,
 "3 carrots, shredded or sliced",carrots,3,,shredded or sliced,
 1 level dessertspoon golden caster sugar,golden caster sugar,1,level dessertspoon,,
 "400ml/14fl oz vegetable oil, for deep frying",vegetable oil,400 14,ml fl oz,,for deep frying /
@@ -960,7 +960,7 @@ creamy mash,creamy mash,,,,
 2 tbsp tomato passata,tomato passata,2,tbsp,,
 50g/1½oz blueberries,blueberries,50 1.5,g oz,,/
 halloween sweets,halloween sweets,,,,
-"4 bananas, peeled and split lengthways","bananas, lengthways",4,,peeled and split,
+"4 bananas, peeled and split lengthways",bananas,4,,peeled and split lengthways,
 100g/3½oz cherry tomatoes,cherry tomatoes,100 3.5,g oz,,/
 "3 cardamom pods, seeds only, crushed",cardamom pods,3,,crushed,seeds only
 "half cucumber, peeled, cut into 5cm/2in batons",cucumber,half,,"peeled, cut into 5 cm / 2 in batons",
@@ -1015,7 +1015,7 @@ small handful fresh parsley stalks,fresh parsley stalks,,small handful,,
 "60g/2¼oz butter, cut into roughly 1cm/½in dice",butter,60 2.25,g oz,cut into roughly 1 cm / 0.5 in dice,/
 "4 grouse crowns, feet on, cleaned and gutted",grouse crowns,4,,"feet on, cleaned and gutted",
 100ml/3½fl oz double cream,double cream,100 3.5,ml fl oz,,/
-"1 red pepper, seeded and cut into quarters, lengthways","red pepper, lengthways",1,,seeded and cut into quarters,
+"1 red pepper, seeded and cut into quarters, lengthways",red pepper,1,,seeded and cut into quarters lengthways,
 200g/7oz coconut milk,coconut milk,200 7,g oz,,/
 250g/9oz long-grain rice,long-grain rice,250 9,g oz,,/
 450ml/1 pint warm water,water,450 1,ml pint,warm,/
@@ -1361,7 +1361,7 @@ Italian extra virgin olive oil,Italian extra virgin olive oil,,,,
 "½ red onion, cut into thick rings",red onion,0.5,,cut into thick rings,
 2 slices white country-style bread,white country-style bread,2,slice,,
 "sunflower oil, for frying",sunflower oil,,,,for frying
-3 very fresh lambs' kidneys,fresh lambs' kidneys,3,very,,
+3 very fresh lambs' kidneys,very fresh lambs' kidneys,3,,,
 2 75g/2¾oz beef fillet medallions,beef fillet medallions,2 75 2.75,g oz,,/
 "400g/14oz pork tenderloin fillet, cut into thin strips",pork tenderloin fillet,400 14,g oz,cut into thin strips,/
 2 tsp cayenne,cayenne,2,tsp,,
@@ -1383,7 +1383,7 @@ drop of vanilla essence,vanilla essence,,drop,,of
 "5 large tomatillos, roughly chopped",tomatillos,5,large,roughly chopped,
 "4 T-bone steaks, at room temperature",T-bone steaks,4,,at room temperature,
 12g/⅓oz liquid glucose,liquid glucose,12 0.333,g oz,,/
-450g/1lb lean minced beef,lean beef,450 1,g lb,minced,/
+450g/1lb lean minced beef,lean minced beef,450 1,g lb,,/
 "2 eating apples, cored, roughly chopped",eating apples,2,,"cored, roughly chopped",
 "1 kaffir lime, or normal lime, zest only",kaffir lime,1,,zest only,or normal lime
 "75g/3oz mature cheddar, coarsely grated",mature cheddar,75 3,g oz,coarsely grated,/
@@ -1880,7 +1880,7 @@ pinch of paprika,paprika,,pinch,,of
 "coriander, to garnish",coriander,,,,to garnish
 "½ head broccoli, chopped into florets",broccoli,0.5,heads,chopped into florets,
 4 x 200g/7oz rib-eye steaks,rib-eye steaks,4 x 200 7,g oz,,/ rib-eye
-2 tbsp tinned chopped tomatoes,chopped tomatoes,2,tbsp,tinned,
+2 tbsp tinned chopped tomatoes,tinned chopped tomatoes,2,tbsp,,
 50g/1¾oz cooked basmati rice,basmati rice,50 1.75,g oz,cooked,/
 "100g/3½oz pecorino cheese, grated",pecorino cheese,100 3.5,g oz,grated,/
 "500g/1lb 2oz baby beetroot, trimmed and washed",baby beetroot,500 1 2,g lb oz,trimmed and washed,/
@@ -2005,7 +2005,7 @@ about 450g/1lb marzipan,marzipan,450 1,g lb,,about /
 1½ tbsp finely shredded fresh root ginger,fresh root ginger,1.5,tbsp,finely shredded,
 ½–1tsp chilli powder,chilli powder,0.5-1,tsp,,
 4 pigs’ cheeks,pigs’ cheeks,4,,,
-3.5kg/7lb 10oz boned pork shoulder,pork shoulder,3.5 7 10,kg lb oz,boned,/
+3.5kg/7lb 10oz boned pork shoulder,boned pork shoulder,3.5 7 10,kg lb oz,,/
 "2 medium free-range eggs, lightly beaten",free-range eggs,2,medium,lightly beaten,
 "200g/7oz bean sprouts, rinsed",bean sprouts,200 7,g oz,rinsed,/
 "250g/9oz halloumi cheese, cut into 1cm/½in cubes",halloumi cheese,250 9,g oz,cut into 1 cm / 0.5 in cubes,/
@@ -2095,7 +2095,7 @@ milk chocolate buttons,milk chocolate buttons,,,,
 2 tsp Thai fish sauce (nam pla),Thai fish sauce,2,tsp,,(nam pla)
 140g/5oz ground almonds,ground almonds,140 5,g oz,,/
 "8 spears asparagus, chopped",spears asparagus,8,,chopped,
-500g/17oz minced beef,beef,500 17,g oz,minced,/
+500g/17oz minced beef,minced beef,500 17,g oz,,/
 1 tbsp turmeric,turmeric,1,tbsp,,
 "3 tbsp flour, for dusting",flour,3,tbsp,,for dusting
 "1kg/2lb 3¼oz type '00' flour, plus extra for dusting",type '00' flour,1 2 3.25,kg lb oz,,plus extra for dusting/
@@ -2164,7 +2164,7 @@ small handful chives,chives,,small handful,,
 "1 red pepper, quartered, deseeded and sliced",red pepper,1,,"quartered, deseeded and sliced",
 "150ml/5½fl oz beef jus, or reduced beef stock",beef jus,150 5.5,ml fl oz,,or reduced beef stock/
 5 tbsp red wine,red wine,5,tbsp,,
-"100g/3½oz tinned tuna, drained",tuna,100 3.5,g oz,"tinned, drained",/
+"100g/3½oz tinned tuna, drained",tinned tuna,100 3.5,g oz,drained,/
 2 tsp instant espresso powder or strong instant coffee powder,instant espresso powder or strong instant coffee powder,2,tsp,,
 fresh lemon thyme (optional),fresh lemon thyme,,,,(optional)
 "generous knob cold butter, or dash olive oil",butter,,generous knob,cold,or dash olive oil knob
@@ -2198,7 +2198,7 @@ a few drops of Worcestershire sauce,Worcestershire sauce,few,drop,,"a, of"
 15g/½oz dried yeast,dried yeast,15 0.5,g oz,,/
 2 cinnamon stick,cinnamon,2,sticks,,
 50g/1½oz goats' cheese,goats' cheese,50 1.5,g oz,,/
-"1 chilli, halved lengthways, halved again widthways and deseeded","chilli, lengthways",1,,"halved, halved again widthways and deseeded",
+"1 chilli, halved lengthways, halved again widthways and deseeded",chilli,1,,"halved lengthways, halved again widthways and deseeded",
 150g/5½oz cooked and peeled crayfish tails,crayfish tails,150 5.5,g oz,cooked and peeled,/
 "1 medium cucumber, seeds removed, diced",cucumber,1,medium,"seeds removed, diced",
 125ml/4fl oz beer,beer,125 4,ml fl oz,,/
@@ -2269,7 +2269,7 @@ large pinch dried chilli flakes,dried chilli flakes,,large pinch,,
 "½ orange, zest and juice",orange,0.5,,,zest and juice
 "200-250g/7-9oz camembert, plastic wrapping and lid removed but still in its wooden box, at room temperature",camembert,200-250 7-9,g oz,"plastic wrapping and lid removed but still in its wooden box, at room temperature",/
 2 tsp low-sodium light soy sauce or tamari,low-sodium light soy sauce or tamari,2,tsp,,
-"200g/7oz tinned water chestnuts, drained",water chestnuts,200 7,g oz,"tinned, drained",/
+"200g/7oz tinned water chestnuts, drained",tinned water chestnuts,200 7,g oz,drained,/
 "250g/9oz savoy cabbage or kale, finely sliced",savoy cabbage or kale,250 9,g oz,finely sliced,/
 8 large fresh figs,fresh figs,8,large,,
 pinch Maldon sea salt,Maldon sea salt,,pinch,,
@@ -2299,7 +2299,7 @@ green food colouring paste (do not use liquid food colouring),green food colouri
 "6 shallots, peeled",shallots,6,,peeled,
 "15g/½oz leek, chopped",leek,15 0.5,g oz,chopped,/
 "1 tsp each ground cinnamon, ginger and nutmeg","ground cinnamon, ginger and nutmeg",1,tsp,,each
-"150g/5¼oz tinned haricot beans, rinsed and drained",haricot beans,150 5.25,g oz,"tinned, rinsed and drained",/
+"150g/5¼oz tinned haricot beans, rinsed and drained",tinned haricot beans,150 5.25,g oz,rinsed and drained,/
 50ml/2fl oz vegetable or rapeseed oil,vegetable or rapeseed oil,50 2,ml fl oz,,/
 "3 free-range eggs, at room temperature",free-range eggs,3,,at room temperature,
 5 anchovy fillets,anchovy fillets,5,,,
@@ -2742,7 +2742,7 @@ small bunch of flatleaf parsley,flatleaf parsley,,small bunch,,of
 1½ tsp dashi powder,dashi powder,1.5,tsp,,
 "60g/2¼oz unsmoked pancetta, finely chopped",unsmoked pancetta,60 2.25,g oz,finely chopped,/
 "120g/4¼oz peas, shelled",peas,120 4.25,g oz,shelled,/
-"1 cavolo nero, cut lengthways","cavolo nero, lengthways",1,,cut,
+"1 cavolo nero, cut lengthways",cavolo nero,1,,cut lengthways,
 3 sprigs fresh chevril,fresh chevril,3,sprigs,,
 "150g/5½oz ginger biscuits, crushed",ginger biscuits,150 5.5,g oz,crushed,/
 480ml/17fl oz milk,milk,480 17,ml fl oz,,/
@@ -3059,7 +3059,7 @@ large handful frisée lettuce,frisée lettuce,,large handful,,handful
 "200g/7oz salmon, cut into 1.5cm cubes",salmon,200 7,g oz,cut into 1.5 cm cubes,/
 140g/5oz fresh peas (shelled weight),fresh peas,140 5,g oz,,(shelled weight) /
 "small handful fresh coriander leaves, to serve",fresh coriander leaves,,small handful,,to serve handful
-"400-500g/14oz-17oz rhubarb (preferably forced rhubarb), trimmed",rhubarb,400-500 14 17,g oz oz,trimmed,(preferably forced rhubarb)/
+"400-500g/14oz-17oz rhubarb (preferably forced rhubarb), trimmed",rhubarb,400-500 14-17,g oz,trimmed,(preferably forced rhubarb)/
 "2 lemongrass stalks, white inner stem only, finely chopped",lemongrass,2,stalks,finely chopped,"white inner stem only , stem"
 50g/1¾oz ground almonds,ground almonds,50 1.75,g oz,,/
 2 celery sticks,celery,2,sticks,,
@@ -3254,7 +3254,7 @@ large handful fresh thyme leaves,fresh thyme leaves,,large handful,,
 pea shoots,pea shoots,,,,
 5 tbsp ready-made teriyaki sauce,ready-made teriyaki sauce,5,tbsp,,
 2 cloves of garlic,garlic,2,clove,,of
-"4 x 2.5cm/1in pieces stem ginger (from a jar), chopped",stem ginger,4,piece,chopped,x 2.5 cm / 1 in (from a jar) 
+"4 x 2.5cm/1in pieces stem ginger (from a jar), chopped",stem ginger,4 x 2.5 1,cm in piece,chopped,/ (from a jar) 
 "4 endive leaves, sliced in half length ways",endive leaves,4,,sliced in half length ways,
 chocolate beans,chocolate beans,,,,
 ½ tsp almond extract,almond extract,0.5,tsp,,
@@ -3394,7 +3394,7 @@ pinch ras-el-hanout spice mix,ras-el-hanout spice mix,,pinch,,
 few bay leaves,bay leaves,few,,,
 300g/11oz streaky bacon,streaky bacon,300 11,g oz,,/
 5 star anise,star anise,5,,,
-"1 lime (preferably unwaxed), grated zest and juice",lime,1,,grated,zest and juice (preferably unwaxed)
+"1 lime (preferably unwaxed), grated zest and juice",lime zest and juice ,1,,grated,(preferably unwaxed)
 few black peppercorns,black peppercorns,few,,,
 "500g/1lb 2oz fish fillets (whiting, pollock, coley, etc)",fish fillets,500 1 2,g lb oz,,"(whiting, pollock, coley, etc) /"
 4 tbsp freshly grated Parmesan (or alternative vegetarian hard cheese),Parmesan,4,tbsp,freshly grated,(or alternative vegetarian hard cheese)
@@ -3815,7 +3815,7 @@ lettuce leaves,lettuce leaves,,,,
 4 quail's eggs,quail's eggs,4,,,
 "2 tbsp roasted salted peanuts, crushed, to serve",roasted salted peanuts,2,tbsp,crushed,to serve
 3 tbsp celery leaves,celery leaves,3,tbsp,,
-"1 white grapefruit, segmented, juice reserved",white grapefruit,1,,segmented,juice reserved
+"1 white grapefruit, segmented, juice reserved",white grapefruit,1,,"segmented, juice reserved",
 "3 marinated anchovy fillets, roughly chopped",marinated anchovy fillets,3,,roughly chopped,
 "2.5cm/1in root ginger, grated",root ginger,2.5 1,cm in,grated,/
 1 tbsp chopped fresh oregano,fresh oregano,1,tbsp,chopped,
@@ -4328,7 +4328,7 @@ sprig of fresh thyme or a good pinch of dried,fresh thyme,,sprig,,"of, or a good
 "4 cos gem lettuce, separated into leaves",cos gem lettuce,4,,separated into leaves,
 "250g/9oz chip potatoes such as Maris Piper or Sebago, peeled, cut into matchsticks or coarsely grated, soaked in cold water for 15 minutes",chip potatoes,250 9,g oz,"peeled, cut into matchsticks or coarsely grated, soaked in cold water for 15 minutes",such as Maris Piper or Sebago /
 freshly ground white pepper,freshly ground white pepper,,,,
-"2 fresh green chillies, slit lengthways","fresh green chillies, slit lengthways",2,,,
+"2 fresh green chillies, slit lengthways",fresh green chillies,2,,slit lengthways,
 "50g/1¾oz strawberries, mashed up",strawberries,50 1.75,g oz,mashed up,/
 150g/5½oz button mushrooms,button mushrooms,150 5.5,g oz,,/
 "3cm/1¼in piece fresh ginger, peeled, finely sliced",fresh ginger,3 1.25,cm in piece,"peeled, finely sliced",/
@@ -4347,7 +4347,7 @@ freshly ground white pepper,freshly ground white pepper,,,,
 "50g/1¾oz flatleaf parsley, leaves finely chopped",flatleaf parsley,50 1.75,g oz,leaves finely chopped,/
 "30g/1oz cheddar, preferably Montgomery cheddar",cheddar,30 1,g oz,,preferably Montgomery cheddar/
 "Swedish crisp bread, to serve",Swedish crisp bread,,,,to serve
-250ml/9fl oz tamarind paste mixed with 400ml/13fl oz water,tamarind paste,250 9 400 13,ml fl oz ml fl oz,mixed with water,/ /
+250ml/9fl oz tamarind paste mixed with 400ml/13fl oz water,tamarind paste,250 9,ml fl oz,mixed with 400 ml / 13 fl oz water,/ /
 "55g/2oz pork belly, skin removed, minced",pork belly,55 2,g oz,"skin removed, minced",/
 2 tsp Gentleman’s relish (or another anchovy paste),Gentleman’s relish,2,tsp,,(or another anchovy paste)
 2 lemons cut into quarters,lemons,2,,cut into quarters,
@@ -4476,7 +4476,7 @@ a good glug fruity olive oil,glug fruity olive oil,,,,a good
 "1 medium free-range egg (about 22g/¾oz), lightly beaten",free-range egg,1 22 0.75,medium g oz,lightly beaten,( about / )
 "900g/2lb Brussels sprouts, trimmed",Brussels sprouts,900 2,g lb,trimmed,/
 "1 roasted red pepper, skin removed, sliced (or 200g/7oz jar small, piquant roasted peppers, available from delicatessens and online)",roasted red pepper,1,,"skin removed, sliced","(or 200 g / 7 oz jar small, piquant roasted peppers, available from delicatessens and online)"
-1 x 750g/1lb 10oz boned pork loin with rind still attached,pork loin,1 x 750 1 10,g lb oz,boned,with rind still attached /
+1 x 750g/1lb 10oz boned pork loin with rind still attached,boned pork loin,1 x 750 1 10,g lb oz,,with rind still attached /
 "2 red chillies, de-seeded, sliced",red chillies,2,,"de-seeded, sliced",
 "1 tbsp parsley, chopped, to garnish",parsley,1,tbsp,chopped,to garnish
 "1 aubergine, cut into chunks",aubergine,1,,cut into chunks,
@@ -5174,7 +5174,7 @@ a few glugs double cream,a few glugs double cream,,,,
 "1 chilli chopped, seeds removed",chilli,1,,"chopped, seeds removed",
 "5 leaves of gelatine, soaked in a bowl cold water",gelatine,5,leaves,soaked in a bowl cold water,of
 "75g/2½oz green beans, finely sliced on the diagonal",green beans,75 2.5,g oz,finely sliced on the diagonal,/
-"4 garlic cloves, sliced lengthways","garlic, lengthways",4,clove,sliced,
+"4 garlic cloves, sliced lengthways",garlic,4,clove,sliced lengthways,
 "3 egg whites, whisked until they form peaks",egg whites,3,,whisked until they form peaks,
 1 tbsp mixed spice,mixed spice,1,tbsp,,
 500ml/17½fl oz chicken stock,chicken stock,500 17.5,ml fl oz,,/
@@ -5368,7 +5368,7 @@ splash dry white wine,dry white wine,,splash,,
 "2 oranges, peeled with a knife and cut into pithless segments, soaked in",oranges,2,,"peeled with a knife and cut into pithless segments, soaked in",
 "1 onion, peeled, roughly chopped",onion,1,,"peeled, roughly chopped",
 "1 tsp rosewater or screwpine essence (optional, but do not be tempted to add more)",rosewater or screwpine essence,1,tsp,,"(optional, but do not be tempted to add more)"
-"Up to 250g/9oz streaky bacon, diced",streaky bacon,250 9,g oz,"Up to, diced",/
+"Up to 250g/9oz streaky bacon, diced",streaky bacon,250 9,g oz,diced,Up to /
 175g/6oz crème fraîche,crème fraîche,175 6,g oz,,/
 1 large bunch fresh flatleaf parsley leaves,fresh flatleaf parsley leaves,1,large bunch,,
 1 sprig fresh coriander,fresh coriander,1,sprig,,
@@ -6408,7 +6408,7 @@ carbonated mineral water,carbonated mineral water,,,,
 micro watercress,micro watercress,,,,
 3 yellow peppers,yellow peppers,3,,,
 sugar,sugar,,,,
-"600g/1lb 5oz tinned, chopped tomatoes",tomatoes,600 1 5,g lb oz,"tinned, chopped",/
+"600g/1lb 5oz tinned, chopped tomatoes",tinned chopped tomatoes,600 1 5,g lb oz,,/
 85g/3oz porridge oats,porridge oats,85 3,g oz,,/
 caramel sauce,caramel sauce,,,,
 150g/5½oz pork belly,pork belly,150 5.5,g oz,,/
@@ -6605,7 +6605,7 @@ raspberry jam,raspberry jam,,,,
 "2 carrots, cut into matchsticks",carrots,2,,cut into matchsticks,
 200g/7oz game livers,game livers,200 7,g oz,,/
 150g/5½oz ginger nut biscuits,ginger nut biscuits,150 5.5,g oz,,/
-"100g/3½oz soft, unsalted butter",unsalted butter,100 3.5,g oz,,soft/
+"100g/3½oz soft, unsalted butter",unsalted butter,100 3.5,g oz,soft,/
 150ml /5fl oz double cream,double cream,150 5,ml fl oz,,/
 "4 lemongrass stalks, roughly chopped",lemongrass,4,stalks,roughly chopped,
 "650g/1lb 7oz strong white flour, plus extra for dusting",strong white flour,650 1 7,g lb oz,,plus extra for dusting /
@@ -6736,7 +6736,7 @@ whole blanched almonds,almonds,,,whole blanched,
 150g/5oz Greek yoghurt,Greek yoghurt,150 5,g oz,,/
 6 tbsp light mayonnaise,light mayonnaise,6,tbsp,,
 "1 red pepper, de-seeded, finely chopped",red pepper,1,,"de-seeded, finely chopped",
-"100g/3½oz tinned kidney beans, drained",kidney beans,100 3.5,g oz,"tinned, drained",/
+"100g/3½oz tinned kidney beans, drained",tinned kidney beans,100 3.5,g oz,drained,/
 "25g/1oz fresh root ginger, finely sliced into matchsticks",fresh root ginger,25 1,g oz,finely sliced into matchsticks,/
 "150g/5½oz mushrooms, diced",mushrooms,150 5.5,g oz,diced,/
 50g/1¾oz thyme honey,thyme honey,50 1.75,g oz,,/
@@ -6795,7 +6795,7 @@ carrots,carrots,,,,
 6–8 thick slices bread,bread,6-8,thick slice,,
 "1 leek, trimmed, cleaned and thinly sliced",leek,1,,"trimmed, cleaned and thinly sliced",
 100ml/3fl oz water,water,100 3,ml fl oz,,/
-2 x 400g tinned chopped tomatoes,tomatoes,2 x 400,g,tinned chopped,
+2 x 400g tinned chopped tomatoes,tinned chopped tomatoes,2 x 400,g,,
 3 tbsp sea salt,sea salt,3,tbsp,,
 "2 tbsp plain flour, plus extra for dusting",plain flour,2,tbsp,,plus extra for dusting
 240g/8½oz good-quality milk chocolate,milk chocolate,240 8.5,g oz,,good-quality /
@@ -6919,7 +6919,7 @@ handful rocket leaves,rocket leaves,,handful,,
 "sour cream, to serve",sour cream,,,,to serve
 300g/10½oz caster sugar,caster sugar,300 10.5,g oz,,/
 "3 ripe pears (Bosc or Conference pears), peeled, cored and halved",ripe pears,3,,"peeled, cored and halved",(Bosc or Conference pears)
-½ tsp freshly picked thyme leaves or rosemary,freshly picked thyme leaves or rosemary,0.5,tsp,,
+½ tsp freshly picked thyme leaves or rosemary,thyme leaves or rosemary,0.5,tsp,freshly picked ,
 pinch ground cumin (optional),ground cumin,,pinch,,(optional) 
 110g/4oz fresh white breadcrumbs,fresh white breadcrumbs,110 4,g oz,,/
 "½ bunch coriander, leaves and stalks roughly chopped (about 2 tbsp)",coriander,0.5 2,bunch tbsp,leaves and stalks roughly chopped,( about )
@@ -7059,7 +7059,7 @@ fresh lovage (optional),fresh lovage,,,,(optional)
 "5cm/2in fresh ginger, chopped",fresh ginger,5 2,cm in,chopped,/
 "1 ripe tomato, chopped",ripe tomato,1,,chopped,
 175g/6oz demerara sugar,demerara sugar,175 6,g oz,,/
-"a medium stick of cinnamon, about 5-8cm/2-3 inches, broken up into 3-4 pieces",cinnamon,a 5-8 2-3,medium sticks cm inches,broken up into 3-4 pieces,"of , about/"
+"a medium stick of cinnamon, about 5-8cm/2-3 inches, broken up into 3-4 pieces",cinnamon,5-8 2-3,medium sticks cm inches,broken up into 3-4 pieces,"a of , about/"
 "1 large onion, or 2 small ones, peeled, chopped",onion,1,large,"peeled, chopped",or 2 small ones
 "85g/3oz unsalted butter, melted",unsalted butter,85 3,g oz,melted,/
 8 drops of lemon juice,lemon juice,8,drop,,of
@@ -7252,7 +7252,7 @@ generous glug olive oil,glug olive oil,,generous,,
 "2 large red onions, chopped",red onions,2,large,chopped,
 "4 carrots, cut into 1cm/½in cubes",carrots,4,,cut into 1 cm / 0.5 in cubes,
 225g/8oz sausage meat,sausage meat,225 8,g oz,,/
-"bunch lavender, freshly picked",freshly picked lavender,,bunch,,
+"bunch lavender, freshly picked",lavender,,bunch,freshly picked ,
 "4 tbsp vegetable oil, for frying, plus extra for greasing",vegetable oil,4,tbsp,,"for frying, plus extra for greasing"
 "400g/14oz strawberries, chopped",strawberries,400 14,g oz,chopped,/
 75g/3oz raspberries,raspberries,75 3,g oz,,/
@@ -7275,7 +7275,7 @@ pinch fresh oregano,fresh oregano,,pinch,,
 50g/1¾oz salt,salt,50 1.75,g oz,,/
 "1kg/2½lb scrag end of neck of lamb, on the bone, or chops from the neck end, or both",scrag end of neck of lamb,1 2.5,kg lb,,"on the bone, or chops from the neck end, or both /"
 150ml/5fl oz yoghurt or sour cream,yoghurt or sour cream,150 5,ml fl oz,,/
-"1 lime, grated zest and juice",lime,1,,grated,zest and juice
+"1 lime, grated zest and juice",lime zest and juice,1,,grated,
 1 tbsp pink peppercorns,pink peppercorns,1,tbsp,,
 250ml/9fl oz chilli oil,chilli oil,250 9,ml fl oz,,/
 "85g/3oz cheese, grated",cheese,85 3,g oz,grated,/
@@ -7415,7 +7415,7 @@ BBQ flavouring,BBQ flavouring,,,,
 400ml/14oz sunflower oil,sunflower oil,400 14,ml oz,,/
 "50g/1¾oz red onions or spring onions, roughly chopped",red onions or spring onions,50 1.75,g oz,roughly chopped,/
 2 cm of turmeric,turmeric,2,cm,,of
-"1 slice onion, ¼in/5mm thick",onion,1,slice,,0.25 in / 5 mm thick
+"1 slice onion, ¼in/5mm thick",onion,1,slice,0.25 in / 5 mm thick,
 "3 garlic cloves, peeled, chopped",garlic,3,clove,"peeled, chopped",
 "few coriander leaves, to garnish",coriander leaves,few,,,to garnish
 110g/4oz Thai jasmine rice,Thai jasmine rice,110 4,g oz,,/
@@ -7633,7 +7633,7 @@ salt and freshly ground white pepper,salt and freshly ground white pepper,,,,
 handful chicken meat from a leftover organic roast chicken,"chicken meat, roast chicken",,handful,,from a leftover organic
 "1 ripe banana, peeled and sliced",ripe banana,1,,peeled and sliced,
 mixed salad leaves,mixed salad leaves,,,,
-500g/1lb 2oz frozen minced beef,"frozen, beef",500 1 2,g lb oz,minced,/
+500g/1lb 2oz frozen minced beef,frozen minced beef,500 1 2,g lb oz,,/
 130g/4½oz wholemeal flour,wholemeal flour,130 4.5,g oz,,/
 10 sun-dried tomatoes,sun-dried tomatoes,10,,,
 1 cup basmati rice,basmati rice,1,cup,,
@@ -8267,7 +8267,7 @@ Disco Gold hologram glitter,Disco Gold hologram glitter,,,,
 "¼ pineapple, peeled and chopped",pineapple,0.25,,peeled and chopped,
 100g/3½oz crushed amaretti biscuits,amaretti biscuits,100 3.5,g oz,crushed,/
 "6 green beans, cut in half",green beans,6,,cut in half,
-"1kg/2lb 4oz fruit and veg, include 5-6 types, such as radish pods, cucumber, courgette, nasturtium seeds, peppers, shallots or small onions, cauliflower, albino beetroot, French beans or runner beans",fruit and veg,1 2 4,kg lb oz,,"include 5-6 types, such as radish pods, cucumber, courgette, nasturtium seeds, peppers, shallots or small onions, cauliflower, albino beetroot, French beans or runner beans"
+"1kg/2lb 4oz fruit and veg, include 5-6 types, such as radish pods, cucumber, courgette, nasturtium seeds, peppers, shallots or small onions, cauliflower, albino beetroot, French beans or runner beans",fruit and veg,1 2 4,kg lb oz,,"/ include 5-6 types, such as radish pods, cucumber, courgette, nasturtium seeds, peppers, shallots or small onions, cauliflower, albino beetroot, French beans or runner beans"
 "450g/1lb canned sweetcorn, drained, chopped",canned sweetcorn,450 1,g lb,"drained, chopped",/
 "300g/11oz Charlotte potatoes, boiled until tender, drained, sliced",Charlotte potatoes,300 11,g oz,"boiled until tender, drained, sliced",/
 "60g/2¼oz unsalted butter, cubed",unsalted butter,60 2.25,g oz,cubed,/
@@ -9074,7 +9074,7 @@ handful chopped mint leaves,mint leaves,,handful,chopped,
 900g/2lb plain flour,plain flour,900 2,g lb,,/
 "ribbons, fresh flowers or fondant flowers, to decorate",ribbons,,,,"fresh flowers or fondant flowers, to decorate"
 "fudge, cut into small squares",fudge,,,cut into small squares,
-"1 large preserved lemon, peel only, chopped",preserved lemon,1,large,chopped,peel only
+"1 large preserved lemon, peel only, chopped",preserved lemon,1,large,"peel only, chopped",
 "4 sprigs coriander, chopped",coriander,4,sprigs,chopped,
 1 tbsp chives,chives,1,tbsp,,
 4 tsp sesame oil,sesame oil,4,tsp,,
@@ -9425,7 +9425,7 @@ salted butter (to butter bread),salted butter,,,,(to butter bread)
 1 tsp thick balsamic vinegar,thick balsamic vinegar,1,tsp,,
 200g/7oz haddock fillet,haddock fillet,200 7,g oz,,/
 "2kg/4lb 8oz potatoes, quartered",potatoes,2 4 8,kg lb oz,quartered,/
-"110g/3½oz tinned cherries, drained, syrup reserved",cherries,110 3.5,g oz,"tinned, drained, syrup reserved",/
+"110g/3½oz tinned cherries, drained, syrup reserved",tinned cherries,110 3.5,g oz,"drained, syrup reserved",/
 "4 medium-sized bananas, skins on",bananas,4,medium-sized,,skins on
 "6 tomatoes, halved",tomatoes,6,,halved,
 light soy sauce,light soy sauce,,,,
@@ -9477,7 +9477,7 @@ black food colouring,black food colouring,,,,
 50ml/2fl oz hazelnut oil,hazelnut oil,50 2,ml fl oz,,/
 "2 lamb kidneys, membranes removed, sliced in half and core removed",lamb kidneys,2,,"membranes removed, sliced in half and core removed",
 "7g freeze-dried strawberries (available in large supermarkets), to decorate",freeze-dried strawberries,7,g,,"(available in large supermarkets), to decorate"
-"110g/4oz Ogleshield cheese, or similar firm cows' milk cheese","Ogleshield cheese, milk cheese",110 4,g oz,,or similar firm cows' /
+"110g/4oz Ogleshield cheese, or similar firm cows' milk cheese",Ogleshield cheese,110 4,g oz,,or similar firm cows' milk cheese /
 "1 lemon, cut into 4 wedges",lemon,1,,cut into 4 wedges,
 "10cm/4in piece fresh ginger, finely grated",fresh ginger,10 4,cm in piece,finely grated,/
 blackcurrant purée (from above),blackcurrant purée,,,,(from above)
@@ -9997,7 +9997,7 @@ handful coriander cress,coriander cress,,handful,,
 "1 sweet potato, peeled and sliced into 1.5cm/½in rounds",sweet potato,1,,peeled and sliced into 1.5 cm / 0.5 in rounds,
 1 x 7g sachet of dried yeast,dried yeast,1 x 7,g sachet,,of
 3 tbsp vegetable oil or ghee (clarified butter),vegetable oil or ghee,3,tbsp,,(clarified butter)
-"30g/1oz Parmesan, grated",Parmesan,30 1,g oz,grated,
+"30g/1oz Parmesan, grated",Parmesan,30 1,g oz,grated,/
 "handful fresh parsley, leaves only",fresh parsley,,handful,,leaves only
 "75g/3oz button mushrooms, brushed clean",,,,,
 "150g/5½oz Savoy cabbage, shredded",,,,,
