@@ -157,7 +157,7 @@ Units are made singular using a predefined list of plural units and their singul
 This step is actually performed after tokenisation (see :doc:`Extracting the features <features>`) and we keep track of the index of each token that has been singularised. This is so we can automatically re-pluralise only the tokens that were singularised after the labeling by the model.
 
 .. literalinclude:: ../../../ingredient_parser/_constants.py
-    :lines: 5-102
+    :lines: 5-104
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
     :pyobject: PreProcessor._singlarise_units
