@@ -49,20 +49,13 @@ def evaluate(predictions: list[list[str]], truths: list[list[str]]) -> Stats:
     correct_words = 0
 
     for prediction, truth in zip(predictions, truths):
-        correct_words_per_sentence = 0
-        total_words_per_sentence = 0
+        correct = [p == t for p, t in zip(prediction, truth)]
 
-        for p, t in zip(prediction, truth):
-            total_words += 1
-            total_words_per_sentence += 1
-
-            # Count as match if guess matches actual
-            if p == t:
-                correct_words_per_sentence += 1
-                correct_words += 1
+        total_words += len(truth)
+        correct_words += correct.count(True)
 
         total_sentences += 1
-        if correct_words_per_sentence == total_words_per_sentence:
+        if all(correct):
             correct_sentences += 1
 
     return Stats(total_sentences, correct_sentences, total_words, correct_words)
@@ -140,7 +133,7 @@ def train_model(
             truth_test,
             labels_pred,
             source_test,
-            lambda x: x == 1,
+            lambda x: x >= 1,
         )
 
     # Calculate some starts about the OTHER label
