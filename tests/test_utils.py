@@ -1,4 +1,6 @@
-from ingredient_parser._utils import pluralise_units
+import pytest
+
+from ingredient_parser._utils import consume, pluralise_units
 
 
 class TestUtils_pluralise_units:
@@ -23,3 +25,24 @@ class TestUtils_pluralise_units:
             pluralise_units("3 cup (750 milliliter) milk")
             == "3 cups (750 milliliters) milk"
         )
+
+
+class Test_consume:
+    def test_conume(self):
+        """
+        Test iterator advances by specified amount
+        """
+        it = iter(range(0, 10))
+        assert next(it) == 0
+        consume(it, 2)
+        assert next(it) == 3
+
+    def test_consume_all(self):
+        """
+        Test iterator is consumed completely
+        """
+        it = iter(range(0, 10))
+        assert next(it) == 0
+        consume(it, None)
+        with pytest.raises(StopIteration):
+            next(it)
