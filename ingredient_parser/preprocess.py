@@ -40,9 +40,18 @@ STRING_RANGE_PATTERN = re.compile(
     r"([\d\.]+)\s*(\-)?\s*(to|or)\s*(\-)*\s*([\d\.]+(\-)?)"
 )
 
-# Regeax pattern to match quantities split by "and" e.g. 1 and 1/2.
+# Regex pattern to match quantities split by "and" e.g. 1 and 1/2.
 # Capture the whole match, and the quantites before and after the "and".
 FRACTION_SPLIT_AND_PATTERN = re.compile(r"((\d+)\sand\s(\d/\d+))")
+
+# Regex pattern to match ranges where the unit appears after both quantities e.g.
+# 100 g - 200 g. This assumes the quantites and units have already been seperated
+# by a single space and that all number are decimals.
+# This regex matches: <quantity> <unit> - <quantity> <unit>, returning
+# the full match and each quantity and unit as capture groups.
+DUPE_UNIT_RANGES_PATTERN = re.compile(
+    r"(([\d\.]+)\s([a-zA-Z]+)\s\-\s([\d\.]+)\s([a-zA-Z]+))", re.I
+)
 
 # Define tokenizer.
 # We are going to split an sentence between substrings that match the following groups
@@ -222,6 +231,7 @@ class PreProcessor:
             self._split_quantity_and_units,
             self._remove_unit_trailing_period,
             self._replace_string_range,
+            self._replace_dupe_units_ranges,
         ]
 
         for func in funcs:
@@ -427,8 +437,8 @@ class PreProcessor:
     def _split_quantity_and_units(self, sentence: str) -> str:
         """Insert space between quantity and unit
         This currently finds any instances of a number followed directly by a letter
-        with no space or a hyphen in between. It also finds any letters followed directly
-        by a number with no space in between.
+        with no space or a hyphen in between. It also finds any letters followed 
+        directly by a number with no space in between.
 
         Parameters
         ----------
@@ -534,6 +544,48 @@ class PreProcessor:
         "5-6 large apples"
         """
         return STRING_RANGE_PATTERN.sub(r"\1-\5", sentence)
+
+    def _replace_dupe_units_ranges(self, sentence: str) -> str:
+        """Replace ranges where the unit appears in both parts of the range with
+        standardised range "<num>-<num> <unit>".
+
+        This assumes that the _split_quantity_and_units has already been run on
+        the sentence.
+
+        Parameters
+        ----------
+        sentence : str
+            Ingredient sentence
+
+        Returns
+        -------
+        str
+            Ingredient sentence with ranges containing unit twice replaced with
+            standardised range
+
+        Examples
+        --------
+        >>> p = PreProcessor("")
+        >>> p._replace_dupe_units_ranges("227 g - 283.5 g/8-10 oz duck breast")
+        "227-283.5 g/8-10 oz duck breast"
+
+        >>> p = PreProcessor("")
+        >>> p._replace_dupe_units_ranges("400-500 g/14 oz - 17 oz rhubarb")
+        "400-500 g/14-17 oz rhubarb"
+        """
+        matches = DUPE_UNIT_RANGES_PATTERN.findall(sentence)
+
+        if not matches:
+            return sentence
+
+        for full_match, quantity1, unit1, quantity2, unit2 in matches:
+            # We are only interested if the both captured units are the same
+            if unit1 != unit2:
+                continue
+
+            sentence = sentence.replace(full_match, f"{quantity1}-{quantity2} {unit1}")
+
+        return sentence
 
     def _singlarise_units(
         self, tokenised_sentence: list[str]

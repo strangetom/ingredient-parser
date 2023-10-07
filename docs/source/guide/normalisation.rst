@@ -148,6 +148,18 @@ The purpose of this is to ensure the range is kept as a single token.
     :pyobject: PreProcessor._replace_string_range
     :dedent: 4
 
+``_replace_dupe_units_ranges``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Ranges are where the unit is given for both quantities are replaced with the standardised range format, e.g. 5 oz - 8 oz is replaced by 5-8 oz.
+
+.. literalinclude:: ../../../ingredient_parser/preprocess.py
+    :lines: 47-54
+
+.. literalinclude:: ../../../ingredient_parser/preprocess.py
+    :pyobject: PreProcessor._replace_dupe_units_ranges
+    :dedent: 4
+
 
 ``_singlarise_unit``
 ^^^^^^^^^^^^^^^^^^^^
