@@ -264,8 +264,8 @@ class PostProcessor:
 
         The confidence is the average confidence of all labels in the IngredientGroup.
 
-        If the sequence of QTY and UNIT labels matches the "sizable unit" pattern,
-        determine the amounts in a different way.
+        A number of special cases are considered before the default processing:
+        1. "sizable unit" pattern
 
         Returns
         -------
@@ -450,8 +450,8 @@ class PostProcessor:
         list[IngredientAmount]
             List of IngredientAmount objects
         """
-        # We assume that the pattern will not be longer than the first element
-        # defined in patterns.
+        # We assume that the pattern will not be longer than the longest list
+        # defined here.
         patterns = [
             ["QTY", "QTY", "UNIT", "QTY", "UNIT", "QTY", "UNIT", "UNIT"],
             ["QTY", "QTY", "UNIT", "QTY", "UNIT", "UNIT"],
@@ -483,11 +483,11 @@ class PostProcessor:
                     matching_tokens = [tokens[i] for i in match]
                     matching_scores = [scores[i] for i in match]
 
-                    # Keep track of indices of matching elements so we can
-                    # don't use them later
+                    # Keep track of indices of matching elements so we don't use them
+                    # again elsewhere
                     self.consumed.extend(match)
 
-                    # The first amount is the first and last items
+                    # The first amount is made up of the first and last items
                     # Note that this cannot be singular, but may be approximate
                     first = IngredientAmount(
                         quantity=matching_tokens.pop(0),
@@ -499,7 +499,8 @@ class PostProcessor:
                     )
                     amounts.append(first)
 
-                    # And create the IngredientAmount object for the pairs in between
+                    # Now create the IngredientAmount objects for the pairs in between
+                    # the first and last items
                     for i in range(0, len(matching_tokens), 2):
                         quantity = matching_tokens[i]
                         unit = matching_tokens[i + 1]
@@ -512,11 +513,6 @@ class PostProcessor:
                             SINGULAR=True,
                         )
                         amounts.append(amount)
-
-        # If we haven't found any matches so far, return None so consumers
-        # of the output of this function know there was no match.
-        if len(amounts) == 0:
-            return []
 
         # Make units plural if appropriate
         for amount in amounts:
