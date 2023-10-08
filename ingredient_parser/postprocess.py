@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from itertools import groupby
 from operator import itemgetter
 from statistics import mean
-from typing import Generator, Iterator
+from typing import Any, Generator, Iterator
 
 from ._utils import consume, pluralise_units
 
@@ -272,10 +272,38 @@ class PostProcessor:
         list[IngredientAmount]
             List of IngredientAmount objects
         """
-        if match := self._sizable_unit_pattern():
-            return match
-        else:
-            return self._fallback_pattern(self.tokens, self.labels, self.scores, [])
+
+        funcs = [
+            self._sizable_unit_pattern,
+            self._fallback_pattern,
+        ]
+
+        amounts = []
+        for func in funcs:
+            tokens = self._unconsumed(self.tokens)
+            labels = self._unconsumed(self.labels)
+            scores = self._unconsumed(self.scores)
+
+            parsed_amounts = func(tokens, labels, scores)
+            amounts.extend(parsed_amounts)
+
+        return amounts
+
+    def _unconsumed(self, list_: list[Any]) -> list[Any]:
+        """Return elements from list whose index is not in the list of consumed
+        indices
+
+        Parameters
+        ----------
+        list_ : list[Any]
+            List of items to remove consumed elements from
+
+        Returns
+        -------
+        list[Any]
+            List of items without consumed elements
+        """
+        return [el for i, el in enumerate(list_) if i not in self.consumed]
 
     def _fix_punctuation(self, text: str) -> str:
         """Fix some common punctuation errors that result from combining tokens of the
@@ -400,7 +428,9 @@ class PostProcessor:
         for _, g in groupby(enumerate(idx), key=lambda x: x[0] - x[1]):
             yield map(itemgetter(1), g)
 
-    def _sizable_unit_pattern(self) -> list[IngredientAmount] | None:
+    def _sizable_unit_pattern(
+        self, tokens: list[str], labels: list[str], scores: list[float]
+    ) -> list[IngredientAmount]:
         """Identify sentences which match the pattern where there is a
         quantity-unit pair split by one or more quantity-unit pairs e.g.
 
@@ -444,19 +474,18 @@ class PostProcessor:
         ]
 
         amounts = []
-        matching_indices = []
         for pattern in patterns:
-            for match in self._match_pattern(pattern):
+            for match in self._match_pattern(labels, pattern):
                 # If the pattern ends with one of end_units, we have found a match for
                 # this pattern!
-                if self.tokens[match[-1]] in end_units:
+                if tokens[match[-1]] in end_units:
                     # Get tokens and scores that are part of match
-                    matching_tokens = [self.tokens[i] for i in match]
-                    matching_scores = [self.scores[i] for i in match]
+                    matching_tokens = [tokens[i] for i in match]
+                    matching_scores = [scores[i] for i in match]
 
                     # Keep track of indices of matching elements so we can
-                    # remove them later
-                    matching_indices.extend(match)
+                    # don't use them later
+                    self.consumed.extend(match)
 
                     # The first amount is the first and last items
                     # Note that this cannot be singular, but may be approximate
@@ -466,9 +495,7 @@ class PostProcessor:
                         confidence=mean(
                             [matching_scores.pop(0), matching_scores.pop(-1)]
                         ),
-                        APPROXIMATE=self._is_approximate(
-                            match[0], self.tokens, self.labels
-                        ),
+                        APPROXIMATE=self._is_approximate(match[0], tokens, labels),
                     )
                     amounts.append(first)
 
@@ -489,36 +516,16 @@ class PostProcessor:
         # If we haven't found any matches so far, return None so consumers
         # of the output of this function know there was no match.
         if len(amounts) == 0:
-            return None
+            return []
 
         # Make units plural if appropriate
         for amount in amounts:
             if amount.quantity != "1" and amount.quantity != "":
                 amount.unit = pluralise_units(amount.unit)
 
-        # Mop up any remaining amounts that didn't fit the pattern
-        leftover_tokens = [
-            tkn for i, tkn in enumerate(self.tokens) if i not in matching_indices
-        ]
-        leftover_idx = [
-            i for i, _ in enumerate(self.tokens) if i not in matching_indices
-        ]
+        return amounts
 
-        # Have a guess at where to insert them so they are in the order they appear in
-        # the sentence.
-        if leftover_tokens != [] and leftover_idx[0] < match[0]:
-            return (
-                self._fallback_pattern(
-                    self.tokens, self.labels, self.scores, matching_indices
-                )
-                + amounts
-            )
-        else:
-            return amounts + self._fallback_pattern(
-                self.tokens, self.labels, self.scores, matching_indices
-            )
-
-    def _match_pattern(self, pattern: list[str]) -> list[list[int]]:
+    def _match_pattern(self, labels: list[str], pattern: list[str]) -> list[list[int]]:
         """Find a pattern of labels and return the indices of the labels that match the
         pattern. The pattern matching ignores labels that are not part of the pattern.
 
@@ -537,6 +544,8 @@ class PostProcessor:
 
         Parameters
         ----------
+        labels : list[str]
+            List of labels of find pattern
         pattern : list[str]
             Pattern to match inside labels.
 
@@ -574,7 +583,6 @@ class PostProcessor:
         tokens: list[str],
         labels: list[str],
         scores: list[float],
-        skip: list[int],
     ) -> list[IngredientAmount]:
         """Fallback pattern for grouping quantities and units into amounts.
         This is done simply by grouping a QTY with all following UNIT until
@@ -592,8 +600,6 @@ class PostProcessor:
             Labels for input sentence tokens
         scores : list[float]
             Scores for each label
-        skip : list[int]
-            List of indices to skip, because they've been postprocessed elsewhere
 
         Returns
         -------
@@ -602,9 +608,6 @@ class PostProcessor:
         """
         amounts = []
         for i, (token, label, score) in enumerate(zip(tokens, labels, scores)):
-            if i in skip:
-                continue
-
             if label == "QTY":
                 # Whenever we come across a new QTY, create new IngredientAmount,
                 # unless the token is "dozen" and the previous label was QTY, in which
