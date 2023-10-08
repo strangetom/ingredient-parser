@@ -39,3 +39,5 @@ def find_missing_labels(args: argparse.Namespace) -> None:
             print(p.tokenized_sentence)
             print(token_labels)
             print("")
+
+    print(f"Found {len(matches)} sentences with missing token labes.")

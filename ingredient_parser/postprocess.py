@@ -397,7 +397,7 @@ class PostProcessor:
         >>> [list(g) for g in groups]
         [[0, 1, 2], [4, 5, 6], [8, 9]]
         """
-        for k, g in groupby(enumerate(idx), key=lambda x: x[0] - x[1]):
+        for _, g in groupby(enumerate(idx), key=lambda x: x[0] - x[1]):
             yield map(itemgetter(1), g)
 
     def _sizable_unit_pattern(self) -> list[IngredientAmount] | None:

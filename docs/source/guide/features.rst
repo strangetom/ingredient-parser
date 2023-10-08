@@ -13,7 +13,7 @@ The tokenizer in created using NLTK's Regular Expression tokenizer. The splits a
 The defined tokenizer splits the sentence according the following rules:
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
-    :lines: 45-54
+    :lines: 56-65
 
 This splits the sentence apart into wherever there is a space or a punctation mark in ``group_b``.
 

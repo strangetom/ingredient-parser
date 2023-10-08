@@ -65,6 +65,11 @@ Fractions represented by html entities (e.g. 0.5 as ``&frac12;``) are replaced w
 
 Fractions represented by Unicode fractions are replaced a textual format (.e.g ½ as 1/2), as defined by the dictionary in this function. The next step (``_replace_fake_fractions``) will turn these into decimal numbers.
 
+We have to handle two cases: where the character before the unicode fraction is a hyphen and where it is not. In the latter case, we want to insert a space before the replacement so we don't accidently merge with the character before. However, if the character before is a hyphen, we don't want to do this because we could end up splitting a range up.
+
+.. literalinclude:: ../../../ingredient_parser/_constants.py
+    :lines: 169-205
+
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
     :pyobject: PreProcessor._replace_unicode_fractions
     :dedent: 4
@@ -92,7 +97,7 @@ Fractions represented in a textual format (e.g. 1/2, 3/4) are replaced with deci
 A regular expression is used to find these in the sentence. The regular expression also matches fractions greater than 1 (e.g. 1 1/2 is 1.5).
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
-    :lines: 13-16
+    :lines: 18-21
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
     :pyobject: PreProcessor._replace_fake_fractions
@@ -105,7 +110,7 @@ A regular expression is used to find these in the sentence. The regular expressi
 A space is enforced between quantities and units to make sure they are tokenized to separate tokens. If an quantity and unit are joined by a hyphen, this is also replaced by a space.
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
-    :lines: 21-23
+    :lines: 26-30
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
     :pyobject: PreProcessor._split_quantity_and_units
@@ -137,10 +142,22 @@ where the numbers 1 and 2 represent any decimal value.
 The purpose of this is to ensure the range is kept as a single token.
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
-    :lines: 28-32
+    :lines: 35-39
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
     :pyobject: PreProcessor._replace_string_range
+    :dedent: 4
+
+``_replace_dupe_units_ranges``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Ranges are where the unit is given for both quantities are replaced with the standardised range format, e.g. 5 oz - 8 oz is replaced by 5-8 oz.
+
+.. literalinclude:: ../../../ingredient_parser/preprocess.py
+    :lines: 47-54
+
+.. literalinclude:: ../../../ingredient_parser/preprocess.py
+    :pyobject: PreProcessor._replace_dupe_units_ranges
     :dedent: 4
 
 
@@ -152,7 +169,7 @@ Units are made singular using a predefined list of plural units and their singul
 This step is actually performed after tokenisation (see :doc:`Extracting the features <features>`) and we keep track of the index of each token that has been singularised. This is so we can automatically re-pluralise only the tokens that were singularised after the labeling by the model.
 
 .. literalinclude:: ../../../ingredient_parser/_constants.py
-    :lines: 5-102
+    :lines: 5-104
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
     :pyobject: PreProcessor._singlarise_units

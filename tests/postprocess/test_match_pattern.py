@@ -1,0 +1,103 @@
+from ingredient_parser import PostProcessor
+
+
+class TestPostProcessor_match_pattern:
+    def test_long_pattern_match(self):
+        """
+        Test that correct start and stop indices are returned for long pattern
+        """
+        pattern = ["QTY", "QTY", "UNIT", "QTY", "UNIT", "QTY", "UNIT", "UNIT"]
+
+        labels = [
+            "QTY",
+            "UNIT",
+            "QTY",
+            "QTY",
+            "UNIT",
+            "QTY",
+            "UNIT",
+            "QTY",
+            "UNIT",
+            "UNIT",
+        ]
+        p = PostProcessor("", [], labels, [])
+
+        assert p._match_pattern(pattern) == [[2, 3, 4, 5, 6, 7, 8, 9]]
+
+    def test_medium_pattern_match(self):
+        """
+        Test that correct start and stop indices are returned for medium pattern
+        """
+        pattern = ["QTY", "QTY", "UNIT", "QTY", "UNIT", "UNIT"]
+
+        labels = [
+            "QTY",
+            "QTY",
+            "UNIT",
+            "QTY",
+            "UNIT",
+            "UNIT",
+            "UNIT",
+        ]
+        p = PostProcessor("", [], labels, [])
+
+        assert p._match_pattern(pattern) == [[0, 1, 2, 3, 4, 5]]
+
+    def test_short_pattern_match(self):
+        """
+        Test that correct start and stop indices are returned for long pattern
+        """
+        pattern = ["QTY", "QTY", "UNIT", "UNIT"]
+
+        labels = [
+            "QTY",
+            "UNIT",
+            "QTY",
+            "QTY",
+            "UNIT",
+            "UNIT",
+            "QTY",
+            "UNIT",
+            "UNIT",
+        ]
+        p = PostProcessor("", [], labels, [])
+
+        assert p._match_pattern(pattern) == [[2, 3, 4, 5]]
+
+    def test_impossible_match(self):
+        """
+        Test that empty list is returned when match is impossible beacause pattern
+        is longer than list of labels
+        """
+        pattern = ["QTY", "QTY", "UNIT", "QTY", "UNIT", "UNIT"]
+
+        labels = [
+            "QTY",
+            "QTY",
+            "UNIT",
+            "UNIT",
+        ]
+        p = PostProcessor("", [], labels, [])
+
+        assert p._match_pattern(pattern) == []
+
+    def test_multiple_matches(self):
+        """
+        Test that multiple non-overlapping matches are returned
+        """
+        pattern = ["QTY", "QTY", "UNIT", "UNIT"]
+
+        labels = [
+            "QTY",
+            "QTY",
+            "UNIT",
+            "UNIT",
+            "QTY",
+            "QTY",
+            "QTY",
+            "UNIT",
+            "UNIT",
+        ]
+        p = PostProcessor("", [], labels, [])
+
+        assert p._match_pattern(pattern) == [[0, 1, 2, 3], [5, 6, 7, 8]]

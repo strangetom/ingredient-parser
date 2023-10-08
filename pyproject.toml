@@ -69,3 +69,9 @@ line-length = 88
 [tool.pyright]
 include = ["ingredient_parser"]
 exclude = ["**/__pycache__"]
+reportUnusedImport = true
+reportUnusedClass = true
+reportUnuedFunction = true
+reportUnusedVariable = true
+reportWildcardImportFromLibrary = true
+reportPrivateUsage = true
