@@ -51,6 +51,12 @@ testpaths = [
     "tests",
 ]
 
+[tool.coverage.run]
+branch = true
+omit = [
+    "tests/*"
+]
+
 [tool.black]
 target-version = ["py310", "py311"]
 include = "\\.py$"
