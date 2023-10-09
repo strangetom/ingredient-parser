@@ -550,24 +550,23 @@ class PostProcessor:
         list[list[int]]
             List of label index lists that match the pattern.
         """
-
-        if len(pattern) > len(self.labels):
-            # We can never find a match.
-            return []
-
         plen = len(pattern)
         plabels = set(pattern)
 
         # Select just the labels and indices of labels that are in the pattern.
-        labels = [label for label in self.labels if label in plabels]
-        idx = [i for i, label in enumerate(self.labels) if label in plabels]
+        lbls = [label for label in labels if label in plabels]
+        idx = [i for i, label in enumerate(labels) if label in plabels]
+
+        if len(pattern) > len(lbls):
+            # We can never find a match.
+            return []
 
         matches = []
-        indices = iter(range(len(labels)))
+        indices = iter(range(len(lbls)))
         for i in indices:
-            # Short circuit: If the label[i] is not equal to the first element
+            # Short circuit: If the lbls[i] is not equal to the first element
             # of pattern skip to next iteration
-            if labels[i] == pattern[0] and labels[i : i + plen] == pattern:
+            if lbls[i] == pattern[0] and lbls[i : i + plen] == pattern:
                 matches.append(idx[i : i + plen])
                 # Advance iterator to prevent overlapping matches
                 consume(indices, plen)

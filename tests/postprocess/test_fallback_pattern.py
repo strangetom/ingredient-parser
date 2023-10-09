@@ -97,7 +97,7 @@ class TestPostProcessor_fallback_pattern:
         tokens = ["2", "bananas", ",", "4", "ounce", "each"]
         labels = ["QTY", "NAME", "COMMA", "QTY", "UNIT", "COMMENT"]
         scores = [0] * len(tokens)
-        
+
         p.consumed = [0, 1, 2, 3]
 
         expected = [
