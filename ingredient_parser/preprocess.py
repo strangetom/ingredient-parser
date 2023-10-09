@@ -53,6 +53,10 @@ DUPE_UNIT_RANGES_PATTERN = re.compile(
     r"(([\d\.]+)\s([a-zA-Z]+)\s\-\s([\d\.]+)\s([a-zA-Z]+))", re.I
 )
 
+# Regex pattern to match a decimal number followed by an "x" followed by a space
+# e.g. 0.5 x, 1 x, 2 x. The number is captured in a capture group.
+QUANTITY_X_PATTERN = re.compile(r"([\d\.]+)\s[xX]\s*")
+
 # Define tokenizer.
 # We are going to split an sentence between substrings that match the following groups
 # a) letters and any punctuation, except
@@ -232,6 +236,7 @@ class PreProcessor:
             self._remove_unit_trailing_period,
             self._replace_string_range,
             self._replace_dupe_units_ranges,
+            self._merge_quantity_x,
         ]
 
         for func in funcs:
@@ -586,6 +591,31 @@ class PreProcessor:
             sentence = sentence.replace(full_match, f"{quantity1}-{quantity2} {unit1}")
 
         return sentence
+
+    def _merge_quantity_x(self, sentence: str) -> str:
+        """Merge any quantity followed by "x" into a single token e.g. 1 x can -> 1x can
+
+        Parameters
+        ----------
+        sentence : str
+            Ingredient sentence
+
+        Returns
+        -------
+        str
+            Ingredient sentence with single "x" merged into preceding number
+
+        Examples
+        --------
+        >>> p = PreProcessor("")
+        >>> p._replace_dupe_units_ranges("8 x 450 g/1 lb live lobsters")
+        "8x 450g/1lb live lobsters"
+
+        >>> p = PreProcessor("")
+        >>> p._replace_dupe_units_ranges("4 x 100 g wild salmon fillet")
+        "4x 100 g wild salmon fillet"
+        """
+        return QUANTITY_X_PATTERN.sub(r"\1x ", sentence)
 
     def _singlarise_units(
         self, tokenised_sentence: list[str]

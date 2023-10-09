@@ -82,7 +82,7 @@ Fractional quantities split by 'and' e.g. 1 and 1/2 are replaced by the decimal 
 A regular expression is used to find these in the sentence.
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
-    :lines: 41-43
+    :lines: 43-45
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
     :pyobject: PreProcessor._combine_quantities_split_by_and
@@ -142,7 +142,7 @@ where the numbers 1 and 2 represent any decimal value.
 The purpose of this is to ensure the range is kept as a single token.
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
-    :lines: 35-39
+    :lines: 35-41
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
     :pyobject: PreProcessor._replace_string_range
@@ -158,6 +158,21 @@ Ranges are where the unit is given for both quantities are replaced with the sta
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
     :pyobject: PreProcessor._replace_dupe_units_ranges
+    :dedent: 4
+
+``_merge_quantity_x``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Merge quantities followed by an "x" into a single token, for example:
+
+* 1 x -> 1x
+* 0.5 x -> 0.5x
+
+.. literalinclude:: ../../../ingredient_parser/preprocess.py
+    :lines: 56-58
+
+.. literalinclude:: ../../../ingredient_parser/preprocess.py
+    :pyobject: PreProcessor._merge_quantity_x
     :dedent: 4
 
 
