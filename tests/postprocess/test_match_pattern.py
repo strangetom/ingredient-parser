@@ -20,9 +20,9 @@ class TestPostProcessor_match_pattern:
             "UNIT",
             "UNIT",
         ]
-        p = PostProcessor("", [], labels, [])
+        p = PostProcessor("", [], [], [])
 
-        assert p._match_pattern(pattern) == [[2, 3, 4, 5, 6, 7, 8, 9]]
+        assert p._match_pattern(labels, pattern) == [[2, 3, 4, 5, 6, 7, 8, 9]]
 
     def test_medium_pattern_match(self):
         """
@@ -39,9 +39,9 @@ class TestPostProcessor_match_pattern:
             "UNIT",
             "UNIT",
         ]
-        p = PostProcessor("", [], labels, [])
+        p = PostProcessor("", [], [], [])
 
-        assert p._match_pattern(pattern) == [[0, 1, 2, 3, 4, 5]]
+        assert p._match_pattern(labels, pattern) == [[0, 1, 2, 3, 4, 5]]
 
     def test_short_pattern_match(self):
         """
@@ -60,9 +60,9 @@ class TestPostProcessor_match_pattern:
             "UNIT",
             "UNIT",
         ]
-        p = PostProcessor("", [], labels, [])
+        p = PostProcessor("", [], [], [])
 
-        assert p._match_pattern(pattern) == [[2, 3, 4, 5]]
+        assert p._match_pattern(labels, pattern) == [[2, 3, 4, 5]]
 
     def test_impossible_match(self):
         """
@@ -77,9 +77,9 @@ class TestPostProcessor_match_pattern:
             "UNIT",
             "UNIT",
         ]
-        p = PostProcessor("", [], labels, [])
+        p = PostProcessor("", [], [], [])
 
-        assert p._match_pattern(pattern) == []
+        assert p._match_pattern(labels, pattern) == []
 
     def test_multiple_matches(self):
         """
@@ -98,6 +98,6 @@ class TestPostProcessor_match_pattern:
             "UNIT",
             "UNIT",
         ]
-        p = PostProcessor("", [], labels, [])
+        p = PostProcessor("", [], [], [])
 
-        assert p._match_pattern(pattern) == [[0, 1, 2, 3], [5, 6, 7, 8]]
+        assert p._match_pattern(labels, pattern) == [[0, 1, 2, 3], [5, 6, 7, 8]]

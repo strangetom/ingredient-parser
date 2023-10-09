@@ -50,12 +50,13 @@ class TestPostProcessor_sizable_unit_pattern:
         ]
 
         # Don't check scores
-        assert len(p._sizable_unit_pattern()) == len(expected)
-        for output, expected in zip(p._sizable_unit_pattern(), expected):
-            assert output.quantity == expected.quantity
-            assert output.unit == expected.unit
-            assert output.SINGULAR == expected.SINGULAR
-            assert output.APPROXIMATE == expected.APPROXIMATE
+        output = p._sizable_unit_pattern(tokens, labels, scores)
+        assert len(output) == len(expected)
+        for out, expected in zip(output, expected):
+            assert out.quantity == expected.quantity
+            assert out.unit == expected.unit
+            assert out.SINGULAR == expected.SINGULAR
+            assert out.APPROXIMATE == expected.APPROXIMATE
 
     def test_medium_pattern(self):
         """
@@ -95,12 +96,13 @@ class TestPostProcessor_sizable_unit_pattern:
         ]
 
         # Don't check scores
-        assert len(p._sizable_unit_pattern()) == len(expected)
-        for output, expected in zip(p._sizable_unit_pattern(), expected):
-            assert output.quantity == expected.quantity
-            assert output.unit == expected.unit
-            assert output.SINGULAR == expected.SINGULAR
-            assert output.APPROXIMATE == expected.APPROXIMATE
+        output = p._sizable_unit_pattern(tokens, labels, scores)
+        assert len(output) == len(expected)
+        for out, expected in zip(output, expected):
+            assert out.quantity == expected.quantity
+            assert out.unit == expected.unit
+            assert out.SINGULAR == expected.SINGULAR
+            assert out.APPROXIMATE == expected.APPROXIMATE
 
     def test_short_pattern(self):
         """
@@ -131,12 +133,13 @@ class TestPostProcessor_sizable_unit_pattern:
         ]
 
         # Don't check scores
-        assert len(p._sizable_unit_pattern()) == len(expected)
-        for output, expected in zip(p._sizable_unit_pattern(), expected):
-            assert output.quantity == expected.quantity
-            assert output.unit == expected.unit
-            assert output.SINGULAR == expected.SINGULAR
-            assert output.APPROXIMATE == expected.APPROXIMATE
+        output = p._sizable_unit_pattern(tokens, labels, scores)
+        assert len(output) == len(expected)
+        for out, expected in zip(output, expected):
+            assert out.quantity == expected.quantity
+            assert out.unit == expected.unit
+            assert out.SINGULAR == expected.SINGULAR
+            assert out.APPROXIMATE == expected.APPROXIMATE
 
     def test_no_pattern(self):
         """
@@ -149,7 +152,7 @@ class TestPostProcessor_sizable_unit_pattern:
         p = PostProcessor(sentence, tokens, labels, scores)
 
         # Don't check scores
-        assert p._sizable_unit_pattern() is None
+        assert p._sizable_unit_pattern(tokens, labels, scores) == []
 
     def test_mixed_pattern(self):
         """
@@ -163,15 +166,15 @@ class TestPostProcessor_sizable_unit_pattern:
         p = PostProcessor(sentence, tokens, labels, scores)
 
         expected = [
-            IngredientAmount(quantity="2", unit="cups", confidence=0),
             IngredientAmount(quantity="1", unit="can", confidence=0),
             IngredientAmount(quantity="28", unit="ounces", confidence=0, SINGULAR=True),
         ]
 
         # Don't check scores
-        assert len(p._sizable_unit_pattern()) == len(expected)
-        for output, expected in zip(p._sizable_unit_pattern(), expected):
-            assert output.quantity == expected.quantity
-            assert output.unit == expected.unit
-            assert output.SINGULAR == expected.SINGULAR
-            assert output.APPROXIMATE == expected.APPROXIMATE
+        output = p._sizable_unit_pattern(tokens, labels, scores)
+        assert len(output) == len(expected)
+        for out, expected in zip(output, expected):
+            assert out.quantity == expected.quantity
+            assert out.unit == expected.unit
+            assert out.SINGULAR == expected.SINGULAR
+            assert out.APPROXIMATE == expected.APPROXIMATE
