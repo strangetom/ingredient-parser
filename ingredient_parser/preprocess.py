@@ -650,8 +650,6 @@ class PreProcessor:
         This function manually fixes tags that are incorrect in the context of
         ----------------------------------------------------------------------
         1. Change tags of numeric ranges to CD
-        2. Change tag of "ground" from NN to VBD e.g. ground almonds
-
 
         Parameters
         ----------
@@ -669,8 +667,6 @@ class PreProcessor:
         for token, tag in pos_tag([t.lower() for t in tokens]):
             if RANGE_PATTERN.match(token):
                 tag = "CD"
-            if token in ["ground"]:
-                tag = "VBD"
             tags.append(tag)
         return tags
 

@@ -20,12 +20,6 @@ class TestPreProcessor_tag_partofspeech:
         """
         assert p._tag_partofspeech(["3-4"]) == ["CD"]
 
-    def test_ground(self, p):
-        """
-        The token is tagged as "VBD"
-        """
-        assert p._tag_partofspeech(["ground"]) == ["VBD"]
-
 
 class TestPreProcessor_is_unit:
     def test_true(self, p):
