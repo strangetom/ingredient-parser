@@ -53,5 +53,5 @@ html_theme_options = {
     "switcher": {
         "json_url": "https://ingredient-parser.readthedocs.io/en/latest/_static/switcher.json",
         "version_match": version,
-    }
+    },
 }
