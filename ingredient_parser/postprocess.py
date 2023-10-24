@@ -280,11 +280,12 @@ class PostProcessor:
 
         amounts = []
         for func in funcs:
+            idx = self._unconsumed(list(range(len(self.tokens))))
             tokens = self._unconsumed(self.tokens)
             labels = self._unconsumed(self.labels)
             scores = self._unconsumed(self.scores)
 
-            parsed_amounts = func(tokens, labels, scores)
+            parsed_amounts = func(idx, tokens, labels, scores)
             amounts.extend(parsed_amounts)
 
         return amounts
@@ -429,7 +430,7 @@ class PostProcessor:
             yield map(itemgetter(1), g)
 
     def _sizable_unit_pattern(
-        self, tokens: list[str], labels: list[str], scores: list[float]
+        self, idx: list[int], tokens: list[str], labels: list[str], scores: list[float]
     ) -> list[IngredientAmount]:
         """Identify sentences which match the pattern where there is a
         quantity-unit pair split by one or more quantity-unit pairs e.g.
@@ -444,6 +445,17 @@ class PostProcessor:
             IngredientAmount(quantity="1", unit="can", score=0.x...),
             IngredientAmount(quantity="28", unit="ounce", score=0.x...),
         ]
+
+        Parameters
+        ----------
+        idx : list[int]
+            List of indices of the tokens/labels/scores in the full tokenizsed sentence
+        tokens : list[str]
+            Tokens for input sentence
+        labels : list[str]
+            Labels for input sentence tokens
+        scores : list[float]
+            Scores for each label
 
         Returns
         -------
@@ -485,7 +497,7 @@ class PostProcessor:
 
                     # Keep track of indices of matching elements so we don't use them
                     # again elsewhere
-                    self.consumed.extend(match)
+                    self.consumed.extend([idx[i] for i in match])
 
                     # The first amount is made up of the first and last items
                     # Note that this cannot be singular, but may be approximate
@@ -575,6 +587,7 @@ class PostProcessor:
 
     def _fallback_pattern(
         self,
+        idx: list[int],
         tokens: list[str],
         labels: list[str],
         scores: list[float],
@@ -589,6 +602,8 @@ class PostProcessor:
 
         Parameters
         ----------
+        idx : list[int]
+            List of indices of the tokens/labels/scores in the full tokenizsed sentence
         tokens : list[str]
             Tokens for input sentence
         labels : list[str]
@@ -639,13 +654,20 @@ class PostProcessor:
             # Check if any flags should be set
             if self._is_approximate(i, tokens, labels):
                 amounts[-1].APPROXIMATE = True
+                # Mark i - 1 element as consumed
+                self.consumed.append(idx[i - 1])
 
             if self._is_singular(i, tokens, labels):
                 amounts[-1].SINGULAR = True
+                # Mark i - 1 element as consumed
+                self.consumed.append(idx[i + 1])
 
             if self._is_singular_and_approximate(i, tokens, labels):
                 amounts[-1].APPROXIMATE = True
                 amounts[-1].SINGULAR = True
+                # Mark i - 1 and i - 2 elements as consumed
+                self.consumed.append(idx[i - 1])
+                self.consumed.append(idx[i - 2])
 
         # Loop through amounts list to fix unit and confidence
         # Unit needs converting to a string and making plural if appropriate
@@ -701,8 +723,6 @@ class PostProcessor:
             return False
 
         if labels[i] == "QTY" and tokens[i - 1].lower() in APPROXIMATE_TOKENS:
-            # Mark i - 1 element as consumed
-            self.consumed.append(i - 1)
             return True
 
         return False
@@ -738,8 +758,6 @@ class PostProcessor:
             return False
 
         if labels[i] == "UNIT" and tokens[i + 1].lower() in SINGULAR_TOKENS:
-            # Mark i + 1 element as consumed
-            self.consumed.append(i + 1)
             return True
 
         return False
@@ -788,9 +806,6 @@ class PostProcessor:
             and tokens[i - 1].lower() in APPROXIMATE_TOKENS
             and tokens[i - 2].lower() in SINGULAR_TOKENS
         ):
-            # Mark i - 1 and i - 2 elements as consumed
-            self.consumed.append(i - 1)
-            self.consumed.append(i - 2)
             return True
 
         return False

@@ -22,6 +22,7 @@ def p():
         0.9886087821704076,
         0.9969237827902526,
     ]
+    idx = list(range(len(tokens)))
 
     return PostProcessor(sentence, tokens, labels, scores)
 
@@ -36,10 +37,11 @@ class TestPostProcessor_fallback_pattern:
         tokens = ["3", "large", "handful", "cherry", "tomatoes"]
         labels = ["QTY", "UNIT", "UNIT", "NAME", "NAME"]
         scores = [0] * len(tokens)
+        idx = list(range(len(tokens)))
 
         expected = [IngredientAmount(quantity="3", unit="large handfuls", confidence=0)]
 
-        assert p._fallback_pattern(tokens, labels, scores) == expected
+        assert p._fallback_pattern(idx, tokens, labels, scores) == expected
 
     def test_no_quantity(self, p):
         """
@@ -50,10 +52,11 @@ class TestPostProcessor_fallback_pattern:
         tokens = ["1", "green", ",", "large", "pepper"]
         labels = ["QTY", "NAME", "COMMA", "UNIT", "NAME"]
         scores = [0] * len(tokens)
+        idx = list(range(len(tokens)))
 
         expected = [IngredientAmount(quantity="1", unit=", large", confidence=0)]
 
-        assert p._fallback_pattern(tokens, labels, scores) == expected
+        assert p._fallback_pattern(idx, tokens, labels, scores) == expected
 
     def test_comma_before_unit(self, p):
         """
@@ -64,10 +67,11 @@ class TestPostProcessor_fallback_pattern:
         tokens = ["bunch", "of", "basil", "leaves"]
         labels = ["UNIT", "COMMENT", "NAME", "NAME"]
         scores = [0] * len(tokens)
+        idx = list(range(len(tokens)))
 
         expected = [IngredientAmount(quantity="", unit="bunch", confidence=0)]
 
-        assert p._fallback_pattern(tokens, labels, scores) == expected
+        assert p._fallback_pattern(idx, tokens, labels, scores) == expected
 
     def test_approximate(self, p):
         """
@@ -77,6 +81,7 @@ class TestPostProcessor_fallback_pattern:
         tokens = ["About", "2", "cup", "flour"]
         labels = ["COMMENT", "QTY", "UNIT", "NAME"]
         scores = [0] * len(tokens)
+        idx = list(range(len(tokens)))
 
         expected = [
             IngredientAmount(
@@ -87,7 +92,7 @@ class TestPostProcessor_fallback_pattern:
             )
         ]
 
-        assert p._fallback_pattern(tokens, labels, scores) == expected
+        assert p._fallback_pattern(idx, tokens, labels, scores) == expected
 
     def test_singular(self, p):
         """
@@ -97,6 +102,7 @@ class TestPostProcessor_fallback_pattern:
         tokens = ["2", "bananas", ",", "4", "ounce", "each"]
         labels = ["QTY", "NAME", "COMMA", "QTY", "UNIT", "COMMENT"]
         scores = [0] * len(tokens)
+        idx = list(range(len(tokens)))
 
         p.consumed = [0, 1, 2, 3]
 
@@ -115,7 +121,7 @@ class TestPostProcessor_fallback_pattern:
             ),
         ]
 
-        assert p._fallback_pattern(tokens, labels, scores) == expected
+        assert p._fallback_pattern(idx, tokens, labels, scores) == expected
 
     def test_singular_and_approximate(self, p):
         """
@@ -125,6 +131,7 @@ class TestPostProcessor_fallback_pattern:
         tokens = ["2", "bananas", ",", "each", "about", "4", "ounce"]
         labels = ["QTY", "NAME", "COMMA", "COMMENT", "COMMENT", "QTY", "UNIT"]
         scores = [0] * len(tokens)
+        idx = list(range(len(tokens)))
 
         expected = [
             IngredientAmount(
@@ -141,7 +148,7 @@ class TestPostProcessor_fallback_pattern:
             ),
         ]
 
-        assert p._fallback_pattern(tokens, labels, scores) == expected
+        assert p._fallback_pattern(idx, tokens, labels, scores) == expected
 
     def test_dozen(self, p):
         """
@@ -151,6 +158,7 @@ class TestPostProcessor_fallback_pattern:
         tokens = ["2", "dozen", "bananas", ",", "each", "about", "4", "ounce"]
         labels = ["QTY", "QTY", "NAME", "COMMA", "COMMENT", "COMMENT", "QTY", "UNIT"]
         scores = [0] * len(tokens)
+        idx = list(range(len(tokens)))
 
         expected = [
             IngredientAmount(
@@ -167,4 +175,4 @@ class TestPostProcessor_fallback_pattern:
             ),
         ]
 
-        assert p._fallback_pattern(tokens, labels, scores) == expected
+        assert p._fallback_pattern(idx, tokens, labels, scores) == expected

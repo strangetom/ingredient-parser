@@ -24,7 +24,10 @@ class TestPreProcessor_replace_dupe_units_ranges:
         Input sentence is unchanged
         """
         input_sentence = "100 g - 20 oz goat's cheese"
-        assert p._replace_dupe_units_ranges(input_sentence) == "100 g - 20 oz goat's cheese"
+        assert (
+            p._replace_dupe_units_ranges(input_sentence)
+            == "100 g - 20 oz goat's cheese"
+        )
 
     def test_single_match(self, p):
         """
