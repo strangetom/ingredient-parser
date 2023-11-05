@@ -9,6 +9,8 @@ from importlib.resources import as_file, files
 from itertools import islice
 from typing import Iterator
 
+from nltk import data, download
+
 from ._constants import UNITS
 
 
@@ -85,3 +87,14 @@ def show_model_card() -> None:
             os.startfile(p)
         else:  # linux variants
             subprocess.call(("xdg-open", p))
+
+
+def download_nltk_resources() -> None:
+    """Check if required nltk resources can be found and if not, download them."""
+    try:
+        data.find(
+            "taggers/averaged_perceptron_tagger/averaged_perceptron_tagger.pickle"
+        )
+    except LookupError:
+        print("Downloading required NLTK resource: averaged_perceptron_tagger")
+        download("averaged_perceptron_tagger")
