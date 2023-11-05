@@ -22,7 +22,6 @@ def p():
         0.9886087821704076,
         0.9969237827902526,
     ]
-    idx = list(range(len(tokens)))
 
     return PostProcessor(sentence, tokens, labels, scores)
 
