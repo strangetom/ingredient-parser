@@ -2,6 +2,7 @@
 
 import re
 from fractions import Fraction
+from functools import lru_cache
 from html import unescape
 
 from nltk.stem.porter import PorterStemmer
@@ -70,6 +71,26 @@ REGEXP_TOKENIZER = re.compile(
 )
 
 STEMMER = PorterStemmer()
+
+
+@lru_cache(maxsize=512)
+def stem(token: str) -> str:
+    """Stem function with cache to improve performance.
+    The stem of a word output by the PorterStemmer is always the same, so we can
+    cache the result the first time and return that for subsequent future calls
+    without the need to do all the processing again.
+
+    Parameters
+    ----------
+    token : str
+        Token to stem
+
+    Returns
+    -------
+    str
+        Stem of token
+    """
+    return STEMMER.stem(token)
 
 
 class PreProcessor:
@@ -872,7 +893,7 @@ class PreProcessor:
         """
         token = self.tokenized_sentence[index]
         features = {
-            "stem": STEMMER.stem(token),
+            "stem": stem(token),
             "pos": self.pos_tags[index],
             "is_capitalised": self._is_capitalised(token),
             "is_numeric": self._is_numeric(token),
@@ -885,19 +906,19 @@ class PreProcessor:
 
         if index > 0:
             features["prev_pos"] = self.pos_tags[index - 1]
-            features["prev_word"] = STEMMER.stem(self.tokenized_sentence[index - 1])
+            features["prev_word"] = stem(self.tokenized_sentence[index - 1])
 
         if index > 1:
             features["prev_pos2"] = self.pos_tags[index - 2]
-            features["prev_word2"] = STEMMER.stem(self.tokenized_sentence[index - 2])
+            features["prev_word2"] = stem(self.tokenized_sentence[index - 2])
 
         if index < len(self.tokenized_sentence) - 1:
             features["next_pos"] = self.pos_tags[index + 1]
-            features["next_word"] = STEMMER.stem(self.tokenized_sentence[index + 1])
+            features["next_word"] = stem(self.tokenized_sentence[index + 1])
 
         if index < len(self.tokenized_sentence) - 2:
             features["next_pos2"] = self.pos_tags[index + 2]
-            features["next_word2"] = STEMMER.stem(self.tokenized_sentence[index + 2])
+            features["next_word2"] = stem(self.tokenized_sentence[index + 2])
 
         return features
 
