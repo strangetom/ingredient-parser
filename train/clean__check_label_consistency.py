@@ -1,18 +1,20 @@
 #!/usr/bin/env python3
 
 import argparse
+import re
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-from nltk.tokenize import RegexpTokenizer
 from tqdm import tqdm
 
 from .training_utils import load_csv
 
 # Tokeniser from preprocess.py
-group_a = r"[\w!\#\$\£\€%\&'\*\+\-\.:;>=<\?@\^_`\\\|\~]+"
-group_b = r"[\(\)\[\]\{\}\,\"/]"
-REGEXP_TOKENIZER = RegexpTokenizer(rf"{group_a}|{group_b}", gaps=False)
+group_a = r"[\w!\#\$\£\€%\&'\*\+\-\.>=<\?@\^_`\\\|\~’]+"
+group_b = r"[\(\)\[\]\{\}\,\"/:;]"
+REGEXP_TOKENIZER = re.compile(
+    rf"{group_a}|{group_b}", re.UNICODE | re.MULTILINE | re.DOTALL
+)
 
 
 def score_sentence_similarity(first: str, second: str) -> float:
@@ -40,8 +42,8 @@ def score_sentence_similarity(first: str, second: str) -> float:
         # Indentical sentences have maximum score of 1
         return 1
 
-    first_tokens = set(REGEXP_TOKENIZER.tokenize(first))
-    second_tokens = set(REGEXP_TOKENIZER.tokenize(second))
+    first_tokens = set(REGEXP_TOKENIZER.findall(first))
+    second_tokens = set(REGEXP_TOKENIZER.findall(second))
 
     intersection = first_tokens & second_tokens
 

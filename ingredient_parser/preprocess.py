@@ -6,7 +6,6 @@ from html import unescape
 
 from nltk.stem.porter import PorterStemmer
 from nltk.tag import pos_tag
-from nltk.tokenize import RegexpTokenizer
 
 from ._constants import (
     AMBIGUOUS_UNITS,
@@ -66,7 +65,9 @@ QUANTITY_X_PATTERN = re.compile(r"([\d\.]+)\s[xX]\s*")
 # they are removed: backslash.
 group_a = r"[\w!\#\$\£\€%\&'\*\+\-\.>=<\?@\^_`\\\|\~’]+"
 group_b = r"[\(\)\[\]\{\}\,\"/:;]"
-REGEXP_TOKENIZER = RegexpTokenizer(rf"{group_a}|{group_b}", gaps=False)
+REGEXP_TOKENIZER = re.compile(
+    rf"{group_a}|{group_b}", re.UNICODE | re.MULTILINE | re.DOTALL
+)
 
 STEMMER = PorterStemmer()
 
@@ -172,7 +173,7 @@ class PreProcessor:
         self.input: str = input_sentence
         self.sentence: str = self._normalise(input_sentence)
 
-        _tokenised_sentence = REGEXP_TOKENIZER.tokenize(self.sentence)
+        _tokenised_sentence = REGEXP_TOKENIZER.findall(self.sentence)
         (
             self.tokenized_sentence,
             self.singularised_indices,
