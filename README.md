@@ -2,7 +2,7 @@
 
 The Ingredient Parser package is a Python package for parsing structured information out of recipe ingredient sentences.
 
-![](docs/source/_static/logo.svg)
+![](docs/source/_static/logo.png)
 
 ## Documentation
 
