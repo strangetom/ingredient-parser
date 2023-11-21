@@ -8,7 +8,7 @@
 
 ### Model Date and Version
 
-Date: October 2023
+Date: November 2023
 
 Version: The model version is the same has the `ingredient_parser_nlp` package version.
 
