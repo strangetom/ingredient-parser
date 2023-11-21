@@ -902,6 +902,7 @@ class PreProcessor:
             "is_in_parens": self._is_inside_parentheses(index),
             "is_after_comma": self._follows_comma(index),
             "is_after_plus": self._follows_plus(index),
+            "is_short_phrase": len(self.tokenized_sentence) < 3,
         }
 
         if index > 0:
