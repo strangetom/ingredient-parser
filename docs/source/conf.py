@@ -48,10 +48,6 @@ html_context = {"default_mode": "dark"}
 html_theme_options = {
     "collapse_navigation": True,
     "pygment_dark_style": "gruvbox-dark",
-    "navbar_end": ["version-switcher", "navbar-icon-links"],
+    "navbar_end": ["navbar-icon-links"],
     "github_url": "https://github.com/strangetom/ingredient-parser",
-    "switcher": {
-        "json_url": "https://ingredient-parser.readthedocs.io/en/latest/_static/switcher.json",
-        "version_match": version,
-    },
 }
