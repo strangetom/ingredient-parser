@@ -36,8 +36,19 @@ def find_missing_labels(args: argparse.Namespace) -> None:
             matches.append(f"{i+2}: {sentence}")
 
             print(f"{i+2}: {sentence}")
-            print(p.tokenized_sentence)
-            print(token_labels)
+
+            # Highlight tokens and labels with OTHER label in red text
+            output_tokens, output_labels = [], []
+            for tok, lab in zip(p.tokenized_sentence, token_labels):
+                if lab == "OTHER":
+                    output_labels.append(f"\033[91m{lab}\033[0m")
+                    output_tokens.append(f"\033[91m{tok}\033[0m")
+                else:
+                    output_labels.append(lab)
+                    output_tokens.append(tok)
+
+            print(", ".join(output_tokens))
+            print(", ".join(output_labels))
             print("")
 
     print(f"Found {len(matches)} sentences with missing token labes.")
