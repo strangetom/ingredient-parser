@@ -78,6 +78,7 @@ def create_html_table(
         "Name",
         "Quantity",
         "Unit",
+        "Preparation",
         "Comment",
     ]:
         td = ET.Element("td", attrib={"class": "row-heading"})
@@ -116,6 +117,10 @@ def create_html_table(
         unit_td = ET.Element("td", attrib={"class": "row"})
         unit_td.text = sentence_labels["unit"]
         tr.append(unit_td)
+
+        prep_td = ET.Element("td", attrib={"class": "row"})
+        prep_td.text = sentence_labels["preparation"]
+        tr.append(prep_td)
 
         comment_td = ET.Element("td", attrib={"class": "row"})
         comment_td.text = sentence_labels["comment"]
