@@ -64,7 +64,7 @@ QUANTITY_X_PATTERN = re.compile(r"([\d\.]+)\s[xX]\s*")
 # quote, comma.
 # The following punctuation is deliberately left out of the these groups so that
 # they are removed: backslash.
-group_a = r"[\w!\#\$\£\€%\&'\*\+\-\.>=<\?@\^_`\\\|\~’]+"
+group_a = r"[\w!\#\$\£\€%\&'\*\+\-\.>=<\?@\^_`\\\|\~’°]+"
 group_b = r"[\(\)\[\]\{\}\,\"/:;]"
 REGEXP_TOKENIZER = re.compile(
     rf"{group_a}|{group_b}", re.UNICODE | re.MULTILINE | re.DOTALL

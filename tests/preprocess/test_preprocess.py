@@ -39,3 +39,16 @@ class TestPreProcessor_normalise:
         input_sentence = "1 to 1 1/2 tbsp. mint sauce"
         p = PreProcessor(input_sentence, defer_pos_tagging=True)
         assert p.sentence == "1-1.5 tbsp mint sauce"
+
+    def test_degree_symbol(self):
+        input_sentence = "¼ cup warm water (105°F)"
+        p = PreProcessor(input_sentence, defer_pos_tagging=True)
+        assert p.tokenized_sentence == [
+            "0.25",
+            "cup",
+            "warm",
+            "water",
+            "(",
+            "105°F",
+            ")",
+        ]
