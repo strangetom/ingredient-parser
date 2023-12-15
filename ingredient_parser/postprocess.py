@@ -44,7 +44,6 @@ class _PartialIngredientAmount:
     SINGULAR: bool = False
 
 
-@dataclass
 class IngredientAmount:
     """Dataclass for holding a parsed ingredient amount, comprising the following
     attributes.
@@ -55,6 +54,8 @@ class IngredientAmount:
         Parsed ingredient quantity
     unit : str
         Unit of parsed ingredient quantity
+    text : str
+        Amount as a string, automatically generated from the quantity and unit
     confidence : float
         Confidence of parsed ingredient amount, between 0 and 1.
         This is the average confidence of all tokens that contribute to this object.
@@ -66,11 +67,46 @@ class IngredientAmount:
         Default is False.
     """
 
-    quantity: str
-    unit: str
-    confidence: float
-    APPROXIMATE: bool = False
-    SINGULAR: bool = False
+    def __init__(
+        self,
+        quantity: str,
+        unit: str,
+        confidence: float,
+        APPROXIMATE: bool = False,
+        SINGULAR: bool = False,
+    ):
+        self.quantity = quantity
+        self.unit = unit
+        self.confidence = confidence
+        self.APPROXIMATE = APPROXIMATE
+        self.SINGULAR = SINGULAR
+
+    @property
+    def text(self):
+        return " ".join((self.quantity, self.unit)).strip()
+
+    def __repr__(self):
+        attrs = [
+            f"quantity='{self.quantity}'",
+            f"unit='{self.unit}'",
+            f"text='{self.text}'",
+            f"confidence={self.confidence}",
+            f"APPROXIMATE={self.APPROXIMATE}",
+            f"SINGULAR={self.SINGULAR}",
+        ]
+        return f"{self.__class__.__qualname__}({', '.join(attrs)})"
+
+    def __eq__(self, other) -> bool:
+        if not isinstance(other, self.__class__):
+            return False
+
+        return (
+            self.quantity == other.quantity
+            and self.unit == other.unit
+            and self.confidence == other.confidence
+            and self.APPROXIMATE == other.APPROXIMATE
+            and self.SINGULAR == other.SINGULAR
+        )
 
 
 @dataclass
