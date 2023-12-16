@@ -41,16 +41,16 @@ The model used for labelling tokens in sentences, provided in the ```ingredient-
 
 ```
 Sentence-level results:
-	Total: 12501
-	Correct: 11515
-	Incorrect: 986
-	-> 92.11% correct
+	Total: 15000
+	Correct: 13884
+	Incorrect: 1116
+	-> 92.56% correct
 
 Word-level results:
-	Total: 85262
-	Correct: 82718
-	Incorrect: 2544
-	-> 97.02% correct
+	Total: 106343
+	Correct: 103402
+	Incorrect: 2941
+	-> 97.23% correct
 ```
 
 ## Development
