@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from itertools import groupby
 from operator import itemgetter
 from statistics import mean
@@ -44,9 +44,12 @@ class _PartialIngredientAmount:
     SINGULAR: bool = False
 
 
+@dataclass
 class IngredientAmount:
     """Dataclass for holding a parsed ingredient amount, comprising the following
     attributes.
+
+    On instantiation, the unit is made plural if necessary.
 
     Attributes
     ----------
@@ -67,46 +70,22 @@ class IngredientAmount:
         Default is False.
     """
 
-    def __init__(
-        self,
-        quantity: str,
-        unit: str,
-        confidence: float,
-        APPROXIMATE: bool = False,
-        SINGULAR: bool = False,
-    ):
-        self.quantity = quantity
-        self.unit = unit
-        self.confidence = confidence
-        self.APPROXIMATE = APPROXIMATE
-        self.SINGULAR = SINGULAR
+    quantity: str
+    unit: str
+    text: str = field(init=False)
+    confidence: float
+    APPROXIMATE: bool = False
+    SINGULAR: bool = False
 
-    @property
-    def text(self):
-        return " ".join((self.quantity, self.unit)).strip()
+    def __post_init__(self):
+        """
+        On dataclass instantiation, make the unit plural if required, and generate the
+        text field.
+        """
+        if self.quantity != "1" and self.quantity != "":
+            self.unit = pluralise_units(self.unit)
 
-    def __repr__(self):
-        attrs = [
-            f"quantity='{self.quantity}'",
-            f"unit='{self.unit}'",
-            f"text='{self.text}'",
-            f"confidence={self.confidence}",
-            f"APPROXIMATE={self.APPROXIMATE}",
-            f"SINGULAR={self.SINGULAR}",
-        ]
-        return f"{self.__class__.__qualname__}({', '.join(attrs)})"
-
-    def __eq__(self, other) -> bool:
-        if not isinstance(other, self.__class__):
-            return False
-
-        return (
-            self.quantity == other.quantity
-            and self.unit == other.unit
-            and self.confidence == other.confidence
-            and self.APPROXIMATE == other.APPROXIMATE
-            and self.SINGULAR == other.SINGULAR
-        )
+        self.text = " ".join((self.quantity, self.unit)).strip()
 
 
 @dataclass
@@ -562,11 +541,6 @@ class PostProcessor:
                         )
                         amounts.append(amount)
 
-        # Make units plural if appropriate
-        for amount in amounts:
-            if amount.quantity != "1" and amount.quantity != "":
-                amount.unit = pluralise_units(amount.unit)
-
         return amounts
 
     def _match_pattern(self, labels: list[str], pattern: list[str]) -> list[list[int]]:
@@ -711,12 +685,7 @@ class PostProcessor:
         # Then convert to IngredientAmount object
         processed_amounts = []
         for amount in amounts:
-            combined_unit = " ".join(amount.unit)
-            # Pluralise the units if appropriate
-            if amount.quantity != "1" and amount.quantity != "":
-                combined_unit = pluralise_units(combined_unit)
-
-            amount.unit = combined_unit
+            amount.unit = " ".join(amount.unit)
             amount.confidence = round(mean(amount.confidence), 6)
 
             # Convert to an IngredientAmount object for returning
