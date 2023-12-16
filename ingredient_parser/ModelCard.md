@@ -78,11 +78,11 @@ There are 3 datasets used to train and evaluate model performance.
 
 2. Cookstr, originally found as part of https://archive.org/details/recipes-en-201706.
 
-   The first 10,000 sentences are used in the training and evaluation of the model.
+   The first 15,000 sentences are used in the training and evaluation of the model.
 
 3. BBC Food, originally found as part of https://archive.org/details/recipes-en-201706.
 
-   The first 10,000 sentences are used in the training and evaluation of the model.
+   The first 15,000 sentences are used in the training and evaluation of the model.
 
 All datasets have been through extensive cleaning to make the data consistent. The cleaned versions of the data are found in the repository for the ingredient_parser_nlp package: https://github.com/strangetom/ingredient-parser
 
@@ -94,9 +94,9 @@ The model has the following performance metrics:
 
 | Word level accuracy | Sentence level accuracy |
 | ------------------- | ----------------------- |
-| 97.02%              | 92.11%                  |
+| 97.23%              | 92.65%                  |
 
-Due to the randomisation of the selection of training and evaluation data, the word level accuracy metric can vary by ±0.4 pp and the sentence level accuracy can vary by ±1 pp between model training runs.
+Due to the randomisation of the selection of training and evaluation data, the word level accuracy metric can vary by ±0.5 pp and the sentence level accuracy can vary by ±25 pp between model training runs.
 
 ## Ethical Considerations
 

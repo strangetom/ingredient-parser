@@ -51,8 +51,8 @@ For most cases, the amounts are determined by combining a QTY label with the fol
     ...
     >>> parsed = PostProcessor(sentence, tokens, labels, scores).parsed()
     >>> amounts = parsed.amount
-    [IngredientAmount(quantity='0.75', unit='cups', confidence=0.999426, APPROXIMATE=False, SINGULAR=False),
-    IngredientAmount(quantity='170', unit='g', confidence=0.909345, APPROXIMATE=False, SINGULAR=False)]
+    [IngredientAmount(quantity='0.75', unit='cups', text='0.75 cups', confidence=0.999426, APPROXIMATE=False, SINGULAR=False),
+    IngredientAmount(quantity='170', unit='g', text='170 g', confidence=0.909345, APPROXIMATE=False, SINGULAR=False)]
 
 There are two amounts identified: **0.75 cups** and **170 g**.
 
@@ -84,7 +84,7 @@ There are some particular cases where the combination of QTY and UNIT labels tha
     ...
     >>> parsed = PostProcessor(sentence, tokens, labels, scores).parsed()
     >>> amounts = parsed.amount
-    [IngredientAmount(quantity='2', unit='cans', confidence=0.9901127131948666, APPROXIMATE=False, SINGULAR=False),
-    IngredientAmount(quantity='14', unit='ounces', confidence=0.979053978856428, APPROXIMATE=False, SINGULAR=True)]
+    [IngredientAmount(quantity='2', unit='cans', text='2 cans', confidence=0.9901127131948666, APPROXIMATE=False, SINGULAR=False),
+    IngredientAmount(quantity='14', unit='ounces', text='14 ounces', confidence=0.979053978856428, APPROXIMATE=False, SINGULAR=True)]
 
 Identifying and handling this pattern of QTY and UNIT labels is done by the :func:`PostProcessor._sizable_unit_pattern()` function.

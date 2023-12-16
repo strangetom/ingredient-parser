@@ -50,14 +50,15 @@ The :func:`parse_ingredient` function takes an ingredient sentence and return th
     >>> from ingredient_parser import parse_ingredient
     >>> parse_ingredient("2 yellow onions, finely chopped")
     ParsedIngredient(
-        name=IngredientText(text='yellow onions', confidence=0.967262),
+        name=IngredientText(text='yellow onions', confidence=0.0.982988),
         amount=[IngredientAmount(quantity='2',
                                  unit='',
-                                 confidence=0.997084,
+                                 text='2',
+                                 confidence=0.998804,,
                                  APPROXIMATE=False,
                                  SINGULAR=False)],
         preparation=IngredientText(text='finely chopped',
-                                   confidence=0.995751),
+                                   confidence=0.995613),
         comment=None,
         other=None,
         sentence='2 yellow onions, finely chopped'
@@ -106,6 +107,7 @@ The :func:`parse_multiple_ingredients` function is provided as a convenience fun
             name=IngredientText(text='fresh lime juice', confidence=0.991891),
             amount=[IngredientAmount(quantity='3', 
                                      unit='tablespoons', 
+                                     text='3 tablespoons',
                                      confidence=0.999459, 
                                      APPROXIMATE=False, 
                                      SINGULAR=False)], 
@@ -118,6 +120,7 @@ The :func:`parse_multiple_ingredients` function is provided as a convenience fun
             name=IngredientText(text='extra-virgin olive oil', confidence=0.996531), 
             amount=[IngredientAmount(quantity='2', 
                                      unit='tablespoons', 
+                                     text='2 tablespoons',
                                      confidence=0.999259, 
                                      APPROXIMATE=False, 
                                      SINGULAR=False)], 
@@ -130,6 +133,7 @@ The :func:`parse_multiple_ingredients` function is provided as a convenience fun
             name=IngredientText(text='garlic', confidence=0.992021), 
             amount=[IngredientAmount(quantity='2', 
                                      unit='large cloves', 
+                                     text='2 large cloves',
                                      confidence=0.983268, 
                                      APPROXIMATE=False, 
                                      SINGULAR=False)], 

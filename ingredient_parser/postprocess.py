@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from itertools import groupby
 from operator import itemgetter
 from statistics import mean
@@ -49,12 +49,16 @@ class IngredientAmount:
     """Dataclass for holding a parsed ingredient amount, comprising the following
     attributes.
 
+    On instantiation, the unit is made plural if necessary.
+
     Attributes
     ----------
     quantity : str
         Parsed ingredient quantity
     unit : str
         Unit of parsed ingredient quantity
+    text : str
+        Amount as a string, automatically generated from the quantity and unit
     confidence : float
         Confidence of parsed ingredient amount, between 0 and 1.
         This is the average confidence of all tokens that contribute to this object.
@@ -68,9 +72,20 @@ class IngredientAmount:
 
     quantity: str
     unit: str
+    text: str = field(init=False)
     confidence: float
     APPROXIMATE: bool = False
     SINGULAR: bool = False
+
+    def __post_init__(self):
+        """
+        On dataclass instantiation, make the unit plural if required, and generate the
+        text field.
+        """
+        if self.quantity != "1" and self.quantity != "":
+            self.unit = pluralise_units(self.unit)
+
+        self.text = " ".join((self.quantity, self.unit)).strip()
 
 
 @dataclass
@@ -526,11 +541,6 @@ class PostProcessor:
                         )
                         amounts.append(amount)
 
-        # Make units plural if appropriate
-        for amount in amounts:
-            if amount.quantity != "1" and amount.quantity != "":
-                amount.unit = pluralise_units(amount.unit)
-
         return amounts
 
     def _match_pattern(self, labels: list[str], pattern: list[str]) -> list[list[int]]:
@@ -675,12 +685,7 @@ class PostProcessor:
         # Then convert to IngredientAmount object
         processed_amounts = []
         for amount in amounts:
-            combined_unit = " ".join(amount.unit)
-            # Pluralise the units if appropriate
-            if amount.quantity != "1" and amount.quantity != "":
-                combined_unit = pluralise_units(combined_unit)
-
-            amount.unit = combined_unit
+            amount.unit = " ".join(amount.unit)
             amount.confidence = round(mean(amount.confidence), 6)
 
             # Convert to an IngredientAmount object for returning
