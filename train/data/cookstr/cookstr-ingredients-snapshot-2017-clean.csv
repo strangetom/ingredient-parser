@@ -351,7 +351,7 @@ Grated zest of 3 limes,limes,3,,Grated zest,of
 "1 package (8 oz/250 g) cream cheese, softened (see Notes)",cream cheese,1 8 250,package oz g,softened,(/) (see Notes)
 "4 cups (1 L) cilantro leaves, including soft stems",cilantro leaves,4 1,cup L,,() including soft stem
 "6 bay leaves, shredded with scissors",bay leaves,6,,shredded with scissors,
-½ cup Chinese rice wine or dry sherry,Chinese rice wine,0.5,cup,,or dry sherry
+½ cup Chinese rice wine or dry sherry,Chinese rice wine or dry sherry,0.5,cup,,
 "1 tbsp chopped dill, plus more to garnish",dill,1,tbsp,chopped ,plus more to garnish
 ¼ tsp (1 mL) saffron,saffron,0.25 1,tsp mL,,() 
 ¼ cup vegetable shortening,vegetable shortening,0.25,cup,,
@@ -609,7 +609,7 @@ Juice and pulp from 1 lime,Juice and pulp from 1 lime,,,,
 ¾ cup (or as needed) best-quality olive oil,best-quality olive oil,0.75,cup,,(or as needed) 
 3 tablespoon (45 ml) honey,honey,3 45,tablespoon ml,,()
 1½ tablespoons lemon rind,lemon rind,1.5,tablespoon,,
-"1 tablespoon chopped herbs such as flat-leaf parsley, chives, and/or basil","herbs such as flat-leaf parsley, chives, and/or basil",1,tablespoon,chopped,
+"1 tablespoon chopped herbs such as flat-leaf parsley, chives, and/or basil",herbs,1,tablespoon,chopped,"such as flat-leaf parsley, chives, and/or basil"
 1 cup water or stock,water or stock,1,cup,,
 Sauce Olé or additional habanero hot sauce,Sauce Olé or additional habanero hot sauce,,,,
 ½ cup whole hazelnuts,whole hazelnuts,0.5,cup,,
@@ -678,7 +678,7 @@ Paprika to dust over,Paprika to dust over,,,,
 "6 halibut steaks (6 to 8 ounces each), 1½ inches thick",halibut steaks,6 6-8, ounce,,1.5 inch thick (each)
 2 cups warm whole milk,whole milk,2,cup,warm ,
 "1 tomato, thinly sliced",tomato,1,,thinly sliced,
-"1 large egg, preferably at room temperature",egg,1,large,at room temperature,preferably 
+"1 large egg, preferably at room temperature",egg,1,large,preferably at room temperature,
 "½ cup beef stock, as needed",beef stock,0.5,cup,,as needed
 "One 15-ounce can black beans, drained and rinsed",black beans,1 15,can ounce,drained and rinsed,
 ½ cup diagonally sliced young onion tops,young onion tops,0.5,cup,diagonally sliced ,
@@ -1733,12 +1733,12 @@ Blueberry-Cream Cheese-Honey Butter (optional),Blueberry-Cream Cheese-Honey Butt
 1 tablespoon freshly cracked black pepper,freshly cracked black pepper,1,tablespoon,,
 "1 pound button or cremini mushrooms, stems removed and reserved, caps sliced",button or cremini mushrooms,1,pound,"stem removed and reserved, caps sliced",
 "½ pound pork loin, with a little fat",pork loin,0.5,pound,,with a little fat
-"1 cup snow peas, each cut in half lengthwise",snow peas,1,cup,cut in half lengthwise,each
+"1 cup snow peas, each cut in half lengthwise",snow peas,1,cup,each cut in half lengthwise,
 1/2 teaspoon chopped fresh thyme,fresh thyme,0.5,teaspoon,chopped ,
 "1 cup Japanese short-grain sweet (glutinous) white rice (mochi gome), coarsely ground in a clean spice or coffee grinder and soaked in plenty of water for 30 minutes",Japanese short-grain sweet (glutinous) white rice (mochi gome),1,cup,coarsely ground in a clean spice or coffee grinder and soaked in plenty of water for 30 minutes,
 2 tsp (10 ml) sweet paprika (see Notes),sweet paprika,2 10,tsp ml,,() (see Notes)
 "1 cup dried cherries, raisins, apricots, or cranberries (optional)",dried cherries,1,cup,,"raisins, apricots, or cranberries (optional)"
-"4 salmon fillets (approx. 1 inch thick), preferably organic, skinned (about 1 1/2 pounds in total)",salmon fillets,4,,skinned ,"(approx. 1 inch thick) preferably organic, (about 1.5 pound in total)"
+"4 salmon fillets (approx. 1 inch thick), preferably organic, skinned (about 1 1/2 pounds in total)",salmon fillets,4 1.5,pound,skinned ,"(approx. 1 inch thick) preferably organic, (about in total)"
 4 teaspoons butter,butter,4,teaspoon,,
 1/2 cup chunky peanut butter,chunky peanut butter,0.5,cup,,
 "½ teaspoon dried oregano, preferably Mexican",dried oregano,0.5,teaspoon,,preferably Mexican
@@ -1997,7 +1997,7 @@ Zest of 2 large lemons,lemons,2,large,Zest ,of
 1½ cups canned unsweetened pumpkin puree,canned unsweetened pumpkin puree,1.5,cup,,
 "4 scallions, chopped (include some of the green)",scallions,4,,chopped ,(include some of the green)
 4 tablespoons heavy cream,heavy cream,4,tablespoon,,
-"2 thick parsnips, cut into 1-inch dice",parsnips,2,thick,cut into 1-inch dice,
+"2 thick parsnips, cut into 1-inch dice",thick parsnips,2,,cut into 1-inch dice,
 "4 slices bacon, cooked crisp",bacon,4,slice,cooked crisp,
 1/3 cup organic sugar,organic sugar,0.333,cup,,
 "12 large fresh cilantro springs, thick stems removed, remaining stems and leave finely chopped (about ¼ cup)",fresh cilantro springs,12 0.25,large cup,"thick stem removed, remaining stem and leave finely chopped ",(about)
@@ -2400,7 +2400,7 @@ Juice of 1 orange,orange,1,,,Juice of
 1/3 cup raisins or currants (optional),raisins or currants,0.333,cup,,(optional)
 "6 ounces queso fresco or other crumbly fresh cheese such as salted pressed farmer’s cheese or feta, cut into ½-inch cubes; or 6 ounces soft white cheese, such as Chihuahua, quesillo, asadero, or Monterey jack, shredded",queso fresco or other crumbly fresh cheese such as salted pressed farmer’s cheese or feta,6,ounce,cut into 0.5-inch cubes,"; or 6 ounce soft white cheese, such as Chihuahua, quesillo, asadero, or Monterey jack, shredded"
 1 teaspoon piment d’Espelette (see note),piment d’Espelette,1,teaspoon,,(see note)
-Cracked black peppercorns,Cracked black peppercorns,,,,
+Cracked black peppercorns,black peppercorns,,,Cracked,
 "8 cloves garlic, peeled and smashed with the flat side of a knife",garlic,8,clove,peeled and smashed with the flat side of a knife,
 "4 Chinese celery stalks, cut into ½-inch-long matchsticks",Chinese celery,4,stalk,cut into 0.5-inch-long matchsticks,
 "4 cups chicken broth, homemade or store-bought, preferably organic",chicken broth,4,cup,,"homemade or store-bought, preferably organic"
@@ -2759,7 +2759,7 @@ Leaves of 1 sprig fresh thyme,Leaves of fresh thyme,1,sprig,,
 20 seedless red grapes,seedless red grapes,20,,,
 1 cup green peas,green peas,1,cup,,
 "6 amaretti cookies, crushed",amaretti cookies,6,,crushed,
-12-16 ounces dried vermicelli or other rice noodles,dried vermicelli,12-16,ounce,,or other rice noodles
+12-16 ounces dried vermicelli or other rice noodles,dried vermicelli or other rice noodles,12-16,ounce,,
 2 tablespoons apple juice,apple juice,2,tablespoon,,
 "1 large shallot, minced (about 3 scant tablespoons)",shallot,1,large,minced ,(about 3 scant tablespoon)
 "2 honeydew melons, halved and seeded",honeydew melons,2,,halved and seeded,
@@ -2808,7 +2808,7 @@ Coarse salt and freshly ground black pepper,coarse salt and freshly ground black
 2 stalks of celery,celery,2,stalk,,of 
 1½ pounds ground pork,ground pork,1.5,pound,,
 "4 cups chicken stock, or as needed",chicken stock,4,cup,,or as needed
-2 cups chocolate oil (below),chocolate oil (below),2,cup,,
+2 cups chocolate oil (below),chocolate oil,2,cup,,(below)
 1½ to 2 teaspoons balsamic vinegar,balsamic vinegar,1.5-2,teaspoon,,
 "½ cup pine nuts, toasted, to serve",pine nuts,0.5,cup,toasted ,to serve
 ½ cup plain low-fat Greek yogurt,plain low-fat Greek yogurt,0.5,cup,,
@@ -2821,7 +2821,7 @@ Lemon wedges and cilantro sprigs for garnish,Lemon wedges and cilantro sprigs,,,
 1 heaped teaspoon smoked paprika,smoked paprika,1,heaped teaspoon,,
 "1 egg yolk, beaten with 1 tablespoon cold water",egg yolk,1,,beaten with 1 tablespoon cold water,
 "Truffle oil, truffle paste (see note below), or shaved fresh truffle (optional)","Truffle oil, truffle paste, or shaved fresh truffle ",,,,(see note below) (optional)
-2 teaspoons drained tiny capers,capers,2,teaspoon,drained tiny ,
+2 teaspoons drained tiny capers,tiny capers,2,teaspoon,drained,
 3 tablespoons finely minced fresh oregano,fresh oregano,3,tablespoon,finely minced ,
 ¼ cup golden raisins,golden raisins,0.25,cup,,
 1 package frozen peas,frozen peas,1,package,,
@@ -3446,7 +3446,7 @@ Generous ½ pound (generous cup) bulgur wheat,bulgur wheat,0.5,pound,,Generous (
 "2 pounds morels, rinsed and patted dry",morels,2,pound,rinsed and patted dry,
 1 cup finely shredded red cabbage,red cabbage,1,cup,finely shredded ,
 "12 thin asparagus spears, peeled if they are woody at the base",asparagus spears,12,thin,peeled if they are woody at the base,
-"3-4 dozen fresh, shucked oysters",fresh shucked oysters,3-4 dozen,,,
+"3-4 dozen fresh, shucked oysters",oysters,3-4 dozen,,fresh shucked ,
 "½ cup plus 1 tbsp unsalted butter, softened",unsalted butter,0.5,cup,softened,plus 1 tbsp
 1 ½ teaspoons sesame oil,sesame oil,1.5,teaspoon,,
 "4 Lebanese (short) cucumbers, coarsely grated",Lebanese (short) cucumbers,4,,coarsely grated,
@@ -4237,7 +4237,7 @@ Baking sheets,Baking sheets,,,,
 ½ tsp kosher salt 2 mL,kosher salt,0.5 2,tsp mL,,
 ¾ cup parsley leaves for garnish,parsley leaves,0.75,cup,,for garnish
 1/3 cup grated almonds combined with,almonds,0.333,cup,grated ,combined with
-1½ cups fresh coarse bread crumbs,fresh bread crumbs,1.5,cup,,coarse 
+1½ cups fresh coarse bread crumbs,fresh coarse bread crumbs,1.5,cup,,
 "1 clove garlic, peeled and roughly chopped",garlic,1,clove,peeled and roughly chopped,
 1 center-cut boneless pork loin roast (about 4 pounds),center-cut boneless pork loin roast,1 4,pound,,(about)
 1 (16.5-ounce) jar pasta sauce,pasta sauce,1 16.5,jar ounce,,()
@@ -4315,7 +4315,7 @@ One 26-ounce can crushed tomatoes,crushed tomatoes,1 26,can ounce,,
 "2/3 cup dry white wine, or ½ cup dry white vermouth and 3 Tb water",dry white wine,0.667,cup,,or 0.5 cup dry white vermouth and 3 Tb water
 ½ cup (125 mL) cold brewed coffee,brewed coffee,0.5 125,cup mL,cold ,()
 1½ cups plain yogurt,plain yogurt,1.5,cup,,
-"½ cup grated Parmesan cheese, for garnish",Parmesan cheese,0.5,cup,grated for garnish,
+"½ cup grated Parmesan cheese, for garnish",Parmesan cheese,0.5,cup,grated,for garnish
 Cooked whole artichokes,whole artichokes,,,Cooked,
 1 stick butter,butter,1,stick,,
 5 cups boiling fish stock,boiling fish stock,5,cup,,
@@ -4851,7 +4851,7 @@ A small tub of Greek-style natural yogurt,Greek-style natural yogurt,,small tub,
 10½ ounces fresh thin rice noodles,fresh thin rice noodles,10.5,ounce,,
 1 jar (13 oz/370 g) roasted red peppers,roasted red peppers,1 13 370,jar oz g,,(/)
 1 ruby red grapefruit,ruby red grapefruit,1,,,
-"2 lb (900g) ripe Roma (plum) tomatoes, peeled, seeded and chopped, or one 28oz (784g) can chopped tomatoes with their juices",ripe Roma tomatoes,2 900,lb g,"peeled, seeded and chopped","() (plum), or 1 28 oz (784 g) can chopped tomatoes with their juices"
+"2 lb (900g) ripe Roma (plum) tomatoes, peeled, seeded and chopped, or one 28oz (784g) can chopped tomatoes with their juices",ripe Roma (plum) tomatoes,2 900,lb g,"peeled, seeded and chopped","(), or 1 28 oz (784 g) can chopped tomatoes with their juices"
 "½ cup diced drained Dried Tomatoes in Olive Oil, or store-bought",Dried Tomatoes in Olive Oil,0.5,cup,diced drained ,or store-bought
 "6 large (6-inch-diameter) portabella mushrooms, stems and gills removed (Love Note 1)",portabella mushrooms,6,large,stem and gills removed,(6-inch-diameter) (Love Note 1)
 1 teaspoon raw sugar,raw sugar,1,teaspoon,,
@@ -5229,7 +5229,7 @@ About 2/3 cup Fine Dried Bread Crumbs,Bread Crumbs,0.667,cup,,"About, Fine Dried
 "1 lb (450g) mixed mushrooms, cleaned and coarsely chopped",mixed mushrooms,1 450,lb g,cleaned and coarsely chopped,()
 2 large handfuls of baby spinach,baby spinach,2,large handful,,of 
 Juice of ½ large lime,lime,0.5,large,,Juice of
-"1 large tomato, broiled until soft",tomato,1,large,,broiled until soft
+"1 large tomato, broiled until soft",tomato,1,large,broiled until soft,
 "2 pieces kielbasa sausage, each 6 inches long",kielbasa sausage,2,piece,,each 6 inch long
 1 tsp ground cinnamon (5 mL),ground cinnamon,1 5,tsp mL,,()
 6 cups boiling water,boiling water,6,cup,,
@@ -5499,7 +5499,7 @@ Horseradish sauce,Horseradish sauce,,,,
 "2 avocados, pitted, peeled, and (at the last moment) diced",avocados,2,,"pitted, peeled, and (at the last moment) diced",
 ½ medium seedless watermelon (5 pounds),seedless watermelon,0.5 5,medium pound,,()
 "1 butternut squash, peeled, cut in half, seeded, and cubed",butternut squash,1,,"peeled, cut in half, seeded, and cubed",
-¼ cup Chinese rice wine or dry California sherry,Chinese rice wine,0.25,cup,,or dry California sherry
+¼ cup Chinese rice wine or dry California sherry,Chinese rice wine or dry California sherry,0.25,cup,,
 "3 large sweet potatoes, each cut into 4 chunks",sweet potatoes,3,large,each cut into 4 chunk,
 2 cups half-and-half,half-and-half,2,cup,,
 Mexican wedding cookies,Mexican wedding cookies,,,,
@@ -5595,7 +5595,7 @@ Cold water to cover,water,,,Cold,to cover
 "1 pound cherrystone clams, scrubbed and washed",cherrystone clams,1,pound,scrubbed and washed,
 8 ounces penne or other tubular pasta,penne or other tubular pasta,8,ounce,,
 "Salt and freshly ground black pepper, to taste",Salt and freshly ground black pepper,,,,to taste
-"2 gelatin sheets, soaked in cold water until softened and drained, or 1¼ teaspoons powdered gelatin, softened in 1 tablespoon cold water",gelatin sheets,2,,soaked in cold water until softened and drained,"or 1.25 teaspoon powdered gelatin, softened in 1 tablespoon cold water"
+"2 gelatin sheets, soaked in cold water until softened and drained, or 1¼ teaspoons powdered gelatin, softened in 1 tablespoon cold water",gelatin,2,sheet,soaked in cold water until softened and drained,"or 1.25 teaspoon powdered gelatin, softened in 1 tablespoon cold water"
 1 tbsp (15 mL) dark sesame oil,dark sesame oil,1 15,tbsp mL,,()
 "1 small ripe tomato, cut into wedges",ripe tomato,1,small,cut into wedge,
 "3 bundles of green onions, cut into about 3-inch lengths",green onions,3,bundle,cut into about 3-inch length,of
@@ -6113,7 +6113,7 @@ Gold or yellow food coloring,Gold or yellow food coloring,,,,
 1 pinch saffron,saffron,1,pinch,,
 Cream cheese frosting,Cream cheese frosting,,,,
 ¼ cup finely chopped fresh flat-leaf parsley or cilantro,fresh flat-leaf parsley or cilantro,0.25,cup,finely chopped ,
-1 tablespoon cracked black peppercorns,cracked black peppercorns,1,tablespoon,,
+1 tablespoon cracked black peppercorns,black peppercorns,1,tablespoon,cracked ,
 2 peaches,peaches,2,,,
 purified water,purified water,0.5,cup ,,
 "Two ¼-pound zucchinis, ends trimmed (about 4½ inches long), cut lengthwise into 1/8-inch slices",zucchinis,2 0.25,pound,"ends trimmed (about 4.5 inch long), cut lengthwise into 0.125-inch slice",
@@ -6252,7 +6252,7 @@ Three 6-inch pita breads with pockets,pita breads with pockets,3 6,inch,,
 4 egg yolks,egg yolks,4,,,
 Flaked sea salt,Flaked sea salt,,,,
 "½ cup sugar, or to taste",sugar,0.5,cup,,or to taste
-"8 ounces bittersweet chocolate, into ¼-inch pieces",bittersweet chocolate,8,ounce,,into 0.25-inch piece
+"8 ounces bittersweet chocolate, into ¼-inch pieces",bittersweet chocolate,8,ounce,into 0.25-inch piece,
 2 tablespoons of olive oil,olive oil,2,tablespoon,,of 
 "1 ½ pounds large baking (russet) potatoes, peeled",baking (russet) potatoes,1.5,pound,peeled,large
 1½ teaspoons kosher or sea salt,kosher or sea salt,1.5,teaspoon,,
@@ -6263,7 +6263,7 @@ Flaked sea salt,Flaked sea salt,,,,
 2 cups cooked fresh or canned pumpkin,pumpkin,2,cup,cooked ,fresh or canned 
 "1/3 cup semi-sweet chocolate chips, optional",semi-sweet chocolate chips,0.333,cup,,optional
 2 cups whole wheat flour,whole wheat flour,2,cup,,
-8 ounces cleaned calamari (squid),cleaned calamari (squid),8,ounce,,
+8 ounces cleaned calamari (squid),calamari (squid),8,ounce,cleaned ,
 "One 6- to 8-pound beef tenderloin, trimmed of fat",beef tenderloin,1 6-8,pound,trimmed of fat,
 "1½ cups soft red wine, such as Merlot",soft red wine,1.5,cup,,such as Merlot
 "4 scallions, chopped",scallions,4,,chopped,
@@ -6282,7 +6282,7 @@ Flaked sea salt,Flaked sea salt,,,,
 1/4 cup minced scallions,scallions,0.25,cup,minced ,
 "12 ounces (about 2½ cups) medium-small, peeled-and-deveined cooked shrimp",medium-small shrimp,12 2.5,ounce cup,"cooked, peeled-and-deveined",(about)
 2 cups finely diced rhubarb (approximately 2 large stalks),rhubarb ,2 2,cup large stalk,finely diced ,(approximately)
-1 cup (250 ml) quick cooking (not instant) oats,oats,1 250,cup ml,,() quick cooking (not instant)
+1 cup (250 ml) quick cooking (not instant) oats,quick cooking oats,1 250,cup ml,,() (not instant)
 "1 medium tomato, quartered, seeded, and cut into ¼-inch strips",tomato,1,medium,"quartered, seeded, and cut into 0.25-inch strip",
 "½ small white onion, peeled and minced",white onion,0.5,small,peeled and minced,
 "6 stalks celery, peeled and thinly sliced",celery,6,stalk,peeled and thinly sliced,
@@ -6681,7 +6681,7 @@ Kosher or sea salt,Kosher or sea salt,,,,
 1 cup yellow split peas,yellow split peas,1,cup,,
 "1 teaspoon ground cumin, preferably freshly ground in a mortar or spice mill",ground cumin,1,teaspoon,preferably freshly ground in a mortar or spice mill,
 "1 cup coarsely chopped fresh Asian basil, cilantro, or mint, of a combination","fresh Asian basil, cilantro, or mint, of a combination",1,cup,coarsely chopped,
-1¼ cups (300 mL) whipping (35%) cream,whipping (35%) cream,1.25 300,cup mL,,()
+1¼ cups (300 mL) whipping (35%) cream,whipping cream,1.25 300,cup mL,,() (35%) 
 "1 large green bell pepper, cored and seeded; 2 tablespoons finely diced, the rest chopped",green bell pepper,1,large,"cored and seeded; 2 tablespoon finely diced, the rest chopped",
 Large corn tortillas,corn tortillas,,large,,
 "1 cup small curd cottage cheese, at room temperature",small curd cottage cheese,1,cup,at room temperature,
@@ -7351,7 +7351,7 @@ Drops of orange bitters or lemon juice,orange bitters or lemon juice,,drop,,of
 3 tbsp cornstarch,cornstarch,3,tbsp,,
 1 teaspoon cayenne,cayenne,1,teaspoon,,
 1 tsp dried rosemary (5 mL),dried rosemary,1 5,tsp mL,,()
-1 cup canned chopped tomatoes,canned tomatoes,1,cup,chopped ,
+1 cup canned chopped tomatoes,canned chopped tomatoes,1,cup,,
 "1-2 green Thai, serrano, or cayenne chiles, stems removed, finely sliced",green Thai,1-2,,"stem removed, finely sliced","serrano, or cayenne chiles"
 1 lb (450 g) fresh asparagus,fresh asparagus,1 450,lb g,,()
 1 cup (190 g) sprouted brown rice,sprouted brown rice,1 190,cup g,,()
@@ -9594,9 +9594,9 @@ small sprig parsley including stalks,parsley including stalks,,small sprig ,,
 "Four 6-ounce cod fillets, approximately ¾ inch thick (see head note)",cod fillets,4 6,ounce,,approximately 0.75 inch thick (see head note)
 1/3 cup mango chutney,mango chutney,0.333,cup,,
 1½ cups maple syrup,maple syrup,1.5,cup,,
-1 (14½-ounce) can fire-roasted diced tomatoes,fire-roasted tomatoes,1 14.5,can ounce,diced ,()
+1 (14½-ounce) can fire-roasted diced tomatoes,fire-roasted diced tomatoes,1 14.5,can ounce,,()
 "1½ pounds cream cheese, softened",cream cheese,1.5,pound,softened,
-"2 cups (500 mL) grated coconut, fresh or frozen, thawed",grated coconut,2 500,cup mL,thawed,"(), fresh or frozen"
+"2 cups (500 mL) grated coconut, fresh or frozen, thawed",coconut,2 500,cup mL,"grated, thawed","(), fresh or frozen"
 "2 large boned chicken thighs, with skin attached",boned chicken thighs,2,large,,with skin attached
 6 ounces baby spinach leaves,baby spinach leaves,6,ounce,,
 1½ lbs (675g) asparagus,asparagus,1.5 675,lb g,,()
@@ -9745,7 +9745,7 @@ Pinch of curry powder,curry powder,,pinch,,of
 1 large handful wild or domestic fennel leaves,wild or domestic fennel leaves,1,large handful,,
 1/3 cup (75 g) light brown or raw sugar,light brown or raw sugar,0.333 75,cup g,,()
 "1 cup ripe mango, cut into medium pieces",ripe mango,1,cup,cut into medium piece,
-"3 pounds large cooking apples, such as Granny Smith or Rome Beauty, peeled, cored, and diced",cooking apples,3,pound,"peeled, cored, and diced","large, such as Granny Smith or Rome Beauty"
+"3 pounds large cooking apples, such as Granny Smith or Rome Beauty, peeled, cored, and diced",large cooking apples,3,pound,"peeled, cored, and diced",such as Granny Smith or Rome Beauty
 Vegetable oil to a depth of ¼ inch in the sauté pan,Vegetable oil,,,,to a depth of 0.25 inch in the sauté pan
 "2 pounds Yukon Gold potatoes, skin on, cut into 1-inch chunks",Yukon Gold potatoes,2,pound,"skin on, cut into 1-inch chunk",
 "Additional salt, if needed",Additional salt,,,,if needed
@@ -9769,7 +9769,7 @@ Vegetable oil to a depth of ¼ inch in the sauté pan,Vegetable oil,,,,to a dept
 "2 teaspoons brown rice syrup, agave nectar, or maple syrup",brown rice syrup,2,teaspoon,,"agave nectar, or maple syrup"
 3½ cups Betsy’s Baking Mix,Betsy’s Baking Mix,3.5,cup,,
 "½ cup (1 stick) unsalted butter, softened, cut into cubes",unsalted butter,0.5 1,cup stick,"softened, cut into cube",()
-"1 whole head garlic (about 2½ ounces), cloves separated and peeled",whole head garlic,1 2.5,ounce,clove separated and peeled,(about)
+"1 whole head garlic (about 2½ ounces), cloves separated and peeled",whole garlic,1 2.5,head ounce,clove separated and peeled,(about)
 1 tablespoon grated Parmesan cheese,Parmesan cheese,1,tablespoon,grated ,
 8 quarts cold water,water,8,quart,cold ,
 "3 pears, peeled, cored, and cut into 1-inch cubes",pears,3,,"peeled, cored, and cut into 1-inch cube",
@@ -11029,7 +11029,7 @@ Watercress or sliced tomatoes,Watercress or sliced tomatoes,,,,
 "¼ pound Manchego or sharp Cheddar cheese, cut into 16 small sticks",Manchego or sharp Cheddar cheese,0.25,pound,cut into 16 small sticks,
 "1 large green tomato, on the softer side, chopped (about 1 cup)",green tomato,1 1,large cup,chopped,on the softer side (about)
 "Vanilla ice cream, for serving",Vanilla ice cream,,,,for serving
-"1 large or 2 medium-size onions, chopped",onions,1,large,chopped,or 2 medium-size
+"1 large or 2 medium-size onions, chopped",onions,1 2,large medium-size,chopped,or
 ½ to 2/3 cup roasted garlic paste (see sidebar),garlic paste,0.5-0.667,cup,roasted,(see sidebar)
 "3½ tablespoons minced scallions, white part only",scallions,3.5,tablespoon,minced,white part only
 10 oz (280g) smoked haddock,smoked haddock,10 280,oz g,,()
@@ -11374,7 +11374,7 @@ Juice of ¼ lemon,lemon,0.25,,,Juice of
 "3 slices (about 2 cups/500 mL) day-old bread, crusts removed, cut into cubes",day-old bread,3 2 500,slices cup mL,"crusts removed, cut into cubes",(about /)
 "Pizza dough for grilled pizza, at room temperature",Pizza dough,,,at room temperature,for grilled pizza
 "12 ounces cold tuna steak, cut into 12 thin slices",tuna steak,12,ounce,"cold, cut into 12 thin slices",
-"2 cups filtered or bottled water, heated to 110° to 120°F (just hot to the touch)",filtered or bottled water,2,cup,heated to 110° to 120°F,(just hot to the touch)
+"2 cups filtered or bottled water, heated to 110° to 120°F (just hot to the touch)",water,2,cup,heated to 110° to 120°F (just hot to the touch),filtered or bottled 
 3 fluid ounces eggs/ 3.5 ounces (weighed without shells)/ 100 grams (weighed without shells),eggs,3 3.5 100,fluid ounce ounce gram,,"/ (weighed without shells) /, (weighed without shells)"
 "1 parsnip, peeled and sliced into rounds",parsnip,1,,peeled and sliced into rounds,
 "1 to 2 cups rice milk, or as needed",rice milk,1-2,cup,,or as needed
@@ -11442,7 +11442,7 @@ Mesquite,Mesquite,,,,
 ¾ cup buttermilk(see Notes),buttermilk,0.75,cup,,(see Notes)
 2 tbsp (25 mL) finely chopped fresh Italian (flat-leaf) parsley,fresh Italian (flat-leaf) parsley,2 25,tbsp mL,finely chopped,()
 "One 7-ounce bar milk chocolate, broken into pieces",milk chocolate,1 7, ounce bars,broken into pieces,
-"1 lb baking potatoes or 2 medium-sized, peeled and cut into ¼-inch cubes to make 2½ cups",baking potatoes,1 2.5,lb cup,peeled and cut into 0.25 inch cubes to make,or 2 medium-sized
+"1 lb baking potatoes or 2 medium-sized, peeled and cut into ¼-inch cubes to make 2½ cups",baking potatoes,1 2,lb medium-sized,peeled and cut into 0.25 inch cubes to make 2/5 cup,or
 "2 in (5cm) piece fresh ginger, peeled and cut into julienne",fresh ginger,2 5,in cm pieces,peeled and cut into julienne,()
 1 pound linguine pasta,linguine pasta,1,pound,,
 1½ cups plus 2 teaspoons sifted flour,flour,1.5,cup,sifted,plus 2 teaspoons
@@ -12428,7 +12428,7 @@ Tabasco (optional),Tabasco,,,,(optional)
 1 heaped tablespoon coriander seeds,coriander seeds,1,heaped tablespoon,,
 "4 sprigs mint, leaves only",mint,4,sprigs,,leaves only
 Egg wash: 1 egg yolk mixed with 1 tablespoon water,Egg wash,,,1 egg yolk mixed with 1 tablespoon water,:
-A healthy pinch cayenne pepper,cayenne pepper,,pinch,,A healthy
+A healthy pinch cayenne pepper,cayenne pepper,,healthy pinch,,A
 "2 carrots, peeled and sliced into ½-inch-thick half-rounds",carrots,2,,peeled and sliced into 0.5 inch-thick half-rounds,
 "1 teaspoon finely chopped fresh herbs, such as parsley or chives",fresh herbs,1,teaspoon,finely chopped,such as parsley or chives
 1 cup freshly grated Parmigiano-Reggiano,Parmigiano-Reggiano,1,cup,freshly grated,
@@ -12660,7 +12660,7 @@ Juice of 1/2 lemon (see Notes),lemon,0.5,,,"Juice of, (see Notes)"
 "1 tablespoon capers, rinsed and chopped",capers,1,tablespoon,rinsed and chopped,
 Several sprigs fresh parsley (stems alone are fine),fresh parsley,,sprig,,"Several, (stems alone are fine)"
 Scant ¼ teaspoon cayenne pepper,cayenne pepper,0.25,Scant teaspoon,,
-"1 (1-inch [2.5 cm]) piece ginger, peeled and grated",ginger,1,piece,peeled and grated,(1 inch [ 2.5 cm ])
+"1 (1-inch [2.5 cm]) piece ginger, peeled and grated",ginger,1 1 2.5,inch cm piece,peeled and grated,([])
 "1 egg, beaten and diluted with 1 teaspoon water and 1 tablespoon heavy cream (use nondairy creamer to make a pareve version)",egg,1,,beaten and diluted,with 1 teaspoon water and 1 tablespoon heavy cream (use nondairy creamer to make a pareve version)
 "1 cup roasted, shelled, and skinned chestnuts (1/2 lb in shell or 7 oz bottled whole; see Notes)",,1,cup,"roasted, shelled",and skinned chestnuts (0.5 lb in shell or 7 oz bottled whole ; see Notes)
 Hot cooked rice or kidney beans,rice or kidney beans,,,Hot cooked,
@@ -13036,7 +13036,7 @@ About 1 tablespoon all-purpose flour for shaping the dough,all-purpose flour,1,t
 3 teaspoons chopped fresh flat-leaf parsley,fresh flat-leaf parsley,3,teaspoon,chopped,
 2 cups heavy whipping cream,heavy whipping cream,2,cup,,
 "1 plump vanilla bean, scraped out (use both seeds and hull)",plump vanilla bean,1,,scraped out (use both seeds and hull),
-1 pound thick asparagus tips cut 4 inches long (from about 3 bunches),,1 3,pound bunches,thick asparagus tips cut 4 inches long,(from about)
+1 pound thick asparagus tips cut 4 inches long (from about 3 bunches),thick asparagus tips ,1 3,pound bunches,cut 4 inches long,(from about)
 ¼ cup coconut butter,coconut butter,0.25,cup,,
 "1 small navel orange, including the peel, quartered",navel orange,1,small,quartered,including the peel
 3 tbsp rice wine vinegar,rice wine vinegar,3,tbsp,,
@@ -13672,7 +13672,7 @@ A generous ½ teaspoon EACH ground cinnamon and black pepper,ground cinnamon and
 "4 ounces (110 g) cream cheese, homemade or store-bought",cream cheese,4 110,ounce g,,() homemade or store-bought
 "3 large yellow onions, peeled and sliced into ½-inch wedges (about 4 cups)",yellow onions,3 4,large cup,peeled and sliced into 0.5 inch wedges,(about)
 1 to 1 ½ cups water,water,1-1.5,cup,,
-"4 fresh ripe large tomatoes, seeded and chopped",fresh ripe large tomatoes,4,,seeded and chopped,
+"4 fresh ripe large tomatoes, seeded and chopped",fresh ripe tomatoes,4,large,seeded and chopped,
 "4 bell peppers, preferably red",bell peppers,4,,,preferably red
 1 large can (46 ounces) pineapple juice,pineapple juice,1 46,large can ounce,,()
 2 tsp (10 mL) grated lemon zest,lemon zest,2 10,tsp mL,grated,()
@@ -13942,7 +13942,7 @@ Two 2 oz (56g) cans anchovies in oil,anchovies in oil,2 2 56,cans oz g,,()
 "Homemade Crème Fraîche or sour cream, for garnish",Homemade Crème Fraîche or sour cream,,,,for garnish
 1 pound medium sea scallops (20 per pound),medium sea scallops,1,pound,,(20 per pound)
 8 slices Italian bread,Italian bread,8,slices,,
-"1 bouquet garni of 1 celery stalk, 2 bay leaves, and 1 sprig of thyme","bouquet garni, celery, bay leaves, thyme",1 1 2, stalk ,,"of, and 1 sprig of"
+"1 bouquet garni of 1 celery stalk, 2 bay leaves, and 1 sprig of thyme",bouquet garni,1 1 2, stalk ,,"of celery, bay leaves and 1 sprig of thyme"
 4 cups grape juice,grape juice,4,cup,,
 "Mint or lemon balm sprigs, for garnish",Mint or lemon balm,,sprig,,for garnish
 "6 seedless navel oranges, peeled, pith removed and cut into ¼-inch (5 mm) slices",seedless navel oranges,6,,"peeled, pith removed and cut into 0.25 inch (5 mm) slices",
@@ -14463,7 +14463,7 @@ Seeds for sprinkling on top of the bread,Seeds,,,,for sprinkling on top of the b
 1 tsp (5 mL) grated lemon zest,lemon zest,1 5,tsp mL,grated,()
 ¾ cup granulated sugar 175 mL,granulated sugar,0.75 175,cup mL,,
 "All-purpose flour, for sprinkling on the work surface",All-purpose flour,,,,for sprinkling on the work surface
-"2 dozen fresh, shucked oysters, with their liquor","fresh, oysters",2 dozen,,shucked,with their liquor
+"2 dozen fresh, shucked oysters, with their liquor",fresh oysters,2 dozen,,shucked,with their liquor
 "3 to 4 sprigs fresh thyme, chopped",fresh thyme,3-4,sprigs,chopped,
 2 ounces dried bonito flakes,dried bonito flakes,2,ounce,,
 Scant teaspoon cocoa powder,cocoa powder,,Scant teaspoon,,
@@ -14916,7 +14916,7 @@ Vanilla ice cream (optional),Vanilla ice cream,,,,(optional)
 "10 shallots, peeled and thinly sliced",shallots,10,,peeled and thinly sliced,
 "2 cups strong brewed coffee (8 ounces, 230 grams)",strong brewed coffee,2 8 230,cup ounce gram,,()
 "¾ cup (175 mL) cilantro, chopped",cilantro,0.75 175,cup mL,chopped,()
-"1 celery stalk, halved",celery stalk,1,,halved,
+"1 celery stalk, halved",celery,1,stalk,halved,
 "12 to 15 small red-skinned new potatoes, scrubbed",red-skinned new potatoes,12-15,small,scrubbed,
 2 teaspoons sea salt/1 teaspoon table salt,sea salt,2,teaspoon,,/1 teaspoons table salt
 "1 cup coarsely chopped herbs, such as mint, dill, chives, and parsley",coarsely chopped herbs,1,cup,,"such as mint, dill, chives, and parsley"
