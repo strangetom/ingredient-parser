@@ -360,10 +360,10 @@ class PostProcessor:
         idx_to_remove = []
         stack = []
         for i, char in enumerate(text):
-            if char == "(":
+            if char in ["(", "["]:
                 # Add index to stack when we find an opening parens
                 stack.append(i)
-            elif char == ")":
+            elif char in [")", "]"]:
                 if len(stack) == 0:
                     # If the stack is empty, we've found a dangling closing parens
                     idx_to_remove.append(i)
