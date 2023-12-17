@@ -2,7 +2,7 @@
 
 import re
 from dataclasses import dataclass, field
-from itertools import groupby
+from itertools import chain, groupby
 from operator import itemgetter
 from statistics import mean
 from typing import Any, Generator, Iterator
@@ -24,11 +24,14 @@ class _PartialIngredientAmount:
     ----------
     quantity : str
         Parsed ingredient quantity
-    unit : list[str] | str
+    unit : list[str]
         Unit or unit tokens of parsed ingredient quantity
-    confidence : list[float] | float
+    confidence : list[float]
         Average confidence of all tokens or list of confidences for each token of parsed
         ingredient amount, between 0 and 1.
+    related_to_previous : bool, optional
+        If True, indicates it is related to the previous IngredientAmount object. All
+        related objects should have the same APPROXIMATE and SINGULAR flags
     APPROXIMATE : bool, optional
         When True, indicates that the amount is approximate.
         Default is False.
@@ -38,8 +41,9 @@ class _PartialIngredientAmount:
     """
 
     quantity: str
-    unit: list[str] | str
-    confidence: list[float] | float
+    unit: list[str]
+    confidence: list[float]
+    related_to_previous: bool = False
     APPROXIMATE: bool = False
     SINGULAR: bool = False
 
@@ -533,11 +537,14 @@ class PostProcessor:
                         unit = matching_tokens[i + 1]
                         confidence = mean(matching_scores[i : i + 1])
 
+                        # If the first amount (e.g. 1 can) is approximate, so are all
+                        # the pairs in between
                         amount = IngredientAmount(
                             quantity=quantity,
                             unit=unit,
                             confidence=confidence,
                             SINGULAR=True,
+                            APPROXIMATE=first.APPROXIMATE,
                         )
                         amounts.append(amount)
 
@@ -627,6 +634,15 @@ class PostProcessor:
             List of IngredientAmount objects
         """
         amounts = []
+
+        # If a new amount starts with the token after a (, / or [ then it we assume it
+        # is related to the previous amount
+        # We use idx+1 here so we can check the index in the iteration a new amount is
+        # created and avoid needing to check things like i >= 0
+        related_idx = [
+            idx + 1 for idx, tok in enumerate(tokens) if tok in ["(", "/", "["]
+        ]
+
         for i, (token, label, score) in enumerate(zip(tokens, labels, scores)):
             if label == "QTY":
                 # Whenever we come across a new QTY, create new IngredientAmount,
@@ -638,7 +654,10 @@ class PostProcessor:
                 else:
                     amounts.append(
                         _PartialIngredientAmount(
-                            quantity=token, unit=[], confidence=[score]
+                            quantity=token,
+                            unit=[],
+                            confidence=[score],
+                            related_to_previous=i in related_idx,
                         )
                     )
 
@@ -679,17 +698,25 @@ class PostProcessor:
                 self.consumed.append(idx[i - 1])
                 self.consumed.append(idx[i - 2])
 
+        # Set APPROXIMATE and SINGULAR flags to be the same for all related amounts
+        amounts = self._distribute_related_flags(amounts)
+
         # Loop through amounts list to fix unit and confidence
         # Unit needs converting to a string and making plural if appropriate
         # Confidence needs averaging
         # Then convert to IngredientAmount object
         processed_amounts = []
         for amount in amounts:
-            amount.unit = " ".join(amount.unit)
-            amount.confidence = round(mean(amount.confidence), 6)
-
             # Convert to an IngredientAmount object for returning
-            processed_amounts.append(IngredientAmount(**amount.__dict__))
+            processed_amounts.append(
+                IngredientAmount(
+                    quantity=amount.quantity,
+                    unit=" ".join(amount.unit),
+                    confidence=round(mean(amount.confidence), 6),
+                    APPROXIMATE=amount.APPROXIMATE,
+                    SINGULAR=amount.SINGULAR,
+                )
+            )
 
         return processed_amounts
 
@@ -814,3 +841,40 @@ class PostProcessor:
             return True
 
         return False
+
+    def _distribute_related_flags(
+        self, amounts: list[_PartialIngredientAmount]
+    ) -> list[_PartialIngredientAmount]:
+        """Where amounts are related to the previous, ensure that all related amounts
+        have the same flags set.
+
+        Parameters
+        ----------
+        amounts : list[_PartialIngredientAmount]
+            List of amounts
+
+        Returns
+        -------
+        list[_PartialIngredientAmount]
+            List of amount with all related amounts having the same flags
+        """
+        # Group amounts into related groups
+        grouped = []
+        for amount in amounts:
+            if amount.related_to_previous:
+                grouped[-1].append(amount)
+            else:
+                grouped.append([amount])
+
+        # Set flags for all amounts in group if any amount has flag set
+        for group in grouped:
+            if any(am.APPROXIMATE for am in group):
+                for am in group:
+                    am.APPROXIMATE = True
+
+            if any(am.SINGULAR for am in group):
+                for am in group:
+                    am.SINGULAR = True
+
+        # Flatten list for return
+        return list(chain.from_iterable(grouped))
