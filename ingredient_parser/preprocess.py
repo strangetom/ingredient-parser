@@ -445,7 +445,7 @@ class PreProcessor:
         --------
         >>> p = PreProcessor("")
         >>> p._combine_quantities_split_by_and("1 and 1/2 tsp fine grain sea salt")
-        "1.5 tsp fine grain salt"
+        "1.5 tsp fine grain sea salt"
 
         >>> p = PreProcessor("")
         >>> p._combine_quantities_split_by_and("1 and 1/4 cups dark chocolate morsels")
@@ -600,8 +600,8 @@ class PreProcessor:
         "1-2 mashed bananas"
 
         >>> p = PreProcessor("")
-        >>> p._replace_string_range("4- or 6- large apples")
-        "5-6 large apples"
+        >>> p._replace_string_range("5- or 6- large apples")
+        "5-6- large apples"
         """
         return STRING_RANGE_PATTERN.sub(r"\1-\5", sentence)
 
@@ -673,17 +673,28 @@ class PreProcessor:
         return QUANTITY_X_PATTERN.sub(r"\1x ", sentence)
 
     def _collapse_ranges(self, sentence: str) -> str:
-        """Summary
+        """Collapse any whitespace found in a range so the range is of the standard
+        form.
 
         Parameters
         ----------
         sentence : str
-            Description
+            Ingedient sentence
 
         Returns
         -------
         str
-            Description
+            Ingredient sentence with whitespace removed from ranges
+
+        Examples
+        --------
+        >>> p = PreProcessor("")
+        >>> p._collapse_ranges("8 - 10 g ground pepper")
+        "8-10 g ground pepper"
+
+        >>> p = PreProcessor("")
+        >>> p._collapse_ranges("0.25  -0.5 tsp salt")
+        "0.25-0.5 tsp salt"
         """
         return EXPANDED_RANGE.sub(r"\1-\2", sentence)
 
