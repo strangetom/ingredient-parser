@@ -4,6 +4,7 @@ import re
 from fractions import Fraction
 from functools import lru_cache
 from html import unescape
+from itertools import chain
 
 from nltk.stem.porter import PorterStemmer
 from nltk.tag import pos_tag
@@ -57,20 +58,39 @@ DUPE_UNIT_RANGES_PATTERN = re.compile(
 # e.g. 0.5 x, 1 x, 2 x. The number is captured in a capture group.
 QUANTITY_X_PATTERN = re.compile(r"([\d\.]+)\s[xX]\s*")
 
-# Define tokenizer.
-# We are going to split an sentence between substrings that match the following groups
-# a) letters and any punctuation, except
-# b) open and close parentheses, open and close brackets, open and close braces,
-# quote, comma.
-# The following punctuation is deliberately left out of the these groups so that
-# they are removed: backslash.
-group_a = r"[\w!\#\$\£\€%\&'\*\+\-\.>=<\?@\^_`\\\|\~’°‘]+"
-group_b = r"[\(\)\[\]\{\}\,\"/:;]"
-REGEXP_TOKENIZER = re.compile(
-    rf"{group_a}|{group_b}", re.UNICODE | re.MULTILINE | re.DOTALL
-)
-
 STEMMER = PorterStemmer()
+
+# Define regular expressions used by tokenizer.
+# Matches one or more whitespace characters
+WHITESPACE_TOKENISER = re.compile(r"\S+")
+# Matches and captures one of the following: ( ) [ ] { } , " / : ;
+PUNCTUATION_TOKENISER = re.compile(r"([\(\)\[\]\{\}\,\"/:;])")
+
+
+def tokenize(sentence: str) -> list[str]:
+    """Tokenise an ingredient sentence.
+    The sentence is split on whitespace characters into a list of tokens.
+    If any of these tokens contains of the punctuation marks captured by
+    PUNCTUATION_TOKENISER, these are then split and isolated as a seperate
+    token.
+
+    The returned list of tokens has any empty tokens removed.
+
+    Parameters
+    ----------
+    sentence : str
+        Ingredient sentence to tokenize
+
+    Returns
+    -------
+    list[str]
+        List of tokens from sentence.
+    """
+    tokens = [
+        PUNCTUATION_TOKENISER.split(tok)
+        for tok in WHITESPACE_TOKENISER.findall(sentence)
+    ]
+    return [tok for tok in chain.from_iterable(tokens) if tok]
 
 
 @lru_cache(maxsize=512)
@@ -194,7 +214,7 @@ class PreProcessor:
         self.input: str = input_sentence
         self.sentence: str = self._normalise(input_sentence)
 
-        _tokenised_sentence = REGEXP_TOKENIZER.findall(self.sentence)
+        _tokenised_sentence = tokenize(self.sentence)
         (
             self.tokenized_sentence,
             self.singularised_indices,
