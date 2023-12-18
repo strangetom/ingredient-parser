@@ -175,6 +175,18 @@ Merge quantities followed by an "x" into a single token, for example:
     :pyobject: PreProcessor._merge_quantity_x
     :dedent: 4
 
+``_collapse_ranges``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Remove any white space surrounding the hyphen in a range
+
+.. literalinclude:: ../../../ingredient_parser/preprocess.py
+    :lines: 61-63
+
+.. literalinclude:: ../../../ingredient_parser/preprocess.py
+    :pyobject: PreProcessor._collapse_ranges
+    :dedent: 4
+
 
 ``_singlarise_unit``
 ^^^^^^^^^^^^^^^^^^^^

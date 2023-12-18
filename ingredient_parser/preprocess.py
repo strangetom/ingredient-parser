@@ -58,6 +58,10 @@ DUPE_UNIT_RANGES_PATTERN = re.compile(
 # e.g. 0.5 x, 1 x, 2 x. The number is captured in a capture group.
 QUANTITY_X_PATTERN = re.compile(r"([\d\.]+)\s[xX]\s*")
 
+# Regex pattern to match a range that has spaces between the numbers and hyphen
+# e.g. 0.5 - 1. The numbers are captured in capture groups.
+EXPANDED_RANGE = re.compile(r"(\d)\s*\-\s*(\d)")
+
 STEMMER = PorterStemmer()
 
 # Define regular expressions used by tokenizer.
@@ -287,6 +291,7 @@ class PreProcessor:
             self._replace_string_range,
             self._replace_dupe_units_ranges,
             self._merge_quantity_x,
+            self._collapse_ranges,
         ]
 
         for func in funcs:
@@ -666,6 +671,21 @@ class PreProcessor:
         "4x 100 g wild salmon fillet"
         """
         return QUANTITY_X_PATTERN.sub(r"\1x ", sentence)
+
+    def _collapse_ranges(self, sentence: str) -> str:
+        """Summary
+
+        Parameters
+        ----------
+        sentence : str
+            Description
+
+        Returns
+        -------
+        str
+            Description
+        """
+        return EXPANDED_RANGE.sub(r"\1-\2", sentence)
 
     def _singlarise_units(
         self, tokenised_sentence: list[str]
