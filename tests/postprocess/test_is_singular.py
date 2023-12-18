@@ -30,7 +30,9 @@ class TestPostProcessor_is_singular:
         """
         tokens = ["4", "salmon", "fillets", "2", "pounds", "each"]
         labels = ["QTY", "NAME", "NAME", "QTY", "UNIT", "COMMENT"]
-        assert p._is_singular(4, tokens, labels)
+        idx = [0, 1, 2, 3, 4, 5]
+        assert p._is_singular(4, tokens, labels, idx)
+        assert p.consumed == [5]
 
     def test_not_singular(self, p):
         """
@@ -38,4 +40,6 @@ class TestPostProcessor_is_singular:
         """
         tokens = ["4", "salmon", "fillets", "2", "pounds", "minimum"]
         labels = ["QTY", "NAME", "NAME", "QTY", "UNIT", "COMMENT"]
-        assert not p._is_singular(4, tokens, labels)
+        idx = [0, 1, 2, 3, 4, 5]
+        assert not p._is_singular(4, tokens, labels, idx)
+        assert p.consumed == []

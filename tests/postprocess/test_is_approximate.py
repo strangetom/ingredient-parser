@@ -30,15 +30,29 @@ class TestPostProcessor_is_approximate:
         """
         tokens = ["about", "5", "cups", "orange", "juice"]
         labels = ["COMMENT", "QTY", "UNIT", "NAME", "NAME"]
-        assert p._is_approximate(1, tokens, labels)
+        idx = [0, 1, 2, 3, 4]
+        assert p._is_approximate(1, tokens, labels, idx)
+        assert p.consumed == [0]
 
-    def test_is_approximate_approx(self, p):
+    def test_is_approximate_approx_period(self, p):
         """
         Test that QTY at index is indicated as approximate
         """
         tokens = ["approx.", "5", "cups", "orange", "juice"]
         labels = ["COMMENT", "QTY", "UNIT", "NAME", "NAME"]
-        assert p._is_approximate(1, tokens, labels)
+        idx = [0, 1, 2, 3, 4]
+        assert p._is_approximate(1, tokens, labels, idx)
+        assert p.consumed == [0]
+
+    def test_is_approximate_approx(self, p):
+        """
+        Test that QTY at index is indicated as approximate
+        """
+        tokens = ["approx", "5", "cups", "orange", "juice"]
+        labels = ["COMMENT", "QTY", "UNIT", "NAME", "NAME"]
+        idx = [0, 1, 2, 3, 4]
+        assert p._is_approximate(1, tokens, labels, idx)
+        assert p.consumed == [0]
 
     def test_is_approximate_approximately(self, p):
         """
@@ -46,7 +60,9 @@ class TestPostProcessor_is_approximate:
         """
         tokens = ["approximately", "5", "cups", "orange", "juice"]
         labels = ["COMMENT", "QTY", "UNIT", "NAME", "NAME"]
-        assert p._is_approximate(1, tokens, labels)
+        idx = [0, 1, 2, 3, 4]
+        assert p._is_approximate(1, tokens, labels, idx)
+        assert p.consumed == [0]
 
     def test_is_approximate_nearly(self, p):
         """
@@ -54,7 +70,9 @@ class TestPostProcessor_is_approximate:
         """
         tokens = ["nearly", "5", "cups", "orange", "juice"]
         labels = ["COMMENT", "QTY", "UNIT", "NAME", "NAME"]
-        assert p._is_approximate(1, tokens, labels)
+        idx = [0, 1, 2, 3, 4]
+        assert p._is_approximate(1, tokens, labels, idx)
+        assert p.consumed == [0]
 
     def test_not_approximate(self, p):
         """
@@ -62,4 +80,6 @@ class TestPostProcessor_is_approximate:
         """
         tokens = ["maximum", "5", "cups", "orange", "juice"]
         labels = ["COMMENT", "QTY", "UNIT", "NAME", "NAME"]
-        assert not p._is_approximate(1, tokens, labels)
+        idx = [0, 1, 2, 3, 4]
+        assert not p._is_approximate(1, tokens, labels, idx)
+        assert p.consumed == []

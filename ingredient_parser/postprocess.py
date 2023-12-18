@@ -12,7 +12,14 @@ from ._utils import consume, pluralise_units
 
 WORD_CHAR = re.compile(r"\w")
 
-APPROXIMATE_TOKENS = ["about", "approx.", "approximately", "nearly", "roughly"]
+APPROXIMATE_TOKENS = [
+    "about",
+    "approx",
+    "approx.",
+    "approximately",
+    "nearly",
+    "roughly",
+]
 SINGULAR_TOKENS = ["each"]
 
 
@@ -540,7 +547,7 @@ class PostProcessor:
                         confidence=mean(
                             [matching_scores.pop(0), matching_scores.pop(-1)]
                         ),
-                        APPROXIMATE=self._is_approximate(match[0], tokens, labels),
+                        APPROXIMATE=self._is_approximate(match[0], tokens, labels, idx),
                     )
                     amounts.append(first)
 
@@ -695,22 +702,15 @@ class PostProcessor:
                 amounts[-1].confidence.append(score)
 
             # Check if any flags should be set
-            if self._is_approximate(i, tokens, labels):
+            if self._is_approximate(i, tokens, labels, idx):
                 amounts[-1].APPROXIMATE = True
-                # Mark i - 1 element as consumed
-                self.consumed.append(idx[i - 1])
 
-            if self._is_singular(i, tokens, labels):
+            if self._is_singular(i, tokens, labels, idx):
                 amounts[-1].SINGULAR = True
-                # Mark i - 1 element as consumed
-                self.consumed.append(idx[i + 1])
 
-            if self._is_singular_and_approximate(i, tokens, labels):
+            if self._is_singular_and_approximate(i, tokens, labels, idx):
                 amounts[-1].APPROXIMATE = True
                 amounts[-1].SINGULAR = True
-                # Mark i - 1 and i - 2 elements as consumed
-                self.consumed.append(idx[i - 1])
-                self.consumed.append(idx[i - 2])
 
         # Set APPROXIMATE and SINGULAR flags to be the same for all related amounts
         amounts = self._distribute_related_flags(amounts)
@@ -734,7 +734,9 @@ class PostProcessor:
 
         return processed_amounts
 
-    def _is_approximate(self, i: int, tokens: list[str], labels: list[str]) -> bool:
+    def _is_approximate(
+        self, i: int, tokens: list[str], labels: list[str], idx: list[int]
+    ) -> bool:
         """Return True is token at current index is approximate, determined
         by the token label being QTY and the previous token being in a list of
         approximate tokens.
@@ -749,6 +751,8 @@ class PostProcessor:
             List of all tokens
         labels : list[str]
             List of all token labels
+        idx : list[int]
+            List of indices of the tokens/labels/scores in the full tokenizsed sentence
 
         Returns
         -------
@@ -758,22 +762,36 @@ class PostProcessor:
         Examples
         --------
         >>> p = PostProcessor("", [], [], [])
-        >>> p._is_approximate(1, ["about", "3", "cups"], ["COMMENT", "QTY", "UNIT"])
+        >>> p._is_approximate(
+            1,
+            ["about", "3", "cups"],
+            ["COMMENT", "QTY", "UNIT"],
+            [0, 1, 2]
+        )
         True
 
         >>> p = PostProcessor("", [], [], [])
-        >>> p._is_approximate(1, ["approx.", "250", "g"], ["COMMENT", "QTY", "UNIT"])
+        >>> p._is_approximate(
+            1,
+            ["approx.", "250", "g"],
+            ["COMMENT", "QTY", "UNIT"],
+            [0, 1, 2]
+        )
         True
         """
         if i == 0:
             return False
 
         if labels[i] == "QTY" and tokens[i - 1].lower() in APPROXIMATE_TOKENS:
+            # Mark i - 1 element as consumed
+            self.consumed.append(idx[i - 1])
             return True
 
         return False
 
-    def _is_singular(self, i: int, tokens: list[str], labels: list[str]) -> bool:
+    def _is_singular(
+        self, i: int, tokens: list[str], labels: list[str], idx: list[int]
+    ) -> bool:
         """Return True is token at current index is singular, determined
         by the token label being UNIT and the next token being in a list of
         singular tokens.
@@ -788,6 +806,8 @@ class PostProcessor:
             List of all tokens
         labels : list[str]
             List of all token labels
+        idx : list[int]
+            List of indices of the tokens/labels/scores in the full tokenizsed sentence
 
         Returns
         -------
@@ -797,19 +817,26 @@ class PostProcessor:
         Examples
         --------
         >>> p = PostProcessor("", [], [], [])
-        >>> p._is_approximate(1, [3", "oz", "each"], ["QTY", "UNIT", "COMMENT"])
+        >>> p._is_singular(
+            1,
+            ["3", "oz", "each"],
+            ["QTY", "UNIT", "COMMENT"],
+            [0, 1, 2]
+        )
         True
         """
         if i == len(tokens) - 1:
             return False
 
         if labels[i] == "UNIT" and tokens[i + 1].lower() in SINGULAR_TOKENS:
+            # Mark i - 1 element as consumed
+            self.consumed.append(idx[i + 1])
             return True
 
         return False
 
     def _is_singular_and_approximate(
-        self, i: int, tokens: list[str], labels: list[str]
+        self, i: int, tokens: list[str], labels: list[str], idx: list[int]
     ) -> bool:
         """Return True if the current token is approximate and singular, determined
         by the token label being QTY and is preceded by a token in a list of singular
@@ -828,6 +855,8 @@ class PostProcessor:
             List of all tokens
         labels : list[str]
             List of all token labels
+        idx : list[int]
+            List of indices of the tokens/labels/scores in the full tokenizsed sentence
 
         Returns
         -------
@@ -841,6 +870,7 @@ class PostProcessor:
             1,
             ["nearly", "3", "oz", "each"],
             ["COMMENT", "QTY", "UNIT", "COMMENT"],
+            [0, 1, 2, 3]
         )
         True
         """
@@ -852,6 +882,9 @@ class PostProcessor:
             and tokens[i - 1].lower() in APPROXIMATE_TOKENS
             and tokens[i - 2].lower() in SINGULAR_TOKENS
         ):
+            # Mark i - 1 and i - 2 elements as consumed
+            self.consumed.append(idx[i - 1])
+            self.consumed.append(idx[i - 2])
             return True
 
         return False

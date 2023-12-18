@@ -30,7 +30,9 @@ class TestPostProcessor_is_singular_and_approximate:
         """
         tokens = ["each", "nearly", "2", "kg"]
         labels = ["COMMENT", "COMMENT", "QTY", "UNIT"]
-        assert p._is_singular_and_approximate(2, tokens, labels)
+        idx = [0, 1, 2, 3]
+        assert p._is_singular_and_approximate(2, tokens, labels, idx)
+        assert p.consumed == [1, 0]
 
     def test_not_singular_and_approximate(self, p):
         """
@@ -38,4 +40,6 @@ class TestPostProcessor_is_singular_and_approximate:
         """
         tokens = ["both", "about", "2", "kg"]
         labels = ["COMMENT", "COMMENT", "QTY", "UNIT"]
-        assert not p._is_singular_and_approximate(2, tokens, labels)
+        idx = [0, 1, 2, 3]
+        assert not p._is_singular_and_approximate(2, tokens, labels, idx)
+        assert p.consumed == []
