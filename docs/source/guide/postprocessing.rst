@@ -20,10 +20,11 @@ The general steps are as follows:
 1. Find the indices of the labels under consideration.
 2. Group these indices into lists of consecutive indices.
 3. Join the tokens corresponding to each group of consecutive indices with a space.
-4. Average the confidence scores for each the tokens in each group consecutive indices.
-5. Remove any isolated punctuation or any consecutive tokens that are identical.
-6. Join all the groups together with a comma and fix any weird punctuation this causes.
-7. Average the confidence scores across all groups.
+4. If ``discard_isolated_stop_words`` is True, discard any groups that just comprise a word from the list of stop words. 
+5. Average the confidence scores for each the tokens in each group consecutive indices.
+6. Remove any isolated punctuation or any consecutive tokens that are identical.
+7. Join all the groups together with a comma and fix any weird punctuation this causes.
+8. Average the confidence scores across all groups.
 
 .. literalinclude:: ../../../ingredient_parser/postprocess.py
     :pyobject: PostProcessor._postprocess

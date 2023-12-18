@@ -87,11 +87,44 @@ other
 
 Each of the fields (except sentence) has a confidence value associated with it. This is a value between 0 and 1, where 0 represents no confidence and 1 represent full confidence. This is the confidence that the natural language model has that the given label is correct.
 
+:func:`parse_ingredient()` take an additional, optional parameter: ``discard_isolated_stop_words``. If set to True (default), then any stop words that appear in isolation in the name, preparation, comment or other fields are discarded. For example:
+
+.. code:: python
+
+    >>> from ingredient_parser import parse_ingredient
+    >>> parse_ingredient("2 tbsp of olive oil", discard_isolated_stop_words=True) # default
+    ParsedIngredient(name=IngredientText(text='olive oil', confidence=0.993415),
+        amount=[IngredientAmount(quantity='2',
+                                 unit='tbsps',
+                                 text='2 tbsps',
+                                 confidence=0.999329,
+                                 APPROXIMATE=False,
+                                 SINGULAR=False)],
+        preparation=None,
+        comment=None,
+        other=None,
+        sentence='2 tbsp of olive oil'
+    )
+    >>> parse_ingredient("2 tbsp of olive oil", discard_isolated_stop_words=False)
+    ParsedIngredient(name=IngredientText(text='olive oil', confidence=0.993415),
+        amount=[IngredientAmount(quantity='2',
+                                 unit='tbsps',
+                                 text='2 tbsps',
+                                 confidence=0.999329,
+                                 APPROXIMATE=False,
+                                 SINGULAR=False)],
+        preparation=None,
+        comment=IngredientText(text='of', confidence=0.836912),
+        other=None,
+        sentence='2 tbsp of olive oil'
+    )
+
+
 
 Multiple ingredient sentences
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The :func:`parse_multiple_ingredients` function is provided as a convenience function. It accepts a list of ingredient sentences as it's input and returns a list of dictionaries with the parsed information.
+The :func:`parse_multiple_ingredients` function is provided as a convenience function. It accepts a list of ingredient sentences as it's input and returns a list of dictionaries with the parsed information. :func:`parse_multiple_ingredients` also has the same ``discard_isolated_stop_words`` optional argument.
 
 .. code:: python
 

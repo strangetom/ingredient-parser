@@ -7,6 +7,7 @@ from operator import itemgetter
 from statistics import mean
 from typing import Any, Generator, Iterator
 
+from ._constants import STOP_WORDS
 from ._utils import consume, pluralise_units
 
 WORD_CHAR = re.compile(r"\w")
@@ -163,18 +164,27 @@ class PostProcessor:
         Original ingredient sentence.
     tokens : list[str]
         List of tokens for original ingredient sentence.
+    discard_isolated_stop_words : bool
+        If True, isolated stop words are discarded from the name, preparation,
+        comment or other fields. Default value is True
     consumed : list[int]
         List of indices of tokens consumed as part of setting the APPROXIMATE and
         SINGULAR flags. These tokens should not end up in the parsed output.
     """
 
     def __init__(
-        self, sentence: str, tokens: list[str], labels: list[str], scores: list[float]
+        self,
+        sentence: str,
+        tokens: list[str],
+        labels: list[str],
+        scores: list[float],
+        discard_isolated_stop_words: bool = True,
     ):
         self.sentence = sentence
         self.tokens = tokens
         self.labels = labels
         self.scores = scores
+        self.discard_isolated_stop_words = discard_isolated_stop_words
         self.consumed = []
 
     def __repr__(self) -> str:
@@ -253,6 +263,10 @@ class PostProcessor:
             idx = list(group)
             joined = " ".join([self.tokens[i] for i in idx])
             confidence = mean([self.scores[i] for i in idx])
+
+            if self.discard_isolated_stop_words and joined in STOP_WORDS:
+                # Discard part if it's a stop word
+                continue
 
             parts.append(joined)
             confidence_parts.append(confidence)
