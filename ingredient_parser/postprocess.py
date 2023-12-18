@@ -833,6 +833,19 @@ class PostProcessor:
             self.consumed.append(idx[i + 1])
             return True
 
+        if i == len(tokens) - 2:
+            return False
+
+        # Case where the amonut is in brackets
+        if (
+            labels[i] == "UNIT"
+            and tokens[i + 1] in [")", "]"]
+            and tokens[i + 2].lower() in SINGULAR_TOKENS
+        ):
+            # Mark i - 1 element as consumed
+            self.consumed.append(idx[i + 2])
+            return True
+
         return False
 
     def _is_singular_and_approximate(
