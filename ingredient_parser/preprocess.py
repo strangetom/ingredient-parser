@@ -85,6 +85,14 @@ def tokenize(sentence: str) -> list[str]:
     -------
     list[str]
         List of tokens from sentence.
+
+    Examples
+    --------
+    >>> tokenize("2 cups (500 ml) milk")
+    ["2", "cups", "(", "500", "ml", ")", "milk"]
+
+    >>> tokenize("1-2 mashed bananas: as ripe as possible")
+    ["1-2", "mashed", "bananas", ":", "as", "ripe", "as", "possible"]
     """
     tokens = [
         PUNCTUATION_TOKENISER.split(tok)

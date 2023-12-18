@@ -68,7 +68,7 @@ Fractions represented by Unicode fractions are replaced a textual format (.e.g Â
 We have to handle two cases: where the character before the unicode fraction is a hyphen and where it is not. In the latter case, we want to insert a space before the replacement so we don't accidently merge with the character before. However, if the character before is a hyphen, we don't want to do this because we could end up splitting a range up.
 
 .. literalinclude:: ../../../ingredient_parser/_constants.py
-    :lines: 169-205
+    :lines: 171-207
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
     :pyobject: PreProcessor._replace_unicode_fractions
@@ -82,7 +82,7 @@ Fractional quantities split by 'and' e.g. 1 and 1/2 are replaced by the decimal 
 A regular expression is used to find these in the sentence.
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
-    :lines: 43-45
+    :lines: 44-46
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
     :pyobject: PreProcessor._combine_quantities_split_by_and
@@ -97,7 +97,7 @@ Fractions represented in a textual format (e.g. 1/2, 3/4) are replaced with deci
 A regular expression is used to find these in the sentence. The regular expression also matches fractions greater than 1 (e.g. 1 1/2 is 1.5).
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
-    :lines: 18-21
+    :lines: 19-22
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
     :pyobject: PreProcessor._replace_fake_fractions
@@ -110,7 +110,7 @@ A regular expression is used to find these in the sentence. The regular expressi
 A space is enforced between quantities and units to make sure they are tokenized to separate tokens. If an quantity and unit are joined by a hyphen, this is also replaced by a space.
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
-    :lines: 26-30
+    :lines: 27-31
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
     :pyobject: PreProcessor._split_quantity_and_units
@@ -142,7 +142,7 @@ where the numbers 1 and 2 represent any decimal value.
 The purpose of this is to ensure the range is kept as a single token.
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
-    :lines: 35-41
+    :lines: 36-42
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
     :pyobject: PreProcessor._replace_string_range
@@ -154,7 +154,7 @@ The purpose of this is to ensure the range is kept as a single token.
 Ranges are where the unit is given for both quantities are replaced with the standardised range format, e.g. 5 oz - 8 oz is replaced by 5-8 oz.
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
-    :lines: 47-54
+    :lines: 48-55
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
     :pyobject: PreProcessor._replace_dupe_units_ranges
@@ -169,7 +169,7 @@ Merge quantities followed by an "x" into a single token, for example:
 * 0.5 x -> 0.5x
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
-    :lines: 56-58
+    :lines: 57-59
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
     :pyobject: PreProcessor._merge_quantity_x
