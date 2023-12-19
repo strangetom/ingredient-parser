@@ -47,6 +47,7 @@ def dict_to_ParsedIngredient(data: dict[str, str]) -> ParsedIngredient:
         quantity=labels.get("quantity", ""),
         unit=labels.get("unit", ""),
         confidence=0,
+        starting_index=0,
     )
 
     return ParsedIngredient(

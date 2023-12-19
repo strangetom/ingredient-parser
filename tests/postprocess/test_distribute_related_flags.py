@@ -32,9 +32,9 @@ class TestPostProcessor_distribute_related_flags:
         Test that all amounts get the APPROXIMATE flag set to True
         """
         amounts = [
-            _PartialIngredientAmount("", [""], [0], APPROXIMATE=True),
-            _PartialIngredientAmount("", [""], [0], related_to_previous=True),
-            _PartialIngredientAmount("", [""], [0], related_to_previous=True),
+            _PartialIngredientAmount("", [""], [0], 0, APPROXIMATE=True),
+            _PartialIngredientAmount("", [""], [0], 0, related_to_previous=True),
+            _PartialIngredientAmount("", [""], [0], 0, related_to_previous=True),
         ]
         outputs = p._distribute_related_flags(amounts)
         approximate_flags = [am.APPROXIMATE for am in outputs]
@@ -48,10 +48,10 @@ class TestPostProcessor_distribute_related_flags:
         Test that all amounts get the SINGULAR flag set to True
         """
         amounts = [
-            _PartialIngredientAmount("", [""], [0]),
-            _PartialIngredientAmount("", [""], [0], related_to_previous=True),
+            _PartialIngredientAmount("", [""], [0], 0),
+            _PartialIngredientAmount("", [""], [0], 0, related_to_previous=True),
             _PartialIngredientAmount(
-                "", [""], [0], related_to_previous=True, SINGULAR=True
+                "", [""], [0], 0, related_to_previous=True, SINGULAR=True
             ),
         ]
         outputs = p._distribute_related_flags(amounts)
@@ -66,9 +66,9 @@ class TestPostProcessor_distribute_related_flags:
         Test that all amounts get the SINGULAR flag set to True
         """
         amounts = [
-            _PartialIngredientAmount("", [""], [0], APPROXIMATE=True),
-            _PartialIngredientAmount("", [""], [0]),
-            _PartialIngredientAmount("", [""], [0], SINGULAR=True),
+            _PartialIngredientAmount("", [""], [0], 0, APPROXIMATE=True),
+            _PartialIngredientAmount("", [""], [0], 0),
+            _PartialIngredientAmount("", [""], [0], 0, SINGULAR=True),
         ]
         outputs = p._distribute_related_flags(amounts)
 
@@ -80,10 +80,10 @@ class TestPostProcessor_distribute_related_flags:
         Test that all amounts get the SINGULAR flag set to True
         """
         amounts = [
-            _PartialIngredientAmount("", [""], [0]),
-            _PartialIngredientAmount("", [""], [0], APPROXIMATE=True),
+            _PartialIngredientAmount("", [""], [0], 0),
+            _PartialIngredientAmount("", [""], [0], 0, APPROXIMATE=True),
             _PartialIngredientAmount(
-                "", [""], [0], related_to_previous=True, SINGULAR=True
+                "", [""], [0], 0, related_to_previous=True, SINGULAR=True
             ),
         ]
         outputs = p._distribute_related_flags(amounts)

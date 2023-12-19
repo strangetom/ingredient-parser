@@ -38,7 +38,11 @@ class TestPostProcessor_fallback_pattern:
         scores = [0] * len(tokens)
         idx = list(range(len(tokens)))
 
-        expected = [IngredientAmount(quantity="3", unit="large handfuls", confidence=0)]
+        expected = [
+            IngredientAmount(
+                quantity="3", unit="large handfuls", confidence=0, starting_index=0
+            )
+        ]
 
         assert p._fallback_pattern(idx, tokens, labels, scores) == expected
 
@@ -53,7 +57,11 @@ class TestPostProcessor_fallback_pattern:
         scores = [0] * len(tokens)
         idx = list(range(len(tokens)))
 
-        expected = [IngredientAmount(quantity="1", unit=", large", confidence=0)]
+        expected = [
+            IngredientAmount(
+                quantity="1", unit=", large", confidence=0, starting_index=0
+            )
+        ]
 
         assert p._fallback_pattern(idx, tokens, labels, scores) == expected
 
@@ -68,7 +76,9 @@ class TestPostProcessor_fallback_pattern:
         scores = [0] * len(tokens)
         idx = list(range(len(tokens)))
 
-        expected = [IngredientAmount(quantity="", unit="bunch", confidence=0)]
+        expected = [
+            IngredientAmount(quantity="", unit="bunch", confidence=0, starting_index=0)
+        ]
 
         assert p._fallback_pattern(idx, tokens, labels, scores) == expected
 
@@ -87,6 +97,7 @@ class TestPostProcessor_fallback_pattern:
                 quantity="2",
                 unit="cups",
                 confidence=0,
+                starting_index=1,
                 APPROXIMATE=True,
             )
         ]
@@ -110,11 +121,13 @@ class TestPostProcessor_fallback_pattern:
                 quantity="2",
                 unit="",
                 confidence=0,
+                starting_index=0,
             ),
             IngredientAmount(
                 quantity="4",
                 unit="ounces",
                 confidence=0,
+                starting_index=3,
                 SINGULAR=True,
                 APPROXIMATE=False,
             ),
@@ -137,11 +150,13 @@ class TestPostProcessor_fallback_pattern:
                 quantity="2",
                 unit="",
                 confidence=0,
+                starting_index=0,
             ),
             IngredientAmount(
                 quantity="4",
                 unit="ounces",
                 confidence=0,
+                starting_index=5,
                 SINGULAR=True,
                 APPROXIMATE=True,
             ),
@@ -164,11 +179,13 @@ class TestPostProcessor_fallback_pattern:
                 quantity="2 dozen",
                 unit="",
                 confidence=0,
+                starting_index=0,
             ),
             IngredientAmount(
                 quantity="4",
                 unit="ounces",
                 confidence=0,
+                starting_index=6,
                 SINGULAR=True,
                 APPROXIMATE=True,
             ),
