@@ -1118,7 +1118,7 @@ few drops of lemon juice,lemon juice,few,drop,,of
 "2 red chillies, sliced",red chillies,2,,sliced,
 1-2 tbsp cassis,cassis,1-2,tbsp,,
 "1 red onion, sliced into thick rings",red onion,1,,sliced into thick rings,
-"3 gelatine leaves, soaked in cold water until softened, then drained",gelatine,3,sheet,"soaked in cold water until softened, then drained",
+"3 gelatine leaves, soaked in cold water until softened, then drained",gelatine,3,leaf,"soaked in cold water until softened, then drained",
 130g/4½oz semolina,semolina,130 4.5,g oz,,/
 "2 large scallops, white part only",scallops,2,large,,white part only
 "75g/2½oz fresh raspberries, for the garnish",fresh raspberries,75 2.5,g oz,,for the garnish /
@@ -1304,7 +1304,7 @@ few parsley stalks,parsley stalks,few,,,
 "30g/1oz goats' cheese, halved",goats' cheese,30 1,g oz,halved,/
 lemon slices dredged in icing sugar,lemon slices,,,dredged in icing sugar,
 4 thin slices smoked ham (roughly 130g/4½oz),smoked ham,4 130 4.5,thin slice g oz,,( roughly / )
-"75g/3oz type ‘00’ pasta flour, plus extra for dusting",type 00’ pasta flour,75 3,g oz,,plus extra for dusting /
+"75g/3oz type ‘00’ pasta flour, plus extra for dusting",type ‘00’ pasta flour,75 3,g oz,,plus extra for dusting /
 "oil, to cook",oil,,,,to cook
 "100g/3½oz dried sour cherries, soaked in water",dried sour cherries,100 3.5,g oz,soaked in water,/
 "300g/10½oz roasted red peppers in oil, drained and sliced",roasted red peppers in oil,300 10.5,g oz,drained and sliced,/
@@ -1845,7 +1845,7 @@ pinch gum mastic powder,gum mastic powder,,pinch,,
 570ml/1 pint shop-bought chicken noodle soup,shop-bought chicken noodle soup,570 1,ml pint,,/
 "3 baby leeks, finely sliced",baby leeks,3,,finely sliced,
 125g/4½oz pearl onions,pearl onions,125 4.5,g oz,,/
-4 red Thai or birdâs-eye chillies,red Thai or birdâ s-eye chillies,4,,,
+4 red Thai or bird’s-eye chillies,red Thai or bird’s-eye chillies,4,,,
 "1 orange, peeled and quartered",orange,1,,peeled and quartered,
 1 heaped tbsp muscovado sugar,muscovado sugar,1,heaped tbsp,,
 "2 pears, such as Rocha or Williams, peeled, cored and cut into wedges",pears,2,,"peeled, cored and cut into wedges",such as Rocha or Williams
@@ -2684,7 +2684,7 @@ fresh blueberries,fresh blueberries,,,,
 "5cm/2in fresh root ginger, peeled, finely chopped",fresh root ginger,5 2,cm in,"peeled, finely chopped",/
 "1 handful salted peanuts, roughly chopped, to serve",salted peanuts,1,handful,roughly chopped,to serve handful 
 10g/⅓oz fresh parsley stalks,fresh parsley stalks,10 0.333,g oz,,/
-"90g/3¼oz “00” pasta flour, with a little extra for dusting",00 pasta flour,90 3.25,g oz,,with a little extra for dusting/
+"90g/3¼oz “00” pasta flour, with a little extra for dusting",“00” pasta flour,90 3.25,g oz,,with a little extra for dusting/
 "1-2 tsp Dijon mustard, to taste",Dijon mustard,1-2,tsp,,to taste
 8 anchovy fillets,anchovy fillets,8,,,
 "85g/3oz butter, for frying",butter,85 3,g oz,,for frying/
@@ -2899,7 +2899,7 @@ olive oil to taste,olive oil,,,,to taste
 "1kg/2lb 4oz mixed plums (Victoria plums, yellow plums and greengages), quartered, stones removed",mixed plums,1 2 4,kg lb oz,"quartered, stones removed","(Victoria plums, yellow plums and greengages) /"
 2 litres/3½ pints hot chicken or vegetable stock,hot chicken or vegetable stock,2 3.5,litre pint,,/
 110g/4oz shredded suet,suet,110 4,g oz,shredded,/
-60g/2¼oz plain flour or ‘00’ flour,plain flour or 00’ flour,60 2.25,g oz,,/
+60g/2¼oz plain flour or ‘00’ flour,plain flour or ‘00’ flour,60 2.25,g oz,,/
 500ml/18fl oz light chicken stock,light chicken stock,500 18,ml fl oz,,/
 "6 x 150g/5oz salmon fillets, skinned",salmon fillets,6x 150 5,g oz,skinned,/
 5-6 saffron strands,saffron strands,5-6,,,
@@ -3016,7 +3016,7 @@ handful red amaranth micro herbs (optional),red amaranth micro herbs,,handful,,(
 500g/1lb 2oz lean lamb mince,lean lamb mince,500 1 2,g lb oz,,/
 6 drops Tabasco,Tabasco,6,drop,,
 "340g/11¾oz strong white flour, plus extra for dusting",strong white flour,340 11.75,g oz,,plus extra for dusting/
-"500g/1lb 2oz low, no or full-fat Greek yogurt (get actual Greek yoghurt not ‘Greek-style yoghurt’)",low,500 1 2,g lb oz,,no or full-fat Greek yogurt (get actual Greek yoghurt not Greek-style yoghurt’) /
+"500g/1lb 2oz low, no or full-fat Greek yogurt (get actual Greek yoghurt not ‘Greek-style yoghurt’)",low,500 1 2,g lb oz,,no or full-fat Greek yogurt (get actual Greek yoghurt not ‘Greek-style yoghurt’) /
 "20 shallots, peeled and blanched",shallots,20,,peeled and blanched,
 small handful of sunflower seeds,sunflower seeds,,small handful,,of 
 small sherry glass of framboise (raspberry liqueur),"sherry, framboise",,small glass,,"of, (raspberry liqueur) "
@@ -4461,7 +4461,7 @@ a good glug fruity olive oil,glug fruity olive oil,,,,a good
 8 small cherry tomatoes,cherry tomatoes,8,small,,
 "1 head Hispi cabbage, finely sliced",Hispi cabbage,1,head,finely sliced,
 "450g/1lb jar dulce de leche (sweet toffee sauce), available from Spanish delicatessens and some supermarkets",dulce de leche,450 1,g lb jar,,"(sweet toffee sauce), available from Spanish delicatessens and some supermarkets / lb jar"
-½ - ½ tsp dried chilli flakes,dried chilli flakes,0.5 0.5,tsp,,-
+½ - ½ tsp dried chilli flakes,dried chilli flakes,0.5-0.5,tsp,,-
 "1 small pineapple (approximately 225g/8oz), peeled, cored and chopped into 1cm/½in pieces",pineapple,1 225 8,small g oz,"peeled, cored and chopped into 1 cm / 0.5 in pieces",/( approximately )
 "3 tbsp Marsala, Madeira or sweet sherry","Marsala, Madeira or sweet sherry",3,tbsp,,
 550g/1lb 4oz raisins,raisins,550 1 4,g lb oz,,/
@@ -7669,7 +7669,7 @@ salt and freshly ground black pepper (to taste),salt and freshly ground black pe
 "4 large fresh cooked prawns, heads and shells intact",fresh cooked prawns,4,large,,heads and shells intact
 "4 large preserved lemons, deseeded and finely chopped",preserved lemons,4,large,deseeded and finely chopped,
 "1 celery stick, peeled and chopped",celery,1,stick,peeled and chopped,
-"300g/10½oz ‘00’ flour, plus extra for flouring",00’ flour,300 10.5,g oz,,plus extra for flouring/
+"300g/10½oz ‘00’ flour, plus extra for flouring",‘00’ flour,300 10.5,g oz,,plus extra for flouring/
 "100g/4oz dried apricots, chopped (to about the same size as the raisins)",dried apricots,100 4,g oz,chopped,(to about the same size as the raisins)/
 "1 large head Little Gem lettuce, sliced",Little Gem lettuce,1,large head,sliced,
 "170g/6oz pecan nuts, toasted and chopped",pecan nuts,170 6,g oz,toasted and chopped,/
@@ -7861,7 +7861,7 @@ juice and grated rind of 1 large orange,orange,1,large,,juice and grated rind of
 "2½cm/1in piece fresh ginger, grated",fresh ginger,2.5 1,cm in piece,grated,/
 "30g/1oz roasted hazelnuts, ground",roasted hazelnuts,30 1,g oz,ground,/
 "85g/3oz chestnut mushrooms, sliced",chestnut mushrooms,85 3,g oz,sliced,/
-"150–200g/5½–7oz ‎Parmesan, finely grated",Parmesan,150-200 5.5-7,g oz,finely grated,/
+"150–200g/5½–7oz Parmesan, finely grated",Parmesan,150-200 5.5-7,g oz,finely grated,/
 50g/2oz shelled broad beans,broad beans,50 2,g oz,shelled,/
 3 tbsp fine semolina,fine semolina,3,tbsp,,
 12 chicken wings,chicken wings,12,,,
@@ -8122,7 +8122,7 @@ pinch sea salt,sea salt,,pinch,,
 "400g/14oz potatoes, cut into quarters",potatoes,400 14,g oz,cut into quarters,/
 200g/7oz white rice,white rice,200 7,g oz,,/
 "sliced almonds, to garnish",almonds,,,sliced,to garnish
-300g/10½oz tipo ‘00’ flour,tipo 00’ flour,300 10.5,g oz,,/
+300g/10½oz tipo ‘00’ flour,tipo ‘00’ flour,300 10.5,g oz,,/
 75g/2¾oz icing sugar,icing sugar,75 2.75,g oz,,/
 "edible gold balls, to decorate",edible gold balls,,,,to decorate
 20g/¾oz instant dashi (Japanese stock) or 3 tsp good quality vegetable bouillon powder,"instant dashi, vegetable bouillon powder",20 0.75,g oz,,(Japanese stock) or 3 tsp good quality /
@@ -8987,7 +8987,7 @@ sunflower or groundnut oil,sunflower or groundnut oil,,,,
 10 small girolles (also known as chanterelle mushrooms),girolles,10,small,,(also known as chanterelle mushrooms)
 55g/2oz chopped dates,dates,55 2,g oz,chopped,/
 "50g/1 oz morning glory, finely sliced (available in some Asian markets; substitute spinach if unavailable)",morning glory,50 1,g oz,finely sliced,/ (available in some Asian markets ; substitute spinach if unavailable)
-"1â2 garlic cloves, crushed",garlic,1â 2,clove,crushed,
+"1-2 garlic cloves, crushed",garlic,1-2,clove,crushed,
 large handful fresh rocket,fresh rocket,,large handful,,
 200g/7¼oz thick double cream,thick double cream,200 7.25,g oz,,/
 50g/1¾oz duck fat (reserved from cooking the duck breast),duck fat,50 1.75,g oz,,(reserved from cooking the duck breast) /
@@ -10406,7 +10406,7 @@ splash of white wine vinegar,white wine vinegar,,splash,,of
 "110g/4oz parmesan, or a similar vegetarian hard cheese, (include the cheese rind if desired), roughly chopped",parmesan,110 4,g oz,roughly chopped,"/ or a similar vegetarian hard cheese, (include the cheese rind if desired)"
 2 tbsp crushed blanched almonds,almonds,2,tbsp,crushed blanched,
 10g curly parsley,curly parsley,10,g,,
-"250g/9oz ‘00’ flour, plus extra for dusting",'00’ flour,250 9,g oz,,/ plus extra for dusting
+"250g/9oz ‘00’ flour, plus extra for dusting",‘00’ flour,250 9,g oz,,/ plus extra for dusting
 ½ tbsp Thai fish sauce,Thai fish sauce,0.5,tbsp,,
 "1 small handful fresh marjoram leaves, finely chopped",fresh marjoram leaves,1,small handful,finely chopped,
 2kg/4lb 6½oz ox tongue,ox tongue,2 4 6.5,kg lb oz,,/
@@ -10688,11 +10688,11 @@ leftover mince pies,leftover mince pies,,,,
 2 x monkfish tail fillets (approx 150g/5oz each),monkfish tail fillets,2x 150 5,g oz,,(approx / each)
 "sprinkling of chopped chives, to serve",sprinkling of chopped chives,,,,to serve
 1 boneless lamb chop,boneless lamb chop,1,,,
-½ tsp vanilla essence,vanilla essence,0.25,tsp,,
+½ tsp vanilla essence,vanilla essence,0.5,tsp,,
 400ml/14fl oz elderflower pressé,elderflower pressé,400 14,ml fl oz,,/
 "120g/4¼oz Parmesan or Grana Padano Cheese, thinly sliced",Parmesan or Grana Padano Cheese,120 4.25,g oz,thinly sliced,/
 "125g/4oz butter, softened, plus extra for greasing",butter,125 4,g oz,softened,/ plus extra for greasing
-"1kg/2lb 4oz chicken wings, tips removed and split into “drumettes” and “flats”",chicken wings,1 2 4,kg lb oz,tips removed and split into drumettes and flats,/
+"1kg/2lb 4oz chicken wings, tips removed and split into “drumettes” and “flats”",chicken wings,1 2 4,kg lb oz,tips removed and split into “drumettes” and “flats”,/
 200g/7oz spelt flour,spelt flour,200 7,g oz,,/
 "handful of grated cheese, such as manchego or queso fresco",grated cheese,,handful,,"of, such as manchego or queso fresco"
 small handful mint,mint,,small handful,,
@@ -10848,7 +10848,7 @@ freshly grated Parmesan,Parmesan,,,freshly grated,
 "4 tsp freshly grated parmesan, plus extra for sprinkling",parmesan,4,tsp,freshly grated,plus extra for sprinkling
 400g/14oz golden syrup,golden syrup,400 14,g oz,,/
 "100ml/3½fl oz chicken stock, boiling hot",chicken stock,100 3.5,ml fl oz,boiling hot,/
-"4 green birdâs-eye chillies, chopped",green birdâ s-eye chillies,4,,chopped,
+"4 green bird’s-eye chillies, chopped",green bird’s-eye chillies,4,,chopped,
 "2 free-range eggs, hard boiled",free-range eggs,2,,hard boiled,
 "3 tbsp golden caster sugar, plus extra for dusting",golden caster sugar,3,tbsp,,plus extra for dusting
 "2 small leeks, sliced",leeks,2,small,sliced,
@@ -11493,7 +11493,7 @@ Japanese pickled ginger,Japanese pickled ginger,,,,
 175ml full-fat milk,full-fat milk,175,ml,,
 80ml/5 tbsp extra virgin olive oil,extra virgin olive oil,80 5,ml tbsp,,/
 1 tsp strong instant coffee powder,strong instant coffee powder,1,tsp,,
-225g/8oz chopped hazelnuts,hazelnuts,225 8,g oz,chopped,
+225g/8oz chopped hazelnuts,hazelnuts,225 8,g oz,chopped,/
 1 tbsp micro herbs,micro herbs,1,tbsp,,
 400g/14oz strong wholemeal flour,strong wholemeal flour,400 14,g oz,,/
 "800g/1lb 12oz lamb shoulder, cut into small cubes",lamb shoulder,800 1 12,g lb oz,cut into small cubes,/
@@ -12507,7 +12507,7 @@ handful of fresh coriander,fresh coriander,,handful,,of
 "3 lemon sole, skinned, cut into12 fillets",lemon sole,3,,"skinned, cut into 12 fillets",
 strawberry jam,strawberry jam,,,,
 ½ cup rice vinegar,rice vinegar,0.5,cups,,
-½ -1 tsp hot chilli powder,hot chilli powder,0.5,-1 tsp,,
+½ -1 tsp hot chilli powder,hot chilli powder,0.5-1,tsp,,
 250g/9oz brown rice,brown rice,250 9,g oz,,/
 1½ tbsp groundnut or other flavourless oil,groundnut or other flavourless oil,1.5,tbsp,,
 1-2 pinches dried chilli flakes,dried chilli flakes,1-2,pinches,,
@@ -13004,7 +13004,7 @@ pinch of sweet paprika,sweet paprika,,pinch,,of
 400ml/13½fl oz warm water,water,400 13.5,ml fl oz,warm,/
 275ml/10fl oz vegetable stock (or potato water),vegetable stock,275 10,ml fl oz,,/ (or potato water)
 "2 Portobello mushrooms, cleaned and stalks removed",Portobello mushrooms,2,,cleaned and stalks removed,
-"180g/6oz pack ready-to-eat chestnuts, roughly chopped",ready-to-eat chestnuts,180 6,g oz pack,roughly chopped,
+"180g/6oz pack ready-to-eat chestnuts, roughly chopped",ready-to-eat chestnuts,180 6,g oz pack,roughly chopped,/
 "½ tin tomatoes, chopped",tomatoes,0.5,tins,chopped,
 150g/5½oz rye flour,rye flour,150 5.5,g oz,,/
 "1 Baby Gem lettuce, leaves separated",Baby Gem lettuce,1,,leaves separated,
@@ -14763,7 +14763,7 @@ colouring and flavouring,colouring and flavouring,,,,
 ½ onion finely chopped,onion,0.5,,finely chopped,
 "500g/1lb 1oz strong white bread flour, plus a little extra flour for finishing",strong white bread flour,500 1 1,g lb oz,,/ plus a little extra flour for finishing
 4 tbsp finely chopped dill,dill,4,tbsp,finely chopped,
-50g/2oz duck ‘cracklings’ (fried duck skin),duck cracklings’,50 2,g oz,,/ (fried duck skin)
+50g/2oz duck ‘cracklings’ (fried duck skin),duck ‘cracklings’,50 2,g oz,,/ (fried duck skin)
 "1kg/2lb 4oz mutton from leg or shoulder, bone removed, cut into 2.5cm/1in cubes",mutton from leg or shoulder,1 2 4,kg lb oz,"bone removed, cut into 2.5 cm / 1 in cubes",/
 "2 sprigs fresh basil, leaves only",fresh basil,2,sprig,,leaves only
 2 cloves garlic finely chopped,garlic,2,clove,finely chopped,
