@@ -30,6 +30,29 @@ class TestPreProcessor__builtins__:
         p = PreProcessor("1/2 cup chicken broth")
         assert repr(p) == 'PreProcessor("1/2 cup chicken broth")'
 
+    def test_debug_output(self, capsys):
+        """
+        Test printed debug output
+        """
+        p = PreProcessor("1/2 cup chicken broth", show_debug_output=True)
+        captured = capsys.readouterr()
+        assert (
+            captured.out
+            == """_replace_en_em_dash: 1/2 cup chicken broth
+_replace_string_numbers: 1/2 cup chicken broth
+_replace_html_fractions: 1/2 cup chicken broth
+_replace_unicode_fractions: 1/2 cup chicken broth
+_combine_quantities_split_by_and: 1/2 cup chicken broth
+_replace_fake_fractions: 0.5 cup chicken broth
+_split_quantity_and_units: 0.5 cup chicken broth
+_remove_unit_trailing_period: 0.5 cup chicken broth
+_replace_string_range: 0.5 cup chicken broth
+_replace_dupe_units_ranges: 0.5 cup chicken broth
+_merge_quantity_x: 0.5 cup chicken broth
+_collapse_ranges: 0.5 cup chicken broth
+"""
+        )
+
 
 def normalise_test_cases() -> list[tuple[str]]:
     """
@@ -85,3 +108,155 @@ class TestPreProcessor_normalise:
         input_sentence, normalised = testcase
         p = PreProcessor(input_sentence, defer_pos_tagging=True)
         assert p.sentence == normalised
+
+
+class TestPreProcessor_sentence_features:
+    def test(self):
+        p = PreProcessor("1/2 cup chicken broth")
+        expected = [
+            {
+                "stem": "0.5",
+                "pos": "CD",
+                "is_capitalised": False,
+                "is_numeric": True,
+                "is_unit": False,
+                "is_ambiguous": False,
+                "is_in_parens": False,
+                "is_after_comma": False,
+                "is_after_plus": False,
+                "is_short_phrase": False,
+                "next_pos": "NN",
+                "next_word": "cup",
+                "next_pos2": "NN",
+                "next_word2": "chicken",
+            },
+            {
+                "stem": "cup",
+                "pos": "NN",
+                "is_capitalised": False,
+                "is_numeric": False,
+                "is_unit": True,
+                "is_ambiguous": False,
+                "is_in_parens": False,
+                "is_after_comma": False,
+                "is_after_plus": False,
+                "is_short_phrase": False,
+                "prev_pos": "CD",
+                "prev_word": "0.5",
+                "next_pos": "NN",
+                "next_word": "chicken",
+                "next_pos2": "NN",
+                "next_word2": "broth",
+            },
+            {
+                "stem": "chicken",
+                "pos": "NN",
+                "is_capitalised": False,
+                "is_numeric": False,
+                "is_unit": False,
+                "is_ambiguous": False,
+                "is_in_parens": False,
+                "is_after_comma": False,
+                "is_after_plus": False,
+                "is_short_phrase": False,
+                "prev_pos": "NN",
+                "prev_word": "cup",
+                "prev_pos2": "CD",
+                "prev_word2": "0.5",
+                "next_pos": "NN",
+                "next_word": "broth",
+            },
+            {
+                "stem": "broth",
+                "pos": "NN",
+                "is_capitalised": False,
+                "is_numeric": False,
+                "is_unit": False,
+                "is_ambiguous": False,
+                "is_in_parens": False,
+                "is_after_comma": False,
+                "is_after_plus": False,
+                "is_short_phrase": False,
+                "prev_pos": "NN",
+                "prev_word": "chicken",
+                "prev_pos2": "NN",
+                "prev_word2": "cup",
+            },
+        ]
+
+        assert p.sentence_features() == expected
+
+    def test_defer_pos_tagging(self):
+        p = PreProcessor("100g green beans", defer_pos_tagging=True)
+        expected = [
+            {
+                "stem": "100",
+                "pos": "CD",
+                "is_capitalised": False,
+                "is_numeric": True,
+                "is_unit": False,
+                "is_ambiguous": False,
+                "is_in_parens": False,
+                "is_after_comma": False,
+                "is_after_plus": False,
+                "is_short_phrase": False,
+                "next_pos": "NN",
+                "next_word": "g",
+                "next_pos2": "JJ",
+                "next_word2": "green",
+            },
+            {
+                "stem": "g",
+                "pos": "NN",
+                "is_capitalised": False,
+                "is_numeric": False,
+                "is_unit": True,
+                "is_ambiguous": False,
+                "is_in_parens": False,
+                "is_after_comma": False,
+                "is_after_plus": False,
+                "is_short_phrase": False,
+                "prev_pos": "CD",
+                "prev_word": "100",
+                "next_pos": "JJ",
+                "next_word": "green",
+                "next_pos2": "NNS",
+                "next_word2": "bean",
+            },
+            {
+                "stem": "green",
+                "pos": "JJ",
+                "is_capitalised": False,
+                "is_numeric": False,
+                "is_unit": False,
+                "is_ambiguous": False,
+                "is_in_parens": False,
+                "is_after_comma": False,
+                "is_after_plus": False,
+                "is_short_phrase": False,
+                "prev_pos": "NN",
+                "prev_word": "g",
+                "prev_pos2": "CD",
+                "prev_word2": "100",
+                "next_pos": "NNS",
+                "next_word": "bean",
+            },
+            {
+                "stem": "bean",
+                "pos": "NNS",
+                "is_capitalised": False,
+                "is_numeric": False,
+                "is_unit": False,
+                "is_ambiguous": False,
+                "is_in_parens": False,
+                "is_after_comma": False,
+                "is_after_plus": False,
+                "is_short_phrase": False,
+                "prev_pos": "JJ",
+                "prev_word": "green",
+                "prev_pos2": "NN",
+                "prev_word2": "g",
+            },
+        ]
+
+        assert p.sentence_features() == expected
