@@ -37,6 +37,8 @@ class _PartialIngredientAmount:
     confidence : list[float]
         Average confidence of all tokens or list of confidences for each token of parsed
         ingredient amount, between 0 and 1.
+    starting_index : int
+        Index of token that starts this amount
     related_to_previous : bool, optional
         If True, indicates it is related to the previous IngredientAmount object. All
         related objects should have the same APPROXIMATE and SINGULAR flags
@@ -51,6 +53,7 @@ class _PartialIngredientAmount:
     quantity: str
     unit: list[str]
     confidence: list[float]
+    starting_index: int
     related_to_previous: bool = False
     APPROXIMATE: bool = False
     SINGULAR: bool = False
@@ -74,6 +77,8 @@ class IngredientAmount:
     confidence : float
         Confidence of parsed ingredient amount, between 0 and 1.
         This is the average confidence of all tokens that contribute to this object.
+    starting_index : int
+        Index of token that starts this amount
     APPROXIMATE : bool, optional
         When True, indicates that the amount is approximate.
         Default is False.
@@ -86,6 +91,7 @@ class IngredientAmount:
     unit: str
     text: str = field(init=False)
     confidence: float
+    starting_index: int
     APPROXIMATE: bool = False
     SINGULAR: bool = False
 
@@ -328,7 +334,7 @@ class PostProcessor:
             parsed_amounts = func(idx, tokens, labels, scores)
             amounts.extend(parsed_amounts)
 
-        return amounts
+        return sorted(amounts, key=lambda x: x.starting_index)
 
     def _unconsumed(self, list_: list[Any]) -> list[Any]:
         """Return elements from list whose index is not in the list of consumed
@@ -544,12 +550,16 @@ class PostProcessor:
                     first = IngredientAmount(
                         quantity=matching_tokens.pop(0),
                         unit=matching_tokens.pop(-1),
-                        confidence=mean(
-                            [matching_scores.pop(0), matching_scores.pop(-1)]
+                        confidence=round(
+                            mean([matching_scores.pop(0), matching_scores.pop(-1)]), 6
                         ),
+                        starting_index=idx[match[0]],
                         APPROXIMATE=self._is_approximate(match[0], tokens, labels, idx),
                     )
                     amounts.append(first)
+                    # Pop the first and last items from the list of matching indices
+                    _ = match.pop(0)
+                    _ = match.pop(-1)
 
                     # Now create the IngredientAmount objects for the pairs in between
                     # the first and last items
@@ -563,7 +573,8 @@ class PostProcessor:
                         amount = IngredientAmount(
                             quantity=quantity,
                             unit=unit,
-                            confidence=confidence,
+                            confidence=round(confidence, 6),
+                            starting_index=idx[match[i]],
                             SINGULAR=True,
                             APPROXIMATE=first.APPROXIMATE,
                         )
@@ -678,6 +689,7 @@ class PostProcessor:
                             quantity=token,
                             unit=[],
                             confidence=[score],
+                            starting_index=idx[i],
                             related_to_previous=i in related_idx,
                         )
                     )
@@ -688,7 +700,10 @@ class PostProcessor:
                     # with no quantity
                     amounts.append(
                         _PartialIngredientAmount(
-                            quantity="", unit=[], confidence=[score]
+                            quantity="",
+                            unit=[],
+                            confidence=[score],
+                            starting_index=idx[i],
                         )
                     )
 
@@ -716,7 +731,7 @@ class PostProcessor:
         amounts = self._distribute_related_flags(amounts)
 
         # Loop through amounts list to fix unit and confidence
-        # Unit needs converting to a string and making plural if appropriate
+        # Unit needs converting to a string
         # Confidence needs averaging
         # Then convert to IngredientAmount object
         processed_amounts = []
@@ -727,6 +742,7 @@ class PostProcessor:
                     quantity=amount.quantity,
                     unit=" ".join(amount.unit),
                     confidence=round(mean(amount.confidence), 6),
+                    starting_index=amount.starting_index,
                     APPROXIMATE=amount.APPROXIMATE,
                     SINGULAR=amount.SINGULAR,
                 )
