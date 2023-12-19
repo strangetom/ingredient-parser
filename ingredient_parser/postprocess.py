@@ -107,6 +107,36 @@ class IngredientAmount:
 
 
 @dataclass
+class CompositeIngredientAmount:
+    """Dataclass for a composite ingredient amount. This is an amount comprising
+    more than one IngredientAmount object e.g. "1 lb 2 oz" or "1 cup plus 1 tablespoon".
+
+    Attributes
+    ----------
+    amounts : list[IngredientAmount]
+        List of IngredientAmount objects that make up the composite amount. The order
+        in this list is the order they appear in the sentence.
+    join : str
+        String of text that joins the amounts, e.g. "plus".
+    text : str
+        Composite amount as a string, automatically generated the amounts and
+        join attributes.
+    """
+
+    amounts: list[IngredientAmount]
+    join: str
+
+    def __post_init__(self):
+        """
+        On dataclass instantiation, generate the text field.
+        """
+        if self.join == "":
+            self.text = " ".join([amount.text for amount in self.amounts])
+        else:
+            self.text = f"{ self.join }".join([amount.text for amount in self.amounts])
+
+
+@dataclass
 class IngredientText:
     """Dataclass for holding a parsed ingredient string, comprising the following
     attributes.
@@ -321,6 +351,7 @@ class PostProcessor:
 
         funcs = [
             self._sizable_unit_pattern,
+            self._composite_amounts_pattern,
             self._fallback_pattern,
         ]
 
@@ -533,7 +564,7 @@ class PostProcessor:
 
         amounts = []
         for pattern in patterns:
-            for match in self._match_pattern(labels, pattern):
+            for match in self._match_pattern(labels, pattern, ignore_other_labels=True):
                 # If the pattern ends with one of end_units, we have found a match for
                 # this pattern!
                 if tokens[match[-1]] in end_units:
@@ -582,7 +613,95 @@ class PostProcessor:
 
         return amounts
 
-    def _match_pattern(self, labels: list[str], pattern: list[str]) -> list[list[int]]:
+    def _composite_amounts_pattern(
+        self, idx: list[int], tokens: list[str], labels: list[str], scores: list[float]
+    ) -> list[IngredientAmount]:
+        """Identify sentences which match the pattern where there are composite amounts,
+        i.e. adjacent amounts that need to be considered together:
+
+        * 1 lb 2 oz
+        * 1 pint 2 fl oz
+
+        Return a compositive amount object made from the adjacent amounts.
+
+        For example, for the sentence: 1 lb 2 oz ...; the composite amount is:
+        CompositeAmount(
+            amounts=[
+                IngredientAmount(quantity="1", unit="lb", score=0.x...),
+                IngredientAmount(quantity="2", unit="oz", score=0.x...),
+            ],
+            join=""
+        )
+
+        Parameters
+        ----------
+        idx : list[int]
+            List of indices of the tokens/labels/scores in the full tokenizsed sentence
+        tokens : list[str]
+            Tokens for input sentence
+        labels : list[str]
+            Labels for input sentence tokens
+        scores : list[float]
+            Scores for each label
+
+        Returns
+        -------
+        list[IngredientAmount]
+            List of IngredientAmount objects
+        """
+        # Define patterns based on labels.
+        # Assumes that only "x lb y oz" and "x pint y fl oz" patterns
+        patterns = [
+            ["QTY", "UNIT", "QTY", "UNIT", "UNIT"],
+            ["QTY", "UNIT", "QTY", "UNIT"],
+        ]
+
+        # List of possible units for first and second amount matched
+        first_unit = {"lb", "pound", "pt", "pint"}
+        last_unit = {"oz", "ounce"}
+
+        composite_amounts = []
+        for pattern in patterns:
+            for match in self._match_pattern(
+                labels, pattern, ignore_other_labels=False
+            ):
+                # Check units match known patterns
+                first_unit_idx = match[1]
+                last_unit_idx = match[-1]
+                if (
+                    tokens[first_unit_idx] in first_unit
+                    and tokens[last_unit_idx] in last_unit
+                ):
+                    # First amount
+                    first_amount = IngredientAmount(
+                        quantity=tokens[match[0]],
+                        unit=tokens[match[1]],
+                        confidence=round(mean([scores[i] for i in match[0:2]]), 6),
+                        starting_index=idx[first_unit_idx],
+                    )
+                    # Second amount
+                    second_amount = IngredientAmount(
+                        quantity=tokens[match[2]],
+                        unit=" ".join([tokens[i] for i in match[3:]]),
+                        confidence=round(mean([scores[i] for i in match[3:]]), 6),
+                        starting_index=idx[last_unit_idx - 1],
+                    )
+                    composite_amounts.append(
+                        CompositeIngredientAmount(
+                            amounts=[first_amount, second_amount],
+                            join="",
+                        )
+                    )
+
+                    # Keep track of indices of matching elements so we don't use them
+                    # again elsewhere
+                    self.consumed.extend([idx[i] for i in match])
+
+        return composite_amounts
+
+    def _match_pattern(
+        self, labels: list[str], pattern: list[str], ignore_other_labels: bool = True
+    ) -> list[list[int]]:
         """Find a pattern of labels and return the indices of the labels that match the
         pattern. The pattern matching ignores labels that are not part of the pattern.
 
@@ -605,6 +724,11 @@ class PostProcessor:
             List of labels of find pattern
         pattern : list[str]
             Pattern to match inside labels.
+        ignore_other_labels : bool
+            If True, the pattern matching will ignore any labels not found in pattern
+            meaning the indices of the match may not be consecutive.
+            If False, the pattern must be found without any interruptions in the
+            labels list.
 
         Returns
         -------
@@ -614,9 +738,14 @@ class PostProcessor:
         plen = len(pattern)
         plabels = set(pattern)
 
-        # Select just the labels and indices of labels that are in the pattern.
-        lbls = [label for label in labels if label in plabels]
-        idx = [i for i, label in enumerate(labels) if label in plabels]
+        if ignore_other_labels:
+            # Select just the labels and indices of labels that are in the pattern.
+            lbls = [label for label in labels if label in plabels]
+            idx = [i for i, label in enumerate(labels) if label in plabels]
+        else:
+            # Consider all labels
+            lbls = labels
+            idx = [i for i, label in enumerate(labels)]
 
         if len(pattern) > len(lbls):
             # We can never find a match.
