@@ -13,9 +13,77 @@ function setCellColor(e) {
   }
 }
 
+/**
+ * Save all data on page to server
+ */
+function save() {
+  let dataset = document.querySelector("header h1").textContent;
+  let data = {
+    dataset: dataset,
+    entries: [],
+  };
+
+  let entries = document.querySelectorAll(".entry");
+  entries.forEach((entry) => {
+    let rows = [...entry.querySelectorAll("tr")];
+    let tokens = [...rows[0].querySelectorAll("td")].map(
+      (el) => el.textContent,
+    );
+    let labels = [...rows[1].querySelectorAll("select")].map(
+      (el) => el.options[el.selectedIndex].text,
+    );
+
+    data.entries.push({
+      id: Number(entry.dataset.index),
+      sentence: entry.querySelector(".sentence").textContent.trim(),
+      tokens: tokens,
+      labels: labels,
+    });
+  });
+
+  let form = new FormData();
+  form.append("data", JSON.stringify(data));
+  fetch("/save", {
+    method: "POST",
+    body: form,
+  })
+    .then((res) => {
+      let saveBtn = document.querySelector("#save-btn");
+      if (res.ok) {
+        saveBtn.classList.add("success");
+        setTimeout(() => {
+          saveBtn.classList.remove("success");
+        }, 1500);
+      } else {
+        saveBtn.classList.add("failure");
+        setTimeout(() => {
+          saveBtn.classList.remove("failure");
+        }, 1500);
+      }
+    })
+    .catch((res) => {
+      let saveBtn = document.querySelector("#save-btn");
+      saveBtn.classList.add("failure");
+      setTimeout(() => {
+        saveBtn.classList.remove("failure");
+      }, 1500);
+    });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   let labelSelects = document.querySelectorAll("select");
   labelSelects.forEach((el) => {
     el.addEventListener("change", setCellColor);
+  });
+
+  let saveBtn = document.querySelector("#save-btn");
+  saveBtn.addEventListener("click", save);
+
+  // Save on Ctrl+S keypress
+  document.addEventListener("keydown", (e) => {
+    if (e.ctrlKey && e.key === "s") {
+      e.preventDefault();
+      save();
+    }
   });
 });

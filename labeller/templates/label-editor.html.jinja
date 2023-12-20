@@ -6,7 +6,7 @@
         <meta name="viewport" content="width=device-width"/>
         <title>Label Editor</title>
         <link rel="stylesheet" type="text/css" href="/static/css/label-editor.css"/>
-        <script type="module" src="/static/js/label-editor.js"></script>
+        <script src="/static/js/label-editor.js"></script>
     </head>
     <body>
         <header>
@@ -15,6 +15,9 @@
                 <h1>{{ dataset }}</h1>
             </div>
             <div class="controls">
+                <div class="control-group">
+                    <button id="save-btn">Save</button>
+                </div>
                 <div class="control-group">
                     <a href="/edit/{{ dataset }}?start={{ page_start_idx+page_range }}&range={{ page_range }}">Next page</a>
                     {%- if page_start_idx > 0 -%}
@@ -26,8 +29,11 @@
 
         <main>
             {%- for input in data -%}
-            <div class="entry">
-                <p class="sentence"><span class="index">{{ loop.index0 + page_start_idx }}:</span> {{ input.sentence }}</p>
+            <div class="entry" data-index="{{ loop.index0 + page_start_idx }}">
+                <p>
+                    <span class="index">{{ loop.index0 + page_start_idx }}:</span>
+                    <span class="sentence">{{ input.sentence }}</span>
+                </p>
                 <table>
                     <tr>
                         {%- for token in input.tokens -%}

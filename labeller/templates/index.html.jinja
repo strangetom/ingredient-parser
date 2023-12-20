@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8"/>
+        <meta name="Description" content="Ingredient Parser Tester"/>
+        <meta name="viewport" content="width=device-width"/>
+        <title>Label Editor</title>
+        <link rel="stylesheet" type="text/css" href="/static/css/label-editor.css"/>
+        <script src="/static/js/label-editor.js"></script>
+    </head>
+    <body>
+        <header>
+            <h1>Ingredient Parser Training Data Labeller</h1>
+        </header>
+
+        <main>
+            <h2>Datasets</h2>
+            <ul>
+                {%- for dataset, path in datasets.items() -%}
+                <li>
+                    <a href="/edit/{{ dataset }}?start=0&range=500">{{ dataset }}</a>
+                </li>
+                {%- endfor -%}
+            </ul>
+        </main>
+    </body>
+</html>

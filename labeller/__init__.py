@@ -3,7 +3,7 @@
 import json
 from pathlib import Path
 
-from flask import Flask, render_template, request
+from flask import Flask, Response, render_template, request
 
 app = Flask(__name__)
 
@@ -35,6 +35,11 @@ def locate_datasets() -> dict[str, str]:
 DATASETS = locate_datasets()
 
 
+@app.route("/")
+def index():
+    return render_template("index.html.jinja", datasets=DATASETS)
+
+
 @app.route("/edit/<string:dataset>", methods=["GET"])
 def edit(dataset: str):
     """Return homepage
@@ -49,7 +54,9 @@ def edit(dataset: str):
         data = json.load(f)
 
     start = int(request.args.get("start", 0))
-    count = int(request.args.get("count", 500))
+    count = int(request.args.get("range", 500))
+
+    print(count)
 
     return render_template(
         "label-editor.html.jinja",
@@ -59,3 +66,26 @@ def edit(dataset: str):
         page_start_idx=start,
         page_range=count,
     )
+
+
+@app.route("/save", methods=["POST"])
+def save():
+    if request.method == "POST":
+        form = request.form
+        update = json.loads(form["data"])
+
+        dataset_path = DATASETS[update["dataset"]]
+        with open(dataset_path, "r") as f:
+            data = json.load(f)
+
+        for entry in update["entries"]:
+            data[entry["id"]] = {
+                "sentence": entry["sentence"],
+                "tokens": entry["tokens"],
+                "labels": entry["labels"],
+            }
+
+        with open(dataset_path, "w") as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+
+        return Response(status=200)

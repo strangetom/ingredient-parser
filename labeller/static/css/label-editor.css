@@ -18,6 +18,9 @@ header {
   display: flex;
   justify-content: space-between;
 }
+header .controls {
+  display: flex;
+}
 header .control-group {
   display: flex;
   flex-direction: column;
@@ -32,29 +35,45 @@ header p {
   font-size: .9rem;
   color: var(--fg-4);
 }
-header a {
+header a, header button {
   color: var(--fg);
   text-align: center;
   text-decoration: none;
+  cursor: pointer;
   padding: .1rem .5rem;
   border-radius: var(--small-radius);
   border: 1px solid var(--bg-4);
   background-color: var(--bg-s);
   margin: 0 .5rem;
   box-shadow: var(--small-shadow);
+  font-size: 1rem;
+  line-height: 1.5;
+  min-width: 10ch;
 }
-header a:hover {
+header a:hover, header button:hover {
   background-color: var(--bg-2);
+}
+
+.success {
+  border-color: var(--green-alt);
+  color: var(--green-alt);
+}
+.failure {
+  border-color: var(--red-alt);
+  color: var(--red-alt);
 }
 
 main {
   width: calc(100vw - 2rem);
   margin: 1rem;
 }
-
+p {
+  margin: 0.5rem;
+}
 .entry {
   overflow-x: auto;
   padding: 0 .5rem 1rem;
+  margin-bottom: .5rem;
 }
 .entry:focus-within {
   border: 1px solid var(--fg);
@@ -68,7 +87,7 @@ main {
 }
 .sentence {
   font-size: 1.2rem;
-  margin: 0.5rem;
+  margin: 0.25rem;
 }
 
 table {
