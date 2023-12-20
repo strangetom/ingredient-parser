@@ -1,0 +1,50 @@
+/* -blend colours are calculated from by overlaying the colour at 66% transparency 
+on top of --bg-s */
+:root {
+  color-scheme: dark;
+  --bg: #1d2021;
+  --bg-s: #32302f;
+  --bg-1: #3c3836;
+  --bg-2: #504945;
+  --bg-3: #665c54;
+  --bg-4: #7c6f64;
+  --fg: #fbf1c7;
+  --fg-1: #ebdbb2;
+  --fg-2: #d5c4a1;
+  --fg-3: #bdae93;
+  --fg-4: #a89984;
+  --gray: #928374;
+  --red: #cc241d;
+  --red-blend: #982823;
+  --red-alt: #fb4934;
+  --green: #98971a;
+  --green-blend: #98971a;
+  --green-alt: #b8bb26;
+  --yellow: #d79921;
+  --yellow-blend: #9f7625;
+  --yellow-alt: #fabd2f;
+  --blue: #458588;
+  --blue-blend: #3e686a;
+  --blue-alt: #83a598;
+  --purple: #b16286;
+  --purple-blend: #865169;
+  --purple-alt: #d3869b;
+  --orange: #d65d0e;
+  --orange-blend: #9f4e19;
+  --orange-alt: #fe8019;
+  --aqua: #689d6a;
+  --aqua-blend: #567856;
+  --aqua-alt: #8ec07c;
+
+  --big-radius: 1rem;
+  --medium-radius: .5rem;
+  --small-radius: .25rem;
+  /* Generated using https://www.joshwcomeau.com/shadow-palette/ */
+  --shadow-color: 20deg 6% 9%;
+  --big-shadow: 0.3px 0.5px 0.7px hsl(var(--shadow-color) / 0.33),
+    1.4px 2.8px 3.9px -0.9px hsl(var(--shadow-color) / 0.42),
+    4.9px 9.9px 13.7px -1.7px hsl(var(--shadow-color) / 0.52);
+  --small-shadow:
+    0.3px 0.5px 0.7px hsl(var(--shadow-color) / 0.36),
+    1px 2px 2.8px -1.7px hsl(var(--shadow-color) / 0.52);
+}

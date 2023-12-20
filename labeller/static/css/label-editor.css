@@ -1,0 +1,116 @@
+@import 'colours.css';
+
+body {
+  font-family: sans-serif;
+  margin: 0;
+  padding: 0;
+  line-height: 1.5;
+  background-color: var(--bg-s);
+  color: var(--fg);
+}
+
+header {
+  position: sticky;
+  top: 0;
+  background-color: var(--bg);
+  padding: .55rem 2rem;
+  box-shadow: var(--big-shadow);
+  display: flex;
+  justify-content: space-between;
+}
+header .control-group {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: .25rem;
+}
+header h1 {
+  margin: 0;
+}
+header p {
+  margin: 0;
+  font-size: .9rem;
+  color: var(--fg-4);
+}
+header a {
+  color: var(--fg);
+  text-align: center;
+  text-decoration: none;
+  padding: .1rem .5rem;
+  border-radius: var(--small-radius);
+  border: 1px solid var(--bg-4);
+  background-color: var(--bg-s);
+  margin: 0 .5rem;
+  box-shadow: var(--small-shadow);
+}
+header a:hover {
+  background-color: var(--bg-2);
+}
+
+main {
+  width: calc(100vw - 2rem);
+  margin: 1rem;
+}
+
+.entry {
+  overflow-x: auto;
+  padding: 0 .5rem 1rem;
+}
+.entry:focus-within {
+  border: 1px solid var(--fg);
+  border-radius: var(--small-radius);
+  box-shadow: var(--big-shadow);
+  background-color: var(--bg-1);
+}
+.index {
+  font-size: .9rem;
+  color: var(--fg-4);
+}
+.sentence {
+  font-size: 1.2rem;
+  margin: 0.5rem;
+}
+
+table {
+  font-size: .9rem;
+  border: 2px solid var(--bg-4);
+  border-radius: var(--medium-radius);
+  border-collapse: collapse;
+}
+td {
+  text-align: center;
+  font-size: 1.1rem;
+  padding: .5rem;
+  border: 1px solid var(--bg);
+  background-color: var(--background-color, --bg-s);
+}
+select {
+  text-align: center;
+  color: var(--fg);
+  box-sizing: border-box;
+  border: 1px solid var(--bg);
+  border-radius: var(--small-radius);
+  padding: .25rem;
+  background-color: var(--background-color);
+  width: 13ch;
+  word-break: break-word;
+}
+
+.QTY {
+  --background-color: color-mix(in srgb, var(--green), #333);
+}
+.UNIT {
+  --background-color: color-mix(in srgb, var(--yellow), #333);
+}
+.NAME {
+  --background-color: color-mix(in srgb, var(--aqua), #333);
+}
+.COMMENT {
+  --background-color: color-mix(in srgb, var(--purple), #333);
+}
+.PREP {
+  --background-color: color-mix(in srgb, var(--blue-alt), #333);
+}
+.COMMA {
+  --background-color: color-mix(in srgb, var(--gray), #333);
+}
