@@ -3,14 +3,6 @@ import pytest
 from ingredient_parser import PreProcessor
 
 
-@pytest.fixture
-def p():
-    """Define an empty PreProcessor object to use for testing the PreProcessor
-    class methods.
-    """
-    return PreProcessor("", defer_pos_tagging=True)
-
-
 class TestPreProcessor__builtins__:
     def test__str__(self):
         """
@@ -34,7 +26,7 @@ class TestPreProcessor__builtins__:
         """
         Test printed debug output
         """
-        p = PreProcessor("1/2 cup chicken broth", show_debug_output=True)
+        _ = PreProcessor("1/2 cup chicken broth", show_debug_output=True)
         captured = capsys.readouterr()
         assert (
             captured.out
