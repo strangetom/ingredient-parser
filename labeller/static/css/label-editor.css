@@ -100,7 +100,7 @@ table {
 td {
   text-align: center;
   font-size: 1.1rem;
-  padding: .5rem;
+  padding: 2px;
   border: 1px solid var(--bg);
   background-color: var(--background-color, --bg-s);
 }
@@ -108,9 +108,9 @@ select {
   text-align: center;
   color: var(--fg);
   box-sizing: border-box;
-  border: 1px solid var(--bg);
+  border: none;
   border-radius: var(--small-radius);
-  padding: .25rem;
+  padding: .3rem;
   background-color: var(--background-color);
   width: 13ch;
   word-break: break-word;
