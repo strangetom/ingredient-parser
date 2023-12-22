@@ -17,6 +17,7 @@ header {
   box-shadow: var(--big-shadow);
   display: flex;
   justify-content: space-between;
+  z-index: 1;
 }
 header .controls {
   display: flex;
