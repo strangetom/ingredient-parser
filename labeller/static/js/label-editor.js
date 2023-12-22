@@ -30,7 +30,7 @@ function save() {
       (el) => el.textContent,
     );
     let labels = [...rows[1].querySelectorAll("select")].map(
-      (el) => el.options[el.selectedIndex].text,
+      (el) => el.options[el.selectedIndex].value,
     );
 
     data.entries.push({

@@ -53,18 +53,27 @@ def edit(dataset: str):
     with open(dataset_path, "r") as f:
         data = json.load(f)
 
-    start = int(request.args.get("start", 0))
-    count = int(request.args.get("range", 500))
+    # Set index for each entry
+    for i, entry in enumerate(data):
+        entry["index"] = i
 
-    print(count)
+    start = request.args.get("start", None)
+    count = request.args.get("range", None)
+    indices = request.args.get("indices", None)
+
+    if start is not None and count is not None:
+        data = data[int(start) : int(start) + int(count)]
+    elif indices is not None:
+        indices = [int(i) for i in indices.split(",")]
+        data = [entry for i, entry in enumerate(data) if i in indices]
 
     return render_template(
         "label-editor.html.jinja",
         dataset=dataset,
         dataset_path=dataset_path,
-        data=data[start : start + count],
-        page_start_idx=start,
-        page_range=count,
+        data=data,
+        page_start_idx=int(start or 0),
+        page_range=int(count or 0),
     )
 
 

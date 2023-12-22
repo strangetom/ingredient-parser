@@ -19,33 +19,35 @@
                     <button id="save-btn">Save</button>
                 </div>
                 <div class="control-group">
+                    {%- if page_start_idx is not none -%}
                     <a href="/edit/{{ dataset }}?start={{ page_start_idx+page_range }}&range={{ page_range }}">Next page</a>
                     {%- if page_start_idx > 0 -%}
                     <a href="/edit/{{ dataset }}?start={{ (page_start_idx-page_range, 0)|max }}&range={{ page_range }}">Previous page</a>
+                    {%- endif -%}
                     {%- endif -%}
                 </div>
             </div>
         </header>
 
         <main>
-            {%- for input in data -%}
-            <div class="entry" data-index="{{ loop.index0 + page_start_idx }}">
+            {%- for entry in data -%}
+            <div class="entry" data-index="{{ entry.index }}">
                 <p>
-                    <span class="index">{{ loop.index0 + page_start_idx }}:</span>
-                    <span class="sentence">{{ input.sentence }}</span>
+                    <span class="index">{{ entry.index }}:</span>
+                    <span class="sentence">{{ entry.sentence }}</span>
                     <button class="delete">Delete</button>
                 </p>
                 <table>
                     <tr>
-                        {%- for token in input.tokens -%}
+                        {%- for token in entry.tokens -%}
                         <td>{{ token }}</td>
                         {%- endfor -%}
                     </tr>
                     <tr>
-                        {%- for label in input.labels -%}
+                        {%- for label in entry.labels -%}
                         <td class="{{ label }}">
                             <select>
-                              <option value=""></option>
+                              <option value="OTHER" {{ "selected" if label == "OTHER" }}></option>
                               <option value="QTY" {{ "selected" if label == "QTY" }}>QTY</option>
                               <option value="UNIT" {{ "selected" if label == "UNIT" }}>UNIT</option>
                               <option value="NAME" {{ "selected" if label == "NAME" }}>NAME</option>
