@@ -72,8 +72,8 @@ def edit(dataset: str):
         dataset=dataset,
         dataset_path=dataset_path,
         data=data,
-        page_start_idx=int(start or 0),
-        page_range=int(count or 0),
+        page_start_idx=int(start) if start is not None else None,
+        page_range=int(count) if count is not None else None,
     )
 
 
