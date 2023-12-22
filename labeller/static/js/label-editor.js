@@ -70,10 +70,44 @@ function save() {
     });
 }
 
+function remove(e) {
+  let dataset = document.querySelector("header h1").textContent;
+  let index = e.target.closest(".entry").dataset.index;
+
+  if (confirm(`Delete entry ${index} from dataset?`)) {
+    let url = new URL(`/delete/${dataset}`, location.href);
+    url.searchParams.append("index", index);
+    fetch(url, {
+      method: "GET",
+    })
+      .then((res) => {
+        if (res.ok) {
+          location.reload();
+        } else {
+          e.target.classList.add("failure");
+          setTimeout(() => {
+            e.target.classList.remove("failure");
+          }, 1500);
+        }
+      })
+      .catch((res) => {
+        e.target.classList.add("failure");
+        setTimeout(() => {
+          e.target.classList.remove("failure");
+        }, 1500);
+      });
+  }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   let labelSelects = document.querySelectorAll("select");
   labelSelects.forEach((el) => {
     el.addEventListener("change", setCellColor);
+  });
+
+  let deleteBtns = document.querySelectorAll("button.delete");
+  deleteBtns.forEach((el) => {
+    el.addEventListener("click", remove);
   });
 
   let saveBtn = document.querySelector("#save-btn");

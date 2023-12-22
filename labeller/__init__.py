@@ -89,3 +89,35 @@ def save():
             json.dump(data, f, indent=2, ensure_ascii=False)
 
         return Response(status=200)
+
+
+@app.route("/delete/<string:dataset>")
+def delete(dataset: str):
+    """Delete entry with <index> from <dataset>
+
+    Parameters
+    ----------
+    dataset : str
+        Dataset from which to delete entry
+    index : int
+        Index of entry to delete
+
+    Returns
+    -------
+    Response
+        Success response
+    """
+
+    index = int(request.args.get("index", None))
+    if index is None:
+        return Response(status=404)
+
+    dataset_path = DATASETS[dataset]
+    with open(dataset_path, "r") as f:
+        data = json.load(f)
+        del data[index]
+
+    with open(dataset_path, "w") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+
+    return Response(status=200)
