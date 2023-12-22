@@ -4,7 +4,7 @@ import argparse
 
 from ingredient_parser import PreProcessor
 
-from .training_utils import load_csv, match_labels
+from .training_utils import load_json
 
 
 def find_missing_labels(args: argparse.Namespace) -> None:
