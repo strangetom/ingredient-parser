@@ -15,6 +15,7 @@ header {
   background-color: var(--bg);
   padding: .55rem 2rem;
   box-shadow: var(--big-shadow);
+  border-bottom: 1px solid var(--bg-2);
   display: flex;
   justify-content: space-between;
   z-index: 1;
@@ -100,7 +101,7 @@ table {
 td {
   text-align: center;
   font-size: 1.1rem;
-  padding: 2px;
+  padding: 3px;
   border: 1px solid var(--bg);
   background-color: var(--background-color, --bg-s);
 }
