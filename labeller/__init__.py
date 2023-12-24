@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 
 import json
-import random
 import sqlite3
-from pathlib import Path
 
 from flask import Flask, Response, render_template, request
 
@@ -30,7 +28,15 @@ def index():
 
 @app.route("/edit/<string:dataset>", methods=["GET"])
 def edit(dataset: str):
-    """Return homepage
+    """Show page to edit sentence token labels.
+
+    The view shows the <range> of sentences, starting from <start>, where <start>
+    and <range> and URL query parameters.
+
+    Parameters
+    ----------
+    dataset : str
+        Source dataset to select sentences from
 
     Returns
     -------
@@ -39,50 +45,82 @@ def edit(dataset: str):
     """
     start = request.args.get("start", None)
     count = request.args.get("range", None)
-    # indices = request.args.get("indices", None)
 
-    if start is not None and count is not None:
-        with sqlite3.connect(DATABASE, detect_types=sqlite3.PARSE_DECLTYPES) as conn:
-            conn.row_factory = sqlite3.Row
-            c = conn.cursor()
-            c.execute(
-                "SELECT id, sentence, tokens, labels FROM training WHERE source IS ? LIMIT ? OFFSET ?;",
-                (dataset, count, start),
-            )
-            data = [dict(row) for row in c.fetchall()]
-        conn.close()
-
-    # elif indices is not None:
-    #    indices = [int(i) for i in indices.split(",")]
-    #    data = [entry for i, entry in enumerate(data) if i in indices]
+    with sqlite3.connect(DATABASE, detect_types=sqlite3.PARSE_DECLTYPES) as conn:
+        conn.row_factory = sqlite3.Row
+        c = conn.cursor()
+        c.execute(
+            "SELECT * FROM training WHERE source IS ? LIMIT ? OFFSET ?;",
+            (dataset, count, start),
+        )
+        data = [dict(row) for row in c.fetchall()]
+    conn.close()
 
     return render_template(
         "label-editor.html.jinja",
         dataset=dataset,
         data=data,
-        page_start_idx=int(start) if start is not None else None,
-        page_range=int(count) if count is not None else None,
+        page_start_idx=int(start),
+        page_range=int(count),
+    )
+
+
+@app.route("/index", methods=["GET"])
+def sentences_by_id():
+    """Show page to edit sentence token labels for sentences with ID specified in the
+    list of IDs in the index URL query parameter.
+
+    Returns
+    -------
+    str
+        Rendered HTML template
+    """
+    indices = request.args.get("indices", None)
+
+    indices = [int(i) for i in indices.split(",")]
+    with sqlite3.connect(DATABASE, detect_types=sqlite3.PARSE_DECLTYPES) as conn:
+        conn.row_factory = sqlite3.Row
+        c = conn.cursor()
+        c.execute(
+            f"SELECT * FROM training WHERE id IN ({','.join(['?']*len(indices))});",
+            indices,
+        )
+        data = [dict(row) for row in c.fetchall()]
+    conn.close()
+
+    sources = {entry["source"] for entry in data}
+
+    return render_template(
+        "label-editor.html.jinja",
+        dataset=", ".join(sources),
+        data=data,
+        page_start_idx=None,
+        page_range=None,
     )
 
 
 @app.route("/shuffle", methods=["GET"])
 def shuffle():
-    data = []
-    for name, path in DATASETS.items():
-        with open(path, "r") as f:
-            dataset = json.load(f)
+    """Return <range> random sentences from database, where <range> is a URL
+    query paramters.
 
-            # Set index and origin dataset for each entry
-            for i, entry in enumerate(dataset):
-                entry["index"] = i
-                entry["dataset"] = name
-
-        data.extend(dataset)
-
-    # Shuffle
-    random.shuffle(data)
-
+    Returns
+    -------
+    str
+        Rendered HTML template
+    """
     count = int(request.args.get("range", 500))
+
+    with sqlite3.connect(DATABASE, detect_types=sqlite3.PARSE_DECLTYPES) as conn:
+        conn.row_factory = sqlite3.Row
+        c = conn.cursor()
+        c.execute(
+            "SELECT * FROM training ORDER BY RANDOM() LIMIT ?;",
+            (count,),
+        )
+        data = [dict(row) for row in c.fetchall()]
+    conn.close()
+
     return render_template(
         "label-editor-shuffle.html.jinja",
         data=data[:count],
@@ -91,6 +129,13 @@ def shuffle():
 
 @app.route("/save", methods=["POST"])
 def save():
+    """Endpoint for saving sentences to database from /edit, /shuffle or /index pages
+    
+    Returns
+    -------
+    Response
+        Response code indicating success or failure.
+    """
     if request.method == "POST":
         form = request.form
         update = json.loads(form["data"])
