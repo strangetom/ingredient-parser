@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import json
+import random
 from pathlib import Path
 
 from flask import Flask, Response, render_template, request
@@ -74,6 +75,30 @@ def edit(dataset: str):
         data=data,
         page_start_idx=int(start) if start is not None else None,
         page_range=int(count) if count is not None else None,
+    )
+
+
+@app.route("/shuffle", methods=["GET"])
+def shuffle():
+    data = []
+    for name, path in DATASETS.items():
+        with open(path, "r") as f:
+            dataset = json.load(f)
+
+            # Set index and origin dataset for each entry
+            for i, entry in enumerate(dataset):
+                entry["index"] = i
+                entry["dataset"] = name
+
+        data.extend(dataset)
+
+    # Shuffle
+    random.shuffle(data)
+
+    count = int(request.args.get("range", 500))
+    return render_template(
+        "label-editor-shuffle.html.jinja",
+        data=data[:count],
     )
 
 
