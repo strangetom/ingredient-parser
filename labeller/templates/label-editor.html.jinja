@@ -31,9 +31,9 @@
 
         <main>
             {%- for entry in data -%}
-            <div class="entry" data-index="{{ entry.index }}">
+            <div class="entry" data-index="{{ entry.id }}">
                 <p>
-                    <span class="index">{{ entry.index }}:</span>
+                    <span class="index">{{ entry.id }}:</span>
                     <span class="sentence">{{ entry.sentence }}</span>
                     <button class="delete">Delete</button>
                 </p>

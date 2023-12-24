@@ -16,7 +16,7 @@
         <main>
             <h2>Datasets</h2>
             <ul>
-                {%- for dataset, path in datasets.items() -%}
+                {%- for dataset in datasets -%}
                 <li>
                     <a href="/edit/{{ dataset }}?start=0&range=500">{{ dataset }}</a>
                 </li>

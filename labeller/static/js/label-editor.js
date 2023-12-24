@@ -75,8 +75,7 @@ function remove(e) {
   let index = e.target.closest(".entry").dataset.index;
 
   if (confirm(`Delete entry ${index} from dataset?`)) {
-    let url = new URL(`/delete/${dataset}`, location.href);
-    url.searchParams.append("index", index);
+    let url = new URL(`/delete/${index}`, location.href);
     fetch(url, {
       method: "GET",
     })

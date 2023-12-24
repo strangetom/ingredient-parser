@@ -2,43 +2,30 @@
 
 import json
 import random
+import sqlite3
 from pathlib import Path
 
 from flask import Flask, Response, render_template, request
 
+sqlite3.register_adapter(list, json.dumps)
+sqlite3.register_converter("json", json.loads)
+
 app = Flask(__name__)
 
-
-def locate_datasets() -> dict[str, str]:
-    """Locate all .json datasets with train/data folder.
-    Assumes all datasets are json files located in folders within the train/data folder.
-
-    Returns
-    -------
-    dict[str, str]
-        Dict of dataset name and pahh
-
-    """
-    datasets = {}
-
-    path = Path("train/data")
-    for folder in path.iterdir():
-        if not folder.is_dir():
-            continue
-
-        json_files = folder.glob("*.json")
-        for file in json_files:
-            datasets[file.stem] = str(file)
-
-    return datasets
-
-
-DATASETS = locate_datasets()
+DATABASE = "train/data/training.sqlite3"
 
 
 @app.route("/")
 def index():
-    return render_template("index.html.jinja", datasets=DATASETS)
+    with sqlite3.connect(DATABASE, detect_types=sqlite3.PARSE_DECLTYPES) as conn:
+        c = conn.cursor()
+        c.execute("SELECT DISTINCT source FROM training")
+        res = c.fetchall()
+
+    conn.close()
+
+    datasets = [source for source, in res]
+    return render_template("index.html.jinja", datasets=datasets)
 
 
 @app.route("/edit/<string:dataset>", methods=["GET"])
@@ -50,28 +37,28 @@ def edit(dataset: str):
     str
         Rendered HTML template
     """
-    dataset_path = DATASETS[dataset]
-    with open(dataset_path, "r") as f:
-        data = json.load(f)
-
-    # Set index for each entry
-    for i, entry in enumerate(data):
-        entry["index"] = i
-
     start = request.args.get("start", None)
     count = request.args.get("range", None)
-    indices = request.args.get("indices", None)
+    # indices = request.args.get("indices", None)
 
     if start is not None and count is not None:
-        data = data[int(start) : int(start) + int(count)]
-    elif indices is not None:
-        indices = [int(i) for i in indices.split(",")]
-        data = [entry for i, entry in enumerate(data) if i in indices]
+        with sqlite3.connect(DATABASE, detect_types=sqlite3.PARSE_DECLTYPES) as conn:
+            conn.row_factory = sqlite3.Row
+            c = conn.cursor()
+            c.execute(
+                "SELECT id, sentence, tokens, labels FROM training WHERE source IS ? LIMIT ? OFFSET ?;",
+                (dataset, count, start),
+            )
+            data = [dict(row) for row in c.fetchall()]
+        conn.close()
+
+    # elif indices is not None:
+    #    indices = [int(i) for i in indices.split(",")]
+    #    data = [entry for i, entry in enumerate(data) if i in indices]
 
     return render_template(
         "label-editor.html.jinja",
         dataset=dataset,
-        dataset_path=dataset_path,
         data=data,
         page_start_idx=int(start) if start is not None else None,
         page_range=int(count) if count is not None else None,
@@ -108,31 +95,23 @@ def save():
         form = request.form
         update = json.loads(form["data"])
 
-        dataset_path = DATASETS[update["dataset"]]
-        with open(dataset_path, "r") as f:
-            data = json.load(f)
-
-        for entry in update["entries"]:
-            data[entry["id"]] = {
-                "sentence": entry["sentence"],
-                "tokens": entry["tokens"],
-                "labels": entry["labels"],
-            }
-
-        with open(dataset_path, "w") as f:
-            json.dump(data, f, indent=2, ensure_ascii=False)
+        with sqlite3.connect(DATABASE, detect_types=sqlite3.PARSE_DECLTYPES) as conn:
+            c = conn.cursor()
+            c.executemany(
+                "UPDATE training SET sentence = :sentence, tokens = :tokens, labels = :labels WHERE id = :id;",
+                update["entries"],
+            )
+        conn.close()
 
         return Response(status=200)
 
 
-@app.route("/delete/<string:dataset>")
-def delete(dataset: str):
+@app.route("/delete/<int:index>")
+def delete(index: int):
     """Delete entry with <index> from <dataset>
 
     Parameters
     ----------
-    dataset : str
-        Dataset from which to delete entry
     index : int
         Index of entry to delete
 
@@ -141,17 +120,8 @@ def delete(dataset: str):
     Response
         Success response
     """
-
-    index = int(request.args.get("index", None))
-    if index is None:
-        return Response(status=404)
-
-    dataset_path = DATASETS[dataset]
-    with open(dataset_path, "r") as f:
-        data = json.load(f)
-        del data[index]
-
-    with open(dataset_path, "w") as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
+    with sqlite3.connect(DATABASE, detect_types=sqlite3.PARSE_DECLTYPES) as conn:
+        c = conn.cursor()
+        c.execute("DELETE FROM training WHERE id = ?", (index,))
 
     return Response(status=200)
