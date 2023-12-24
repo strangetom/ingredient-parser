@@ -4,8 +4,6 @@ import argparse
 
 from ingredient_parser import PreProcessor
 
-from .training_utils import load_json
-
 
 def find_missing_labels(args: argparse.Namespace) -> None:
     """Find sentences in dataset(s) where tokens are given OTHER label.

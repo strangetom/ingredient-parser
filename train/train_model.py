@@ -163,7 +163,7 @@ def train_single(args: argparse.Namespace) -> None:
     args : argparse.Namespace
         Model training configuration
     """
-    vectors = load_datasets(args.datasets, args.number)
+    vectors = load_datasets(args.database)
     stats = train_model(vectors, args.split, args.save_model, args.html)
 
     print("Sentence-level results:")
@@ -189,7 +189,7 @@ def train_multiple(args: argparse.Namespace) -> None:
     args : argparse.Namespace
         Model training configuration
     """
-    vectors = load_datasets(args.datasets, args.number)
+    vectors = load_datasets(args.database)
 
     eval_results = []
     for i in range(args.runs):

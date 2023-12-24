@@ -7,8 +7,6 @@ from pathlib import Path
 
 from tqdm import tqdm
 
-from .training_utils import load_json
-
 # Tokeniser from preprocess.py
 group_a = r"[\w!\#\$\£\€%\&'\*\+\-\.>=<\?@\^_`\\\|\~’]+"
 group_b = r"[\(\)\[\]\{\}\,\"/:;]"

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import json
+import sqlite3
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -9,6 +10,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from ingredient_parser import PreProcessor
+
+sqlite3.register_converter("json", json.loads)
 
 
 @dataclass
@@ -21,42 +24,13 @@ class DataVectors:
     source: list[str]
 
 
-def load_json(json_filename: str, max_rows: int) -> list[dict]:
-    """Load json file containing training data
-
-    Parameters
-    ----------
-    json_filename : str
-        Name of JSON file
-    max_rows : int
-        Maximum number of rows to read
-
-    Returns
-    -------
-    list[dict]
-        List of dicts. Each dict contains the sentence, tokens and labels for each token.
-    """
-    with open(json_filename, "r") as f:
-        data = json.load(f)
-
-    if len(data) > max_rows:
-        data = data[:max_rows]
-
-    filename = Path(json_filename).name
-    print(f"[INFO] Loaded {len(data)} vectors from {filename}.")
-
-    return data
-
-
-def load_datasets(datasets: list[str], number: int) -> DataVectors:
+def load_datasets(database: str) -> DataVectors:
     """Load raw data from csv files and transform into format required for training.
 
     Parameters
     ----------
-    datasets : list[str]
-        List of csv files to load raw data from
-    number : int
-        Maximum number of inputs to load from each csv file
+    database : str
+        Path to database of training data
 
     Returns
     -------
@@ -68,24 +42,18 @@ def load_datasets(datasets: list[str], number: int) -> DataVectors:
             source dataset of sentences
     """
     print("[INFO] Loading and transforming training data.")
-    sentences = []
-    features = []
-    labels = []
-    source = []
 
-    for dataset in datasets:
-        dataset_id = Path(dataset).name.split("-")[0]
-        dataset_dicts = load_json(dataset, number)
-        sents = [d["sentence"] for d in dataset_dicts]
+    with sqlite3.connect(database, detect_types=sqlite3.PARSE_DECLTYPES) as conn:
+        conn.row_factory = sqlite3.Row
+        c = conn.cursor()
+        c.execute("SELECT * FROM training")
+        data = c.fetchall()
+    conn.close()
 
-        # Transform from csv format to training format
-        print(f"[INFO] Transforming '{dataset_id}' vectors.")
-        sentence_features = extract_features(sents)
-
-        sentences.extend(sents)
-        features.extend(sentence_features)
-        labels.extend([d["labels"] for d in dataset_dicts])
-        source.extend([dataset_id] * len(sents))
+    source = [entry["source"] for entry in data]
+    sentences = [entry["sentence"] for entry in data]
+    features = extract_features(sentences)
+    labels = [entry["labels"] for entry in data]
 
     print(f"[INFO] {len(sentences):,} total vectors")
     return DataVectors(sentences, features, labels, source)

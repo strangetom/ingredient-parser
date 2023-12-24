@@ -16,12 +16,11 @@ if __name__ == "__main__":
 
     train_parser = subparsers.add_parser("train", help="Train CRF model.")
     train_parser.add_argument(
-        "--datasets",
+        "--database",
         "-d",
-        help="Datasets in csv format",
-        action="extend",
-        dest="datasets",
-        nargs="+",
+        help="Path to database of training data",
+        type=str,
+        dest="database",
         required=True,
     )
     train_parser.add_argument(
@@ -30,13 +29,6 @@ if __name__ == "__main__":
         default=0.25,
         type=float,
         help="Fraction of data to be used for testing",
-    )
-    train_parser.add_argument(
-        "-n",
-        "--number",
-        default=30000,
-        type=int,
-        help="Maximum of entries from a dataset to use (train+test)",
     )
     train_parser.add_argument(
         "-m",
@@ -53,12 +45,11 @@ if __name__ == "__main__":
     multiple_parser_help = "Average CRF performance across multiple training cycles."
     multiple_parser = subparsers.add_parser("multiple", help=multiple_parser_help)
     multiple_parser.add_argument(
-        "--datasets",
+        "--database",
         "-d",
-        help="Datasets in csv format",
-        action="extend",
-        dest="datasets",
-        nargs="+",
+        help="Path to database of training data",
+        type=str,
+        dest="database",
         required=True,
     )
     multiple_parser.add_argument(
@@ -67,13 +58,6 @@ if __name__ == "__main__":
         default=0.25,
         type=float,
         help="Fraction of data to be used for testing",
-    )
-    multiple_parser.add_argument(
-        "-n",
-        "--number",
-        default=30000,
-        type=int,
-        help="Maximum of entries from a dataset to use (train+test)",
     )
     multiple_parser.add_argument(
         "-m",
