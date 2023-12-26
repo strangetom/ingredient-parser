@@ -3,16 +3,52 @@
 import argparse
 import re
 import xml.etree.ElementTree as ET
-from pathlib import Path
+from itertools import chain
 
 from tqdm import tqdm
 
-# Tokeniser from preprocess.py
-group_a = r"[\w!\#\$\£\€%\&'\*\+\-\.>=<\?@\^_`\\\|\~’]+"
-group_b = r"[\(\)\[\]\{\}\,\"/:;]"
-REGEXP_TOKENIZER = re.compile(
-    rf"{group_a}|{group_b}", re.UNICODE | re.MULTILINE | re.DOTALL
-)
+from .training_utils import load_datasets
+
+## Tokeniser from preprocess.py ##
+# Define regular expressions used by tokenizer.
+# Matches one or more whitespace characters
+WHITESPACE_TOKENISER = re.compile(r"\S+")
+# Matches and captures one of the following: ( ) [ ] { } , " / : ;
+PUNCTUATION_TOKENISER = re.compile(r"([\(\)\[\]\{\}\,\"/:;])")
+
+
+def tokenize(sentence: str) -> list[str]:
+    """Tokenise an ingredient sentence.
+    The sentence is split on whitespace characters into a list of tokens.
+    If any of these tokens contains of the punctuation marks captured by
+    PUNCTUATION_TOKENISER, these are then split and isolated as a seperate
+    token.
+
+    The returned list of tokens has any empty tokens removed.
+
+    Parameters
+    ----------
+    sentence : str
+        Ingredient sentence to tokenize
+
+    Returns
+    -------
+    list[str]
+        List of tokens from sentence.
+
+    Examples
+    --------
+    >>> tokenize("2 cups (500 ml) milk")
+    ["2", "cups", "(", "500", "ml", ")", "milk"]
+
+    >>> tokenize("1-2 mashed bananas: as ripe as possible")
+    ["1-2", "mashed", "bananas", ":", "as", "ripe", "as", "possible"]
+    """
+    tokens = [
+        PUNCTUATION_TOKENISER.split(tok)
+        for tok in WHITESPACE_TOKENISER.findall(sentence)
+    ]
+    return [tok for tok in chain.from_iterable(tokens) if tok]
 
 
 def score_sentence_similarity(first: str, second: str) -> float:
@@ -40,8 +76,8 @@ def score_sentence_similarity(first: str, second: str) -> float:
         # Indentical sentences have maximum score of 1
         return 1
 
-    first_tokens = set(REGEXP_TOKENIZER.findall(first))
-    second_tokens = set(REGEXP_TOKENIZER.findall(second))
+    first_tokens = set(tokenize(first))
+    second_tokens = set(tokenize(second))
 
     intersection = first_tokens & second_tokens
 
@@ -51,7 +87,8 @@ def score_sentence_similarity(first: str, second: str) -> float:
 def create_html_table(
     indices: list[int],
     sentences: list[str],
-    labels: list[dict[str, str]],
+    labels: list[list[str]],
+    tokens: list[list[str]],
     sentence_source: list[tuple[str, int]],
 ) -> ET.Element:
     """Create HTM table to show similar sentences and their labels
@@ -87,7 +124,6 @@ def create_html_table(
 
     for idx in indices:
         sentence = sentences[idx]
-        sentence_labels = labels[idx]
         dataset, dataset_idx = sentence_source[idx]
 
         tr = ET.Element("tr")
@@ -105,23 +141,33 @@ def create_html_table(
         tr.append(sentence_td)
 
         name_td = ET.Element("td", attrib={"class": "row"})
-        name_td.text = sentence_labels["name"]
+        name_td.text = " ".join(
+            [tok for tok, label in zip(tokens[idx], labels[idx]) if label == "NAME"]
+        )
         tr.append(name_td)
 
         quantity_td = ET.Element("td", attrib={"class": "row"})
-        quantity_td.text = sentence_labels["quantity"]
+        quantity_td.text = " ".join(
+            [tok for tok, label in zip(tokens[idx], labels[idx]) if label == "QTY"]
+        )
         tr.append(quantity_td)
 
         unit_td = ET.Element("td", attrib={"class": "row"})
-        unit_td.text = sentence_labels["unit"]
+        unit_td.text = " ".join(
+            [tok for tok, label in zip(tokens[idx], labels[idx]) if label == "UNIT"]
+        )
         tr.append(unit_td)
 
         prep_td = ET.Element("td", attrib={"class": "row"})
-        prep_td.text = sentence_labels["preparation"]
+        prep_td.text = " ".join(
+            [tok for tok, label in zip(tokens[idx], labels[idx]) if label == "PREP"]
+        )
         tr.append(prep_td)
 
         comment_td = ET.Element("td", attrib={"class": "row"})
-        comment_td.text = sentence_labels["comment"]
+        comment_td.text = " ".join(
+            [tok for tok, label in zip(tokens[idx], labels[idx]) if label == "COMMENT"]
+        )
         tr.append(comment_td)
 
         table.append(tr)
@@ -132,7 +178,8 @@ def create_html_table(
 def results_to_html(
     similar: dict[int, list[int]],
     sentences: list[str],
-    labels: list[dict[str, str]],
+    labels: list[list[str]],
+    tokens: list[list[str]],
     sentence_source: list[tuple[str, int]],
 ) -> None:
     """Output similarity results to html file.
@@ -187,7 +234,7 @@ def results_to_html(
 
     for k, v in similar.items():
         idx = [k] + v
-        table = create_html_table(idx, sentences, labels, sentence_source)
+        table = create_html_table(idx, sentences, labels, tokens, sentence_source)
         body.append(table)
 
     ET.indent(html, space="    ")
@@ -205,17 +252,9 @@ def check_label_consistency(args: argparse.Namespace) -> None:
     args : argparse.Namespace
         Cleaning utility configuration
     """
-    print("[INFO] Loading dataset.")
-    sentences, labels, sentence_source = [], [], []
-    for dataset in args.datasets:
-        dataset_id = Path(dataset).name.split("-")[0]
-        dataset_sents, dataset_labels = load_csv(dataset, args.number)
-
-        dataset_sentence_source = [(dataset_id, i) for i in range(len(dataset_sents))]
-        sentence_source.extend(dataset_sentence_source)
-
-        sentences.extend(dataset_sents)
-        labels.extend(dataset_labels)
+    vectors = load_datasets(args.database, args.datasets, discard_other=False)
+    sentences = vectors.sentences
+    sentence_source = [(source, i) for i, source in enumerate(vectors.source)]
 
     similar = {}
     unmatched_indices = set(range(len(sentences)))
@@ -248,4 +287,6 @@ def check_label_consistency(args: argparse.Namespace) -> None:
         sorted(similar.items(), key=lambda item: len(item[1]), reverse=True)
     )
 
-    results_to_html(max_similarity, sentences, labels, sentence_source)
+    results_to_html(
+        max_similarity, sentences, vectors.labels, vectors.tokens, sentence_source
+    )

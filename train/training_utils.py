@@ -20,11 +20,14 @@ class DataVectors:
 
     sentences: list[str]
     features: list[list[dict[str, str]]]
+    tokens: list[list[str]]
     labels: list[list[str]]
     source: list[str]
 
 
-def load_datasets(database: str, datasets: list[str]) -> DataVectors:
+def load_datasets(
+    database: str, datasets: list[str], discard_other: bool = True
+) -> DataVectors:
     """Load raw data from csv files and transform into format required for training.
 
     Parameters
@@ -34,6 +37,8 @@ def load_datasets(database: str, datasets: list[str]) -> DataVectors:
     datasets : list[str]
         List of data source to include.
         Valid options are: nyt, cookstr, bbc
+    discard_other : bool, optional
+        If True, discard sentences containing tokens with OTHER label
 
     Returns
     -------
@@ -56,10 +61,10 @@ def load_datasets(database: str, datasets: list[str]) -> DataVectors:
         data = c.fetchall()
     conn.close()
 
-    source, sentences, features, labels = [], [], [], []
+    source, sentences, features, tokens, labels = [], [], [], [], []
     discarded = 0
     for entry in data:
-        if "OTHER" in entry["labels"]:
+        if discard_other and "OTHER" in entry["labels"]:
             discarded += 1
             continue
 
@@ -68,7 +73,8 @@ def load_datasets(database: str, datasets: list[str]) -> DataVectors:
         p = PreProcessor(entry["sentence"])
         features.append(p.sentence_features())
         labels.append(entry["labels"])
+        tokens.append(entry["tokens"])
 
     print(f"[INFO] {len(sentences):,} total vectors")
     print(f"[INFO] {discarded:,} discarded due to OTHER labels")
-    return DataVectors(sentences, features, labels, source)
+    return DataVectors(sentences, features, tokens, labels, source)

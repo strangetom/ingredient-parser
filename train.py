@@ -89,23 +89,22 @@ if __name__ == "__main__":
     utility_parser = subparsers.add_parser("utility", help=utility_help)
     utility_parser.add_argument(
         "utility",
-        choices="consistency"],
+        choices=["consistency"],
         help="Cleaning utility to execute",
     )
     utility_parser.add_argument(
-        "--datasets",
-        help="Datasets in csv format",
-        action="extend",
-        dest="datasets",
-        nargs="+",
+        "--database",
+        help="Path to database of training data",
+        type=str,
+        dest="database",
         required=True,
     )
     utility_parser.add_argument(
-        "-n",
-        "--number",
-        default=30000,
-        type=int,
-        help="Number of entries in dataset to check",
+        "--datasets",
+        help="Datasets to use in training and evaluating the model",
+        dest="datasets",
+        nargs="*",
+        default=["bbc", "cookstr", "nyt"],
     )
 
     args = parser.parse_args()
