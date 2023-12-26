@@ -2,7 +2,6 @@ import argparse
 
 from train import (
     check_label_consistency,
-    find_missing_labels,
     train_multiple,
     train_single,
 )
@@ -90,7 +89,7 @@ if __name__ == "__main__":
     utility_parser = subparsers.add_parser("utility", help=utility_help)
     utility_parser.add_argument(
         "utility",
-        choices=["missing", "consistency"],
+        choices="consistency"],
         help="Cleaning utility to execute",
     )
     utility_parser.add_argument(
@@ -116,7 +115,5 @@ if __name__ == "__main__":
     elif args.command == "multiple":
         train_multiple(args)
     elif args.command == "utility":
-        if args.utility == "missing":
-            find_missing_labels(args)
-        elif args.utility == "consistency":
+        if args.utility == "consistency":
             check_label_consistency(args)
