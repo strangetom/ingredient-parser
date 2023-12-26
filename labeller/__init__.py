@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 
 import json
+import re
 import sqlite3
+from collections import Counter
 
-from flask import Flask, Response, render_template, request
+from flask import Flask, Response, render_template, request, redirect, url_for
 
 sqlite3.register_adapter(list, json.dumps)
 sqlite3.register_converter("json", json.loads)
@@ -14,16 +16,16 @@ DATABASE = "train/data/training.sqlite3"
 
 
 @app.route("/")
-def index():
+def home():
     with sqlite3.connect(DATABASE, detect_types=sqlite3.PARSE_DECLTYPES) as conn:
         c = conn.cursor()
-        c.execute("SELECT DISTINCT source FROM training")
-        res = c.fetchall()
+        c.execute("SELECT source FROM training")
+        sources = [source for source, in c.fetchall()]
 
     conn.close()
 
-    datasets = [source for source, in res]
-    return render_template("index.html.jinja", datasets=datasets)
+    count = Counter(sources)
+    return render_template("index.html.jinja", datasets=list(count.items()))
 
 
 @app.route("/edit/<string:dataset>", methods=["GET"])
@@ -127,10 +129,17 @@ def shuffle():
     )
 
 
+@app.route("/filter", methods=["POST"])
+def filter():
+    if request.method == "POST":
+        form = request.form
+        return apply_filter(form)
+
+
 @app.route("/save", methods=["POST"])
 def save():
     """Endpoint for saving sentences to database from /edit, /shuffle or /index pages
-    
+
     Returns
     -------
     Response
@@ -170,3 +179,55 @@ def delete(index: int):
         c.execute("DELETE FROM training WHERE id = ?", (index,))
 
     return Response(status=200)
+
+
+def apply_filter(params: dict[str, str]) -> list[int]:
+    # Select data from database
+    datasets = [
+        key.split("-")[-1]
+        for key, value in params.items()
+        if key.startswith("dataset-") and value == "on"
+    ]
+    with sqlite3.connect(DATABASE, detect_types=sqlite3.PARSE_DECLTYPES) as conn:
+        conn.row_factory = sqlite3.Row
+        c = conn.cursor()
+        c.execute(
+            f"SELECT * FROM training WHERE source IN ({','.join(['?']*len(datasets))})",
+            (datasets),
+        )
+        data = [dict(row) for row in c.fetchall()]
+    conn.close()
+
+    # Get list of selected labels
+    labels = [
+        key.split("-")[-1]
+        for key, value in params.items()
+        if key.startswith("label-") and value == "on"
+    ]
+
+    # Create regex for search query
+    query = re.compile(rf"\b{params['filter-string']}\b", re.DOTALL | re.UNICODE)
+
+    if len(labels) == 6:
+        # Search through sentences
+        indices = []
+        for entry in data:
+            if query.search(entry["sentence"]):
+                indices.append(str(entry["id"]))
+
+        return redirect(url_for("sentences_by_id", indices=",".join(indices)))
+    else:
+        # Build string to search through from tokens with specified labels
+        indices = []
+        for entry in data:
+            partial_sentence = " ".join(
+                [
+                    tok
+                    for tok, label in zip(entry["tokens"], entry["labels"])
+                    if label in labels
+                ]
+            )
+            if query.search(partial_sentence):
+                indices.append(str(entry["id"]))
+
+        return redirect(url_for("sentences_by_id", indices=",".join(indices)))

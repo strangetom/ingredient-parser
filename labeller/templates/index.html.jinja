@@ -5,8 +5,7 @@
         <meta name="Description" content="Ingredient Parser Tester"/>
         <meta name="viewport" content="width=device-width"/>
         <title>Label Editor</title>
-        <link rel="stylesheet" type="text/css" href="/static/css/label-editor.css"/>
-        <script src="/static/js/label-editor.js"></script>
+        <link rel="stylesheet" type="text/css" href="/static/css/labeller.css"/>
     </head>
     <body>
         <header>
@@ -14,14 +13,70 @@
         </header>
 
         <main>
-            <h2>Datasets</h2>
-            <ul>
-                {%- for dataset in datasets -%}
-                <li>
-                    <a href="/edit/{{ dataset }}?start=0&range=500">{{ dataset }}</a>
-                </li>
-                {%- endfor -%}
-            </ul>
+            <section id="datasets">
+                <h2>Datasets</h2>
+                <p>Browse a dataset, showing 500 entries at a time</p>
+                <ul>
+                    {%- for dataset, count in datasets -%}
+                    <li>
+                        <a href="/edit/{{ dataset }}?start=0&range=500">{{ dataset|upper }} - {{ count }} entries</a>
+                    </li>
+                    {%- endfor -%}
+                </ul>
+            </section>
+
+            <section id="filter">
+                <h2>Filter</h2>
+                <p>Filter training data to search for a string, filtering by dataset and label.</p>
+                <form action="/filter" method="post">
+                    <fieldset>
+                        <legend>Datasets to apply filter to</legend>
+                        <div class="filter-datasets">
+                            {%- for dataset, _ in datasets -%}
+                            <div class="checkbox">
+                                <input type="checkbox" id="dataset-{{ dataset }}" name="dataset-{{ dataset }}" checked/>
+                                <label for="dataset-{{ dataset }}">{{ dataset|upper }}</label>
+                            </div>
+                            {%- endfor -%}
+                        </div>
+                    </fieldset>
+                    <fieldset>
+                        <legend>Labels to apply filter to</legend>
+                        <div class="filter-labels">
+                            <div class="checkbox">
+                                <input type="checkbox" id="label-QTY" name="label-QTY" checked/>
+                                <label for="label-QTY">QTY</label>
+                            </div>
+                            <div class="checkbox">
+                                <input type="checkbox" id="label-UNIT" name="label-UNIT" checked/>
+                                <label for="label-UNIT">UNIT</label>
+                            </div>
+                                <input type="checkbox" id="label-NAME" name="label-NAME" checked/>
+                                <label for="label-NAME">NAME</label>
+                            </div>
+                            <div class="checkbox">
+                                <input type="checkbox" id="label-PREP" name="label-PREP" checked/>
+                                <label for="label-PREP">PREP</label>
+                            </div>
+                            <div class="checkbox">
+                                <input type="checkbox" id="label-COMMENT" name="label-COMMENT" checked/>
+                                <label for="label-COMMENT">COMMENT</label>
+                            </div>
+                            <div class="checkbox">
+                                <input type="checkbox" id="label-OTHER" name="label-OTHER" checked/>
+                                <label for="label-OTHER">OTHER</label>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <div class="searchbox">
+                        <label for="filter-string">Search string</label>
+                        <input type="text" id="filter-string" name="filter-string"/>
+                    </div>
+
+                    <button type="submit">Filter</button>
+                </form>
+            </section>
         </main>
     </body>
 </html>
