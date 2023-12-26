@@ -24,13 +24,16 @@ class DataVectors:
     source: list[str]
 
 
-def load_datasets(database: str) -> DataVectors:
+def load_datasets(database: str, datasets: list[str]) -> DataVectors:
     """Load raw data from csv files and transform into format required for training.
 
     Parameters
     ----------
     database : str
         Path to database of training data
+    datasets : list[str]
+        List of data source to include.
+        Valid options are: nyt, cookstr, bbc
 
     Returns
     -------
@@ -46,37 +49,26 @@ def load_datasets(database: str) -> DataVectors:
     with sqlite3.connect(database, detect_types=sqlite3.PARSE_DECLTYPES) as conn:
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
-        c.execute("SELECT * FROM training")
+        c.execute(
+            f"SELECT * FROM training WHERE source IN ({','.join(['?']*len(datasets))})",
+            datasets,
+        )
         data = c.fetchall()
     conn.close()
 
-    source = [entry["source"] for entry in data]
-    sentences = [entry["sentence"] for entry in data]
-    features = extract_features(sentences)
-    labels = [entry["labels"] for entry in data]
+    source, sentences, features, labels = [], [], [], []
+    discarded = 0
+    for entry in data:
+        if "OTHER" in entry["labels"]:
+            discarded += 1
+            continue
+
+        source.append(entry["source"])
+        sentences.append(entry["sentence"])
+        p = PreProcessor(entry["sentence"])
+        features.append(p.sentence_features())
+        labels.append(entry["labels"])
 
     print(f"[INFO] {len(sentences):,} total vectors")
+    print(f"[INFO] {discarded:,} discarded due to OTHER labels")
     return DataVectors(sentences, features, labels, source)
-
-
-def extract_features(sentences: list[str]) -> list[list[dict[str, str]]]:
-    """Transform dataset into feature lists for each sentence
-
-    Parameters
-    ----------
-    sentences : list[str]
-        Sentences to transform
-
-    Returns
-    -------
-    list[list[dict[str, str]]]
-        List of sentences transformed into features. Each sentence returns a list of
-        dicts, with the dicts containing the features.
-    """
-    X = []
-
-    for sentence in sentences:
-        p = PreProcessor(sentence)
-        X.append(p.sentence_features())
-
-    return X

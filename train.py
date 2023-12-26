@@ -17,21 +17,25 @@ if __name__ == "__main__":
     train_parser = subparsers.add_parser("train", help="Train CRF model.")
     train_parser.add_argument(
         "--database",
-        "-d",
         help="Path to database of training data",
         type=str,
         dest="database",
         required=True,
     )
     train_parser.add_argument(
-        "-s",
+        "--datasets",
+        help="Datasets to use in training and evaluating the model",
+        dest="datasets",
+        nargs="*",
+        default=["bbc", "cookstr", "nyt"],
+    )
+    train_parser.add_argument(
         "--split",
         default=0.25,
         type=float,
         help="Fraction of data to be used for testing",
     )
     train_parser.add_argument(
-        "-m",
         "--save-model",
         default="ingredient_parser/model.crfsuite",
         help="Path to save model to",
@@ -46,21 +50,25 @@ if __name__ == "__main__":
     multiple_parser = subparsers.add_parser("multiple", help=multiple_parser_help)
     multiple_parser.add_argument(
         "--database",
-        "-d",
         help="Path to database of training data",
         type=str,
         dest="database",
         required=True,
     )
     multiple_parser.add_argument(
-        "-s",
+        "--datasets",
+        help="Datasets to use in training and evaluating the model",
+        dest="datasets",
+        nargs="*",
+        default=["bbc", "cookstr", "nyt"],
+    )
+    multiple_parser.add_argument(
         "--split",
         default=0.25,
         type=float,
         help="Fraction of data to be used for testing",
     )
     multiple_parser.add_argument(
-        "-m",
         "--save-model",
         default="ingredient_parser/model.crfsuite",
         help="Path to save model to",
@@ -87,7 +95,6 @@ if __name__ == "__main__":
     )
     utility_parser.add_argument(
         "--datasets",
-        "-d",
         help="Datasets in csv format",
         action="extend",
         dest="datasets",
