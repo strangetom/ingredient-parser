@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import re
-from dataclasses import dataclass, field
+from dataclasses import InitVar, dataclass, field
 from itertools import chain, groupby
 from operator import itemgetter
 from statistics import mean
@@ -53,7 +53,7 @@ class _PartialIngredientAmount:
     quantity: str
     unit: list[str]
     confidence: list[float]
-    starting_index: int
+    _starting_index: int
     related_to_previous: bool = False
     APPROXIMATE: bool = False
     SINGULAR: bool = False
@@ -77,8 +77,6 @@ class IngredientAmount:
     confidence : float
         Confidence of parsed ingredient amount, between 0 and 1.
         This is the average confidence of all tokens that contribute to this object.
-    starting_index : int
-        Index of token that starts this amount
     APPROXIMATE : bool, optional
         When True, indicates that the amount is approximate.
         Default is False.
@@ -91,11 +89,11 @@ class IngredientAmount:
     unit: str
     text: str = field(init=False)
     confidence: float
-    starting_index: int
+    starting_index: InitVar[int]
     APPROXIMATE: bool = False
     SINGULAR: bool = False
 
-    def __post_init__(self):
+    def __post_init__(self, starting_index):
         """
         On dataclass instantiation, make the unit plural if required, and generate the
         text field.
@@ -104,6 +102,9 @@ class IngredientAmount:
             self.unit = pluralise_units(self.unit)
 
         self.text = " ".join((self.quantity, self.unit)).strip()
+
+        # Assign starting_index to _starting_index
+        self._starting_index = starting_index
 
 
 @dataclass
@@ -365,7 +366,7 @@ class PostProcessor:
             parsed_amounts = func(idx, tokens, labels, scores)
             amounts.extend(parsed_amounts)
 
-        return sorted(amounts, key=lambda x: x.starting_index)
+        return sorted(amounts, key=lambda x: x._starting_index)
 
     def _unconsumed(self, list_: list[Any]) -> list[Any]:
         """Return elements from list whose index is not in the list of consumed
@@ -818,7 +819,7 @@ class PostProcessor:
                             quantity=token,
                             unit=[],
                             confidence=[score],
-                            starting_index=idx[i],
+                            _starting_index=idx[i],
                             related_to_previous=i in related_idx,
                         )
                     )
@@ -832,7 +833,7 @@ class PostProcessor:
                             quantity="",
                             unit=[],
                             confidence=[score],
-                            starting_index=idx[i],
+                            _starting_index=idx[i],
                         )
                     )
 
@@ -871,7 +872,7 @@ class PostProcessor:
                     quantity=amount.quantity,
                     unit=" ".join(amount.unit),
                     confidence=round(mean(amount.confidence), 6),
-                    starting_index=amount.starting_index,
+                    starting_index=amount._starting_index,
                     APPROXIMATE=amount.APPROXIMATE,
                     SINGULAR=amount.SINGULAR,
                 )

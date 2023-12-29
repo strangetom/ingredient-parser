@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8"/>
+        <meta name="Description" content="Ingredient Parser Tester"/>
+        <meta name="viewport" content="width=device-width"/>
+        <title>Label Editor</title>
+        <link rel="stylesheet" type="text/css" href="/static/css/label-editor.css"/>
+        <script src="/static/js/label-editor.js"></script>
+    </head>
+    <body>
+        <header>
+            <div>
+                <p>Dataset:</p>
+                <h1>Shuffled</h1>
+            </div>
+            <div class="controls">
+                <div class="control-group">
+                    <button id="save-btn">Save</button>
+                </div>
+            </div>
+        </header>
+
+        <main>
+            {%- for entry in data -%}
+            <div class="entry" data-index="{{ entry.id }}">
+                <p>
+                    <span class="index" data-dataset="{{ entry.source }}">{{ entry.id }}:</span>
+                    <span class="sentence">{{ entry.sentence }}</span>
+                    <button class="delete">Delete</button>
+                </p>
+                <table>
+                    <tr>
+                        {%- for token in entry.tokens -%}
+                        <td>{{ token }}</td>
+                        {%- endfor -%}
+                    </tr>
+                    <tr>
+                        {%- for label in entry.labels -%}
+                        <td class="{{ label }}">
+                            <select>
+                              <option value="OTHER" {{ "selected" if label == "OTHER" }}></option>
+                              <option value="QTY" {{ "selected" if label == "QTY" }}>QTY</option>
+                              <option value="UNIT" {{ "selected" if label == "UNIT" }}>UNIT</option>
+                              <option value="NAME" {{ "selected" if label == "NAME" }}>NAME</option>
+                              <option value="PREP" {{ "selected" if label == "PREP" }}>PREP</option>
+                              <option value="COMMENT" {{ "selected" if label == "COMMENT" }}>COMMENT</option>
+                              <option value="COMMA" {{ "selected" if label == "COMMA" }}>COMMA</option>
+                            </select>
+                        </td>
+                        {%- endfor -%}
+                    </tr>
+                </table>
+            </div>
+            {%- endfor -%}
+        </main>
+    </body>
+</html>
