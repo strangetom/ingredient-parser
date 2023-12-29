@@ -15,10 +15,9 @@ The training pipeline is shown below.
 Load data
 ~~~~~~~~~
 
-The data is loaded from the source csv files.
-The data is transformed  from the method of labeling used in the csv to match the correct label to each token in the input sentence.
+The data is loaded from an sqlite3 database of labelled sentences.
    
-See :doc:`Loading the data <data>` for more information.
+See :doc:`Training data <data>` for more information.
 
 Normalise
 ~~~~~~~~~
@@ -76,7 +75,7 @@ See :doc:`Post-processing <postprocessing>` for more information.
    :maxdepth: 1
    :hidden:
 
-   Loading the data <data>
+   Training data <data>
    Normalisation <normalisation>
    Extracting the features <features>
    Training the model <training>

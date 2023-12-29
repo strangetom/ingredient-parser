@@ -1,10 +1,10 @@
-Loading the data
-================
+Training data
+=============
 
 Data sources
 ^^^^^^^^^^^^
 
-There are two sources of data which are used to train the model, each with their own advantages and disadvantages.
+There are three sources of data which are used to train the model, each with their own advantages and disadvantages.
 
 New York Times
 ~~~~~~~~~~~~~~
@@ -106,5 +106,3 @@ The following operations were done to clean up the labelling (note that this is 
     * The first 30,000 sentences of the New York Times dataset
     * The first 15,000 sentences of the Cookstr dataset
     * The first 15,000 sentences of the BBC Food dataset
-
-    If the model is trained on more of the available data, then the performance will likely worsen.
