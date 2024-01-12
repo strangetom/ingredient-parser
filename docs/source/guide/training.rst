@@ -12,7 +12,7 @@ The training data is stored in an sqlite3 database. The ``training`` table conta
 * tokens - the tokenised sentence, stored as a list
 * labels - the labels for each token, stored as a list
 
-This method of storing the training data means that we can load the data straight from the database in the format required for training the model. The utility function :func:`load_datasets` in ``train/training_utils.py`` loads the data from the specified datasets, with an option to discard any sentence that contain an OTHER label.
+This method of storing the training data means that we can load the data straight from the database in the format required for training the model. The utility function :func:`load_datasets` in ``train/training_utils.py`` loads the data from the specified datasets, with an option (default true) to discard any sentence that contain an OTHER label.
 
 The data is then split into training and testing sets. A split of 75% training, 25% testing is used be default and data in the training and testing sets are randomised using ``sklearn``'s :func:`model_selection.train_test_split` function.
 

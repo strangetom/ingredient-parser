@@ -13,9 +13,9 @@ The tokenizer in created using NLTK's Regular Expression tokenizer. The splits a
 The defined tokenizer splits the sentence according the following rules:
 
 .. literalinclude:: ../../../ingredient_parser/preprocess.py
-    :lines: 67-97
+    :lines: 67-105
 
-This splits the sentence apart into wherever there is a space or a punctation mark in ``group_b``.
+This splits the sentence apart into wherever there is white space or a punctation mark in ``PUNCTUATION_TOKENISER``.
 
 .. code:: python
 

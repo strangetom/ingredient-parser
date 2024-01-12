@@ -175,8 +175,8 @@ class PostProcessor:
     tokens : list[str]
         List of tokens for original ingredient sentence.
     discard_isolated_stop_words : bool
-        If True, isolated stop words are discarded from the name, preparation,
-        comment or other fields. Default value is True
+        If True, isolated stop words are discarded from the name, preparation or
+        comment fields. Default value is True
     consumed : list[int]
         List of indices of tokens consumed as part of setting the APPROXIMATE and
         SINGULAR flags. These tokens should not end up in the parsed output.

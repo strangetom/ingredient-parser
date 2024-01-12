@@ -60,7 +60,6 @@ The :func:`parse_ingredient` function takes an ingredient sentence and return th
         preparation=IngredientText(text='finely chopped',
                                    confidence=0.995613),
         comment=None,
-        other=None,
         sentence='2 yellow onions, finely chopped'
     )
 
@@ -82,12 +81,9 @@ preparation
 comment
     The comment from the ingredient sentence. This is a string, or None if there is no comment.
 
-other
-    Anything else not identified in one of the other fields. This is a string, or None is there is nothing identified as other.
-
 Each of the fields (except sentence) has a confidence value associated with it. This is a value between 0 and 1, where 0 represents no confidence and 1 represent full confidence. This is the confidence that the natural language model has that the given label is correct.
 
-:func:`parse_ingredient()` take an additional, optional parameter: ``discard_isolated_stop_words``. If set to True (default), then any stop words that appear in isolation in the name, preparation, comment or other fields are discarded. For example:
+:func:`parse_ingredient()` take an additional, optional parameter: ``discard_isolated_stop_words``. If set to True (default), then any stop words that appear in isolation in the name, preparation, or comment fields are discarded. For example:
 
 .. code:: python
 
@@ -102,7 +98,6 @@ Each of the fields (except sentence) has a confidence value associated with it. 
                                  SINGULAR=False)],
         preparation=None,
         comment=None,
-        other=None,
         sentence='2 tbsp of olive oil'
     )
     >>> parse_ingredient("2 tbsp of olive oil", discard_isolated_stop_words=False)
@@ -115,7 +110,6 @@ Each of the fields (except sentence) has a confidence value associated with it. 
                                  SINGULAR=False)],
         preparation=None,
         comment=IngredientText(text='of', confidence=0.836912),
-        other=None,
         sentence='2 tbsp of olive oil'
     )
 
@@ -146,7 +140,6 @@ The :func:`parse_multiple_ingredients` function is provided as a convenience fun
                                      SINGULAR=False)], 
             preparation=None, 
             comment=IngredientText(text='plus lime wedges for serving', confidence=0.995029),
-            other=None, 
             sentence='3 tablespoons fresh lime juice, plus lime wedges for serving'
         ), 
         ParsedIngredient(
@@ -159,7 +152,6 @@ The :func:`parse_multiple_ingredients` function is provided as a convenience fun
                                      SINGULAR=False)], 
             preparation=None, 
             comment=None, 
-            other=None, 
             sentence='2 tablespoons extra-virgin olive oil'
         ), 
         ParsedIngredient(
@@ -172,7 +164,6 @@ The :func:`parse_multiple_ingredients` function is provided as a convenience fun
                                      SINGULAR=False)], 
             preparation=IngredientText(text='finely grated', confidence=0.997482), 
             comment=None, 
-            other=None, 
             sentence='2 large garlic cloves, finely grated'
         )
     ]
