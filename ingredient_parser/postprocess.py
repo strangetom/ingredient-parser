@@ -145,9 +145,6 @@ class ParsedIngredient:
     comment : IngredientText | None
         Ingredient comment parsed from input sentence.
         If no ingredient comment was found, this is None.
-    other : IngredientText | None
-        Any input sentence tokens that were labelled as OTHER.
-        If no tokens were labelled as OTHER, this is None.
     sentence : str
         Normalised input sentence
     """
@@ -156,7 +153,6 @@ class ParsedIngredient:
     amount: list[IngredientAmount]
     preparation: IngredientText | None
     comment: IngredientText | None
-    other: IngredientText | None
     sentence: str
 
 
@@ -237,7 +233,6 @@ class PostProcessor:
         name = self._postprocess("NAME")
         preparation = self._postprocess("PREP")
         comment = self._postprocess("COMMENT")
-        other = self._postprocess("OTHER")
 
         return ParsedIngredient(
             sentence=self.sentence,
@@ -245,7 +240,6 @@ class PostProcessor:
             name=name,
             preparation=preparation,
             comment=comment,
-            other=other,
         )
 
     def _postprocess(self, selected: str) -> IngredientText | None:
