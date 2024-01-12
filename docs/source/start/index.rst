@@ -22,7 +22,13 @@ we want to extract information about the quantity, units, name and comment. For 
       - sifted
       - 
 
-This package uses a natural language model trained on thousands of example ingredient sentences. A Condition Random Fields model has been trained on data from three sources. The New York Times released a large dataset when they did some similar work in 2015 in their `Ingredient Phrase Tagger <https://github.com/nytimes/ingredient-phrase-tagger>`_ repository. A dump of recipes taken from Cookstr in 2017. I have also gathered a (much smaller) dataset from recipes, which is also used to train the model.
+This package uses a natural language model trained on thousands of example ingredient sentences. A Conditional Random Fields model has been trained on data from three sources: 
+
+* The New York Times released a large dataset when they did some similar work in 2015 in their `Ingredient Phrase Tagger <https://github.com/nytimes/ingredient-phrase-tagger>`_ repository. 
+* A dump of recipes taken from Cookstr in 2017. 
+* A dump of recipe taken from BBC Food in 2017.
+
+More information on how the natural language model is trained and the output interpreted can be found in the :doc:`Model Guide </guide/index>`.
 
 Installation
 ^^^^^^^^^^^^
@@ -81,7 +87,7 @@ preparation
 comment
     The comment from the ingredient sentence. This is a string, or None if there is no comment.
 
-Each of the fields (except sentence) has a confidence value associated with it. This is a value between 0 and 1, where 0 represents no confidence and 1 represent full confidence. This is the confidence that the natural language model has that the given label is correct.
+Each of the fields (except sentence) has a confidence value associated with it. This is a value between 0 and 1, where 0 represents no confidence and 1 represent full confidence. This is the confidence that the natural language model has that the given label is correct, averaged across all tokens that contribute to a particular field.
 
 :func:`parse_ingredient()` take an additional, optional parameter: ``discard_isolated_stop_words``. If set to True (default), then any stop words that appear in isolation in the name, preparation, or comment fields are discarded. For example:
 
