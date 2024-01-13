@@ -136,6 +136,14 @@ class CompositeIngredientAmount:
         else:
             self.text = f"{ self.join }".join([amount.text for amount in self.amounts])
 
+        # Set starting_index for composite amount to minimum _starting_index for
+        # amounts that make up the composite amount.
+        self._starting_index = min(amount._starting_index for amount in self.amounts)
+
+        # Set confidence to average of confidence values for amounts that make up the
+        # composite amount.
+        self.confidence = mean(amount.confidence for amount in self.amounts)
+
 
 @dataclass
 class IngredientText:
