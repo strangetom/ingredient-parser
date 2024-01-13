@@ -25,8 +25,8 @@ def parse_ingredient(
     sentence : str
         Ingredient sentence to parse
     discard_isolated_stop_words : bool, optional
-        If True, any isolated stop words in the name, preparation, comment or other
-        fields are discarded.
+        If True, any isolated stop words in the name, preparation, or comment fields
+        are discarded.
         Default is True.
 
     Returns
@@ -74,8 +74,8 @@ def parse_multiple_ingredients(
     sentences : list[str]
         List of sentences to parse
     discard_isolated_stop_words : bool, optional
-        If True, any isolated stop words in the name, preparation, comment or other
-        fields are discarded.
+        If True, any isolated stop words in the name, preparation, or comment fields
+        are discarded.
         Default is True.
 
     Returns

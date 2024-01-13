@@ -175,9 +175,6 @@ class ParsedIngredient:
     comment : IngredientText | None
         Ingredient comment parsed from input sentence.
         If no ingredient comment was found, this is None.
-    other : IngredientText | None
-        Any input sentence tokens that were labelled as OTHER.
-        If no tokens were labelled as OTHER, this is None.
     sentence : str
         Normalised input sentence
     """
@@ -186,7 +183,6 @@ class ParsedIngredient:
     amount: list[IngredientAmount]
     preparation: IngredientText | None
     comment: IngredientText | None
-    other: IngredientText | None
     sentence: str
 
 
@@ -209,8 +205,8 @@ class PostProcessor:
     tokens : list[str]
         List of tokens for original ingredient sentence.
     discard_isolated_stop_words : bool
-        If True, isolated stop words are discarded from the name, preparation,
-        comment or other fields. Default value is True
+        If True, isolated stop words are discarded from the name, preparation or
+        comment fields. Default value is True
     consumed : list[int]
         List of indices of tokens consumed as part of setting the APPROXIMATE and
         SINGULAR flags. These tokens should not end up in the parsed output.
@@ -267,7 +263,6 @@ class PostProcessor:
         name = self._postprocess("NAME")
         preparation = self._postprocess("PREP")
         comment = self._postprocess("COMMENT")
-        other = self._postprocess("OTHER")
 
         return ParsedIngredient(
             sentence=self.sentence,
@@ -275,7 +270,6 @@ class PostProcessor:
             name=name,
             preparation=preparation,
             comment=comment,
-            other=other,
         )
 
     def _postprocess(self, selected: str) -> IngredientText | None:

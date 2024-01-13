@@ -8,7 +8,6 @@ With the model trained, it can be used to label the tokens of an ingredient sent
 * NAME
 * PREP
 * COMMENT
-* OTHER
 * COMMA
 
 The general process is like so

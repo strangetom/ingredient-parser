@@ -31,7 +31,6 @@ ParsedIngredient(
                              SINGULAR=False)],
     preparation=IngredientText(text='cut into 2 inch chunks', confidence=0.995614),
     comment=None,
-    other=None,
     sentence='3 pounds pork shoulder, cut into 2-inch chunks'
 )
 ```
