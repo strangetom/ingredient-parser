@@ -42,9 +42,6 @@ input {
 .COMMENT {
   --color: var(--purple);
 }
-.OTHER {
-  --color: var(--red);
-}
 .PREP {
   --color: var(--blue-alt);
 }
