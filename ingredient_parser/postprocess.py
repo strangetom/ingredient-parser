@@ -618,7 +618,7 @@ class PostProcessor:
 
     def _composite_amounts_pattern(
         self, idx: list[int], tokens: list[str], labels: list[str], scores: list[float]
-    ) -> list[IngredientAmount]:
+    ) -> list[CompositeIngredientAmount]:
         """Identify sentences which match the pattern where there are composite amounts,
         i.e. adjacent amounts that need to be considered together:
 
@@ -649,7 +649,7 @@ class PostProcessor:
 
         Returns
         -------
-        list[IngredientAmount]
+        list[CompositeIngredientAmount]
             List of IngredientAmount objects
         """
         # Define patterns based on labels.
@@ -748,7 +748,7 @@ class PostProcessor:
         else:
             # Consider all labels
             lbls = labels
-            idx = [i for i, label in enumerate(labels)]
+            idx = [i for i, _ in enumerate(labels)]
 
         if len(pattern) > len(lbls):
             # We can never find a match.
