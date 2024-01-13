@@ -24,7 +24,6 @@
                 <span class="NAME">Name</span>
                 <span class="PREP">Prep</span>
                 <span class="COMMENT">Comment</span>
-                <span class="OTHER">Other</span>
                 <span class="flag">1</span> Singular
                 <span class="flag">~</span> Approximate
             </p>
@@ -53,12 +52,7 @@
                         <td class="type AMOUNT">Amount</td>
                         <td>
                         {%- if amounts | length == 1-%}
-                        {%- if amounts[0].quantity != "" -%}
-                        <span class="amount-QTY">{{ amounts[0].quantity }}&nbsp;</span> 
-                        {%- endif -%}
-                        {%- if amounts[0].unit != "" -%}
-                        <span class="amount-UNIT">{{ amounts[0].unit }}</span>
-                        {%- endif -%}
+                        {{ amounts[0].text }}
                         {%- if amounts[0].APPROXIMATE -%}
                         <span class="flag">~</span>
                         {%- endif -%}
@@ -71,12 +65,7 @@
                         {%- else -%}
                         {%- for amount in amounts -%}
                         <span class="amount">
-                            {%- if amount.quantity != "" -%}
-                            <span class="amount-QTY">{{ amount.quantity }}</span> 
-                            {%- endif -%}
-                            {%- if amount.unit != "" -%}
-                            <span class="amount-UNIT">{{ amount.unit }}</span>
-                            {%- endif -%}
+                            {{ amount.text }}
                             {%- if amount.APPROXIMATE -%}
                             <span class="flag">~</span>
                             {%- endif -%}
@@ -113,16 +102,6 @@
                             {%- endif -%}
                         </td>
                     </tr>
-                    <tr>
-                        <td class="type OTHER">Other</td>
-                        <td>
-                            {{ other.text }}
-                            {%- if other.confidence > 0 -%}
-                            <span class="confidence OTHER">
-                                {{ "%.2f"|format(100*other.confidence) }}%
-                            </span>
-                            {%- endif -%}
-                        </td>
                     </tr>
                 </tbody>
             </table>
