@@ -680,7 +680,7 @@ class PostProcessor:
                         quantity=tokens[match[0]],
                         unit=tokens[match[1]],
                         confidence=round(mean([scores[i] for i in match[0:2]]), 6),
-                        starting_index=idx[first_unit_idx],
+                        starting_index=idx[first_unit_idx - 1],
                     )
                     # Second amount
                     second_amount = IngredientAmount(
