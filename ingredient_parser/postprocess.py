@@ -1061,7 +1061,7 @@ class PostProcessor:
         # Group amounts into related groups
         grouped = []
         for amount in amounts:
-            if amount.related_to_previous:
+            if grouped and amount.related_to_previous:
                 grouped[-1].append(amount)
             else:
                 grouped.append([amount])
