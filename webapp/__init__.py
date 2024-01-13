@@ -40,5 +40,4 @@ def home():
         if parsed.preparation is not None
         else IngredientText("", 0),
         comment=parsed.comment if parsed.comment is not None else IngredientText("", 0),
-        other=parsed.other if parsed.other is not None else IngredientText("", 0),
     )
