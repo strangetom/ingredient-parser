@@ -126,6 +126,7 @@ class CompositeIngredientAmount:
 
     amounts: list[IngredientAmount]
     join: str
+    text: str = field(init=False)
 
     def __post_init__(self):
         """
