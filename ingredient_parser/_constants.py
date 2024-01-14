@@ -389,3 +389,15 @@ STOP_WORDS = {
     "wouldn",
     "wouldn't",
 }
+
+# Tokens that indicate an quantity is approximate
+APPROXIMATE_TOKENS = [
+    "about",
+    "approx",
+    "approx.",
+    "approximately",
+    "nearly",
+    "roughly",
+]
+# Tokens that indicate an amount is singular
+SINGULAR_TOKENS = ["each"]
