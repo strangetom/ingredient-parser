@@ -60,6 +60,7 @@ legend {
 }
 .searchbox {
   display: block;
+  margin: .5rem 0;
 }
 .searchbox label {
   display: block;

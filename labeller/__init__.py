@@ -206,8 +206,14 @@ def apply_filter(params: dict[str, str]) -> list[int]:
     ]
 
     # Create regex for search query
-    query = re.compile(rf"\b{params['filter-string']}\b", re.DOTALL | re.UNICODE)
+    if params.get("case-sensitive", "") == "on":
+        query = re.compile(rf"\b{params['filter-string']}\b", re.DOTALL | re.UNICODE)
+    else:
+        query = re.compile(
+            rf"\b{params['filter-string']}\b", re.DOTALL | re.UNICODE | re.IGNORECASE
+        )
 
+    # 6 possible labels in total
     if len(labels) == 6:
         # Search through sentences
         indices = []
