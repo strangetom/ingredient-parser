@@ -32,6 +32,11 @@ header .control-group {
 header h1 {
   margin: 0;
 }
+header h1 .data-length {
+  font-size: 1rem;
+  font-weight: normal;
+  color: var(--fg-2);
+}
 header p {
   margin: 0;
   font-size: .9rem;

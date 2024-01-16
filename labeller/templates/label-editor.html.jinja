@@ -12,7 +12,10 @@
         <header>
             <div>
                 <p>Dataset:</p>
-                <h1>{{ dataset }}</h1>
+                <h1>
+                    {{ dataset }}
+                    <span class="data-length">({{ data|length }} sentences)</span>
+                </h1>
             </div>
             <div class="controls">
                 <div class="control-group">
