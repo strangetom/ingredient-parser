@@ -136,21 +136,6 @@ def train_model(
             lambda x: x >= 1,
         )
 
-    # Calculate some starts about the OTHER label
-    train_label_count = Counter(chain.from_iterable(truth_train))
-    train_other_pc = 100 * train_label_count["OTHER"] / train_label_count.total()
-    test_label_count = Counter(chain.from_iterable(truth_test))
-    test_other_pc = 100 * test_label_count["OTHER"] / test_label_count.total()
-    pred_label_count = Counter(chain.from_iterable(labels_pred))
-    pred_other_pc = 100 * pred_label_count["OTHER"] / pred_label_count.total()
-    print("OTHER labels:")
-    print(f"\tIn training data: {train_label_count['OTHER']} ({train_other_pc:.2f}%)")
-    print(f"\tIn test data: {test_label_count['OTHER']} ({test_other_pc:.2f}%)")
-    print(
-        f"\tPredicted in test data: {pred_label_count['OTHER']} ({pred_other_pc:.2f}%)"
-    )
-    print()
-
     stats = evaluate(labels_pred, truth_test)
     return stats
 
