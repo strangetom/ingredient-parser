@@ -2,9 +2,7 @@
 
 import argparse
 import time
-from collections import Counter
 from dataclasses import dataclass
-from itertools import chain
 from statistics import mean, stdev
 
 import pycrfsuite
