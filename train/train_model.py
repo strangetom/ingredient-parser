@@ -123,13 +123,21 @@ def train_model(
     print("[INFO] Evaluating model with test data.")
     tagger = pycrfsuite.Tagger()
     tagger.open(save_model)
-    labels_pred = [tagger.tag(X) for X in features_test]
+
+    labels_pred, scores_pred = [], []
+    for X in features_test:
+        labels = tagger.tag(X)
+        labels_pred.append(labels)
+        scores_pred.append(
+            [tagger.marginal(label, i) for i, label in enumerate(labels)]
+        )
 
     if html:
         test_results_to_html(
             sentences_test,
             truth_test,
             labels_pred,
+            scores_pred,
             source_test,
             lambda x: x >= 1,
         )
