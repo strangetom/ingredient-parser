@@ -5,7 +5,7 @@ The output from the model is a list of labels and scores, one for each token in 
 
 The following dataclass is defined which will be output from the ``parse_ingredient`` function:
 
-.. literalinclude:: ../../../ingredient_parser/postprocess.py
+.. literalinclude:: ../../../ingredient_parser/postprocess/dataclasses.py
     :pyobject: ParsedIngredient
 
 Each of the fields in the dataclass has to be determined from the output of the model. The :class:`PostProcessor` class handles this for us. 
@@ -26,12 +26,12 @@ The general steps are as follows:
 7. Join all the groups together with a comma and fix any weird punctuation this causes.
 8. Average the confidence scores across all groups.
 
-.. literalinclude:: ../../../ingredient_parser/postprocess.py
+.. literalinclude:: ../../../ingredient_parser/postprocess/postprocess.py
     :pyobject: PostProcessor._postprocess
 
 The output of this function is an :class:`IngredientText` object:
 
-.. literalinclude:: ../../../ingredient_parser/postprocess.py
+.. literalinclude:: ../../../ingredient_parser/postprocess/dataclasses.py
     :pyobject: IngredientText
 
 Amount
@@ -39,7 +39,7 @@ Amount
 
 The QTY and UNIT labels are combined into an :class:`IngredientAmount` object
 
-.. literalinclude:: ../../../ingredient_parser/postprocess.py
+.. literalinclude:: ../../../ingredient_parser/postprocess/dataclasses.py
     :pyobject: IngredientAmount
 
 For most cases, the amounts are determined by combining a QTY label with the following UNIT labels, up to the next QTY which becomes a new amount. For example:
