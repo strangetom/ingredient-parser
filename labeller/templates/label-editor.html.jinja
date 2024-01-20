@@ -36,7 +36,7 @@
             {%- for entry in data -%}
             <div class="entry" data-index="{{ entry.id }}">
                 <p>
-                    <span class="index">{{ entry.id }}:</span>
+                    <span class="index" data-dataset="{{ entry.source }}">{{ entry.id }}:</span>
                     <span class="sentence">{{ entry.sentence }}</span>
                     <button class="delete">Delete</button>
                 </p>
