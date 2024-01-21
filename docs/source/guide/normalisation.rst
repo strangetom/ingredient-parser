@@ -43,7 +43,7 @@ The replacements are predefined in a dictionary.
 For performance reasons, the regular expressions used to substitute the text with the number are precomiled and provided in the ``STRING_NUMBERS_REGEXES`` constant, which is a dictionary where the value is a tuple of (precompiled regex, substitute value).
 
 .. literalinclude:: ../../../ingredient_parser/_constants.py
-    :lines: 141-169
+    :lines: 142-170
     
 
 .. literalinclude:: ../../../ingredient_parser/preprocess/preprocess.py
@@ -68,7 +68,7 @@ Fractions represented by Unicode fractions are replaced a textual format (.e.g Â
 We have to handle two cases: where the character before the unicode fraction is a hyphen and where it is not. In the latter case, we want to insert a space before the replacement so we don't accidently merge with the character before. However, if the character before is a hyphen, we don't want to do this because we could end up splitting a range up.
 
 .. literalinclude:: ../../../ingredient_parser/_constants.py
-    :lines: 171-207
+    :lines: 172-208
 
 .. literalinclude:: ../../../ingredient_parser/preprocess/preprocess.py
     :pyobject: PreProcessor._replace_unicode_fractions

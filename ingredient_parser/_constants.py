@@ -72,6 +72,7 @@ UNITS = {
     "rectangles": "rectangle",
     "ribs": "rib",
     "quarts": "quart",
+    "sachets": "sachet",
     "scoops": "scoop",
     "segments": "segment",
     "shakes": "shake",
