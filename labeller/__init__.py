@@ -78,6 +78,14 @@ def sentences_by_id():
         Rendered HTML template
     """
     indices = request.args.get("indices", None)
+    if indices is None or indices == "":
+        return render_template(
+            "label-editor.html.jinja",
+            dataset="",
+            data=[],
+            page_start_idx=None,
+            page_range=None,
+        )
 
     indices = [int(i) for i in indices.split(",")]
     with sqlite3.connect(DATABASE, detect_types=sqlite3.PARSE_DECLTYPES) as conn:
