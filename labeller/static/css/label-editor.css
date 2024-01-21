@@ -62,12 +62,14 @@ header a:hover, header button:hover {
 }
 
 .success {
-  border-color: var(--green-alt);
-  color: var(--green-alt);
+  background-color: var(--green-alt);
+  color: var(--bg);
+  border: 1px solid var(--bg);
 }
 .failure {
-  border-color: var(--red-alt);
-  color: var(--red-alt);
+  background-color: var(--red-alt);
+  color: var(--bg);
+  border: 1px solid var(--bg);
 }
 
 main {
