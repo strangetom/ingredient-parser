@@ -103,3 +103,12 @@ The model training process can be executed multiple times to obtain the average 
     $ python train.py multiple --database train/data/training.sqlite3 --runs 10
 
 where the ``--runs`` argument sets the number of training cycles to run.
+
+Historical performance
+~~~~~~~~~~~~~~~~~~~~~~
+
+The model performance has improved over time. The figure below shows the sentence- and word-level performance for the last few releases.
+
+.. image:: /_static/performance-history.svg
+  :class: .only-dark
+  :alt: Bar graph showing the model performance improving which each new release
