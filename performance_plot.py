@@ -17,7 +17,7 @@ mpl.rcParams["figure.facecolor"] = "#33302f"
 
 def load_data() -> tuple[tuple[str], list[float], list[float]]:
     """Load performance history data from csv
-    
+
     Returns
     -------
     tuple[tuple[str], list[float], list[float]]
@@ -40,8 +40,7 @@ def load_data() -> tuple[tuple[str], list[float], list[float]]:
 
 
 def main():
-    """Plot figure and save to docs/source/_static folder
-    """
+    """Plot figure and save to docs/source/_static folder"""
     releases, sentence, word = load_data()
 
     fig, ax = plt.subplots(figsize=(12, 5), layout="constrained")

@@ -5,7 +5,7 @@ import re
 import sqlite3
 from collections import Counter
 
-from flask import Flask, Response, render_template, request, redirect, url_for
+from flask import Flask, Response, redirect, render_template, request, url_for
 
 sqlite3.register_adapter(list, json.dumps)
 sqlite3.register_converter("json", json.loads)
@@ -160,7 +160,9 @@ def save():
         with sqlite3.connect(DATABASE, detect_types=sqlite3.PARSE_DECLTYPES) as conn:
             c = conn.cursor()
             c.executemany(
-                "UPDATE training SET sentence = :sentence, tokens = :tokens, labels = :labels WHERE id = :id;",
+                """UPDATE training 
+                SET sentence = :sentence, tokens = :tokens, labels = :labels 
+                WHERE id = :id;""",
                 update["entries"],
             )
         conn.close()
