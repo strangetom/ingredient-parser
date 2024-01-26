@@ -36,7 +36,8 @@ def load_data() -> tuple[tuple[str], list[float], list[float]]:
     sentence = [float(s) for s in sentence]
     word = [float(w) for w in word]
 
-    return releases, sentence, word
+    # Only values for 8 most recent releases
+    return releases[-8:], sentence[-8:], word[-8:]
 
 
 def main():
@@ -52,11 +53,11 @@ def main():
     rects = ax.bar(
         x + offset, sentence, width, label="Sentence accuracy", color="#3e686a"
     )
-    ax.bar_label(rects, padding=1)
+    ax.bar_label(rects, padding=2, fontsize=14)
 
     offset = width
     rects = ax.bar(x + offset, word, width, label="Word accuracy", color="#9f4e19")
-    ax.bar_label(rects, padding=1)
+    ax.bar_label(rects, padding=2, fontsize=14)
 
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
@@ -65,10 +66,10 @@ def main():
     ax.get_xaxis().set_ticks([])
     ax.get_yaxis().set_ticks([])
 
-    ax.set_ylabel("Accuracy (%)", fontsize=14)
-    ax.set_title("History of labeling performance", fontsize=16)
-    ax.set_xticks(x + width / 2, releases)
-    ax.legend(loc="upper right", ncols=1, fontsize=12)
+    ax.set_ylabel("Accuracy (%)", fontsize=18)
+    ax.set_title("History of labeling performance", fontsize=20)
+    ax.set_xticks(x + width / 2, releases, fontsize=15)
+    ax.legend(loc="upper left", ncols=1, fontsize=16)
     ax.set_ylim(82, 102)
     ax.set_xlim(-0.7, 2 * len(releases) - 0.3)
     fig.savefig("docs/source/_static/performance-history.svg")
