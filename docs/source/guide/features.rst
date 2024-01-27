@@ -12,10 +12,10 @@ The tokenizer in created using NLTK's Regular Expression tokenizer. The splits a
 
 The defined tokenizer splits the sentence according the following rules:
 
-.. literalinclude:: ../../../ingredient_parser/preprocess.py
-    :lines: 60-69
+.. literalinclude:: ../../../ingredient_parser/preprocess/funcs.py
+    :lines: 11-49
 
-This splits the sentence apart into wherever there is a space or a punctation mark in ``group_b``.
+This splits the sentence apart into wherever there is white space or a punctation mark in ``PUNCTUATION_TOKENISER``.
 
 .. code:: python
 
@@ -66,7 +66,7 @@ If possible, based on the position of the token in the sentence, the following f
 
 The :func:`_token_features` function of :class:`PreProcessor` returns all these features as a dictionary.
 
-.. literalinclude:: ../../../ingredient_parser/preprocess.py
+.. literalinclude:: ../../../ingredient_parser/preprocess/preprocess.py
     :pyobject: PreProcessor._token_features
     :dedent: 4
 

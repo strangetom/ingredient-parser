@@ -15,13 +15,19 @@ with as_file(files(__package__) / "model.crfsuite") as p:
     TAGGER.open(str(p))
 
 
-def parse_ingredient(sentence: str) -> ParsedIngredient:
+def parse_ingredient(
+    sentence: str, discard_isolated_stop_words: bool = True
+) -> ParsedIngredient:
     """Parse an ingredient sentence using CRF model to return structured data
 
     Parameters
     ----------
     sentence : str
         Ingredient sentence to parse
+    discard_isolated_stop_words : bool, optional
+        If True, any isolated stop words in the name, preparation, or comment fields
+        are discarded.
+        Default is True.
 
     Returns
     -------
@@ -42,11 +48,19 @@ def parse_ingredient(sentence: str) -> ParsedIngredient:
         if label != "UNIT":
             tokens[idx] = pluralise_units(token)
 
-    postprocessed_sentence = PostProcessor(sentence, tokens, labels, scores)
+    postprocessed_sentence = PostProcessor(
+        sentence,
+        tokens,
+        labels,
+        scores,
+        discard_isolated_stop_words=discard_isolated_stop_words,
+    )
     return postprocessed_sentence.parsed()
 
 
-def parse_multiple_ingredients(sentences: list[str]) -> list[ParsedIngredient]:
+def parse_multiple_ingredients(
+    sentences: list[str], discard_isolated_stop_words: bool = True
+) -> list[ParsedIngredient]:
     """Parse multiple ingredient sentences in one go.
 
     This function accepts a list of sentences, with element of the list representing
@@ -59,6 +73,10 @@ def parse_multiple_ingredients(sentences: list[str]) -> list[ParsedIngredient]:
     ----------
     sentences : list[str]
         List of sentences to parse
+    discard_isolated_stop_words : bool, optional
+        If True, any isolated stop words in the name, preparation, or comment fields
+        are discarded.
+        Default is True.
 
     Returns
     -------
@@ -66,7 +84,10 @@ def parse_multiple_ingredients(sentences: list[str]) -> list[ParsedIngredient]:
         List of ParsedIngredient objects of structured data parsed
         from input sentences
     """
-    return [parse_ingredient(sent) for sent in sentences]
+    return [
+        parse_ingredient(sent, discard_isolated_stop_words=discard_isolated_stop_words)
+        for sent in sentences
+    ]
 
 
 @dataclass

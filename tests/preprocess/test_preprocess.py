@@ -3,14 +3,6 @@ import pytest
 from ingredient_parser import PreProcessor
 
 
-@pytest.fixture
-def p():
-    """Define an empty PreProcessor object to use for testing the PreProcessor
-    class methods.
-    """
-    return PreProcessor("", defer_pos_tagging=True)
-
-
 class TestPreProcessor__builtins__:
     def test__str__(self):
         """
@@ -30,12 +22,233 @@ class TestPreProcessor__builtins__:
         p = PreProcessor("1/2 cup chicken broth")
         assert repr(p) == 'PreProcessor("1/2 cup chicken broth")'
 
+    def test_debug_output(self, capsys):
+        """
+        Test printed debug output
+        """
+        _ = PreProcessor("1/2 cup chicken broth", show_debug_output=True)
+        captured = capsys.readouterr()
+        assert (
+            captured.out
+            == """_replace_en_em_dash: 1/2 cup chicken broth
+_replace_string_numbers: 1/2 cup chicken broth
+_replace_html_fractions: 1/2 cup chicken broth
+_replace_unicode_fractions: 1/2 cup chicken broth
+_combine_quantities_split_by_and: 1/2 cup chicken broth
+_replace_fake_fractions: 0.5 cup chicken broth
+_split_quantity_and_units: 0.5 cup chicken broth
+_remove_unit_trailing_period: 0.5 cup chicken broth
+_replace_string_range: 0.5 cup chicken broth
+_replace_dupe_units_ranges: 0.5 cup chicken broth
+_merge_quantity_x: 0.5 cup chicken broth
+_collapse_ranges: 0.5 cup chicken broth
+"""
+        )
+
+
+def normalise_test_cases() -> list[tuple[str]]:
+    """
+    Return a list of tuples of input sentences and their normalised form.
+    Many of these examples are based on the examples in docstrings for the
+    PreProcessor functions.
+    """
+    return [
+        ("&frac12; cup warm water (105°F)", "0.5 cup warm water (105°F)"),
+        ("3 1/2 chilis anchos", "3.5 chilis anchos"),
+        ("six eggs", "6 eggs"),
+        ("thumbnail-size piece ginger", "thumbnail-size piece ginger"),
+        (
+            "2 cups flour – white or self-raising",
+            "2 cups flour - white or self-raising",
+        ),
+        ("3–4 sirloin steaks", "3-4 sirloin steaks"),
+        ("three large onions", "3 large onions"),
+        ("twelve bonbons", "12 bonbons"),
+        ("1&frac34; cups tomato ketchup", "1.75 cups tomato ketchup"),
+        ("1/2 cup icing sugar", "0.5 cup icing sugar"),
+        ("2 3/4 pound chickpeas", "2.75 pound chickpeas"),
+        ("1 and 1/2 tsp fine grain sea salt", "1.5 tsp fine grain sea salt"),
+        ("1 and 1/4 cups dark chocolate morsels", "1.25 cups dark chocolate morsels"),
+        ("½ cup icing sugar", "0.5 cup icing sugar"),
+        ("3⅓ cups warm water", "3.333 cups warm water"),
+        ("¼-½ teaspoon", "0.25-0.5 teaspoon"),
+        ("100g green beans", "100 g green beans"),
+        ("2-pound red peppers, sliced", "2 pound red peppers, sliced"),
+        ("2lb1oz cherry tomatoes", "2 lb 1 oz cherry tomatoes"),
+        ("2lb-1oz cherry tomatoes", "2 lb - 1 oz cherry tomatoes"),
+        ("1 tsp. garlic powder", "1 tsp garlic powder"),
+        ("5 oz. chopped tomatoes", "5 oz chopped tomatoes"),
+        ("1 to 2 mashed bananas", "1-2 mashed bananas"),
+        ("5- or 6- large apples", "5-6- large apples"),
+        ("227 g - 283.5 g/8-10 oz duck breast", "227-283.5 g/8-10 oz duck breast"),
+        ("400-500 g/14 oz - 17 oz rhubarb", "400-500 g/14-17 oz rhubarb"),
+        ("8 x 450 g/1 lb live lobsters", "8x 450 g/1 lb live lobsters"),
+        ("4 x 100 g wild salmon fillet", "4x 100 g wild salmon fillet"),
+        (
+            "½ - ¾ cup heavy cream, plus extra for brushing the tops of the scones",
+            "0.5-0.75 cup heavy cream, plus extra for brushing the tops of the scones",
+        ),
+    ]
+
 
 class TestPreProcessor_normalise:
-    def test_normalise(self):
+    @pytest.mark.parametrize("testcase", normalise_test_cases())
+    def test_normalise(self, testcase):
         """
-        The sentence is normalised
+        Test that each example sentence is normalised correctly
         """
-        input_sentence = "1 to 1 1/2 tbsp. mint sauce"
+        input_sentence, normalised = testcase
         p = PreProcessor(input_sentence, defer_pos_tagging=True)
-        assert p.sentence == "1-1.5 tbsp mint sauce"
+        assert p.sentence == normalised
+
+
+class TestPreProcessor_sentence_features:
+    def test(self):
+        p = PreProcessor("1/2 cup chicken broth")
+        expected = [
+            {
+                "stem": "0.5",
+                "pos": "CD",
+                "is_capitalised": False,
+                "is_numeric": True,
+                "is_unit": False,
+                "is_ambiguous": False,
+                "is_in_parens": False,
+                "is_after_comma": False,
+                "is_after_plus": False,
+                "is_short_phrase": False,
+                "next_pos": "NN",
+                "next_word": "cup",
+                "next_pos2": "NN",
+                "next_word2": "chicken",
+            },
+            {
+                "stem": "cup",
+                "pos": "NN",
+                "is_capitalised": False,
+                "is_numeric": False,
+                "is_unit": True,
+                "is_ambiguous": False,
+                "is_in_parens": False,
+                "is_after_comma": False,
+                "is_after_plus": False,
+                "is_short_phrase": False,
+                "prev_pos": "CD",
+                "prev_word": "0.5",
+                "next_pos": "NN",
+                "next_word": "chicken",
+                "next_pos2": "NN",
+                "next_word2": "broth",
+            },
+            {
+                "stem": "chicken",
+                "pos": "NN",
+                "is_capitalised": False,
+                "is_numeric": False,
+                "is_unit": False,
+                "is_ambiguous": False,
+                "is_in_parens": False,
+                "is_after_comma": False,
+                "is_after_plus": False,
+                "is_short_phrase": False,
+                "prev_pos": "NN",
+                "prev_word": "cup",
+                "prev_pos2": "CD",
+                "prev_word2": "0.5",
+                "next_pos": "NN",
+                "next_word": "broth",
+            },
+            {
+                "stem": "broth",
+                "pos": "NN",
+                "is_capitalised": False,
+                "is_numeric": False,
+                "is_unit": False,
+                "is_ambiguous": False,
+                "is_in_parens": False,
+                "is_after_comma": False,
+                "is_after_plus": False,
+                "is_short_phrase": False,
+                "prev_pos": "NN",
+                "prev_word": "chicken",
+                "prev_pos2": "NN",
+                "prev_word2": "cup",
+            },
+        ]
+
+        assert p.sentence_features() == expected
+
+    def test_defer_pos_tagging(self):
+        p = PreProcessor("100g green beans", defer_pos_tagging=True)
+        expected = [
+            {
+                "stem": "100",
+                "pos": "CD",
+                "is_capitalised": False,
+                "is_numeric": True,
+                "is_unit": False,
+                "is_ambiguous": False,
+                "is_in_parens": False,
+                "is_after_comma": False,
+                "is_after_plus": False,
+                "is_short_phrase": False,
+                "next_pos": "NN",
+                "next_word": "g",
+                "next_pos2": "JJ",
+                "next_word2": "green",
+            },
+            {
+                "stem": "g",
+                "pos": "NN",
+                "is_capitalised": False,
+                "is_numeric": False,
+                "is_unit": True,
+                "is_ambiguous": False,
+                "is_in_parens": False,
+                "is_after_comma": False,
+                "is_after_plus": False,
+                "is_short_phrase": False,
+                "prev_pos": "CD",
+                "prev_word": "100",
+                "next_pos": "JJ",
+                "next_word": "green",
+                "next_pos2": "NNS",
+                "next_word2": "bean",
+            },
+            {
+                "stem": "green",
+                "pos": "JJ",
+                "is_capitalised": False,
+                "is_numeric": False,
+                "is_unit": False,
+                "is_ambiguous": False,
+                "is_in_parens": False,
+                "is_after_comma": False,
+                "is_after_plus": False,
+                "is_short_phrase": False,
+                "prev_pos": "NN",
+                "prev_word": "g",
+                "prev_pos2": "CD",
+                "prev_word2": "100",
+                "next_pos": "NNS",
+                "next_word": "bean",
+            },
+            {
+                "stem": "bean",
+                "pos": "NNS",
+                "is_capitalised": False,
+                "is_numeric": False,
+                "is_unit": False,
+                "is_ambiguous": False,
+                "is_in_parens": False,
+                "is_after_comma": False,
+                "is_after_plus": False,
+                "is_short_phrase": False,
+                "prev_pos": "JJ",
+                "prev_word": "green",
+                "prev_pos2": "NN",
+                "prev_word2": "g",
+            },
+        ]
+
+        assert p.sentence_features() == expected

@@ -8,7 +8,7 @@
 
 ### Model Date and Version
 
-Date: November 2023
+Date: December 2023
 
 Version: The model version is the same has the `ingredient_parser_nlp` package version.
 
@@ -78,11 +78,11 @@ There are 3 datasets used to train and evaluate model performance.
 
 2. Cookstr, originally found as part of https://archive.org/details/recipes-en-201706.
 
-   The first 10,000 sentences are used in the training and evaluation of the model.
+   The first 15,000 sentences are used in the training and evaluation of the model.
 
 3. BBC Food, originally found as part of https://archive.org/details/recipes-en-201706.
 
-   The first 10,000 sentences are used in the training and evaluation of the model.
+   The first 15,000 sentences are used in the training and evaluation of the model.
 
 All datasets have been through extensive cleaning to make the data consistent. The cleaned versions of the data are found in the repository for the ingredient_parser_nlp package: https://github.com/strangetom/ingredient-parser
 
@@ -94,9 +94,9 @@ The model has the following performance metrics:
 
 | Word level accuracy | Sentence level accuracy |
 | ------------------- | ----------------------- |
-| 97.02%              | 92.11%                  |
+| 97.51±0.28%         | 93.59±0.62%             |
 
-Due to the randomisation of the selection of training and evaluation data, the word level accuracy metric can vary by ±0.4 pp and the sentence level accuracy can vary by ±1 pp between model training runs.
+These metrics were determined by executing 20 training/evaluation cycles and calculating the mean and standard deviation for the two metrics across all cycles. The uncertainty values provided represent the 99.7% confidence bounds (i.e. 3x standard deviation). The uncertainty is due to the randomisation of the selection of training and evaluation data whenever the model is trained.
 
 ## Ethical Considerations
 

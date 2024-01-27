@@ -9,7 +9,7 @@ dynamic = ["version"]
 description = "A Python package to parse structured information from recipe ingredient sentences"
 readme = "README.md"
 license = { file="LICENSE"}
-requires-python = ">=3.10, <3.12"
+requires-python = ">=3.10, <=3.12"
 keywords = ["recipe", "ingredient", "ingredients", "nlp", "parsing" ]
 authors = [
     { name="Tom Strange", email="tpstrange@gmail.com"},
@@ -22,6 +22,7 @@ classifiers = [
     "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Topic :: Text Processing :: Linguistic",
 ]
 dependencies = [
@@ -35,7 +36,7 @@ Documentation = "https://ingredient-parser.readthedocs.io/en/latest/"
 Source = "https://github.com/strangetom/ingredient-parser"
 
 [tool.setuptools]
-packages = ["ingredient_parser"]
+packages = ["ingredient_parser", "ingredient_parser.preprocess", "ingredient_parser.postprocess"]
 
 [tool.setuptools.dynamic]
 version =  {attr = "ingredient_parser.__version__"}
@@ -58,7 +59,7 @@ omit = [
 ]
 
 [tool.black]
-target-version = ["py310", "py311"]
+target-version = ["py310", "py311", "py312"]
 include = "\\.py$"
 extend-exclude = "\\.ipynb$"
 

@@ -2,9 +2,7 @@
 
 import argparse
 import time
-from collections import Counter
 from dataclasses import dataclass
-from itertools import chain
 from statistics import mean, stdev
 
 import pycrfsuite
@@ -125,31 +123,24 @@ def train_model(
     print("[INFO] Evaluating model with test data.")
     tagger = pycrfsuite.Tagger()
     tagger.open(save_model)
-    labels_pred = [tagger.tag(X) for X in features_test]
+
+    labels_pred, scores_pred = [], []
+    for X in features_test:
+        labels = tagger.tag(X)
+        labels_pred.append(labels)
+        scores_pred.append(
+            [tagger.marginal(label, i) for i, label in enumerate(labels)]
+        )
 
     if html:
         test_results_to_html(
             sentences_test,
             truth_test,
             labels_pred,
+            scores_pred,
             source_test,
             lambda x: x >= 1,
         )
-
-    # Calculate some starts about the OTHER label
-    train_label_count = Counter(chain.from_iterable(truth_train))
-    train_other_pc = 100 * train_label_count["OTHER"] / train_label_count.total()
-    test_label_count = Counter(chain.from_iterable(truth_test))
-    test_other_pc = 100 * test_label_count["OTHER"] / test_label_count.total()
-    pred_label_count = Counter(chain.from_iterable(labels_pred))
-    pred_other_pc = 100 * pred_label_count["OTHER"] / pred_label_count.total()
-    print("OTHER labels:")
-    print(f"\tIn training data: {train_label_count['OTHER']} ({train_other_pc:.2f}%)")
-    print(f"\tIn test data: {test_label_count['OTHER']} ({test_other_pc:.2f}%)")
-    print(
-        f"\tPredicted in test data: {pred_label_count['OTHER']} ({pred_other_pc:.2f}%)"
-    )
-    print()
 
     stats = evaluate(labels_pred, truth_test)
     return stats
@@ -163,7 +154,7 @@ def train_single(args: argparse.Namespace) -> None:
     args : argparse.Namespace
         Model training configuration
     """
-    vectors = load_datasets(args.datasets, args.number)
+    vectors = load_datasets(args.database, args.datasets)
     stats = train_model(vectors, args.split, args.save_model, args.html)
 
     print("Sentence-level results:")
@@ -189,7 +180,7 @@ def train_multiple(args: argparse.Namespace) -> None:
     args : argparse.Namespace
         Model training configuration
     """
-    vectors = load_datasets(args.datasets, args.number)
+    vectors = load_datasets(args.database, args.datasets)
 
     eval_results = []
     for i in range(args.runs):

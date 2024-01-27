@@ -5,32 +5,33 @@ The output from the model is a list of labels and scores, one for each token in 
 
 The following dataclass is defined which will be output from the ``parse_ingredient`` function:
 
-.. literalinclude:: ../../../ingredient_parser/postprocess.py
+.. literalinclude:: ../../../ingredient_parser/postprocess/dataclasses.py
     :pyobject: ParsedIngredient
 
 Each of the fields in the dataclass has to be determined from the output of the model. The :class:`PostProcessor` class handles this for us. 
 
-Name, Preparation, Comment, Other
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Name, Preparation, Comment
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-For each of the labels NAME, PREP, COMMENT and OTHER, the process of combining the tokens for each labels is the same.
+For each of the labels NAME, PREP, and COMMENT, the process of combining the tokens for each labels is the same.
 
 The general steps are as follows:
 
 1. Find the indices of the labels under consideration.
 2. Group these indices into lists of consecutive indices.
 3. Join the tokens corresponding to each group of consecutive indices with a space.
-4. Average the confidence scores for each the tokens in each group consecutive indices.
-5. Remove any isolated punctuation or any consecutive tokens that are identical.
-6. Join all the groups together with a comma and fix any weird punctuation this causes.
-7. Average the confidence scores across all groups.
+4. If ``discard_isolated_stop_words`` is True, discard any groups that just comprise a word from the list of stop words. 
+5. Average the confidence scores for each the tokens in each group consecutive indices.
+6. Remove any isolated punctuation or any consecutive tokens that are identical.
+7. Join all the groups together with a comma and fix any weird punctuation this causes.
+8. Average the confidence scores across all groups.
 
-.. literalinclude:: ../../../ingredient_parser/postprocess.py
+.. literalinclude:: ../../../ingredient_parser/postprocess/postprocess.py
     :pyobject: PostProcessor._postprocess
 
 The output of this function is an :class:`IngredientText` object:
 
-.. literalinclude:: ../../../ingredient_parser/postprocess.py
+.. literalinclude:: ../../../ingredient_parser/postprocess/dataclasses.py
     :pyobject: IngredientText
 
 Amount
@@ -38,7 +39,7 @@ Amount
 
 The QTY and UNIT labels are combined into an :class:`IngredientAmount` object
 
-.. literalinclude:: ../../../ingredient_parser/postprocess.py
+.. literalinclude:: ../../../ingredient_parser/postprocess/dataclasses.py
     :pyobject: IngredientAmount
 
 For most cases, the amounts are determined by combining a QTY label with the following UNIT labels, up to the next QTY which becomes a new amount. For example:
@@ -51,8 +52,8 @@ For most cases, the amounts are determined by combining a QTY label with the fol
     ...
     >>> parsed = PostProcessor(sentence, tokens, labels, scores).parsed()
     >>> amounts = parsed.amount
-    [IngredientAmount(quantity='0.75', unit='cups', confidence=0.999426, APPROXIMATE=False, SINGULAR=False),
-    IngredientAmount(quantity='170', unit='g', confidence=0.909345, APPROXIMATE=False, SINGULAR=False)]
+    [IngredientAmount(quantity='0.75', unit='cups', text='0.75 cups', confidence=0.999426, APPROXIMATE=False, SINGULAR=False),
+    IngredientAmount(quantity='170', unit='g', text='170 g', confidence=0.909345, APPROXIMATE=False, SINGULAR=False)]
 
 There are two amounts identified: **0.75 cups** and **170 g**.
 
@@ -84,7 +85,7 @@ There are some particular cases where the combination of QTY and UNIT labels tha
     ...
     >>> parsed = PostProcessor(sentence, tokens, labels, scores).parsed()
     >>> amounts = parsed.amount
-    [IngredientAmount(quantity='2', unit='cans', confidence=0.9901127131948666, APPROXIMATE=False, SINGULAR=False),
-    IngredientAmount(quantity='14', unit='ounces', confidence=0.979053978856428, APPROXIMATE=False, SINGULAR=True)]
+    [IngredientAmount(quantity='2', unit='cans', text='2 cans', confidence=0.9901127131948666, APPROXIMATE=False, SINGULAR=False),
+    IngredientAmount(quantity='14', unit='ounces', text='14 ounces', confidence=0.979053978856428, APPROXIMATE=False, SINGULAR=True)]
 
 Identifying and handling this pattern of QTY and UNIT labels is done by the :func:`PostProcessor._sizable_unit_pattern()` function.

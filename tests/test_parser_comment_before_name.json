@@ -1,8 +1,0 @@
-{"sentence": "1 diced carrot", "labels": {"name": "carrot", "quantity": "1", "unit": "", "comment": "diced"}}
-{"sentence": "1 finely chopped onion", "labels": {"name": "onion", "quantity": "1", "unit": "", "comment": "finely chopped"}}
-{"sentence": "Chopped fresh parsley leaves for garnish", "labels": {"name": "fresh parsley leaves", "quantity": "", "unit": "", "comment": "Chopped, for garnish"}}
-{"sentence": "Freshly grated Parmesan", "labels": {"name": "Parmesan", "quantity": "", "unit": "", "comment": "Freshly grated"}}
-{"sentence": "1/4 cup chopped fresh basil, optional", "labels": {"name": "fresh basil", "quantity": "0.25", "unit": "cups", "comment": "chopped, optional"}}
-{"sentence": "4 tablespoons regular or low-fat sour cream", "labels": {"name": "sour cream", "quantity": "4", "unit": "tablespoons", "comment": "regular or low-fat"}}
-{"sentence": "50 g toasted bread cubes", "labels": {"name": "bread cubes", "quantity": "50", "unit": "g", "comment": "toasted"}}
-{"sentence": "2/3 packet crumbled biscuits", "labels": {"name": "biscuits", "quantity": "0.667", "unit": "packets", "comment": "crumbled"}}

@@ -17,6 +17,7 @@ def test_results_to_html(
     sentences: list[str],
     labels_truth: list[list[str]],
     labels_prediction: list[list[str]],
+    scores_prediction: list[list[float]],
     sentence_sources: list[str],
     mismatch_condition: Callable,
 ) -> None:
@@ -31,6 +32,8 @@ def test_results_to_html(
         True labels for sentence
     labels_prediction : list[list[str]]
         Predicted labels for sentence
+    scores_prediction : list[list[float]]
+        Scores for predicted labels for sentence
     sentence_sources : list[str]
         List of sentence sources, either NYT of SF
     mismatch_condition : Callable
@@ -62,6 +65,10 @@ def test_results_to_html(
       font-weight: 700;
       background-color: #CC6666;
     }
+    .low-score {
+      font-weight: 700;
+      background-color: #FFCC00;
+    }
     .row-title {
       font-style: italic;
       background-color: #ddd;
@@ -80,8 +87,14 @@ def test_results_to_html(
 
     incorrect = []
     # Sort by sentence sort
-    for src, sentence, truth, prediction in sorted(
-        zip(sentence_sources, sentences, labels_truth, labels_prediction)
+    for src, sentence, truth, prediction, scores in sorted(
+        zip(
+            sentence_sources,
+            sentences,
+            labels_truth,
+            labels_prediction,
+            scores_prediction,
+        )
     ):
         if truth != prediction:
             # Count mismatches and only include if greater than set limit
@@ -89,7 +102,7 @@ def test_results_to_html(
                 tokens: list[str] = PreProcessor(
                     sentence, defer_pos_tagging=True
                 ).tokenized_sentence
-                table = create_html_table(tokens, truth, prediction)
+                table = create_html_table(tokens, truth, prediction, scores)
                 p = ET.Element("p")
                 p.text = f"[{src.upper()}] {sentence}"
                 body.append(p)
@@ -111,7 +124,10 @@ def test_results_to_html(
 
 
 def create_html_table(
-    tokens: list[str], labels_truth: list[str], labels_prediction: list[str]
+    tokens: list[str],
+    labels_truth: list[str],
+    labels_prediction: list[str],
+    scores: list[float],
 ) -> ET.Element:
     """Create HTM table for a sentence to show tokens, true labels and predicted labels
 
@@ -123,12 +139,15 @@ def create_html_table(
         True labels for each token
     labels_prediction : list[str]
         Predicted labels for each token
+    scores : list[float]
+        Score for predicted label for each token
     """
     table = ET.Element("table")
 
     tokens_tr = ET.Element("tr")
     truth_tr = ET.Element("tr")
     prediction_tr = ET.Element("tr")
+    score_tr = ET.Element("tr")
 
     tokens_title = ET.Element("td", attrib={"class": "row-title"})
     tokens_title.text = "Token"
@@ -139,8 +158,13 @@ def create_html_table(
     prediction_title = ET.Element("td", attrib={"class": "row-title"})
     prediction_title.text = "Prediction"
     prediction_tr.append(prediction_title)
+    score_title = ET.Element("td", attrib={"class": "row-title"})
+    score_title.text = "Score"
+    score_tr.append(score_title)
 
-    for token, truth, prediction in zip(tokens, labels_truth, labels_prediction):
+    for token, truth, prediction, score in zip(
+        tokens, labels_truth, labels_prediction, scores
+    ):
         token_td = ET.Element("td")
         token_td.text = token
 
@@ -152,13 +176,20 @@ def create_html_table(
             truth_td.attrib = {"class": "mismatch"}
             prediction_td.attrib = {"class": "mismatch"}
 
+        score_td = ET.Element("td")
+        score_td.text = f"{100*score:.1f}%"
+        if score <= 0.6:
+            score_td.attrib = {"class": "low-score"}
+
         tokens_tr.append(token_td)
         truth_tr.append(truth_td)
         prediction_tr.append(prediction_td)
+        score_tr.append(score_td)
 
     table.append(tokens_tr)
     table.append(truth_tr)
     table.append(prediction_tr)
+    table.append(score_tr)
 
     return table
 

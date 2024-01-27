@@ -2,7 +2,6 @@ import argparse
 
 from train import (
     check_label_consistency,
-    find_missing_labels,
     train_multiple,
     train_single,
 )
@@ -16,30 +15,26 @@ if __name__ == "__main__":
 
     train_parser = subparsers.add_parser("train", help="Train CRF model.")
     train_parser.add_argument(
-        "--datasets",
-        "-d",
-        help="Datasets in csv format",
-        action="extend",
-        dest="datasets",
-        nargs="+",
+        "--database",
+        help="Path to database of training data",
+        type=str,
+        dest="database",
         required=True,
     )
     train_parser.add_argument(
-        "-s",
+        "--datasets",
+        help="Datasets to use in training and evaluating the model",
+        dest="datasets",
+        nargs="*",
+        default=["bbc", "cookstr", "nyt"],
+    )
+    train_parser.add_argument(
         "--split",
         default=0.25,
         type=float,
         help="Fraction of data to be used for testing",
     )
     train_parser.add_argument(
-        "-n",
-        "--number",
-        default=30000,
-        type=int,
-        help="Maximum of entries from a dataset to use (train+test)",
-    )
-    train_parser.add_argument(
-        "-m",
         "--save-model",
         default="ingredient_parser/model.crfsuite",
         help="Path to save model to",
@@ -53,30 +48,26 @@ if __name__ == "__main__":
     multiple_parser_help = "Average CRF performance across multiple training cycles."
     multiple_parser = subparsers.add_parser("multiple", help=multiple_parser_help)
     multiple_parser.add_argument(
-        "--datasets",
-        "-d",
-        help="Datasets in csv format",
-        action="extend",
-        dest="datasets",
-        nargs="+",
+        "--database",
+        help="Path to database of training data",
+        type=str,
+        dest="database",
         required=True,
     )
     multiple_parser.add_argument(
-        "-s",
+        "--datasets",
+        help="Datasets to use in training and evaluating the model",
+        dest="datasets",
+        nargs="*",
+        default=["bbc", "cookstr", "nyt"],
+    )
+    multiple_parser.add_argument(
         "--split",
         default=0.25,
         type=float,
         help="Fraction of data to be used for testing",
     )
     multiple_parser.add_argument(
-        "-n",
-        "--number",
-        default=30000,
-        type=int,
-        help="Maximum of entries from a dataset to use (train+test)",
-    )
-    multiple_parser.add_argument(
-        "-m",
         "--save-model",
         default="ingredient_parser/model.crfsuite",
         help="Path to save model to",
@@ -98,24 +89,22 @@ if __name__ == "__main__":
     utility_parser = subparsers.add_parser("utility", help=utility_help)
     utility_parser.add_argument(
         "utility",
-        choices=["missing", "consistency"],
+        choices=["consistency"],
         help="Cleaning utility to execute",
     )
     utility_parser.add_argument(
-        "--datasets",
-        "-d",
-        help="Datasets in csv format",
-        action="extend",
-        dest="datasets",
-        nargs="+",
+        "--database",
+        help="Path to database of training data",
+        type=str,
+        dest="database",
         required=True,
     )
     utility_parser.add_argument(
-        "-n",
-        "--number",
-        default=30000,
-        type=int,
-        help="Number of entries in dataset to check",
+        "--datasets",
+        help="Datasets to use in training and evaluating the model",
+        dest="datasets",
+        nargs="*",
+        default=["bbc", "cookstr", "nyt"],
     )
 
     args = parser.parse_args()
@@ -125,7 +114,5 @@ if __name__ == "__main__":
     elif args.command == "multiple":
         train_multiple(args)
     elif args.command == "utility":
-        if args.utility == "missing":
-            find_missing_labels(args)
-        elif args.utility == "consistency":
+        if args.utility == "consistency":
             check_label_consistency(args)
