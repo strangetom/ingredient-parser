@@ -125,7 +125,7 @@ class PostProcessor:
         idx = [
             i
             for i, label in enumerate(self.labels)
-            if label == selected and i not in self.consumed
+            if label in [selected, "PUNC"] and i not in self.consumed
         ]
 
         # Join consecutive tokens together and average their score
@@ -236,16 +236,20 @@ class PostProcessor:
         >>> p._fix_punctuation("(unmatched parenthesis (inside)(")
         "unmatched parenthesis (inside)"
         """
-        # Remove leading comma
-        if text.startswith(", "):
-            text = text[2:]
+        # Remove leading comma, colon, semi-colon, hyphen
+        if text and text[0] in [",", ";", ":", "-"]:
+            text = text[1:]
 
-        # Remove trailing comma
-        if text.endswith(","):
+        # Remove trailing comma, colon, semi-colon, hypehn
+        if text and text[-1] in [",", ";", ":", "-"]:
             text = text[:-1]
 
         # Correct space following open parens or before close parens
         text = text.replace("( ", "(").replace(" )", ")")
+
+        # Correct space preceeding various punctuation
+        for punc in [",", ":", ";"]:
+            text = text.replace(f" {punc}", punc)
 
         # Remove parentheses that aren't part of a matching pair
         idx_to_remove = []
@@ -266,7 +270,7 @@ class PostProcessor:
         idx_to_remove.extend(stack)
         text = "".join(char for i, char in enumerate(text) if i not in idx_to_remove)
 
-        return text
+        return text.strip()
 
     def _remove_isolated_punctuation_and_duplicate_indices(
         self, parts: list[str]
@@ -665,7 +669,7 @@ class PostProcessor:
                         )
                     )
 
-                if i > 0 and labels[i - 1] == "COMMA":
+                if i > 0 and tokens[i - 1] == ",":
                     # If previous token was a comma, append to unit
                     # of last IngredientAmount
                     amounts[-1].unit.append(",")

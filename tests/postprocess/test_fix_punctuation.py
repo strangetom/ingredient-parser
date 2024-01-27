@@ -73,3 +73,17 @@ class TestPostProcessor_fix_punctuation:
         """
         input_sentence = "finely) (chopped) (diced"
         assert p._fix_punctuation(input_sentence) == "finely (chopped) diced"
+
+    def test_multiple_space_before_comma(self, p):
+        """
+        Test space before punctuation in middle of sentence is removed
+        """
+        input_sentence = "finely chopped , diced"
+        assert p._fix_punctuation(input_sentence) == "finely chopped, diced"
+
+    def test_multiple_space_before_semicolon(self, p):
+        """
+        Test space before punctuation in middle of sentence is removed
+        """
+        input_sentence = "finely chopped ; diced"
+        assert p._fix_punctuation(input_sentence) == "finely chopped; diced"
