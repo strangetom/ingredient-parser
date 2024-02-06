@@ -10,9 +10,12 @@ def test_results_to_detailed_results(
     scores_prediction: list[list[float]],
     sentence_sources: list[str],
 ) -> None:
-    # Compute token classification stats
+    # Compute classification stats
+    # sentence_classif: sentence => (# correct, # incorrect)
+    sentence_classif = defaultdict(lambda: defaultdict(int))
     # token_classif: token => (# correct, # incorrect)
     token_classif = defaultdict(lambda: defaultdict(int))
+
     for src, sentence, truth, prediction, scores in sorted(
         zip(
             sentence_sources,
@@ -22,6 +25,11 @@ def test_results_to_detailed_results(
             scores_prediction,
         )
     ):
+        # per-sentence numbers
+        correct = truth == prediction
+        sentence_classif[sentence][correct] += 1
+
+        # per-token numbers
         tokens: list[str] = PreProcessor(
             sentence, defer_pos_tagging=True
         ).tokenized_sentence
@@ -31,6 +39,8 @@ def test_results_to_detailed_results(
             correct = truth1 == prediction1
             token_classif[token][correct] += 1
 
+    # Write out classification stats
+    # Per-token stats
     with open("classification_results_tokens.tsv", "w") as tcr:
         print("\t".join(["token", "total", "correct", "incorrect", "fraction_correct"]), file=tcr)
         for token, token_dict in token_classif.items():
@@ -41,5 +51,15 @@ def test_results_to_detailed_results(
             print("\t".join(map(str, [token, total, correct, incorrect,
                             f"{frac_correct:.3f}"])), file=tcr)
 
-    # TODO: Count sentences most often misclassified
+    # Per-sentence stats
+    with open("classification_results_sentences.tsv", "w") as tcr:
+        print("\t".join(["sentence", "total", "correct", "incorrect", "fraction_correct"]), file=tcr)
+        for sentence, sentence_dict in sentence_classif.items():
+            correct, incorrect = sentence_dict[True], sentence_dict[False]
+            total = correct + incorrect
+            frac_correct = float(correct) / total
+            assert "\t" not in sentence, f"sentence has a tab: {sentence}"
+            print("\t".join(map(str, [sentence, total, correct, incorrect,
+                            f"{frac_correct:.3f}"])), file=tcr)
+
     # TODO: Count token pairs most often misclassified
