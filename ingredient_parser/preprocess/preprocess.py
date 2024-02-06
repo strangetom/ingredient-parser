@@ -49,7 +49,7 @@ class PreProcessor:
     3. | Replace fractions given in html markup with the unicode representation.
        | e.g. &frac12; >> ½
     4. | Replace unicode fractions with the equivalent decimal form. Decimals are
-       | rounded to 3 a maximum of decimal places.
+       | rounded to a maximum of 3 decimal places.
        | e.g. ½ >> 0.5
     5. | Replace "fake" fractions represented by 1/2, 2/3 etc. with the equivalent
        | decimal form
@@ -799,7 +799,7 @@ class PreProcessor:
             return True
 
         open_parens, closed_parens = [], []
-        for i, token in enumerate((self.tokenized_sentence)):
+        for i, token in enumerate(self.tokenized_sentence):
             if token == "(" or token == "[":
                 open_parens.append(i)
             elif token == ")" or token == "]":
