@@ -236,13 +236,8 @@ class PostProcessor:
         >>> p._fix_punctuation("(unmatched parenthesis (inside)(")
         "unmatched parenthesis (inside)"
         """
-        # Remove leading comma, colon, semi-colon, hyphen
-        if text and text[0] in [",", ";", ":", "-"]:
-            text = text[1:]
-
-        # Remove trailing comma, colon, semi-colon, hypehn
-        if text and text[-1] in [",", ";", ":", "-"]:
-            text = text[:-1]
+        if text == "":
+            return text
 
         # Correct space following open parens or before close parens
         text = text.replace("( ", "(").replace(" )", ")")
@@ -269,6 +264,14 @@ class PostProcessor:
         # Insert anything left in stack into idx_to_remove
         idx_to_remove.extend(stack)
         text = "".join(char for i, char in enumerate(text) if i not in idx_to_remove)
+
+        # Remove leading comma, colon, semi-colon, hyphen
+        while text[0] in [",", ";", ":", "-"]:
+            text = text[1:].strip()
+
+        # Remove trailing comma, colon, semi-colon, hypehn
+        while text[-1] in [",", ";", ":", "-"]:
+            text = text[:-1].strip()
 
         return text.strip()
 
