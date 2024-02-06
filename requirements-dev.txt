@@ -1,5 +1,4 @@
 scikit-learn
-black
 pyright
 ruff
 build
