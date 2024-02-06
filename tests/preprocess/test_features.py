@@ -270,3 +270,43 @@ class TestPreProcessor_is_ambiguous_unit:
         Cup is not indicated as ambiguous unit
         """
         assert not p._is_ambiguous_unit("cup")
+
+
+class TestPreProcess_length_bucket:
+    def test_4(self):
+        """
+        Test 4 token sentence is placed in length bucket of 4
+        """
+        p = PreProcessor("100 g green beans")
+        assert p._length_bucket() == 4
+
+    def test_8(self):
+        """
+        Test 6 token sentence is placed in length bucket of 8
+        """
+        p = PreProcessor("100 g green beans, sliced")
+        assert p._length_bucket() == 8
+
+    def test_20(self):
+        """
+        Test 19 token sentence is placed in length bucket of 20
+        """
+        p = PreProcessor(
+            """
+            16 extra large or jumbo shrimp, preferably with heads (or more if the \
+            shrimp are smaller)
+            """
+        )
+        assert p._length_bucket() == 20
+
+    def test_very_long(self):
+        """
+        Test 25 token sentence is placed in length bucket of 20
+        """
+        p = PreProcessor(
+            """
+            2 medium bell peppers, red, green, yellow, or a combination, cored, \
+            seeded, deribbed, and cut into chunks
+            """
+        )
+        assert p._length_bucket() == 100

@@ -840,6 +840,25 @@ class PreProcessor:
         """
         return token in AMBIGUOUS_UNITS
 
+    def _length_bucket(self) -> int:
+        """Determine length bucket sentences falls under.
+
+        This intention here is that different length buckets may provide useful
+        modifiers to the weights for certain labels.
+
+        Returns
+        -------
+        int
+            Length bucket
+        """
+        length = len(self.tokenized_sentence)
+
+        for n in [4, 8, 12, 16, 20]:
+            if length <= n:
+                return n
+
+        return 100
+
     def _token_features(self, index: int) -> dict[str, str | bool]:
         """Return the features for each token in the sentence
 
@@ -865,6 +884,7 @@ class PreProcessor:
             "is_after_comma": self._follows_comma(index),
             "is_after_plus": self._follows_plus(index),
             "is_short_phrase": len(self.tokenized_sentence) < 3,
+            "length_bucket": self._length_bucket(),
         }
 
         if index > 0:
