@@ -61,8 +61,11 @@ def evaluate(predictions: list[list[str]], truths: list[list[str]]) -> Stats:
 
 
 def train_model(
-    vectors: DataVectors, split: float, save_model: str, html: bool,
-        detailed_results: bool
+    vectors: DataVectors,
+    split: float,
+    save_model: str,
+    html: bool,
+    detailed_results: bool,
 ) -> Stats:
     """Train model using vectors, splitting the vectors into a train and evaluation
     set based on <split>. The trained model is saved to <save_model>.
@@ -169,8 +172,9 @@ def train_single(args: argparse.Namespace) -> None:
         Model training configuration
     """
     vectors = load_datasets(args.database, args.datasets)
-    stats = train_model(vectors, args.split, args.save_model, args.html,
-                        args.detailed_results)
+    stats = train_model(
+        vectors, args.split, args.save_model, args.html, args.detailed_results
+    )
 
     print("Sentence-level results:")
     print(f"\tTotal: {stats.total_sentences}")
