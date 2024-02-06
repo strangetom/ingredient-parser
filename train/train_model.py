@@ -9,6 +9,7 @@ import pycrfsuite
 from sklearn.model_selection import train_test_split
 
 from .test_results_to_html import test_results_to_html
+from .test_results_to_detailed_results import test_results_to_detailed_results
 from .training_utils import DataVectors, load_datasets
 
 
@@ -60,7 +61,8 @@ def evaluate(predictions: list[list[str]], truths: list[list[str]]) -> Stats:
 
 
 def train_model(
-    vectors: DataVectors, split: float, save_model: str, html: bool
+    vectors: DataVectors, split: float, save_model: str, html: bool,
+        detailed_results: bool
 ) -> Stats:
     """Train model using vectors, splitting the vectors into a train and evaluation
     set based on <split>. The trained model is saved to <save_model>.
@@ -75,7 +77,10 @@ def train_model(
         Path to save trained model to.
     html : bool
         If True, write html file of incorrect evaluation sentences
-        and print out detals about OTHER labels
+        and print out details about OTHER labels.
+    detailed_results: bool
+        If True, write output files with details about how labeling performed on
+        the test set.
 
     Returns
     -------
@@ -142,6 +147,15 @@ def train_model(
             lambda x: x >= 1,
         )
 
+    if detailed_results:
+        test_results_to_detailed_results(
+            sentences_test,
+            truth_test,
+            labels_pred,
+            scores_pred,
+            source_test,
+        )
+
     stats = evaluate(labels_pred, truth_test)
     return stats
 
@@ -155,7 +169,8 @@ def train_single(args: argparse.Namespace) -> None:
         Model training configuration
     """
     vectors = load_datasets(args.database, args.datasets)
-    stats = train_model(vectors, args.split, args.save_model, args.html)
+    stats = train_model(vectors, args.split, args.save_model, args.html,
+                        args.detailed_results)
 
     print("Sentence-level results:")
     print(f"\tTotal: {stats.total_sentences}")

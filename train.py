@@ -44,6 +44,11 @@ if __name__ == "__main__":
         action="store_true",
         help="Output a markdown file containing detailed results.",
     )
+    train_parser.add_argument(
+        "--detailed-results",
+        action="store_true",
+        help="Output a file containing detailed results about accuracy.",
+    )
 
     multiple_parser_help = "Average CRF performance across multiple training cycles."
     multiple_parser = subparsers.add_parser("multiple", help=multiple_parser_help)
