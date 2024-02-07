@@ -3,6 +3,7 @@ pyright
 ruff
 build
 twine
+pre-commit
 pytest
 coverage
 tqdm

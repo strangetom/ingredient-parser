@@ -68,6 +68,9 @@ exclude = [
 ]
 line-length = 88
 
+[tool.ruff.format]
+docstring-code-format = true
+
 [tool.pyright]
 include = ["ingredient_parser"]
 exclude = ["**/__pycache__"]
