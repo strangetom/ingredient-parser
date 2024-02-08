@@ -57,6 +57,13 @@ Word-level results:
 
 The development dependencies are in the ```requirements-dev.txt``` file. Details on the training process can be found in the [Model Guide](https://ingredient-parser.readthedocs.io/en/latest/guide/index.html) documentation.
 
+Before committing anything, install [pre-commit](https://pre-commit.com/) and run
+```
+pre-commit install
+```
+
+to install the github pre-commit hook.
+
 There is a simple web app for testing the parser with ingredient sentences and showing the parsed output. To run the web app, run the command
 
 ```bash

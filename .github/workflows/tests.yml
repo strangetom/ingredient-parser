@@ -12,6 +12,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+    - name: Run pre-commit checks on all files
+      uses: pre-commit/action@v3.0.1
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5
       with:
