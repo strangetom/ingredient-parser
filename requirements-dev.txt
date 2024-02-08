@@ -1,9 +1,9 @@
 scikit-learn
-black
 pyright
 ruff
 build
 twine
+pre-commit
 pytest
 coverage
 tqdm

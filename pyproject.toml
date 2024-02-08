@@ -58,11 +58,6 @@ omit = [
     "tests/*"
 ]
 
-[tool.black]
-target-version = ["py310", "py311", "py312"]
-include = "\\.py$"
-extend-exclude = "\\.ipynb$"
-
 [tool.ruff]
 select = ["E", "F", "I"]
 ignore = ["E402"]
@@ -72,6 +67,9 @@ exclude = [
     "venv"
 ]
 line-length = 88
+
+[tool.ruff.format]
+docstring-code-format = true
 
 [tool.pyright]
 include = ["ingredient_parser"]

@@ -20,7 +20,7 @@ def home():
     with sqlite3.connect(DATABASE, detect_types=sqlite3.PARSE_DECLTYPES) as conn:
         c = conn.cursor()
         c.execute("SELECT source FROM training")
-        sources = [source for source, in c.fetchall()]
+        sources = [source for (source,) in c.fetchall()]
 
     conn.close()
 
