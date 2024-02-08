@@ -8,8 +8,8 @@ from statistics import mean, stdev
 import pycrfsuite
 from sklearn.model_selection import train_test_split
 
-from .test_results_to_html import test_results_to_html
 from .test_results_to_detailed_results import test_results_to_detailed_results
+from .test_results_to_html import test_results_to_html
 from .training_utils import DataVectors, load_datasets
 
 

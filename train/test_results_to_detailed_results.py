@@ -84,7 +84,7 @@ def test_results_to_detailed_results(
     # Write out classification stats
     # Per-token stats
     with open("classification_results_tokens.tsv", "w") as crs:
-        writer = csv.writer(crs, delimiter='\t', lineterminator='\n')
+        writer = csv.writer(crs, delimiter="\t", lineterminator="\n")
         writer.writerow(["token", "total", "correct", "incorrect", "fraction_correct"])
         for token, token_dict in token_classif.items():
             correct, incorrect = token_dict[True], token_dict[False]
@@ -94,36 +94,40 @@ def test_results_to_detailed_results(
             writer.writerow([token, total, correct, incorrect, f"{frac_correct:.3f}"])
 
     with open("classification_results_token_sentences.tsv", "w") as crts:
-        writer = csv.writer(crts, delimiter='\t', lineterminator='\n')
+        writer = csv.writer(crts, delimiter="\t", lineterminator="\n")
         writer.writerow(["token", "index", "truth", "prediction", "sentence"])
         for tcr in sorted(token_details):
-            writer.writerow([tcr.token, tcr.index, tcr.truth, tcr.prediction, tcr.sentence])
+            writer.writerow(
+                [tcr.token, tcr.index, tcr.truth, tcr.prediction, tcr.sentence]
+            )
 
     # Per-sentence stats
     with open("classification_results_sentences.tsv", "w") as crs:
-        writer = csv.writer(crs, delimiter='\t', lineterminator='\n')
-        writer.writerow([
-                    "sentence",
-                    "total",
-                    "correct",
-                    "incorrect",
-                    "fraction_correct",
-                    "truth",
-                    "prediction",
-                ]
+        writer = csv.writer(crs, delimiter="\t", lineterminator="\n")
+        writer.writerow(
+            [
+                "sentence",
+                "total",
+                "correct",
+                "incorrect",
+                "fraction_correct",
+                "truth",
+                "prediction",
+            ]
         )
         for sentence, sentence_dict in sentence_classif.items():
             correct, incorrect = sentence_dict[True], sentence_dict[False]
             total = correct + incorrect
             frac_correct = float(correct) / total
             assert "\t" not in sentence, f"sentence has a tab: {sentence}"
-            writer.writerow([
-                            sentence,
-                            total,
-                            correct,
-                            incorrect,
-                            f"{frac_correct:.3f}",
-                            ",".join(sentence_details[sentence].truth),
-                            ",".join(sentence_details[sentence].prediction),
-                        ]
+            writer.writerow(
+                [
+                    sentence,
+                    total,
+                    correct,
+                    incorrect,
+                    f"{frac_correct:.3f}",
+                    ",".join(sentence_details[sentence].truth),
+                    ",".join(sentence_details[sentence].prediction),
+                ]
             )
