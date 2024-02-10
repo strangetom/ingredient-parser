@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import string
 from fractions import Fraction
 from html import unescape
 
@@ -679,6 +680,31 @@ class PreProcessor:
         """
         return token.lower() in UNITS.values()
 
+    def _is_punc(self, token: str) -> bool:
+        """Return True if token is a punctuation mark
+
+        Parameters
+        ----------
+        token : str
+            Token to check
+
+        Returns
+        -------
+        bool
+            True if token is a punctuation mark, else False
+
+        Examples
+        --------
+        >>> p = PreProcessor("")
+        >>> p._is_unit("/")
+        True
+
+        >>> p = PreProcessor("")
+        >>> p._is_unit("beef")
+        False
+        """
+        return token in string.punctuation
+
     def _is_numeric(self, token: str) -> bool:
         """Return True if token is numeric
 
@@ -879,6 +905,7 @@ class PreProcessor:
             "is_capitalised": self._is_capitalised(token),
             "is_numeric": self._is_numeric(token),
             "is_unit": self._is_unit(token),
+            "is_punc": self._is_punc(token),
             "is_ambiguous": self._is_ambiguous_unit(token),
             "is_in_parens": self._is_inside_parentheses(index),
             "is_after_comma": self._follows_comma(index),
