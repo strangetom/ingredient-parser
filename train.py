@@ -45,7 +45,7 @@ if __name__ == "__main__":
         help="Output a markdown file containing detailed results.",
     )
     train_parser.add_argument(
-        "--detailed-results",
+        "--detailed",
         action="store_true",
         help="Output a file containing detailed results about accuracy.",
     )
@@ -81,6 +81,11 @@ if __name__ == "__main__":
         "--html",
         action="store_true",
         help="Output a markdown file containing detailed results.",
+    )
+    multiple_parser.add_argument(
+        "--detailed",
+        action="store_true",
+        help="Output a file containing detailed results about accuracy.",
     )
     multiple_parser.add_argument(
         "-r",

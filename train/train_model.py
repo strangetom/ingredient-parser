@@ -172,9 +172,7 @@ def train_single(args: argparse.Namespace) -> None:
         Model training configuration
     """
     vectors = load_datasets(args.database, args.datasets)
-    stats = train_model(
-        vectors, args.split, args.save_model, args.html, args.detailed_results
-    )
+    stats = train_model(vectors, args.split, args.save_model, args.html, args.detailed)
 
     print("Sentence-level results:")
     print(f"\tTotal: {stats.total_sentences}")
@@ -205,7 +203,9 @@ def train_multiple(args: argparse.Namespace) -> None:
     for i in range(args.runs):
         print(f"[INFO] Training run: {i+1:02}")
         start_time = time.time()
-        stats = train_model(vectors, args.split, args.save_model, args.html)
+        stats = train_model(
+            vectors, args.split, args.save_model, args.html, args.detailed
+        )
         eval_results.append(stats)
         print(f"[INFO] Model trained in {time.time()-start_time:.1f} seconds")
 
