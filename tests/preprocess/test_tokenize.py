@@ -63,8 +63,7 @@ class TestTokenize:
         """
         sentence = '1" piece ginger, finely grated'
         assert tokenize(sentence) == [
-            "1",
-            '"',
+            '1"',
             "piece",
             "ginger",
             ",",
