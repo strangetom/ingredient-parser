@@ -216,12 +216,16 @@ def apply_filter(params: dict[str, str]) -> list[int]:
     ]
 
     # Create regex for search query
-    if params.get("case-sensitive", "") == "on":
-        query = re.compile(rf"\b{params['filter-string']}\b", re.DOTALL | re.UNICODE)
+    escaped = re.escape(params["filter-string"])
+    if params.get("whole-word", "") == "on":
+        expression = rf"\b{escaped}\b"
     else:
-        query = re.compile(
-            rf"\b{params['filter-string']}\b", re.DOTALL | re.UNICODE | re.IGNORECASE
-        )
+        expression = escaped
+
+    if params.get("case-sensitive", "") == "on":
+        query = re.compile(expression, re.UNICODE)
+    else:
+        query = re.compile(expression, re.UNICODE | re.IGNORECASE)
 
     # 6 possible labels in total
     if len(labels) == 6:
