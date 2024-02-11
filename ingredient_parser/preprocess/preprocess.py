@@ -896,25 +896,33 @@ class PreProcessor:
 
         if index > 0:
             features["prev_pos"] = "+".join(
-                self.pos_tags[index - 1], self.pos_tags[index]
+                (self.pos_tags[index - 1], self.pos_tags[index])
             )
             features["prev_word"] = stem(self.tokenized_sentence[index - 1])
 
         if index > 1:
             features["prev_pos2"] = "+".join(
-                self.pos_tags[index - 2], self.pos_tags[index - 1], self.pos_tags[index]
+                (
+                    self.pos_tags[index - 2],
+                    self.pos_tags[index - 1],
+                    self.pos_tags[index],
+                )
             )
             features["prev_word2"] = stem(self.tokenized_sentence[index - 2])
 
         if index < len(self.tokenized_sentence) - 1:
             features["next_pos"] = "+".join(
-                self.pos_tags[index], self.pos_tags[index + 1]
+                (self.pos_tags[index], self.pos_tags[index + 1])
             )
             features["next_word"] = stem(self.tokenized_sentence[index + 1])
 
         if index < len(self.tokenized_sentence) - 2:
             features["next_pos2"] = "+".join(
-                self.pos_tags[index + 2], self.pos_tags[index + 1], self.pos_tags[index]
+                (
+                    self.pos_tags[index + 2],
+                    self.pos_tags[index + 1],
+                    self.pos_tags[index],
+                )
             )
             features["next_word2"] = stem(self.tokenized_sentence[index + 2])
 
