@@ -59,14 +59,16 @@ omit = [
 ]
 
 [tool.ruff]
-select = ["E", "F", "I"]
-ignore = ["E402"]
 exclude = [
     "**/__pycache__",
     ".git",
     "venv"
 ]
 line-length = 88
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+ignore = ["E402"]
 
 [tool.ruff.format]
 docstring-code-format = true
