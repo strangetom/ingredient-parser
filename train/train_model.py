@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 
 import argparse
-import time
+import os
 from dataclasses import dataclass
+from multiprocessing import Pool
 from statistics import mean, stdev
 
+import numpy as np
 import pycrfsuite
 from sklearn.model_selection import train_test_split
 
@@ -90,6 +92,12 @@ def train_model(
     Stats
         Statistics evaluating the model
     """
+    # When using multiprocessing each process seems to start the RNG with the same
+    # seed, and because train_test_split uses np.random to randomise the data, each
+    # process ends up with the identical split.
+    # Reseed the RNG to make each split different.
+    np.random.seed(int.from_bytes(os.urandom(4), byteorder="little"))
+
     # Split data into train and test sets
     # The stratify argument means that each dataset is represented proprtionally
     # in the train and tests sets, avoiding the possibility that train or tests sets
@@ -199,15 +207,12 @@ def train_multiple(args: argparse.Namespace) -> None:
     """
     vectors = load_datasets(args.database, args.datasets)
 
-    eval_results = []
-    for i in range(args.runs):
-        print(f"[INFO] Training run: {i+1:02}")
-        start_time = time.time()
-        stats = train_model(
-            vectors, args.split, args.save_model, args.html, args.detailed
-        )
-        eval_results.append(stats)
-        print(f"[INFO] Model trained in {time.time()-start_time:.1f} seconds")
+    arguments = [
+        (vectors, args.split, args.save_model, args.html, args.detailed)
+    ] * args.runs
+    with Pool() as pool:
+        print("[INFO] Created multiprocessing pool for training models in parallel.")
+        eval_results = pool.starmap(train_model, arguments)
 
     word_accuracies, sentence_accuracies = [], []
     for result in eval_results:
