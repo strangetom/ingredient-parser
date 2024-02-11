@@ -866,25 +866,6 @@ class PreProcessor:
         """
         return token in AMBIGUOUS_UNITS
 
-    def _length_bucket(self) -> int:
-        """Determine length bucket sentences falls under.
-
-        This intention here is that different length buckets may provide useful
-        modifiers to the weights for certain labels.
-
-        Returns
-        -------
-        int
-            Length bucket
-        """
-        length = len(self.tokenized_sentence)
-
-        for n in [4, 8, 12, 16, 20]:
-            if length <= n:
-                return n
-
-        return 100
-
     def _token_features(self, index: int) -> dict[str, str | bool]:
         """Return the features for each token in the sentence
 
@@ -911,23 +892,30 @@ class PreProcessor:
             "is_after_comma": self._follows_comma(index),
             "is_after_plus": self._follows_plus(index),
             "is_short_phrase": len(self.tokenized_sentence) < 3,
-            "length_bucket": self._length_bucket(),
         }
 
         if index > 0:
-            features["prev_pos"] = self.pos_tags[index - 1]
+            features["prev_pos"] = "+".join(
+                self.pos_tags[index - 1], self.pos_tags[index]
+            )
             features["prev_word"] = stem(self.tokenized_sentence[index - 1])
 
         if index > 1:
-            features["prev_pos2"] = self.pos_tags[index - 2]
+            features["prev_pos2"] = "+".join(
+                self.pos_tags[index - 2], self.pos_tags[index - 1], self.pos_tags[index]
+            )
             features["prev_word2"] = stem(self.tokenized_sentence[index - 2])
 
         if index < len(self.tokenized_sentence) - 1:
-            features["next_pos"] = self.pos_tags[index + 1]
+            features["next_pos"] = "+".join(
+                self.pos_tags[index], self.pos_tags[index + 1]
+            )
             features["next_word"] = stem(self.tokenized_sentence[index + 1])
 
         if index < len(self.tokenized_sentence) - 2:
-            features["next_pos2"] = self.pos_tags[index + 2]
+            features["next_pos2"] = "+".join(
+                self.pos_tags[index + 2], self.pos_tags[index + 1], self.pos_tags[index]
+            )
             features["next_word2"] = stem(self.tokenized_sentence[index + 2])
 
         return features

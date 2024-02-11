@@ -46,23 +46,23 @@ The features used for this model are a little different
 * Whether the token is capitalised
 * Whether the token is numeric
 * Whether the token is a unit (determined from the list of units)
+* Whether the token is a punctuation mark
 * Whether the token is an ambiguous unit
 * Whether the token is inside parentheses
-* Whether the token is a stop word
 * Whether the token is after a comma
 * Whether the token follows a + symbol
-* Whether the token is after a forward slash
+* Whether the sentence is a short sentence (having less than 3 tokens)
 
 If possible, based on the position of the token in the sentence, the following features are also added
 
 * The stem of the previous token
-* The POS tag for the previous token
+* The POS tag for the previous token combined with the POS tag for the current token
 * The stem of the token before the previous token
-* The POS tag for the token before the previous token
+* The POS tag for the token before the previous token combined with the POS tags for the previous and current tokens
 * The stem of the next token
-* The POS tag for the next token
+* The POS tag for the next token combined with the POS tag for the current token
 * The stem of the token after the next token
-* The POS tag for the token after the next token
+* The POS tag for the token after the next token combined with the POS tags for the current and next tokens
 
 The :func:`_token_features` function of :class:`PreProcessor` returns all these features as a dictionary.
 
