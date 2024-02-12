@@ -1,3 +1,4 @@
 include ingredient_parser/model.crfsuite
 include ingredient_parser/ModelCard.md
+global-exclude test*
 prune */__pycache__
