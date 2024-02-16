@@ -3,11 +3,13 @@
 import argparse
 import os
 from dataclasses import dataclass
+from itertools import chain
 from multiprocessing import Pool
 from statistics import mean, stdev
 
 import numpy as np
 import pycrfsuite
+from sklearn.metrics import classification_report
 from sklearn.model_selection import train_test_split
 
 from .test_results_to_detailed_results import test_results_to_detailed_results
@@ -16,13 +18,43 @@ from .training_utils import DataVectors, load_datasets
 
 
 @dataclass
-class Stats:
-    """Dataclass to store statistics on model performance"""
+class Metrics:
+    """Metrics returned by sklearn.metrics.classification_report for each label"""
 
-    total_sentences: int
-    correct_sentences: int
-    total_words: int
-    correct_words: int
+    precision: float
+    recall: float
+    f1_score: float
+    support: int
+
+
+@dataclass
+class TokenStats:
+    """Statistics for token classification performance"""
+
+    NAME: Metrics
+    QTY: Metrics
+    UNIT: Metrics
+    COMMENT: Metrics
+    PREP: Metrics
+    PUNC: Metrics
+    macro_avg: Metrics
+    weighted_avg: Metrics
+    accuracy: float
+
+
+@dataclass
+class SentenceStats:
+    """Statistics for sentence classification performance"""
+
+    accuracy: float
+
+
+@dataclass
+class Stats:
+    """Statistics for token and sentence classification performance"""
+
+    token: TokenStats
+    sentence: SentenceStats
 
 
 def evaluate(predictions: list[list[str]], truths: list[list[str]]) -> Stats:
@@ -38,28 +70,42 @@ def evaluate(predictions: list[list[str]], truths: list[list[str]]) -> Stats:
     Returns
     -------
     Stats
-        Dataclass holding the following statistics:
-            total sentences,
-            correctly labelled sentences,
-            total words,
-            correctly labelled words
+        Dataclass holding token and sentence statistics:
     """
-    total_sentences = 0
-    correct_sentences = 0
-    total_words = 0
-    correct_words = 0
+    # Generate token statistics
+    # Flatten prediction and truth lists
+    flat_predictions = list(chain.from_iterable(predictions))
+    flat_truths = list(chain.from_iterable(truths))
+    labels = list(set(flat_predictions))
 
-    for prediction, truth in zip(predictions, truths):
-        correct = [p == t for p, t in zip(prediction, truth)]
+    report = classification_report(
+        flat_truths,
+        flat_predictions,
+        labels=labels,
+        output_dict=True,
+    )
 
-        total_words += len(truth)
-        correct_words += correct.count(True)
+    # Convert report to TokenStats dataclass
+    token_stats = {}
+    for k, v in report.items():
+        # Convert dict to Metrics
+        if k in labels + ["macro avg", "weighted avg"]:
+            k = k.replace(" ", "_")
+            token_stats[k] = Metrics(
+                v["precision"], v["recall"], v["f1-score"], int(v["support"])
+            )
+        else:
+            token_stats[k] = v
 
-        total_sentences += 1
-        if all(correct):
-            correct_sentences += 1
+    token_stats = TokenStats(**token_stats)
 
-    return Stats(total_sentences, correct_sentences, total_words, correct_words)
+    # Generate sentence statistics
+    # The only statistics that makes sense here is accuracy because there are only
+    # true-positive results (i.e. correct) and false-negative results (i.e. incorrect)
+    correct_sentences = len([p for p, t in zip(predictions, truths) if p == t])
+    sentence_stats = SentenceStats(correct_sentences / len(predictions))
+
+    return Stats(token_stats, sentence_stats)
 
 
 def train_model(
@@ -183,17 +229,14 @@ def train_single(args: argparse.Namespace) -> None:
     stats = train_model(vectors, args.split, args.save_model, args.html, args.detailed)
 
     print("Sentence-level results:")
-    print(f"\tTotal: {stats.total_sentences}")
-    print(f"\tCorrect: {stats.correct_sentences}")
-    print(f"\tIncorrect: {stats.total_sentences - stats.correct_sentences}")
-    print(f"\t-> {100*stats.correct_sentences/stats.total_sentences:.2f}% correct")
+    print(f"\tAccuracy: {100*stats.sentence.accuracy:.2f}%")
 
     print()
     print("Word-level results:")
-    print(f"\tTotal: {stats.total_words}")
-    print(f"\tCorrect: {stats.correct_words}")
-    print(f"\tIncorrect: {stats.total_words - stats.correct_words}")
-    print(f"\t-> {100*stats.correct_words/stats.total_words:.2f}% correct")
+    print(f"\tAccuracy {100*stats.token.accuracy:.2f}%")
+    print(f"\tPrecision (micro) {100*stats.token.weighted_avg.precision:.2f}%")
+    print(f"\tRecall (micro) {100*stats.token.weighted_avg.recall:.2f}%")
+    print(f"\tF1 score (micro) {100*stats.token.weighted_avg.f1_score:.2f}%")
 
 
 def train_multiple(args: argparse.Namespace) -> None:
@@ -216,8 +259,8 @@ def train_multiple(args: argparse.Namespace) -> None:
 
     word_accuracies, sentence_accuracies = [], []
     for result in eval_results:
-        sentence_accuracies.append(result.correct_sentences / result.total_sentences)
-        word_accuracies.append(result.correct_words / result.total_words)
+        sentence_accuracies.append(result.sentence.accuracy)
+        word_accuracies.append(result.token.accuracy)
 
     sentence_mean = 100 * mean(sentence_accuracies)
     sentence_uncertainty = 3 * 100 * stdev(sentence_accuracies)
