@@ -2,6 +2,7 @@ import argparse
 
 from train import (
     check_label_consistency,
+    gridsearch,
     train_multiple,
     train_single,
 )
@@ -102,6 +103,55 @@ if __name__ == "__main__":
         help="Number of processes to spawn. Default to number of cpu cores.",
     )
 
+    gridsearch_parser_help = (
+        "Grid search over all combinations of model hyperparameters."
+    )
+    gridsearch_parser = subparsers.add_parser("gridsearch", help=multiple_parser_help)
+    gridsearch_parser.add_argument(
+        "--database",
+        help="Path to database of training data",
+        type=str,
+        dest="database",
+        required=True,
+    )
+    gridsearch_parser.add_argument(
+        "--datasets",
+        help="Datasets to use in training and evaluating the model",
+        dest="datasets",
+        nargs="*",
+        default=["bbc", "cookstr", "nyt"],
+    )
+    gridsearch_parser.add_argument(
+        "--split",
+        default=0.25,
+        type=float,
+        help="Fraction of data to be used for testing",
+    )
+    gridsearch_parser.add_argument(
+        "--save-model",
+        default="ingredient_parser/model.crfsuite",
+        help="Path to save model to",
+    )
+    gridsearch_parser.add_argument(
+        "-p",
+        "--processes",
+        default=None,
+        type=int,
+        help="Number of processes to spawn. Default to number of cpu cores.",
+    )
+    gridsearch_parser.add_argument(
+        "--c1",
+        default=[0.2],
+        nargs="*",
+        help="Values of C1 hyperparameter to train model with",
+    )
+    gridsearch_parser.add_argument(
+        "--c2",
+        default=[1],
+        nargs="*",
+        help="Values of C2 hyperparameter to train model with",
+    )
+
     utility_help = "Utilities to aid cleaning training data."
     utility_parser = subparsers.add_parser("utility", help=utility_help)
     utility_parser.add_argument(
@@ -130,6 +180,8 @@ if __name__ == "__main__":
         train_single(args)
     elif args.command == "multiple":
         train_multiple(args)
+    elif args.command == "gridsearch":
+        gridsearch(args)
     elif args.command == "utility":
         if args.utility == "consistency":
             check_label_consistency(args)

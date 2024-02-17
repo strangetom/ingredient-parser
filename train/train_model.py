@@ -3,8 +3,9 @@
 import argparse
 import os
 from dataclasses import dataclass
-from itertools import chain
+from itertools import chain, product
 from multiprocessing import Pool
+from random import randint
 from statistics import mean, stdev
 
 import numpy as np
@@ -273,3 +274,113 @@ def train_multiple(args: argparse.Namespace) -> None:
     print()
     print("Average word-level accuracy:")
     print(f"\t-> {word_mean:.2f}% ± {word_uncertainty:.2f}%")
+
+
+def train_model_gridsearch(
+    vectors: DataVectors,
+    split: float,
+    save_model: str,
+    seed: int,
+    c1: list[float],
+    c2: list[float],
+) -> Stats:
+    """Train model using vectors, splitting the vectors into a train and evaluation
+    set based on <split>. The trained model is saved to <save_model>.
+
+    Parameters
+    ----------
+    vectors : DataVectors
+        Vectors loaded from training csv files
+    split : float
+        Fraction of vectors to use for evaluation.
+    save_model : str
+        Path to save trained model to.
+
+
+    Returns
+    -------
+    Stats
+        Statistics evaluating the model
+    """
+    # Split data into train and test sets
+    # The stratify argument means that each dataset is represented proprtionally
+    # in the train and tests sets, avoiding the possibility that train or tests sets
+    # contain data from one dataset disproportionally.
+    (
+        sentences_train,
+        sentences_test,
+        features_train,
+        features_test,
+        truth_train,
+        truth_test,
+        source_train,
+        source_test,
+    ) = train_test_split(
+        vectors.sentences,
+        vectors.features,
+        vectors.labels,
+        vectors.source,
+        test_size=split,
+        stratify=vectors.source,
+        random_state=seed,
+    )
+    print(f"[INFO] Training model with c1={c1}; c2={c2}.")
+    trainer = pycrfsuite.Trainer(verbose=False)
+    trainer.set_params(
+        {
+            "feature.possible_states": True,
+            "feature.possible_transitions": True,
+            "c1": c1,
+            "c2": c2,
+        }
+    )
+    for X, y in zip(features_train, truth_train):
+        trainer.append(X, y)
+    trainer.train(save_model)
+
+    print("[INFO] Evaluating model with test data.")
+    tagger = pycrfsuite.Tagger()
+    tagger.open(save_model)
+
+    labels_pred = []
+    for X in features_test:
+        labels = tagger.tag(X)
+        labels_pred.append(labels)
+
+    stats = evaluate(labels_pred, truth_test)
+    return {"params": f"c1={c1}; c2={c2};", "stats": stats}
+
+
+def gridsearch(args: argparse.Namespace):
+    vectors = load_datasets(args.database, args.datasets)
+    shuffle_seed = randint(0, 1_000_000_000)
+
+    hyperparameters = product(args.c1, args.c2)
+    arguments = []
+    for c1, c2 in hyperparameters:
+        iteration_args = [
+            vectors,
+            args.split,
+            args.save_model,
+            shuffle_seed,
+            c1,
+            c2,
+        ]
+        arguments.append(iteration_args)
+
+    print(f"[INFO] Grid search over {len(arguments)} hyperparameters combinations.")
+    with Pool(processes=args.processes) as pool:
+        print("[INFO] Created multiprocessing pool for training models in parallel.")
+        eval_results = pool.starmap(train_model_gridsearch, arguments)
+
+    print(
+        "{:20} {:15} {:15}".format("Parameters", "Token accuracy", "Sentence accuracy")
+    )
+    for result in eval_results:
+        params = result["params"]
+        stats = result["stats"]
+        print(
+            "{:20} {:14.2f}% {:14.2f}%".format(
+                params, 100 * stats.token.accuracy, 100 * stats.sentence.accuracy
+            )
+        )
