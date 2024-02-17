@@ -94,6 +94,13 @@ if __name__ == "__main__":
         type=int,
         help="Number of times to run the training and evaluation of the model.",
     )
+    multiple_parser.add_argument(
+        "-p",
+        "--processes",
+        default=None,
+        type=int,
+        help="Number of processes to spawn. Default to number of cpu cores.",
+    )
 
     utility_help = "Utilities to aid cleaning training data."
     utility_parser = subparsers.add_parser("utility", help=utility_help)

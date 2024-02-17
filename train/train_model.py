@@ -253,7 +253,7 @@ def train_multiple(args: argparse.Namespace) -> None:
     arguments = [
         (vectors, args.split, args.save_model, args.html, args.detailed)
     ] * args.runs
-    with Pool() as pool:
+    with Pool(processes=args.processes) as pool:
         print("[INFO] Created multiprocessing pool for training models in parallel.")
         eval_results = pool.starmap(train_model, arguments)
 
