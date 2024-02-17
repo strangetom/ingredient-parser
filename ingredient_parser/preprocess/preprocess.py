@@ -881,6 +881,7 @@ class PreProcessor:
         """
         token = self.tokenized_sentence[index]
         features = {
+            "bias": "",
             "stem": stem(token),
             "pos": self.pos_tags[index],
             "is_capitalised": self._is_capitalised(token),
@@ -895,12 +896,22 @@ class PreProcessor:
         }
 
         if index > 0:
+            prev_token = self.tokenized_sentence[index - 1]
             features["prev_pos"] = "+".join(
                 (self.pos_tags[index - 1], self.pos_tags[index])
             )
-            features["prev_word"] = stem(self.tokenized_sentence[index - 1])
+            features["prev_stem"] = stem(prev_token)
+            features["prev_is_capitalised"] = self._is_capitalised(prev_token)
+            features["prev_is_numeric"] = self._is_numeric(prev_token)
+            features["prev_is_unit"] = self._is_unit(prev_token)
+            features["prev_is_punc"] = self._is_punc(prev_token)
+            features["prev_is_ambiguous"] = self._is_ambiguous_unit(prev_token)
+            features["prev_is_in_parens"] = self._is_inside_parentheses(index - 1)
+            features["prev_is_after_comma"] = self._follows_comma(index - 1)
+            features["prev_is_after_plus"] = self._follows_plus(index - 1)
 
         if index > 1:
+            prev_token2 = self.tokenized_sentence[index - 2]
             features["prev_pos2"] = "+".join(
                 (
                     self.pos_tags[index - 2],
@@ -908,15 +919,33 @@ class PreProcessor:
                     self.pos_tags[index],
                 )
             )
-            features["prev_word2"] = stem(self.tokenized_sentence[index - 2])
+            features["prev_stem2"] = stem(prev_token2)
+            features["prev_is_capitalised2"] = self._is_capitalised(prev_token2)
+            features["prev_is_numeric2"] = self._is_numeric(prev_token2)
+            features["prev_is_unit2"] = self._is_unit(prev_token2)
+            features["prev_is_punc2"] = self._is_punc(prev_token2)
+            features["prev_is_ambiguous2"] = self._is_ambiguous_unit(prev_token2)
+            features["prev_is_in_parens2"] = self._is_inside_parentheses(index - 2)
+            features["prev_is_after_comma2"] = self._follows_comma(index - 2)
+            features["prev_is_after_plus2"] = self._follows_plus(index - 2)
 
         if index < len(self.tokenized_sentence) - 1:
+            next_token = self.tokenized_sentence[index + 1]
             features["next_pos"] = "+".join(
                 (self.pos_tags[index], self.pos_tags[index + 1])
             )
-            features["next_word"] = stem(self.tokenized_sentence[index + 1])
+            features["next_stem"] = stem(next_token)
+            features["next_is_capitalised"] = self._is_capitalised(next_token)
+            features["next_is_numeric"] = self._is_numeric(next_token)
+            features["next_is_unit"] = self._is_unit(next_token)
+            features["next_is_punc"] = self._is_punc(next_token)
+            features["next_is_ambiguous"] = self._is_ambiguous_unit(next_token)
+            features["next_is_in_parens"] = self._is_inside_parentheses(index + 1)
+            features["next_is_after_comma"] = self._follows_comma(index + 1)
+            features["next_is_after_plus"] = self._follows_plus(index + 1)
 
         if index < len(self.tokenized_sentence) - 2:
+            next_token2 = self.tokenized_sentence[index + 2]
             features["next_pos2"] = "+".join(
                 (
                     self.pos_tags[index + 2],
@@ -924,7 +953,15 @@ class PreProcessor:
                     self.pos_tags[index],
                 )
             )
-            features["next_word2"] = stem(self.tokenized_sentence[index + 2])
+            features["next_stem2"] = stem(next_token2)
+            features["next_is_capitalised2"] = self._is_capitalised(next_token2)
+            features["next_is_numeric2"] = self._is_numeric(next_token2)
+            features["next_is_unit2"] = self._is_unit(next_token2)
+            features["next_is_punc2"] = self._is_punc(next_token2)
+            features["next_is_ambiguous2"] = self._is_ambiguous_unit(next_token2)
+            features["next_is_in_parens2"] = self._is_inside_parentheses(index + 2)
+            features["next_is_after_comma2"] = self._follows_comma(index + 2)
+            features["next_is_after_plus2"] = self._follows_plus(index + 2)
 
         return features
 
