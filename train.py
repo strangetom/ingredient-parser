@@ -2,7 +2,7 @@ import argparse
 
 from train import (
     check_label_consistency,
-    gridsearch,
+    grid_search,
     train_multiple,
     train_single,
 )
@@ -181,7 +181,7 @@ if __name__ == "__main__":
     elif args.command == "multiple":
         train_multiple(args)
     elif args.command == "gridsearch":
-        gridsearch(args)
+        grid_search(args)
     elif args.command == "utility":
         if args.utility == "consistency":
             check_label_consistency(args)
