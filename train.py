@@ -143,13 +143,32 @@ if __name__ == "__main__":
         "--c1",
         default=[0.2],
         nargs="*",
-        help="Values of C1 hyperparameter to train model with",
+        help="The coefficient for L1 regularization.",
     )
     gridsearch_parser.add_argument(
         "--c2",
         default=[1],
         nargs="*",
-        help="Values of C2 hyperparameter to train model with",
+        help="The coefficient for L2 regularization.",
+    )
+    gridsearch_parser.add_argument(
+        "--memories",
+        default=[6],
+        nargs="*",
+        help="""The number of limited memories that L-BFGS used for approximating \
+        the inverse hessian matrix.""",
+    )
+    gridsearch_parser.add_argument(
+        "--max-linesearch",
+        default=[20],
+        nargs="*",
+        help="The maximum number of trials for the line search algorithm.",
+    )
+    gridsearch_parser.add_argument(
+        "--stop",
+        default=[10],
+        nargs="*",
+        help="The duration of iterations to test the stopping criterion.",
     )
 
     utility_help = "Utilities to aid cleaning training data."

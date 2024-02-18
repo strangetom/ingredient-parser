@@ -24,8 +24,11 @@ def train_model_gridsearch_lbfgs(
     split: float,
     save_model: str,
     seed: int,
-    c1: list[float],
-    c2: list[float],
+    c1: float,
+    c2: float,
+    memories: int,
+    max_linesearch: int,
+    stop: int,
 ) -> Stats:
     """Train model using lbfgs algorithm with vectors for performing grid search over
     specified hyperparameters.
@@ -75,7 +78,8 @@ def train_model_gridsearch_lbfgs(
         stratify=vectors.source,
         random_state=seed,
     )
-    print(f"[INFO] Training model with c1={c1}; c2={c2}.")
+    param_string = f"{c1=}; {c2=}; {memories=}; {max_linesearch=}; {stop=}"
+    print(f"[INFO] Training model with {param_string}.")
     start_time = time.monotonic()
 
     trainer = pycrfsuite.Trainer(verbose=False)
@@ -85,6 +89,9 @@ def train_model_gridsearch_lbfgs(
             "feature.possible_transitions": True,
             "c1": c1,
             "c2": c2,
+            "num_memories": memories,
+            "max_linesearch": max_linesearch,
+            "period": stop,
         }
     )
     for X, y in zip(features_train, truth_train):
@@ -98,7 +105,7 @@ def train_model_gridsearch_lbfgs(
 
     stats = evaluate(labels_pred, truth_test)
     return {
-        "params": f"c1={c1}; c2={c2};",
+        "params": param_string,
         "stats": stats,
         "time": time.monotonic() - start_time,
     }
@@ -116,16 +123,21 @@ def grid_search(args: argparse.Namespace):
     vectors = load_datasets(args.database, args.datasets)
     shuffle_seed = randint(0, 1_000_000_000)
 
-    hyperparameters = product(args.c1, args.c2)
+    hyperparameters = product(
+        args.c1, args.c2, args.memories, args.max_linesearch, args.stop
+    )
     arguments = []
-    for c1, c2 in hyperparameters:
+    for c1, c2, memories, max_linesearch, stop in hyperparameters:
         iteration_args = [
             vectors,
             args.split,
             args.save_model,
             shuffle_seed,
-            c1,
-            c2,
+            float(c1),
+            float(c2),
+            int(memories),
+            int(max_linesearch),
+            int(stop),
         ]
         arguments.append(iteration_args)
 
