@@ -1,4 +1,8 @@
+#!/usr/bin/env python3
+
 import argparse
+import json
+from random import randint
 
 from train import (
     check_label_consistency,
@@ -6,6 +10,17 @@ from train import (
     train_multiple,
     train_single,
 )
+
+
+class ParseJsonArg(argparse.Action):
+    """Custom argparse.Action to parse JSON argument into dict."""
+
+    def __init__(self, option_strings, dest, **kwargs):
+        super().__init__(option_strings, dest, **kwargs)
+
+    def __call__(self, parser, namespace, values, option_strings):
+        setattr(namespace, self.dest, json.loads(values))
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
@@ -140,35 +155,31 @@ if __name__ == "__main__":
         help="Number of processes to spawn. Default to number of cpu cores.",
     )
     gridsearch_parser.add_argument(
-        "--c1",
-        default=[0.2],
-        nargs="*",
-        help="The coefficient for L1 regularization.",
+        "--seed",
+        default=randint(0, 1_000_000_000),
+        type=int,
+        help="Seed value used for train/test split.",
     )
     gridsearch_parser.add_argument(
-        "--c2",
-        default=[1],
-        nargs="*",
-        help="The coefficient for L2 regularization.",
+        "--algos",
+        default=["lbfgs"],
+        choices=["lbfgs", "ap"],
+        nargs="+",
+        help="CRF training algorithms to use.",
     )
     gridsearch_parser.add_argument(
-        "--memories",
-        default=[6],
-        nargs="*",
-        help="""The number of limited memories that L-BFGS used for approximating \
-        the inverse hessian matrix.""",
+        "--lbfgs-params",
+        help="""LBFGS algorithm parameters. 
+        The values for each parameter should be a list.
+        Any parameters not given will take their default value.""",
+        action=ParseJsonArg,
     )
     gridsearch_parser.add_argument(
-        "--max-linesearch",
-        default=[20],
-        nargs="*",
-        help="The maximum number of trials for the line search algorithm.",
-    )
-    gridsearch_parser.add_argument(
-        "--stop",
-        default=[10],
-        nargs="*",
-        help="The duration of iterations to test the stopping criterion.",
+        "--ap-params",
+        help="""AP algorithm parameters. 
+        The values for each parameter should be a list.
+        Any parameters not given will take their default value.""",
+        action=ParseJsonArg,
     )
 
     utility_help = "Utilities to aid cleaning training data."
