@@ -163,7 +163,7 @@ if __name__ == "__main__":
     gridsearch_parser.add_argument(
         "--algos",
         default=["lbfgs"],
-        choices=["lbfgs", "ap"],
+        choices=["lbfgs", "ap", "l2sgd"],
         nargs="+",
         help="CRF training algorithms to use.",
     )
@@ -177,6 +177,13 @@ if __name__ == "__main__":
     gridsearch_parser.add_argument(
         "--ap-params",
         help="""AP algorithm parameters. 
+        The values for each parameter should be a list.
+        Any parameters not given will take their default value.""",
+        action=ParseJsonArg,
+    )
+    gridsearch_parser.add_argument(
+        "--l2sgd-params",
+        help="""L2GSD algorithm parameters. 
         The values for each parameter should be a list.
         Any parameters not given will take their default value.""",
         action=ParseJsonArg,

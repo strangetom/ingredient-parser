@@ -22,7 +22,7 @@ VALID_LBFGS_PARAMS = {
     "c2": (float, int),
     "max_iterations": (int,),
     "num_memories": (int,),
-    "stop": (int,),
+    "period": (int,),  # stop in docs
     "delta": (float, int),
     "linesearch": (str,),
     "max_linesearch": (int,),
@@ -33,6 +33,19 @@ VALID_LINESEARCH_OPTS = ["MoreThuente", "Backtracking", "StrongBacktracking"]
 VALID_AP_PARAMS = {
     "max_iterations": (int,),
     "epsilon": (float, int),
+}
+
+# Valid parameter options for L2SGD training algorithm and expected types
+VALID_L2SGD_PARAMS = {
+    "c2": (float, int),
+    "max_iterations": (int,),
+    "period": (int,),
+    "delta": (float,),
+    "calibration.eta": (float, int),
+    "calibration.rate": (float, int),
+    "calibration.samples": (int,),
+    "calibration.candidates": (int,),
+    "calibration.max_trials": (int,),
 }
 
 
@@ -75,7 +88,7 @@ def validate_lbfgs_params(lbfgs_params: dict) -> None:
 
 
 def validate_ap_params(ap_params: dict) -> None:
-    """Validate LBFGS training algorithm parameters.
+    """Validate AP training algorithm parameters.
 
     Check that the parameter names are valid.
     Check that the parameter value types are valid.
@@ -95,6 +108,36 @@ def validate_ap_params(ap_params: dict) -> None:
             raise ValueError(f"Unknown parameter for AP algorithm: {key}")
 
         type_ = VALID_AP_PARAMS[key]
+        type_str = f"list[{'|'.join(t.__name__ for t in type_)}]"
+        if not isinstance(value, list):
+            raise ValueError(f"Parameter values for {key} should be {type_str}")
+
+        for v in value:
+            if not isinstance(v, type_):
+                raise ValueError(f"Parameter values for {key} should be {type_str}")
+
+
+def validate_l2sgd_params(l2sgd_params: dict) -> None:
+    """Validate L2SGD training algorithm parameters.
+
+    Check that the parameter names are valid.
+    Check that the parameter value types are valid.
+
+    Parameters
+    ----------
+    ap_params : dict
+        dict of parameters and their values.
+
+    Raises
+    ------
+    ValueError
+        Expection indicating invalid parameter.
+    """
+    for key, value in l2sgd_params.items():
+        if key not in VALID_L2SGD_PARAMS.keys():
+            raise ValueError(f"Unknown parameter for AP algorithm: {key}")
+
+        type_ = VALID_L2SGD_PARAMS[key]
         type_str = f"list[{'|'.join(t.__name__ for t in type_)}]"
         if not isinstance(value, list):
             raise ValueError(f"Parameter values for {key} should be {type_str}")
@@ -157,6 +200,8 @@ def generate_argument_sets(args: argparse.Namespace) -> list[list]:
             params = args.lbfgs_params
         elif algo == "ap":
             params = args.ap_params
+        elif algo == "l2sgd":
+            params = args.l2sgd_params
 
         # Generate all combinations of parameters
         for parameter_set in param_combos(params):
@@ -271,6 +316,9 @@ def grid_search(args: argparse.Namespace):
 
     if args.ap_params is not None:
         validate_ap_params(args.ap_params)
+
+    if args.l2sgd_params is not None:
+        validate_l2sgd_params(args.l2sgd_params)
 
     arguments = generate_argument_sets(args)
 
