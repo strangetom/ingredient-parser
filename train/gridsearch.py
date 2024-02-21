@@ -5,6 +5,8 @@ import time
 from datetime import timedelta
 from itertools import product
 from multiprocessing import Pool
+from pathlib import Path
+from uuid import uuid4
 
 import pycrfsuite
 from sklearn.model_selection import train_test_split
@@ -262,6 +264,7 @@ def generate_argument_sets(args: argparse.Namespace) -> list[list]:
         split
         save_model
         seed
+        delete_model
 
     Parameters
     ----------
@@ -299,6 +302,7 @@ def generate_argument_sets(args: argparse.Namespace) -> list[list]:
                 args.split,
                 args.save_model,
                 args.seed,
+                args.delete_models,
             ]
             argument_sets.append(arguments)
 
@@ -312,6 +316,7 @@ def train_model_grid_search(
     split: float,
     save_model: str,
     seed: int,
+    delete_model: bool,
 ) -> dict:
     """Train model using given training algorithm and parameters,
     returning model performance statistics, model parameters and elapsed training time.
@@ -331,6 +336,8 @@ def train_model_grid_search(
     seed : int
         Integer used as seed for splitting the vectors between the training and
         testing sets.
+    delete_model : bool
+        If True, delete model after evalusation
 
     Returns
     -------
@@ -359,7 +366,13 @@ def train_model_grid_search(
         stratify=vectors.source,
         random_state=seed,
     )
-    print(f"[INFO] Training model using {algo} algorithm with {parameters}.")
+
+    # Make model name unique
+    save_model = Path(save_model).with_stem("model-" + str(uuid4()))
+
+    print(
+        f"[INFO] Training {save_model.name} using {algo} algorithm with {parameters}."
+    )
     start_time = time.monotonic()
 
     trainer = pycrfsuite.Trainer(algo, verbose=False)
@@ -373,14 +386,18 @@ def train_model_grid_search(
     )
     for X, y in zip(features_train, truth_train):
         trainer.append(X, y)
-    trainer.train(save_model)
+    trainer.train(str(save_model))
 
     print("[INFO] Evaluating model with test data.")
     tagger = pycrfsuite.Tagger()
-    tagger.open(save_model)
+    tagger.open(str(save_model))
     labels_pred = [tagger.tag(X) for X in features_test]
 
     stats = evaluate(labels_pred, truth_test)
+
+    if delete_model:
+        save_model.unlink(missing_ok=True)
+
     return {
         "algo": algo,
         "params": parameters,
