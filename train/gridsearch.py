@@ -48,6 +48,24 @@ VALID_L2SGD_PARAMS = {
     "calibration.max_trials": (int,),
 }
 
+# Valid parameter options for PA training algorithm and expected types
+VALID_PA_PARAMS = {
+    "type": (int,),
+    "c": (float, int),
+    "error_sensitive": (bool,),
+    "averaging": (bool,),
+    "max_iterations": (int,),
+    "epsilon": (float, int),
+}
+
+# Valid parameter options for AROW training algorithm and expected types
+VALID_AROW_PARAMS = {
+    "variance": (float, int),
+    "gamma": (float, int),
+    "max_iterations": (int,),
+    "epsilon": (float, int),
+}
+
 
 def validate_lbfgs_params(lbfgs_params: dict) -> None:
     """Validate LBFGS training algorithm parameters.
@@ -125,7 +143,7 @@ def validate_l2sgd_params(l2sgd_params: dict) -> None:
 
     Parameters
     ----------
-    ap_params : dict
+    l2sgd_params : dict
         dict of parameters and their values.
 
     Raises
@@ -138,6 +156,71 @@ def validate_l2sgd_params(l2sgd_params: dict) -> None:
             raise ValueError(f"Unknown parameter for AP algorithm: {key}")
 
         type_ = VALID_L2SGD_PARAMS[key]
+        type_str = f"list[{'|'.join(t.__name__ for t in type_)}]"
+        if not isinstance(value, list):
+            raise ValueError(f"Parameter values for {key} should be {type_str}")
+
+        for v in value:
+            if not isinstance(v, type_):
+                raise ValueError(f"Parameter values for {key} should be {type_str}")
+
+
+def validate_pa_params(pa_params: dict) -> None:
+    """Validate PA training algorithm parameters.
+
+    Check that the parameter names are valid.
+    Check that the parameter value types are valid.
+    Check that the 'type' has a value in (0,1,2)
+
+    Parameters
+    ----------
+    pa_params : dict
+        dict of parameters and their values.
+
+    Raises
+    ------
+    ValueError
+        Expection indicating invalid parameter.
+    """
+    for key, value in pa_params.items():
+        if key not in VALID_PA_PARAMS.keys():
+            raise ValueError(f"Unknown parameter for AP algorithm: {key}")
+
+        type_ = VALID_PA_PARAMS[key]
+        type_str = f"list[{'|'.join(t.__name__ for t in type_)}]"
+        if not isinstance(value, list):
+            raise ValueError(f"Parameter values for {key} should be {type_str}")
+
+        for v in value:
+            if not isinstance(v, type_):
+                raise ValueError(f"Parameter values for {key} should be {type_str}")
+
+        if key == "type":
+            if v not in (0, 1, 2):
+                raise ValueError("Type value must be 0, 1 or 2")
+
+
+def validate_arow_params(arow_params: dict) -> None:
+    """Validate AROW training algorithm parameters.
+
+    Check that the parameter names are valid.
+    Check that the parameter value types are valid.
+
+    Parameters
+    ----------
+    arow_params : dict
+        dict of parameters and their values.
+
+    Raises
+    ------
+    ValueError
+        Expection indicating invalid parameter.
+    """
+    for key, value in arow_params.items():
+        if key not in VALID_AROW_PARAMS.keys():
+            raise ValueError(f"Unknown parameter for AP algorithm: {key}")
+
+        type_ = VALID_AROW_PARAMS[key]
         type_str = f"list[{'|'.join(t.__name__ for t in type_)}]"
         if not isinstance(value, list):
             raise ValueError(f"Parameter values for {key} should be {type_str}")
@@ -202,6 +285,10 @@ def generate_argument_sets(args: argparse.Namespace) -> list[list]:
             params = args.ap_params
         elif algo == "l2sgd":
             params = args.l2sgd_params
+        elif algo == "pa":
+            params = args.pa_params
+        elif algo == "arow":
+            params = args.arow_params
 
         # Generate all combinations of parameters
         for parameter_set in param_combos(params):
@@ -320,6 +407,12 @@ def grid_search(args: argparse.Namespace):
     if args.l2sgd_params is not None:
         validate_l2sgd_params(args.l2sgd_params)
 
+    if args.pa_params is not None:
+        validate_pa_params(args.pa_params)
+
+    if args.arow_params is not None:
+        validate_arow_params(args.arow_params)
+
     arguments = generate_argument_sets(args)
 
     print(f"[INFO] Grid search over {len(arguments)} hyperparameters combinations.")
@@ -327,6 +420,11 @@ def grid_search(args: argparse.Namespace):
     with Pool(processes=args.processes) as pool:
         print("[INFO] Created multiprocessing pool for training models in parallel.")
         eval_results = pool.starmap(train_model_grid_search, arguments)
+
+    # Sort with highest sentence accuracy first
+    eval_results = sorted(
+        eval_results, key=lambda x: x["stats"].sentence.accuracy, reverse=True
+    )
 
     headers = ["Algorithm", "Parameters", "Token accuracy", "Sentence accuracy", "Time"]
     table = []
