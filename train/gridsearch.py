@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
 
 import argparse
+import concurrent.futures as cf
 import time
 from datetime import timedelta
 from itertools import product
-from multiprocessing import Pool
 from pathlib import Path
 from uuid import uuid4
 
 import pycrfsuite
 from sklearn.model_selection import train_test_split
 from tabulate import tabulate
+from tqdm import tqdm
 
 from .training_utils import (
     DataVectors,
@@ -344,6 +345,8 @@ def train_model_grid_search(
     dict
         Statistics from evaluating the model
     """
+    start_time = time.monotonic()
+
     # Split data into train and test sets
     # The stratify argument means that each dataset is represented proprtionally
     # in the train and tests sets, avoiding the possibility that train or tests sets
@@ -370,11 +373,7 @@ def train_model_grid_search(
     # Make model name unique
     save_model = Path(save_model).with_stem("model-" + str(uuid4()))
 
-    print(
-        f"[INFO] Training {save_model.name} using {algo} algorithm with {parameters}."
-    )
-    start_time = time.monotonic()
-
+    # Train model
     trainer = pycrfsuite.Trainer(algo, verbose=False)
     # Join default parameters with algorithm specific combination
     trainer.set_params(
@@ -388,7 +387,7 @@ def train_model_grid_search(
         trainer.append(X, y)
     trainer.train(str(save_model))
 
-    print("[INFO] Evaluating model with test data.")
+    # Evaluate model
     tagger = pycrfsuite.Tagger()
     tagger.open(str(save_model))
     labels_pred = [tagger.tag(X) for X in features_test]
@@ -434,9 +433,12 @@ def grid_search(args: argparse.Namespace):
 
     print(f"[INFO] Grid search over {len(arguments)} hyperparameters combinations.")
     print(f"[INFO] {args.seed} is the random seed used for the train/test split.")
-    with Pool(processes=args.processes) as pool:
-        print("[INFO] Created multiprocessing pool for training models in parallel.")
-        eval_results = pool.starmap(train_model_grid_search, arguments)
+
+    eval_results = []
+    with cf.ProcessPoolExecutor(max_workers=args.processes) as executor:
+        futures = [executor.submit(train_model_grid_search, *a) for a in arguments]
+        for future in tqdm(cf.as_completed(futures), total=len(futures)):
+            eval_results.append(future.result())
 
     # Sort with highest sentence accuracy first
     eval_results = sorted(
