@@ -82,6 +82,9 @@ def train_model(
             "feature.possible_transitions": True,
             "c1": 0.2,
             "c2": 1,
+            "max_linesearch": 5,
+            "num_memories": 3,
+            "period": 5,
         }
     )
     for X, y in zip(features_train, truth_train):
