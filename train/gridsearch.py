@@ -2,6 +2,7 @@
 
 import argparse
 import concurrent.futures as cf
+import os
 import time
 from datetime import timedelta
 from itertools import product
@@ -386,12 +387,13 @@ def train_model_grid_search(
     for X, y in zip(features_train, truth_train):
         trainer.append(X, y)
     trainer.train(str(save_model))
+    # Get model size, in MB
+    model_size = os.path.getsize(save_model) / 1024**2
 
     # Evaluate model
     tagger = pycrfsuite.Tagger()
     tagger.open(str(save_model))
     labels_pred = [tagger.tag(X) for X in features_test]
-
     stats = evaluate(labels_pred, truth_test)
 
     if delete_model:
@@ -399,6 +401,7 @@ def train_model_grid_search(
 
     return {
         "algo": algo,
+        "model_size": model_size,
         "params": parameters,
         "stats": stats,
         "time": time.monotonic() - start_time,
@@ -445,12 +448,20 @@ def grid_search(args: argparse.Namespace):
         eval_results, key=lambda x: x["stats"].sentence.accuracy, reverse=True
     )
 
-    headers = ["Algorithm", "Parameters", "Token accuracy", "Sentence accuracy", "Time"]
+    headers = [
+        "Algorithm",
+        "Parameters",
+        "Token accuracy",
+        "Sentence accuracy",
+        "Time",
+        "Size (MB)",
+    ]
     table = []
     for result in eval_results:
         algo = result["algo"]
         params = result["params"]
         stats = result["stats"]
+        size = result["model_size"]
         time = timedelta(seconds=int(result["time"]))
         table.append(
             [
@@ -459,6 +470,7 @@ def grid_search(args: argparse.Namespace):
                 f"{100 * stats.token.accuracy:.2f}%",
                 f"{100 * stats.sentence.accuracy:.2f}%",
                 str(time),
+                f"{size:.2f}",
             ]
         )
 
