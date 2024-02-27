@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 
 import argparse
+import concurrent.futures as cf
+import contextlib
 import os
-from multiprocessing import Pool
 from statistics import mean, stdev
 
 import numpy as np
 import pycrfsuite
 from sklearn.model_selection import train_test_split
+from tqdm import tqdm
 
 from .test_results_to_detailed_results import test_results_to_detailed_results
 from .test_results_to_html import test_results_to_html
@@ -162,9 +164,13 @@ def train_multiple(args: argparse.Namespace) -> None:
     arguments = [
         (vectors, args.split, args.save_model, args.html, args.detailed)
     ] * args.runs
-    with Pool(processes=args.processes) as pool:
-        print("[INFO] Created multiprocessing pool for training models in parallel.")
-        eval_results = pool.starmap(train_model, arguments)
+
+    eval_results = []
+    with contextlib.redirect_stdout(None):  # Suppress print output
+        with cf.ProcessPoolExecutor(max_workers=args.processes) as executor:
+            futures = [executor.submit(train_model, *a) for a in arguments]
+            for future in tqdm(cf.as_completed(futures), total=len(futures)):
+                eval_results.append(future.result())
 
     word_accuracies, sentence_accuracies = [], []
     for result in eval_results:
