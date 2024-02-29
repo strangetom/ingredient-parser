@@ -57,6 +57,12 @@ if __name__ == "__main__":
         help="Path to save model to",
     )
     train_parser.add_argument(
+        "--seed",
+        default=None,
+        type=int,
+        help="Seed value used for train/test split.",
+    )
+    train_parser.add_argument(
         "--html",
         action="store_true",
         help="Output a markdown file containing detailed results.",
