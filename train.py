@@ -209,6 +209,14 @@ if __name__ == "__main__":
         Any parameters not given will take their default value.""",
         action=ParseJsonArg,
     )
+    gridsearch_parser.add_argument(
+        "--global-params",
+        help="""Global algorithm parameters, applicable to all algorithms. 
+        The values for each parameter should be a list.
+        Any parameters not given will take their default value.""",
+        action=ParseJsonArg,
+        default=dict(),
+    )
 
     utility_help = "Utilities to aid cleaning training data."
     utility_parser = subparsers.add_parser("utility", help=utility_help)

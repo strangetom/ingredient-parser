@@ -70,6 +70,13 @@ VALID_AROW_PARAMS = {
     "epsilon": (float, int),
 }
 
+# Valid parameter options for all training algorithms and expected types
+VALID_GLOBAL_PARAMS = {
+    "feature.minfreq": (int,),
+    "feature.possible_states": (bool,),
+    "feature.possible_transitions": (bool,),
+}
+
 
 def validate_lbfgs_params(lbfgs_params: dict) -> None:
     """Validate LBFGS training algorithm parameters.
@@ -234,6 +241,36 @@ def validate_arow_params(arow_params: dict) -> None:
                 raise ValueError(f"Parameter values for {key} should be {type_str}")
 
 
+def validate_global_params(global_params: dict) -> None:
+    """Validate global training algorithm parameters, applicable to all algorithms
+
+    Check that the parameter names are valid.
+    Check that the parameter value types are valid.
+
+    Parameters
+    ----------
+    global_params : dict
+        dict of parameters and their values.
+
+    Raises
+    ------
+    ValueError
+        Expection indicating invalid parameter.
+    """
+    for key, value in global_params.items():
+        if key not in VALID_GLOBAL_PARAMS.keys():
+            raise ValueError(f"Unknown global parameter: {key}")
+
+        type_ = VALID_GLOBAL_PARAMS[key]
+        type_str = f"list[{'|'.join(t.__name__ for t in type_)}]"
+        if not isinstance(value, list):
+            raise ValueError(f"Parameter values for {key} should be {type_str}")
+
+        for v in value:
+            if not isinstance(v, type_):
+                raise ValueError(f"Parameter values for {key} should be {type_str}")
+
+
 def param_combos(params: dict) -> list[dict]:
     """Generate list of dictionaries covering all possible combinations of parameters
     and their values given in the params input.
@@ -295,6 +332,9 @@ def generate_argument_sets(args: argparse.Namespace) -> list[list]:
         elif algo == "arow":
             params = args.arow_params
 
+        # Join alogithm specifc parameters with global parameters
+        params = params | args.global_params
+
         # Generate all combinations of parameters
         for parameter_set in param_combos(params):
             arguments = [
@@ -328,7 +368,7 @@ def train_model_grid_search(
     algo : str
         Training algorithm
     parameters : dict
-        Training algorithm specific hyperparameters
+        Dict of global and training algorithm specific hyperparameters
     vectors : DataVectors
         Vectors loaded from training csv files
     split : float
@@ -376,14 +416,8 @@ def train_model_grid_search(
 
     # Train model
     trainer = pycrfsuite.Trainer(algo, verbose=False)
-    # Join default parameters with algorithm specific combination
-    trainer.set_params(
-        {
-            "feature.possible_states": True,
-            "feature.possible_transitions": True,
-        }
-        | parameters
-    )
+    # Set parameters
+    trainer.set_params(parameters)
     for X, y in zip(features_train, truth_train):
         trainer.append(X, y)
     trainer.train(str(save_model))
@@ -431,6 +465,9 @@ def grid_search(args: argparse.Namespace):
 
     if args.arow_params is not None:
         validate_arow_params(args.arow_params)
+
+    if args.global_params != dict():
+        validate_global_params(args.global_params)
 
     arguments = generate_argument_sets(args)
 
