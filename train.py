@@ -2,6 +2,7 @@
 
 import argparse
 import json
+import os
 from random import randint
 
 from train import (
@@ -113,7 +114,7 @@ if __name__ == "__main__":
     multiple_parser.add_argument(
         "-p",
         "--processes",
-        default=None,
+        default=os.cpu_count() - 1,
         type=int,
         help="Number of processes to spawn. Default to number of cpu cores.",
     )
@@ -156,7 +157,7 @@ if __name__ == "__main__":
     gridsearch_parser.add_argument(
         "-p",
         "--processes",
-        default=None,
+        default=os.cpu_count() - 1,
         type=int,
         help="Number of processes to spawn. Default to number of cpu cores.",
     )
