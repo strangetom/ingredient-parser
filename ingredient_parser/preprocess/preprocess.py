@@ -895,6 +895,9 @@ class PreProcessor:
             "is_short_phrase": len(self.tokenized_sentence) < 3,
         }
 
+        if token != stem(token):
+            features["token"] = token
+
         if index > 0:
             prev_token = self.tokenized_sentence[index - 1]
             features["prev_pos"] = "+".join(
