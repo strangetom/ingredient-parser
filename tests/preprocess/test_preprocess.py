@@ -263,7 +263,6 @@ class TestPreProcessor_sentence_features:
                 "prev_is_after_plus2": False,
             },
         ]
-
         assert p.sentence_features() == expected
 
     def test_defer_pos_tagging(self):
@@ -404,6 +403,7 @@ class TestPreProcessor_sentence_features:
                 "is_after_comma": False,
                 "is_after_plus": False,
                 "is_short_phrase": False,
+                "token": "beans",
                 "prev_pos": "JJ+NNS",
                 "prev_stem": "green",
                 "prev_is_capitalised": False,
