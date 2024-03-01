@@ -182,42 +182,42 @@ if __name__ == "__main__":
     )
     gridsearch_parser.add_argument(
         "--lbfgs-params",
-        help="""LBFGS algorithm parameters. 
+        help="""LBFGS algorithm parameters as JSON. 
         The values for each parameter should be a list.
         Any parameters not given will take their default value.""",
         action=ParseJsonArg,
     )
     gridsearch_parser.add_argument(
         "--ap-params",
-        help="""AP algorithm parameters. 
+        help="""AP algorithm parameters as JSON. 
         The values for each parameter should be a list.
         Any parameters not given will take their default value.""",
         action=ParseJsonArg,
     )
     gridsearch_parser.add_argument(
         "--l2sgd-params",
-        help="""L2GSD algorithm parameters. 
+        help="""L2GSD algorithm parameters as JSON. 
         The values for each parameter should be a list.
         Any parameters not given will take their default value.""",
         action=ParseJsonArg,
     )
     gridsearch_parser.add_argument(
         "--pa-params",
-        help="""PA algorithm parameters. 
+        help="""PA algorithm parameters as JSON. 
         The values for each parameter should be a list.
         Any parameters not given will take their default value.""",
         action=ParseJsonArg,
     )
     gridsearch_parser.add_argument(
         "--arow-params",
-        help="""AROW algorithm parameters. 
+        help="""AROW algorithm parameters as JSON. 
         The values for each parameter should be a list.
         Any parameters not given will take their default value.""",
         action=ParseJsonArg,
     )
     gridsearch_parser.add_argument(
         "--global-params",
-        help="""Global algorithm parameters, applicable to all algorithms. 
+        help="""Global algorithm parameters, applicable to all algorithms, as JSON. 
         The values for each parameter should be a list.
         Any parameters not given will take their default value.""",
         action=ParseJsonArg,
