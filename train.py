@@ -1,10 +1,27 @@
+#!/usr/bin/env python3
+
 import argparse
+import json
+import os
+from random import randint
 
 from train import (
     check_label_consistency,
+    grid_search,
     train_multiple,
     train_single,
 )
+
+
+class ParseJsonArg(argparse.Action):
+    """Custom argparse.Action to parse JSON argument into dict."""
+
+    def __init__(self, option_strings, dest, **kwargs):
+        super().__init__(option_strings, dest, **kwargs)
+
+    def __call__(self, parser, namespace, values, option_strings):
+        setattr(namespace, self.dest, json.loads(values))
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
@@ -38,6 +55,12 @@ if __name__ == "__main__":
         "--save-model",
         default="ingredient_parser/model.crfsuite",
         help="Path to save model to",
+    )
+    train_parser.add_argument(
+        "--seed",
+        default=None,
+        type=int,
+        help="Seed value used for train/test split.",
     )
     train_parser.add_argument(
         "--html",
@@ -97,9 +120,108 @@ if __name__ == "__main__":
     multiple_parser.add_argument(
         "-p",
         "--processes",
-        default=None,
+        default=os.cpu_count() - 1,
         type=int,
         help="Number of processes to spawn. Default to number of cpu cores.",
+    )
+
+    gridsearch_parser_help = (
+        "Grid search over all combinations of model hyperparameters."
+    )
+    gridsearch_parser = subparsers.add_parser("gridsearch", help=multiple_parser_help)
+    gridsearch_parser.add_argument(
+        "--database",
+        help="Path to database of training data",
+        type=str,
+        dest="database",
+        required=True,
+    )
+    gridsearch_parser.add_argument(
+        "--datasets",
+        help="Datasets to use in training and evaluating the model",
+        dest="datasets",
+        nargs="*",
+        default=["bbc", "cookstr", "nyt"],
+    )
+    gridsearch_parser.add_argument(
+        "--split",
+        default=0.25,
+        type=float,
+        help="Fraction of data to be used for testing",
+    )
+    gridsearch_parser.add_argument(
+        "--save-model",
+        default="ingredient_parser/model.crfsuite",
+        help="Path to save model to",
+    )
+    gridsearch_parser.add_argument(
+        "--keep-models",
+        action="store_true",
+        default=False,
+        help="Keep models after evaluation instead of deleting.",
+    )
+    gridsearch_parser.add_argument(
+        "-p",
+        "--processes",
+        default=os.cpu_count() - 1,
+        type=int,
+        help="Number of processes to spawn. Default to number of cpu cores.",
+    )
+    gridsearch_parser.add_argument(
+        "--seed",
+        default=randint(0, 1_000_000_000),
+        type=int,
+        help="Seed value used for train/test split.",
+    )
+    gridsearch_parser.add_argument(
+        "--algos",
+        default=["lbfgs"],
+        choices=["lbfgs", "ap", "l2sgd", "pa", "arow"],
+        nargs="+",
+        help="CRF training algorithms to use.",
+    )
+    gridsearch_parser.add_argument(
+        "--lbfgs-params",
+        help="""LBFGS algorithm parameters as JSON. 
+        The values for each parameter should be a list.
+        Any parameters not given will take their default value.""",
+        action=ParseJsonArg,
+    )
+    gridsearch_parser.add_argument(
+        "--ap-params",
+        help="""AP algorithm parameters as JSON. 
+        The values for each parameter should be a list.
+        Any parameters not given will take their default value.""",
+        action=ParseJsonArg,
+    )
+    gridsearch_parser.add_argument(
+        "--l2sgd-params",
+        help="""L2GSD algorithm parameters as JSON. 
+        The values for each parameter should be a list.
+        Any parameters not given will take their default value.""",
+        action=ParseJsonArg,
+    )
+    gridsearch_parser.add_argument(
+        "--pa-params",
+        help="""PA algorithm parameters as JSON. 
+        The values for each parameter should be a list.
+        Any parameters not given will take their default value.""",
+        action=ParseJsonArg,
+    )
+    gridsearch_parser.add_argument(
+        "--arow-params",
+        help="""AROW algorithm parameters as JSON. 
+        The values for each parameter should be a list.
+        Any parameters not given will take their default value.""",
+        action=ParseJsonArg,
+    )
+    gridsearch_parser.add_argument(
+        "--global-params",
+        help="""Global algorithm parameters, applicable to all algorithms, as JSON. 
+        The values for each parameter should be a list.
+        Any parameters not given will take their default value.""",
+        action=ParseJsonArg,
+        default=dict(),
     )
 
     utility_help = "Utilities to aid cleaning training data."
@@ -130,6 +252,8 @@ if __name__ == "__main__":
         train_single(args)
     elif args.command == "multiple":
         train_multiple(args)
+    elif args.command == "gridsearch":
+        grid_search(args)
     elif args.command == "utility":
         if args.utility == "consistency":
             check_label_consistency(args)

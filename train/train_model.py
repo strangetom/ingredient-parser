@@ -1,117 +1,25 @@
 #!/usr/bin/env python3
 
 import argparse
-import os
-from dataclasses import dataclass
-from itertools import chain
-from multiprocessing import Pool
+import concurrent.futures as cf
+import contextlib
+from random import randint
 from statistics import mean, stdev
 
-import numpy as np
 import pycrfsuite
-from sklearn.metrics import classification_report
 from sklearn.model_selection import train_test_split
+from tqdm import tqdm
 
 from .test_results_to_detailed_results import test_results_to_detailed_results
 from .test_results_to_html import test_results_to_html
-from .training_utils import DataVectors, load_datasets
-
-
-@dataclass
-class Metrics:
-    """Metrics returned by sklearn.metrics.classification_report for each label"""
-
-    precision: float
-    recall: float
-    f1_score: float
-    support: int
-
-
-@dataclass
-class TokenStats:
-    """Statistics for token classification performance"""
-
-    NAME: Metrics
-    QTY: Metrics
-    UNIT: Metrics
-    COMMENT: Metrics
-    PREP: Metrics
-    PUNC: Metrics
-    macro_avg: Metrics
-    weighted_avg: Metrics
-    accuracy: float
-
-
-@dataclass
-class SentenceStats:
-    """Statistics for sentence classification performance"""
-
-    accuracy: float
-
-
-@dataclass
-class Stats:
-    """Statistics for token and sentence classification performance"""
-
-    token: TokenStats
-    sentence: SentenceStats
-
-
-def evaluate(predictions: list[list[str]], truths: list[list[str]]) -> Stats:
-    """Calculate statistics on the predicted labels for the test data.
-
-    Parameters
-    ----------
-    predictions : list[list[str]]
-        Predicted labels for each test sentence
-    truths : list[list[str]]
-        True labels for each test sentence
-
-    Returns
-    -------
-    Stats
-        Dataclass holding token and sentence statistics:
-    """
-    # Generate token statistics
-    # Flatten prediction and truth lists
-    flat_predictions = list(chain.from_iterable(predictions))
-    flat_truths = list(chain.from_iterable(truths))
-    labels = list(set(flat_predictions))
-
-    report = classification_report(
-        flat_truths,
-        flat_predictions,
-        labels=labels,
-        output_dict=True,
-    )
-
-    # Convert report to TokenStats dataclass
-    token_stats = {}
-    for k, v in report.items():
-        # Convert dict to Metrics
-        if k in labels + ["macro avg", "weighted avg"]:
-            k = k.replace(" ", "_")
-            token_stats[k] = Metrics(
-                v["precision"], v["recall"], v["f1-score"], int(v["support"])
-            )
-        else:
-            token_stats[k] = v
-
-    token_stats = TokenStats(**token_stats)
-
-    # Generate sentence statistics
-    # The only statistics that makes sense here is accuracy because there are only
-    # true-positive results (i.e. correct) and false-negative results (i.e. incorrect)
-    correct_sentences = len([p for p, t in zip(predictions, truths) if p == t])
-    sentence_stats = SentenceStats(correct_sentences / len(predictions))
-
-    return Stats(token_stats, sentence_stats)
+from .training_utils import DataVectors, Stats, evaluate, load_datasets
 
 
 def train_model(
     vectors: DataVectors,
     split: float,
     save_model: str,
+    seed: int | None,
     html: bool,
     detailed_results: bool,
 ) -> Stats:
@@ -126,6 +34,9 @@ def train_model(
         Fraction of vectors to use for evaluation.
     save_model : str
         Path to save trained model to.
+    seed : int | None
+        Integer used as seed for splitting the vectors between the training and
+        testing sets. If None, a random seed is generated within this function.
     html : bool
         If True, write html file of incorrect evaluation sentences
         and print out details about OTHER labels.
@@ -138,11 +49,9 @@ def train_model(
     Stats
         Statistics evaluating the model
     """
-    # When using multiprocessing each process seems to start the RNG with the same
-    # seed, and because train_test_split uses np.random to randomise the data, each
-    # process ends up with the identical split.
-    # Reseed the RNG to make each split different.
-    np.random.seed(int.from_bytes(os.urandom(4), byteorder="little"))
+    # Generate random seed for the train/test split if none provided.
+    if seed is None:
+        seed = randint(0, 1_000_000_000)
 
     # Split data into train and test sets
     # The stratify argument means that each dataset is represented proprtionally
@@ -164,6 +73,7 @@ def train_model(
         vectors.source,
         test_size=split,
         stratify=vectors.source,
+        random_state=seed,
     )
     print(f"[INFO] {len(features_train):,} training vectors.")
     print(f"[INFO] {len(features_test):,} testing vectors.")
@@ -172,10 +82,14 @@ def train_model(
     trainer = pycrfsuite.Trainer(verbose=False)
     trainer.set_params(
         {
+            "feature.minfreq": 0,
             "feature.possible_states": True,
             "feature.possible_transitions": True,
-            "c1": 0.2,
-            "c2": 1,
+            "c1": 0.1,
+            "c2": 0.5,
+            "max_linesearch": 5,
+            "num_memories": 3,
+            "period": 5,
         }
     )
     for X, y in zip(features_train, truth_train):
@@ -226,7 +140,9 @@ def train_single(args: argparse.Namespace) -> None:
         Model training configuration
     """
     vectors = load_datasets(args.database, args.datasets)
-    stats = train_model(vectors, args.split, args.save_model, args.html, args.detailed)
+    stats = train_model(
+        vectors, args.split, args.save_model, args.seed, args.html, args.detailed
+    )
 
     print("Sentence-level results:")
     print(f"\tAccuracy: {100*stats.sentence.accuracy:.2f}%")
@@ -250,12 +166,18 @@ def train_multiple(args: argparse.Namespace) -> None:
     """
     vectors = load_datasets(args.database, args.datasets)
 
+    # None: the 'None' argument is for the seed. This is set to None so each
+    # iteration of the training function uses a different random seed.
     arguments = [
-        (vectors, args.split, args.save_model, args.html, args.detailed)
+        (vectors, args.split, args.save_model, None, args.html, args.detailed)
     ] * args.runs
-    with Pool(processes=args.processes) as pool:
-        print("[INFO] Created multiprocessing pool for training models in parallel.")
-        eval_results = pool.starmap(train_model, arguments)
+
+    eval_results = []
+    with contextlib.redirect_stdout(None):  # Suppress print output
+        with cf.ProcessPoolExecutor(max_workers=args.processes) as executor:
+            futures = [executor.submit(train_model, *a) for a in arguments]
+            for future in tqdm(cf.as_completed(futures), total=len(futures)):
+                eval_results.append(future.result())
 
     word_accuracies, sentence_accuracies = [], []
     for result in eval_results:

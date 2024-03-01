@@ -81,17 +81,13 @@ The current performance of the model is
 .. code::
 
     Sentence-level results:
-        Total: 14982
-        Correct: 14021
-        Incorrect: 961
-        -> 93.59% correct
+        Accuracy: 93.67%
 
     Word-level results:
-        Total: 105360
-        Correct: 102741
-        Incorrect: 2619
-        -> 97.51% correct
-
+        Accuracy 97.59%
+        Precision (micro) 97.57%
+        Recall (micro) 97.59%
+        F1 score (micro) 97.58%
 
 
 There will always be some variation in model performance each time the model is trained because the training data is partitioned randomly each time. If the model is representing the training data well, then the variation in performance metrics should be small (i.e. << 1%).
@@ -104,8 +100,54 @@ The model training process can be executed multiple times to obtain the average 
 
 where the ``--runs`` argument sets the number of training cycles to run.
 
+Tuning the model
+^^^^^^^^^^^^^^^^
+
+pycrfsuite offers a few different algorithms for training the model, each of which has a number of hyperparameters that can be used to tune its performance. The selection of the best algorithm and optimal hyperparameters involves iterating over the algorithms and their hyperparamters and evaluating the trade-offs between model size, model accuracy and training time.
+
+To run a grid search over a number of different algorithms and hyperparameters for each one, the ``gridsearch`` subcommand of ``train.py`` can be used.
+
+.. code:: bash
+
+    # Show all the options
+    $ python train.py gridsearch --help
+    
+    # Train models using the LBFGS and AP algorithms, using default hyperparameters
+    $ python train.py gridseach --database train/data/training.sqlite3 --algos lbfgs ap
+
+    # Train models using the LBFGS algorithm, using all combinations of the specified 
+    # hyperparameters and the default values for any not specified
+    $ python train.py gridseach --database train/data/training.sqlite3 --algos lbfgs --lbfgs-params '{"c1": [0.05, 0.1, 0.5, 1], "c2":[0.1, 0.5, 1, 2]}'
+
+    # Train models using the LBFGS and AP algorithms, only varying the global hyperparameters
+    # which apply to all models
+    $ python train.py gridseach --database train/data/training.sqlite3 --algos lbfgs  ap --global-params '{"feature.minfreq":[0, 1, 5],"feature.possible_transitions":[true, false],"feature.possible_states":[true, false]}'
+
+When a grid search is performed, the same train/test split of the data is used for every model, so the performances can be directly compared. Each model trained is given a random unique name. By default, the models are deleted after their performance has been evaluated. To keep the models, the ``--keep-models`` option can be used.
+
+For example, to train models using each of the possible algorithms with their default hyperparameters:
+
+.. code:: bash
+
+    $ python train.py gridsearch --database train/data/training.sqlite3 --algos lbfgs l2sgd ap pa arow
+    [INFO] Loading and transforming training data.
+    [INFO] 59,928 usable vectors
+    [INFO] 72 discarded due to OTHER labels
+    [INFO] Grid search over 5 hyperparameters combinations.
+    [INFO] 727897090 is the random seed used for the train/test split.
+    100%|█████████████████████████████████████████████████████████| 5/5 [02:51<00:00, 34.32s/it]
+    ┌─────────────┬──────────────┬──────────────────┬─────────────────────┬─────────┬─────────────┐
+    │ Algorithm   │ Parameters   │ Token accuracy   │ Sentence accuracy   │ Time    │   Size (MB) │
+    ├─────────────┼──────────────┼──────────────────┼─────────────────────┼─────────┼─────────────┤
+    │ lbfgs       │ {}           │ 97.32%           │ 93.07%              │ 0:02:48 │        3.31 │
+    │ l2sgd       │ {}           │ 97.30%           │ 93.04%              │ 0:00:57 │        3.31 │
+    │ ap          │ {}           │ 97.06%           │ 92.18%              │ 0:00:34 │        2.25 │
+    │ pa          │ {}           │ 97.05%           │ 92.11%              │ 0:00:48 │        2.21 │
+    │ arow        │ {}           │ 95.46%           │ 87.61%              │ 0:00:44 │        1.82 │
+    └─────────────┴──────────────┴──────────────────┴─────────────────────┴─────────┴─────────────┘
+
 Historical performance
-~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^
 
 The model performance has improved over time. The figure below shows the sentence- and word-level performance for the last few releases.
 
