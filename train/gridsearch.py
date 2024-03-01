@@ -333,7 +333,11 @@ def generate_argument_sets(args: argparse.Namespace) -> list[list]:
             params = args.arow_params
 
         # Join alogithm specifc parameters with global parameters
-        params = params | args.global_params
+        if params is None:
+            # No algorithm specific parameters set
+            params = args.global_params
+        else:
+            params = params | args.global_params
 
         # Generate all combinations of parameters
         for parameter_set in param_combos(params):
