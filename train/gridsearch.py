@@ -348,7 +348,7 @@ def generate_argument_sets(args: argparse.Namespace) -> list[list]:
                 args.split,
                 args.save_model,
                 args.seed,
-                args.delete_models,
+                args.keep_models,
             ]
             argument_sets.append(arguments)
 
@@ -362,7 +362,7 @@ def train_model_grid_search(
     split: float,
     save_model: str,
     seed: int,
-    delete_model: bool,
+    keep_model: bool,
 ) -> dict:
     """Train model using given training algorithm and parameters,
     returning model performance statistics, model parameters and elapsed training time.
@@ -382,8 +382,8 @@ def train_model_grid_search(
     seed : int
         Integer used as seed for splitting the vectors between the training and
         testing sets.
-    delete_model : bool
-        If True, delete model after evalusation
+    keep_model : bool
+        If True, keep model after evaluation, otherwise delete it.
 
     Returns
     -------
@@ -434,7 +434,7 @@ def train_model_grid_search(
     labels_pred = [tagger.tag(X) for X in features_test]
     stats = evaluate(labels_pred, truth_test)
 
-    if delete_model:
+    if not keep_model:
         save_model.unlink(missing_ok=True)
 
     return {

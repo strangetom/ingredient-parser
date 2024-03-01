@@ -155,10 +155,10 @@ if __name__ == "__main__":
         help="Path to save model to",
     )
     gridsearch_parser.add_argument(
-        "--delete-models",
+        "--keep-models",
         action="store_true",
         default=False,
-        help="Delete models after evaluation",
+        help="Keep models after evaluation instead of deleting.",
     )
     gridsearch_parser.add_argument(
         "-p",
