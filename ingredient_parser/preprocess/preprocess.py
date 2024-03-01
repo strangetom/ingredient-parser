@@ -30,7 +30,6 @@ from .regex import (
 
 
 class PreProcessor:
-
     """Recipe ingredient sentence PreProcessor class.
 
     Performs the necessary preprocessing on a sentence to generate the features

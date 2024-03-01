@@ -21,7 +21,6 @@ WORD_CHAR = re.compile(r"\w")
 
 
 class PostProcessor:
-
     """Recipe ingredient sentence PostProcessor class.
 
     Performs the necessary postprocessing on the sentence tokens and labels and scores
