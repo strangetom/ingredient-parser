@@ -5,17 +5,29 @@ repos:
     rev: v4.5.0
     hooks:
       - id: check-added-large-files
+        stages: [commit]
       - id: check-ast
+        stages: [commit]
       - id: check-toml
+        stages: [commit]
       - id: check-yaml
+        stages: [commit]
       - id: debug-statements
-      - id: detect-private-key
-      # TODO: - id: end-of-file-fixer
-      - id: forbid-new-submodules
-      # TODO: - id: trailing-whitespace
+        stages: [commit]
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.2.1
+    rev: v0.3.0
     hooks:
       - id: ruff
         args: ["--fix"]
+        stages: [commit]
       - id: ruff-format
+        stages: [commit]
+  - repo: local
+    hooks:
+      - id: pytest-check
+        name: pytest-check
+        entry: coverage run -m pytest
+        stages: [push]
+        language: system
+        pass_filenames: false
+        always_run: true
