@@ -1,18 +1,11 @@
 /* Tweak cards on homepage */
-.sd-row {
-    --sd-gutter-y: 1.5rem;
-}
-
 .sd-card {
-    border: none !important;
     background-color: var(--pst-color-on-background);
 }
-
 .sd-card-header {
-    font-size: 2em;
+    font-size: 1.6rem;
     border-bottom: none !important;
 }
-
 .sd-card-footer {
     border-top: none !important;
 }
@@ -35,10 +28,7 @@ strong {
     border-bottom: 1px solid var(--pst-color-on-surface);
 }
 
-/* Use colour with better contrast against dark background */
-a:visited {
-    color: var(--pst-color-warning-highlight);
-}
+
 
 /* Set theme using gruvbox colours */
 html[data-theme=dark] {
@@ -81,12 +71,12 @@ html[data-theme=dark] {
     --pst-color-border: #7c6f64;
     --pst-color-inline-code: #fe8019;
     --pst-color-target: #3e686ab3;
-    --pst-color-background: #32302f;
+    --pst-color-background: #1d2021;
     --pst-color-on-background: #504945;
     --pst-color-surface: #3c3836;
     --pst-color-on-surface: #7c6f64;
     --pst-color-link: var(--pst-color-primary);
-    --pst-color-link-hover: var(--pst-color-secondary);
+    --pst-color-link-hover: var(--pst-color-primary);
 }
 
 .navbar {
