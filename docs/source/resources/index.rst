@@ -14,7 +14,7 @@ Blog Posts
 
   Part 1 of a series of 3 blog posts describing how the New York Times work above was resurrected and modernised, leading to the https://zestfuldata.com/ API.
 
-* `Statistical NLP on OpenStreetMap <https://medium.com/@albarrentine/statistical-nlp-on-openstreetmap-b9d573e6cc86>`_ (medium.com 2016)
+* `Statistical NLP on OpenStreetMap <https://medium.com/@albarrentine/statistical-nlp-on-openstreetmap-b9d573e6cc86>`_ (medium.com, 2016)
 
   The first of two blog posts describing how the `libpostal <https://github.com/openvenues/libpostal>`_ uses natural language processing to parse addresses. The are many similarities between the approaches libpostal and this package take.
 
