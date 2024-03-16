@@ -28,6 +28,7 @@ classifiers = [
 dependencies = [
     "nltk",
     "python-crfsuite",
+    "pint",
 ]
 
 [project.urls]
