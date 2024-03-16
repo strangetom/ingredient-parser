@@ -53,8 +53,8 @@ class IngredientAmount:
 
     Attributes
     ----------
-    quantity : str
-        Parsed ingredient quantity
+    quantity : float | str
+        Parsed ingredient quantity, as a float where possible
     unit : str | pint.Unit
         Unit of parsed ingredient quantity
         If the quantity is recognised in the pint unit registry, a pint.Unit
@@ -72,7 +72,7 @@ class IngredientAmount:
         Default is False.
     """
 
-    quantity: str
+    quantity: float | str
     unit: str | pint.Unit
     text: str
     confidence: float
@@ -89,6 +89,12 @@ class IngredientAmount:
             self.text = pluralise_units(self.text)
             if isinstance(self.unit, str):
                 self.unit = pluralise_units(self.unit)
+
+        # Try to convert quantity to a float
+        try:
+            self.quantity = float(self.quantity)
+        except ValueError:
+            pass
 
         # Assign starting_index to _starting_index
         self._starting_index = starting_index
