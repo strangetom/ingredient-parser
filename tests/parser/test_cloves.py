@@ -22,7 +22,7 @@ class TestParser_cloves:
         parsed = parse_ingredient("1 tsp cloves")
 
         assert "cloves" in parsed.name.text
-        assert "cloves" not in parsed.amount[0].unit
+        assert "cloves" != parsed.amount[0].unit
 
     def test_clove_unit_singular(self):
         """

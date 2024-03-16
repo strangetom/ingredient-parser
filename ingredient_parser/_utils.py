@@ -9,9 +9,12 @@ from importlib.resources import as_file, files
 from itertools import islice
 from typing import Iterator
 
+import pint
 from nltk import data, download
 
 from ._constants import UNITS
+
+UREG = pint.UnitRegistry()
 
 
 def pluralise_units(sentence: str) -> str:
@@ -45,6 +48,38 @@ def pluralise_units(sentence: str) -> str:
         sentence = re.sub(rf"\b({singular})\b", f"{plural}", sentence)
 
     return sentence
+
+
+def convert_to_pint_unit(unit: str) -> str | pint.Unit:
+    """Convert a unit to a pint.Unit object, if possible.
+    If the unit is not found in the pint Unit Registry, just return the input unit.
+
+    Parameters
+    ----------
+    unit : str
+        Unit to find in pint Unit Registry
+
+    Returns
+    -------
+    str | pint.Unit
+        pint.Unit object if unit found in Unit Registry, else input string
+    """
+    # Define some replacements to ensure correct matches in pint Unit Registry
+    replacements = {
+        "fl oz": "floz",
+        "fluid oz": "fluid_ounce",
+        "fl ounce": "fluid_ounce",
+        "fluid ounce": "fluid_ounce",
+    }
+    for original, replacement in replacements.items():
+        unit = unit.replace(original, replacement)
+
+    # If unit not empty string and found in Unit Registry, return pint.Unit object
+    # for unit
+    if unit != "" and unit in UREG:
+        return pint.Unit(unit)
+
+    return unit
 
 
 def consume(iterator: Iterator, n: int) -> None:

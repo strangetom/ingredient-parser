@@ -6,8 +6,12 @@ from operator import itemgetter
 from statistics import mean
 from typing import Any, Generator, Iterator
 
-from ingredient_parser._constants import APPROXIMATE_TOKENS, SINGULAR_TOKENS, STOP_WORDS
-from ingredient_parser._utils import consume
+from ingredient_parser._constants import (
+    APPROXIMATE_TOKENS,
+    SINGULAR_TOKENS,
+    STOP_WORDS,
+)
+from ingredient_parser._utils import consume, convert_to_pint_unit
 
 from .dataclasses import (
     CompositeIngredientAmount,
@@ -413,9 +417,20 @@ class PostProcessor:
 
                     # The first amount is made up of the first and last items
                     # Note that this cannot be singular, but may be approximate
+                    quantity = matching_tokens.pop(0)
+                    unit = matching_tokens.pop(-1)
+                    text = " ".join((quantity, unit)).strip()
+
+                    # If the unit is recognised in the pint unit registry, use
+                    # a pint.Unit object instead of a string. This has the benefit of
+                    # simplifying alternative unit representations into a single
+                    # common representation
+                    unit = convert_to_pint_unit(unit)
+
                     first = IngredientAmount(
-                        quantity=matching_tokens.pop(0),
-                        unit=matching_tokens.pop(-1),
+                        quantity=quantity,
+                        unit=unit,
+                        text=text,
                         confidence=round(
                             mean([matching_scores.pop(0), matching_scores.pop(-1)]), 6
                         ),
@@ -432,13 +447,18 @@ class PostProcessor:
                     for i in range(0, len(matching_tokens), 2):
                         quantity = matching_tokens[i]
                         unit = matching_tokens[i + 1]
+                        text = " ".join((quantity, unit)).strip()
                         confidence = mean(matching_scores[i : i + 1])
+
+                        # Conver to pint.Unit if appropriate
+                        unit = convert_to_pint_unit(unit)
 
                         # If the first amount (e.g. 1 can) is approximate, so are all
                         # the pairs in between
                         amount = IngredientAmount(
                             quantity=quantity,
                             unit=unit,
+                            text=text,
                             confidence=round(confidence, 6),
                             starting_index=idx[match[i]],
                             SINGULAR=True,
@@ -508,16 +528,30 @@ class PostProcessor:
                     and tokens[last_unit_idx] in last_unit
                 ):
                     # First amount
+                    quantity_1 = tokens[match[0]]
+                    unit_1 = tokens[match[1]]
+                    text_1 = " ".join((quantity_1, unit_1)).strip()
+                    # Convert to pint.Unit if appropriate
+                    unit_1 = convert_to_pint_unit(unit_1)
+
                     first_amount = IngredientAmount(
-                        quantity=tokens[match[0]],
-                        unit=tokens[match[1]],
+                        quantity=quantity_1,
+                        unit=unit_1,
+                        text=text_1,
                         confidence=round(mean([scores[i] for i in match[0:2]]), 6),
                         starting_index=idx[first_unit_idx - 1],
                     )
                     # Second amount
+                    quantity_2 = tokens[match[2]]
+                    unit_2 = " ".join([tokens[i] for i in match[3:]])
+                    text_2 = " ".join((quantity_2, unit_2)).strip()
+                    # Convert to pint.Unit if appropriate
+                    unit_2 = convert_to_pint_unit(unit_2)
+
                     second_amount = IngredientAmount(
-                        quantity=tokens[match[2]],
-                        unit=" ".join([tokens[i] for i in match[3:]]),
+                        quantity=quantity_2,
+                        unit=unit_2,
+                        text=text_2,
                         confidence=round(mean([scores[i] for i in match[3:]]), 6),
                         starting_index=idx[last_unit_idx - 1],
                     )
@@ -700,11 +734,21 @@ class PostProcessor:
         # Then convert to IngredientAmount object
         processed_amounts = []
         for amount in amounts:
+            unit = " ".join(amount.unit)
+            text = " ".join((amount.quantity, unit)).strip()
+
+            # If the unit is recognised in the pint unit registry, use
+            # a pint.Unit object instead of a string. This has the benefit of
+            # simplifying alternative unit representations into a single
+            # common representation
+            unit = convert_to_pint_unit(unit)
+
             # Convert to an IngredientAmount object for returning
             processed_amounts.append(
                 IngredientAmount(
                     quantity=amount.quantity,
-                    unit=" ".join(amount.unit),
+                    unit=unit,
+                    text=text,
                     confidence=round(mean(amount.confidence), 6),
                     starting_index=amount._starting_index,
                     APPROXIMATE=amount.APPROXIMATE,

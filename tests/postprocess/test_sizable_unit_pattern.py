@@ -1,3 +1,5 @@
+import pint
+
 from ingredient_parser import PostProcessor
 from ingredient_parser.postprocess import (
     IngredientAmount,
@@ -44,19 +46,32 @@ class TestPostProcessor_sizable_unit_pattern:
         p = PostProcessor(sentence, tokens, labels, scores)
 
         expected = [
-            IngredientAmount(quantity="1", unit="can", confidence=0, starting_index=0),
+            IngredientAmount(
+                quantity="1", unit="can", text="1 can", confidence=0, starting_index=0
+            ),
             IngredientAmount(
                 quantity="28",
-                unit="ounces",
+                unit=pint.Unit("ounces"),
+                text="28 ounces",
                 confidence=0,
                 SINGULAR=True,
                 starting_index=1,
             ),
             IngredientAmount(
-                quantity="400", unit="g", confidence=0, starting_index=4, SINGULAR=True
+                quantity="400",
+                unit=pint.Unit("g"),
+                text="400 g",
+                confidence=0,
+                starting_index=4,
+                SINGULAR=True,
             ),
             IngredientAmount(
-                quantity="2", unit="cups", confidence=0, starting_index=7, SINGULAR=True
+                quantity="2",
+                unit=pint.Unit("cups"),
+                text="2 cups",
+                confidence=0,
+                starting_index=7,
+                SINGULAR=True,
             ),
         ]
 
@@ -103,16 +118,24 @@ class TestPostProcessor_sizable_unit_pattern:
         p = PostProcessor(sentence, tokens, labels, scores)
 
         expected = [
-            IngredientAmount(quantity="1", unit="can", confidence=0, starting_index=0),
+            IngredientAmount(
+                quantity="1", unit="can", text="1 can", confidence=0, starting_index=0
+            ),
             IngredientAmount(
                 quantity="28",
-                unit="ounces",
+                unit=pint.Unit("ounces"),
+                text="28 ounces",
                 confidence=0,
                 starting_index=1,
                 SINGULAR=True,
             ),
             IngredientAmount(
-                quantity="400", unit="g", confidence=0, starting_index=4, SINGULAR=True
+                quantity="400",
+                unit=pint.Unit("g"),
+                text="400 g",
+                confidence=0,
+                starting_index=4,
+                SINGULAR=True,
             ),
         ]
 
@@ -151,10 +174,13 @@ class TestPostProcessor_sizable_unit_pattern:
         p = PostProcessor(sentence, tokens, labels, scores)
 
         expected = [
-            IngredientAmount(quantity="1", unit="can", confidence=0, starting_index=0),
+            IngredientAmount(
+                quantity="1", unit="can", text="1 can", confidence=0, starting_index=0
+            ),
             IngredientAmount(
                 quantity="28",
-                unit="ounces",
+                unit=pint.Unit("ounces"),
+                text="28 ounces",
                 confidence=0,
                 starting_index=1,
                 SINGULAR=True,
@@ -198,10 +224,13 @@ class TestPostProcessor_sizable_unit_pattern:
         p = PostProcessor(sentence, tokens, labels, scores)
 
         expected = [
-            IngredientAmount(quantity="1", unit="can", confidence=0, starting_index=3),
+            IngredientAmount(
+                quantity="1", unit="can", text="1 can", confidence=0, starting_index=3
+            ),
             IngredientAmount(
                 quantity="28",
-                unit="ounces",
+                unit=pint.Unit("ounces"),
+                text="28 ounces",
                 confidence=0,
                 starting_index=4,
                 SINGULAR=True,

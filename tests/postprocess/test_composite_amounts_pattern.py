@@ -1,3 +1,5 @@
+import pint
+
 from ingredient_parser import PostProcessor
 from ingredient_parser.postprocess import (
     CompositeIngredientAmount,
@@ -55,10 +57,18 @@ class TestPostProcessor_composite_amounts_pattern:
             CompositeIngredientAmount(
                 amounts=[
                     IngredientAmount(
-                        quantity="1", unit="lb", confidence=0, starting_index=3
+                        quantity="1",
+                        unit=pint.Unit("lb"),
+                        text="1 lb",
+                        confidence=0,
+                        starting_index=3,
                     ),
                     IngredientAmount(
-                        quantity="2", unit="oz", confidence=0, starting_index=5
+                        quantity="2",
+                        unit=pint.Unit("oz"),
+                        text="2 oz",
+                        confidence=0,
+                        starting_index=5,
                     ),
                 ],
                 join="",
@@ -99,10 +109,18 @@ class TestPostProcessor_composite_amounts_pattern:
             CompositeIngredientAmount(
                 amounts=[
                     IngredientAmount(
-                        quantity="2", unit="pints", confidence=0, starting_index=3
+                        quantity="2",
+                        unit=pint.Unit("pints"),
+                        text="2 pints",
+                        confidence=0,
+                        starting_index=3,
                     ),
                     IngredientAmount(
-                        quantity="12.75", unit="fl oz", confidence=0, starting_index=5
+                        quantity="12.75",
+                        unit=pint.Unit("floz"),
+                        text="12.75 fl oz",
+                        confidence=0,
+                        starting_index=5,
                     ),
                 ],
                 join="",

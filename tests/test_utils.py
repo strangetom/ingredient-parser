@@ -1,6 +1,7 @@
+import pint
 import pytest
 
-from ingredient_parser._utils import consume, pluralise_units
+from ingredient_parser._utils import consume, convert_to_pint_unit, pluralise_units
 
 
 class TestUtils_pluralise_units:
@@ -46,3 +47,34 @@ class Test_consume:
         consume(it, None)
         with pytest.raises(StopIteration):
             next(it)
+
+
+class Test_convert_to_pint_unit:
+    def test_empty_string(self):
+        """
+        Test an empty string is returned if input
+        """
+        assert convert_to_pint_unit("") == ""
+
+    def test_simple_cases(self):
+        """
+        Test simple cases of units and plural variations are correctly
+        matched to pint.Unit objects.
+        This doesn't need to be comprehensive because we don't need to test
+        pint works.
+        """
+        assert convert_to_pint_unit("g") == pint.Unit("g")
+        assert convert_to_pint_unit("gram") == pint.Unit("g")
+        assert convert_to_pint_unit("grams") == pint.Unit("g")
+        assert convert_to_pint_unit("oz") == pint.Unit("oz")
+        assert convert_to_pint_unit("ounce") == pint.Unit("oz")
+        assert convert_to_pint_unit("ounces") == pint.Unit("oz")
+
+    def test_modified_cases(self):
+        """
+        Test fluid ounce variations are correctly matched to pint.Unit("fluid ounce")
+        """
+        assert convert_to_pint_unit("fl oz") == pint.Unit("fluid_ounce")
+        assert convert_to_pint_unit("fluid oz") == pint.Unit("fluid_ounce")
+        assert convert_to_pint_unit("fl ounce") == pint.Unit("fluid_ounce")
+        assert convert_to_pint_unit("fluid ounce") == pint.Unit("fluid_ounce")

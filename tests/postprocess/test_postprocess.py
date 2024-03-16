@@ -1,3 +1,4 @@
+import pint
 import pytest
 
 from ingredient_parser import PostProcessor
@@ -83,6 +84,7 @@ class TestPostProcessor_parsed:
                 IngredientAmount(
                     quantity="2",
                     unit="cans",
+                    text="2 cans",
                     confidence=0.966951,
                     starting_index=0,
                     APPROXIMATE=False,
@@ -90,7 +92,8 @@ class TestPostProcessor_parsed:
                 ),
                 IngredientAmount(
                     quantity="14",
-                    unit="ounces",
+                    unit=pint.Unit("ounces"),
+                    text="14 ounces",
                     confidence=0.994150,
                     starting_index=1,
                     APPROXIMATE=False,
@@ -115,6 +118,7 @@ class TestPostProcessor_parsed:
                 IngredientAmount(
                     quantity="2",
                     unit="cans",
+                    text="2 cans",
                     confidence=0.966951,
                     starting_index=0,
                     APPROXIMATE=False,
@@ -122,7 +126,8 @@ class TestPostProcessor_parsed:
                 ),
                 IngredientAmount(
                     quantity="14",
-                    unit="ounces",
+                    unit=pint.Unit("ounces"),
+                    text="14 ounces",
                     confidence=0.994150,
                     starting_index=1,
                     APPROXIMATE=False,

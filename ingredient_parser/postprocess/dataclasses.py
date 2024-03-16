@@ -3,6 +3,8 @@
 from dataclasses import InitVar, dataclass, field
 from statistics import mean
 
+import pint
+
 from ingredient_parser._utils import pluralise_units
 
 
@@ -53,8 +55,10 @@ class IngredientAmount:
     ----------
     quantity : str
         Parsed ingredient quantity
-    unit : str
+    unit : str | pint.Unit
         Unit of parsed ingredient quantity
+        If the quantity is recognised in the pint unit registry, use a pint.Unit
+        object.
     text : str
         Amount as a string, automatically generated from the quantity and unit
     confidence : float
@@ -69,8 +73,8 @@ class IngredientAmount:
     """
 
     quantity: str
-    unit: str
-    text: str = field(init=False)
+    unit: str | pint.Unit
+    text: str
     confidence: float
     starting_index: InitVar[int]
     APPROXIMATE: bool = False
@@ -82,9 +86,9 @@ class IngredientAmount:
         text field.
         """
         if self.quantity != "1" and self.quantity != "":
-            self.unit = pluralise_units(self.unit)
-
-        self.text = " ".join((self.quantity, self.unit)).strip()
+            self.text = pluralise_units(self.text)
+            if isinstance(self.unit, str):
+                self.unit = pluralise_units(self.unit)
 
         # Assign starting_index to _starting_index
         self._starting_index = starting_index
