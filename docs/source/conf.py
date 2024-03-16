@@ -17,9 +17,16 @@ author = "Tom Strange"
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
-extensions = ["sphinx.ext.autodoc", "sphinx.ext.napoleon", "sphinx_design"]
+extensions = [
+    "sphinx.ext.autodoc",
+    "sphinx.ext.napoleon",
+    "sphinx.ext.viewcode",
+    "sphinx_copybutton",
+    "sphinx_design",
+]
 
 # autodoc_typehints = "none"
+napoleon_numpy_docstring = True
 napoleon_use_param = False
 napoleon_use_rtype = False
 napoleon_use_keyword = False
@@ -38,16 +45,16 @@ version = ingredient_parser.__version__
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = "pydata_sphinx_theme"
+html_theme = "sphinx_book_theme"
 html_static_path = ["_static"]
 html_css_files = ["custom.css", "pygments.css"]
-
+html_title = f"Ingredient Parser {version}"
 html_context = {"default_mode": "dark"}
 
 
 html_theme_options = {
-    "collapse_navigation": True,
     "pygment_dark_style": "gruvbox-dark",
-    "navbar_end": ["navbar-icon-links"],
-    "github_url": "https://github.com/strangetom/ingredient-parser",
+    "repository_url": "https://github.com/strangetom/ingredient-parser",
+    "repository_branch": "master",
+    "use_repository_button": True,
 }
