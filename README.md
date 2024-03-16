@@ -22,14 +22,14 @@ Import the ```parse_ingredient``` function and pass it an ingredient sentence.
 >>> from ingredient_parser import parse_ingredient
 >>> parse_ingredient("3 pounds pork shoulder, cut into 2-inch chunks")
 ParsedIngredient(
-    name=IngredientText(text='pork shoulder', confidence=0.999196),
+    name=IngredientText(text='pork shoulder', confidence=0.999193),
     amount=[IngredientAmount(quantity='3',
-                             unit='pounds',
+                             unit=<Unit('pound')>,
                              text='3 pounds',
-                             confidence=0.998769,
+                             confidence=0.999906,,
                              APPROXIMATE=False,
                              SINGULAR=False)],
-    preparation=IngredientText(text='cut into 2 inch chunks', confidence=0.995614),
+    preparation=IngredientText(text='cut into 2 inch chunks', confidence=0.999193),
     comment=None,
     sentence='3 pounds pork shoulder, cut into 2-inch chunks'
 )
@@ -59,7 +59,7 @@ Before committing anything, install [pre-commit](https://pre-commit.com/) and ru
 pre-commit install
 ```
 
-to install the github pre-commit hook.
+to install the pre-commit hooks.
 
 There is a simple web app for testing the parser with ingredient sentences and showing the parsed output. To run the web app, run the command
 

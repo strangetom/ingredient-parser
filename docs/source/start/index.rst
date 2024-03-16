@@ -56,15 +56,15 @@ The :func:`parse_ingredient` function takes an ingredient sentence and return th
     >>> from ingredient_parser import parse_ingredient
     >>> parse_ingredient("2 yellow onions, finely chopped")
     ParsedIngredient(
-        name=IngredientText(text='yellow onions', confidence=0.0.982988),
+        name=IngredientText(text='yellow onions', confidence=0.993203),
         amount=[IngredientAmount(quantity='2',
                                  unit='',
                                  text='2',
-                                 confidence=0.998804,,
+                                 confidence=0.999468,,
                                  APPROXIMATE=False,
                                  SINGULAR=False)],
         preparation=IngredientText(text='finely chopped',
-                                   confidence=0.995613),
+                                   confidence=0.998604),
         comment=None,
         sentence='2 yellow onions, finely chopped'
     )
@@ -77,6 +77,8 @@ sentence
 
 amount
     The amounts parsed from the sentence. Each amount has a quantity and a unit, plus optional flags indicating if the amount is approximate or is for a singular item.
+
+    Where possible, the unit field is a `pint.Unit <https://pint.readthedocs.io/en/stable/>`_ object.
 
 name
     The name of the ingredient sentence, or None.
@@ -95,11 +97,11 @@ Each of the fields (except sentence) has a confidence value associated with it. 
 
     >>> from ingredient_parser import parse_ingredient
     >>> parse_ingredient("2 tbsp of olive oil", discard_isolated_stop_words=True) # default
-    ParsedIngredient(name=IngredientText(text='olive oil', confidence=0.993415),
+    ParsedIngredient(name=IngredientText(text='olive oil', confidence=0.990923),
         amount=[IngredientAmount(quantity='2',
-                                 unit='tbsps',
+                                 unit=<Unit('tablespoon')>,
                                  text='2 tbsps',
-                                 confidence=0.999329,
+                                 confidence=0.999799,
                                  APPROXIMATE=False,
                                  SINGULAR=False)],
         preparation=None,
@@ -107,15 +109,15 @@ Each of the fields (except sentence) has a confidence value associated with it. 
         sentence='2 tbsp of olive oil'
     )
     >>> parse_ingredient("2 tbsp of olive oil", discard_isolated_stop_words=False)
-    ParsedIngredient(name=IngredientText(text='olive oil', confidence=0.993415),
+    ParsedIngredient(name=IngredientText(text='olive oil', confidence=0.990923),
         amount=[IngredientAmount(quantity='2',
-                                 unit='tbsps',
+                                 unit=<Unit('tablespoon')>,
                                  text='2 tbsps',
-                                 confidence=0.999329,
+                                 confidence=0.999799,
                                  APPROXIMATE=False,
                                  SINGULAR=False)],
         preparation=None,
-        comment=IngredientText(text='of', confidence=0.836912),
+        comment=IngredientText(text='of', confidence=0.8852),
         sentence='2 tbsp of olive oil'
     )
 
@@ -139,7 +141,7 @@ The :func:`parse_multiple_ingredients` function is provided as a convenience fun
         ParsedIngredient(
             name=IngredientText(text='fresh lime juice', confidence=0.991891),
             amount=[IngredientAmount(quantity='3', 
-                                     unit='tablespoons', 
+                                     unit=<Unit('tablespoon')>,
                                      text='3 tablespoons',
                                      confidence=0.999459, 
                                      APPROXIMATE=False, 
@@ -151,7 +153,7 @@ The :func:`parse_multiple_ingredients` function is provided as a convenience fun
         ParsedIngredient(
             name=IngredientText(text='extra-virgin olive oil', confidence=0.996531), 
             amount=[IngredientAmount(quantity='2', 
-                                     unit='tablespoons', 
+                                     unit=<Unit('tablespoon')>,
                                      text='2 tablespoons',
                                      confidence=0.999259, 
                                      APPROXIMATE=False, 

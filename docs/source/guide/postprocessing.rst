@@ -52,10 +52,30 @@ For most cases, the amounts are determined by combining a QTY label with the fol
     ...
     >>> parsed = PostProcessor(sentence, tokens, labels, scores).parsed()
     >>> amounts = parsed.amount
-    [IngredientAmount(quantity='0.75', unit='cups', text='0.75 cups', confidence=0.999426, APPROXIMATE=False, SINGULAR=False),
-    IngredientAmount(quantity='170', unit='g', text='170 g', confidence=0.909345, APPROXIMATE=False, SINGULAR=False)]
+    [IngredientAmount(quantity='0.75', unit=<Unit('cup')>, text='0.75 cups', confidence=0.999921, APPROXIMATE=False, SINGULAR=False),
+    IngredientAmount(quantity='170', unit=<Unit('gram')>, text='170 g', confidence=0.996724, APPROXIMATE=False, SINGULAR=False)]
+
 
 There are two amounts identified: **0.75 cups** and **170 g**.
+
+Units
++++++
+
+The `pint <https://pint.readthedocs.io/en/stable/>`_ library is used to standardise the units where possible. If the unit in a parsed :class:`IngredientAmount` can be matched to a unit in the pint Unit Registry, then a ``pint.Unit`` object is used in place of the unit string.
+
+This has the benefit of standardising units that can be represented in different formats, for example a `gram` could be represented in the sentence as `g`, `gram`, `grams`. These will all be represented using the same ``<Unit('gram')>`` object in the parsed information.
+
+This has benefits if you wish to use the parsed information to convert between different units. For example:
+
+.. code:: python
+
+    >>> p = parse_ingredient("3/4 cup heavy cream")
+    >>> q = float(p.amount[0].quantity) * p.amount[0].unit
+    >>> q
+    0.75 <Unit('cup')>
+    >>> q.to("ml")
+    177.44117737499994 <Unit('milliliter')>
+
 
 IngredientAmount flags
 ++++++++++++++++++++++

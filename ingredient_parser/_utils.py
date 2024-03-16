@@ -63,6 +63,17 @@ def convert_to_pint_unit(unit: str) -> str | pint.Unit:
     -------
     str | pint.Unit
         pint.Unit object if unit found in Unit Registry, else input string
+
+    Examples
+    --------
+    >>> convert_to_pint_unit("")
+    ''
+
+    >>> convert_to_pint_unit("oz")
+    <Unit('ounce')>
+
+    >>> convert_to_pint_unit("fl oz)
+    <Unit('fluid_ounce')>
     """
     # Define some replacements to ensure correct matches in pint Unit Registry
     replacements = {

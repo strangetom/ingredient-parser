@@ -57,8 +57,8 @@ class IngredientAmount:
         Parsed ingredient quantity
     unit : str | pint.Unit
         Unit of parsed ingredient quantity
-        If the quantity is recognised in the pint unit registry, use a pint.Unit
-        object.
+        If the quantity is recognised in the pint unit registry, a pint.Unit
+        object is used.
     text : str
         Amount as a string, automatically generated from the quantity and unit
     confidence : float
