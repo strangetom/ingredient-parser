@@ -16,6 +16,16 @@ from ._constants import UNITS
 
 UREG = pint.UnitRegistry()
 
+# Dict mapping certain units to their imperial version in pint
+IMPERIAL_UNITS = {
+    "cup": "imperial_cup",
+    "floz": "imperial_floz",
+    "fluid_ounce": "imperial_fluid_ounce",
+    "quart": "imperial_quart",
+    "pint": "imperial_pint",
+    "gallon": "imperial_gallon",
+}
+
 
 def pluralise_units(sentence: str) -> str:
     """Pluralise units in the sentence.
@@ -50,7 +60,7 @@ def pluralise_units(sentence: str) -> str:
     return sentence
 
 
-def convert_to_pint_unit(unit: str) -> str | pint.Unit:
+def convert_to_pint_unit(unit: str, imperial_units: bool = False) -> str | pint.Unit:
     """Convert a unit to a pint.Unit object, if possible.
     If the unit is not found in the pint Unit Registry, just return the input unit.
 
@@ -58,11 +68,13 @@ def convert_to_pint_unit(unit: str) -> str | pint.Unit:
     ----------
     unit : str
         Unit to find in pint Unit Registry
+    imperial_units : bool, optional
+        If True, use imperial units instead of US customary.
+        This only applies to units such as cup, pint etc.
 
     Returns
     -------
     str | pint.Unit
-        pint.Unit object if unit found in Unit Registry, else input string
 
     Examples
     --------
@@ -72,8 +84,11 @@ def convert_to_pint_unit(unit: str) -> str | pint.Unit:
     >>> convert_to_pint_unit("oz")
     <Unit('ounce')>
 
-    >>> convert_to_pint_unit("fl oz)
+    >>> convert_to_pint_unit("fl oz")
     <Unit('fluid_ounce')>
+
+    >>> convert_to_pint_unit("cup", imperial_units=True)
+    <Unit('imperial_cup')>
     """
     # Define some replacements to ensure correct matches in pint Unit Registry
     replacements = {
@@ -85,8 +100,12 @@ def convert_to_pint_unit(unit: str) -> str | pint.Unit:
     for original, replacement in replacements.items():
         unit = unit.replace(original, replacement)
 
-    # If unit not empty string and found in Unit Registry, return pint.Unit object
-    # for unit
+    if imperial_units:
+        for original, replacement in IMPERIAL_UNITS.items():
+            unit = unit.replace(original, replacement)
+
+    # If unit not empty string and found in Unit Registry,
+    # return pint.Unit object for unit
     if unit != "" and unit in UREG:
         return pint.Unit(unit)
 

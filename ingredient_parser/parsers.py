@@ -16,7 +16,9 @@ with as_file(files(__package__) / "model.crfsuite") as p:
 
 
 def parse_ingredient(
-    sentence: str, discard_isolated_stop_words: bool = True
+    sentence: str,
+    discard_isolated_stop_words: bool = True,
+    imperial_units: bool = False,
 ) -> ParsedIngredient:
     """Parse an ingredient sentence using CRF model to return structured data
 
@@ -28,6 +30,10 @@ def parse_ingredient(
         If True, any isolated stop words in the name, preparation, or comment fields
         are discarded.
         Default is True.
+    imperial_units : bool, optional
+        If True, use imperial units instead of US customary.
+        This only applies to units such as cup, pint etc.
+        Default is False, which result in US customary units being used.
 
     Returns
     -------
@@ -54,12 +60,15 @@ def parse_ingredient(
         labels,
         scores,
         discard_isolated_stop_words=discard_isolated_stop_words,
+        imperial_units=imperial_units,
     )
     return postprocessed_sentence.parsed()
 
 
 def parse_multiple_ingredients(
-    sentences: list[str], discard_isolated_stop_words: bool = True
+    sentences: list[str],
+    discard_isolated_stop_words: bool = True,
+    imperial_units: bool = False,
 ) -> list[ParsedIngredient]:
     """Parse multiple ingredient sentences in one go.
 
@@ -77,6 +86,10 @@ def parse_multiple_ingredients(
         If True, any isolated stop words in the name, preparation, or comment fields
         are discarded.
         Default is True.
+    imperial_units : bool, optional
+        If True, use imperial units instead of US customary.
+        This only applies to units such as cup, pint etc.
+        Default is False, which result in US customary units being used.
 
     Returns
     -------
@@ -85,8 +98,12 @@ def parse_multiple_ingredients(
         from input sentences
     """
     return [
-        parse_ingredient(sent, discard_isolated_stop_words=discard_isolated_stop_words)
-        for sent in sentences
+        parse_ingredient(
+            sentence,
+            discard_isolated_stop_words=discard_isolated_stop_words,
+            imperial_units=imperial_units,
+        )
+        for sentence in sentences
     ]
 
 
@@ -114,7 +131,11 @@ class ParserDebugInfo:
     Tagger = TAGGER
 
 
-def inspect_parser(sentence: str) -> ParserDebugInfo:
+def inspect_parser(
+    sentence: str,
+    discard_isolated_stop_words: bool = True,
+    imperial_units: bool = False,
+) -> ParserDebugInfo:
     """Return object containing all intermediate objects used in the parsing of
     a sentence.
 
@@ -122,6 +143,14 @@ def inspect_parser(sentence: str) -> ParserDebugInfo:
     ----------
     sentence : str
         Ingredient sentence to parse
+    discard_isolated_stop_words : bool, optional
+        If True, any isolated stop words in the name, preparation, or comment fields
+        are discarded.
+        Default is True.
+    imperial_units : bool, optional
+        If True, use imperial units instead of US customary.
+        This only applies to units such as cup, pint etc.
+        Default is False, which result in US customary units being used.
 
     Returns
     -------
@@ -142,7 +171,14 @@ def inspect_parser(sentence: str) -> ParserDebugInfo:
         if label != "UNIT":
             tokens[idx] = pluralise_units(token)
 
-    postprocessed_sentence = PostProcessor(sentence, tokens, labels, scores)
+    postprocessed_sentence = PostProcessor(
+        sentence,
+        tokens,
+        labels,
+        scores,
+        discard_isolated_stop_words=discard_isolated_stop_words,
+        imperial_units=imperial_units,
+    )
 
     return ParserDebugInfo(
         sentence=sentence,

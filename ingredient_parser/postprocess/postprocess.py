@@ -56,12 +56,14 @@ class PostProcessor:
         labels: list[str],
         scores: list[float],
         discard_isolated_stop_words: bool = True,
+        imperial_units: bool = False,
     ):
         self.sentence = sentence
         self.tokens = tokens
         self.labels = labels
         self.scores = scores
         self.discard_isolated_stop_words = discard_isolated_stop_words
+        self.imperial_units = imperial_units
         self.consumed = []
 
     def __repr__(self) -> str:
@@ -425,7 +427,7 @@ class PostProcessor:
                     # a pint.Unit object instead of a string. This has the benefit of
                     # simplifying alternative unit representations into a single
                     # common representation
-                    unit = convert_to_pint_unit(unit)
+                    unit = convert_to_pint_unit(unit, self.imperial_units)
 
                     first = IngredientAmount(
                         quantity=quantity,
@@ -451,7 +453,7 @@ class PostProcessor:
                         confidence = mean(matching_scores[i : i + 1])
 
                         # Conver to pint.Unit if appropriate
-                        unit = convert_to_pint_unit(unit)
+                        unit = convert_to_pint_unit(unit, self.imperial_units)
 
                         # If the first amount (e.g. 1 can) is approximate, so are all
                         # the pairs in between
@@ -532,7 +534,7 @@ class PostProcessor:
                     unit_1 = tokens[match[1]]
                     text_1 = " ".join((quantity_1, unit_1)).strip()
                     # Convert to pint.Unit if appropriate
-                    unit_1 = convert_to_pint_unit(unit_1)
+                    unit_1 = convert_to_pint_unit(unit_1, self.imperial_units)
 
                     first_amount = IngredientAmount(
                         quantity=quantity_1,
@@ -546,7 +548,7 @@ class PostProcessor:
                     unit_2 = " ".join([tokens[i] for i in match[3:]])
                     text_2 = " ".join((quantity_2, unit_2)).strip()
                     # Convert to pint.Unit if appropriate
-                    unit_2 = convert_to_pint_unit(unit_2)
+                    unit_2 = convert_to_pint_unit(unit_2, self.imperial_units)
 
                     second_amount = IngredientAmount(
                         quantity=quantity_2,
@@ -741,7 +743,7 @@ class PostProcessor:
             # a pint.Unit object instead of a string. This has the benefit of
             # simplifying alternative unit representations into a single
             # common representation
-            unit = convert_to_pint_unit(unit)
+            unit = convert_to_pint_unit(unit, self.imperial_units)
 
             # Convert to an IngredientAmount object for returning
             processed_amounts.append(
