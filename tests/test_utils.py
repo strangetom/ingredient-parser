@@ -78,3 +78,23 @@ class Test_convert_to_pint_unit:
         assert convert_to_pint_unit("fluid oz") == pint.Unit("fluid_ounce")
         assert convert_to_pint_unit("fl ounce") == pint.Unit("fluid_ounce")
         assert convert_to_pint_unit("fluid ounce") == pint.Unit("fluid_ounce")
+
+    def test_imperial_units(self):
+        """
+        Test that imperial units are returned where appropriate
+        """
+        assert convert_to_pint_unit("fl oz", imperial_units=True) == pint.Unit(
+            "imperial_fluid_ounce"
+        )
+        assert convert_to_pint_unit("cup", imperial_units=True) == pint.Unit(
+            "imperial_cup"
+        )
+        assert convert_to_pint_unit("quart", imperial_units=True) == pint.Unit(
+            "imperial_quart"
+        )
+        assert convert_to_pint_unit("pint", imperial_units=True) == pint.Unit(
+            "imperial_pint"
+        )
+        assert convert_to_pint_unit("gallon", imperial_units=True) == pint.Unit(
+            "imperial_gallon"
+        )

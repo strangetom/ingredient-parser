@@ -246,3 +246,41 @@ class TestPostProcessor_sizable_unit_pattern:
             assert out._starting_index == expected._starting_index
             assert out.SINGULAR == expected.SINGULAR
             assert out.APPROXIMATE == expected.APPROXIMATE
+
+    def test_mixed_pattern_imperial(self):
+        """
+        Test that 3 quantity and unit amounts are returned, with the first
+        made up of the first quantity and last unit.
+        Imperial units should be returned where the US customary and imperial
+        units differ.
+        """
+        sentence = "2 cups or 1 28 ounce can chickpeas"
+        tokens = ["2", "cup", "or", "1", "28", "ounce", "can", "chickpeas"]
+        labels = ["QTY", "UNIT", "COMMENT", "QTY", "QTY", "UNIT", "UNIT", "NAME"]
+        scores = [0] * len(tokens)
+        idx = list(range(len(tokens)))
+        p = PostProcessor(sentence, tokens, labels, scores, imperial_units=True)
+
+        expected = [
+            IngredientAmount(
+                quantity="1", unit="can", text="1 can", confidence=0, starting_index=3
+            ),
+            IngredientAmount(
+                quantity="28",
+                unit=pint.Unit("ounces"),
+                text="28 ounces",
+                confidence=0,
+                starting_index=4,
+                SINGULAR=True,
+            ),
+        ]
+
+        # Don't check scores
+        output = p._sizable_unit_pattern(idx, tokens, labels, scores)
+        assert len(output) == len(expected)
+        for out, expected in zip(output, expected):
+            assert out.quantity == expected.quantity
+            assert out.unit == expected.unit
+            assert out._starting_index == expected._starting_index
+            assert out.SINGULAR == expected.SINGULAR
+            assert out.APPROXIMATE == expected.APPROXIMATE

@@ -136,6 +136,59 @@ class TestPostProcessor_composite_amounts_pattern:
             assert out.confidence == expected.confidence
             assert out._starting_index == expected._starting_index
 
+    def test_imperial_pint_fl_oz_pattern(self):
+        """
+        Test that the pint-fl-oz pair are returned as a composite amounts
+        in imperial units.
+        """
+        sentence = "1.5 litres/2 pints 12¾fl oz water"
+        tokens = ["1.5", "litre", "/", "2", "pint", "12.75", "fl", "oz", "water"]
+        labels = [
+            "QTY",
+            "UNIT",
+            "COMMENT",
+            "QTY",
+            "UNIT",
+            "QTY",
+            "UNIT",
+            "UNIT",
+            "NAME",
+        ]
+        scores = [0] * len(tokens)
+        idx = list(range(len(tokens)))
+        p = PostProcessor(sentence, tokens, labels, scores, imperial_units=True)
+
+        expected = [
+            CompositeIngredientAmount(
+                amounts=[
+                    IngredientAmount(
+                        quantity="2",
+                        unit=pint.Unit("imperial_pints"),
+                        text="2 pints",
+                        confidence=0,
+                        starting_index=3,
+                    ),
+                    IngredientAmount(
+                        quantity="12.75",
+                        unit=pint.Unit("imperial_fluid_ounce"),
+                        text="12.75 fl oz",
+                        confidence=0,
+                        starting_index=5,
+                    ),
+                ],
+                join="",
+            ),
+        ]
+
+        # Don't check scores
+        output = p._composite_amounts_pattern(idx, tokens, labels, scores)
+        assert len(output) == len(expected)
+        for out, expected in zip(output, expected):
+            assert out.amounts == expected.amounts
+            assert out.join == expected.join
+            assert out.confidence == expected.confidence
+            assert out._starting_index == expected._starting_index
+
     def test_no_pattern(self):
         """
         Test that the no composite amounts are returned if the pattern is not matched
