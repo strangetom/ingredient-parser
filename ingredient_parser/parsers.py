@@ -31,9 +31,9 @@ def parse_ingredient(
         are discarded.
         Default is True.
     imperial_units : bool, optional
-        If True, use imperial units instead of US customary.
-        This only applies to units such as cup, pint etc.
-        Default is False, which result in US customary units being used.
+        If True, use imperial units instead of US customary units for the following:
+        fluid ounce, cup, pint, quart, gallon.
+        Default is False, which results in US customary units being used.
 
     Returns
     -------
@@ -87,9 +87,9 @@ def parse_multiple_ingredients(
         are discarded.
         Default is True.
     imperial_units : bool, optional
-        If True, use imperial units instead of US customary.
-        This only applies to units such as cup, pint etc.
-        Default is False, which result in US customary units being used.
+        If True, use imperial units instead of US customary units for the following:
+        fluid ounce, cup, pint, quart, gallon.
+        Default is False, which results in US customary units being used.
 
     Returns
     -------

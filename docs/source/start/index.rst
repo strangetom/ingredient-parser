@@ -91,7 +91,12 @@ comment
 
 Each of the fields (except sentence) has a confidence value associated with it. This is a value between 0 and 1, where 0 represents no confidence and 1 represent full confidence. This is the confidence that the natural language model has that the given label is correct, averaged across all tokens that contribute to a particular field.
 
-:func:`parse_ingredient()` take an additional, optional parameter: ``discard_isolated_stop_words``. If set to True (default), then any stop words that appear in isolation in the name, preparation, or comment fields are discarded. For example:
+Optional parameters
+~~~~~~~~~~~~~~~~~~~
+
+:func:`parse_ingredient()` takes two optional boolean parameters: ``discard_isolated_stop_words`` and ``imperial_unts``. 
+
+If ``discard_isolated_stop_words=True`` (default), then any stop words that appear in isolation in the name, preparation, or comment fields are discarded. If ````discard_isolated_stop_words=False``, then all words are retained in the output. For example:
 
 .. code:: python
 
@@ -117,16 +122,16 @@ Each of the fields (except sentence) has a confidence value associated with it. 
                                  APPROXIMATE=False,
                                  SINGULAR=False)],
         preparation=None,
-        comment=IngredientText(text='of', confidence=0.8852),
+        comment=IngredientText(text='of', confidence=0.8852),  # <-- Note the difference here
         sentence='2 tbsp of olive oil'
     )
 
-
+If ``imperial_units=False`` (default), then any ``pint.Unit`` objects for fluid ounces, cups, pints, quarts or gallons will by the US customary version. If ``imperial_units=True``, then the Imperial version of these units will be returned.
 
 Multiple ingredient sentences
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The :func:`parse_multiple_ingredients` function is provided as a convenience function. It accepts a list of ingredient sentences as it's input and returns a list of dictionaries with the parsed information. :func:`parse_multiple_ingredients` also has the same ``discard_isolated_stop_words`` optional argument.
+The :func:`parse_multiple_ingredients` function is provided as a convenience function. It accepts a list of ingredient sentences as it's input and returns a list of :class:`ParsedIngredient` objects with the parsed information. :func:`parse_multiple_ingredients` also has the same optional arguments as :func:`parse_ingredient`.
 
 .. code:: python
 

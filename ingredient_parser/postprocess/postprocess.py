@@ -43,7 +43,11 @@ class PostProcessor:
         List of tokens for original ingredient sentence.
     discard_isolated_stop_words : bool
         If True, isolated stop words are discarded from the name, preparation or
-        comment fields. Default value is True
+        comment fields. Default value is True.
+    imperial_units : bool
+        If True, use imperial units instead of US customary units for the following:
+        fluid ounce, cup, pint, quart, gallon.
+        Default is False, which results in US customary units being used.
     consumed : list[int]
         List of indices of tokens consumed as part of setting the APPROXIMATE and
         SINGULAR flags. These tokens should not end up in the parsed output.

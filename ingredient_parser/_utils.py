@@ -69,8 +69,9 @@ def convert_to_pint_unit(unit: str, imperial_units: bool = False) -> str | pint.
     unit : str
         Unit to find in pint Unit Registry
     imperial_units : bool, optional
-        If True, use imperial units instead of US customary.
-        This only applies to units such as cup, pint etc.
+        If True, use imperial units instead of US customary units for the following:
+        fluid ounce, cup, pint, quart, gallon.
+        Default is False, which results in US customary units being used.
 
     Returns
     -------

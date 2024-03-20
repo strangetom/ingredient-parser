@@ -76,6 +76,36 @@ This has benefits if you wish to use the parsed information to convert between d
     >>> q.to("ml")
     177.44117737499994 <Unit('milliliter')>
 
+By default, US customary version of units are used where a unit has more than one definition. This can be changed Imperial units by setting ``imperial_units=True`` in the :func:`parse_ingredient` function call.
+
+.. code:: python
+
+    >>> parse_ingredient("3/4 cup heavy cream", imperial_units=False)  # Default
+    ParsedIngredient(
+        name=IngredientText(text='heavy cream', confidence=0.998078),
+        amount=[IngredientAmount(quantity=0.75,
+                                 unit=<Unit('cup')>,
+                                 text='0.75 cups',
+                                 confidence=0.99993,
+                                 APPROXIMATE=False,
+                                 SINGULAR=False)],
+        preparation=None,
+        comment=None,
+        sentence='3/4 cup heavy cream'
+    )
+    >>> parse_ingredient("3/4 cup heavy cream", imperial_units=True)
+    ParsedIngredient(
+        name=IngredientText(text='heavy cream', confidence=0.998078),
+        amount=[IngredientAmount(quantity=0.75,
+                                 unit=<Unit('imperial_cup')>,
+                                 text='0.75 cups',
+                                 confidence=0.99993,
+                                 APPROXIMATE=False,
+                                 SINGULAR=False)],
+        preparation=None,
+        comment=None,
+        sentence='3/4 cup heavy cream'
+    )
 
 IngredientAmount flags
 ++++++++++++++++++++++

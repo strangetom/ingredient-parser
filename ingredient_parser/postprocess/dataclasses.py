@@ -173,7 +173,7 @@ class ParsedIngredient:
         unit pair parsed from the sentence.
     preparation : IngredientText | None
         Ingredient preparation instructions parsed from sentence.
-        If not ingredient preparation instruction was found, this is None.
+        If no ingredient preparation instruction was found, this is None.
     comment : IngredientText | None
         Ingredient comment parsed from input sentence.
         If no ingredient comment was found, this is None.
