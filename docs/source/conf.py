@@ -21,6 +21,7 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.napoleon",
     "sphinx.ext.viewcode",
+    "sphinx.ext.intersphinx",
     "sphinx_copybutton",
     "sphinx_design",
 ]
@@ -57,4 +58,10 @@ html_theme_options = {
     "repository_url": "https://github.com/strangetom/ingredient-parser",
     "repository_branch": "master",
     "use_repository_button": True,
+    "navigation_with_keys": False,
+}
+
+intersphinx_mapping = {
+    "pint": ("https://pint.readthedocs.io/en/stable/", None),
+    "sklean": ("https://scikit-learn.org/stable/", None),
 }

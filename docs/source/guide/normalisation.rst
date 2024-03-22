@@ -1,3 +1,5 @@
+.. currentmodule:: ingredient_parser.preprocess
+
 Normalisation
 =============
 

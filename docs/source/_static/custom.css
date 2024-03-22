@@ -73,6 +73,7 @@ html[data-theme=dark] {
     --pst-color-shadow: #1d2021;
     --pst-color-border: #7c6f64;
     --pst-color-inline-code: #fe8019;
+    --pst-color-inline-code-links: var(--pst-color-inline-code);
     --pst-color-target: #3e686ab3;
     --pst-color-background: #1d2021;
     --pst-color-on-background: #504945;

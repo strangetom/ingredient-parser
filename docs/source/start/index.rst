@@ -43,13 +43,14 @@ This will download and install the package and it's dependencies:
 
 * `NLTK <https://www.nltk.org/>`_
 * `python-crfsuite <https://python-crfsuite.readthedocs.io/en/latest/>`_
+* `pint <https://pint.readthedocs.io/en/stable/>`_
 
 Usage
 ^^^^^
 
-The primary functionality of this package is provided by the :func:`parse_ingredient` function.
+The primary functionality of this package is provided by the :func:`parse_ingredient() <ingredient_parser.parsers.parse_ingredient>` function.
 
-The :func:`parse_ingredient` function takes an ingredient sentence and return the structered data extracted from it.
+The :func:`parse_ingredient() <ingredient_parser.parsers.parse_ingredient>` function takes an ingredient sentence and return the structered data extracted from it.
 
 .. code:: python
 
@@ -73,12 +74,12 @@ The :func:`parse_ingredient` function takes an ingredient sentence and return th
 The returned dataclass contains the following fields:
 
 sentence
-    The input sentence passed to the :func:`parse_ingredient` function.
+    The input sentence passed to the :func:`parse_ingredient() <ingredient_parser.parsers.parse_ingredient>` function.
 
 amount
     The amounts parsed from the sentence. Each amount has a quantity and a unit, plus optional flags indicating if the amount is approximate or is for a singular item.
 
-    Where possible, the unit field is a `pint.Unit <https://pint.readthedocs.io/en/stable/>`_ object.
+    By default, and where possible, the unit field is a :class:`pint.Unit` object.
 
 name
     The name of the ingredient sentence, or None.
@@ -94,9 +95,11 @@ Each of the fields (except sentence) has a confidence value associated with it. 
 Optional parameters
 ~~~~~~~~~~~~~~~~~~~
 
-:func:`parse_ingredient()` takes two optional boolean parameters: ``discard_isolated_stop_words`` and ``imperial_unts``. 
+:func:`parse_ingredient() <ingredient_parser.parsers.parse_ingredient>` has the following optional boolean parameters: 
+ 
+- ``discard_isolated_stop_words`` 
 
-If ``discard_isolated_stop_words=True`` (default), then any stop words that appear in isolation in the name, preparation, or comment fields are discarded. If ````discard_isolated_stop_words=False``, then all words are retained in the output. For example:
+  If True (default), then any stop words that appear in isolation in the name, preparation, or comment fields are discarded. If False, then all words from the input sentence are retained in the parsed output. For example:
 
 .. code:: python
 
@@ -126,12 +129,18 @@ If ``discard_isolated_stop_words=True`` (default), then any stop words that appe
         sentence='2 tbsp of olive oil'
     )
 
-If ``imperial_units=False`` (default), then any ``pint.Unit`` objects for fluid ounces, cups, pints, quarts or gallons will by the US customary version. If ``imperial_units=True``, then the Imperial version of these units will be returned.
+- ``string_units``
+
+  If True, units in the :class:`IngredientAmount <ingredient_parser.postprocess.IngredientAmount>` objects are returned as strings. The default is False, where units will by :class:`pint.Unit` objects
+
+- ``imperial_unts``
+
+  If True, then any :class:`pint.Unit` objects for fluid ounces, cups, pints, quarts or gallons will be the Imperial measurement. The default is False, where the US customary measurements are used.
 
 Multiple ingredient sentences
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The :func:`parse_multiple_ingredients` function is provided as a convenience function. It accepts a list of ingredient sentences as it's input and returns a list of :class:`ParsedIngredient` objects with the parsed information. :func:`parse_multiple_ingredients` also has the same optional arguments as :func:`parse_ingredient`.
+The :func:`parse_multiple_ingredient() <ingredient_parser.parsers.parse_multiple_ingredient>` function is provided as a convenience function. It accepts a list of ingredient sentences as it's input and returns a list of :class:`ParsedIngredient <ingredient_parser.postprocess.ParsedIngredient` objects with the parsed information. :func:`parse_multiple_ingredients` also has the same optional arguments as :func:`parse_ingredient() <ingredient_parser.parsers.parse_ingredient>`.
 
 .. code:: python
 
