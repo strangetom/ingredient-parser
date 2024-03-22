@@ -44,10 +44,15 @@ class PostProcessor:
     discard_isolated_stop_words : bool
         If True, isolated stop words are discarded from the name, preparation or
         comment fields. Default value is True.
+    string_units : bool
+        If True, return all IngredientAmount units as strings.
+        If False, convert IngredientAmount units to pint.Unit objects where possible.
+        Dfault is False.
     imperial_units : bool
-        If True, use imperial units instead of US customary units for the following:
-        fluid ounce, cup, pint, quart, gallon.
+        If True, use imperial units instead of US customary units for pint.Unit objects
+        for the the following units: fluid ounce, cup, pint, quart, gallon.
         Default is False, which results in US customary units being used.
+        This has no effect if string_units=True.
     consumed : list[int]
         List of indices of tokens consumed as part of setting the APPROXIMATE and
         SINGULAR flags. These tokens should not end up in the parsed output.
@@ -60,6 +65,7 @@ class PostProcessor:
         labels: list[str],
         scores: list[float],
         discard_isolated_stop_words: bool = True,
+        string_units: bool = False,
         imperial_units: bool = False,
     ):
         self.sentence = sentence
@@ -67,6 +73,7 @@ class PostProcessor:
         self.labels = labels
         self.scores = scores
         self.discard_isolated_stop_words = discard_isolated_stop_words
+        self.string_units = string_units
         self.imperial_units = imperial_units
         self.consumed = []
 
@@ -427,11 +434,12 @@ class PostProcessor:
                     unit = matching_tokens.pop(-1)
                     text = " ".join((quantity, unit)).strip()
 
-                    # If the unit is recognised in the pint unit registry, use
-                    # a pint.Unit object instead of a string. This has the benefit of
-                    # simplifying alternative unit representations into a single
-                    # common representation
-                    unit = convert_to_pint_unit(unit, self.imperial_units)
+                    if not self.string_units:
+                        # If the unit is recognised in the pint unit registry, use
+                        # a pint.Unit object instead of a string. This has the benefit
+                        # of simplifying alternative unit representations into a single
+                        # common representation
+                        unit = convert_to_pint_unit(unit, self.imperial_units)
 
                     first = IngredientAmount(
                         quantity=quantity,
@@ -456,8 +464,9 @@ class PostProcessor:
                         text = " ".join((quantity, unit)).strip()
                         confidence = mean(matching_scores[i : i + 1])
 
-                        # Conver to pint.Unit if appropriate
-                        unit = convert_to_pint_unit(unit, self.imperial_units)
+                        if not self.string_units:
+                            # Conver to pint.Unit if appropriate
+                            unit = convert_to_pint_unit(unit, self.imperial_units)
 
                         # If the first amount (e.g. 1 can) is approximate, so are all
                         # the pairs in between
@@ -537,8 +546,9 @@ class PostProcessor:
                     quantity_1 = tokens[match[0]]
                     unit_1 = tokens[match[1]]
                     text_1 = " ".join((quantity_1, unit_1)).strip()
-                    # Convert to pint.Unit if appropriate
-                    unit_1 = convert_to_pint_unit(unit_1, self.imperial_units)
+                    if not self.string_units:
+                        # Convert to pint.Unit if appropriate
+                        unit_1 = convert_to_pint_unit(unit_1, self.imperial_units)
 
                     first_amount = IngredientAmount(
                         quantity=quantity_1,
@@ -551,8 +561,9 @@ class PostProcessor:
                     quantity_2 = tokens[match[2]]
                     unit_2 = " ".join([tokens[i] for i in match[3:]])
                     text_2 = " ".join((quantity_2, unit_2)).strip()
-                    # Convert to pint.Unit if appropriate
-                    unit_2 = convert_to_pint_unit(unit_2, self.imperial_units)
+                    if not self.string_units:
+                        # Convert to pint.Unit if appropriate
+                        unit_2 = convert_to_pint_unit(unit_2, self.imperial_units)
 
                     second_amount = IngredientAmount(
                         quantity=quantity_2,
@@ -743,11 +754,12 @@ class PostProcessor:
             unit = " ".join(amount.unit)
             text = " ".join((amount.quantity, unit)).strip()
 
-            # If the unit is recognised in the pint unit registry, use
-            # a pint.Unit object instead of a string. This has the benefit of
-            # simplifying alternative unit representations into a single
-            # common representation
-            unit = convert_to_pint_unit(unit, self.imperial_units)
+            if not self.string_units:
+                # If the unit is recognised in the pint unit registry, use
+                # a pint.Unit object instead of a string. This has the benefit of
+                # simplifying alternative unit representations into a single
+                # common representation
+                unit = convert_to_pint_unit(unit, self.imperial_units)
 
             # Convert to an IngredientAmount object for returning
             processed_amounts.append(

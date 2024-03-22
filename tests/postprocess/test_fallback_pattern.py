@@ -95,7 +95,7 @@ class TestPostProcessor_fallback_pattern:
 
     def test_imperial(self):
         """
-        Test that a imperial units are returned for 'cup'
+        Test that imperial units are returned for 'cup'
         """
         p = PostProcessor("", [], [], [], imperial_units=True)
         tokens = ["About", "2", "cup", "flour"]
@@ -107,6 +107,29 @@ class TestPostProcessor_fallback_pattern:
             IngredientAmount(
                 quantity="2",
                 unit=pint.Unit("imperial_cup"),
+                text="2 cups",
+                confidence=0,
+                starting_index=1,
+                APPROXIMATE=True,
+            )
+        ]
+
+        assert p._fallback_pattern(idx, tokens, labels, scores) == expected
+
+    def test_string_units(self):
+        """
+        Test that the returned unit is 'cups'
+        """
+        p = PostProcessor("", [], [], [], string_units=True)
+        tokens = ["About", "2", "cup", "flour"]
+        labels = ["COMMENT", "QTY", "UNIT", "NAME"]
+        scores = [0] * len(tokens)
+        idx = list(range(len(tokens)))
+
+        expected = [
+            IngredientAmount(
+                quantity="2",
+                unit="cups",
                 text="2 cups",
                 confidence=0,
                 starting_index=1,

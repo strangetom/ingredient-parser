@@ -18,6 +18,7 @@ with as_file(files(__package__) / "model.crfsuite") as p:
 def parse_ingredient(
     sentence: str,
     discard_isolated_stop_words: bool = True,
+    string_units: bool = False,
     imperial_units: bool = False,
 ) -> ParsedIngredient:
     """Parse an ingredient sentence using CRF model to return structured data
@@ -30,10 +31,15 @@ def parse_ingredient(
         If True, any isolated stop words in the name, preparation, or comment fields
         are discarded.
         Default is True.
-    imperial_units : bool, optional
-        If True, use imperial units instead of US customary units for the following:
-        fluid ounce, cup, pint, quart, gallon.
+    string_units : bool
+        If True, return all IngredientAmount units as strings.
+        If False, convert IngredientAmount units to pint.Unit objects where possible.
+        Dfault is False.
+    imperial_units : bool
+        If True, use imperial units instead of US customary units for pint.Unit objects
+        for the the following units: fluid ounce, cup, pint, quart, gallon.
         Default is False, which results in US customary units being used.
+        This has no effect if string_units=True.
 
     Returns
     -------
@@ -60,6 +66,7 @@ def parse_ingredient(
         labels,
         scores,
         discard_isolated_stop_words=discard_isolated_stop_words,
+        string_units=string_units,
         imperial_units=imperial_units,
     )
     return postprocessed_sentence.parsed()
@@ -68,6 +75,7 @@ def parse_ingredient(
 def parse_multiple_ingredients(
     sentences: list[str],
     discard_isolated_stop_words: bool = True,
+    string_units: bool = False,
     imperial_units: bool = False,
 ) -> list[ParsedIngredient]:
     """Parse multiple ingredient sentences in one go.
@@ -86,10 +94,15 @@ def parse_multiple_ingredients(
         If True, any isolated stop words in the name, preparation, or comment fields
         are discarded.
         Default is True.
-    imperial_units : bool, optional
-        If True, use imperial units instead of US customary units for the following:
-        fluid ounce, cup, pint, quart, gallon.
+    string_units : bool
+        If True, return all IngredientAmount units as strings.
+        If False, convert IngredientAmount units to pint.Unit objects where possible.
+        Dfault is False.
+    imperial_units : bool
+        If True, use imperial units instead of US customary units for pint.Unit objects
+        for the the following units: fluid ounce, cup, pint, quart, gallon.
         Default is False, which results in US customary units being used.
+        This has no effect if string_units=True.
 
     Returns
     -------
@@ -101,6 +114,7 @@ def parse_multiple_ingredients(
         parse_ingredient(
             sentence,
             discard_isolated_stop_words=discard_isolated_stop_words,
+            string_units=string_units,
             imperial_units=imperial_units,
         )
         for sentence in sentences
@@ -134,6 +148,7 @@ class ParserDebugInfo:
 def inspect_parser(
     sentence: str,
     discard_isolated_stop_words: bool = True,
+    string_units: bool = False,
     imperial_units: bool = False,
 ) -> ParserDebugInfo:
     """Return object containing all intermediate objects used in the parsing of
@@ -147,10 +162,15 @@ def inspect_parser(
         If True, any isolated stop words in the name, preparation, or comment fields
         are discarded.
         Default is True.
-    imperial_units : bool, optional
-        If True, use imperial units instead of US customary.
-        This only applies to units such as cup, pint etc.
-        Default is False, which result in US customary units being used.
+    string_units : bool
+        If True, return all IngredientAmount units as strings.
+        If False, convert IngredientAmount units to pint.Unit objects where possible.
+        Dfault is False.
+    imperial_units : bool
+        If True, use imperial units instead of US customary units for pint.Unit objects
+        for the the following units: fluid ounce, cup, pint, quart, gallon.
+        Default is False, which results in US customary units being used.
+        This has no effect if string_units=True.
 
     Returns
     -------
@@ -177,6 +197,7 @@ def inspect_parser(
         labels,
         scores,
         discard_isolated_stop_words=discard_isolated_stop_words,
+        string_units=string_units,
         imperial_units=imperial_units,
     )
 
