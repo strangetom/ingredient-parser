@@ -16,7 +16,6 @@ UNITS = {
     "bunches": "bunch",
     "bundles": "bundle",
     "cans": "can",
-    "chops": "chop",
     "chunks": "chunk",
     "cloves": "clove",
     "clusters": "cluster",

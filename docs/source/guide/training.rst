@@ -16,8 +16,8 @@ This method of storing the training data means that we can load the data straigh
 
 The data is then split into training and testing sets. A split of 75% training, 25% testing is used be default and data in the training and testing sets are randomised using ``sklearn``'s :func:`model_selection.train_test_split` function.
 
-Training the model
-^^^^^^^^^^^^^^^^^^
+Training
+^^^^^^^^
 
 With the data ready, we can now train the model using `python-crfuite <https://github.com/scrapinghub/python-crfsuite>`_.
 
@@ -59,8 +59,8 @@ All of the above steps are implemented in the ``train.py`` script. The following
 
 You can run ``python train.py --help`` to view all the available options for tweaking the training process.
 
-Evaluating the model
-^^^^^^^^^^^^^^^^^^^^
+Evaluation
+^^^^^^^^^^
 
 Two metrics are used to evaluate the model:
 
@@ -100,8 +100,8 @@ The model training process can be executed multiple times to obtain the average 
 
 where the ``--runs`` argument sets the number of training cycles to run.
 
-Tuning the model
-^^^^^^^^^^^^^^^^
+Tuning
+^^^^^^
 
 pycrfsuite offers a few different algorithms for training the model, each of which has a number of hyperparameters that can be used to tune its performance. The selection of the best algorithm and optimal hyperparameters involves iterating over the algorithms and their hyperparamters and evaluating the trade-offs between model size, model accuracy and training time.
 

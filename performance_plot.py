@@ -11,8 +11,8 @@ mpl.rcParams["text.color"] = "#ebdbb2"
 mpl.rcParams["xtick.color"] = "#ebdbb2"
 mpl.rcParams["ytick.color"] = "#ebdbb2"
 mpl.rcParams["axes.labelcolor"] = "#ebdbb2"
-mpl.rcParams["axes.facecolor"] = "#33302f"
-mpl.rcParams["figure.facecolor"] = "#33302f"
+mpl.rcParams["axes.facecolor"] = "#1d2021"
+mpl.rcParams["figure.facecolor"] = "#1d2021"
 
 
 def load_data() -> tuple[tuple[str], list[float], list[float]]:
@@ -67,7 +67,6 @@ def main():
     ax.get_yaxis().set_ticks([])
 
     ax.set_ylabel("Accuracy (%)", fontsize=18)
-    ax.set_title("History of labeling performance", fontsize=20)
     ax.set_xticks(x + width / 2, releases, fontsize=15)
     ax.legend(loc="upper left", ncols=1, fontsize=16)
     ax.set_ylim(82, 102)

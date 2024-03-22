@@ -3,11 +3,16 @@
     background-color: var(--pst-color-on-background);
 }
 .sd-card-header {
-    font-size: 1.6rem;
+    font-size: 1.4rem;
     border-bottom: none !important;
 }
 .sd-card-footer {
     border-top: none !important;
+}
+
+/* Remove border radius from search box */
+.search-button-field {
+    border-radius: revert;
 }
 
 /* Remove bullets from parameter lists in API docs */
@@ -27,8 +32,6 @@ strong {
     padding-bottom: 1rem;
     border-bottom: 1px solid var(--pst-color-on-surface);
 }
-
-
 
 /* Set theme using gruvbox colours */
 html[data-theme=dark] {
