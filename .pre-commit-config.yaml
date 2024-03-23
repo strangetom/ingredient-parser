@@ -22,6 +22,11 @@ repos:
         stages: [commit]
       - id: ruff-format
         stages: [commit]
+  - repo: https://github.com/sphinx-contrib/sphinx-lint
+    rev: v0.9.1
+    hooks:
+      - id: sphinx-lint
+        stages: [commit]
   - repo: local
     hooks:
       - id: pytest-check
