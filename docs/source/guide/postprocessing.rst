@@ -63,9 +63,9 @@ There are two amounts identified: **0.75 cups** and **170 g**.
 Units
 +++++
 
-.. tip::
+.. note::
 
-    The use of :class:`pint.Unit` objects can be disabled by setting ``string_units=True`` in the :func:`parse_ingredient <ingredient_parser.parsers.parse_ingredient>` function. When this is True, units will be returned as strings.
+    The use of :class:`pint.Unit` objects can be disabled by setting ``string_units=True`` in the :func:`parse_ingredient <ingredient_parser.parsers.parse_ingredient>` function. When this is True, units will be returned as strings, correctly pluralised for the quantity.
 
 The `pint <https://pint.readthedocs.io/en/stable/>`_ library is used to standardise the units where possible. If the unit in a parsed :class:`IngredientAmount` can be matched to a unit in the pint Unit Registry, then a :class:`pint.Unit` object is used in place of the unit string.
 
@@ -112,6 +112,29 @@ By default, US customary version of units are used where a unit has more than on
         comment=None,
         sentence='3/4 cup heavy cream'
     )
+
+.. tip::
+
+    There may be times when you want the string version of the :class:`pint.Unit` object in the appropriate plural form for the quantity.
+
+    One option is to create a :class:`pint.Quantity` object from the quantity and unit, although this is no different than using the ``text`` field of :class:`IngredientAmount`.
+
+    .. code:: python
+
+        >>> parsed = parse_ingredient("3/4 cup heavy cream")
+        >>> q = parsed.amount[0].quantity * parsed.amount[0].unit
+        >>> q.format_babel(locale="en_US")
+        '0.75 cups'
+
+    To get the plural version of just the :class:`pint.Unit`, you can use the ``UNITS`` constant from this library:
+
+    .. code:: python
+
+        >>> from ingredient_parser._constants import UNITS
+        # We need to swap the keys and values around so the keys are the singular form
+        >>> UNITS = dict((v,k) for k,v in UNITS.items())
+        >>> UNITS.get(str(parsed.amount[0].unit))
+        'cups'
 
 IngredientAmount flags
 ++++++++++++++++++++++
