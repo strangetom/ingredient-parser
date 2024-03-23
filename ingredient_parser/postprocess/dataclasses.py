@@ -5,7 +5,26 @@ from statistics import mean
 
 import pint
 
-from ingredient_parser._utils import pluralise_units
+from ingredient_parser._utils import is_float, is_range, pluralise_units
+
+
+@dataclass
+class QuantityRange:
+    """Dataclass for a quantity range.
+
+    Attributes
+    ----------
+    min : float
+        Minimum value of range.
+    max : float
+        Maximum value of range.
+    """
+
+    min: float
+    max: float
+
+    def __str__(self):
+        return f"{self.min}-{self.max}"
 
 
 @dataclass
@@ -72,7 +91,7 @@ class IngredientAmount:
         Default is False.
     """
 
-    quantity: float | str
+    quantity: float | str | QuantityRange
     unit: str | pint.Unit
     text: str
     confidence: float
@@ -82,19 +101,20 @@ class IngredientAmount:
 
     def __post_init__(self, starting_index):
         """
-        On dataclass instantiation, make the unit plural if required, and generate the
-        text field.
+        On dataclass instantiation, if required make the unit plural and convert
+        quantity to float or QuantityRange.
         """
         if self.quantity != "1" and self.quantity != "":
             self.text = pluralise_units(self.text)
             if isinstance(self.unit, str):
                 self.unit = pluralise_units(self.unit)
 
-        # Try to convert quantity to a float
-        try:
+        # Convert quantity to float or range, if appropriate
+        if is_float(self.quantity):
             self.quantity = float(self.quantity)
-        except ValueError:
-            pass
+        elif is_range(self.quantity):
+            min_, max_ = self.quantity.split("-")
+            self.quantity = QuantityRange(float(min_), float(max_))
 
         # Assign starting_index to _starting_index
         self._starting_index = starting_index

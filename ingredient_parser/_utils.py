@@ -13,6 +13,7 @@ import pint
 from nltk import data, download
 
 from ._constants import UNITS
+from .preprocess.regex import RANGE_PATTERN
 
 UREG = pint.UnitRegistry()
 
@@ -164,3 +165,61 @@ def download_nltk_resources() -> None:
     except LookupError:
         print("Downloading required NLTK resource: averaged_perceptron_tagger")
         download("averaged_perceptron_tagger")
+
+
+def is_float(value: str) -> bool:
+    """Check if the value can be converted to a float.
+
+    Parameters
+    ----------
+    value : str
+        Value to check
+
+    Returns
+    -------
+    bool
+        True if the value can be converted to float, else False
+
+    Examples
+    --------
+    >>> is_float("3")
+    True
+
+    >>> is_float("2.5")
+    True
+
+    >>> is_float("1-2")
+    False
+    """
+    try:
+        _ = float(value)
+        return True
+    except ValueError:
+        return False
+
+
+def is_range(value: str) -> bool:
+    """Check if the value is a range e.g. 100-200.
+
+    Parameters
+    ----------
+    value : str
+        Value to check
+
+    Returns
+    -------
+    bool
+        True if the value is a range, else False
+
+    Examples
+    --------
+    >>> is_range("1-2")
+    True
+
+    >>> is_float("100-500")
+    True
+
+    >>> is_float("1")
+    False
+    """
+    return RANGE_PATTERN.match(value)
