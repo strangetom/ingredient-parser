@@ -115,26 +115,19 @@ By default, US customary version of units are used where a unit has more than on
 
 .. tip::
 
-    There may be times when you want the string version of the :class:`pint.Unit` object in the appropriate plural form for the quantity.
-
-    One option is to create a :class:`pint.Quantity` object from the quantity and unit, although this is no different than using the ``text`` field of :class:`IngredientAmount`.
+    The use of :class:`pint.Unit` objects means that the ingredient amounts can easily be converted to different units.
 
     .. code:: python
 
-        >>> parsed = parse_ingredient("3/4 cup heavy cream")
-        >>> q = parsed.amount[0].quantity * parsed.amount[0].unit
-        >>> q.format_babel(locale="en_US")
-        '0.75 cups'
+       >>> parsed = parse_ingredient("3 pounds beef brisket")
+       >>> # Create a pint.Quantity object from the quantity and unit
+       >>> q = parsed.amount[0].quantity * parsed.amount[0].unit
+       >>> q
+       3.0 <Unit('pound')>
 
-    To get the plural version of just the :class:`pint.Unit`, you can use the ``UNITS`` constant from this library:
-
-    .. code:: python
-
-        >>> from ingredient_parser._constants import UNITS
-        # We need to swap the keys and values around so the keys are the singular form
-        >>> UNITS = dict((v,k) for k,v in UNITS.items())
-        >>> UNITS.get(str(parsed.amount[0].unit))
-        'cups'
+       >>> # Convert to kg
+       >>> q.to("kg")
+       1.3607771100000003 <Unit('kilogram')>
 
 IngredientAmount flags
 ++++++++++++++++++++++
@@ -154,17 +147,13 @@ There is also a special case (below), where an inner amount that inside a QTY-UN
 Special cases for amounts
 +++++++++++++++++++++++++
 
-There are some particular cases where the combination of QTY and UNIT labels that make up an amount are not straightforward. For example, consider the sentence **2 14 ounce cans coconut milk**. In this case there are two amounts: **2 cans** and **14 ounce**, where the latter is also singular.
+There are some particular cases where the combination of QTY and UNIT labels that make up an amount are not straightforward. For example, consider the sentence **2 14 ounce cans coconut milk**. In this case there are two amounts: **2 cans** and **14 ounce**, where the latter is markedd as **SINGULAR** because it applies to each of the 2 cans.
 
 .. code:: python
 
-    >>> p = PreProcessor("2 14 ounce cans coconut milk")
-    >>> p.tokenized_sentence
-    ['2', '14', 'ounce', 'can', 'coconut', 'milk']
-    ...
-    >>> parsed = PostProcessor(sentence, tokens, labels, scores).parsed()
-    >>> amounts = parsed.amount
-    [IngredientAmount(quantity='2', unit='cans', text='2 cans', confidence=0.9901127131948666, APPROXIMATE=False, SINGULAR=False),
-    IngredientAmount(quantity='14', unit='ounces', text='14 ounces', confidence=0.979053978856428, APPROXIMATE=False, SINGULAR=True)]
+    >>> parsed = parse_ingredient("2 14 ounce cans coconut milk")
+    >>> parsed.amount
+    [IngredientAmount(quantity=2.0, unit='cans', text='2 cans', confidence=0.999835, APPROXIMATE=False, SINGULAR=False),
+    IngredientAmount(quantity=14.0, unit=<Unit('ounce')>, text='14 ounces', confidence=0.998503, APPROXIMATE=False, SINGULAR=True)]
 
 Identifying and handling this pattern of QTY and UNIT labels is done by the :func:`PostProcessor._sizable_unit_pattern()` function.
