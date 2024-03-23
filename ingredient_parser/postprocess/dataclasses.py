@@ -56,7 +56,7 @@ class IngredientAmount:
     quantity : float | str
         Parsed ingredient quantity, as a float where possible
     unit : str | pint.Unit
-        Unit of parsed ingredient quantity
+        Unit of parsed ingredient quantity.
         If the quantity is recognised in the pint unit registry, a pint.Unit
         object is used.
     text : str

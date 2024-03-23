@@ -5,7 +5,7 @@ Post-processing the model output
 
 The output from the model is a list of labels and scores, one for each token in the input sentence. This needs to be turned into a more useful data structure so that the output can be used by the users of this library.
 
-The following dataclass is defined which will be output from the :func:`parse_ingredient() <ingredient_parser.parsers.parse_ingredient>` function:
+The following dataclass is defined which will be output from the :func:`parse_ingredient <ingredient_parser.parsers.parse_ingredient>` function:
 
 .. literalinclude:: ../../../ingredient_parser/postprocess/dataclasses.py
     :pyobject: ParsedIngredient
@@ -65,7 +65,7 @@ Units
 
 .. tip::
     
-    The use of :class:`pint.Unit` objects can be disabled by setting ``string_units=True`` in the :func:`parse_ingredient() <ingredient_parser.parsers.parse_ingredient>` function. When this is True, units will be returned as strings.
+    The use of :class:`pint.Unit` objects can be disabled by setting ``string_units=True`` in the :func:`parse_ingredient <ingredient_parser.parsers.parse_ingredient>` function. When this is True, units will be returned as strings.
 
 The `pint <https://pint.readthedocs.io/en/stable/>`_ library is used to standardise the units where possible. If the unit in a parsed :class:`IngredientAmount` can be matched to a unit in the pint Unit Registry, then a :class:`pint.Unit` object is used in place of the unit string.
 
@@ -82,7 +82,7 @@ This has benefits if you wish to use the parsed information to convert between d
     >>> q.to("ml")
     177.44117737499994 <Unit('milliliter')>
 
-By default, US customary version of units are used where a unit has more than one definition. This can be changed to use the Imperial definition by setting ``imperial_units=True`` in the :func:`parse_ingredient() <ingredient_parser.parsers.parse_ingredient>` function call.
+By default, US customary version of units are used where a unit has more than one definition. This can be changed to use the Imperial definition by setting ``imperial_units=True`` in the :func:`parse_ingredient <ingredient_parser.parsers.parse_ingredient>` function call.
 
 .. code:: python
 

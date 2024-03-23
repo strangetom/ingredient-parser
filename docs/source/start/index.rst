@@ -48,54 +48,54 @@ This will download and install the package and it's dependencies:
 Usage
 ^^^^^
 
-The primary functionality of this package is provided by the :func:`parse_ingredient() <ingredient_parser.parsers.parse_ingredient>` function.
+The primary functionality of this package is provided by the :func:`parse_ingredient <ingredient_parser.parsers.parse_ingredient>` function.
 
-The :func:`parse_ingredient() <ingredient_parser.parsers.parse_ingredient>` function takes an ingredient sentence and return the structered data extracted from it.
+The :func:`parse_ingredient <ingredient_parser.parsers.parse_ingredient>` function takes an ingredient sentence and return the structered data extracted from it.
 
 .. code:: python
 
     >>> from ingredient_parser import parse_ingredient
-    >>> parse_ingredient("2 yellow onions, finely chopped")
+    >>> parse_ingredient("3 pounds pork shoulder, cut into 2-inch chunks")
     ParsedIngredient(
-        name=IngredientText(text='yellow onions', confidence=0.993203),
-        amount=[IngredientAmount(quantity='2',
-                                 unit='',
-                                 text='2',
-                                 confidence=0.999468,,
+        name=IngredientText(text='pork shoulder',
+                            confidence=0.999773),
+        amount=[IngredientAmount(quantity=3.0,
+                                 unit=<Unit('pound')>,
+                                 text='3 pounds',
+                                 confidence=0.999906,,
                                  APPROXIMATE=False,
                                  SINGULAR=False)],
-        preparation=IngredientText(text='finely chopped',
-                                   confidence=0.998604),
+        preparation=IngredientText(text='cut into 2 inch chunks',
+                                   confidence=0.999193),
         comment=None,
-        sentence='2 yellow onions, finely chopped'
+        sentence='3 punds pork shoulder, cut into 2-inch chunks'
     )
 
 
-The returned dataclass contains the following fields:
+The returned :class:`ParsedIngredient <ingredient_parser.postprocess.ParsedIngredient>` dataclass contains the following fields:
 
-sentence
-    The input sentence passed to the :func:`parse_ingredient() <ingredient_parser.parsers.parse_ingredient>` function.
-
-amount
-    The amounts parsed from the sentence. Each amount has a quantity and a unit, plus optional flags indicating if the amount is approximate or is for a singular item.
-
-    By default, and where possible, the unit field is a :class:`pint.Unit` object.
-
-name
-    The name of the ingredient sentence, or None.
-
-preparation
-    The preparation notes for the ingredient. This is a string, or None is there are no preparation notes for the ingredient.
-
-comment
-    The comment from the ingredient sentence. This is a string, or None if there is no comment.
++-----------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Field           | Description                                                                                                                                                          |
++=================+======================================================================================================================================================================+
+| **name**        | The name of the ingredient sentence, or None.                                                                                                                        |
++-----------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| **amount**      | The amounts parsed from the sentence. Each amount has a quantity and a unit, plus optional flags indicating if the amount is approximate or is for a singular item.  |
+|                 |                                                                                                                                                                      |
+|                 | By default the unit field is a :class:`pint.Unit` object, if the unit can be matched to a unit in the pint unit registry.                                            |
++-----------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| **preparation** | The preparation notes for the ingredient. This is a string, or None is there are no preparation notes for the ingredient.                                            |
++-----------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| **comment**     | The comment from the ingredient sentence. This is a string, or None if there is no comment.                                                                          |
++-----------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| **sentence**    | The input sentence passed to the :func:`parse_ingredient <ingredient_parser.parsers.parse_ingredient>` function.                                                     |
++-----------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
 Each of the fields (except sentence) has a confidence value associated with it. This is a value between 0 and 1, where 0 represents no confidence and 1 represent full confidence. This is the confidence that the natural language model has that the given label is correct, averaged across all tokens that contribute to a particular field.
 
 Optional parameters
 ~~~~~~~~~~~~~~~~~~~
 
-:func:`parse_ingredient() <ingredient_parser.parsers.parse_ingredient>` has the following optional boolean parameters: 
+:func:`parse_ingredient <ingredient_parser.parsers.parse_ingredient>` has the following optional boolean parameters: 
  
 - ``discard_isolated_stop_words`` 
 
@@ -140,7 +140,7 @@ Optional parameters
 Multiple ingredient sentences
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The :func:`parse_multiple_ingredient() <ingredient_parser.parsers.parse_multiple_ingredient>` function is provided as a convenience function. It accepts a list of ingredient sentences as it's input and returns a list of :class:`ParsedIngredient <ingredient_parser.postprocess.ParsedIngredient` objects with the parsed information. :func:`parse_multiple_ingredients` also has the same optional arguments as :func:`parse_ingredient() <ingredient_parser.parsers.parse_ingredient>`.
+The :func:`parse_multiple_ingredients <ingredient_parser.parsers.parse_multiple_ingredients>` function is provided as a convenience function. It accepts a list of ingredient sentences as it's input and returns a list of :class:`ParsedIngredient <ingredient_parser.postprocess.ParsedIngredient>` objects with the parsed information. It has the same optional arguments as :func:`parse_ingredient <ingredient_parser.parsers.parse_ingredient>`.
 
 .. code:: python
 
