@@ -41,7 +41,7 @@ Labelling the data
 ^^^^^^^^^^^^^^^^^^
 
 .. note::
-    
+
     The details described in this section also apply to how the labelling was performed for the Cookstr and BBC Food datasets.
 
 The New York Times dataset has gone through, and continues to go through, the very manual process of labelling the training data. This process is there to ensure that the labels assigned to each token in each ingredient sentence are correct and consistent across the dataset. In general, the idea is to avoid modifying the input sentence and only correct the labels for each, although entries have been removed where there is too much missing information or the entry is not actually an ingredient sentence (a few recipe instructions have been found mixed into the data).
@@ -59,7 +59,7 @@ The following operations were done to clean up the labelling (note that this is 
 * Convert all ranges to a standard format of X-Y
     This includes ranges represented textually, e.g. 1 to 2, 3 or 4 become 1-2, 3-4 respectively
 * Entries where the quantities and units were originally consolidated should be unconsolidated
-    There were many examples where the input would say 
+    There were many examples where the input would say
 
         1/2 cup, plus 1 tablespoon ...
 
@@ -68,12 +68,12 @@ The following operations were done to clean up the labelling (note that this is 
 * Adjectives that are a fundamental part of the ingredient identity should be part of the name
     This was mostly an inconsistency across the data, for example if the entry contained "red onion", sometimes this was labelled with a name of "red onion" and sometimes with a name of "onion" and a comment of "red".
 
-    Three general rules were applied:  
+    Three general rules were applied:
 
-    1. **If the adjective changes the ingredient in a way that the chef cannot, it should be part of the name.**   
+    1. **If the adjective changes the ingredient in a way that the chef cannot, it should be part of the name.**
     2. **If the adjective changes the item you would purchase in a shop, it should be part of the name.**
     3. **If the adjectve changes the item in a way that the chef would not expect to do as part of the recipe, it should be part of the name.**
-    
+
     It is recognised that this can be subjective. Universal correctness is not the main goal of this, only consistency.
 
     Examples of this:

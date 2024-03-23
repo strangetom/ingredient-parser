@@ -3,7 +3,7 @@
 Feature selection
 =================
 
-Feature calculation is done for each token in the sentence, so first the normamlised sentence must be tokenised.
+Feature calculation is done for each token in the sentence, so first the normalised sentence must be tokenised.
 
 Tokenization
 ^^^^^^^^^^^^
@@ -17,7 +17,7 @@ The defined tokenizer splits the sentence according the following rules:
 .. literalinclude:: ../../../ingredient_parser/preprocess/funcs.py
     :lines: 11-49
 
-This splits the sentence apart into wherever there is white space or a punctation mark in ``PUNCTUATION_TOKENISER``.
+This splits the sentence apart into wherever there is white space or a punctuation mark in ``PUNCTUATION_TOKENISER``.
 
 .. code:: python
 
@@ -75,5 +75,5 @@ The :func:`_token_features` function of :class:`PreProcessor` returns all these 
 The :func:`sentence_features` function of :class:`PreProcessor` return the features for all tokens in the sentence in a list.
 
 .. attention::
-    
+
     It is likely that some of these features aren't necessary. There is a chunk of work for the future to determine the most useful features.

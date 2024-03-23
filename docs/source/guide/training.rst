@@ -30,7 +30,7 @@ With the data ready, we can now train the model using `python-crfuite <https://g
         $ python -m pip install -r requirements-dev.txt
 
 .. code:: python
-    
+
     import pycrfsuite
 
     trainer = pycrfsuite.Trainer(verbose=False)
@@ -67,7 +67,7 @@ Two metrics are used to evaluate the model:
 1. Word-level accuracy
     This is a measure of the percentage of tokens in the test data that the model predicted the correct label for.
 2. Sentence-level accuracy
-    This is a measure of the percentage of sentences in the test data where the model predicted the correct label for all tokens 
+    This is a measure of the percentage of sentences in the test data where the model predicted the correct label for all tokens.
 
 .. code:: python
 
@@ -103,29 +103,29 @@ where the ``--runs`` argument sets the number of training cycles to run.
 Tuning
 ^^^^^^
 
-pycrfsuite offers a few different algorithms for training the model, each of which has a number of hyperparameters that can be used to tune its performance. The selection of the best algorithm and optimal hyperparameters involves iterating over the algorithms and their hyperparamters and evaluating the trade-offs between model size, model accuracy and training time.
+pycrfsuite offers a few different algorithms for training the model, each of which has a number of hyper-parameters that can be used to tune its performance. The selection of the best algorithm and optimal hyper-parameters involves iterating over the algorithms and their hyper-parameters and evaluating the trade-offs between model size, model accuracy and training time.
 
-To run a grid search over a number of different algorithms and hyperparameters for each one, the ``gridsearch`` subcommand of ``train.py`` can be used.
+To run a grid search over a number of different algorithms and hyper-parameters for each one, the ``gridsearch`` subcommand of ``train.py`` can be used.
 
 .. code:: bash
 
     # Show all the options
     $ python train.py gridsearch --help
-    
-    # Train models using the LBFGS and AP algorithms, using default hyperparameters
+
+    # Train models using the LBFGS and AP algorithms, using default hyper-parameters
     $ python train.py gridseach --database train/data/training.sqlite3 --algos lbfgs ap
 
-    # Train models using the LBFGS algorithm, using all combinations of the specified 
-    # hyperparameters and the default values for any not specified
+    # Train models using the LBFGS algorithm, using all combinations of the specified
+    # hyper-parameters and the default values for any not specified
     $ python train.py gridseach --database train/data/training.sqlite3 --algos lbfgs --lbfgs-params '{"c1": [0.05, 0.1, 0.5, 1], "c2":[0.1, 0.5, 1, 2]}'
 
-    # Train models using the LBFGS and AP algorithms, only varying the global hyperparameters
+    # Train models using the LBFGS and AP algorithms, only varying the global hyper-parameters
     # which apply to all models
     $ python train.py gridseach --database train/data/training.sqlite3 --algos lbfgs  ap --global-params '{"feature.minfreq":[0, 1, 5],"feature.possible_transitions":[true, false],"feature.possible_states":[true, false]}'
 
 When a grid search is performed, the same train/test split of the data is used for every model, so the performances can be directly compared. Each model trained is given a random unique name. By default, the models are deleted after their performance has been evaluated. To keep the models, the ``--keep-models`` option can be used.
 
-For example, to train models using each of the possible algorithms with their default hyperparameters:
+For example, to train models using each of the possible algorithms with their default hyper-parameters:
 
 .. code:: bash
 

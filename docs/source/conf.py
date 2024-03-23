@@ -62,6 +62,7 @@ html_theme_options = {
 }
 
 intersphinx_mapping = {
+    "python": ("https://docs.python.org/3/", None),
     "pint": ("https://pint.readthedocs.io/en/stable/", None),
     "sklean": ("https://scikit-learn.org/stable/", None),
 }

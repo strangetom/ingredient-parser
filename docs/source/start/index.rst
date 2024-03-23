@@ -1,13 +1,13 @@
 Getting Started
 ===============
 
-The Ingredient Parser package is a Python package for parsing structured information out of recipe ingredient sentences.
+The Ingredient Parser package is a Python package for parsing structured information from recipe ingredient sentences.
 
-Given a recipe ingredient such as 
+Given a recipe ingredient such as
 
     200 g plain flour, sifted
 
-we want to extract information about the quantity, units, name and comment. For the example above:
+we want to extract information about the quantity, units, name, preparation and comment. For the example above:
 
 .. list-table::
 
@@ -20,23 +20,23 @@ we want to extract information about the quantity, units, name and comment. For 
       - g
       - plain flour
       - sifted
-      - 
+      -
 
-This package uses a natural language model trained on thousands of example ingredient sentences. A Conditional Random Fields model has been trained on data from three sources: 
+This package uses a Conditional Random Fields model trained on 60,000 example ingredient sentences. The model has been trained on data from three sources:
 
-* The New York Times released a large dataset when they did some similar work in 2015 in their `Ingredient Phrase Tagger <https://github.com/nytimes/ingredient-phrase-tagger>`_ repository. 
-* A dump of recipes taken from Cookstr in 2017. 
+* The New York Times released a large dataset when they did some similar work in 2015 in their `Ingredient Phrase Tagger <https://github.com/nytimes/ingredient-phrase-tagger>`_ repository.
+* A dump of recipes taken from Cookstr in 2017.
 * A dump of recipe taken from BBC Food in 2017.
 
-More information on how the natural language model is trained and the output interpreted can be found in the :doc:`Model Guide </guide/index>`.
+More information on how the model is trained and the output interpreted can be found in the :doc:`Model Guide </guide/index>`.
 
 Installation
 ^^^^^^^^^^^^
 
-You can install ``ingredient_parser`` from PyPi with ``pip``:
+You can install Ingredient Parser from PyPi with ``pip``:
 
 .. code:: bash
-    
+
     $ python -m pip install ingredient_parser_nlp
 
 This will download and install the package and it's dependencies:
@@ -50,7 +50,7 @@ Usage
 
 The primary functionality of this package is provided by the :func:`parse_ingredient <ingredient_parser.parsers.parse_ingredient>` function.
 
-The :func:`parse_ingredient <ingredient_parser.parsers.parse_ingredient>` function takes an ingredient sentence and return the structered data extracted from it.
+The :func:`parse_ingredient <ingredient_parser.parsers.parse_ingredient>` function takes an ingredient sentence and return the structured data extracted from it.
 
 .. code:: python
 
@@ -72,7 +72,7 @@ The :func:`parse_ingredient <ingredient_parser.parsers.parse_ingredient>` functi
     )
 
 
-The returned :class:`ParsedIngredient <ingredient_parser.postprocess.ParsedIngredient>` dataclass contains the following fields:
+The returned :class:`ParsedIngredient <ingredient_parser.postprocess.ParsedIngredient>` object contains the following fields:
 
 +-----------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | Field           | Description                                                                                                                                                          |
@@ -95,9 +95,9 @@ Each of the fields (except sentence) has a confidence value associated with it. 
 Optional parameters
 ~~~~~~~~~~~~~~~~~~~
 
-:func:`parse_ingredient <ingredient_parser.parsers.parse_ingredient>` has the following optional boolean parameters: 
- 
-- ``discard_isolated_stop_words`` 
+The :func:`parse_ingredient <ingredient_parser.parsers.parse_ingredient>` function has the following optional boolean parameters:
+
+- ``discard_isolated_stop_words``
 
   If True (default), then any stop words that appear in isolation in the name, preparation, or comment fields are discarded. If False, then all words from the input sentence are retained in the parsed output. For example:
 
@@ -131,7 +131,7 @@ Optional parameters
 
 - ``string_units``
 
-  If True, units in the :class:`IngredientAmount <ingredient_parser.postprocess.IngredientAmount>` objects are returned as strings. The default is False, where units will by :class:`pint.Unit` objects
+  If True, units in the :class:`IngredientAmount <ingredient_parser.postprocess.IngredientAmount>` objects are returned as strings. The default is False, where units will be :class:`pint.Unit` objects
 
 - ``imperial_unts``
 
@@ -154,38 +154,38 @@ The :func:`parse_multiple_ingredients <ingredient_parser.parsers.parse_multiple_
     [
         ParsedIngredient(
             name=IngredientText(text='fresh lime juice', confidence=0.991891),
-            amount=[IngredientAmount(quantity='3', 
+            amount=[IngredientAmount(quantity='3',
                                      unit=<Unit('tablespoon')>,
                                      text='3 tablespoons',
-                                     confidence=0.999459, 
-                                     APPROXIMATE=False, 
-                                     SINGULAR=False)], 
-            preparation=None, 
+                                     confidence=0.999459,
+                                     APPROXIMATE=False,
+                                     SINGULAR=False)],
+            preparation=None,
             comment=IngredientText(text='plus lime wedges for serving', confidence=0.995029),
             sentence='3 tablespoons fresh lime juice, plus lime wedges for serving'
-        ), 
+        ),
         ParsedIngredient(
-            name=IngredientText(text='extra-virgin olive oil', confidence=0.996531), 
-            amount=[IngredientAmount(quantity='2', 
+            name=IngredientText(text='extra-virgin olive oil', confidence=0.996531),
+            amount=[IngredientAmount(quantity='2',
                                      unit=<Unit('tablespoon')>,
                                      text='2 tablespoons',
-                                     confidence=0.999259, 
-                                     APPROXIMATE=False, 
-                                     SINGULAR=False)], 
-            preparation=None, 
-            comment=None, 
+                                     confidence=0.999259,
+                                     APPROXIMATE=False,
+                                     SINGULAR=False)],
+            preparation=None,
+            comment=None,
             sentence='2 tablespoons extra-virgin olive oil'
-        ), 
+        ),
         ParsedIngredient(
-            name=IngredientText(text='garlic', confidence=0.992021), 
-            amount=[IngredientAmount(quantity='2', 
-                                     unit='large cloves', 
+            name=IngredientText(text='garlic', confidence=0.992021),
+            amount=[IngredientAmount(quantity='2',
+                                     unit='large cloves',
                                      text='2 large cloves',
-                                     confidence=0.983268, 
-                                     APPROXIMATE=False, 
-                                     SINGULAR=False)], 
-            preparation=IngredientText(text='finely grated', confidence=0.997482), 
-            comment=None, 
+                                     confidence=0.983268,
+                                     APPROXIMATE=False,
+                                     SINGULAR=False)],
+            preparation=IngredientText(text='finely grated', confidence=0.997482),
+            comment=None,
             sentence='2 large garlic cloves, finely grated'
         )
     ]

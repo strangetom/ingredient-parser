@@ -18,7 +18,7 @@ The general process is like so
 
     tagger = pycrfsuite.Tagger()
     tagger.open(model_file)
-    
+
     labels_pred = tagger.tag(p.sentence_features())
 
 The `tagger` returns a list of labels the same length as the list of sentence tokens. For example, consider the sentence **3/4 cup (170g) heavy cream**:
@@ -35,8 +35,8 @@ The `tagger` returns a list of labels the same length as the list of sentence to
 A confidence score can be calculated for each label too
 
 .. code:: python
-    
-    >>>[tagger.marginal(label, i) for i, label in enumerate(labels)] 
+
+    >>>[tagger.marginal(label, i) for i, label in enumerate(labels)]
     [0.99969..., 0.9991524..., 0.997019..., 0.907705..., 0.910985..., 0.962122..., 0.998440...,
  0.996780...]
 

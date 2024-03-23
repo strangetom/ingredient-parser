@@ -5,7 +5,7 @@ Normalisation
 
 Normalisation is the process of transforming the sentences to ensure that particular features of the sentence have a standard form. This pre-process step is there to remove as much of the variation in the data that can be reasonably foreseen, so that the model is presented with tidy and consistent data and therefore has an easier time of learning or labelling.
 
-The :class:`PreProcessor` class handles the sentence normalisation for us. 
+The :class:`PreProcessor` class handles the sentence normalisation for us.
 
 .. code:: python
 
@@ -42,11 +42,10 @@ En-dashes and em-dashes are replaced with hyphens.
 
 Numbers represented in textual form e.g. "one", "two" are replaced with numeric forms.
 The replacements are predefined in a dictionary.
-For performance reasons, the regular expressions used to substitute the text with the number are precomiled and provided in the ``STRING_NUMBERS_REGEXES`` constant, which is a dictionary where the value is a tuple of (precompiled regex, substitute value).
+For performance reasons, the regular expressions used to substitute the text with the number are pre-compiled and provided in the ``STRING_NUMBERS_REGEXES`` constant, which is a dictionary where the value is a tuple of (pre-compiled regular expression, substitute value).
 
 .. literalinclude:: ../../../ingredient_parser/_constants.py
     :lines: 142-170
-    
 
 .. literalinclude:: ../../../ingredient_parser/preprocess/preprocess.py
     :pyobject: PreProcessor._replace_string_numbers
@@ -55,7 +54,7 @@ For performance reasons, the regular expressions used to substitute the text wit
 ``_replace_html_fractions``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Fractions represented by html entities (e.g. 0.5 as ``&frac12;``) are replaced with Unicode equivalents (e.g. ½). This is done using the standard library ``html.unescape`` function.
+Fractions represented by html entities (e.g. 0.5 as ``&frac12;``) are replaced with Unicode equivalents (e.g. ½). This is done using the standard library :func:`html.unescape` function.
 
 .. literalinclude:: ../../../ingredient_parser/preprocess/preprocess.py
     :pyobject: PreProcessor._replace_html_fractions
@@ -67,7 +66,7 @@ Fractions represented by html entities (e.g. 0.5 as ``&frac12;``) are replaced w
 
 Fractions represented by Unicode fractions are replaced a textual format (.e.g ½ as 1/2), as defined by the dictionary in this function. The next step (``_replace_fake_fractions``) will turn these into decimal numbers.
 
-We have to handle two cases: where the character before the unicode fraction is a hyphen and where it is not. In the latter case, we want to insert a space before the replacement so we don't accidently merge with the character before. However, if the character before is a hyphen, we don't want to do this because we could end up splitting a range up.
+We have to handle two cases: where the character before the unicode fraction is a hyphen and where it is not. In the latter case, we want to insert a space before the replacement so we don't accidentally merge with the character before. However, if the character before is a hyphen, we don't want to do this because we could end up splitting a range up.
 
 .. literalinclude:: ../../../ingredient_parser/_constants.py
     :lines: 172-208
@@ -195,7 +194,7 @@ Remove any white space surrounding the hyphen in a range
 
 Units are made singular using a predefined list of plural units and their singular form.
 
-This step is actually performed after tokenisation (see :doc:`Extracting the features <features>`) and we keep track of the index of each token that has been singularised. This is so we can automatically re-pluralise only the tokens that were singularised after the labeling by the model.
+This step is actually performed after tokenisation (see :doc:`Extracting the features <features>`) and we keep track of the index of each token that has been singularised. This is so we can automatically re-pluralise only the tokens that were singularised after the labelling by the model.
 
 .. literalinclude:: ../../../ingredient_parser/_constants.py
     :lines: 5-104

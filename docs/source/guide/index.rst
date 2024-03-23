@@ -16,7 +16,7 @@ Load data
 ~~~~~~~~~
 
 The data is loaded from an sqlite3 database of labelled sentences.
-   
+
 See :doc:`Training data <data>` for more information.
 
 Normalise
@@ -41,7 +41,7 @@ The Conditional Random Fields model is trained on 75% of the training data.
 Evaluate
 ~~~~~~~~
 
-The remaining 25% of the training data is used to evaluate the performane of the model on data the model has not encountered before.
+The remaining 25% of the training data is used to evaluate the performance of the model on data the model has not encountered before.
 
 See :doc:`Training the model <training>` for more information.
 
@@ -54,13 +54,13 @@ The parsing pipeline is shown below.
 .. image:: /_static/parsing-pipline.svg
   :width: 300
   :alt: Parsing pipeline
-   
+
 The `Normalise`_ and `Extract features`_ steps are the same as above.
 
 Label
 ~~~~~
 
-The features for each token in the sentence are fed into the CRF model which returns a label and the confidence for the label for each token in the setnence.
+The features for each token in the sentence are fed into the CRF model which returns a label and the confidence for the label for each token in the sentence.
 
 See :doc:`Using the model <usage>` for more information.
 
