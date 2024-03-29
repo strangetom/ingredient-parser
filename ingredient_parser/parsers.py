@@ -69,7 +69,7 @@ def parse_ingredient(
         string_units=string_units,
         imperial_units=imperial_units,
     )
-    return postprocessed_sentence.parsed()
+    return postprocessed_sentence.parsed
 
 
 def parse_multiple_ingredients(
