@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import re
+from functools import cached_property
 from itertools import chain, groupby
 from operator import itemgetter
 from statistics import mean
@@ -101,6 +102,7 @@ class PostProcessor:
         ]
         return "\n".join(_str)
 
+    @cached_property
     def parsed(self) -> ParsedIngredient:
         """Return parsed ingredient data
 

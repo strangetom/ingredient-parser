@@ -105,7 +105,7 @@ class TestPostProcessor_parsed:
             sentence="2 14 ounce cans of coconut milk",
         )
 
-        assert p.parsed() == expected
+        assert p.parsed == expected
 
     def test_no_discard_isolated_stop_words(self, p_no_discard):
         """
@@ -139,4 +139,4 @@ class TestPostProcessor_parsed:
             sentence="2 14 ounce cans of coconut milk",
         )
 
-        assert p_no_discard.parsed() == expected
+        assert p_no_discard.parsed == expected

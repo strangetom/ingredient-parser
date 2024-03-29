@@ -1,7 +1,13 @@
 import pint
 import pytest
 
-from ingredient_parser._utils import consume, convert_to_pint_unit, pluralise_units
+from ingredient_parser._utils import (
+    consume,
+    convert_to_pint_unit,
+    is_float,
+    is_range,
+    pluralise_units,
+)
 
 
 class TestUtils_pluralise_units:
@@ -98,3 +104,55 @@ class Test_convert_to_pint_unit:
         assert convert_to_pint_unit("gallon", imperial_units=True) == pint.Unit(
             "imperial_gallon"
         )
+
+
+class Test_is_float:
+    def test_int(self):
+        """
+        Test string "1" is correctly identified as convertable to float
+        """
+        assert is_float("1")
+
+    def test_float(self):
+        """
+        Test string "2.5" is correctly identified as convertable to float
+        """
+        assert is_float("2.5")
+
+    def test_range(self):
+        """
+        Test string "1-2" is correctly identified as not convertable to float
+        """
+        assert not is_float("1-2")
+
+    def test_x(self):
+        """
+        Test string "1x" is correctly identified as not convertable to float
+        """
+        assert not is_float("1x")
+
+
+class Test_is_range:
+    def test_int(self):
+        """
+        Test string "1" is correctly identified as not a range
+        """
+        assert not is_range("1")
+
+    def test_float(self):
+        """
+        Test string "2.5" is correctly identified as not a range
+        """
+        assert not is_range("2.5")
+
+    def test_range(self):
+        """
+        Test string "1-2" is correctly identified as not a range
+        """
+        assert is_range("1-2")
+
+    def test_x(self):
+        """
+        Test string "1x" is correctly identified as not a range
+        """
+        assert not is_range("1x")
