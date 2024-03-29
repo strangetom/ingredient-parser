@@ -256,3 +256,54 @@ class TestPostProcessor_fallback_pattern:
         ]
 
         assert p._fallback_pattern(idx, tokens, labels, scores) == expected
+
+    def test_range(self, p):
+        """
+        Test that the range 1-2 is correctly parsed to set the RANGE flag and
+        quantity_max fields in the IngredientAmount object
+        """
+        tokens = ["1-2", "tablespoons", "local", "honey"]
+        labels = ["QTY", "UNIT", "NAME", "NAME"]
+        scores = [0] * len(tokens)
+        idx = list(range(len(tokens)))
+
+        expected = [
+            IngredientAmount(
+                quantity="1-2",
+                unit=pint.Unit("tablespoon"),
+                text="1-2 tablespoons",
+                confidence=0,
+                starting_index=0,
+            ),
+        ]
+
+        actual = p._fallback_pattern(idx, tokens, labels, scores)
+        assert actual == expected
+        assert actual[0].RANGE
+        assert actual[0].quantity == 1
+        assert actual[0].quantity_max == 2
+
+    def test_multiplier(self, p):
+        """
+        Test that the multiplier "1x" is correctly parsed to set the MULTIPLIER
+        flag, quantity and quantity_max fields in the IngredientAmount object
+        """
+        tokens = ["1x", "tin", "condensed", "milk"]
+        labels = ["QTY", "UNIT", "NAME", "NAME"]
+        scores = [0] * len(tokens)
+        idx = list(range(len(tokens)))
+
+        expected = [
+            IngredientAmount(
+                quantity="1x",
+                unit="tin",
+                text="1x tin",
+                confidence=0,
+                starting_index=0,
+            ),
+        ]
+
+        actual = p._fallback_pattern(idx, tokens, labels, scores)
+        assert actual == expected
+        assert actual[0].MULTIPLIER
+        assert actual[0].quantity == 1

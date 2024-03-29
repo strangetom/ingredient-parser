@@ -46,26 +46,25 @@ class _PartialIngredientAmount:
 
 @dataclass
 class IngredientAmount:
-    """Dataclass for holding a parsed ingredient amount, comprising the following
-    attributes.
+    """Dataclass for holding a parsed ingredient amount.
 
     On instantiation, the unit is made plural if necessary.
 
     Attributes
     ----------
     quantity : float | str
-        Parsed ingredient quantity, as a float where possible, otherwise a string
+        Parsed ingredient quantity, as a float where possible, otherwise a string.
         If the amount if a range, this is the lower limit of the range.
     quantity_max : float | str
         If the amount is a range, this is the upper limit of the range.
         Otherwise, this is the same as the quantity field.
-        This is set automatically in __post_init__ depending on the type of quantity.
+        This is set automatically depending on the type of quantity.
     unit : str | pint.Unit
         Unit of parsed ingredient quantity.
         If the quantity is recognised in the pint unit registry, a pint.Unit
         object is used.
     text : str
-        Amount as a string, automatically generated from the quantity and unit
+        String describing the amount e.g. "1 cup"
     confidence : float
         Confidence of parsed ingredient amount, between 0 and 1.
         This is the average confidence of all tokens that contribute to this object.
