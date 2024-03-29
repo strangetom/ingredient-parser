@@ -80,6 +80,7 @@ class TestPostProcessor_parsed:
         """
         expected = ParsedIngredient(
             name=IngredientText(text="coconut milk", confidence=0.993106),
+            size=None,
             amount=[
                 IngredientAmount(
                     quantity="2",
@@ -114,6 +115,7 @@ class TestPostProcessor_parsed:
         """
         expected = ParsedIngredient(
             name=IngredientText(text="coconut milk", confidence=0.993106),
+            size=None,
             amount=[
                 IngredientAmount(
                     quantity="2",

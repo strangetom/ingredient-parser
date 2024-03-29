@@ -96,7 +96,15 @@ def write_csv(path: str, csv_rows: list[dict]) -> None:
         List of dicts to write to each row of the csv
     """
     with open(path, "w", newline="", encoding="utf-8") as f:
-        fieldnames = ["input", "name", "quantity", "unit", "preparation", "comment"]
+        fieldnames = [
+            "input",
+            "name",
+            "quantity",
+            "unit",
+            "size",
+            "preparation",
+            "comment",
+        ]
         writer = csv.DictWriter(f, fieldnames, lineterminator="\n")
         writer.writeheader()
         for row in csv_rows:
@@ -124,6 +132,7 @@ if __name__ == "__main__":
             csv_rows[index]["name"] = create_csv_value(db_row, "NAME")
             csv_rows[index]["quantity"] = create_csv_value(db_row, "QTY")
             csv_rows[index]["unit"] = create_csv_value(db_row, "UNIT")
+            csv_rows[index]["size"] = create_csv_value(db_row, "SIZE")
             csv_rows[index]["preparation"] = create_csv_value(db_row, "PREP")
             csv_rows[index]["comment"] = create_csv_value(db_row, "COMMENT")
 

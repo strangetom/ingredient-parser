@@ -41,13 +41,13 @@ The model used for labelling tokens in sentences, provided in the ```ingredient-
 
 ```
 Sentence-level results:
-	Accuracy: 93.67%
+	Accuracy: 93.63%
 
 Word-level results:
-	Accuracy 97.59%
-	Precision (micro) 97.57%
-	Recall (micro) 97.59%
-	F1 score (micro) 97.58%
+	Accuracy 97.52%
+	Precision (micro) 97.51%
+	Recall (micro) 97.52%
+	F1 score (micro) 97.51%
 ```
 
 ## Development

@@ -198,6 +198,9 @@ class ParsedIngredient:
     name : IngredientText | None
         Ingredient name parsed from input sentence.
         If no ingredient name was found, this is None.
+    size : IngredientText | None
+        Size modifer of ingredients, such as small or large.
+        If no size modifier, this is None.
     amount : List[IngredientAmount]
         List of IngredientAmount objects, each representing a matching quantity and
         unit pair parsed from the sentence.
@@ -212,6 +215,7 @@ class ParsedIngredient:
     """
 
     name: IngredientText | None
+    size: IngredientText | None
     amount: list[IngredientAmount]
     preparation: IngredientText | None
     comment: IngredientText | None

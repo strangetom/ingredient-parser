@@ -45,6 +45,7 @@ class TokenStats:
     NAME: Metrics
     QTY: Metrics
     UNIT: Metrics
+    SIZE: Metrics
     COMMENT: Metrics
     PREP: Metrics
     PUNC: Metrics
