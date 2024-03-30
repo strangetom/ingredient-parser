@@ -12,10 +12,10 @@ The following dataclass is defined which will be output from the :func:`parse_in
 
 Each of the fields in the dataclass has to be determined from the output of the model. The :class:`PostProcessor` class handles this for us.
 
-Name, Preparation, Comment
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+Name, Size, Preparation, Comment
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-For each of the labels NAME, PREP, and COMMENT, the process of combining the tokens for each labels is the same.
+For each of the labels NAME, SIZE, PREP, and COMMENT, the process of combining the tokens for each labels is the same.
 
 The general steps are as follows:
 
@@ -144,10 +144,18 @@ This is set to True when the amount is followed by a word such as `each` and ind
 
 There is also a special case (below), where an inner amount that inside a QTY-UNIT pair will be marked as SINGULAR.
 
+**RANGE**
+
+This is set to True with the amount if a range of values, e.g. 1-2, 300-400. In these cases, the ``quantity`` field of the :class:`IngredientAmount` object is set to the lower value in the range and ``quantity_max`` is the upper end of the range.
+
+**MULTIPLIER**
+
+This is set to True when the amount is represented as a multiple such as 1x. The ``quantity`` field in set to the value of the multiplier (1x to 1).
+
 Special cases for amounts
 +++++++++++++++++++++++++
 
-There are some particular cases where the combination of QTY and UNIT labels that make up an amount are not straightforward. For example, consider the sentence **2 14 ounce cans coconut milk**. In this case there are two amounts: **2 cans** and **14 ounce**, where the latter is markedd as **SINGULAR** because it applies to each of the 2 cans.
+There are some particular cases where the combination of QTY and UNIT labels that make up an amount are not straightforward. For example, consider the sentence **2 14 ounce cans coconut milk**. In this case there are two amounts: **2 cans** and **14 ounce**, where the latter is marked as **SINGULAR** because it applies to each of the 2 cans.
 
 .. code:: python
 

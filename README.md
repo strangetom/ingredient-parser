@@ -23,6 +23,7 @@ Import the ```parse_ingredient``` function and pass it an ingredient sentence.
 >>> parse_ingredient("3 pounds pork shoulder, cut into 2-inch chunks")
 ParsedIngredient(
     name=IngredientText(text='pork shoulder', confidence=0.999193),
+    size=None,
     amount=[IngredientAmount(quantity='3',
                              unit=<Unit('pound')>,
                              text='3 pounds',

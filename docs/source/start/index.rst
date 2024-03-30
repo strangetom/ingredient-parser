@@ -59,6 +59,7 @@ The :func:`parse_ingredient <ingredient_parser.parsers.parse_ingredient>` functi
     ParsedIngredient(
         name=IngredientText(text='pork shoulder',
                             confidence=0.999773),
+        size=None,
         amount=[IngredientAmount(quantity=3.0,
                                  unit=<Unit('pound')>,
                                  text='3 pounds',
@@ -78,6 +79,10 @@ The returned :class:`ParsedIngredient <ingredient_parser.postprocess.ParsedIngre
 | Field           | Description                                                                                                                                                          |
 +=================+======================================================================================================================================================================+
 | **name**        | The name of the ingredient sentence, or None.                                                                                                                        |
++-----------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| **size**        | A size modifier for the ingredient, such as small or large, or None.                                                                                                 |
+|                 |                                                                                                                                                                      |
+|                 | This size modifier only applies to the ingredient, not the unit. For example, *1 large pintch of salt* would have the unit as *large pinch* and size of ``None``.    |
 +-----------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | **amount**      | The amounts parsed from the sentence. Each amount has a quantity and a unit, plus optional flags indicating if the amount is approximate or is for a singular item.  |
 |                 |                                                                                                                                                                      |
@@ -106,6 +111,7 @@ The :func:`parse_ingredient <ingredient_parser.parsers.parse_ingredient>` functi
     >>> from ingredient_parser import parse_ingredient
     >>> parse_ingredient("2 tbsp of olive oil", discard_isolated_stop_words=True) # default
     ParsedIngredient(name=IngredientText(text='olive oil', confidence=0.990923),
+        size=None,
         amount=[IngredientAmount(quantity='2',
                                  unit=<Unit('tablespoon')>,
                                  text='2 tbsps',
@@ -118,6 +124,7 @@ The :func:`parse_ingredient <ingredient_parser.parsers.parse_ingredient>` functi
     )
     >>> parse_ingredient("2 tbsp of olive oil", discard_isolated_stop_words=False)
     ParsedIngredient(name=IngredientText(text='olive oil', confidence=0.990923),
+        size=None,
         amount=[IngredientAmount(quantity='2',
                                  unit=<Unit('tablespoon')>,
                                  text='2 tbsps',
@@ -154,6 +161,7 @@ The :func:`parse_multiple_ingredients <ingredient_parser.parsers.parse_multiple_
     [
         ParsedIngredient(
             name=IngredientText(text='fresh lime juice', confidence=0.991891),
+            size=None,
             amount=[IngredientAmount(quantity='3',
                                      unit=<Unit('tablespoon')>,
                                      text='3 tablespoons',
@@ -166,6 +174,7 @@ The :func:`parse_multiple_ingredients <ingredient_parser.parsers.parse_multiple_
         ),
         ParsedIngredient(
             name=IngredientText(text='extra-virgin olive oil', confidence=0.996531),
+            size=None,
             amount=[IngredientAmount(quantity='2',
                                      unit=<Unit('tablespoon')>,
                                      text='2 tablespoons',
@@ -178,6 +187,7 @@ The :func:`parse_multiple_ingredients <ingredient_parser.parsers.parse_multiple_
         ),
         ParsedIngredient(
             name=IngredientText(text='garlic', confidence=0.992021),
+            size=None,
             amount=[IngredientAmount(quantity='2',
                                      unit='large cloves',
                                      text='2 large cloves',
