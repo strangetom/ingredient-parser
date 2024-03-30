@@ -52,6 +52,9 @@ input {
   /* Mix of --green and --yellow */
   --color: #B8981E;
 }
+.SIZE {
+  --color: var(--orange);
+}
 
 .sentence {
   font-size: 1.2rem;
