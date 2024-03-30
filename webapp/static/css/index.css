@@ -64,6 +64,7 @@ input {
   padding: 0 1ch;
   background-color: var(--color);
   color: var(--bg);
+  border: 1px solid var(--bg-s);
 }
 .sentence span:first-of-type {
   border-radius: var(--small-radius) 0 0 var(--small-radius);
