@@ -96,6 +96,34 @@
                     <button type="submit">Filter</button>
                 </form>
             </section>
+
+            <section id="insert">
+                <h2>Insert</h2>
+                <p>Insert new training sentences into the database. Add one sentence per line.</p>
+                <form action="/insert" method="post">
+                    <fieldset>
+                        <legend>Dataset to insert sentences to</legend>
+                        <select name="insert-dataset">
+                            {%- for dataset, _ in datasets -%}
+                            <option value="{{ dataset }}">{{ dataset }}</option>
+                            {%- endfor -%}
+                        </select>
+                    </fieldset>
+                    <textarea id="insert-sentences" name="insert-sentences"></textarea>
+                    <button type="submit">Insert</button>
+                </form>
+            </section>
         </main>
     </body>
+    <script type="text/javascript">  
+        // Automatically set height of textareas to show all text
+        let textareas = document.querySelectorAll("textarea");
+        textareas.forEach((el) => {
+            el.addEventListener("input", (e) => {
+              let el = e.target;
+              el.style.height = "1px";
+              el.style.height = Math.max(el.scrollHeight + 3, 38) + "px";   
+            });
+        });
+    </script>
 </html>
