@@ -49,7 +49,7 @@ With the data ready, we can now train the model using `python-crfuite <https://g
 
 This trains the model and saves the model to the file specified.
 
-This is relatively quick the train, it takes about 2-3 minutes on a laptop with an Intel Core 15-10300H and 16 GB of RAM. No GPU is required.
+This is relatively quick the train, it takes about 20 minutes on a laptop with an Intel Core 15-10300H and 16 GB of RAM. No GPU is required.
 
 All of the above steps are implemented in the ``train.py`` script. The following command will execute the script and train the model on all datasets.
 
