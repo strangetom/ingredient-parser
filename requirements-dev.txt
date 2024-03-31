@@ -9,3 +9,4 @@ coverage
 tqdm
 Flask
 tabulate
+matplotlib
