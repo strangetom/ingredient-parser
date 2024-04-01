@@ -9,10 +9,25 @@ from ._utils import pluralise_units
 from .postprocess import ParsedIngredient, PostProcessor
 from .preprocess import PreProcessor
 
-# Create TAGGER object
+# Create TAGGER object that can be reused between function calls
+# We only want to load the model into TAGGER once, but only do it
+# when we need to (from parse_ingredient() or inspect_parser()) and
+# not whenever anything from ingredient_parser is imported.
 TAGGER = pycrfsuite.Tagger()
-with as_file(files(__package__) / "model.en.crfsuite") as p:
-    TAGGER.open(str(p))
+
+
+def load_model_if_not_loaded():
+    """Load model into TAGGER variable if not loaded.
+
+    There isn't a simple way to check if the model if loaded or not, so
+    we try to call TAGGER.info() which will raise a RuntimeError if the
+    model is not loaded yet.
+    """
+    try:
+        TAGGER.info()
+    except RuntimeError:
+        with as_file(files(__package__) / "model.en.crfsuite") as p:
+            TAGGER.open(str(p))
 
 
 def parse_ingredient(
@@ -46,6 +61,7 @@ def parse_ingredient(
     ParsedIngredient
         ParsedIngredient object of structured data parsed from input string
     """
+    load_model_if_not_loaded()
 
     processed_sentence = PreProcessor(sentence)
     tokens = processed_sentence.tokenized_sentence
@@ -178,6 +194,8 @@ def inspect_parser(
         ParserDebugInfo object containing the PreProcessor object, PostProcessor
         object and Tagger.
     """
+    load_model_if_not_loaded()
+
     processed_sentence = PreProcessor(sentence)
     tokens = processed_sentence.tokenized_sentence
     labels = TAGGER.tag(processed_sentence.sentence_features())
