@@ -191,6 +191,7 @@ class PostProcessor:
 
         A number of special cases are considered before the default processing:
         1. "sizable unit" pattern
+        2. "composite amounts" pattern
 
         Returns
         -------
