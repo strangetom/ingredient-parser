@@ -81,14 +81,13 @@ The current performance of the model is
 .. code::
 
     Sentence-level results:
-        Accuracy: 93.67%
+        Accuracy: 94.08%
 
     Word-level results:
-        Accuracy 97.59%
-        Precision (micro) 97.57%
-        Recall (micro) 97.59%
-        F1 score (micro) 97.58%
-
+        Accuracy 97.70%
+        Precision (micro) 97.69%
+        Recall (micro) 97.70%
+        F1 score (micro) 97.69%
 
 There will always be some variation in model performance each time the model is trained because the training data is partitioned randomly each time. If the model is representing the training data well, then the variation in performance metrics should be small (i.e. << 1%).
 

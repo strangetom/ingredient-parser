@@ -22,8 +22,10 @@
                 <span class="QTY">Quantity</span>
                 <span class="UNIT">Unit</span>
                 <span class="NAME">Name</span>
+                <span class="SIZE">Size</span>
                 <span class="PREP">Prep</span>
                 <span class="COMMENT">Comment</span>
+                <span class="PUNC">Punc</span>
                 <span class="flag">1</span> Singular
                 <span class="flag">~</span> Approximate
             </p>
@@ -44,6 +46,17 @@
                             {%- if name.confidence > 0 -%}
                             <span class="confidence NAME">
                                 {{ "%.2f"|format(100*name.confidence) }}%
+                            </span>
+                            {%- endif -%}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="type SIZE">Size</td>
+                        <td>
+                            {{ size.text }}
+                            {%- if size.confidence > 0 -%}
+                            <span class="confidence SIZE">
+                                {{ "%.2f"|format(100*size.confidence) }}%
                             </span>
                             {%- endif -%}
                         </td>

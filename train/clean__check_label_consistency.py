@@ -111,6 +111,7 @@ def create_html_table(
         "Index",
         "Sentence",
         "Name",
+        "Size",
         "Quantity",
         "Unit",
         "Preparation",
@@ -145,6 +146,12 @@ def create_html_table(
             [tok for tok, label in zip(tokens[idx], labels[idx]) if label == "NAME"]
         )
         tr.append(name_td)
+
+        size_td = ET.Element("td", attrib={"class": "row"})
+        size_td.text = " ".join(
+            [tok for tok, label in zip(tokens[idx], labels[idx]) if label == "SIZE"]
+        )
+        tr.append(size_td)
 
         quantity_td = ET.Element("td", attrib={"class": "row"})
         quantity_td.text = " ".join(

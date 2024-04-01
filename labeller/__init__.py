@@ -7,6 +7,8 @@ from collections import Counter
 
 from flask import Flask, Response, redirect, render_template, request, url_for
 
+from ingredient_parser import inspect_parser
+
 sqlite3.register_adapter(list, json.dumps)
 sqlite3.register_converter("json", json.loads)
 
@@ -144,6 +146,13 @@ def filter():
         return apply_filter(form)
 
 
+@app.route("/insert", methods=["POST"])
+def insert():
+    if request.method == "POST":
+        form = request.form
+        return insert_sentences(form)
+
+
 @app.route("/save", methods=["POST"])
 def save():
     """Endpoint for saving sentences to database from /edit, /shuffle or /index pages
@@ -191,7 +200,20 @@ def delete(index: int):
     return Response(status=200)
 
 
-def apply_filter(params: dict[str, str]) -> list[int]:
+def apply_filter(params: dict[str, str]):
+    """Apply selected filter to database and return page for editing sentences that
+    match the filter.
+
+    Parameters
+    ----------
+    params : dict[str, str]
+        Filter settings
+
+    Returns
+    -------
+    Response
+        Redirection to sentences_by_id page.
+    """
     # Select data from database
     datasets = [
         key.split("-")[-1]
@@ -228,7 +250,7 @@ def apply_filter(params: dict[str, str]) -> list[int]:
         query = re.compile(expression, re.UNICODE | re.IGNORECASE)
 
     # 6 possible labels in total
-    if len(labels) == 6:
+    if len(labels) == 7:
         # Search through sentences
         indices = []
         for entry in data:
@@ -251,3 +273,46 @@ def apply_filter(params: dict[str, str]) -> list[int]:
                 indices.append(str(entry["id"]))
 
         return redirect(url_for("sentences_by_id", indices=",".join(indices)))
+
+
+def insert_sentences(params: dict[str, str]):
+    """Insert new sentences to database, setting the source to the selected value.
+    New sentences are tokenised automatically but have their labels set to "
+
+    Parameters
+    ----------
+    params : dict[str, str]
+        Sentences and source
+
+    Returns
+    -------
+    Response
+        Redirection to sentences_by_id page.
+    """
+    source = params.get("insert-dataset")
+    sentences = params.get("insert-sentences", "").splitlines()
+    guess_labels = params.get("guess-labels", "") == "on"
+
+    indices = []
+    with sqlite3.connect(DATABASE, detect_types=sqlite3.PARSE_DECLTYPES) as conn:
+        c = conn.cursor()
+        for sentence in sentences:
+            if not sentence:
+                continue
+
+            ins = inspect_parser(sentence)
+            tokens = ins.PostProcessor.tokens
+            if guess_labels:
+                labels = ins.PostProcessor.labels
+            else:
+                labels = [""] * len(tokens)
+
+            c.execute(
+                """
+                INSERT INTO training (source, sentence, tokens, labels) 
+                VALUES (?, ?, ?, ?)""",
+                (source, sentence, tokens, labels),
+            )
+            indices.append(str(c.lastrowid))
+
+    return redirect(url_for("sentences_by_id", indices=",".join(indices)))

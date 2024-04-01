@@ -92,6 +92,13 @@ def convert_to_pint_unit(unit: str, imperial_units: bool = False) -> str | pint.
     >>> convert_to_pint_unit("cup", imperial_units=True)
     <Unit('imperial_cup')>
     """
+    if "-" in unit:
+        # When checking if a unit is in the unit registry, pint will parse any
+        # '-' as a subtraction and attempt to evaluate it, causing an exception.
+        # Since no pint.Unit can contain a '-', we'll just return early with
+        # the string.
+        return unit
+
     # Define some replacements to ensure correct matches in pint Unit Registry
     replacements = {
         "fl oz": "floz",

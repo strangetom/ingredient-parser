@@ -27,7 +27,7 @@ def home():
         )
 
     parser_info = inspect_parser(sentence)
-    parsed = parser_info.PostProcessor.parsed()
+    parsed = parser_info.PostProcessor.parsed
 
     return render_template(
         "index.html.jinja",
@@ -35,6 +35,7 @@ def home():
         sentence=sentence,
         tokens=zip(parser_info.PostProcessor.tokens, parser_info.PostProcessor.labels),
         name=parsed.name if parsed.name is not None else IngredientText("", 0),
+        size=parsed.size if parsed.size is not None else IngredientText("", 0),
         amounts=parsed.amount,
         preparation=parsed.preparation
         if parsed.preparation is not None

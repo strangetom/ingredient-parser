@@ -157,6 +157,9 @@ select {
 .PUNC {
   --background-color: color-mix(in srgb, var(--gray), #333);
 }
+.SIZE {
+  --background-color: color-mix(in srgb, var(--orange), #333);
+}
 
 button.delete {
   border: 1px solid var(--red-alt);

@@ -23,6 +23,7 @@ Import the ```parse_ingredient``` function and pass it an ingredient sentence.
 >>> parse_ingredient("3 pounds pork shoulder, cut into 2-inch chunks")
 ParsedIngredient(
     name=IngredientText(text='pork shoulder', confidence=0.999193),
+    size=None,
     amount=[IngredientAmount(quantity='3',
                              unit=<Unit('pound')>,
                              text='3 pounds',
@@ -41,13 +42,13 @@ The model used for labelling tokens in sentences, provided in the ```ingredient-
 
 ```
 Sentence-level results:
-	Accuracy: 93.67%
+	Accuracy: 94.08%
 
 Word-level results:
-	Accuracy 97.59%
-	Precision (micro) 97.57%
-	Recall (micro) 97.59%
-	F1 score (micro) 97.58%
+	Accuracy 97.70%
+	Precision (micro) 97.69%
+	Recall (micro) 97.70%
+	F1 score (micro) 97.69%
 ```
 
 ## Development

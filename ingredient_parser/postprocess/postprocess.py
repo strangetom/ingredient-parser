@@ -112,16 +112,18 @@ class PostProcessor:
             Object containing structured data from sentence.
         """
         amounts = self._postprocess_amounts()
+        size = self._postprocess("SIZE")
         name = self._postprocess("NAME")
         preparation = self._postprocess("PREP")
         comment = self._postprocess("COMMENT")
 
         return ParsedIngredient(
-            sentence=self.sentence,
-            amount=amounts,
             name=name,
+            size=size,
+            amount=amounts,
             preparation=preparation,
             comment=comment,
+            sentence=self.sentence,
         )
 
     def _postprocess(self, selected: str) -> IngredientText | None:
@@ -189,6 +191,7 @@ class PostProcessor:
 
         A number of special cases are considered before the default processing:
         1. "sizable unit" pattern
+        2. "composite amounts" pattern
 
         Returns
         -------

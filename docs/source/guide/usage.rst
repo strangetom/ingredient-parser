@@ -1,11 +1,12 @@
 Using the model
 ===============
 
-With the model trained, it can be used to label the tokens of an ingredient sentence as one of the following labels:
+With the model trained, it can be used to label the tokens of an ingredient sentence with one of the following labels:
 
 * QTY
 * UNIT
 * NAME
+* SIZE
 * PREP
 * COMMENT
 * PUNC

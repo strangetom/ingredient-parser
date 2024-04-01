@@ -105,6 +105,14 @@ class Test_convert_to_pint_unit:
             "imperial_gallon"
         )
 
+    def test_unit_with_hypen(self):
+        """
+        Test that units containing hyphens always return string.
+        This example isn't actually a unit, but can be mislablled as one, so
+        we need to check this case.
+        """
+        assert convert_to_pint_unit("medium-size") == "medium-size"
+
 
 class Test_is_float:
     def test_int(self):

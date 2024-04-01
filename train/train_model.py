@@ -53,6 +53,8 @@ def train_model(
     if seed is None:
         seed = randint(0, 1_000_000_000)
 
+    print(f"[INFO] {seed} is the random seed used for the train/test split.")
+
     # Split data into train and test sets
     # The stratify argument means that each dataset is represented proprtionally
     # in the train and tests sets, avoiding the possibility that train or tests sets
@@ -86,10 +88,10 @@ def train_model(
             "feature.possible_states": True,
             "feature.possible_transitions": True,
             "c1": 0.1,
-            "c2": 0.5,
+            "c2": 0.7,
             "max_linesearch": 5,
             "num_memories": 3,
-            "period": 5,
+            "period": 10,
         }
     )
     for X, y in zip(features_train, truth_train):
