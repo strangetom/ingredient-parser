@@ -11,7 +11,7 @@ from .preprocess import PreProcessor
 
 # Create TAGGER object
 TAGGER = pycrfsuite.Tagger()
-with as_file(files(__package__) / "model.crfsuite") as p:
+with as_file(files(__package__) / "model.en.crfsuite") as p:
     TAGGER.open(str(p))
 
 
