@@ -24,8 +24,6 @@ The Cookstr dataset is derived from 7,918 recipes scraped from `<cookstr.com>`_ 
 * The dataset primarily uses imperial/US customary units, although many ingredients give the quantity in multiple units
 * The dataset is medium sized, roughly 40,000 entries
 
-The three datasets have different advantages and disadvantages, therefore combining the two should yield an improvement over using any on their own.
-
 BBC Food
 ~~~~~~~~
 
@@ -50,7 +48,7 @@ The model is currently trained using the first 30,000 entries of the New York Ti
 
 .. tip::
 
-    The impact of the consistent labelling can be seen by training the model using the full New York Times dataset, where the majority of the data has not been consistently labelled. The model performance drops significantly: ~5% reduction to both word and sentence metrics.
+    The impact of the consistent labelling can be seen by training the model using the full New York Times dataset, where the majority of the data has not been consistently labelled. The model performance drops significantly.
 
 The following operations were done to clean up the labelling (note that this is not exhaustive, the git history for the dataset will give the full details).
 
@@ -106,3 +104,31 @@ The following operations were done to clean up the labelling (note that this is 
     * The first 30,000 sentences of the New York Times dataset
     * The first 15,000 sentences of the Cookstr dataset
     * The first 15,000 sentences of the BBC Food dataset
+
+Data storage
+^^^^^^^^^^^^
+
+The labelled training data is stored in an sqlite3 database at ``train/data/training.sqlite3``. The database contains a single table, ``eng``, with the following fields:
+
+.. list-table::
+
+    * - Field
+      - Description
+    * - **id**
+      - Unique ID for the sentence
+    * - **source**
+      - The source dataset the sentence is from
+    * - **sentence**
+      - The ingredient sentence
+    * - **tokens**
+      - List of tokens from the sentence
+    * - **labels**
+      - List of token labels
+
+It is the data in this database that is used to train the models.
+
+CSV files of the full datasets are in the ``train/data/<dataset>`` directories. These csv files contain the full set of ingredient sentences, including those not properly labelled. The csv files are kept aligned with the database using the following command.
+
+.. code:: bash
+
+    $ python train/data/db_to_csv.py
