@@ -30,7 +30,7 @@ def load_from_db(source: str) -> list[dict[str, str]]:
     with sqlite3.connect(DATABASE, detect_types=sqlite3.PARSE_DECLTYPES) as conn:
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
-        data = c.execute("SELECT * FROM training WHERE source = ?", (source,))
+        data = c.execute("SELECT * FROM en WHERE source = ?", (source,))
 
     rows = [dict(d) for d in data]
     conn.close()

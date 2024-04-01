@@ -99,7 +99,7 @@ def load_datasets(
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
         c.execute(
-            f"SELECT * FROM training WHERE source IN ({','.join(['?']*len(datasets))})",
+            f"SELECT * FROM en WHERE source IN ({','.join(['?']*len(datasets))})",
             datasets,
         )
         data = c.fetchall()
