@@ -52,6 +52,7 @@ def train_model(
     # Generate random seed for the train/test split if none provided.
     if seed is None:
         seed = randint(0, 1_000_000_000)
+        print(f"[INFO] {seed} is the random seed used for the train/test split.")
 
     # Split data into train and test sets
     # The stratify argument means that each dataset is represented proprtionally
