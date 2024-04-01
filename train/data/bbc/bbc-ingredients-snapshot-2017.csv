@@ -28,7 +28,7 @@ honey to taste,honey,,,,,to taste
 a good pinch of dried oregano,dried oregano,,,,,a good pinch of
 1 large bunch coriander leaves,coriander leaf,1,large bunch,,,
 "300g/11oz haricot beans, rinsed, drained, then left to soak in water overnight",haricot beans,300 11,g oz,,rinsed drained then left to soak in water overnight,
-250g/9oz medium egg noodles,egg noodles,250 9,g oz medium,,,
+250g/9oz medium egg noodles,egg noodles,250 9,g oz,medium,,
 125m/4fl oz vegetable oil,vegetable oil,125 4,m fl oz,,,
 300g/10½oz crunchy peanut butter,crunchy peanut butter,300 10.5,g oz,,,
 "35g/1½oz smoked salmon, roughly chopped",smoked salmon,35 1.5,g oz,,roughly chopped,
@@ -453,7 +453,7 @@ Maldon sea salt,Maldon sea salt,,,,,
 "75g/2½oz cornichons, finely chopped",cornichons,75 2.5,g oz,,finely chopped,
 "50g/1¾oz mature cheddar, grated",mature cheddar,50 1.75,g oz,,grated,
 "½ lime, zest and juice",lime,0.5,,,zest and juice,
-"12 jumbo raw prawns, in shells",jumbo raw prawns,12,,,,in shells
+"12 jumbo raw prawns, in shells",raw prawns,12,,jumbo,,in shells
 bread to serve,bread,,,,,to serve
 150g/5oz small button mushrooms,button mushrooms,150 5,g oz small,,,
 200g/7oz raw tiger prawns,raw tiger prawns,200 7,g oz,,,
@@ -753,7 +753,7 @@ pinch of freshly ground black peppercorns,black peppercorns,,pinch,,freshly grou
 "Vegetable oil, for frying",Vegetable oil,,,,,for frying
 250ml/9fl oz fish stock (see above),fish stock,250 9,ml fl oz,,,see above
 250ml/9floz olive oil,olive oil,250 9,ml floz,,,
-75ml/2½fl oz medium dry white wine,dry white wine,75 2.5,ml fl oz medium,,,
+75ml/2½fl oz medium dry white wine,medium dry white wine,75 2.5,ml fl oz,,,
 1 green bird's-eye chilli,green bird's-eye chilli,1,,,,
 "3 sticks rhubarb, cut into 5cm/2in batons",rhubarb,3,stick,,cut into 5 cm 2 in batons,
 3 tbsp sweet mincemeat,sweet mincemeat,3,tbsp,,,
@@ -1627,7 +1627,7 @@ pinch of asafoetida,asafoetida,,pinch,,,of
 "500g/1lb 2oz strawberries, hulled and halved",strawberries,500 1 2,g lb oz,,hulled and halved,
 "1 beef tomato, seeds removed, finely diced",beef tomato,1,,,seeds removed finely diced,
 "½-1 tbsp oyster sauce, to taste",oyster sauce,0.5-1,tbsp,,,to taste
-"2kg/4lb 4oz medium clams, cleaned, (discard any clams that remain open after rinsing)",clams,2 4 4,kg lb oz medium,,cleaned,discard any clams that remain open after rinsing
+"2kg/4lb 4oz medium clams, cleaned, (discard any clams that remain open after rinsing)",clams,2 4 4,kg lb oz,medium,cleaned,discard any clams that remain open after rinsing
 "1 small garlic clove, chopped",garlic,1,small clove,,chopped,
 ½ tbsp brown sugar,brown sugar,0.5,tbsp,,,
 "1 x 350g/12oz whole mackerel, cut into large chunks",whole mackerel,1x 350 12,g oz,,cut into large chunk,
@@ -2186,7 +2186,7 @@ fresh lemon thyme (optional),fresh lemon thyme,,,,,optional
 750ml/1¼ pints red wine,red wine,750 1.25,ml pint,,,
 a few drops of Worcestershire sauce,Worcestershire sauce,few,drop,,,a of
 "6 tbsp flatleaf parsley, leaves only",flatleaf parsley,6,tbsp,,,leaf only
-225g/8oz medium fat curd cheese,fat curd cheese,225 8,g oz medium,,,
+225g/8oz medium fat curd cheese,medium fat curd cheese,225 8,g oz,,,
 ½ teaspoon mixed spice,mixed spice,0.5,teaspoon,,,
 1 tsp finely chopped banana shallot,banana shallot,1,tsp,,finely chopped,
 3 medium aubergines,aubergines,3,,medium,,
@@ -3171,7 +3171,7 @@ pinch of a stock cube,stock cube,,pinch,,,of a
 300g/11oz dried borlotti beans,dried borlotti beans,300 11,g oz,,,
 "350g/12oz prepared squid (defrosted if frozen), sliced into rings",prepared squid,350 12,g oz,,sliced into rings,defrosted if frozen
 "50ml/2fl oz vegetable oil, for frying",vegetable oil,50 2,ml fl oz,,,for frying
-"1 medium head cauliflower, broken into large florets",cauliflower,1,medium head,,broken into large florets,
+"1 medium head cauliflower, broken into large florets",cauliflower,1,head,medium,broken into large florets,
 "1 x 350-400g/12-14oz fillet of smoked haddock, cut into 4 portions",fillet of smoked haddock,1x 350-400 12-14,g oz,,cut into 4 portions,
 "4 slices white bread, processed to crumbs in a food processor",white bread,4,slice,,processed to crumbs in a food processor,
 "4 heaped tbsp grated parmesan, plus extra to serve",parmesan,4,heaped tbsp,,grated,plus extra to serve
@@ -3898,7 +3898,7 @@ small handful of fresh basil leaves,fresh basil leaf,,small handful,,,of
 "2 tbsp chopped chives, plus extra to garnish",chives,2,tbsp,,chopped,plus extra to garnish
 fresh white crab meat (allow 40g/2oz per person),fresh white crab meat,40 2,g oz,,,allow per person
 "8 baby leeks, cleaned and trimmed",baby leeks,8,,,cleaned and trimmed,
-"500g/1 lb 2oz medium-sized potatoes, peeled and halved",potatoes,500 1 2,g lb oz medium-sized,,peeled and halved,
+"500g/1 lb 2oz medium-sized potatoes, peeled and halved",potatoes,500 1 2,g lb oz,medium-sized,peeled and halved,
 2 tbsp Greek yoghurt,Greek yoghurt,2,tbsp,,,
 200ml/7fl oz brown chicken stock,brown chicken stock,200 7,ml fl oz,,,
 "1 red onion, peeled and sliced",red onion,1,,,peeled and sliced,
@@ -3922,7 +3922,7 @@ fresh white crab meat (allow 40g/2oz per person),fresh white crab meat,40 2,g oz
 "½ large baking potato, peeled and cut into chips",baking potato,0.5,,large,peeled and cut into chips,
 115g/4oz mizuna leaves,mizuna leaf,115 4,g oz,,,
 4 tsp soured cream,soured cream,4,tsp,,,
-"3 medium-sized tomatoes, roughly chopped",tomatoes,3,medium-sized,,roughly chopped,
+"3 medium-sized tomatoes, roughly chopped",tomatoes,3,,medium-sized,roughly chopped,
 salt and cracked white pepper,salt and white pepper,,,,cracked,
 50g/2oz soya yoghurt,soya yoghurt,50 2,g oz,,,
 "100g/3½oz flour, seasoned with salt and freshly ground black pepper",flour,100 3.5,g oz,,seasoned with salt and freshly ground black pepper,
@@ -4745,7 +4745,7 @@ pinch fresh nutmeg,fresh nutmeg,,pinch,,,
 "100g/3½oz stoned Medjool dates, finely chopped (optional)",stoned Medjool dates,100 3.5,g oz,,finely chopped,optional
 "2 small onions, peeled, chopped",onions,2,,small,peeled chopped,
 "800g/1lb 12oz boned lamb shoulder or beef shin, cut into matchbox-size pieces",boned lamb shoulder or beef shin,800 1 12,g lb oz,,cut into matchbox-size piece,
-500g/1lb 2oz jumbo rolled oats,jumbo rolled oats,500 1 2,g lb oz,,,
+500g/1lb 2oz jumbo rolled oats,rolled oats,500 1 2,g lb oz,jumbo,,
 1 tbsp chopped coriander,coriander,1,tbsp,,chopped,
 1 tsp chilli sauce (optional),chilli sauce,1,tsp,,,optional
 1 rounded tsp grated ginger,ginger,1,rounded tsp,,grated,
@@ -4922,7 +4922,7 @@ serve with,serve with,,,,,
 "100-200g/3½-7oz taleggio, sliced",taleggio,100-200 3.5-7,g oz,,sliced,
 "650g/1lb 7oz leeks, light green and white parts only, cut into 1.5cm/½in dice",leeks,650 1 7,g lb oz,,cut into 1.5 cm 0.5 in dice,light green and white parts only
 1 packet baby leaf spinach,baby leaf spinach,1,packet,,,
-"24 evenly sized heritage carrots, unpeeled",heritage carrots,24,,,unpeeled,evenly sized
+"24 evenly sized heritage carrots, unpeeled",heritage carrots,24,,evenly sized,unpeeled,
 150g/5½oz masa harina (available online),masa harina,150 5.5,g oz,,,available online
 2 tbsp dried grated orange peel,orange peel,2,tbsp,,dried grated,
 "1 tbsp Greek yoghurt, to serve",Greek yoghurt,1,tbsp,,,to serve
@@ -4965,7 +4965,7 @@ serve with,serve with,,,,,
 "750g/1lb 10oz strong plain flour, plus extra for flouring",strong plain flour,750 1 10,g lb oz,,,plus extra for flouring
 8 lemon sole fillets,lemon sole fillets,8,,,,
 1x 200g/7oz chocolate panettone,chocolate panettone,1x 200 7,g oz,,,
-"1 big lump of ginger, chopped",big lump of ginger,1,,,chopped,
+"1 big lump of ginger, chopped",of ginger,1,big lump,,chopped,
 100g/3½oz Stilton,Stilton,100 3.5,g oz,,,
 ¼ tsp sansho pepper (available from specialist Japanese grocers),sansho pepper,0.25,tsp,,,available from specialist Japanese grocers
 "2 rashers rindless steaky bacon, cut into 1cm/½in pieces",rindless steaky bacon,2,rasher,,cut into 1 cm 0.5 in piece,
@@ -4990,7 +4990,7 @@ crème fraîche,crème fraîche,,,,,
 "1 tbsp preserved lemon rind, pulp removed, finely diced",preserved lemon rind,1,tbsp,,pulp removed finely diced,
 "1 shallot, peeled, finely sliced",shallot,1,,,peeled finely sliced,
 50g/1¾oz marinated mushrooms,marinated mushrooms,50 1.75,g oz,,,
-"525g/1lb 5oz medium cornmeal, maize flour or polenta",cornmeal maize flour or polenta,525 1 5,g lb oz medium,,,
+"525g/1lb 5oz medium cornmeal, maize flour or polenta",medium cornmeal maize flour or polenta,525 1 5,g lb oz,,,
 "4 sprigs rosemary, leaves only, roughly chopped",rosemary,4,sprig,,roughly chopped,leaf only
 "75g/2½oz coarse dried white breadcrumbs, preferably Japanese panko breadcrumbs",coarse dried white breadcrumbs,75 2.5,g oz,,,preferably Japanese panko breadcrumbs
 "2 celery sticks, trimmed and finely sliced",celery,2,stick,,trimmed and finely sliced,
@@ -5101,7 +5101,7 @@ pitta bread,pitta bread,,,,,
 "40g/1½oz butter, plus extra, melted, for greasing",butter,40 1.5,g oz,,melted,plus extra for greasing
 1½ tbsp demerara sugar,demerara sugar,1.5,tbsp,,,
 "4 salted anchovy fillets, finely chopped",salted anchovy fillets,4,,,finely chopped,
-120g/4oz rolled jumbo oats,rolled jumbo oats,120 4,g oz,,,
+120g/4oz rolled jumbo oats,rolled oats,120 4,g oz,jumbo,,
 100ml/3½fl oz chilled water,water,100 3.5,ml fl oz,,chilled,
 "½ chilli, chopped",chilli,0.5,,,chopped,
 "65g/2¼oz cold lard, cut into 5mm-1cm cubes",lard,65 2.25,g oz,,cold cut into 5 mm 1 cm cube,
@@ -5917,7 +5917,7 @@ oil for frying,oil,,,,,for frying
 shichimi togarashi (Japanese seven-spice seasoning),shichimi togarashi,,,,,Japanese 7 spice seasoning
 100ml/3½fl oz orange liqueur,orange liqueur,100 3.5,ml fl oz,,,
 "1 spring onion, trimmed, finely chopped",spring onion,1,,,trimmed finely chopped,
-"350g/12oz (4 small) chicken thighs, deboned, skinned and cut into 1x2.5cm/½x1in strips",chicken thighs,350 12 4,g oz small,,deboned skinned and cut into 1x 2.5 cm 0.5x 1 in strip,
+"350g/12oz (4 small) chicken thighs, deboned, skinned and cut into 1x2.5cm/½x1in strips",chicken thighs,350 12 4,g oz,small,deboned skinned and cut into 1x 2.5 cm 0.5x 1 in strip,
 4 razor clams,razor clams,4,,,,
 "1kg/2lb 3oz mutton, minced",mutton,1 2 3,kg lb oz,,minced,
 3 slices bread,bread,3,slice,,,
@@ -6134,7 +6134,7 @@ rocket salad,rocket salad,,,,,
 1 strip orange zest,orange zest,1,strip,,,
 "clotted cream or double cream, to serve",clotted cream or double cream,,,,,to serve
 1 egg yolk,egg yolk,1,,,,
-100g/4oz medium bulgar wheat,bulgar wheat,100 4,g oz medium,,,
+100g/4oz medium bulgar wheat,medium bulgar wheat,100 4,g oz,,,
 "¼ small celeriac, peeled",celeriac,0.25,,small,peeled,
 6 baby carrots,baby carrots,6,,,,
 10 cardamom pods,cardamom pod,10,,,,
@@ -7292,7 +7292,7 @@ edible food glue (optional),edible food glue,,,,,optional
 "425g/15oz strong white bread flour, plus extra for dusting",strong white bread flour,425 15,g oz,,,plus extra for dusting
 "1 head kale, thinly sliced",kale,1,head,,thinly sliced,
 handful fresh mint leaves,fresh mint leaf,,handful,,,
-"6 medium-sized sardines, filleted",sardines,6,medium-sized,,filleted,
+"6 medium-sized sardines, filleted",sardines,6,,medium-sized,filleted,
 "3 onions, thickly sliced",onions,3,,,thickly sliced,
 "1 large red chilli, halved, de-seeded, finely sliced",red chilli,1,,large,halved de-seeded finely sliced,
 "450g/1lb large prunes, dried and pitted",prunes,450 1,g lb large,,dried and pitted,
@@ -7795,7 +7795,7 @@ fresh orange segments (optional),fresh orange segment,,,,,optional
 50g/2oz carrot purée,carrot purée,50 2,g oz,,,
 "½ Savoy cabbage, core removed, finely shredded",Savoy cabbage,0.5,,,core removed finely shredded,
 2 tsp yellow mustard seeds,yellow mustard seeds,2,tsp,,,
-juice and grated rind of 1 large orange,orange,1,large,,,juice and grated rind of
+juice and grated rind of 1 large orange,orange,1,,large,,juice and grated rind of
 "340g/12oz strong white bread flour, plus extra for dusting",strong white bread flour,340 12,g oz,,,plus extra for dusting
 2 turkey breast medallions,turkey breast medallions,2,,,,
 15 mustard seeds,mustard seeds,15,,,,
@@ -8057,7 +8057,7 @@ small sprig holly leaves,holly leaf,,small sprig,,,
 "2 plums, halved, stones removed",plums,2,,,halved stones removed,
 "small handful fresh flatleaf parsley, chopped",fresh flatleaf parsley,,small handful,,chopped,
 "1 pink grapefruit, cut into small segments",pink grapefruit,1,,,cut into small segment,
-"1 medium-sized aubergine, cubed",aubergine,1,medium-sized,,cubed,
+"1 medium-sized aubergine, cubed",aubergine,1,,medium-sized,cubed,
 "melted butter, to glaze",butter,,,,melted,to glaze
 "2 garlic cloves, peeled and halved",garlic,2,clove,,peeled and halved,
 "4 baby leeks, trimmed",baby leeks,4,,,trimmed,
@@ -8215,7 +8215,7 @@ tsp salt,salt,,tsp,,,
 "150g/5½oz carrots, cut into 7cm/2¾in batons",carrots,150 5.5,g oz,,cut into 7 cm 2.75 in batons,
 "50g/2oz butter, melted, plus extra for greasing",butter,50 2,g oz,,melted,plus extra for greasing
 "2.5cm/1in piece galangal, peeled and chopped (if available)",galangal,2.5 1,cm in piece,,peeled and chopped,if available
-"1 small (or ½ large) butternut squash, peeled, deseeded, cut into small cubes",butternut squash,1 0.5,large,small,peeled deseeded cut into small cube,or
+"1 small (or ½ large) butternut squash, peeled, deseeded, cut into small cubes",butternut squash,1 0.5,,small or large,peeled deseeded cut into small cube,
 "100g/3½oz Swiss chard, boiled, squeezed of water and chopped",Swiss chard,100 3.5,g oz,,boiled squeezed of water and chopped,
 "1 garlic clove, crushed",garlic,1,clove,,crushed,
 "100g/3½oz feta cheese, broken into pieces",feta cheese,100 3.5,g oz,,broken into piece,
@@ -8294,7 +8294,7 @@ few knobs of butter,butter,few,knob,,,of
 cold fizzy water,fizzy water,,,,cold,
 "2 garlic cloves, peeled, left whole",garlic,2,clove,,peeled left whole,
 "2 green cardamom pods, bruised",green cardamom pod,2,,,bruised,
-60g/2½oz jumbo porridge oats,jumbo porridge oats,60 2.5,g oz,,,
+60g/2½oz jumbo porridge oats,porridge oats,60 2.5,g oz,jumbo,,
 1 tsp roughly chopped fresh oregano (or thyme),fresh oregano,1,tsp,,roughly chopped,or thyme
 a good pinch chilli powder,chilli powder,,pinch,,,a good
 "100g/4oz pak choi, thickly sliced keeping the white and green parts separate",pak choi,100 4,g oz,,thickly sliced keeping the white and green parts separate,
@@ -9277,7 +9277,7 @@ a dot of red food colouring,red food colouring,,,,,a dot of
 1kg/2lb 4oz whole ready-to-roast hen pheasant,whole ready-to-roast hen pheasant,1 2 4,kg lb oz,,,
 "½ pint vegetable oil, for deep frying",vegetable oil,0.5,pint,,,for deep frying
 250g/9oz minced chicken,chicken,250 9,g oz,,minced,
-"8 medium-sized prawns, shell on",prawns,8,medium-sized,,shell on,
+"8 medium-sized prawns, shell on",prawns,8,,medium-sized,shell on,
 150g/5oz fillet hot-smoked salmon,fillet hot-smoked salmon,150 5,g oz,,,
 "100ml/3½fl oz double cream, whipped until soft peaks form when the whisk is removed",double cream,100 3.5,ml fl oz,,whipped until soft peaks form when the whisk is removed,
 "1 Bramley apple, peeled, quartered, core removed, sliced",Bramley apple,1,,,peeled quartered core removed sliced,
@@ -9401,7 +9401,7 @@ oil for deep-frying,oil,,,,,for deep-frying
 20g/1oz bicarbonate of soda,bicarbonate of soda,20 1,g oz,,,
 275g/9¾oz softened butter,butter,275 9.75,g oz,,softened,
 "4 peaches, peeled, stones removed, sliced",peaches,4,,,peeled stones removed sliced,
-"600g/1lb 5oz small to medium-sized red-skinned potatoes, peeled, halved lengthwise",red-skinned potatoes,600 1 5,g lb oz small to medium-sized,,peeled halved lengthwise,
+"600g/1lb 5oz small to medium-sized red-skinned potatoes, peeled, halved lengthwise",red-skinned potatoes,600 1 5,g lb oz,small to medium-sized,peeled halved lengthwise,
 "1 small bunch fresh flatleaf parsley, leaves only",fresh flatleaf parsley,1,small bunch,,,leaf only
 "250g/9oz kale, leaves picked",kale,250 9,g oz,,leaf picked,
 "half onion, finely chopped",onion,half,,,finely chopped,
@@ -9425,7 +9425,7 @@ salted butter (to butter bread),salted butter,,,,,to butter bread
 200g/7oz haddock fillet,haddock fillet,200 7,g oz,,,
 "2kg/4lb 8oz potatoes, quartered",potatoes,2 4 8,kg lb oz,,quartered,
 "110g/3½oz tinned cherries, drained, syrup reserved",tinned cherries,110 3.5,g oz,,drained syrup reserved,
-"4 medium-sized bananas, skins on",bananas,4,medium-sized,,,skins on
+"4 medium-sized bananas, skins on",bananas,4,,medium-sized,,skins on
 "6 tomatoes, halved",tomatoes,6,,,halved,
 light soy sauce,light soy sauce,,,,,
 4 tbsp Greek yoghurt,Greek yoghurt,4,tbsp,,,
@@ -9576,7 +9576,7 @@ small bunch black grapes,black grapes,,small bunch,,,
 100g/4oz breadcrumbs,breadcrumbs,100 4,g oz,,,
 "2 small Cox apples, peeled and cut into wedges",Cox apples,2,,small,peeled and cut into wedge,
 "1 tbsp pistachios, crushed",pistachios,1,tbsp,,crushed,
-2 extra-large quails,quails,2,extra-large,,,
+2 extra-large quails,quails,2,,extra-large,,
 "3 sunblush tomatoes, chopped",sunblush tomatoes,3,,,chopped,
 "300g/10½oz assorted chocolate bars, including dark chocolate, milk chocolate and raisin and nut chocolate, broken into pieces",assorted chocolate bar,300 10.5,g oz,,broken into piece,including dark chocolate milk chocolate and raisin and nut chocolate
 "500g/1lb 2oz strawberries, hulled",strawberries,500 1 2,g lb oz,,hulled,
@@ -10767,7 +10767,7 @@ salt,salt,,,,,
 30g/1oz petit pois,petit pois,30 1,g oz,,,
 generous pinch ground asafoetida,ground asafoetida,,generous pinch,,,
 40g/1¾oz butter,butter,40 1.75,g oz,,,
-"55g/2oz medium egg noodles, cooked according to packet instructions and drained",egg noodles,55 2,g oz medium,,cooked according to packet instructions and drained,
+"55g/2oz medium egg noodles, cooked according to packet instructions and drained",egg noodles,55 2,g oz,medium,cooked according to packet instructions and drained,
 "150g/5½oz frozen mixed berries, such as strawberries, raspberries and blueberries, thawed",frozen mixed berries,150 5.5,g oz,,thawed,such as strawberries raspberries and blueberries
 36 plump chestnuts in their skins,plump chestnuts,36,,,,in their skins
 2g coriander seeds,coriander seeds,2,g,,,
@@ -11425,7 +11425,7 @@ good shake of Worcestershire sauce,Worcestershire sauce,,good shake,,,of
 8 beef sausages,beef sausages,8,,,,
 6 thick slices brioche,brioche,6,thick slice,,,
 "½ loaf sourdough bread, sliced",sourdough bread,0.5,loaf,,sliced,
-100ml/3½fl oz of medium dry cider,dry cider,100 3.5,ml fl oz medium,,,of
+100ml/3½fl oz of medium dry cider,medium dry cider,100 3.5,ml fl oz,,,of
 4 Baby Gem leaves,Baby Gem leaf,4,,,,
 "½ each green and red chilli, chopped",green and red chilli,0.5,,,chopped,each
 450ml/16fl oz whipping cream,whipping cream,450 16,ml fl oz,,,
@@ -11623,7 +11623,7 @@ wild rocket,wild rocket,,,,,
 55g/2oz seasoned flour,seasoned flour,55 2,g oz,,,
 260g/9¼oz very strong white bread flour,very strong white bread flour,260 9.25,g oz,,,
 "1 free-range egg white, lightly whisked",free-range egg white,1,,,lightly whisked,
-1 medium-large very ripe banana (around 100g/3½oz peeled weight),very ripe banana,1 100 3.5,medium-large g oz,,peeled,around weight
+1 medium-large very ripe banana (around 100g/3½oz peeled weight),very ripe banana,1 100 3.5,g oz,medium-large,peeled,around weight
 "250g/9oz white crabmeat, picked through",white crabmeat,250 9,g oz,,picked through,
 3 tbsp sherry vinegar,sherry vinegar,3,tbsp,,,
 300g/10½oz brown bread flour,brown bread flour,300 10.5,g oz,,,
@@ -11703,7 +11703,7 @@ splash orange liqueur,orange liqueur,,splash,,,
 2 x 200g/7oz tubes double concentrate tomato purée,tubes double concentrate tomato purée,2x 200 7,g oz,,,
 100g/3½oz apricot jam,apricot jam,100 3.5,g oz,,,
 1-2 tsp date syrup (available from delicatessens or online specialists) or maple syrup,date syrup or maple syrup,1-2,tsp,,,available from delicatessens or online specialists
-"100g/3½oz medium oatmeal, plus extra for dusting",oatmeal,100 3.5,g oz medium,,,plus extra for dusting
+"100g/3½oz medium oatmeal, plus extra for dusting",oatmeal,100 3.5,g oz,medium,,plus extra for dusting
 "500g/1lb 2oz spinach leaves, washed thoroughly, tough stalks removed",spinach leaf,500 1 2,g lb oz,,washed thoroughly tough stalk removed,
 125ml/4½fl oz light soy sauce,light soy sauce,125 4.5,ml fl oz,,,
 "1 courgette, sliced lengthways",courgette,1,,,sliced lengthways,
@@ -11796,7 +11796,7 @@ water,water,,,,,
 225g/8oz semolina,semolina,225 8,g oz,,,
 "3 free-range eggs, 1 beaten for egg wash",free-range eggs,3,,,1 beaten for egg wash,
 150g/5½fl oz caster sugar,caster sugar,150 5.5,g fl oz,,,
-1 medium-sized cooked brown crab,brown crab,1,medium-sized,,cooked,
+1 medium-sized cooked brown crab,brown crab,1,,medium-sized,cooked,
 250ml/9fl oz hot chicken stock (vegetarians can substitute vegetable stock),hot chicken stock,250 9,ml fl oz,,,vegetarians can substitute vegetable stock
 "1-2 chillies, chopped",chillies,1-2,,,chopped,
 "4 pieces ready-rolled puff pastry, cut about 1.5cm/½ inch wider than the size of four individual ovenproof pie dishes",ready-rolled puff pastry,4,piece,,cut about 1.5 cm 0.5 inch wider than the size of 4 individual ovenproof pie dishes,
@@ -11829,7 +11829,7 @@ water,water,,,,,
 "500g/1lb 2oz Jerusalem artichokes, peeled and chopped into evenly sized cubes",Jerusalem artichokes,500 1 2,g lb oz,,peeled and chopped into evenly sized cube,
 "pinch freshly grated nutmeg, to taste",nutmeg,,pinch,,freshly grated,to taste
 "1 lemon sole, skinned, filleted",lemon sole,1,,,skinned filleted,
-150ml/5fl oz medium dry cider,dry cider,150 5,ml fl oz medium,,,
+150ml/5fl oz medium dry cider,medium dry cider,150 5,ml fl oz,,,
 "6-8 cardamom seeds, finely ground",cardamom seeds,6-8,,,finely ground,
 1kg/2lb 4oz tomatoes,tomatoes,1 2 4,kg lb oz,,,
 "crisp leaves such as Little Gem, chicory and watercress",crisp leaf,,,,,such as Little Gem chicory and watercress
@@ -12729,7 +12729,7 @@ good pinch cracked black pepper,black pepper,,good pinch,,cracked,
 50ml/2fl oz vegetable or chicken stock,vegetable or chicken stock,50 2,ml fl oz,,,
 25g/oz ground almonds,ground almonds,25,g oz,,,
 2 sticks wild fennel or ½ bulb fennel,wild fennel,2,stick,,,or 0.5 bulb fennel
-"4 baby bananas or 1 large banana, cut into chunks and frozen",baby bananas or banana,4 1,large,,cut into chunk and frozen,
+"4 baby bananas or 1 large banana, cut into chunks and frozen",bananas banana,4 1,,baby or large,cut into chunk and frozen,
 "4 spinach leaves, chopped",spinach leaf,4,,,chopped,
 "8 basil leaves, ripped",basil leaf,8,,,ripped,
 "85g/3oz sirloin steak, sliced into strips",sirloin steak,85 3,g oz,,sliced into strip,
@@ -13433,7 +13433,7 @@ egg wash,egg wash,,,,,
 "2 small red onions, coarsely chopped",red onions,2,,small,coarsely chopped,
 "200g/7oz brown crabmeat, puréed in a food processor until very smooth",brown crabmeat,200 7,g oz,,puréed in a food processor until very smooth,
 "1 onion or 3 spring onions, finely chopped",onion or 3 spring onions,1,,,finely chopped,
-"½ medium-sized aubergine, chopped",aubergine,0.5,medium-sized,,chopped,
+"½ medium-sized aubergine, chopped",aubergine,0.5,,medium-sized,chopped,
 "150g/5oz plain chocolate, minimum 70% cocoa solids",plain chocolate,150 5,g oz,,,minimum 70% cocoa solids
 "1kg/2lb 4oz white bread flour, plus extra flour for dusting",white bread flour,1 2 4,kg lb oz,,,plus extra flour for dusting
 "150ml/5fl oz good quality red wine, ideally St Emilion or Merlot",good quality red wine,150 5,ml fl oz,,,ideally St Emilion or Merlot
@@ -13495,7 +13495,7 @@ drizzle vegetable oil,drizzle vegetable oil,,,,,
 50g/2oz cooked leftover chicken,leftover chicken,50 2,g oz,,cooked,
 400g/14oz marzipan,marzipan,400 14,g oz,,,
 "1 yellow pepper, seeds removed, quartered",yellow pepper,1,,,seeds removed quartered,
-200g/7oz jumbo rolled oats,jumbo rolled oats,200 7,g oz,,,
+200g/7oz jumbo rolled oats,rolled oats,200 7,g oz,jumbo,,
 "50g/2oz ready-to-eat dried apricots, chopped",ready-to-eat dried apricots,50 2,g oz,,chopped,
 "1 banana shallot, roughly chopped",banana shallot,1,,,roughly chopped,
 "½ tomato, chopped",tomato,0.5,,,chopped,
@@ -13934,7 +13934,7 @@ sprig fresh chervil,fresh chervil,,sprig,,,
 "2 mackerel fillets, 1 skinned, pin-boned and finely diced, 1 left whole",mackerel fillets,2,,,1 skinned pin-boned and finely diced 1 left whole,
 2 tsp dried parsley,dried parsley,2,tsp,,,
 "vegetarian cheese, to serve",vegetarian cheese,,,,,to serve
-40g/2oz medium strength cheddar,strength cheddar,40 2,g oz medium,,,
+40g/2oz medium strength cheddar,medium strength cheddar,40 2,g oz,,,
 1.5 litres/2 pints 12½fl oz honey mead,honey mead,1.5 2 12.5,litre pint fl oz,,,
 350g/12½oz button mushrooms,button mushrooms,350 12.5,g oz,,,
 "1 lime, cut in half",lime,1,,,cut in half,
@@ -13998,14 +13998,14 @@ small handful fresh basil leaves (optional),fresh basil leaf,,small handful,,,op
 120g/4½oz chestnut spread,chestnut spread,120 4.5,g oz,,,
 "1 fat or 2 smaller garlic cloves, finely grated or minced",garlic,1,fat clove,,finely grated or minced,or 2 smaller
 "8g pickled red chilli, chopped",pickled red chilli,8,g,,chopped,
-300g/11oz medium baking potatoes,baking potatoes,300 11,g oz medium,,,
+300g/11oz medium baking potatoes,baking potatoes,300 11,g oz,medium,,
 "1 tbsp fresh tarragon leaves, to serve",fresh tarragon leaf,1,tbsp,,,to serve
 2g fenugreek seeds,fenugreek seeds,2,g,,,
 "4 pieces coriander root, roughly chopped",coriander root,4,piece,,roughly chopped,
 large bunch flatleaf parsley,flatleaf parsley,,large bunch,,,
 8 button mushrooms,button mushrooms,8,,,,
 "½ stick celery, roughly chopped",celery,0.5,stick,,roughly chopped,
-"700g/1½lb, approximately 24 small, even-sized shallots, peeled and left whole (ones that split into twins count as 2)",even-sized shallots,700 1.5 24,g lb small,,peeled and left whole,approximately ones that split into twins count as 2
+"700g/1½lb, approximately 24 small, even-sized shallots, peeled and left whole (ones that split into twins count as 2)",shallots,700 1.5 24,g lb,small even-sized,peeled and left whole,approximately ones that split into twins count as 2
 1 tbsp chopped pistachio nuts,pistachio nuts,1,tbsp,,chopped,
 3 cooking chorizo sausages,cooking chorizo sausages,3,,,,
 "1 tbsp green peppercorns in brine, rinsed and drained",green peppercorns,1,tbsp,,rinsed and drained,in brine
@@ -14741,11 +14741,11 @@ few drops of sesame oil,sesame oil,few,drop,,,of
 "1kg/2lb 3oz potatoes, peeled, and cut into smallish cubes",potatoes,1 2 3,kg lb oz,,peeled and cut into smallish cube,
 "2 ripe avocados, skinned and chopped",ripe avocados,2,,,skinned and chopped,
 150g/5½oz couscous,couscous,150 5.5,g oz,,,
-"small rose-shaped sweets or fresh rose petals, to garnish",small rose-shaped sweets or fresh rose petals,,,,,to garnish
+"small rose-shaped sweets or fresh rose petals, to garnish",rose-shaped sweets or fresh rose petals,,,small,,to garnish
 "4 slices baguette, toasted",baguette,4,slice,,toasted,
 55g/2oz thin rice noodles,thin rice noodles,55 2,g oz,,,
 "50g/1¾oz long green beans, blanched",long green beans,50 1.75,g oz,,blanched,
-8 medium-sized monkfish cheeks,monkfish cheeks,8,medium-sized,,,
+8 medium-sized monkfish cheeks,monkfish cheeks,8,,medium-sized,,
 "dash of hot pepper sauce, such as Tabasco",hot pepper sauce,,dash,,,of such as Tabasco
 450g/1lb minced beef,beef,450 1,g lb,,minced,
 colouring and flavouring,colouring and flavouring,,,,,
