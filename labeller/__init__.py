@@ -7,7 +7,7 @@ from collections import Counter
 
 from flask import Flask, Response, redirect, render_template, request, url_for
 
-from ingredient_parser import PreProcessor
+from ingredient_parser import inspect_parser
 
 sqlite3.register_adapter(list, json.dumps)
 sqlite3.register_converter("json", json.loads)
@@ -291,6 +291,7 @@ def insert_sentences(params: dict[str, str]):
     """
     source = params.get("insert-dataset")
     sentences = params.get("insert-sentences", "").splitlines()
+    guess_labels = params.get("guess-labels", "") == "on"
 
     indices = []
     with sqlite3.connect(DATABASE, detect_types=sqlite3.PARSE_DECLTYPES) as conn:
@@ -299,8 +300,12 @@ def insert_sentences(params: dict[str, str]):
             if not sentence:
                 continue
 
-            tokens = PreProcessor(sentence).tokenized_sentence
-            labels = [""] * len(tokens)
+            ins = inspect_parser(sentence)
+            tokens = ins.PostProcessor.tokens
+            if guess_labels:
+                labels = ins.PostProcessor.labels
+            else:
+                labels = [""] * len(tokens)
 
             c.execute(
                 """

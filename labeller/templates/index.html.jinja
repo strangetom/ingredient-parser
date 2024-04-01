@@ -109,6 +109,13 @@
                             {%- endfor -%}
                         </select>
                     </fieldset>
+                    <fieldset>
+                        <legend>Labelling options</legend>
+                        <div class="checkbox">
+                            <input type="checkbox" id="guess-labels" name="guess-labels"/>
+                            <label for="guess-labels">Use current model to guess labels</label>
+                        </div>
+                    </fieldset>
                     <textarea id="insert-sentences" name="insert-sentences"></textarea>
                     <button type="submit">Insert</button>
                 </form>
