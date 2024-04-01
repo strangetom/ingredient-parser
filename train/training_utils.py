@@ -119,8 +119,8 @@ def load_datasets(
         labels.append(entry["labels"])
         tokens.append(entry["tokens"])
 
-    print(f"[INFO] {len(sentences):,} usable vectors")
-    print(f"[INFO] {discarded:,} discarded due to OTHER labels")
+    print(f"[INFO] {len(sentences):,} usable vectors.")
+    print(f"[INFO] {discarded:,} discarded due to OTHER labels.")
     return DataVectors(sentences, features, tokens, labels, source)
 
 
