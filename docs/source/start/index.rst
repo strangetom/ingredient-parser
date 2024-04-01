@@ -35,7 +35,7 @@ Installation
 
 You can install Ingredient Parser from PyPi with ``pip``:
 
-.. code:: bash
+.. code::
 
     $ python -m pip install ingredient_parser_nlp
 

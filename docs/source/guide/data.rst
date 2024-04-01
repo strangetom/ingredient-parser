@@ -129,6 +129,6 @@ It is the data in this database that is used to train the models.
 
 CSV files of the full datasets are in the ``train/data/<dataset>`` directories. These csv files contain the full set of ingredient sentences, including those not properly labelled. The csv files are kept aligned with the database using the following command.
 
-.. code:: bash
+.. code::
 
     $ python train/data/db_to_csv.py

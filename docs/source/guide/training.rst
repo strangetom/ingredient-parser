@@ -14,7 +14,7 @@ The training data is stored in an sqlite3 database. The ``training`` table conta
 
 This method of storing the training data means that we can load the data straight from the database in the format required for training the model. The utility function :func:`load_datasets` in ``train/training_utils.py`` loads the data from the specified datasets, with an option (default true) to discard any sentence that contain an OTHER label.
 
-The data is then split into training and testing sets. A split of 75% training, 25% testing is used be default and data in the training and testing sets are randomised using :func:`sklearn.model_selection.train_test_split`.
+The data is then split into training and evaluation sets. A split of 80% training, 20% evaluation is used be default and data in the training and evaluation sets are randomised using :func:`sklearn.model_selection.train_test_split`.
 
 Training
 ^^^^^^^^
@@ -25,7 +25,7 @@ With the data ready, we can now train the model using `python-crfuite <https://g
 
     To train the model, you will need the additional dependencies listed in ``requirements-dev.txt``. These can be installed by running the command:
 
-    .. code:: bash
+    .. code::
 
         $ python -m pip install -r requirements-dev.txt
 
@@ -53,7 +53,7 @@ This is relatively quick the train, it takes about 7 minutes on a laptop with an
 
 All of the above steps are implemented in the ``train.py`` script. The following command will execute the script and train the model on all datasets.
 
-.. code:: bash
+.. code::
 
     $ python train.py train --database train/data/training.sqlite3
 
@@ -93,7 +93,7 @@ There will always be some variation in model performance each time the model is 
 
 The model training process can be executed multiple times to obtain the average performance and the uncertainty in the performance, by running the following command:
 
-.. code:: bash
+.. code::
 
     $ python train.py multiple --database train/data/training.sqlite3 --runs 10
 
@@ -106,7 +106,7 @@ pycrfsuite offers a few different algorithms for training the model, each of whi
 
 To run a grid search over a number of different algorithms and hyper-parameters for each one, the ``gridsearch`` subcommand of ``train.py`` can be used.
 
-.. code:: bash
+.. code::
 
     # Show all the options
     $ python train.py gridsearch --help
@@ -122,11 +122,11 @@ To run a grid search over a number of different algorithms and hyper-parameters 
     # which apply to all models
     $ python train.py gridseach --database train/data/training.sqlite3 --algos lbfgs  ap --global-params '{"feature.minfreq":[0, 1, 5],"feature.possible_transitions":[true, false],"feature.possible_states":[true, false]}'
 
-When a grid search is performed, the same train/test split of the data is used for every model, so the performances can be directly compared. Each model trained is given a random unique name. By default, the models are deleted after their performance has been evaluated. To keep the models, the ``--keep-models`` option can be used.
+When a grid search is performed, the same train/evaluation split of the data is used for every model, so the performances can be directly compared. Each model trained is given a random unique name. By default, the models are deleted after their performance has been evaluated. To keep the models, the ``--keep-models`` option can be used.
 
 For example, to train models using each of the possible algorithms with their default hyper-parameters:
 
-.. code:: bash
+.. code::
 
     $ python train.py gridsearch --database train/data/training.sqlite3 --algos lbfgs l2sgd ap pa arow
     [INFO] Loading and transforming training data.
@@ -138,12 +138,30 @@ For example, to train models using each of the possible algorithms with their de
     ┌─────────────┬──────────────┬──────────────────┬─────────────────────┬─────────┬─────────────┐
     │ Algorithm   │ Parameters   │ Token accuracy   │ Sentence accuracy   │ Time    │   Size (MB) │
     ├─────────────┼──────────────┼──────────────────┼─────────────────────┼─────────┼─────────────┤
-    │ lbfgs       │ {}           │ 97.32%           │ 93.07%              │ 0:02:48 │        3.31 │
-    │ l2sgd       │ {}           │ 97.30%           │ 93.04%              │ 0:00:57 │        3.31 │
-    │ ap          │ {}           │ 97.06%           │ 92.18%              │ 0:00:34 │        2.25 │
-    │ pa          │ {}           │ 97.05%           │ 92.11%              │ 0:00:48 │        2.21 │
-    │ arow        │ {}           │ 95.46%           │ 87.61%              │ 0:00:44 │        1.82 │
+    │ lbfgs       │ {...}        │ 97.32%           │ 93.07%              │ 0:02:48 │        3.31 │
+    │ l2sgd       │ {...}        │ 97.30%           │ 93.04%              │ 0:00:57 │        3.31 │
+    │ ap          │ {...}        │ 97.06%           │ 92.18%              │ 0:00:34 │        2.25 │
+    │ pa          │ {...}        │ 97.05%           │ 92.11%              │ 0:00:48 │        2.21 │
+    │ arow        │ {...}        │ 95.46%           │ 87.61%              │ 0:00:44 │        1.82 │
     └─────────────┴──────────────┴──────────────────┴─────────────────────┴─────────┴─────────────┘
+
+See the `CRFSuite documentation <https://www.chokkan.org/software/crfsuite/manual.html>`_ for details on the hyper-parameters for each algorithm.
+
+Model reproducibility
+^^^^^^^^^^^^^^^^^^^^^
+
+The model file output from the training process can be reliably reproduced as long as the training database is the same, and the same split between the training and evaluation data is used.
+
+By default when training a model, a random integer is used as the seed for :func:`sklearn.model_selection.train_test_split`. This is printed to the command line. A seed value can be set using the ``--seed`` argument, which will result in the same split between training and evaluation data every time the same seed value is used. With this, the model can be reproduced.
+
+.. code::
+
+    $ python train.py train --database train/data/training.sqlite3 --seed 354876538
+    [INFO] Loading and transforming training data.
+    [INFO] 59,928 usable vectors.
+    [INFO] 72 discarded due to OTHER labels.
+    [INFO] 354876538 is the random seed used for the train/test split.
+    ...
 
 Historical performance
 ^^^^^^^^^^^^^^^^^^^^^^
