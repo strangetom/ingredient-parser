@@ -47,7 +47,7 @@ if __name__ == "__main__":
     )
     train_parser.add_argument(
         "--split",
-        default=0.25,
+        default=0.20,
         type=float,
         help="Fraction of data to be used for testing",
     )
@@ -91,7 +91,7 @@ if __name__ == "__main__":
     )
     multiple_parser.add_argument(
         "--split",
-        default=0.25,
+        default=0.20,
         type=float,
         help="Fraction of data to be used for testing",
     )
@@ -145,7 +145,7 @@ if __name__ == "__main__":
     )
     gridsearch_parser.add_argument(
         "--split",
-        default=0.25,
+        default=0.20,
         type=float,
         help="Fraction of data to be used for testing",
     )

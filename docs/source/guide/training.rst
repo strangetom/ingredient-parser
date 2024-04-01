@@ -81,13 +81,13 @@ The current performance of the model is
 .. code::
 
     Sentence-level results:
-        Accuracy: 93.63%
+        Accuracy: 93.68%
 
     Word-level results:
-        Accuracy 97.52%
-        Precision (micro) 97.51%
-        Recall (micro) 97.52%
-        F1 score (micro) 97.51%
+        Accuracy 97.57%
+        Precision (micro) 97.56%
+        Recall (micro) 97.57%
+        F1 score (micro) 97.56%
 
 
 
