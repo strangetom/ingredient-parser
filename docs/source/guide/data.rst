@@ -105,6 +105,9 @@ The following operations were done to clean up the labelling (note that this is 
     * The first 15,000 sentences of the Cookstr dataset
     * The first 15,000 sentences of the BBC Food dataset
 
+
+.. _data-storage:
+
 Data storage
 ^^^^^^^^^^^^
 
