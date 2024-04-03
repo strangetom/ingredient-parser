@@ -12,7 +12,13 @@ from tqdm import tqdm
 
 from .test_results_to_detailed_results import test_results_to_detailed_results
 from .test_results_to_html import test_results_to_html
-from .training_utils import DataVectors, Stats, evaluate, load_datasets
+from .training_utils import (
+    DataVectors,
+    Stats,
+    confusion_matrix,
+    evaluate,
+    load_datasets,
+)
 
 
 def train_model(
@@ -22,6 +28,7 @@ def train_model(
     seed: int | None,
     html: bool,
     detailed_results: bool,
+    plot_confusion_matrix: bool,
 ) -> Stats:
     """Train model using vectors, splitting the vectors into a train and evaluation
     set based on <split>. The trained model is saved to <save_model>.
@@ -40,9 +47,11 @@ def train_model(
     html : bool
         If True, write html file of incorrect evaluation sentences
         and print out details about OTHER labels.
-    detailed_results: bool
+    detailed_results : bool
         If True, write output files with details about how labeling performed on
         the test set.
+    plot_confusion_matrix : bool
+        If True, plot a confusion matrix of the token labels.
 
     Returns
     -------
@@ -129,6 +138,9 @@ def train_model(
             source_test,
         )
 
+    if plot_confusion_matrix:
+        confusion_matrix(labels_pred, truth_test)
+
     stats = evaluate(labels_pred, truth_test)
     return stats
 
@@ -143,7 +155,13 @@ def train_single(args: argparse.Namespace) -> None:
     """
     vectors = load_datasets(args.database, args.datasets)
     stats = train_model(
-        vectors, args.split, args.save_model, args.seed, args.html, args.detailed
+        vectors,
+        args.split,
+        args.save_model,
+        args.seed,
+        args.html,
+        args.detailed,
+        args.confusion,
     )
 
     print("Sentence-level results:")
@@ -168,10 +186,18 @@ def train_multiple(args: argparse.Namespace) -> None:
     """
     vectors = load_datasets(args.database, args.datasets)
 
-    # None: the 'None' argument is for the seed. This is set to None so each
+    # The first None argument is for the seed. This is set to None so each
     # iteration of the training function uses a different random seed.
     arguments = [
-        (vectors, args.split, args.save_model, None, args.html, args.detailed)
+        (
+            vectors,
+            args.split,
+            args.save_model,
+            None,
+            args.html,
+            args.detailed,
+            args.confusion,
+        )
     ] * args.runs
 
     eval_results = []

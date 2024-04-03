@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from itertools import chain
 from pathlib import Path
 
-from sklearn.metrics import classification_report
+from sklearn.metrics import ConfusionMatrixDisplay, classification_report
 
 # Ensure the local ingredient_parser package can be found
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -173,3 +173,31 @@ def evaluate(predictions: list[list[str]], truths: list[list[str]]) -> Stats:
     sentence_stats = SentenceStats(correct_sentences / len(predictions))
 
     return Stats(token_stats, sentence_stats)
+
+
+def confusion_matrix(
+    predictions: list[list[str]],
+    truths: list[list[str]],
+    figure_path="confusion_matrix.svg",
+) -> None:
+    """Plot and save a confusion matrix for token labels.
+
+    Parameters
+    ----------
+    predictions : list[list[str]]
+        Predicted labels for each test sentence
+    truths : list[list[str]]
+        True labels for each test sentence
+    figure_path : str, optional
+        Path to save figure to.
+    """
+    # Flatten prediction and truth lists
+    flat_predictions = list(chain.from_iterable(predictions))
+    flat_truths = list(chain.from_iterable(truths))
+    labels = list(set(flat_predictions))
+
+    cm = ConfusionMatrixDisplay.from_predictions(
+        flat_truths, flat_predictions, labels=labels
+    )
+    cm.figure_.savefig(figure_path)
+    print(f"[INFO] Confusion matrix saved to {figure_path}")

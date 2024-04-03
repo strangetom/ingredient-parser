@@ -72,6 +72,11 @@ if __name__ == "__main__":
         action="store_true",
         help="Output a file containing detailed results about accuracy.",
     )
+    train_parser.add_argument(
+        "--confusion",
+        action="store_true",
+        help="Plot confusion matrix of token labels.",
+    )
 
     multiple_parser_help = "Average CRF performance across multiple training cycles."
     multiple_parser = subparsers.add_parser("multiple", help=multiple_parser_help)
@@ -109,6 +114,11 @@ if __name__ == "__main__":
         "--detailed",
         action="store_true",
         help="Output a file containing detailed results about accuracy.",
+    )
+    multiple_parser.add_argument(
+        "--confusion",
+        action="store_true",
+        help="Plot confusion matrix of token labels.",
     )
     multiple_parser.add_argument(
         "-r",
