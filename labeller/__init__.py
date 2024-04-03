@@ -21,7 +21,7 @@ DATABASE = "train/data/training.sqlite3"
 def home():
     with sqlite3.connect(DATABASE, detect_types=sqlite3.PARSE_DECLTYPES) as conn:
         c = conn.cursor()
-        c.execute("SELECT source FROM training")
+        c.execute("SELECT source FROM en")
         sources = [source for (source,) in c.fetchall()]
 
     conn.close()
@@ -54,7 +54,7 @@ def edit(dataset: str):
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
         c.execute(
-            "SELECT * FROM training WHERE source IS ? LIMIT ? OFFSET ?;",
+            "SELECT * FROM en WHERE source IS ? LIMIT ? OFFSET ?;",
             (dataset, count, start),
         )
         data = [dict(row) for row in c.fetchall()]
@@ -94,7 +94,7 @@ def sentences_by_id():
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
         c.execute(
-            f"SELECT * FROM training WHERE id IN ({','.join(['?']*len(indices))});",
+            f"SELECT * FROM en WHERE id IN ({','.join(['?']*len(indices))});",
             indices,
         )
         data = [dict(row) for row in c.fetchall()]
@@ -127,7 +127,7 @@ def shuffle():
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
         c.execute(
-            "SELECT * FROM training ORDER BY RANDOM() LIMIT ?;",
+            "SELECT * FROM en ORDER BY RANDOM() LIMIT ?;",
             (count,),
         )
         data = [dict(row) for row in c.fetchall()]
@@ -169,7 +169,7 @@ def save():
         with sqlite3.connect(DATABASE, detect_types=sqlite3.PARSE_DECLTYPES) as conn:
             c = conn.cursor()
             c.executemany(
-                """UPDATE training 
+                """UPDATE en 
                 SET sentence = :sentence, tokens = :tokens, labels = :labels 
                 WHERE id = :id;""",
                 update["entries"],
@@ -195,7 +195,7 @@ def delete(index: int):
     """
     with sqlite3.connect(DATABASE, detect_types=sqlite3.PARSE_DECLTYPES) as conn:
         c = conn.cursor()
-        c.execute("DELETE FROM training WHERE id = ?", (index,))
+        c.execute("DELETE FROM en WHERE id = ?", (index,))
 
     return Response(status=200)
 
@@ -224,7 +224,7 @@ def apply_filter(params: dict[str, str]):
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
         c.execute(
-            f"SELECT * FROM training WHERE source IN ({','.join(['?']*len(datasets))})",
+            f"SELECT * FROM en WHERE source IN ({','.join(['?']*len(datasets))})",
             (datasets),
         )
         data = [dict(row) for row in c.fetchall()]
@@ -309,7 +309,7 @@ def insert_sentences(params: dict[str, str]):
 
             c.execute(
                 """
-                INSERT INTO training (source, sentence, tokens, labels) 
+                INSERT INTO en (source, sentence, tokens, labels) 
                 VALUES (?, ?, ?, ?)""",
                 (source, sentence, tokens, labels),
             )
