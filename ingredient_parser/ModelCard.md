@@ -8,9 +8,11 @@
 
 ### Model Date and Version
 
-Date: December 2023
+Date: April 2024
 
 Version: The model version is the same has the `ingredient_parser_nlp` package version.
+
+Filename: model.en.crfsuite
 
 ### Model Type
 
@@ -36,6 +38,7 @@ The ingredient parser model parses structured information from English language 
   - QTY: Quantity of ingredient
   - UNIT: Unit of ingredient
   - NAME: Name of ingredient
+  - SIZE: Size of ingredient
   - PREP: Preparation notes for the ingredient
   - COMMENT: Comment in ingredient sentence
   - OTHER, for text that cannot be classified into one of the above labels
