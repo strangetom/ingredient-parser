@@ -65,6 +65,7 @@ UNITS = {
     "pods": "pod",
     "pounds": "pound",
     "pts": "pt",
+    "punnets": "punnet",
     "racks": "rack",
     "rashers": "rasher",
     "recipes": "recipe",

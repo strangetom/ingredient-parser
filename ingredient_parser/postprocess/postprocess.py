@@ -415,6 +415,7 @@ class PostProcessor:
             "package",
             "packet",
             "piece",
+            "sachet",
             "slice",
             "tin",
         ]
