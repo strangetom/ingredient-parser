@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 
 import re
+from itertools import chain
+
+from ingredient_parser._constants import UNITS
 
 # Regex pattern for fraction parts.
 # Matches 0+ numbers followed by 0+ white space characters followed by a number then
@@ -12,9 +15,10 @@ CAPITALISED_PATTERN = re.compile(r"^[A-Z]")
 
 # Regex pattern for finding quantity and units without space between them.
 # Assumes the quantity is always a number and the units always a letter.
-QUANTITY_UNITS_PATTERN = re.compile(r"(\d)\-?([a-zA-Z])")
-UNITS_QUANTITY_PATTERN = re.compile(r"([a-zA-Z])(\d)")
-UNITS_HYPHEN_QUANTITY_PATTERN = re.compile(r"([a-zA-Z])\-(\d)")
+units_list = chain.from_iterable(UNITS.items())
+QUANTITY_UNITS_PATTERN = re.compile(rf"(\d)\-?({'|'.join(units_list)})")
+UNITS_QUANTITY_PATTERN = re.compile(rf"({'|'.join(units_list)})(\d)")
+UNITS_HYPHEN_QUANTITY_PATTERN = re.compile(rf"({'|'.join(units_list)})\-(\d)")
 
 # Regex pattern for matching a numeric range e.g. 1-2, 2-3.
 RANGE_PATTERN = re.compile(r"\d+\s*[\-]\d+")
