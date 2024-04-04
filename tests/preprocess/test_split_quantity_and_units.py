@@ -57,3 +57,10 @@ class TestPreProcessor_split_quantity_and_units:
         assert (
             p._split_quantity_and_units(input_sentence) == "2 lb - 1 oz cherry tomatoes"
         )
+
+    def test_non_unit(self, p):
+        """
+        No space is inserted between 4 and chop, and the hyphen is retained.
+        """
+        input_sentence = "1 4-chop rack of lamb"
+        assert p._split_quantity_and_units(input_sentence) == "1 4-chop rack of lamb"
