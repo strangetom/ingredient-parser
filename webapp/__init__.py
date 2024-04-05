@@ -33,7 +33,11 @@ def home():
         "index.html.jinja",
         display=True,
         sentence=sentence,
-        tokens=zip(parser_info.PostProcessor.tokens, parser_info.PostProcessor.labels),
+        tokens=zip(
+            parser_info.PostProcessor.tokens,
+            parser_info.PostProcessor.labels,
+            parser_info.PostProcessor.scores,
+        ),
         name=parsed.name if parsed.name is not None else IngredientText("", 0),
         size=parsed.size if parsed.size is not None else IngredientText("", 0),
         amounts=parsed.amount,

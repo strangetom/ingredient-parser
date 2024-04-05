@@ -32,8 +32,8 @@
 
             {%- if display -%}
             <p class="sentence">
-                {%- for token, label in tokens -%}
-                <span class="{{ label }}" data-label="{{ label }}">{{ token }}</span><wbr>
+                {%- for token, label, score in tokens -%}
+                <span class="{{ label }}" data-score="{{ '%.2f%%'|format(100*score) }}">{{ token }}</span><wbr>
                 {%- endfor -%}
             </p>
 

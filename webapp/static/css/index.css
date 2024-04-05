@@ -65,6 +65,23 @@ input {
   background-color: var(--color);
   color: var(--bg);
   border: 1px solid var(--bg-s);
+  position: relative;
+}
+.sentence span:hover:after {
+  content: attr(data-score);
+  position: absolute;
+  z-index: 1;
+  display: block;
+  bottom: 2em;
+  left: 0;
+  background-color: var(--bg-3);
+  color: var(--fg);
+  border-radius: var(--small-radius);
+  border: 1px solid var(--fg-3);
+  padding: 1px .25rem;
+  white-space: nowrap;
+  box-shadow: var(--big-shadow);
+  font-size: .9rem;
 }
 .sentence span:first-of-type {
   border-radius: var(--small-radius) 0 0 var(--small-radius);
