@@ -47,10 +47,10 @@ def validate_tokens(calculated_tokens: list[str], stored_tokens: list[str]) -> N
         Token stored in database
     """
     if calculated_tokens != stored_tokens:
-        print(
-            f"""[ERROR] ID:{row['id']} [{row['source']}] 
-            Database tokens do not match PreProcessor output."""
-        )
+        print(f"[ERROR] ID: {row['id']} [{row['source']}]")
+        print("Database tokens do not match PreProcessor output.")
+        print(f"\t{calculated_tokens}")
+        print(f"\t{stored_tokens}")
 
 
 def validate_token_label_length(
@@ -66,8 +66,8 @@ def validate_token_label_length(
         Labels stored in database
     """
     if len(calculated_tokens) != len(stored_labels):
-        print(f"""[ERROR] ID:{row['id']} [{row['source']}] 
-            Number of tokens and labels are different.""")
+        print(f"[ERROR] ID: {row['id']} [{row['source']}]")
+        print("\tNumber of tokens and labels are different.")
 
 
 if __name__ == "__main__":
