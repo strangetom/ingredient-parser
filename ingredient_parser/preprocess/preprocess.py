@@ -295,8 +295,10 @@ class PreProcessor:
         units_and_numbers = list(chain.from_iterable(UNITS.items())) + list(
             STRING_NUMBERS.keys()
         )
-        for unit in units_and_numbers:
-            if sub_sentence.startswith(unit):
+        for unit_or_num in units_and_numbers:
+            # Add a space to end of unit_or_num to make sure we don't incorrectly
+            # get a substring match e.g. matching "g" when unit_or_num is grain.
+            if sub_sentence.startswith(unit_or_num + " "):
                 return True
 
         return False
