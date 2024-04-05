@@ -16,7 +16,7 @@ CAPITALISED_PATTERN = re.compile(r"^[A-Z]")
 # Regex pattern for finding quantity and units without space between them.
 # Add additional strings to units list that aren't necessarily units, but we want to
 # treat them like units for the purposes of splitting quantities from units.
-units_list = list(chain.from_iterable(UNITS.items())) + ["fl", "in", "x"]
+units_list = list(chain.from_iterable(UNITS.items())) + ["in", "x"]
 QUANTITY_UNITS_PATTERN = re.compile(rf"(\d)\-?({'|'.join(units_list)})")
 UNITS_QUANTITY_PATTERN = re.compile(rf"({'|'.join(units_list)})(\d)")
 UNITS_HYPHEN_QUANTITY_PATTERN = re.compile(rf"({'|'.join(units_list)})\-(\d)")
