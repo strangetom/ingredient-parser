@@ -81,7 +81,8 @@ QUANTITY_X_PATTERN = re.compile(
     \s          # Space
     [xX]        # Character 'x' or 'X'
     \s*         # Optional space
-    """
+    """,
+    re.VERBOSE,
 )
 
 # Regex pattern to match a range that has spaces between the numbers and hyphen
