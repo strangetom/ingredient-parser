@@ -28,8 +28,23 @@ RANGE_PATTERN = re.compile(r"\d+\s*[\-]\d+")
 # Assumes fake fractions and unicode fraction have already been replaced.
 # Allows the range to include a hyphen, which are captured in separate groups.
 # Captures the two number in the range in separate capture groups.
+# If a number starts with a zero, it must be followed by decimal point to be matched
 STRING_RANGE_PATTERN = re.compile(
-    r"([\d\.]+)\s*(\-)?\s*(to|or)\s*(\-)*\s*([\d\.]+(\-)?)"
+    r"""
+    (0\.[0-9]|[1-9][\d\.]*?)  # Capture number. Leading zero must be followed by '.'
+    \s*                       # Optional space
+    (\-)?                     # Optional hyphen
+    \s*                       # Optional space
+    (to|or)                   # Match to or or
+    \s*                       # Optional space
+    (\-)*                     # Optional hyphen
+    \s*                       # Optional space
+    (                         # Capture next two groups together
+    (0\.[0-9]+|[1-9][\d\.]*?) # Capture number
+    (\-)?                     # Optional hyphen
+    )
+    """,
+    re.VERBOSE,
 )
 
 # Regex pattern to match quantities split by "and" e.g. 1 and 1/2.
