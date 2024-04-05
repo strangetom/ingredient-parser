@@ -35,33 +35,37 @@ def load_from_db() -> list[dict[str, str]]:
     return rows
 
 
-def validate_tokens(row: dict[str, str]) -> None:
+def validate_tokens(calculated_tokens: list[str], stored_tokens: list[str]) -> None:
     """Validate that that tokens stored in the database are the same as the tokens
     obtained from the PreProcessor.
 
     Parameters
     ----------
-    row : dict[str, str]
-        Database row
+    calculated_tokens : list[str]
+        Tokens calculated using PreProcessor
+    stored_tokens : list[str]
+        Token stored in database
     """
-    p = PreProcessor(row["sentence"], defer_pos_tagging=True)
-    if p.tokenized_sentence != row["tokens"]:
+    if calculated_tokens != stored_tokens:
         print(
             f"""[ERROR] ID:{row['id']} [{row['source']}] 
             Database tokens do not match PreProcessor output."""
         )
 
 
-def validate_token_label_length(row: dict[str, str]) -> None:
+def validate_token_label_length(
+    calculated_tokens: list[str], stored_labels: list[str]
+) -> None:
     """Validate that that number of tokens and number of labels are the same.
 
     Parameters
     ----------
-    row : dict[str, str]
-        Database row
+    calculated_tokens : list[str]
+        Tokens calculated using PreProcessor
+    stored_labels : list[str]
+        Labels stored in database
     """
-    p = PreProcessor(row["sentence"], defer_pos_tagging=True)
-    if len(p.tokenized_sentence) != len(row["tokens"]):
+    if len(calculated_tokens) != len(stored_labels):
         print(f"""[ERROR] ID:{row['id']} [{row['source']}] 
             Number of tokens and labels are different.""")
 
@@ -69,5 +73,6 @@ def validate_token_label_length(row: dict[str, str]) -> None:
 if __name__ == "__main__":
     rows = load_from_db()
     for row in rows:
-        validate_tokens(row)
-        validate_token_label_length(row)
+        p = PreProcessor(row["sentence"], defer_pos_tagging=True)
+        validate_tokens(p.tokenized_sentence, row["tokens"])
+        validate_token_label_length(p.tokenized_sentence, row["labels"])
