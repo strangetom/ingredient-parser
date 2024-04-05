@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
 
+import re
 import string
 from fractions import Fraction
 from html import unescape
+from itertools import chain
 
 from nltk.tag import pos_tag
 
 from ingredient_parser._constants import (
     AMBIGUOUS_UNITS,
+    STRING_NUMBERS,
     STRING_NUMBERS_REGEXES,
     UNICODE_FRACTIONS,
     UNITS,
@@ -258,9 +261,45 @@ class PreProcessor:
         # regular expression for matching a string number e.g. 'one', 'two' and the
         # substitution numerical value for that string number.
         for regex, substitution in STRING_NUMBERS_REGEXES.values():
-            sentence = regex.sub(rf"{substitution}", sentence)
+            # Find matches for current string number
+            for match in regex.finditer(sentence):
+                if self._valid_string_number_replacement(match, sentence):
+                    sentence = regex.sub(rf"{substitution}", sentence)
 
         return sentence
+
+    def _valid_string_number_replacement(self, match: re.Match, sentence: str) -> bool:
+        """Check if it's valid to do a string number replacement for the given Match
+        in the given sentence
+
+        Parameters
+        ----------
+        match : re.Match
+            Match object for matching string number in sentence
+        sentence : str
+            Sentence
+
+        Returns
+        -------
+        bool
+        """
+        # Check the character following the match, If it's not a hyphen, or we're at
+        # the end of the sentence, the replacement is valid.
+        next_char_idx = match.span()[-1]
+        if next_char_idx >= len(sentence) or sentence[next_char_idx] != "-":
+            return True
+
+        # If the next character is a hyphen, if the hyphen is followed by
+        # a unit or another string number, then also do the substitution.
+        sub_sentence = sentence[next_char_idx + 1 :]
+        units_and_numbers = list(chain.from_iterable(UNITS.items())) + list(
+            STRING_NUMBERS.keys()
+        )
+        for unit in units_and_numbers:
+            if sub_sentence.startswith(unit):
+                return True
+
+        return False
 
     def _replace_html_fractions(self, sentence: str) -> str:
         """Replace html fractions e.g. &frac12; with unicode equivalents
