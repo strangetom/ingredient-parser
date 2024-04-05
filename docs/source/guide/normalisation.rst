@@ -45,7 +45,7 @@ The replacements are predefined in a dictionary.
 For performance reasons, the regular expressions used to substitute the text with the number are pre-compiled and provided in the ``STRING_NUMBERS_REGEXES`` constant, which is a dictionary where the value is a tuple of (pre-compiled regular expression, substitute value).
 
 .. literalinclude:: ../../../ingredient_parser/_constants.py
-    :lines: 142-170
+    :lines: 147-175
 
 .. literalinclude:: ../../../ingredient_parser/preprocess/preprocess.py
     :pyobject: PreProcessor._replace_string_numbers
@@ -69,7 +69,7 @@ Fractions represented by Unicode fractions are replaced a textual format (.e.g Â
 We have to handle two cases: where the character before the unicode fraction is a hyphen and where it is not. In the latter case, we want to insert a space before the replacement so we don't accidentally merge with the character before. However, if the character before is a hyphen, we don't want to do this because we could end up splitting a range up.
 
 .. literalinclude:: ../../../ingredient_parser/_constants.py
-    :lines: 172-208
+    :lines: 177-213
 
 .. literalinclude:: ../../../ingredient_parser/preprocess/preprocess.py
     :pyobject: PreProcessor._replace_unicode_fractions
@@ -83,7 +83,7 @@ Fractional quantities split by 'and' e.g. 1 and 1/2 are replaced by the decimal 
 A regular expression is used to find these in the sentence.
 
 .. literalinclude:: ../../../ingredient_parser/preprocess/regex.py
-    :lines: 30-32
+    :lines: 50-52
 
 .. literalinclude:: ../../../ingredient_parser/preprocess/preprocess.py
     :pyobject: PreProcessor._combine_quantities_split_by_and
@@ -98,7 +98,7 @@ Fractions represented in a textual format (e.g. 1/2, 3/4) are replaced with deci
 A regular expression is used to find these in the sentence. The regular expression also matches fractions greater than 1 (e.g. 1 1/2 is 1.5).
 
 .. literalinclude:: ../../../ingredient_parser/preprocess/regex.py
-    :lines: 5-8
+    :lines: 8-11
 
 .. literalinclude:: ../../../ingredient_parser/preprocess/preprocess.py
     :pyobject: PreProcessor._replace_fake_fractions
@@ -108,10 +108,10 @@ A regular expression is used to find these in the sentence. The regular expressi
 ``_split_quantity_and_units``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-A space is enforced between quantities and units to make sure they are tokenized to separate tokens. If an quantity and unit are joined by a hyphen, this is also replaced by a space.
+A space is enforced between quantities and units to make sure they are tokenized to separate tokens. If an quantity and unit are joined by a hyphen, this is also replaced by a space. This also takes into account certain strings that aren't technically units, but we want to treat in the same way here.
 
 .. literalinclude:: ../../../ingredient_parser/preprocess/regex.py
-    :lines: 13-17
+    :lines: 16-22
 
 .. literalinclude:: ../../../ingredient_parser/preprocess/preprocess.py
     :pyobject: PreProcessor._split_quantity_and_units
@@ -143,7 +143,7 @@ where the numbers 1 and 2 represent any decimal value.
 The purpose of this is to ensure the range is kept as a single token.
 
 .. literalinclude:: ../../../ingredient_parser/preprocess/regex.py
-    :lines: 22-28
+    :lines: 27-47
 
 .. literalinclude:: ../../../ingredient_parser/preprocess/preprocess.py
     :pyobject: PreProcessor._replace_string_range
@@ -155,7 +155,7 @@ The purpose of this is to ensure the range is kept as a single token.
 Ranges are where the unit is given for both quantities are replaced with the standardised range format, e.g. 5 oz - 8 oz is replaced by 5-8 oz.
 
 .. literalinclude:: ../../../ingredient_parser/preprocess/regex.py
-    :lines: 34-41
+    :lines: 54-73
 
 .. literalinclude:: ../../../ingredient_parser/preprocess/preprocess.py
     :pyobject: PreProcessor._replace_dupe_units_ranges
@@ -170,7 +170,7 @@ Merge quantities followed by an "x" into a single token, for example:
 * 0.5 x -> 0.5x
 
 .. literalinclude:: ../../../ingredient_parser/preprocess/regex.py
-    :lines: 43-45
+    :lines: 75-84
 
 .. literalinclude:: ../../../ingredient_parser/preprocess/preprocess.py
     :pyobject: PreProcessor._merge_quantity_x
@@ -182,7 +182,7 @@ Merge quantities followed by an "x" into a single token, for example:
 Remove any white space surrounding the hyphen in a range
 
 .. literalinclude:: ../../../ingredient_parser/preprocess/regex.py
-    :lines: 47-49
+    :lines: 86-88
 
 .. literalinclude:: ../../../ingredient_parser/preprocess/preprocess.py
     :pyobject: PreProcessor._collapse_ranges
@@ -197,7 +197,7 @@ Units are made singular using a predefined list of plural units and their singul
 This step is actually performed after tokenisation (see :doc:`Extracting the features <features>`) and we keep track of the index of each token that has been singularised. This is so we can automatically re-pluralise only the tokens that were singularised after the labelling by the model.
 
 .. literalinclude:: ../../../ingredient_parser/_constants.py
-    :lines: 5-104
+    :lines: 5-109
 
 .. literalinclude:: ../../../ingredient_parser/preprocess/preprocess.py
     :pyobject: PreProcessor._singlarise_units

@@ -57,12 +57,32 @@ FRACTION_SPLIT_AND_PATTERN = re.compile(r"((\d+)\sand\s(\d/\d+))")
 # This regex matches: <quantity> <unit> - <quantity> <unit>, returning
 # the full match and each quantity and unit as capture groups.
 DUPE_UNIT_RANGES_PATTERN = re.compile(
-    r"(([\d\.]+)\s([a-zA-Z]+)\s\-\s([\d\.]+)\s([a-zA-Z]+))", re.I
+    r"""
+    (
+        ([\d\.]+)    # Capture decimal number
+        \s           # Space
+        ([a-zA-Z]+)  # Capture text string (unit)
+        \s           # Space
+        \-           # Hyphen
+        \s           # Space
+        ([\d\.]+)    # Capture decimal number
+        \s           # Space
+        ([a-zA-Z]+)  # Capture text string (unit)
+    )
+    """,
+    re.I | re.VERBOSE,
 )
 
 # Regex pattern to match a decimal number followed by an "x" followed by a space
 # e.g. 0.5 x, 1 x, 2 x. The number is captured in a capture group.
-QUANTITY_X_PATTERN = re.compile(r"([\d\.]+)\s[xX]\s*")
+QUANTITY_X_PATTERN = re.compile(
+    r"""
+    ([\d\.]+)   # Capture decimal number
+    \s          # Space
+    [xX]        # Character 'x' or 'X'
+    \s*         # Optional space
+    """
+)
 
 # Regex pattern to match a range that has spaces between the numbers and hyphen
 # e.g. 0.5 - 1. The numbers are captured in capture groups.
