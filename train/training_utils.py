@@ -116,8 +116,18 @@ def load_datasets(
         sentences.append(entry["sentence"])
         p = PreProcessor(entry["sentence"])
         features.append(p.sentence_features())
+        tokens.append(p.tokenized_sentence)
         labels.append(entry["labels"])
-        tokens.append(entry["tokens"])
+
+        # Ensure length of tokens and length of labels are the same
+        if len(p.tokenized_sentence) != len(entry["labels"]):
+            raise ValueError(
+                (
+                    f"\"{entry['sentence']}\" (ID: {entry['id']}) has "
+                    f"{len(p.tokenized_sentence)} tokens "
+                    f"but {len(entry['labels'])} labels."
+                )
+            )
 
     print(f"[INFO] {len(sentences):,} usable vectors.")
     print(f"[INFO] {discarded:,} discarded due to OTHER labels.")
