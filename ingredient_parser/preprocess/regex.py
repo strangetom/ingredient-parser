@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 
 import re
-from itertools import chain
 
-from ingredient_parser._constants import UNITS
+from ingredient_parser._constants import FLATTENED_UNITS_LIST
 
 # Regex pattern for fraction parts.
 # Matches 0+ numbers followed by 0+ white space characters followed by a number then
@@ -16,7 +15,7 @@ CAPITALISED_PATTERN = re.compile(r"^[A-Z]")
 # Regex pattern for finding quantity and units without space between them.
 # Add additional strings to units list that aren't necessarily units, but we want to
 # treat them like units for the purposes of splitting quantities from units.
-units_list = list(chain.from_iterable(UNITS.items())) + ["in", "x"]
+units_list = FLATTENED_UNITS_LIST + ["in", "x"]
 QUANTITY_UNITS_PATTERN = re.compile(rf"(\d)\-?({'|'.join(units_list)})")
 UNITS_QUANTITY_PATTERN = re.compile(rf"({'|'.join(units_list)})(\d)")
 UNITS_HYPHEN_QUANTITY_PATTERN = re.compile(rf"({'|'.join(units_list)})\-(\d)")
@@ -54,20 +53,23 @@ FRACTION_SPLIT_AND_PATTERN = re.compile(r"((\d+)\sand\s(\d/\d+))")
 # Regex pattern to match ranges where the unit appears after both quantities e.g.
 # 100 g - 200 g. This assumes the quantites and units have already been seperated
 # by a single space and that all number are decimals.
-# This regex matches: <quantity> <unit> - <quantity> <unit>, returning
-# the full match and each quantity and unit as capture groups.
+# This regex matches:
+#   <quantity> <unit> - <quantity> <unit>
+#   <quantity> <unit> to <quantity> <unit>
+#   <quantity> <unit> or <quantity> <unit>
+# returning the full match and each quantity and unit as capture groups.
 DUPE_UNIT_RANGES_PATTERN = re.compile(
     r"""
     (
         ([\d\.]+)    # Capture decimal number
         \s           # Space
-        ([a-zA-Z]+)  # Capture text string (unit)
+        ([a-zA-Z]+)  # Capture text string (possible unit)
         \s           # Space
-        \-           # Hyphen
+        (?:\-|to|or) # Hyphen, 'to' or 'or'
         \s           # Space
         ([\d\.]+)    # Capture decimal number
         \s           # Space
-        ([a-zA-Z]+)  # Capture text string (unit)
+        ([a-zA-Z]+)  # Capture text string (possible unit)
     )
     """,
     re.I | re.VERBOSE,

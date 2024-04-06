@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import re
+from itertools import chain
 
 # Plural and singular units
 UNITS = {
@@ -108,6 +109,9 @@ _capitalized_units = {}
 for plural, singular in UNITS.items():
     _capitalized_units[plural.capitalize()] = singular.capitalize()
 UNITS = UNITS | _capitalized_units
+# Create a flattened list of all keys and values in UNITS dict
+# since we need this in a few places
+FLATTENED_UNITS_LIST = list(chain.from_iterable(UNITS.items()))
 
 # Words that can modify a unit
 UNIT_MODIFIERS = [

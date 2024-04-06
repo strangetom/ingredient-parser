@@ -4,12 +4,12 @@ import re
 import string
 from fractions import Fraction
 from html import unescape
-from itertools import chain
 
 from nltk.tag import pos_tag
 
 from ingredient_parser._constants import (
     AMBIGUOUS_UNITS,
+    FLATTENED_UNITS_LIST,
     STRING_NUMBERS,
     STRING_NUMBERS_REGEXES,
     UNICODE_FRACTIONS,
@@ -292,9 +292,7 @@ class PreProcessor:
         # If the next character is a hyphen, if the hyphen is followed by
         # a unit or another string number, then also do the substitution.
         sub_sentence = sentence[next_char_idx + 1 :]
-        units_and_numbers = list(chain.from_iterable(UNITS.items())) + list(
-            STRING_NUMBERS.keys()
-        )
+        units_and_numbers = FLATTENED_UNITS_LIST + list(STRING_NUMBERS.keys())
         for unit_or_num in units_and_numbers:
             # Add a space to end of unit_or_num to make sure we don't incorrectly
             # get a substring match e.g. matching "g" when unit_or_num is grain.
@@ -585,6 +583,10 @@ class PreProcessor:
         for full_match, quantity1, unit1, quantity2, unit2 in matches:
             # We are only interested if the both captured units are the same
             if unit1 != unit2:
+                continue
+
+            # If capture unit not in units list, abort
+            if unit1 not in FLATTENED_UNITS_LIST:
                 continue
 
             sentence = sentence.replace(full_match, f"{quantity1}-{quantity2} {unit1}")
