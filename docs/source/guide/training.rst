@@ -76,18 +76,7 @@ Two metrics are used to evaluate the model:
     labels_pred = [tagger.tag(X) for X in features_test]
     stats = evaluate(labels_pred, truth_test)
 
-The current performance of the model is
-
-.. code::
-
-    Sentence-level results:
-        Accuracy: 94.08%
-
-    Word-level results:
-        Accuracy 97.70%
-        Precision (micro) 97.69%
-        Recall (micro) 97.70%
-        F1 score (micro) 97.69%
+See the `Model Card <https://github.com/strangetom/ingredient-parser/blob/master/ingredient_parser/ModelCard.md>`_ for the current model performance.
 
 There will always be some variation in model performance each time the model is trained because the training data is partitioned randomly each time. If the model is representing the training data well, then the variation in performance metrics should be small (i.e. << 1%).
 
