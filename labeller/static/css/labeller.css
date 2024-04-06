@@ -47,10 +47,14 @@ fieldset {
   flex-direction: column;
   border: none;
   border-left: 3px solid var(--green-alt);
-  margin-bottom: .5rem;
+  margin-bottom: 1rem;
 }
 legend {
   font-weight: bold;
+}
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
 }
 .checkbox {
   display: block;
@@ -69,7 +73,7 @@ legend {
   margin-left: 2px;
   position: relative;
 }
-.searchbox input {
+.searchbox input, select {
   width: 50ch;
   font-size: 1.2rem;
   background-color: var(--bg);
@@ -87,4 +91,13 @@ button {
   border: 1px solid var(--bg-3);
   border-radius: var(--small-radius);
   background-color: var(--bg);
+}
+textarea {
+  font-size: 1em;
+  width: 70ch; 
+  background-color: var(--bg);
+  border: 1px solid var(--bg-3);
+  border-radius: var(--small-radius);
+  color: var(--fg);
+  padding: .25rem;
 }

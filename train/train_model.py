@@ -1,66 +1,34 @@
 #!/usr/bin/env python3
 
 import argparse
-import time
-from dataclasses import dataclass
+import concurrent.futures as cf
+import contextlib
+from random import randint
 from statistics import mean, stdev
 
 import pycrfsuite
 from sklearn.model_selection import train_test_split
+from tqdm import tqdm
 
+from .test_results_to_detailed_results import test_results_to_detailed_results
 from .test_results_to_html import test_results_to_html
-from .training_utils import DataVectors, load_datasets
-
-
-@dataclass
-class Stats:
-    """Dataclass to store statistics on model performance"""
-
-    total_sentences: int
-    correct_sentences: int
-    total_words: int
-    correct_words: int
-
-
-def evaluate(predictions: list[list[str]], truths: list[list[str]]) -> Stats:
-    """Calculate statistics on the predicted labels for the test data.
-
-    Parameters
-    ----------
-    predictions : list[list[str]]
-        Predicted labels for each test sentence
-    truths : list[list[str]]
-        True labels for each test sentence
-
-    Returns
-    -------
-    Stats
-        Dataclass holding the following statistics:
-            total sentences,
-            correctly labelled sentences,
-            total words,
-            correctly labelled words
-    """
-    total_sentences = 0
-    correct_sentences = 0
-    total_words = 0
-    correct_words = 0
-
-    for prediction, truth in zip(predictions, truths):
-        correct = [p == t for p, t in zip(prediction, truth)]
-
-        total_words += len(truth)
-        correct_words += correct.count(True)
-
-        total_sentences += 1
-        if all(correct):
-            correct_sentences += 1
-
-    return Stats(total_sentences, correct_sentences, total_words, correct_words)
+from .training_utils import (
+    DataVectors,
+    Stats,
+    confusion_matrix,
+    evaluate,
+    load_datasets,
+)
 
 
 def train_model(
-    vectors: DataVectors, split: float, save_model: str, html: bool
+    vectors: DataVectors,
+    split: float,
+    save_model: str,
+    seed: int | None,
+    html: bool,
+    detailed_results: bool,
+    plot_confusion_matrix: bool,
 ) -> Stats:
     """Train model using vectors, splitting the vectors into a train and evaluation
     set based on <split>. The trained model is saved to <save_model>.
@@ -73,15 +41,29 @@ def train_model(
         Fraction of vectors to use for evaluation.
     save_model : str
         Path to save trained model to.
+    seed : int | None
+        Integer used as seed for splitting the vectors between the training and
+        testing sets. If None, a random seed is generated within this function.
     html : bool
         If True, write html file of incorrect evaluation sentences
-        and print out detals about OTHER labels
+        and print out details about OTHER labels.
+    detailed_results : bool
+        If True, write output files with details about how labeling performed on
+        the test set.
+    plot_confusion_matrix : bool
+        If True, plot a confusion matrix of the token labels.
 
     Returns
     -------
     Stats
         Statistics evaluating the model
     """
+    # Generate random seed for the train/test split if none provided.
+    if seed is None:
+        seed = randint(0, 1_000_000_000)
+
+    print(f"[INFO] {seed} is the random seed used for the train/test split.")
+
     # Split data into train and test sets
     # The stratify argument means that each dataset is represented proprtionally
     # in the train and tests sets, avoiding the possibility that train or tests sets
@@ -102,6 +84,7 @@ def train_model(
         vectors.source,
         test_size=split,
         stratify=vectors.source,
+        random_state=seed,
     )
     print(f"[INFO] {len(features_train):,} training vectors.")
     print(f"[INFO] {len(features_test):,} testing vectors.")
@@ -110,10 +93,14 @@ def train_model(
     trainer = pycrfsuite.Trainer(verbose=False)
     trainer.set_params(
         {
+            "feature.minfreq": 0,
             "feature.possible_states": True,
             "feature.possible_transitions": True,
-            "c1": 0.2,
-            "c2": 1,
+            "c1": 0.1,
+            "c2": 0.7,
+            "max_linesearch": 5,
+            "num_memories": 3,
+            "period": 10,
         }
     )
     for X, y in zip(features_train, truth_train):
@@ -142,6 +129,18 @@ def train_model(
             lambda x: x >= 1,
         )
 
+    if detailed_results:
+        test_results_to_detailed_results(
+            sentences_test,
+            truth_test,
+            labels_pred,
+            scores_pred,
+            source_test,
+        )
+
+    if plot_confusion_matrix:
+        confusion_matrix(labels_pred, truth_test)
+
     stats = evaluate(labels_pred, truth_test)
     return stats
 
@@ -155,20 +154,25 @@ def train_single(args: argparse.Namespace) -> None:
         Model training configuration
     """
     vectors = load_datasets(args.database, args.datasets)
-    stats = train_model(vectors, args.split, args.save_model, args.html)
+    stats = train_model(
+        vectors,
+        args.split,
+        args.save_model,
+        args.seed,
+        args.html,
+        args.detailed,
+        args.confusion,
+    )
 
     print("Sentence-level results:")
-    print(f"\tTotal: {stats.total_sentences}")
-    print(f"\tCorrect: {stats.correct_sentences}")
-    print(f"\tIncorrect: {stats.total_sentences - stats.correct_sentences}")
-    print(f"\t-> {100*stats.correct_sentences/stats.total_sentences:.2f}% correct")
+    print(f"\tAccuracy: {100*stats.sentence.accuracy:.2f}%")
 
     print()
     print("Word-level results:")
-    print(f"\tTotal: {stats.total_words}")
-    print(f"\tCorrect: {stats.correct_words}")
-    print(f"\tIncorrect: {stats.total_words - stats.correct_words}")
-    print(f"\t-> {100*stats.correct_words/stats.total_words:.2f}% correct")
+    print(f"\tAccuracy {100*stats.token.accuracy:.2f}%")
+    print(f"\tPrecision (micro) {100*stats.token.weighted_avg.precision:.2f}%")
+    print(f"\tRecall (micro) {100*stats.token.weighted_avg.recall:.2f}%")
+    print(f"\tF1 score (micro) {100*stats.token.weighted_avg.f1_score:.2f}%")
 
 
 def train_multiple(args: argparse.Namespace) -> None:
@@ -182,18 +186,31 @@ def train_multiple(args: argparse.Namespace) -> None:
     """
     vectors = load_datasets(args.database, args.datasets)
 
+    # The first None argument is for the seed. This is set to None so each
+    # iteration of the training function uses a different random seed.
+    arguments = [
+        (
+            vectors,
+            args.split,
+            args.save_model,
+            None,
+            args.html,
+            args.detailed,
+            args.confusion,
+        )
+    ] * args.runs
+
     eval_results = []
-    for i in range(args.runs):
-        print(f"[INFO] Training run: {i+1:02}")
-        start_time = time.time()
-        stats = train_model(vectors, args.split, args.save_model, args.html)
-        eval_results.append(stats)
-        print(f"[INFO] Model trained in {time.time()-start_time:.1f} seconds")
+    with contextlib.redirect_stdout(None):  # Suppress print output
+        with cf.ProcessPoolExecutor(max_workers=args.processes) as executor:
+            futures = [executor.submit(train_model, *a) for a in arguments]
+            for future in tqdm(cf.as_completed(futures), total=len(futures)):
+                eval_results.append(future.result())
 
     word_accuracies, sentence_accuracies = [], []
     for result in eval_results:
-        sentence_accuracies.append(result.correct_sentences / result.total_sentences)
-        word_accuracies.append(result.correct_words / result.total_words)
+        sentence_accuracies.append(result.sentence.accuracy)
+        word_accuracies.append(result.token.accuracy)
 
     sentence_mean = 100 * mean(sentence_accuracies)
     sentence_uncertainty = 3 * 100 * stdev(sentence_accuracies)

@@ -24,8 +24,6 @@ The Cookstr dataset is derived from 7,918 recipes scraped from `<cookstr.com>`_ 
 * The dataset primarily uses imperial/US customary units, although many ingredients give the quantity in multiple units
 * The dataset is medium sized, roughly 40,000 entries
 
-The three datasets have different advantages and disadvantages, therefore combining the two should yield an improvement over using any on their own.
-
 BBC Food
 ~~~~~~~~
 
@@ -41,7 +39,7 @@ Labelling the data
 ^^^^^^^^^^^^^^^^^^
 
 .. note::
-    
+
     The details described in this section also apply to how the labelling was performed for the Cookstr and BBC Food datasets.
 
 The New York Times dataset has gone through, and continues to go through, the very manual process of labelling the training data. This process is there to ensure that the labels assigned to each token in each ingredient sentence are correct and consistent across the dataset. In general, the idea is to avoid modifying the input sentence and only correct the labels for each, although entries have been removed where there is too much missing information or the entry is not actually an ingredient sentence (a few recipe instructions have been found mixed into the data).
@@ -50,7 +48,7 @@ The model is currently trained using the first 30,000 entries of the New York Ti
 
 .. tip::
 
-    The impact of the consistent labelling can be seen by training the model using the full New York Times dataset, where the majority of the data has not been consistently labelled. The model performance drops significantly: ~5% reduction to both word and sentence metrics.
+    The impact of the consistent labelling can be seen by training the model using the full New York Times dataset, where the majority of the data has not been consistently labelled. The model performance drops significantly.
 
 The following operations were done to clean up the labelling (note that this is not exhaustive, the git history for the dataset will give the full details).
 
@@ -59,7 +57,7 @@ The following operations were done to clean up the labelling (note that this is 
 * Convert all ranges to a standard format of X-Y
     This includes ranges represented textually, e.g. 1 to 2, 3 or 4 become 1-2, 3-4 respectively
 * Entries where the quantities and units were originally consolidated should be unconsolidated
-    There were many examples where the input would say 
+    There were many examples where the input would say
 
         1/2 cup, plus 1 tablespoon ...
 
@@ -68,12 +66,12 @@ The following operations were done to clean up the labelling (note that this is 
 * Adjectives that are a fundamental part of the ingredient identity should be part of the name
     This was mostly an inconsistency across the data, for example if the entry contained "red onion", sometimes this was labelled with a name of "red onion" and sometimes with a name of "onion" and a comment of "red".
 
-    Three general rules were applied:  
+    Three general rules were applied:
 
-    1. **If the adjective changes the ingredient in a way that the chef cannot, it should be part of the name.**   
+    1. **If the adjective changes the ingredient in a way that the chef cannot, it should be part of the name.**
     2. **If the adjective changes the item you would purchase in a shop, it should be part of the name.**
     3. **If the adjectve changes the item in a way that the chef would not expect to do as part of the recipe, it should be part of the name.**
-    
+
     It is recognised that this can be subjective. Universal correctness is not the main goal of this, only consistency.
 
     Examples of this:
@@ -106,3 +104,34 @@ The following operations were done to clean up the labelling (note that this is 
     * The first 30,000 sentences of the New York Times dataset
     * The first 15,000 sentences of the Cookstr dataset
     * The first 15,000 sentences of the BBC Food dataset
+
+
+.. _data-storage:
+
+Data storage
+^^^^^^^^^^^^
+
+The labelled training data is stored in an sqlite3 database at ``train/data/training.sqlite3``. The database contains a single table, ``eng``, with the following fields:
+
+.. list-table::
+
+    * - Field
+      - Description
+    * - **id**
+      - Unique ID for the sentence
+    * - **source**
+      - The source dataset the sentence is from
+    * - **sentence**
+      - The ingredient sentence
+    * - **tokens**
+      - List of tokens from the sentence
+    * - **labels**
+      - List of token labels
+
+It is the data in this database that is used to train the models.
+
+CSV files of the full datasets are in the ``train/data/<dataset>`` directories. These csv files contain the full set of ingredient sentences, including those not properly labelled. The csv files are kept aligned with the database using the following command.
+
+.. code::
+
+    $ python train/data/db_to_csv.py

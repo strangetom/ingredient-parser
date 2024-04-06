@@ -8,3 +8,5 @@ pytest
 coverage
 tqdm
 Flask
+tabulate
+matplotlib

@@ -35,6 +35,20 @@ class TestPreProcessor_is_unit:
         assert not p._is_unit("watt")
 
 
+class TestPreProcessor_is_punc:
+    def test_true(self, p):
+        """
+        "/" is a punctuation mark
+        """
+        assert p._is_punc("/")
+
+    def test_false(self, p):
+        """
+        "beer" is not punctuation
+        """
+        assert not p._is_punc("beer")
+
+
 class TestPreProcessor_is_numeric:
     def test_integer(self, p):
         """

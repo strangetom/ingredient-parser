@@ -1,3 +1,4 @@
+import pint
 import pytest
 
 from ingredient_parser import PostProcessor
@@ -79,10 +80,12 @@ class TestPostProcessor_parsed:
         """
         expected = ParsedIngredient(
             name=IngredientText(text="coconut milk", confidence=0.993106),
+            size=None,
             amount=[
                 IngredientAmount(
                     quantity="2",
                     unit="cans",
+                    text="2 cans",
                     confidence=0.966951,
                     starting_index=0,
                     APPROXIMATE=False,
@@ -90,7 +93,8 @@ class TestPostProcessor_parsed:
                 ),
                 IngredientAmount(
                     quantity="14",
-                    unit="ounces",
+                    unit=pint.Unit("ounces"),
+                    text="14 ounces",
                     confidence=0.994150,
                     starting_index=1,
                     APPROXIMATE=False,
@@ -102,7 +106,7 @@ class TestPostProcessor_parsed:
             sentence="2 14 ounce cans of coconut milk",
         )
 
-        assert p.parsed() == expected
+        assert p.parsed == expected
 
     def test_no_discard_isolated_stop_words(self, p_no_discard):
         """
@@ -111,10 +115,12 @@ class TestPostProcessor_parsed:
         """
         expected = ParsedIngredient(
             name=IngredientText(text="coconut milk", confidence=0.993106),
+            size=None,
             amount=[
                 IngredientAmount(
                     quantity="2",
                     unit="cans",
+                    text="2 cans",
                     confidence=0.966951,
                     starting_index=0,
                     APPROXIMATE=False,
@@ -122,7 +128,8 @@ class TestPostProcessor_parsed:
                 ),
                 IngredientAmount(
                     quantity="14",
-                    unit="ounces",
+                    unit=pint.Unit("ounces"),
+                    text="14 ounces",
                     confidence=0.994150,
                     starting_index=1,
                     APPROXIMATE=False,
@@ -134,4 +141,4 @@ class TestPostProcessor_parsed:
             sentence="2 14 ounce cans of coconut milk",
         )
 
-        assert p_no_discard.parsed() == expected
+        assert p_no_discard.parsed == expected

@@ -4,7 +4,10 @@ import json
 import sqlite3
 import sys
 from dataclasses import dataclass
+from itertools import chain
 from pathlib import Path
+
+from sklearn.metrics import ConfusionMatrixDisplay, classification_report
 
 # Ensure the local ingredient_parser package can be found
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -23,6 +26,47 @@ class DataVectors:
     tokens: list[list[str]]
     labels: list[list[str]]
     source: list[str]
+
+
+@dataclass
+class Metrics:
+    """Metrics returned by sklearn.metrics.classification_report for each label"""
+
+    precision: float
+    recall: float
+    f1_score: float
+    support: int
+
+
+@dataclass
+class TokenStats:
+    """Statistics for token classification performance"""
+
+    NAME: Metrics
+    QTY: Metrics
+    UNIT: Metrics
+    SIZE: Metrics
+    COMMENT: Metrics
+    PREP: Metrics
+    PUNC: Metrics
+    macro_avg: Metrics
+    weighted_avg: Metrics
+    accuracy: float
+
+
+@dataclass
+class SentenceStats:
+    """Statistics for sentence classification performance"""
+
+    accuracy: float
+
+
+@dataclass
+class Stats:
+    """Statistics for token and sentence classification performance"""
+
+    token: TokenStats
+    sentence: SentenceStats
 
 
 def load_datasets(
@@ -55,7 +99,7 @@ def load_datasets(
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
         c.execute(
-            f"SELECT * FROM training WHERE source IN ({','.join(['?']*len(datasets))})",
+            f"SELECT * FROM en WHERE source IN ({','.join(['?']*len(datasets))})",
             datasets,
         )
         data = c.fetchall()
@@ -72,9 +116,98 @@ def load_datasets(
         sentences.append(entry["sentence"])
         p = PreProcessor(entry["sentence"])
         features.append(p.sentence_features())
+        tokens.append(p.tokenized_sentence)
         labels.append(entry["labels"])
-        tokens.append(entry["tokens"])
 
-    print(f"[INFO] {len(sentences):,} total vectors")
-    print(f"[INFO] {discarded:,} discarded due to OTHER labels")
+        # Ensure length of tokens and length of labels are the same
+        if len(p.tokenized_sentence) != len(entry["labels"]):
+            raise ValueError(
+                (
+                    f"\"{entry['sentence']}\" (ID: {entry['id']}) has "
+                    f"{len(p.tokenized_sentence)} tokens "
+                    f"but {len(entry['labels'])} labels."
+                )
+            )
+
+    print(f"[INFO] {len(sentences):,} usable vectors.")
+    print(f"[INFO] {discarded:,} discarded due to OTHER labels.")
     return DataVectors(sentences, features, tokens, labels, source)
+
+
+def evaluate(predictions: list[list[str]], truths: list[list[str]]) -> Stats:
+    """Calculate statistics on the predicted labels for the test data.
+
+    Parameters
+    ----------
+    predictions : list[list[str]]
+        Predicted labels for each test sentence
+    truths : list[list[str]]
+        True labels for each test sentence
+
+    Returns
+    -------
+    Stats
+        Dataclass holding token and sentence statistics:
+    """
+    # Generate token statistics
+    # Flatten prediction and truth lists
+    flat_predictions = list(chain.from_iterable(predictions))
+    flat_truths = list(chain.from_iterable(truths))
+    labels = list(set(flat_predictions))
+
+    report = classification_report(
+        flat_truths,
+        flat_predictions,
+        labels=labels,
+        output_dict=True,
+    )
+
+    # Convert report to TokenStats dataclass
+    token_stats = {}
+    for k, v in report.items():
+        # Convert dict to Metrics
+        if k in labels + ["macro avg", "weighted avg"]:
+            k = k.replace(" ", "_")
+            token_stats[k] = Metrics(
+                v["precision"], v["recall"], v["f1-score"], int(v["support"])
+            )
+        else:
+            token_stats[k] = v
+
+    token_stats = TokenStats(**token_stats)
+
+    # Generate sentence statistics
+    # The only statistics that makes sense here is accuracy because there are only
+    # true-positive results (i.e. correct) and false-negative results (i.e. incorrect)
+    correct_sentences = len([p for p, t in zip(predictions, truths) if p == t])
+    sentence_stats = SentenceStats(correct_sentences / len(predictions))
+
+    return Stats(token_stats, sentence_stats)
+
+
+def confusion_matrix(
+    predictions: list[list[str]],
+    truths: list[list[str]],
+    figure_path="confusion_matrix.svg",
+) -> None:
+    """Plot and save a confusion matrix for token labels.
+
+    Parameters
+    ----------
+    predictions : list[list[str]]
+        Predicted labels for each test sentence
+    truths : list[list[str]]
+        True labels for each test sentence
+    figure_path : str, optional
+        Path to save figure to.
+    """
+    # Flatten prediction and truth lists
+    flat_predictions = list(chain.from_iterable(predictions))
+    flat_truths = list(chain.from_iterable(truths))
+    labels = list(set(flat_predictions))
+
+    cm = ConfusionMatrixDisplay.from_predictions(
+        flat_truths, flat_predictions, labels=labels
+    )
+    cm.figure_.savefig(figure_path)
+    print(f"[INFO] Confusion matrix saved to {figure_path}")

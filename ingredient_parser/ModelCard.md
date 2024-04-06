@@ -8,9 +8,11 @@
 
 ### Model Date and Version
 
-Date: December 2023
+Date: April 2024
 
 Version: The model version is the same has the `ingredient_parser_nlp` package version.
+
+Filename: model.en.crfsuite
 
 ### Model Type
 
@@ -36,6 +38,7 @@ The ingredient parser model parses structured information from English language 
   - QTY: Quantity of ingredient
   - UNIT: Unit of ingredient
   - NAME: Name of ingredient
+  - SIZE: Size of ingredient
   - PREP: Preparation notes for the ingredient
   - COMMENT: Comment in ingredient sentence
   - OTHER, for text that cannot be classified into one of the above labels
@@ -94,7 +97,7 @@ The model has the following performance metrics:
 
 | Word level accuracy | Sentence level accuracy |
 | ------------------- | ----------------------- |
-| 97.51±0.28%         | 93.59±0.62%             |
+| 97.73 ± 0.33%       | 94.24 ± 0.59%           |
 
 These metrics were determined by executing 20 training/evaluation cycles and calculating the mean and standard deviation for the two metrics across all cycles. The uncertainty values provided represent the 99.7% confidence bounds (i.e. 3x standard deviation). The uncertainty is due to the randomisation of the selection of training and evaluation data whenever the model is trained.
 

@@ -1,26 +1,28 @@
+.. currentmodule:: ingredient_parser.postprocess
+
 Post-processing the model output
 ================================
 
 The output from the model is a list of labels and scores, one for each token in the input sentence. This needs to be turned into a more useful data structure so that the output can be used by the users of this library.
 
-The following dataclass is defined which will be output from the ``parse_ingredient`` function:
+The following dataclass is defined which will be output from the :func:`parse_ingredient <ingredient_parser.parsers.parse_ingredient>` function:
 
 .. literalinclude:: ../../../ingredient_parser/postprocess/dataclasses.py
     :pyobject: ParsedIngredient
 
-Each of the fields in the dataclass has to be determined from the output of the model. The :class:`PostProcessor` class handles this for us. 
+Each of the fields in the dataclass has to be determined from the output of the model. The :class:`PostProcessor` class handles this for us.
 
-Name, Preparation, Comment
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+Name, Size, Preparation, Comment
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-For each of the labels NAME, PREP, and COMMENT, the process of combining the tokens for each labels is the same.
+For each of the labels NAME, SIZE, PREP, and COMMENT, the process of combining the tokens for each labels is the same.
 
 The general steps are as follows:
 
 1. Find the indices of the labels under consideration.
 2. Group these indices into lists of consecutive indices.
 3. Join the tokens corresponding to each group of consecutive indices with a space.
-4. If ``discard_isolated_stop_words`` is True, discard any groups that just comprise a word from the list of stop words. 
+4. If ``discard_isolated_stop_words`` is True, discard any groups that just comprise a word from the list of stop words.
 5. Average the confidence scores for each the tokens in each group consecutive indices.
 6. Remove any isolated punctuation or any consecutive tokens that are identical.
 7. Join all the groups together with a comma and fix any weird punctuation this causes.
@@ -52,10 +54,80 @@ For most cases, the amounts are determined by combining a QTY label with the fol
     ...
     >>> parsed = PostProcessor(sentence, tokens, labels, scores).parsed()
     >>> amounts = parsed.amount
-    [IngredientAmount(quantity='0.75', unit='cups', text='0.75 cups', confidence=0.999426, APPROXIMATE=False, SINGULAR=False),
-    IngredientAmount(quantity='170', unit='g', text='170 g', confidence=0.909345, APPROXIMATE=False, SINGULAR=False)]
+    [IngredientAmount(quantity='0.75', unit=<Unit('cup')>, text='0.75 cups', confidence=0.999921, APPROXIMATE=False, SINGULAR=False),
+    IngredientAmount(quantity='170', unit=<Unit('gram')>, text='170 g', confidence=0.996724, APPROXIMATE=False, SINGULAR=False)]
+
 
 There are two amounts identified: **0.75 cups** and **170 g**.
+
+Units
++++++
+
+.. note::
+
+    The use of :class:`pint.Unit` objects can be disabled by setting ``string_units=True`` in the :func:`parse_ingredient <ingredient_parser.parsers.parse_ingredient>` function. When this is True, units will be returned as strings, correctly pluralised for the quantity.
+
+The `pint <https://pint.readthedocs.io/en/stable/>`_ library is used to standardise the units where possible. If the unit in a parsed :class:`IngredientAmount` can be matched to a unit in the pint Unit Registry, then a :class:`pint.Unit` object is used in place of the unit string.
+
+This has the benefit of standardising units that can be represented in different formats, for example a `gram` could be represented in the sentence as `g`, `gram`, `grams`. These will all be represented using the same ``<Unit('gram')>`` object in the parsed information.
+
+This has benefits if you wish to use the parsed information to convert between different units. For example:
+
+.. code:: python
+
+    >>> p = parse_ingredient("3/4 cup heavy cream")
+    >>> q = float(p.amount[0].quantity) * p.amount[0].unit
+    >>> q
+    0.75 <Unit('cup')>
+    >>> q.to("ml")
+    177.44117737499994 <Unit('milliliter')>
+
+By default, US customary version of units are used where a unit has more than one definition. This can be changed to use the Imperial definition by setting ``imperial_units=True`` in the :func:`parse_ingredient <ingredient_parser.parsers.parse_ingredient>` function call.
+
+.. code:: python
+
+    >>> parse_ingredient("3/4 cup heavy cream", imperial_units=False)  # Default
+    ParsedIngredient(
+        name=IngredientText(text='heavy cream', confidence=0.998078),
+        amount=[IngredientAmount(quantity=0.75,
+                                 unit=<Unit('cup')>,
+                                 text='0.75 cups',
+                                 confidence=0.99993,
+                                 APPROXIMATE=False,
+                                 SINGULAR=False)],
+        preparation=None,
+        comment=None,
+        sentence='3/4 cup heavy cream'
+    )
+    >>> parse_ingredient("3/4 cup heavy cream", imperial_units=True)
+    ParsedIngredient(
+        name=IngredientText(text='heavy cream', confidence=0.998078),
+        amount=[IngredientAmount(quantity=0.75,
+                                 unit=<Unit('imperial_cup')>,
+                                 text='0.75 cups',
+                                 confidence=0.99993,
+                                 APPROXIMATE=False,
+                                 SINGULAR=False)],
+        preparation=None,
+        comment=None,
+        sentence='3/4 cup heavy cream'
+    )
+
+.. tip::
+
+    The use of :class:`pint.Unit` objects means that the ingredient amounts can easily be converted to different units.
+
+    .. code:: python
+
+       >>> parsed = parse_ingredient("3 pounds beef brisket")
+       >>> # Create a pint.Quantity object from the quantity and unit
+       >>> q = parsed.amount[0].quantity * parsed.amount[0].unit
+       >>> q
+       3.0 <Unit('pound')>
+
+       >>> # Convert to kg
+       >>> q.to("kg")
+       1.3607771100000003 <Unit('kilogram')>
 
 IngredientAmount flags
 ++++++++++++++++++++++
@@ -72,20 +144,24 @@ This is set to True when the amount is followed by a word such as `each` and ind
 
 There is also a special case (below), where an inner amount that inside a QTY-UNIT pair will be marked as SINGULAR.
 
+**RANGE**
+
+This is set to True with the amount if a range of values, e.g. 1-2, 300-400. In these cases, the ``quantity`` field of the :class:`IngredientAmount` object is set to the lower value in the range and ``quantity_max`` is the upper end of the range.
+
+**MULTIPLIER**
+
+This is set to True when the amount is represented as a multiple such as 1x. The ``quantity`` field in set to the value of the multiplier (1x to 1).
+
 Special cases for amounts
 +++++++++++++++++++++++++
 
-There are some particular cases where the combination of QTY and UNIT labels that make up an amount are not straightforward. For example, consider the sentence **2 14 ounce cans coconut milk**. In this case there are two amounts: **2 cans** and **14 ounce**, where the latter is also singular.
+There are some particular cases where the combination of QTY and UNIT labels that make up an amount are not straightforward. For example, consider the sentence **2 14 ounce cans coconut milk**. In this case there are two amounts: **2 cans** and **14 ounce**, where the latter is marked as **SINGULAR** because it applies to each of the 2 cans.
 
 .. code:: python
 
-    >>> p = PreProcessor("2 14 ounce cans coconut milk")
-    >>> p.tokenized_sentence
-    ['2', '14', 'ounce', 'can', 'coconut', 'milk']
-    ...
-    >>> parsed = PostProcessor(sentence, tokens, labels, scores).parsed()
-    >>> amounts = parsed.amount
-    [IngredientAmount(quantity='2', unit='cans', text='2 cans', confidence=0.9901127131948666, APPROXIMATE=False, SINGULAR=False),
-    IngredientAmount(quantity='14', unit='ounces', text='14 ounces', confidence=0.979053978856428, APPROXIMATE=False, SINGULAR=True)]
+    >>> parsed = parse_ingredient("2 14 ounce cans coconut milk")
+    >>> parsed.amount
+    [IngredientAmount(quantity=2.0, unit='cans', text='2 cans', confidence=0.999835, APPROXIMATE=False, SINGULAR=False),
+    IngredientAmount(quantity=14.0, unit=<Unit('ounce')>, text='14 ounces', confidence=0.998503, APPROXIMATE=False, SINGULAR=True)]
 
 Identifying and handling this pattern of QTY and UNIT labels is done by the :func:`PostProcessor._sizable_unit_pattern()` function.

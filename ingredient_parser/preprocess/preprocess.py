@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+import re
+import string
 from fractions import Fraction
 from html import unescape
 
@@ -7,6 +9,8 @@ from nltk.tag import pos_tag
 
 from ingredient_parser._constants import (
     AMBIGUOUS_UNITS,
+    FLATTENED_UNITS_LIST,
+    STRING_NUMBERS,
     STRING_NUMBERS_REGEXES,
     UNICODE_FRACTIONS,
     UNITS,
@@ -29,7 +33,6 @@ from .regex import (
 
 
 class PreProcessor:
-
     """Recipe ingredient sentence PreProcessor class.
 
     Performs the necessary preprocessing on a sentence to generate the features
@@ -49,7 +52,7 @@ class PreProcessor:
     3. | Replace fractions given in html markup with the unicode representation.
        | e.g. &frac12; >> ½
     4. | Replace unicode fractions with the equivalent decimal form. Decimals are
-       | rounded to 3 a maximum of decimal places.
+       | rounded to a maximum of 3 decimal places.
        | e.g. ½ >> 0.5
     5. | Replace "fake" fractions represented by 1/2, 2/3 etc. with the equivalent
        | decimal form
@@ -258,9 +261,45 @@ class PreProcessor:
         # regular expression for matching a string number e.g. 'one', 'two' and the
         # substitution numerical value for that string number.
         for regex, substitution in STRING_NUMBERS_REGEXES.values():
-            sentence = regex.sub(rf"{substitution}", sentence)
+            # Find matches for current string number
+            for match in regex.finditer(sentence):
+                if self._valid_string_number_replacement(match, sentence):
+                    sentence = regex.sub(rf"{substitution}", sentence)
 
         return sentence
+
+    def _valid_string_number_replacement(self, match: re.Match, sentence: str) -> bool:
+        """Check if it's valid to do a string number replacement for the given Match
+        in the given sentence
+
+        Parameters
+        ----------
+        match : re.Match
+            Match object for matching string number in sentence
+        sentence : str
+            Sentence
+
+        Returns
+        -------
+        bool
+        """
+        # Check the character following the match, If it's not a hyphen, or we're at
+        # the end of the sentence, the replacement is valid.
+        next_char_idx = match.span()[-1]
+        if next_char_idx >= len(sentence) or sentence[next_char_idx] != "-":
+            return True
+
+        # If the next character is a hyphen, if the hyphen is followed by
+        # a unit or another string number, then also do the substitution.
+        sub_sentence = sentence[next_char_idx + 1 :]
+        units_and_numbers = FLATTENED_UNITS_LIST + list(STRING_NUMBERS.keys())
+        for unit_or_num in units_and_numbers:
+            # Add a space to end of unit_or_num to make sure we don't incorrectly
+            # get a substring match e.g. matching "g" when unit_or_num is grain.
+            if sub_sentence.startswith(unit_or_num + " "):
+                return True
+
+        return False
 
     def _replace_html_fractions(self, sentence: str) -> str:
         """Replace html fractions e.g. &frac12; with unicode equivalents
@@ -546,6 +585,10 @@ class PreProcessor:
             if unit1 != unit2:
                 continue
 
+            # If capture unit not in units list, abort
+            if unit1 not in FLATTENED_UNITS_LIST:
+                continue
+
             sentence = sentence.replace(full_match, f"{quantity1}-{quantity2} {unit1}")
 
         return sentence
@@ -679,6 +722,31 @@ class PreProcessor:
         """
         return token.lower() in UNITS.values()
 
+    def _is_punc(self, token: str) -> bool:
+        """Return True if token is a punctuation mark
+
+        Parameters
+        ----------
+        token : str
+            Token to check
+
+        Returns
+        -------
+        bool
+            True if token is a punctuation mark, else False
+
+        Examples
+        --------
+        >>> p = PreProcessor("")
+        >>> p._is_unit("/")
+        True
+
+        >>> p = PreProcessor("")
+        >>> p._is_unit("beef")
+        False
+        """
+        return token in string.punctuation
+
     def _is_numeric(self, token: str) -> bool:
         """Return True if token is numeric
 
@@ -799,7 +867,7 @@ class PreProcessor:
             return True
 
         open_parens, closed_parens = [], []
-        for i, token in enumerate((self.tokenized_sentence)):
+        for i, token in enumerate(self.tokenized_sentence):
             if token == "(" or token == "[":
                 open_parens.append(i)
             elif token == ")" or token == "]":
@@ -855,11 +923,13 @@ class PreProcessor:
         """
         token = self.tokenized_sentence[index]
         features = {
+            "bias": "",
             "stem": stem(token),
             "pos": self.pos_tags[index],
             "is_capitalised": self._is_capitalised(token),
             "is_numeric": self._is_numeric(token),
             "is_unit": self._is_unit(token),
+            "is_punc": self._is_punc(token),
             "is_ambiguous": self._is_ambiguous_unit(token),
             "is_in_parens": self._is_inside_parentheses(index),
             "is_after_comma": self._follows_comma(index),
@@ -867,21 +937,76 @@ class PreProcessor:
             "is_short_phrase": len(self.tokenized_sentence) < 3,
         }
 
+        if token != stem(token):
+            features["token"] = token
+
         if index > 0:
-            features["prev_pos"] = self.pos_tags[index - 1]
-            features["prev_word"] = stem(self.tokenized_sentence[index - 1])
+            prev_token = self.tokenized_sentence[index - 1]
+            features["prev_pos"] = "+".join(
+                (self.pos_tags[index - 1], self.pos_tags[index])
+            )
+            features["prev_stem"] = stem(prev_token)
+            features["prev_is_capitalised"] = self._is_capitalised(prev_token)
+            features["prev_is_numeric"] = self._is_numeric(prev_token)
+            features["prev_is_unit"] = self._is_unit(prev_token)
+            features["prev_is_punc"] = self._is_punc(prev_token)
+            features["prev_is_ambiguous"] = self._is_ambiguous_unit(prev_token)
+            features["prev_is_in_parens"] = self._is_inside_parentheses(index - 1)
+            features["prev_is_after_comma"] = self._follows_comma(index - 1)
+            features["prev_is_after_plus"] = self._follows_plus(index - 1)
 
         if index > 1:
-            features["prev_pos2"] = self.pos_tags[index - 2]
-            features["prev_word2"] = stem(self.tokenized_sentence[index - 2])
+            prev_token2 = self.tokenized_sentence[index - 2]
+            features["prev_pos2"] = "+".join(
+                (
+                    self.pos_tags[index - 2],
+                    self.pos_tags[index - 1],
+                    self.pos_tags[index],
+                )
+            )
+            features["prev_stem2"] = stem(prev_token2)
+            features["prev_is_capitalised2"] = self._is_capitalised(prev_token2)
+            features["prev_is_numeric2"] = self._is_numeric(prev_token2)
+            features["prev_is_unit2"] = self._is_unit(prev_token2)
+            features["prev_is_punc2"] = self._is_punc(prev_token2)
+            features["prev_is_ambiguous2"] = self._is_ambiguous_unit(prev_token2)
+            features["prev_is_in_parens2"] = self._is_inside_parentheses(index - 2)
+            features["prev_is_after_comma2"] = self._follows_comma(index - 2)
+            features["prev_is_after_plus2"] = self._follows_plus(index - 2)
 
         if index < len(self.tokenized_sentence) - 1:
-            features["next_pos"] = self.pos_tags[index + 1]
-            features["next_word"] = stem(self.tokenized_sentence[index + 1])
+            next_token = self.tokenized_sentence[index + 1]
+            features["next_pos"] = "+".join(
+                (self.pos_tags[index], self.pos_tags[index + 1])
+            )
+            features["next_stem"] = stem(next_token)
+            features["next_is_capitalised"] = self._is_capitalised(next_token)
+            features["next_is_numeric"] = self._is_numeric(next_token)
+            features["next_is_unit"] = self._is_unit(next_token)
+            features["next_is_punc"] = self._is_punc(next_token)
+            features["next_is_ambiguous"] = self._is_ambiguous_unit(next_token)
+            features["next_is_in_parens"] = self._is_inside_parentheses(index + 1)
+            features["next_is_after_comma"] = self._follows_comma(index + 1)
+            features["next_is_after_plus"] = self._follows_plus(index + 1)
 
         if index < len(self.tokenized_sentence) - 2:
-            features["next_pos2"] = self.pos_tags[index + 2]
-            features["next_word2"] = stem(self.tokenized_sentence[index + 2])
+            next_token2 = self.tokenized_sentence[index + 2]
+            features["next_pos2"] = "+".join(
+                (
+                    self.pos_tags[index + 2],
+                    self.pos_tags[index + 1],
+                    self.pos_tags[index],
+                )
+            )
+            features["next_stem2"] = stem(next_token2)
+            features["next_is_capitalised2"] = self._is_capitalised(next_token2)
+            features["next_is_numeric2"] = self._is_numeric(next_token2)
+            features["next_is_unit2"] = self._is_unit(next_token2)
+            features["next_is_punc2"] = self._is_punc(next_token2)
+            features["next_is_ambiguous2"] = self._is_ambiguous_unit(next_token2)
+            features["next_is_in_parens2"] = self._is_inside_parentheses(index + 2)
+            features["next_is_after_comma2"] = self._follows_comma(index + 2)
+            features["next_is_after_plus2"] = self._follows_plus(index + 2)
 
         return features
 

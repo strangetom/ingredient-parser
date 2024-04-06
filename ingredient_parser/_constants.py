@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import re
+from itertools import chain
 
 # Plural and singular units
 UNITS = {
@@ -16,10 +17,11 @@ UNITS = {
     "bunches": "bunch",
     "bundles": "bundle",
     "cans": "can",
-    "chops": "chop",
     "chunks": "chunk",
     "cloves": "clove",
     "clusters": "cluster",
+    "cl": "cl",
+    "cL": "cL",
     "cm": "cm",
     "cubes": "cube",
     "cups": "cup",
@@ -31,6 +33,7 @@ UNITS = {
     "ears": "ear",
     "envelopes": "envelope",
     "feet": "foot",
+    "fl": "fl",
     "g": "g",
     "gallons": "gallon",
     "glasses": "glass",
@@ -52,7 +55,10 @@ UNITS = {
     "litres": "litre",
     "loaves": "loaf",
     "milliliters": "milliliter",
+    "millilitres": "millilitre",
     "ml": "ml",
+    "mL": "mL",
+    "mm": "mm",
     "mugs": "mug",
     "ounces": "ounce",
     "oz": "oz",
@@ -66,6 +72,7 @@ UNITS = {
     "pods": "pod",
     "pounds": "pound",
     "pts": "pt",
+    "punnets": "punnet",
     "racks": "rack",
     "rashers": "rasher",
     "recipes": "recipe",
@@ -102,6 +109,9 @@ _capitalized_units = {}
 for plural, singular in UNITS.items():
     _capitalized_units[plural.capitalize()] = singular.capitalize()
 UNITS = UNITS | _capitalized_units
+# Create a flattened list of all keys and values in UNITS dict
+# since we need this in a few places
+FLATTENED_UNITS_LIST = list(chain.from_iterable(UNITS.items()))
 
 # Words that can modify a unit
 UNIT_MODIFIERS = [
@@ -141,6 +151,7 @@ AMBIGUOUS_UNITS.extend(_ambiguous_units_alt_forms)
 
 # Strings and their numeric representation
 STRING_NUMBERS = {
+    "one-half": "1/2",
     "one": "1",
     "two": "2",
     "three": "3",

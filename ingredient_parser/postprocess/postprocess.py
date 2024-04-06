@@ -1,13 +1,18 @@
 #!/usr/bin/env python3
 
 import re
+from functools import cached_property
 from itertools import chain, groupby
 from operator import itemgetter
 from statistics import mean
 from typing import Any, Generator, Iterator
 
-from ingredient_parser._constants import APPROXIMATE_TOKENS, SINGULAR_TOKENS, STOP_WORDS
-from ingredient_parser._utils import consume
+from ingredient_parser._constants import (
+    APPROXIMATE_TOKENS,
+    SINGULAR_TOKENS,
+    STOP_WORDS,
+)
+from ingredient_parser._utils import consume, convert_to_pint_unit
 
 from .dataclasses import (
     CompositeIngredientAmount,
@@ -21,7 +26,6 @@ WORD_CHAR = re.compile(r"\w")
 
 
 class PostProcessor:
-
     """Recipe ingredient sentence PostProcessor class.
 
     Performs the necessary postprocessing on the sentence tokens and labels and scores
@@ -40,7 +44,16 @@ class PostProcessor:
         List of tokens for original ingredient sentence.
     discard_isolated_stop_words : bool
         If True, isolated stop words are discarded from the name, preparation or
-        comment fields. Default value is True
+        comment fields. Default value is True.
+    string_units : bool
+        If True, return all IngredientAmount units as strings.
+        If False, convert IngredientAmount units to pint.Unit objects where possible.
+        Dfault is False.
+    imperial_units : bool
+        If True, use imperial units instead of US customary units for pint.Unit objects
+        for the the following units: fluid ounce, cup, pint, quart, gallon.
+        Default is False, which results in US customary units being used.
+        This has no effect if string_units=True.
     consumed : list[int]
         List of indices of tokens consumed as part of setting the APPROXIMATE and
         SINGULAR flags. These tokens should not end up in the parsed output.
@@ -53,12 +66,16 @@ class PostProcessor:
         labels: list[str],
         scores: list[float],
         discard_isolated_stop_words: bool = True,
+        string_units: bool = False,
+        imperial_units: bool = False,
     ):
         self.sentence = sentence
         self.tokens = tokens
         self.labels = labels
         self.scores = scores
         self.discard_isolated_stop_words = discard_isolated_stop_words
+        self.string_units = string_units
+        self.imperial_units = imperial_units
         self.consumed = []
 
     def __repr__(self) -> str:
@@ -85,6 +102,7 @@ class PostProcessor:
         ]
         return "\n".join(_str)
 
+    @cached_property
     def parsed(self) -> ParsedIngredient:
         """Return parsed ingredient data
 
@@ -94,16 +112,18 @@ class PostProcessor:
             Object containing structured data from sentence.
         """
         amounts = self._postprocess_amounts()
+        size = self._postprocess("SIZE")
         name = self._postprocess("NAME")
         preparation = self._postprocess("PREP")
         comment = self._postprocess("COMMENT")
 
         return ParsedIngredient(
-            sentence=self.sentence,
-            amount=amounts,
             name=name,
+            size=size,
+            amount=amounts,
             preparation=preparation,
             comment=comment,
+            sentence=self.sentence,
         )
 
     def _postprocess(self, selected: str) -> IngredientText | None:
@@ -125,7 +145,7 @@ class PostProcessor:
         idx = [
             i
             for i, label in enumerate(self.labels)
-            if label == selected and i not in self.consumed
+            if label in [selected, "PUNC"] and i not in self.consumed
         ]
 
         # Join consecutive tokens together and average their score
@@ -171,6 +191,7 @@ class PostProcessor:
 
         A number of special cases are considered before the default processing:
         1. "sizable unit" pattern
+        2. "composite amounts" pattern
 
         Returns
         -------
@@ -236,16 +257,15 @@ class PostProcessor:
         >>> p._fix_punctuation("(unmatched parenthesis (inside)(")
         "unmatched parenthesis (inside)"
         """
-        # Remove leading comma
-        if text.startswith(", "):
-            text = text[2:]
-
-        # Remove trailing comma
-        if text.endswith(","):
-            text = text[:-1]
+        if text == "":
+            return text
 
         # Correct space following open parens or before close parens
         text = text.replace("( ", "(").replace(" )", ")")
+
+        # Correct space preceeding various punctuation
+        for punc in [",", ":", ";"]:
+            text = text.replace(f" {punc}", punc)
 
         # Remove parentheses that aren't part of a matching pair
         idx_to_remove = []
@@ -266,7 +286,15 @@ class PostProcessor:
         idx_to_remove.extend(stack)
         text = "".join(char for i, char in enumerate(text) if i not in idx_to_remove)
 
-        return text
+        # Remove leading comma, colon, semi-colon, hyphen
+        while text[0] in [",", ";", ":", "-"]:
+            text = text[1:].strip()
+
+        # Remove trailing comma, colon, semi-colon, hypehn
+        while text[-1] in [",", ";", ":", "-"]:
+            text = text[:-1].strip()
+
+        return text.strip()
 
     def _remove_isolated_punctuation_and_duplicate_indices(
         self, parts: list[str]
@@ -387,6 +415,7 @@ class PostProcessor:
             "package",
             "packet",
             "piece",
+            "sachet",
             "slice",
             "tin",
         ]
@@ -407,9 +436,21 @@ class PostProcessor:
 
                     # The first amount is made up of the first and last items
                     # Note that this cannot be singular, but may be approximate
+                    quantity = matching_tokens.pop(0)
+                    unit = matching_tokens.pop(-1)
+                    text = " ".join((quantity, unit)).strip()
+
+                    if not self.string_units:
+                        # If the unit is recognised in the pint unit registry, use
+                        # a pint.Unit object instead of a string. This has the benefit
+                        # of simplifying alternative unit representations into a single
+                        # common representation
+                        unit = convert_to_pint_unit(unit, self.imperial_units)
+
                     first = IngredientAmount(
-                        quantity=matching_tokens.pop(0),
-                        unit=matching_tokens.pop(-1),
+                        quantity=quantity,
+                        unit=unit,
+                        text=text,
                         confidence=round(
                             mean([matching_scores.pop(0), matching_scores.pop(-1)]), 6
                         ),
@@ -426,13 +467,19 @@ class PostProcessor:
                     for i in range(0, len(matching_tokens), 2):
                         quantity = matching_tokens[i]
                         unit = matching_tokens[i + 1]
+                        text = " ".join((quantity, unit)).strip()
                         confidence = mean(matching_scores[i : i + 1])
+
+                        if not self.string_units:
+                            # Conver to pint.Unit if appropriate
+                            unit = convert_to_pint_unit(unit, self.imperial_units)
 
                         # If the first amount (e.g. 1 can) is approximate, so are all
                         # the pairs in between
                         amount = IngredientAmount(
                             quantity=quantity,
                             unit=unit,
+                            text=text,
                             confidence=round(confidence, 6),
                             starting_index=idx[match[i]],
                             SINGULAR=True,
@@ -502,16 +549,32 @@ class PostProcessor:
                     and tokens[last_unit_idx] in last_unit
                 ):
                     # First amount
+                    quantity_1 = tokens[match[0]]
+                    unit_1 = tokens[match[1]]
+                    text_1 = " ".join((quantity_1, unit_1)).strip()
+                    if not self.string_units:
+                        # Convert to pint.Unit if appropriate
+                        unit_1 = convert_to_pint_unit(unit_1, self.imperial_units)
+
                     first_amount = IngredientAmount(
-                        quantity=tokens[match[0]],
-                        unit=tokens[match[1]],
+                        quantity=quantity_1,
+                        unit=unit_1,
+                        text=text_1,
                         confidence=round(mean([scores[i] for i in match[0:2]]), 6),
                         starting_index=idx[first_unit_idx - 1],
                     )
                     # Second amount
+                    quantity_2 = tokens[match[2]]
+                    unit_2 = " ".join([tokens[i] for i in match[3:]])
+                    text_2 = " ".join((quantity_2, unit_2)).strip()
+                    if not self.string_units:
+                        # Convert to pint.Unit if appropriate
+                        unit_2 = convert_to_pint_unit(unit_2, self.imperial_units)
+
                     second_amount = IngredientAmount(
-                        quantity=tokens[match[2]],
-                        unit=" ".join([tokens[i] for i in match[3:]]),
+                        quantity=quantity_2,
+                        unit=unit_2,
+                        text=text_2,
                         confidence=round(mean([scores[i] for i in match[3:]]), 6),
                         starting_index=idx[last_unit_idx - 1],
                     )
@@ -665,9 +728,9 @@ class PostProcessor:
                         )
                     )
 
-                if i > 0 and labels[i - 1] == "COMMA":
-                    # If previous token was a comma, append to unit
-                    # of last IngredientAmount
+                if i > 0 and tokens[i - 1] == "," and amounts[-1].unit != []:
+                    # If the previous token was a comma, and the last amount has a unit,
+                    # append comma to unit of last IngredientAmount
                     amounts[-1].unit.append(",")
 
                 # Append token and score for unit to last IngredientAmount
@@ -694,11 +757,22 @@ class PostProcessor:
         # Then convert to IngredientAmount object
         processed_amounts = []
         for amount in amounts:
+            unit = " ".join(amount.unit)
+            text = " ".join((amount.quantity, unit)).strip()
+
+            if not self.string_units:
+                # If the unit is recognised in the pint unit registry, use
+                # a pint.Unit object instead of a string. This has the benefit of
+                # simplifying alternative unit representations into a single
+                # common representation
+                unit = convert_to_pint_unit(unit, self.imperial_units)
+
             # Convert to an IngredientAmount object for returning
             processed_amounts.append(
                 IngredientAmount(
                     quantity=amount.quantity,
-                    unit=" ".join(amount.unit),
+                    unit=unit,
+                    text=text,
                     confidence=round(mean(amount.confidence), 6),
                     starting_index=amount._starting_index,
                     APPROXIMATE=amount.APPROXIMATE,

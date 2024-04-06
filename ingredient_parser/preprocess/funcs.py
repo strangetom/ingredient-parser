@@ -12,7 +12,7 @@ STEMMER = PorterStemmer()
 # Matches one or more whitespace characters
 WHITESPACE_TOKENISER = re.compile(r"\S+")
 # Matches and captures one of the following: ( ) [ ] { } , " / : ;
-PUNCTUATION_TOKENISER = re.compile(r"([\(\)\[\]\{\}\,\"/:;])")
+PUNCTUATION_TOKENISER = re.compile(r"([\(\)\[\]\{\}\,/:;])")
 
 
 def tokenize(sentence: str) -> list[str]:

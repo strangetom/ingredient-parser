@@ -1,2 +1,3 @@
 nltk
 python-crfsuite
+pint

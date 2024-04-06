@@ -1,7 +1,9 @@
+.. currentmodule:: ingredient_parser.preprocess
+
 Feature selection
 =================
 
-Feature calculation is done for each token in the sentence, so first the normamlised sentence must be tokenised.
+Feature calculation is done for each token in the sentence, so first the normalised sentence must be tokenised.
 
 Tokenization
 ^^^^^^^^^^^^
@@ -15,7 +17,7 @@ The defined tokenizer splits the sentence according the following rules:
 .. literalinclude:: ../../../ingredient_parser/preprocess/funcs.py
     :lines: 11-49
 
-This splits the sentence apart into wherever there is white space or a punctation mark in ``PUNCTUATION_TOKENISER``.
+This splits the sentence apart into wherever there is white space or a punctuation mark in ``PUNCTUATION_TOKENISER``.
 
 .. code:: python
 
@@ -46,23 +48,23 @@ The features used for this model are a little different
 * Whether the token is capitalised
 * Whether the token is numeric
 * Whether the token is a unit (determined from the list of units)
+* Whether the token is a punctuation mark
 * Whether the token is an ambiguous unit
 * Whether the token is inside parentheses
-* Whether the token is a stop word
 * Whether the token is after a comma
 * Whether the token follows a + symbol
-* Whether the token is after a forward slash
+* Whether the sentence is a short sentence (having less than 3 tokens)
 
 If possible, based on the position of the token in the sentence, the following features are also added
 
 * The stem of the previous token
-* The POS tag for the previous token
+* The POS tag for the previous token combined with the POS tag for the current token
 * The stem of the token before the previous token
-* The POS tag for the token before the previous token
+* The POS tag for the token before the previous token combined with the POS tags for the previous and current tokens
 * The stem of the next token
-* The POS tag for the next token
+* The POS tag for the next token combined with the POS tag for the current token
 * The stem of the token after the next token
-* The POS tag for the token after the next token
+* The POS tag for the token after the next token combined with the POS tags for the current and next tokens
 
 The :func:`_token_features` function of :class:`PreProcessor` returns all these features as a dictionary.
 
@@ -73,5 +75,5 @@ The :func:`_token_features` function of :class:`PreProcessor` returns all these 
 The :func:`sentence_features` function of :class:`PreProcessor` return the features for all tokens in the sentence in a list.
 
 .. attention::
-    
+
     It is likely that some of these features aren't necessary. There is a chunk of work for the future to determine the most useful features.

@@ -154,8 +154,11 @@ select {
 .PREP {
   --background-color: color-mix(in srgb, var(--blue-alt), #333);
 }
-.COMMA {
+.PUNC {
   --background-color: color-mix(in srgb, var(--gray), #333);
+}
+.SIZE {
+  --background-color: color-mix(in srgb, var(--orange), #333);
 }
 
 button.delete {

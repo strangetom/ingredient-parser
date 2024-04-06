@@ -7,6 +7,8 @@ from collections import Counter
 
 from flask import Flask, Response, redirect, render_template, request, url_for
 
+from ingredient_parser import inspect_parser
+
 sqlite3.register_adapter(list, json.dumps)
 sqlite3.register_converter("json", json.loads)
 
@@ -19,7 +21,7 @@ DATABASE = "train/data/training.sqlite3"
 def home():
     with sqlite3.connect(DATABASE, detect_types=sqlite3.PARSE_DECLTYPES) as conn:
         c = conn.cursor()
-        c.execute("SELECT source FROM training")
+        c.execute("SELECT source FROM en")
         sources = [source for (source,) in c.fetchall()]
 
     conn.close()
@@ -52,7 +54,7 @@ def edit(dataset: str):
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
         c.execute(
-            "SELECT * FROM training WHERE source IS ? LIMIT ? OFFSET ?;",
+            "SELECT * FROM en WHERE source IS ? LIMIT ? OFFSET ?;",
             (dataset, count, start),
         )
         data = [dict(row) for row in c.fetchall()]
@@ -92,7 +94,7 @@ def sentences_by_id():
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
         c.execute(
-            f"SELECT * FROM training WHERE id IN ({','.join(['?']*len(indices))});",
+            f"SELECT * FROM en WHERE id IN ({','.join(['?']*len(indices))});",
             indices,
         )
         data = [dict(row) for row in c.fetchall()]
@@ -125,7 +127,7 @@ def shuffle():
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
         c.execute(
-            "SELECT * FROM training ORDER BY RANDOM() LIMIT ?;",
+            "SELECT * FROM en ORDER BY RANDOM() LIMIT ?;",
             (count,),
         )
         data = [dict(row) for row in c.fetchall()]
@@ -144,6 +146,13 @@ def filter():
         return apply_filter(form)
 
 
+@app.route("/insert", methods=["POST"])
+def insert():
+    if request.method == "POST":
+        form = request.form
+        return insert_sentences(form)
+
+
 @app.route("/save", methods=["POST"])
 def save():
     """Endpoint for saving sentences to database from /edit, /shuffle or /index pages
@@ -160,7 +169,7 @@ def save():
         with sqlite3.connect(DATABASE, detect_types=sqlite3.PARSE_DECLTYPES) as conn:
             c = conn.cursor()
             c.executemany(
-                """UPDATE training 
+                """UPDATE en 
                 SET sentence = :sentence, tokens = :tokens, labels = :labels 
                 WHERE id = :id;""",
                 update["entries"],
@@ -186,12 +195,25 @@ def delete(index: int):
     """
     with sqlite3.connect(DATABASE, detect_types=sqlite3.PARSE_DECLTYPES) as conn:
         c = conn.cursor()
-        c.execute("DELETE FROM training WHERE id = ?", (index,))
+        c.execute("DELETE FROM en WHERE id = ?", (index,))
 
     return Response(status=200)
 
 
-def apply_filter(params: dict[str, str]) -> list[int]:
+def apply_filter(params: dict[str, str]):
+    """Apply selected filter to database and return page for editing sentences that
+    match the filter.
+
+    Parameters
+    ----------
+    params : dict[str, str]
+        Filter settings
+
+    Returns
+    -------
+    Response
+        Redirection to sentences_by_id page.
+    """
     # Select data from database
     datasets = [
         key.split("-")[-1]
@@ -202,7 +224,7 @@ def apply_filter(params: dict[str, str]) -> list[int]:
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
         c.execute(
-            f"SELECT * FROM training WHERE source IN ({','.join(['?']*len(datasets))})",
+            f"SELECT * FROM en WHERE source IN ({','.join(['?']*len(datasets))})",
             (datasets),
         )
         data = [dict(row) for row in c.fetchall()]
@@ -216,15 +238,19 @@ def apply_filter(params: dict[str, str]) -> list[int]:
     ]
 
     # Create regex for search query
-    if params.get("case-sensitive", "") == "on":
-        query = re.compile(rf"\b{params['filter-string']}\b", re.DOTALL | re.UNICODE)
+    escaped = re.escape(params["filter-string"])
+    if params.get("whole-word", "") == "on":
+        expression = rf"\b{escaped}\b"
     else:
-        query = re.compile(
-            rf"\b{params['filter-string']}\b", re.DOTALL | re.UNICODE | re.IGNORECASE
-        )
+        expression = escaped
+
+    if params.get("case-sensitive", "") == "on":
+        query = re.compile(expression, re.UNICODE)
+    else:
+        query = re.compile(expression, re.UNICODE | re.IGNORECASE)
 
     # 6 possible labels in total
-    if len(labels) == 6:
+    if len(labels) == 7:
         # Search through sentences
         indices = []
         for entry in data:
@@ -247,3 +273,46 @@ def apply_filter(params: dict[str, str]) -> list[int]:
                 indices.append(str(entry["id"]))
 
         return redirect(url_for("sentences_by_id", indices=",".join(indices)))
+
+
+def insert_sentences(params: dict[str, str]):
+    """Insert new sentences to database, setting the source to the selected value.
+    New sentences are tokenised automatically but have their labels set to "
+
+    Parameters
+    ----------
+    params : dict[str, str]
+        Sentences and source
+
+    Returns
+    -------
+    Response
+        Redirection to sentences_by_id page.
+    """
+    source = params.get("insert-dataset")
+    sentences = params.get("insert-sentences", "").splitlines()
+    guess_labels = params.get("guess-labels", "") == "on"
+
+    indices = []
+    with sqlite3.connect(DATABASE, detect_types=sqlite3.PARSE_DECLTYPES) as conn:
+        c = conn.cursor()
+        for sentence in sentences:
+            if not sentence:
+                continue
+
+            ins = inspect_parser(sentence)
+            tokens = ins.PostProcessor.tokens
+            if guess_labels:
+                labels = ins.PostProcessor.labels
+            else:
+                labels = [""] * len(tokens)
+
+            c.execute(
+                """
+                INSERT INTO en (source, sentence, tokens, labels) 
+                VALUES (?, ?, ?, ?)""",
+                (source, sentence, tokens, labels),
+            )
+            indices.append(str(c.lastrowid))
+
+    return redirect(url_for("sentences_by_id", indices=",".join(indices)))
