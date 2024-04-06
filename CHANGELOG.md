@@ -10,6 +10,7 @@
 
 ### Model 
 
+- Add additional model performance metrics.
 - Add model hyper-parameter tuning functionality with `python train.py gridsearch` to iterate over specified training algorithms and hyper-parameters.
 - Add `--detailed` argument to output detailed information about model performance on test data.  (#9, @boxydog)
 - Change model labels to treat label all punctuation as PUNC - this resolves some of the ambiguity in token labeling
@@ -31,6 +32,10 @@
     - RANGE is set to True for quantity ranges e.g. `1-2`
     - MULTIPLIER is set to True for quantities like `1x`
   - Conversion of quantity field to `float` where possible
+- PreProcessor improvements 
+  - Be aggressive about replacing written numbers (e.g. one) with the digit version. For example, in sentences like `1 tsp Chinese five-spice`, `five-spice` is now kept as written instead of being replaced by two tokens: `5 spice`.
+  - Improve handling of ranges that duplicate the units e.g. `1 pound to 2 pound` is now returned as `1-2 pound`
+
 
 ## 0.1.0-beta8
 
