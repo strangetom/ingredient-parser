@@ -51,6 +51,9 @@ def validate_tokens(calculated_tokens: list[str], stored_tokens: list[str]) -> N
         print("Database tokens do not match PreProcessor output.")
         print(f"\t{calculated_tokens}")
         print(f"\t{stored_tokens}")
+        return False
+
+    return True
 
 
 def validate_token_label_length(
@@ -68,11 +71,26 @@ def validate_token_label_length(
     if len(calculated_tokens) != len(stored_labels):
         print(f"[ERROR] ID: {row['id']} [{row['source']}]")
         print("\tNumber of tokens and labels are different.")
+        return False
+
+    return True
 
 
 if __name__ == "__main__":
     rows = load_from_db()
+
+    token_errors = 0
+    token_label_errors = 0
+
     for row in rows:
         p = PreProcessor(row["sentence"], defer_pos_tagging=True)
-        validate_tokens(p.tokenized_sentence, row["tokens"])
-        validate_token_label_length(p.tokenized_sentence, row["labels"])
+        if not validate_tokens(p.tokenized_sentence, row["tokens"]):
+            token_errors += 1
+        if not validate_token_label_length(p.tokenized_sentence, row["labels"]):
+            token_label_errors += 1
+
+    if token_errors > 0:
+        print(f"{token_errors} token errors")
+
+    if token_label_errors > 0:
+        print(f"{token_label_errors} token-label length mismatch errors")
