@@ -36,12 +36,12 @@ See :doc:`Extracting features <features>` for more information.
 Train
 ~~~~~
 
-The Conditional Random Fields model is trained on 75% of the training data.
+The Conditional Random Fields model is trained on 80% of the training data.
 
 Evaluate
 ~~~~~~~~
 
-The remaining 25% of the training data is used to evaluate the performance of the model on data the model has not encountered before.
+The remaining 20% of the training data is used to evaluate the performance of the model on data the model has not encountered before.
 
 See :doc:`Training the model <training>` for more information.
 

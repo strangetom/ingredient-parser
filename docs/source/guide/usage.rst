@@ -22,7 +22,7 @@ The general process is like so
 
     labels_pred = tagger.tag(p.sentence_features())
 
-The `tagger` returns a list of labels the same length as the list of sentence tokens. For example, consider the sentence **3/4 cup (170g) heavy cream**:
+The ``tagger`` returns a list of labels the same length as the list of sentence tokens. For example, consider the sentence **3/4 cup (170g) heavy cream**:
 
 .. code:: python
 

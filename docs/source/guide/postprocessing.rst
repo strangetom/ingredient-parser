@@ -54,8 +54,26 @@ For most cases, the amounts are determined by combining a QTY label with the fol
     ...
     >>> parsed = PostProcessor(sentence, tokens, labels, scores).parsed()
     >>> amounts = parsed.amount
-    [IngredientAmount(quantity='0.75', unit=<Unit('cup')>, text='0.75 cups', confidence=0.999921, APPROXIMATE=False, SINGULAR=False),
-    IngredientAmount(quantity='170', unit=<Unit('gram')>, text='170 g', confidence=0.996724, APPROXIMATE=False, SINGULAR=False)]
+    [
+        IngredientAmount(quantity=0.75,
+                  quantity_max=0.75,
+                  unit=<Unit('cup')>,
+                  text='0.75 cups',
+                  confidence=0.999881,
+                  APPROXIMATE=False,
+                  SINGULAR=False,
+                  RANGE=False,
+                  MULTIPLIER=False),
+        IngredientAmount(quantity=170.0,
+                  quantity_max=170.0,
+                  unit=<Unit('gram')>,
+                  text='170 g',
+                  confidence=0.995941,
+                  APPROXIMATE=False,
+                  SINGULAR=False,
+                  RANGE=False,
+                  MULTIPLIER=False)
+    ]
 
 
 There are two amounts identified: **0.75 cups** and **170 g**.
@@ -76,7 +94,7 @@ This has benefits if you wish to use the parsed information to convert between d
 .. code:: python
 
     >>> p = parse_ingredient("3/4 cup heavy cream")
-    >>> q = float(p.amount[0].quantity) * p.amount[0].unit
+    >>> q = p.amount[0].quantity * p.amount[0].unit
     >>> q
     0.75 <Unit('cup')>
     >>> q.to("ml")
@@ -88,26 +106,35 @@ By default, US customary version of units are used where a unit has more than on
 
     >>> parse_ingredient("3/4 cup heavy cream", imperial_units=False)  # Default
     ParsedIngredient(
-        name=IngredientText(text='heavy cream', confidence=0.998078),
+        name=IngredientText(text='heavy cream', confidence=0.997513),
+        size=None,
         amount=[IngredientAmount(quantity=0.75,
+                                 quantity_max=0.75,
                                  unit=<Unit('cup')>,
                                  text='0.75 cups',
-                                 confidence=0.99993,
+                                 confidence=0.999926,
                                  APPROXIMATE=False,
-                                 SINGULAR=False)],
+                                 SINGULAR=False,
+                                 RANGE=False,
+                                 MULTIPLIER=False)],
         preparation=None,
         comment=None,
         sentence='3/4 cup heavy cream'
     )
+
     >>> parse_ingredient("3/4 cup heavy cream", imperial_units=True)
     ParsedIngredient(
-        name=IngredientText(text='heavy cream', confidence=0.998078),
+        name=IngredientText(text='heavy cream', confidence=0.997513),
+        size=None,
         amount=[IngredientAmount(quantity=0.75,
+                                 quantity_max=0.75,
                                  unit=<Unit('imperial_cup')>,
                                  text='0.75 cups',
-                                 confidence=0.99993,
+                                 confidence=0.999926,
                                  APPROXIMATE=False,
-                                 SINGULAR=False)],
+                                 SINGULAR=False,
+                                 RANGE=False,
+                                 MULTIPLIER=False)],
         preparation=None,
         comment=None,
         sentence='3/4 cup heavy cream'
@@ -150,7 +177,7 @@ This is set to True with the amount if a range of values, e.g. 1-2, 300-400. In 
 
 **MULTIPLIER**
 
-This is set to True when the amount is represented as a multiple such as 1x. The ``quantity`` field in set to the value of the multiplier (1x to 1).
+This is set to True when the amount is represented as a multiple such as 1x. The ``quantity`` field in set to the value of the multiplier (e.g. for ``1x`` the quantity is  ``1``).
 
 Special cases for amounts
 +++++++++++++++++++++++++
@@ -161,7 +188,54 @@ There are some particular cases where the combination of QTY and UNIT labels tha
 
     >>> parsed = parse_ingredient("2 14 ounce cans coconut milk")
     >>> parsed.amount
-    [IngredientAmount(quantity=2.0, unit='cans', text='2 cans', confidence=0.999835, APPROXIMATE=False, SINGULAR=False),
-    IngredientAmount(quantity=14.0, unit=<Unit('ounce')>, text='14 ounces', confidence=0.998503, APPROXIMATE=False, SINGULAR=True)]
+    [IngredientAmount(quantity=2.0,
+                      quantity_max=2.0,
+                      unit='cans',
+                      text='2 cans',
+                      confidence=0.999897,
+                      APPROXIMATE=False,
+                      SINGULAR=False,
+                      RANGE=False,
+                      MULTIPLIER=False),
+     IngredientAmount(quantity=14.0,
+                      quantity_max=14.0,
+                      unit=<Unit('ounce')>,
+                      text='14 ounces',
+                      confidence=0.998793,
+                      APPROXIMATE=False,
+                      SINGULAR=True,
+                      RANGE=False,
+                      MULTIPLIER=False)]
+
 
 Identifying and handling this pattern of QTY and UNIT labels is done by the :func:`PostProcessor._sizable_unit_pattern()` function.
+
+A second case is where the full amount is made up of more than one quantity-unit pair. This is particularly common with US customary units such as pounds and ounces, or pints and fluid ounces. In these cases, a :class:`CompositeIngredientAmount <ingredient_parser.postprocess.dataclasses.CompositeIngredientAmount>` is returned. For example
+
+.. code:: python
+
+    >>> parsed = parse_ingredient("1lb 2oz pecorino romano cheese")
+    >>> parsed.amount
+    [CompositeIngredientAmount(
+        amounts=[
+            IngredientAmount(quantity=1.0,
+                             quantity_max=1.0,
+                             unit=<Unit('pound')>,
+                             text='1 lb',
+                             confidence=0.999942,
+                             APPROXIMATE=False,
+                             SINGULAR=False,
+                             RANGE=False,
+                             MULTIPLIER=False),
+            IngredientAmount(quantity=2.0,
+                             quantity_max=2.0,
+                             unit=<Unit('ounce')>,
+                             text='2 oz',
+                             confidence=0.99928,
+                             APPROXIMATE=False,
+                             SINGULAR=False,
+                             RANGE=False,
+                             MULTIPLIER=False)],
+        join='',
+        text='1 lb 2 oz')
+    ]

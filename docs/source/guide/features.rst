@@ -8,11 +8,9 @@ Feature calculation is done for each token in the sentence, so first the normali
 Tokenization
 ^^^^^^^^^^^^
 
-Once the input sentence has been normalised, it can be split into tokens. Each token represents a single unit of the sentence. These are not necessarily the same as a word because we might want to handle punctuation and compound words in particular ways.
+Once the input sentence has been normalised, it can be split into tokens. Each token represents a single unit of the sentence. These are not necessarily the same as the words because we might want to handle punctuation and compound words in a particular way.
 
-The tokenizer in created using NLTK's Regular Expression tokenizer. The splits an string input according the a regular expression.
-
-The defined tokenizer splits the sentence according the following rules:
+The tokenizer splits the sentence according the following rules:
 
 .. literalinclude:: ../../../ingredient_parser/preprocess/funcs.py
     :lines: 11-49
@@ -44,7 +42,7 @@ The `Ingredient Phrase Tagger <https://github.com/NYTimes/ingredient-phrase-tagg
 The features used for this model are a little different
 
 * The stem of the token
-* The part of speech (POS) tag
+* The part of speech (:abbr:`POS (Part of Speech)`) tag
 * Whether the token is capitalised
 * Whether the token is numeric
 * Whether the token is a unit (determined from the list of units)
@@ -58,13 +56,13 @@ The features used for this model are a little different
 If possible, based on the position of the token in the sentence, the following features are also added
 
 * The stem of the previous token
-* The POS tag for the previous token combined with the POS tag for the current token
+* The :abbr:`POS (Part of Speech)` tag for the previous token combined with the :abbr:`POS (Part of Speech)` tag for the current token
 * The stem of the token before the previous token
-* The POS tag for the token before the previous token combined with the POS tags for the previous and current tokens
+* The :abbr:`POS (Part of Speech)` tag for the token before the previous token combined with the :abbr:`POS (Part of Speech)` tags for the previous and current tokens
 * The stem of the next token
-* The POS tag for the next token combined with the POS tag for the current token
+* The :abbr:`POS (Part of Speech)` tag for the next token combined with the :abbr:`POS (Part of Speech)` tag for the current token
 * The stem of the token after the next token
-* The POS tag for the token after the next token combined with the POS tags for the current and next tokens
+* The :abbr:`POS (Part of Speech)` tag for the token after the next token combined with the :abbr:`POS (Part of Speech)` tags for the current and next tokens
 
 The :func:`_token_features` function of :class:`PreProcessor` returns all these features as a dictionary.
 

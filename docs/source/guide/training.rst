@@ -1,7 +1,7 @@
 Training the model
 ==================
 
-The model chosen is a Condition Random Fields (CRF) model. This was selected largely because the New York Times work on this used the same model quite successfully, and CRF models are commonly used in sequence labelling machine learning applications.
+The model chosen is a Condition Random Fields (:abbr:`CRF (Conditional Random Fields)`) model. This was selected largely because the New York Times work on this used the same model quite successfully, and :abbr:`CRF (Conditional Random Fields)` models are commonly used in sequence labelling machine learning applications.
 
 However, rather than re-using the same tools and process the New York Times did, this model is trained and evaluated using `python-crfsuite <https://github.com/scrapinghub/python-crfsuite>`_.
 
@@ -29,6 +29,9 @@ With the data ready, we can now train the model using `python-crfuite <https://g
 
         $ python -m pip install -r requirements-dev.txt
 
+
+A outline of the code for training the model is shown below, which trains the model and saves the model to the file specified.
+
 .. code:: python
 
     import pycrfsuite
@@ -40,16 +43,13 @@ With the data ready, we can now train the model using `python-crfuite <https://g
             "feature.possible_transitions": True,
             "c1": 0.2,
             "c2": 1,
+            ...
         }
     )
     for X, y in zip(features_train, truth_train):
         trainer.append(X, y)
 
-    trainer.train(args.save_model)
-
-This trains the model and saves the model to the file specified.
-
-This is relatively quick the train, it takes about 7 minutes on a laptop with an Intel Core 15-10300H and 16 GB of RAM. No GPU is required.
+    trainer.train("model.crfsuite")
 
 All of the above steps are implemented in the ``train.py`` script. The following command will execute the script and train the model on all datasets.
 
@@ -59,26 +59,32 @@ All of the above steps are implemented in the ``train.py`` script. The following
 
 You can run ``python train.py --help`` to view all the available options for tweaking the training process.
 
+.. note::
+
+    It takes about 12 minutes to train the on a laptop with an Intel Core 15-10300H and 16 GB of RAM. No GPU is required.
+
 Evaluation
 ^^^^^^^^^^
 
 Two metrics are used to evaluate the model:
 
 1. Word-level accuracy
-    This is a measure of the percentage of tokens in the test data that the model predicted the correct label for.
+    This is a measure of the percentage of tokens in the evaluation data that the model predicted the correct label for.
 2. Sentence-level accuracy
-    This is a measure of the percentage of sentences in the test data where the model predicted the correct label for all tokens.
+    This is a measure of the percentage of sentences in the evaluation data where the model predicted the correct label for all tokens.
+
+An outline of the code for testing the model is shown below, which opens the trained model and uses it to label the tokens for each sentence in the evaluation set.
 
 .. code:: python
 
     tagger = pycrfsuite.Tagger()
-    tagger.open(args.save_model)
-    labels_pred = [tagger.tag(X) for X in features_test]
-    stats = evaluate(labels_pred, truth_test)
+    tagger.open("model.crfsuite")
+    labels_pred = [tagger.tag(X) for X in features_evaluate]
+    stats = evaluate(labels_pred, truth_evaluate)
 
 See the `Model Card <https://github.com/strangetom/ingredient-parser/blob/master/ingredient_parser/ModelCard.md>`_ for the current model performance.
 
-There will always be some variation in model performance each time the model is trained because the training data is partitioned randomly each time. If the model is representing the training data well, then the variation in performance metrics should be small (i.e. << 1%).
+Each time the model is trained, the training data is partitioned randomly between the training and evaluation sets. This means there will be some variation in model performance each time the model is trained. However, ff the model is representing the training data well, then the variation in performance metrics should be small (i.e. << 1%).
 
 The model training process can be executed multiple times to obtain the average performance and the uncertainty in the performance, by running the following command:
 
@@ -155,8 +161,8 @@ By default when training a model, a random integer is used as the seed for :func
 Historical performance
 ^^^^^^^^^^^^^^^^^^^^^^
 
-The model performance has improved over time. The figure below shows the sentence- and word-level performance for the last few releases.
+The model performance has improved over time as a result of improvements to the labelling consistency of the training data, the sentence normalisation steps and the feature selection. The figure below shows the sentence- and word-level performance for the last few releases.
 
 .. image:: /_static/performance-history.svg
-  :class: .only-dark
+  :class: .dark-light
   :alt: Bar graph showing the model performance improving which each new release
