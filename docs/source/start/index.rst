@@ -69,7 +69,7 @@ The :func:`parse_ingredient <ingredient_parser.parsers.parse_ingredient>` functi
         preparation=IngredientText(text='cut into 2 inch chunks',
                                    confidence=0.999193),
         comment=None,
-        sentence='3 punds pork shoulder, cut into 2-inch chunks'
+        sentence='3 pounds pork shoulder, cut into 2-inch chunks'
     )
 
 
@@ -104,7 +104,7 @@ The :func:`parse_ingredient <ingredient_parser.parsers.parse_ingredient>` functi
 
 - ``discard_isolated_stop_words``
 
-  If True (default), then any stop words that appear in isolation in the name, preparation, or comment fields are discarded. If False, then all words from the input sentence are retained in the parsed output. For example:
+  If True (default), then any stop words that appear in isolation in the name, preparation, size or comment fields are discarded. If False, then all words from the input sentence are retained in the parsed output. For example:
 
 .. code:: python
 
@@ -138,7 +138,7 @@ The :func:`parse_ingredient <ingredient_parser.parsers.parse_ingredient>` functi
 
 - ``string_units``
 
-  If True, units in the :class:`IngredientAmount <ingredient_parser.postprocess.IngredientAmount>` objects are returned as strings. The default is False, where units will be :class:`pint.Unit` objects
+  If True, units in the :class:`IngredientAmount <ingredient_parser.postprocess.IngredientAmount>` objects are returned as strings. The default is False, where units will be :class:`pint.Unit` objects.
 
 - ``imperial_unts``
 
@@ -147,7 +147,7 @@ The :func:`parse_ingredient <ingredient_parser.parsers.parse_ingredient>` functi
 Multiple ingredient sentences
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The :func:`parse_multiple_ingredients <ingredient_parser.parsers.parse_multiple_ingredients>` function is provided as a convenience function. It accepts a list of ingredient sentences as it's input and returns a list of :class:`ParsedIngredient <ingredient_parser.postprocess.ParsedIngredient>` objects with the parsed information. It has the same optional arguments as :func:`parse_ingredient <ingredient_parser.parsers.parse_ingredient>`.
+The :func:`parse_multiple_ingredients <ingredient_parser.parsers.parse_multiple_ingredients>` function is provided for convenience. It accepts a list of ingredient sentences as it's input and returns a list of :class:`ParsedIngredient <ingredient_parser.postprocess.ParsedIngredient>` objects with the parsed information. It has the same optional arguments as :func:`parse_ingredient <ingredient_parser.parsers.parse_ingredient>`.
 
 .. code:: python
 
@@ -198,4 +198,6 @@ The :func:`parse_multiple_ingredients <ingredient_parser.parsers.parse_multiple_
             comment=None,
             sentence='2 large garlic cloves, finely grated'
         )
+    ]
+  )
     ]
