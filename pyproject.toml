@@ -9,7 +9,7 @@ dynamic = ["version"]
 description = "A Python package to parse structured information from recipe ingredient sentences"
 readme = "README.md"
 license = { file="LICENSE"}
-requires-python = ">=3.10, <=3.12"
+requires-python = ">=3.10, <3.13"
 keywords = ["recipe", "ingredient", "ingredients", "nlp", "parsing" ]
 authors = [
     { name="Tom Strange", email="tpstrange@gmail.com"},
