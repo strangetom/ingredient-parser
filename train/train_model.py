@@ -153,7 +153,7 @@ def train_single(args: argparse.Namespace) -> None:
     args : argparse.Namespace
         Model training configuration
     """
-    vectors = load_datasets(args.database, args.datasets)
+    vectors = load_datasets(args.database, args.table, args.datasets)
     stats = train_model(
         vectors,
         args.split,
@@ -184,7 +184,7 @@ def train_multiple(args: argparse.Namespace) -> None:
     args : argparse.Namespace
         Model training configuration
     """
-    vectors = load_datasets(args.database, args.datasets)
+    vectors = load_datasets(args.database, args.table, args.datasets)
 
     # The first None argument is for the seed. This is set to None so each
     # iteration of the training function uses a different random seed.

@@ -39,6 +39,13 @@ if __name__ == "__main__":
         required=True,
     )
     train_parser.add_argument(
+        "--database-table",
+        help="Name of table in database containing training data",
+        type=str,
+        dest="table",
+        default="en",
+    )
+    train_parser.add_argument(
         "--datasets",
         help="Datasets to use in training and evaluating the model",
         dest="datasets",
@@ -86,6 +93,13 @@ if __name__ == "__main__":
         type=str,
         dest="database",
         required=True,
+    )
+    multiple_parser.add_argument(
+        "--database-table",
+        help="Name of table in database containing training data",
+        type=str,
+        dest="table",
+        default="en",
     )
     multiple_parser.add_argument(
         "--datasets",
@@ -145,6 +159,13 @@ if __name__ == "__main__":
         type=str,
         dest="database",
         required=True,
+    )
+    gridsearch_parser.add_argument(
+        "--database-table",
+        help="Name of table in database containing training data",
+        type=str,
+        dest="table",
+        default="en",
     )
     gridsearch_parser.add_argument(
         "--datasets",
@@ -247,6 +268,13 @@ if __name__ == "__main__":
         type=str,
         dest="database",
         required=True,
+    )
+    utility_parser.add_argument(
+        "--database-table",
+        help="Name of table in database containing training data",
+        type=str,
+        dest="table",
+        default="en",
     )
     utility_parser.add_argument(
         "--datasets",

@@ -81,6 +81,13 @@ There are a couple of things to consider here:
 
 With all the previous updates made, the training and evaluation steps shouldn't need any modification, other than to make sure they use to right data and :class:`PreProcessor <ingredient_parser.preprocess.PreProcessor>` implementation.
 
+The command to train a model has an option to set the database table. For example, to select the database table named "en":
+
+.. code:: bash
+
+    $ python train.py train --database train/data/training.sqlite3 --database-table en
+
+
 Parsing
 +++++++
 

@@ -70,7 +70,7 @@ class Stats:
 
 
 def load_datasets(
-    database: str, datasets: list[str], discard_other: bool = True
+    database: str, table: str, datasets: list[str], discard_other: bool = True
 ) -> DataVectors:
     """Load raw data from csv files and transform into format required for training.
 
@@ -78,6 +78,8 @@ def load_datasets(
     ----------
     database : str
         Path to database of training data
+    table : str
+        Name of database table containing training data
     datasets : list[str]
         List of data source to include.
         Valid options are: nyt, cookstr, bbc
@@ -99,7 +101,7 @@ def load_datasets(
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
         c.execute(
-            f"SELECT * FROM en WHERE source IN ({','.join(['?']*len(datasets))})",
+            f"SELECT * FROM {table} WHERE source IN ({','.join(['?']*len(datasets))})",
             datasets,
         )
         data = c.fetchall()

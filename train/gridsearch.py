@@ -316,7 +316,7 @@ def generate_argument_sets(args: argparse.Namespace) -> list[list]:
         list of lists, where each sublist is the arguments for training a model with
         one of the combinations of algorithms and parameters
     """
-    vectors = load_datasets(args.database, args.datasets)
+    vectors = load_datasets(args.database, args.table, args.datasets)
 
     # Generate list of arguments for all combinations parameters for each algorithm
     argument_sets = []
