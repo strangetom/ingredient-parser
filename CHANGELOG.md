@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.0-beta10
+
+### Bugfix
+
+Fix incorrect python version specifier in package which was preventing pip in Python 3.12 downloading the latest version.
+
 ## 0.1.0-beta9
 
 ### General
