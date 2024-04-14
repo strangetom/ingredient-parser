@@ -43,7 +43,6 @@ class PreProcessor:
 
     Notes
     -----
-
     The cleaning steps are as follows
 
     1. | Replace all en-dashes and em-dashes with hyphens.
@@ -116,7 +115,7 @@ class PreProcessor:
         defer_pos_tagging: bool = False,
         show_debug_output: bool = False,
     ):
-        """Initialisation
+        """Initialise.
 
         Parameters
         ----------
@@ -145,7 +144,7 @@ class PreProcessor:
             self.pos_tags = []
 
     def __repr__(self) -> str:
-        """__repr__ method
+        """__repr__ method.
 
         Returns
         -------
@@ -155,7 +154,7 @@ class PreProcessor:
         return f'PreProcessor("{self.input}")'
 
     def __str__(self) -> str:
-        """__str__ method
+        """__str__ method.
 
         Returns
         -------
@@ -171,7 +170,7 @@ class PreProcessor:
         return "\n".join(_str)
 
     def _normalise(self, sentence: str) -> str:
-        """Normalise sentence prior to feature extraction
+        """Normalise sentence prior to feature extraction.
 
         Parameters
         ----------
@@ -234,7 +233,7 @@ class PreProcessor:
         return sentence.replace("–", "-").replace("—", " - ")
 
     def _replace_string_numbers(self, sentence: str) -> str:
-        """Replace string numbers (e.g. one, two) with numeric values (e.g. 1, 2)
+        """Replace string numbers (e.g. one, two) with numeric values (e.g. 1, 2).
 
         Parameters
         ----------
@@ -256,7 +255,6 @@ class PreProcessor:
         >>> p._replace_string_numbers("twelve bonbons")
         "12 bonbons"
         """
-
         # STRING_NUMBER_REGEXES is a dict where the values are a tuple of the compiled
         # regular expression for matching a string number e.g. 'one', 'two' and the
         # substitution numerical value for that string number.
@@ -269,8 +267,7 @@ class PreProcessor:
         return sentence
 
     def _valid_string_number_replacement(self, match: re.Match, sentence: str) -> bool:
-        """Check if it's valid to do a string number replacement for the given Match
-        in the given sentence
+        """Check if string number replacement is valid for the given Match in sentence.
 
         Parameters
         ----------
@@ -302,7 +299,7 @@ class PreProcessor:
         return False
 
     def _replace_html_fractions(self, sentence: str) -> str:
-        """Replace html fractions e.g. &frac12; with unicode equivalents
+        """Replace html fractions e.g. &frac12; with unicode equivalents.
 
         Parameters
         ----------
@@ -323,7 +320,8 @@ class PreProcessor:
         return unescape(sentence)
 
     def _replace_fake_fractions(self, sentence: str) -> str:
-        """Attempt to parse fractions from sentence and convert to decimal
+        """Attempt to parse fractions from sentence and convert to decimal.
+
         This looks for fractions with the format of 1/2, 1/4, 1 1/2 etc.
 
         Parameters
@@ -411,6 +409,7 @@ class PreProcessor:
 
     def _replace_unicode_fractions(self, sentence: str) -> str:
         """Replace unicode fractions with a 'fake' ascii equivalent.
+
         The ascii equivalent is used because the replace_fake_fractions function can
         deal with spaces between an integer and the fraction.
 
@@ -444,7 +443,8 @@ class PreProcessor:
         return sentence
 
     def _split_quantity_and_units(self, sentence: str) -> str:
-        """Insert space between quantity and unit
+        """Insert space between quantity and unit.
+
         This currently finds any instances of a number followed directly by a letter
         with no space or a hyphen in between. It also finds any letters followed
         directly by a number with no space in between.
@@ -482,7 +482,7 @@ class PreProcessor:
         return UNITS_HYPHEN_QUANTITY_PATTERN.sub(r"\1 - \2", sentence)
 
     def _remove_unit_trailing_period(self, sentence: str) -> str:
-        """Remove trailing periods from units e.g. tsp. -> tsp
+        """Remove trailing periods from units e.g. tsp. -> tsp.
 
         Parameters
         ----------
@@ -523,8 +523,7 @@ class PreProcessor:
         return sentence
 
     def _replace_string_range(self, sentence: str) -> str:
-        """Replace range in the form "<num> to <num" with
-        standardised range "<num>-<num>".
+        """Replace range in the form "<num> to <num" with range "<num>-<num>".
 
         For example
         -----------
@@ -555,8 +554,7 @@ class PreProcessor:
         return STRING_RANGE_PATTERN.sub(r"\1-\5", sentence)
 
     def _replace_dupe_units_ranges(self, sentence: str) -> str:
-        """Replace ranges where the unit appears in both parts of the range with
-        standardised range "<num>-<num> <unit>".
+        """Replace ranges where the unit appears twice with standard range then unit.
 
         This assumes that the _split_quantity_and_units has already been run on
         the sentence.
@@ -601,7 +599,7 @@ class PreProcessor:
         return sentence
 
     def _merge_quantity_x(self, sentence: str) -> str:
-        """Merge any quantity followed by "x" into a single token e.g. 1 x can -> 1x can
+        """Merge any quantity followed by "x" into a single token.
 
         Parameters
         ----------
@@ -626,8 +624,7 @@ class PreProcessor:
         return QUANTITY_X_PATTERN.sub(r"\1x ", sentence)
 
     def _collapse_ranges(self, sentence: str) -> str:
-        """Collapse any whitespace found in a range so the range is of the standard
-        form.
+        """Collapse any whitespace found in a range so the range has the standard form.
 
         Parameters
         ----------
@@ -654,8 +651,10 @@ class PreProcessor:
     def _singlarise_units(
         self, tokenised_sentence: list[str]
     ) -> tuple[list[str], list[int]]:
-        """Singularise units in tokenised sentence and return list of singularised
-        indices e.g. cups -> cup, tablespoons -> tablespoon
+        """Singularise units in tokenised sentence.
+
+        Returns the tokenized sentence with plural units made singular, and a list of
+        indices of tokens in the tokenised sentence that have been singularised.
 
         Parameters
         ----------
@@ -679,7 +678,7 @@ class PreProcessor:
         return (tokenised_sentence, singularised_indices)
 
     def _tag_partofspeech(self, tokens: list[str]) -> list[str]:
-        """Tag tokens with part of speech using universal tagset
+        """Tag tokens with part of speech using universal tagset.
 
         This function manually fixes tags that are incorrect in the context of
         ----------------------------------------------------------------------
@@ -705,7 +704,7 @@ class PreProcessor:
         return tags
 
     def _is_unit(self, token: str) -> bool:
-        """Return True if token is a unit
+        """Return True if token is a unit.
 
         Parameters
         ----------
@@ -730,7 +729,7 @@ class PreProcessor:
         return token.lower() in UNITS.values()
 
     def _is_punc(self, token: str) -> bool:
-        """Return True if token is a punctuation mark
+        """Return True if token is a punctuation mark.
 
         Parameters
         ----------
@@ -755,7 +754,7 @@ class PreProcessor:
         return token in string.punctuation
 
     def _is_numeric(self, token: str) -> bool:
-        """Return True if token is numeric
+        """Return True if token is numeric.
 
         Parameters
         ----------
@@ -799,7 +798,8 @@ class PreProcessor:
             return False
 
     def _follows_comma(self, index: int) -> bool:
-        """Return True if token at index follows a comma (by any amount) in sentence
+        """Return True if token at index follows a comma (by any amount) in sentence.
+
         If the token at index is a comma, treat it the same as any other token
 
         Parameters
@@ -816,6 +816,7 @@ class PreProcessor:
 
     def _follows_plus(self, index: int) -> bool:
         """Return True if token at index follow "plus" by any amount in sentence.
+
         If the token at the index is "plus", it doesn't count as following.
 
         Parameters
@@ -831,7 +832,7 @@ class PreProcessor:
         return "plus" in self.tokenized_sentence[:index]
 
     def _is_capitalised(self, token: str) -> bool:
-        """Return True if token starts with a capital letter
+        """Return True if token starts with a capital letter.
 
         Parameters
         ----------
@@ -856,8 +857,7 @@ class PreProcessor:
         return CAPITALISED_PATTERN.match(token) is not None
 
     def _is_inside_parentheses(self, index: int) -> bool:
-        """Return True if token is inside parentheses within the sentence or is a
-        parenthesis.
+        """Return True if token is inside parentheses or is a parenthesis.
 
         Parameters
         ----------
@@ -887,7 +887,7 @@ class PreProcessor:
         return False
 
     def _is_ambiguous_unit(self, token: str) -> bool:
-        """Return True if token is in AMBIGUOUS_UNITS list
+        """Return True if token is in AMBIGUOUS_UNITS list.
 
         Parameters
         ----------
@@ -916,7 +916,7 @@ class PreProcessor:
         return token in AMBIGUOUS_UNITS
 
     def _token_features(self, index: int) -> dict[str, str | bool]:
-        """Return the features for each token in the sentence
+        """Return the features for each token in the sentence.
 
         Parameters
         ----------
@@ -1018,7 +1018,7 @@ class PreProcessor:
         return features
 
     def sentence_features(self) -> list[dict[str, str | bool]]:
-        """Return features for all tokens in sentence
+        """Return features for all tokens in sentence.
 
         Returns
         -------

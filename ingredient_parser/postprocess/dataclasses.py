@@ -10,8 +10,7 @@ from ingredient_parser._utils import is_float, is_range, pluralise_units
 
 @dataclass
 class _PartialIngredientAmount:
-    """Dataclass for holding the information for an ingredient amount whilst it's being
-    built up.
+    """Dataclass for incrementally building ingredient amount information.
 
     Attributes
     ----------
@@ -94,7 +93,8 @@ class IngredientAmount:
     MULTIPLIER: bool = False
 
     def __post_init__(self, starting_index):
-        """
+        """Post-init functionality.
+
         If required make the unit plural convert.
         Set the value for quantity_max and set the RANGE and MULTIPLIER flags
         as required by the type of quantity.
@@ -132,8 +132,10 @@ class IngredientAmount:
 
 @dataclass
 class CompositeIngredientAmount:
-    """Dataclass for a composite ingredient amount. This is an amount comprising
-    more than one IngredientAmount object e.g. "1 lb 2 oz" or "1 cup plus 1 tablespoon".
+    """Dataclass for a composite ingredient amount.
+
+    This is an amount comprising more than one IngredientAmount object
+    e.g. "1 lb 2 oz" or "1 cup plus 1 tablespoon".
 
     Attributes
     ----------
@@ -152,9 +154,7 @@ class CompositeIngredientAmount:
     text: str = field(init=False)
 
     def __post_init__(self):
-        """
-        On dataclass instantiation, generate the text field.
-        """
+        """On dataclass instantiation, generate the text field."""
         if self.join == "":
             self.text = " ".join([amount.text for amount in self.amounts])
         else:
@@ -168,11 +168,22 @@ class CompositeIngredientAmount:
         # composite amount.
         self.confidence = mean(amount.confidence for amount in self.amounts)
 
+    def combined_amount(self) -> pint.Quantity:
+        """Return the combined amount in a single unit for the composite amount.
+
+        The combined amount is returned as a pint.Quantity object.
+
+        Returns
+        -------
+        pint.Quantity
+            Combined amount
+        """
+        return sum(amount.quantity * amount.unit for amount in self.amounts)
+
 
 @dataclass
 class IngredientText:
-    """Dataclass for holding a parsed ingredient string, comprising the following
-    attributes.
+    """Dataclass for holding a parsed ingredient string.
 
     Attributes
     ----------
@@ -194,7 +205,6 @@ class ParsedIngredient:
 
     Attributes
     ----------
-
     name : IngredientText | None
         Ingredient name parsed from input sentence.
         If no ingredient name was found, this is None.

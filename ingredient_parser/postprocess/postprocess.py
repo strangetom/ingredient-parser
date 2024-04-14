@@ -79,7 +79,7 @@ class PostProcessor:
         self.consumed = []
 
     def __repr__(self) -> str:
-        """__repr__ method
+        """__repr__ method.
 
         Returns
         -------
@@ -89,7 +89,7 @@ class PostProcessor:
         return f'PostProcessor("{self.sentence}")'
 
     def __str__(self) -> str:
-        """__str__ method
+        """__str__ method.
 
         Returns
         -------
@@ -104,7 +104,7 @@ class PostProcessor:
 
     @cached_property
     def parsed(self) -> ParsedIngredient:
-        """Return parsed ingredient data
+        """Return parsed ingredient data.
 
         Returns
         -------
@@ -127,8 +127,7 @@ class PostProcessor:
         )
 
     def _postprocess(self, selected: str) -> IngredientText | None:
-        """Process tokens, labels and scores with selected label into an
-        IngredientText object.
+        """Process tokens, labels and scores with selected label into IngredientText.
 
         Parameters
         ----------
@@ -184,8 +183,10 @@ class PostProcessor:
         )
 
     def _postprocess_amounts(self) -> list[IngredientAmount]:
-        """Process tokens, labels and scores into IngredientAmount objects, by combining
-        QTY labels with any following UNIT labels, up to the next QTY label.
+        """Process tokens, labels and scores into IngredientAmount.
+
+        This is done by combining QTY labels with any following UNIT labels,
+        up to the next QTY label.
 
         The confidence is the average confidence of all labels in the IngredientGroup.
 
@@ -218,8 +219,7 @@ class PostProcessor:
         return sorted(amounts, key=lambda x: x._starting_index)
 
     def _unconsumed(self, list_: list[Any]) -> list[Any]:
-        """Return elements from list whose index is not in the list of consumed
-        indices
+        """Return elements from list whose index is not in the list of consumed indices.
 
         Parameters
         ----------
@@ -234,8 +234,7 @@ class PostProcessor:
         return [el for i, el in enumerate(list_) if i not in self.consumed]
 
     def _fix_punctuation(self, text: str) -> str:
-        """Fix some common punctuation errors that result from combining tokens of the
-        same label together.
+        """Fix some common punctuation errors that result when combining tokens.
 
         Parameters
         ----------
@@ -299,8 +298,10 @@ class PostProcessor:
     def _remove_isolated_punctuation_and_duplicate_indices(
         self, parts: list[str]
     ) -> list[int]:
-        """Find elements in list that comprise a single punctuation character or are a
-        duplicate of the previous element and discard their indices.
+        """Find indices of isolated punctation marks and adjacent duplicate tokens.
+
+        Isolated punctuation and repeated adjacent tokens are removed from the list
+        of indices that are to be kept.
 
         Parameters
         ----------
@@ -339,7 +340,7 @@ class PostProcessor:
     def _group_consecutive_idx(
         self, idx: list[int]
     ) -> Generator[Iterator[int], None, None]:
-        """Yield groups of consecutive indices
+        """Yield groups of consecutive indices.
 
         Given a list of integers, yield groups of integers where the value of each in a
         group is adjacent to the previous element's value.
@@ -366,8 +367,10 @@ class PostProcessor:
     def _sizable_unit_pattern(
         self, idx: list[int], tokens: list[str], labels: list[str], scores: list[float]
     ) -> list[IngredientAmount]:
-        """Identify sentences which match the pattern where there is a
-        quantity-unit pair split by one or more quantity-unit pairs e.g.
+        """Identify sentences which match the sizable unit pattern.
+
+        This pattern is where there is a quantity-unit pair split by one or more
+        quantity-unit pairs e.g.
 
         * 1 28 ounce can
         * 2 17.3 oz (484g) package
@@ -492,8 +495,10 @@ class PostProcessor:
     def _composite_amounts_pattern(
         self, idx: list[int], tokens: list[str], labels: list[str], scores: list[float]
     ) -> list[CompositeIngredientAmount]:
-        """Identify sentences which match the pattern where there are composite amounts,
-        i.e. adjacent amounts that need to be considered together:
+        """Identify sentences which match the pattern where there are composite amounts.
+
+        This pattern is where there are adjacent amounts that need to be considered
+        together, e.g.
 
         * 1 lb 2 oz
         * 1 pint 2 fl oz
@@ -594,8 +599,7 @@ class PostProcessor:
     def _match_pattern(
         self, labels: list[str], pattern: list[str], ignore_other_labels: bool = True
     ) -> list[list[int]]:
-        """Find a pattern of labels and return the indices of the labels that match the
-        pattern. The pattern matching ignores labels that are not part of the pattern.
+        """Find a pattern of labels, returning the indices of the matching labels.
 
         For example, consider the sentence:
         One 15-ounce can diced tomatoes, with liquid
@@ -663,6 +667,7 @@ class PostProcessor:
         scores: list[float],
     ) -> list[IngredientAmount]:
         """Fallback pattern for grouping quantities and units into amounts.
+
         This is done simply by grouping a QTY with all following UNIT until
         the next QTY.
 
@@ -785,9 +790,10 @@ class PostProcessor:
     def _is_approximate(
         self, i: int, tokens: list[str], labels: list[str], idx: list[int]
     ) -> bool:
-        """Return True is token at current index is approximate, determined
-        by the token label being QTY and the previous token being in a list of
-        approximate tokens.
+        """Return True is token at current index is approximate.
+
+        This is determined by the token label being QTY and the previous token being in
+        a list of approximate tokens.
 
         If returning True, also add index of i - 1 token to self.consumed list.
 
@@ -840,9 +846,10 @@ class PostProcessor:
     def _is_singular(
         self, i: int, tokens: list[str], labels: list[str], idx: list[int]
     ) -> bool:
-        """Return True is token at current index is singular, determined
-        by the token label being UNIT and the next token being in a list of
-        singular tokens.
+        """Return True is token at current index is singular.
+
+        This is determined by the token label being UNIT and the next token being in
+        a list of singular tokens.
 
         If returning True, also add index of i + 1 token to self.consumed list.
 
@@ -899,9 +906,10 @@ class PostProcessor:
     def _is_singular_and_approximate(
         self, i: int, tokens: list[str], labels: list[str], idx: list[int]
     ) -> bool:
-        """Return True if the current token is approximate and singular, determined
-        by the token label being QTY and is preceded by a token in a list of singular
-        tokens, then token in a list of approximate tokens.
+        """Return True if the current token is approximate and singular.
+
+        This is determined by the token label being QTY and is preceded by a token in
+        a list of singular tokens, then token in a list of approximate tokens.
 
         If returning True, also add index of i - 1 and i - 2 tokens to
         self.consumed list.
@@ -953,8 +961,7 @@ class PostProcessor:
     def _distribute_related_flags(
         self, amounts: list[_PartialIngredientAmount]
     ) -> list[_PartialIngredientAmount]:
-        """Where amounts are related to the previous, ensure that all related amounts
-        have the same flags set.
+        """Distribute all set flags to related amounts.
 
         Parameters
         ----------

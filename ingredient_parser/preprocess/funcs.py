@@ -17,6 +17,7 @@ PUNCTUATION_TOKENISER = re.compile(r"([\(\)\[\]\{\}\,/:;])")
 
 def tokenize(sentence: str) -> list[str]:
     """Tokenise an ingredient sentence.
+
     The sentence is split on whitespace characters into a list of tokens.
     If any of these tokens contains of the punctuation marks captured by
     PUNCTUATION_TOKENISER, these are then split and isolated as a seperate
@@ -52,6 +53,7 @@ def tokenize(sentence: str) -> list[str]:
 @lru_cache(maxsize=512)
 def stem(token: str) -> str:
     """Stem function with cache to improve performance.
+
     The stem of a word output by the PorterStemmer is always the same, so we can
     cache the result the first time and return that for subsequent future calls
     without the need to do all the processing again.

@@ -36,7 +36,7 @@ def parse_ingredient(
     string_units: bool = False,
     imperial_units: bool = False,
 ) -> ParsedIngredient:
-    """Parse an ingredient sentence using CRF model to return structured data
+    """Parse an ingredient sentence using CRF model to return structured data.
 
     Parameters
     ----------
@@ -139,8 +139,7 @@ def parse_multiple_ingredients(
 
 @dataclass
 class ParserDebugInfo:
-    """Dataclass for holding intermediate objects generated during
-    ingredient sentence parsing.
+    """Dataclass for holding intermediate objects generated during parsing.
 
     Attributes
     ----------
@@ -167,8 +166,7 @@ def inspect_parser(
     string_units: bool = False,
     imperial_units: bool = False,
 ) -> ParserDebugInfo:
-    """Return object containing all intermediate objects used in the parsing of
-    a sentence.
+    """Return object containing all intermediate objects used in the parsing.
 
     Parameters
     ----------

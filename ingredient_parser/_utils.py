@@ -63,6 +63,7 @@ def pluralise_units(sentence: str) -> str:
 
 def convert_to_pint_unit(unit: str, imperial_units: bool = False) -> str | pint.Unit:
     """Convert a unit to a pint.Unit object, if possible.
+
     If the unit is not found in the pint Unit Registry, just return the input unit.
 
     Parameters
@@ -123,6 +124,7 @@ def convert_to_pint_unit(unit: str, imperial_units: bool = False) -> str | pint.
 
 def consume(iterator: Iterator, n: int) -> None:
     """Advance the iterator n-steps ahead. If n is none, consume entirely.
+
     See consume from https://docs.python.org/3/library/itertools.html#itertools-recipes
 
     Parameters
