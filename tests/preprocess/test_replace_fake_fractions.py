@@ -43,3 +43,14 @@ class TestPreProcessor_replace_fake_fractions:
         """
         input_sentence = " 1/2 cup sugar"
         assert p._replace_fake_fractions(input_sentence) == " 0.5 cup sugar"
+
+    def test_vulgar_fraction(self, p):
+        """
+        The unicode vulgar fraction (using FRACTION SLASH (U+2044)) is
+        replaced with 0.5
+        """
+        input_sentence = "1⁄2 x 20g pack fresh thyme, leaves only"
+        assert (
+            p._replace_fake_fractions(input_sentence)
+            == "0.5 x 20g pack fresh thyme, leaves only"
+        )

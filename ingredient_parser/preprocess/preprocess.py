@@ -345,7 +345,14 @@ class PreProcessor:
         >>> p = PreProcessor("")
         >>> p._replace_fake_fractions("2 3/4 pound chickpeas")
         "2.75 pound chickpeas"
+
+        >>> p = PreProcessor("")
+        >>> p._replace_fake_fractions("1 1⁄2 cups fresh corn")
+        "1.5 cups fresh corn"
         """
+        # Replace unicode FRACTION SLASH (U+2044) with forward slash
+        sentence = sentence.replace("\u2044", "/")
+
         matches = FRACTION_PARTS_PATTERN.findall(sentence)
 
         if not matches:
