@@ -1,16 +1,11 @@
-from ._utils import download_nltk_resources, show_model_card
-from .parsers import inspect_parser, parse_ingredient, parse_multiple_ingredients
-from .postprocess import PostProcessor
-from .preprocess import PreProcessor
+from ._common import download_nltk_resources, show_model_card
+from .parsers import parse_ingredient, parse_multiple_ingredients
 
 download_nltk_resources()
 
 __all__ = [
-    "inspect_parser",
     "parse_ingredient",
     "parse_multiple_ingredients",
-    "PreProcessor",
-    "PostProcessor",
     "show_model_card",
 ]
 

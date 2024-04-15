@@ -7,20 +7,20 @@ from operator import itemgetter
 from statistics import mean
 from typing import Any, Generator, Iterator
 
-from ingredient_parser._constants import (
-    APPROXIMATE_TOKENS,
-    SINGULAR_TOKENS,
-    STOP_WORDS,
-)
-from ingredient_parser._utils import consume, convert_to_pint_unit
-
-from .dataclasses import (
+from ..._common import consume
+from ...dataclasses import (
     CompositeIngredientAmount,
     IngredientAmount,
     IngredientText,
     ParsedIngredient,
     _PartialIngredientAmount,
 )
+from .._constants import (
+    APPROXIMATE_TOKENS,
+    SINGULAR_TOKENS,
+    STOP_WORDS,
+)
+from .._utils import convert_to_pint_unit
 
 WORD_CHAR = re.compile(r"\w")
 

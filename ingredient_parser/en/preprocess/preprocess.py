@@ -7,7 +7,7 @@ from html import unescape
 
 from nltk.tag import pos_tag
 
-from ingredient_parser._constants import (
+from .._constants import (
     AMBIGUOUS_UNITS,
     FLATTENED_UNITS_LIST,
     STRING_NUMBERS,
@@ -15,7 +15,6 @@ from ingredient_parser._constants import (
     UNICODE_FRACTIONS,
     UNITS,
 )
-
 from .funcs import stem, tokenize
 from .regex import (
     CAPITALISED_PATTERN,

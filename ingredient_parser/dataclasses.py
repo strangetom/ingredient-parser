@@ -5,7 +5,8 @@ from statistics import mean
 
 import pint
 
-from ingredient_parser._utils import is_float, is_range, pluralise_units
+from ._common import is_float, is_range
+from .en._utils import pluralise_units
 
 
 @dataclass
