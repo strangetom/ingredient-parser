@@ -12,7 +12,7 @@ from sklearn.metrics import ConfusionMatrixDisplay, classification_report
 # Ensure the local ingredient_parser package can be found
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from ingredient_parser import PreProcessor
+from ingredient_parser.en import PreProcessor
 
 sqlite3.register_converter("json", json.loads)
 
