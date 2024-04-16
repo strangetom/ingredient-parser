@@ -11,6 +11,8 @@ from typing import Iterator
 
 from nltk import data, download
 
+SUPPORTED_LANGUAGES = ["en"]
+
 # Regex pattern for matching a numeric range e.g. 1-2, 2-3.
 RANGE_PATTERN = re.compile(r"\d+\s*[\-]\d+")
 
@@ -47,9 +49,18 @@ def consume(iterator: Iterator, n: int) -> None:
         next(islice(iterator, n, n), None)
 
 
-def show_model_card() -> None:
-    """Open model card in default application."""
-    with as_file(files(__package__) / "ModelCard.md") as p:
+def show_model_card(lang: str = "en") -> None:
+    """Open model card for specified langauge in default application.
+
+    Parameters
+    ----------
+    lang : str, optional
+        Selected language to open model card for.
+    """
+    if lang not in SUPPORTED_LANGUAGES:
+        raise ValueError(f'Unsupported language "{lang}"')
+
+    with as_file(files(__package__) / lang / f"ModelCard.{lang}.md") as p:
         if platform.system() == "Darwin":  # macOS
             subprocess.call(("open", p))
         elif platform.system() == "Windows":  # Windows

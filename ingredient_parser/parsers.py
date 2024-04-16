@@ -2,6 +2,7 @@
 
 from ingredient_parser.en import inspect_parser_en, parse_ingredient_en
 
+from ._common import SUPPORTED_LANGUAGES
 from .dataclasses import ParsedIngredient, ParserDebugInfo
 
 
@@ -40,7 +41,7 @@ def parse_ingredient(
     ParsedIngredient
         ParsedIngredient object of structured data parsed from input string
     """
-    if lang not in ["en"]:
+    if lang not in SUPPORTED_LANGUAGES:
         raise ValueError(f'Unsupported language "{lang}"')
 
     match lang:
@@ -140,7 +141,7 @@ def inspect_parser(
         ParserDebugInfo object containing the PreProcessor object, PostProcessor
         object and Tagger.
     """
-    if lang not in ["en"]:
+    if lang not in SUPPORTED_LANGUAGES:
         raise ValueError(f'Unsupported language "{lang}"')
 
     match lang:
