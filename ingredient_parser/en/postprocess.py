@@ -20,7 +20,7 @@ from ._constants import (
     SINGULAR_TOKENS,
     STOP_WORDS,
 )
-from ._utils import convert_to_pint_unit
+from ._utils import convert_to_pint_unit, create_ingredient_amount
 
 WORD_CHAR = re.compile(r"\w")
 
@@ -450,7 +450,7 @@ class PostProcessor:
                         # common representation
                         unit = convert_to_pint_unit(unit, self.imperial_units)
 
-                    first = IngredientAmount(
+                    first = create_ingredient_amount(
                         quantity=quantity,
                         unit=unit,
                         text=text,
@@ -479,7 +479,7 @@ class PostProcessor:
 
                         # If the first amount (e.g. 1 can) is approximate, so are all
                         # the pairs in between
-                        amount = IngredientAmount(
+                        amount = create_ingredient_amount(
                             quantity=quantity,
                             unit=unit,
                             text=text,
@@ -561,11 +561,11 @@ class PostProcessor:
                         # Convert to pint.Unit if appropriate
                         unit_1 = convert_to_pint_unit(unit_1, self.imperial_units)
 
-                    first_amount = IngredientAmount(
+                    first_amount = create_ingredient_amount(
                         quantity=quantity_1,
                         unit=unit_1,
                         text=text_1,
-                        confidence=round(mean([scores[i] for i in match[0:2]]), 6),
+                        confidence=mean([scores[i] for i in match[0:2]]),
                         starting_index=idx[first_unit_idx - 1],
                     )
                     # Second amount
@@ -576,7 +576,7 @@ class PostProcessor:
                         # Convert to pint.Unit if appropriate
                         unit_2 = convert_to_pint_unit(unit_2, self.imperial_units)
 
-                    second_amount = IngredientAmount(
+                    second_amount = create_ingredient_amount(
                         quantity=quantity_2,
                         unit=unit_2,
                         text=text_2,
@@ -774,11 +774,11 @@ class PostProcessor:
 
             # Convert to an IngredientAmount object for returning
             processed_amounts.append(
-                IngredientAmount(
+                create_ingredient_amount(
                     quantity=amount.quantity,
                     unit=unit,
                     text=text,
-                    confidence=round(mean(amount.confidence), 6),
+                    confidence=mean(amount.confidence),
                     starting_index=amount._starting_index,
                     APPROXIMATE=amount.APPROXIMATE,
                     SINGULAR=amount.SINGULAR,

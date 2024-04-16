@@ -1,6 +1,6 @@
 import pint
 
-from ingredient_parser.dataclasses import IngredientAmount
+from ingredient_parser.en._utils import create_ingredient_amount
 
 
 class TestPostProcessor_IngredientAmount:
@@ -9,7 +9,7 @@ class TestPostProcessor_IngredientAmount:
         Test that the string quantity is correctly converted to a float
         and that quantity_max is set to the same value
         """
-        amount = IngredientAmount(
+        amount = create_ingredient_amount(
             quantity="25",
             unit=pint.Unit("g"),
             text="25 g",
@@ -26,7 +26,7 @@ class TestPostProcessor_IngredientAmount:
         and that quantity and quantity_max are set correctly, and the RANGE
         flag is also set.
         """
-        amount = IngredientAmount(
+        amount = create_ingredient_amount(
             quantity="25-30",
             unit=pint.Unit("g"),
             text="25 g",
@@ -44,7 +44,7 @@ class TestPostProcessor_IngredientAmount:
         that the quantity and quantity_max field as set the same value, and the
         MULTIPLIER flag is also set.
         """
-        amount = IngredientAmount(
+        amount = create_ingredient_amount(
             quantity="1x", unit="can", text="1x can", confidence=0, starting_index=0
         )
 
@@ -57,7 +57,7 @@ class TestPostProcessor_IngredientAmount:
         Test that the unit in the string in the unit and text fields
         are pluralised correctly.
         """
-        amount = IngredientAmount(
+        amount = create_ingredient_amount(
             quantity="2", unit="can", text="2 can", confidence=0, starting_index=0
         )
 
@@ -68,7 +68,7 @@ class TestPostProcessor_IngredientAmount:
         """
         Test that the unit in the string in the text field is pluralised correctly.
         """
-        amount = IngredientAmount(
+        amount = create_ingredient_amount(
             quantity="200",
             unit=pint.Unit("gram"),
             text="200 grams",

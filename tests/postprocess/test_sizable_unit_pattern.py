@@ -1,9 +1,7 @@
 import pint
 
-from ingredient_parser.dataclasses import (
-    IngredientAmount,
-)
 from ingredient_parser.en import PostProcessor
+from ingredient_parser.en._utils import create_ingredient_amount
 
 
 class TestPostProcessor_sizable_unit_pattern:
@@ -46,10 +44,10 @@ class TestPostProcessor_sizable_unit_pattern:
         p = PostProcessor(sentence, tokens, labels, scores)
 
         expected = [
-            IngredientAmount(
+            create_ingredient_amount(
                 quantity="1", unit="can", text="1 can", confidence=0, starting_index=0
             ),
-            IngredientAmount(
+            create_ingredient_amount(
                 quantity="28",
                 unit=pint.Unit("ounces"),
                 text="28 ounces",
@@ -57,7 +55,7 @@ class TestPostProcessor_sizable_unit_pattern:
                 SINGULAR=True,
                 starting_index=1,
             ),
-            IngredientAmount(
+            create_ingredient_amount(
                 quantity="400",
                 unit=pint.Unit("g"),
                 text="400 g",
@@ -65,7 +63,7 @@ class TestPostProcessor_sizable_unit_pattern:
                 starting_index=4,
                 SINGULAR=True,
             ),
-            IngredientAmount(
+            create_ingredient_amount(
                 quantity="2",
                 unit=pint.Unit("cups"),
                 text="2 cups",
@@ -118,10 +116,10 @@ class TestPostProcessor_sizable_unit_pattern:
         p = PostProcessor(sentence, tokens, labels, scores)
 
         expected = [
-            IngredientAmount(
+            create_ingredient_amount(
                 quantity="1", unit="can", text="1 can", confidence=0, starting_index=0
             ),
-            IngredientAmount(
+            create_ingredient_amount(
                 quantity="28",
                 unit=pint.Unit("ounces"),
                 text="28 ounces",
@@ -129,7 +127,7 @@ class TestPostProcessor_sizable_unit_pattern:
                 starting_index=1,
                 SINGULAR=True,
             ),
-            IngredientAmount(
+            create_ingredient_amount(
                 quantity="400",
                 unit=pint.Unit("g"),
                 text="400 g",
@@ -174,10 +172,10 @@ class TestPostProcessor_sizable_unit_pattern:
         p = PostProcessor(sentence, tokens, labels, scores)
 
         expected = [
-            IngredientAmount(
+            create_ingredient_amount(
                 quantity="1", unit="can", text="1 can", confidence=0, starting_index=0
             ),
-            IngredientAmount(
+            create_ingredient_amount(
                 quantity="28",
                 unit=pint.Unit("ounces"),
                 text="28 ounces",
@@ -224,10 +222,10 @@ class TestPostProcessor_sizable_unit_pattern:
         p = PostProcessor(sentence, tokens, labels, scores)
 
         expected = [
-            IngredientAmount(
+            create_ingredient_amount(
                 quantity="1", unit="can", text="1 can", confidence=0, starting_index=3
             ),
-            IngredientAmount(
+            create_ingredient_amount(
                 quantity="28",
                 unit=pint.Unit("ounces"),
                 text="28 ounces",
@@ -262,10 +260,10 @@ class TestPostProcessor_sizable_unit_pattern:
         p = PostProcessor(sentence, tokens, labels, scores, imperial_units=True)
 
         expected = [
-            IngredientAmount(
+            create_ingredient_amount(
                 quantity="1", unit="can", text="1 can", confidence=0, starting_index=3
             ),
-            IngredientAmount(
+            create_ingredient_amount(
                 quantity="28",
                 unit=pint.Unit("ounces"),
                 text="28 ounces",
@@ -300,10 +298,10 @@ class TestPostProcessor_sizable_unit_pattern:
         p = PostProcessor(sentence, tokens, labels, scores, string_units=True)
 
         expected = [
-            IngredientAmount(
+            create_ingredient_amount(
                 quantity="1", unit="can", text="1 can", confidence=0, starting_index=3
             ),
-            IngredientAmount(
+            create_ingredient_amount(
                 quantity="28",
                 unit="ounces",
                 text="28 ounces",

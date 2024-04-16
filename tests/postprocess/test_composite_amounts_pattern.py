@@ -1,10 +1,8 @@
 import pint
 
-from ingredient_parser.dataclasses import (
-    CompositeIngredientAmount,
-    IngredientAmount,
-)
+from ingredient_parser.dataclasses import CompositeIngredientAmount
 from ingredient_parser.en import PostProcessor
+from ingredient_parser.en._utils import create_ingredient_amount
 
 
 class TestPostProcessor_composite_amounts_pattern:
@@ -56,14 +54,14 @@ class TestPostProcessor_composite_amounts_pattern:
         expected = [
             CompositeIngredientAmount(
                 amounts=[
-                    IngredientAmount(
+                    create_ingredient_amount(
                         quantity="1",
                         unit=pint.Unit("lb"),
                         text="1 lb",
                         confidence=0,
                         starting_index=3,
                     ),
-                    IngredientAmount(
+                    create_ingredient_amount(
                         quantity="2",
                         unit=pint.Unit("oz"),
                         text="2 oz",
@@ -108,14 +106,14 @@ class TestPostProcessor_composite_amounts_pattern:
         expected = [
             CompositeIngredientAmount(
                 amounts=[
-                    IngredientAmount(
+                    create_ingredient_amount(
                         quantity="2",
                         unit=pint.Unit("pints"),
                         text="2 pints",
                         confidence=0,
                         starting_index=3,
                     ),
-                    IngredientAmount(
+                    create_ingredient_amount(
                         quantity="12.75",
                         unit=pint.Unit("floz"),
                         text="12.75 fl oz",
@@ -161,14 +159,14 @@ class TestPostProcessor_composite_amounts_pattern:
         expected = [
             CompositeIngredientAmount(
                 amounts=[
-                    IngredientAmount(
+                    create_ingredient_amount(
                         quantity="2",
                         unit=pint.Unit("imperial_pints"),
                         text="2 pints",
                         confidence=0,
                         starting_index=3,
                     ),
-                    IngredientAmount(
+                    create_ingredient_amount(
                         quantity="12.75",
                         unit=pint.Unit("imperial_fluid_ounce"),
                         text="12.75 fl oz",
@@ -213,14 +211,14 @@ class TestPostProcessor_composite_amounts_pattern:
         expected = [
             CompositeIngredientAmount(
                 amounts=[
-                    IngredientAmount(
+                    create_ingredient_amount(
                         quantity="2",
                         unit="pints",
                         text="2 pints",
                         confidence=0,
                         starting_index=3,
                     ),
-                    IngredientAmount(
+                    create_ingredient_amount(
                         quantity="12.75",
                         unit="fl oz",
                         text="12.75 fl oz",

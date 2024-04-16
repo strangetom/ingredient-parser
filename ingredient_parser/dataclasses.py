@@ -7,9 +7,6 @@ from typing import Any
 import pint
 import pycrfsuite
 
-from ._common import is_float, is_range
-from .en._utils import pluralise_units
-
 
 @dataclass
 class _PartialIngredientAmount:
@@ -85,7 +82,7 @@ class IngredientAmount:
     """
 
     quantity: float | str
-    quantity_max: float | str = field(init=False)
+    quantity_max: float | str
     unit: str | pint.Unit
     text: str
     confidence: float
@@ -96,39 +93,7 @@ class IngredientAmount:
     MULTIPLIER: bool = False
 
     def __post_init__(self, starting_index):
-        """Post-init functionality.
-
-        If required make the unit plural convert.
-        Set the value for quantity_max and set the RANGE and MULTIPLIER flags
-        as required by the type of quantity.
-        """
-        if is_float(self.quantity):
-            # If float, set quantity_max = quantity
-            self.quantity = float(self.quantity)
-            self.quantity_max = self.quantity
-        elif is_range(self.quantity):
-            # If range, set quantity to min of range, set quantity_max to max
-            # of range, set RANGE flag to True
-            range_parts = [float(x) for x in self.quantity.split("-")]
-            self.quantity = min(range_parts)
-            self.quantity_max = max(range_parts)
-            self.RANGE = True
-        elif self.quantity.endswith("x"):
-            # If multiplier, set quantity and quantity_max to value without 'x', and
-            # set MULTIPLER flag.
-            self.quantity = float(self.quantity[:-1])
-            self.quantity_max = self.quantity
-            self.MULTIPLIER = True
-        else:
-            # Fallback to setting quantity_max to quantity
-            self.quantity_max = self.quantity
-
-        # Pluralise unit as necessary
-        if self.quantity != 1 and self.quantity != "":
-            self.text = pluralise_units(self.text)
-            if isinstance(self.unit, str):
-                self.unit = pluralise_units(self.unit)
-
+        """Post-init functionality."""
         # Assign starting_index to _starting_index
         self._starting_index = starting_index
 

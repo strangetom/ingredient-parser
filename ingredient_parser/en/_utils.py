@@ -7,6 +7,8 @@ from itertools import chain
 import pint
 from nltk.stem.porter import PorterStemmer
 
+from .._common import is_float, is_range
+from ..dataclasses import IngredientAmount
 from ._constants import UNITS
 
 UREG = pint.UnitRegistry()
@@ -179,3 +181,80 @@ def convert_to_pint_unit(unit: str, imperial_units: bool = False) -> str | pint.
         return pint.Unit(unit)
 
     return unit
+
+
+def create_ingredient_amount(
+    quantity: str,
+    unit: str,
+    text: str,
+    confidence: float,
+    starting_index: int,
+    APPROXIMATE: bool = False,
+    SINGULAR: bool = False,
+) -> IngredientAmount:
+    """Create ingredient amount object from parts.
+
+    This function calculates the MULTIPLIER and RANGE flags, pluralised units as
+    appropriate and sets the quantity_max value.
+
+    Parameters
+    ----------
+    quantity : str
+        Quantity of amount
+    unit : str
+        Unit of amount
+    text : str
+        Combined quantity and amount e.g. "1 cup"
+    confidence : float
+        Average confidence of all tokens contributing to amount
+    starting_index : int
+        Starting index of first token contributing to amount
+    APPROXIMATE : bool, optional
+        When True, indicates that the amount is approximate.
+        Default is False.
+    SINGULAR : bool, optional
+        When True, indicates if the amount refers to a singular item of the ingredient.
+        Default is False.
+    """
+    RANGE = False
+    MULTIPLIER = False
+
+    if is_float(quantity):
+        # If float, set quantity_max = quantity
+        quantity = float(quantity)
+        quantity_max = quantity
+    elif is_range(quantity):
+        # If range, set quantity to min of range, set quantity_max to max
+        # of range, set RANGE flag to True
+        range_parts = [float(x) for x in quantity.split("-")]
+        quantity = min(range_parts)
+        quantity_max = max(range_parts)
+        RANGE = True
+    elif quantity.endswith("x"):
+        # If multiplier, set quantity and quantity_max to value without 'x', and
+        # set MULTIPLER flag.
+        quantity = float(quantity[:-1])
+        quantity_max = quantity
+        MULTIPLIER = True
+    else:
+        # Fallback to setting quantity_max to quantity
+        quantity_max = quantity
+
+    # Pluralise unit as necessary
+    if quantity != 1 and quantity != "" and not RANGE:
+        text = pluralise_units(text)
+        if isinstance(unit, str):
+            unit = pluralise_units(unit)
+
+    return IngredientAmount(
+        quantity=quantity,
+        quantity_max=quantity_max,
+        unit=unit,
+        text=text,
+        confidence=round(confidence, 6),
+        starting_index=starting_index,
+        APPROXIMATE=APPROXIMATE,
+        SINGULAR=SINGULAR,
+        RANGE=RANGE,
+        MULTIPLIER=MULTIPLIER,
+    )
