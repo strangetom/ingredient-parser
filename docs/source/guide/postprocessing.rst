@@ -1,4 +1,4 @@
-.. currentmodule:: ingredient_parser.postprocess
+.. currentmodule:: ingredient_parser.dataclasses
 
 Post-processing the model output
 ================================
@@ -7,7 +7,7 @@ The output from the model is a list of labels and scores, one for each token in 
 
 The following dataclass is defined which will be output from the :func:`parse_ingredient <ingredient_parser.parsers.parse_ingredient>` function:
 
-.. literalinclude:: ../../../ingredient_parser/postprocess/dataclasses.py
+.. literalinclude:: ../../../ingredient_parser/dataclasses.py
     :pyobject: ParsedIngredient
 
 Each of the fields in the dataclass has to be determined from the output of the model. The :class:`PostProcessor` class handles this for us.
@@ -28,12 +28,12 @@ The general steps are as follows:
 7. Join all the groups together with a comma and fix any weird punctuation this causes.
 8. Average the confidence scores across all groups.
 
-.. literalinclude:: ../../../ingredient_parser/postprocess/postprocess.py
+.. literalinclude:: ../../../ingredient_parser/en/postprocess.py
     :pyobject: PostProcessor._postprocess
 
 The output of this function is an :class:`IngredientText` object:
 
-.. literalinclude:: ../../../ingredient_parser/postprocess/dataclasses.py
+.. literalinclude:: ../../../ingredient_parser/dataclasses.py
     :pyobject: IngredientText
 
 Amount
@@ -41,7 +41,7 @@ Amount
 
 The QTY and UNIT labels are combined into an :class:`IngredientAmount` object
 
-.. literalinclude:: ../../../ingredient_parser/postprocess/dataclasses.py
+.. literalinclude:: ../../../ingredient_parser/dataclasses.py
     :pyobject: IngredientAmount
 
 For most cases, the amounts are determined by combining a QTY label with the following UNIT labels, up to the next QTY which becomes a new amount. For example:
@@ -210,7 +210,7 @@ There are some particular cases where the combination of QTY and UNIT labels tha
 
 Identifying and handling this pattern of QTY and UNIT labels is done by the :func:`PostProcessor._sizable_unit_pattern()` function.
 
-A second case is where the full amount is made up of more than one quantity-unit pair. This is particularly common with US customary units such as pounds and ounces, or pints and fluid ounces. In these cases, a :class:`CompositeIngredientAmount <ingredient_parser.postprocess.dataclasses.CompositeIngredientAmount>` is returned. For example
+A second case is where the full amount is made up of more than one quantity-unit pair. This is particularly common with US customary units such as pounds and ounces, or pints and fluid ounces. In these cases, a :class:`CompositeIngredientAmount <ingredient_parser.dataclasses.CompositeIngredientAmount>` is returned. For example
 
 .. code:: python
 

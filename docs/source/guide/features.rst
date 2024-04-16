@@ -1,4 +1,4 @@
-.. currentmodule:: ingredient_parser.preprocess
+.. currentmodule:: ingredient_parser.en.preprocess
 
 Feature selection
 =================
@@ -12,8 +12,8 @@ Once the input sentence has been normalised, it can be split into tokens. Each t
 
 The tokenizer splits the sentence according the following rules:
 
-.. literalinclude:: ../../../ingredient_parser/preprocess/funcs.py
-    :lines: 11-49
+.. literalinclude:: ../../../ingredient_parser/en/_utils.py
+    :lines: 29-68
 
 This splits the sentence apart into wherever there is white space or a punctuation mark in ``PUNCTUATION_TOKENISER``.
 
@@ -66,7 +66,7 @@ If possible, based on the position of the token in the sentence, the following f
 
 The :func:`_token_features` function of :class:`PreProcessor` returns all these features as a dictionary.
 
-.. literalinclude:: ../../../ingredient_parser/preprocess/preprocess.py
+.. literalinclude:: ../../../ingredient_parser/en/preprocess.py
     :pyobject: PreProcessor._token_features
     :dedent: 4
 
