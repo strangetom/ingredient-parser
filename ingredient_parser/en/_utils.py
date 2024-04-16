@@ -194,8 +194,12 @@ def create_ingredient_amount(
 ) -> IngredientAmount:
     """Create ingredient amount object from parts.
 
-    This function calculates the MULTIPLIER and RANGE flags, pluralised units as
-    appropriate and sets the quantity_max value.
+    This function converts the inputs into an IngredientAmout object, with some
+    additional processing:
+    * Pluralise units, if appropriate
+    * Convert the quantity to a float, if appropriate
+    * Set the quantity_max value
+    * Set the RANGE and MULTIPLIER flags, if appropriate
 
     Parameters
     ----------
