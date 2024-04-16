@@ -1,6 +1,6 @@
 import pint
 
-from ingredient_parser.postprocess import IngredientAmount
+from ingredient_parser.dataclasses import IngredientAmount
 
 
 class TestPostProcessor_IngredientAmount:

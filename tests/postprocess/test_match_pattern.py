@@ -1,4 +1,4 @@
-from ingredient_parser import PostProcessor
+from ingredient_parser.en import PostProcessor
 
 
 class TestPostProcessor_match_pattern:

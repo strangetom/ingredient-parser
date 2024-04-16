@@ -1,10 +1,10 @@
 import pint
 
-from ingredient_parser import PostProcessor
-from ingredient_parser.postprocess import (
+from ingredient_parser.dataclasses import (
     CompositeIngredientAmount,
     IngredientAmount,
 )
+from ingredient_parser.en import PostProcessor
 
 
 class TestPostProcessor_composite_amounts_pattern:
