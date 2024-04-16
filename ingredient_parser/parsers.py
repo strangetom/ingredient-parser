@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-from ingredient_parser.en import parse_ingredient_en
+from ingredient_parser.en import inspect_parser_en, parse_ingredient_en
 
-from .dataclasses import ParsedIngredient
+from .dataclasses import ParsedIngredient, ParserDebugInfo
 
 
 def parse_ingredient(
@@ -41,7 +41,7 @@ def parse_ingredient(
         ParsedIngredient object of structured data parsed from input string
     """
     if lang not in ["en"]:
-        raise ValueError('Unsupported language "en"')
+        raise ValueError(f'Unsupported language "{lang}"')
 
     match lang:
         case "en":
@@ -105,3 +105,49 @@ def parse_multiple_ingredients(
         )
         for sentence in sentences
     ]
+
+
+def inspect_parser(
+    sentence: str,
+    lang: str = "en",
+    discard_isolated_stop_words: bool = True,
+    string_units: bool = False,
+    imperial_units: bool = False,
+) -> ParserDebugInfo:
+    """Dataclass for holding intermediate objects generated during parsing.
+
+    Parameters
+    ----------
+    sentence : str
+        Ingredient sentence to parse
+    discard_isolated_stop_words : bool, optional
+        If True, any isolated stop words in the name, preparation, or comment fields
+        are discarded.
+        Default is True.
+    string_units : bool
+        If True, return all IngredientAmount units as strings.
+        If False, convert IngredientAmount units to pint.Unit objects where possible.
+        Dfault is False.
+    imperial_units : bool
+        If True, use imperial units instead of US customary units for pint.Unit objects
+        for the the following units: fluid ounce, cup, pint, quart, gallon.
+        Default is False, which results in US customary units being used.
+        This has no effect if string_units=True.
+
+    Returns
+    -------
+    ParserDebugInfo
+        ParserDebugInfo object containing the PreProcessor object, PostProcessor
+        object and Tagger.
+    """
+    if lang not in ["en"]:
+        raise ValueError(f'Unsupported language "{lang}"')
+
+    match lang:
+        case "en":
+            return inspect_parser_en(
+                sentence,
+                discard_isolated_stop_words=discard_isolated_stop_words,
+                string_units=string_units,
+                imperial_units=imperial_units,
+            )

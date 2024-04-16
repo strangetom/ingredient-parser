@@ -1,9 +1,10 @@
 from ._common import download_nltk_resources, show_model_card
-from .parsers import parse_ingredient, parse_multiple_ingredients
+from .parsers import inspect_parser, parse_ingredient, parse_multiple_ingredients
 
 download_nltk_resources()
 
 __all__ = [
+    "inspect_parser",
     "parse_ingredient",
     "parse_multiple_ingredients",
     "show_model_card",

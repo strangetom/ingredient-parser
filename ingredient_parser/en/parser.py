@@ -4,7 +4,7 @@ from importlib.resources import as_file, files
 
 import pycrfsuite
 
-from ..dataclasses import ParsedIngredient
+from ..dataclasses import ParsedIngredient, ParserDebugInfo
 from ._utils import pluralise_units
 from .postprocess import PostProcessor
 from .preprocess import PreProcessor
@@ -86,3 +86,68 @@ def parse_ingredient_en(
         imperial_units=imperial_units,
     )
     return postprocessed_sentence.parsed
+
+
+def inspect_parser_en(
+    sentence: str,
+    discard_isolated_stop_words: bool = True,
+    string_units: bool = False,
+    imperial_units: bool = False,
+) -> ParserDebugInfo:
+    """Dataclass for holding intermediate objects generated during parsing.
+
+    Parameters
+    ----------
+    sentence : str
+        Ingredient sentence to parse
+    discard_isolated_stop_words : bool, optional
+        If True, any isolated stop words in the name, preparation, or comment fields
+        are discarded.
+        Default is True.
+    string_units : bool
+        If True, return all IngredientAmount units as strings.
+        If False, convert IngredientAmount units to pint.Unit objects where possible.
+        Dfault is False.
+    imperial_units : bool
+        If True, use imperial units instead of US customary units for pint.Unit objects
+        for the the following units: fluid ounce, cup, pint, quart, gallon.
+        Default is False, which results in US customary units being used.
+        This has no effect if string_units=True.
+
+    Returns
+    -------
+    ParserDebugInfo
+        ParserDebugInfo object containing the PreProcessor object, PostProcessor
+        object and Tagger.
+    """
+    load_model_if_not_loaded()
+
+    processed_sentence = PreProcessor(sentence)
+    tokens = processed_sentence.tokenized_sentence
+    labels = TAGGER.tag(processed_sentence.sentence_features())
+    scores = [TAGGER.marginal(label, i) for i, label in enumerate(labels)]
+
+    # Re-plurise tokens that were singularised if the label isn't UNIT
+    # For tokens with UNIT label, we'll deal with them below
+    for idx in processed_sentence.singularised_indices:
+        token = tokens[idx]
+        label = labels[idx]
+        if label != "UNIT":
+            tokens[idx] = pluralise_units(token)
+
+    postprocessed_sentence = PostProcessor(
+        sentence,
+        tokens,
+        labels,
+        scores,
+        discard_isolated_stop_words=discard_isolated_stop_words,
+        string_units=string_units,
+        imperial_units=imperial_units,
+    )
+
+    return ParserDebugInfo(
+        sentence=sentence,
+        PreProcessor=processed_sentence,
+        PostProcessor=postprocessed_sentence,
+        tagger=TAGGER,
+    )
