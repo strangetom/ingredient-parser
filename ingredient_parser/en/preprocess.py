@@ -7,7 +7,7 @@ from html import unescape
 
 from nltk.tag import pos_tag
 
-from .._constants import (
+from ._constants import (
     AMBIGUOUS_UNITS,
     FLATTENED_UNITS_LIST,
     STRING_NUMBERS,
@@ -15,8 +15,7 @@ from .._constants import (
     UNICODE_FRACTIONS,
     UNITS,
 )
-from .funcs import stem, tokenize
-from .regex import (
+from ._regex import (
     CAPITALISED_PATTERN,
     DUPE_UNIT_RANGES_PATTERN,
     EXPANDED_RANGE,
@@ -29,6 +28,7 @@ from .regex import (
     UNITS_HYPHEN_QUANTITY_PATTERN,
     UNITS_QUANTITY_PATTERN,
 )
+from ._utils import stem, tokenize
 
 
 class PreProcessor:

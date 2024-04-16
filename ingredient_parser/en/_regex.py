@@ -2,7 +2,7 @@
 
 import re
 
-from .._constants import FLATTENED_UNITS_LIST
+from ._constants import FLATTENED_UNITS_LIST
 
 # Regex pattern for fraction parts.
 # Matches 0+ numbers followed by 0+ white space characters followed by a number then
