@@ -121,6 +121,9 @@ def inspect_parser(
     ----------
     sentence : str
         Ingredient sentence to parse
+    lang : str
+        Language of sentence.
+        Currently supported options are: en
     discard_isolated_stop_words : bool, optional
         If True, any isolated stop words in the name, preparation, or comment fields
         are discarded.
