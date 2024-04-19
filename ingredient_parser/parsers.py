@@ -2,7 +2,7 @@
 
 from ingredient_parser.en import inspect_parser_en, parse_ingredient_en
 
-from ._common import SUPPORTED_LANGUAGES
+from . import SUPPORTED_LANGUAGES
 from .dataclasses import ParsedIngredient, ParserDebugInfo
 
 

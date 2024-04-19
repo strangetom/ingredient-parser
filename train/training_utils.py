@@ -6,13 +6,14 @@ import sys
 from dataclasses import dataclass
 from itertools import chain
 from pathlib import Path
+from typing import Any
 
 from sklearn.metrics import ConfusionMatrixDisplay, classification_report
 
 # Ensure the local ingredient_parser package can be found
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from ingredient_parser.en import PreProcessor
+from ingredient_parser import SUPPORTED_LANGUAGES
 
 sqlite3.register_converter("json", json.loads)
 
@@ -69,6 +70,34 @@ class Stats:
     sentence: SentenceStats
 
 
+def select_preprocessor(lang: str) -> Any:
+    """Select appropraite PreProcessor class for given language.
+
+    Parameters
+    ----------
+    lang : str
+        Language of training data
+
+    Returns
+    -------
+    Any
+        PreProcessor class for pre-processing in given language.
+
+    Raises
+    ------
+    ValueError
+        Selected langauage not supported
+    """
+    if lang not in SUPPORTED_LANGUAGES:
+        raise ValueError(f'Unsupported language "{lang}"')
+
+    match lang:
+        case "en":
+            from ingredient_parser.en import PreProcessor
+
+            return PreProcessor
+
+
 def load_datasets(
     database: str, table: str, datasets: list[str], discard_other: bool = True
 ) -> DataVectors:
@@ -106,6 +135,8 @@ def load_datasets(
         )
         data = c.fetchall()
     conn.close()
+
+    PreProcessor = select_preprocessor(table)
 
     source, sentences, features, tokens, labels = [], [], [], [], []
     discarded = 0
