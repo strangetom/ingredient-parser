@@ -20,7 +20,7 @@ sqlite3.register_converter("json", json.loads)
 
 @dataclass
 class DataVectors:
-    """Dataclass to store the loaded and transformed inputs"""
+    """Dataclass to store the loaded and transformed inputs."""
 
     sentences: list[str]
     features: list[list[dict[str, str]]]
@@ -31,7 +31,7 @@ class DataVectors:
 
 @dataclass
 class Metrics:
-    """Metrics returned by sklearn.metrics.classification_report for each label"""
+    """Metrics returned by sklearn.metrics.classification_report for each label."""
 
     precision: float
     recall: float
@@ -41,7 +41,7 @@ class Metrics:
 
 @dataclass
 class TokenStats:
-    """Statistics for token classification performance"""
+    """Statistics for token classification performance."""
 
     NAME: Metrics
     QTY: Metrics
@@ -57,14 +57,14 @@ class TokenStats:
 
 @dataclass
 class SentenceStats:
-    """Statistics for sentence classification performance"""
+    """Statistics for sentence classification performance."""
 
     accuracy: float
 
 
 @dataclass
 class Stats:
-    """Statistics for token and sentence classification performance"""
+    """Statistics for token and sentence classification performance."""
 
     token: TokenStats
     sentence: SentenceStats

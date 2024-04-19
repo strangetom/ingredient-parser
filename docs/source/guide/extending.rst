@@ -5,22 +5,99 @@ Extending to other languages
 
     At the moment, there aren't any plans to support languages other than English.
 
-This page gives some thoughts on how to modify the library to support different languages. Everything on this page is just an opinion, based on the process to develop this package for the English language, and has not been implemented.
+The ``ingredient_parser`` package has been designed so that it can be extended to multiple languages. This page describes how to train a model for another language and how to integrate it into the ``ingredient_parser`` package.
 
-For simplicity, only languages that use the Latin alphabet are considered.
+The ideas in this page is largely theoretical and may need to be adjusted if additional languages are ever supported.
 
-There are two parts:
+Package structure
+^^^^^^^^^^^^^^^^^
 
-1. How to retool this package for a different language
-2. How to modify the package to support multiple languages
+The package structure is shown below
 
-How to support other languages
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. code:: bash
 
-Training
-++++++++
+    ingredient_parser/
+    ├── _common.py
+    ├── dataclasses.py
+    ├── __init__.py
+    ├── parsers.py
+    ├── en/
+    │   ├── _constants.py
+    │   ├── __init__.py
+    │   ├── ModelCard.en.md
+    │   ├── model.en.crfsuite
+    │   ├── parser.py
+    │   ├── postprocess.py
+    │   ├── preprocess.py
+    │   ├── _regex.py
+    │   └── _utils.py
 
-The training pipeline (shown below) is agnostic of the target language, so I will take each step in turn and list the likely modifications that would be needed.
+
+The ``en`` sub-package contains all the files specifically related to the English-language parser. The ``en`` sub-package exposes 4 functions and classes via the ``__init__.py`` file:
+
+1. :func:`parse_ingredient_en`, the English specific implementation of :func:`parse_ingredient <ingredient_parser.parsers.parse_ingredient>`.
+2. :func:`inspect_parser_en`, the English language specific implementation of :func:`inspect_parser <ingredient_parser.parsers.inspect_parser>`.
+3. :class:`PreProcessor <ingredient_parser.en.preprocess.PreProcessor>`, the preprocessor for English sentences.
+4. :class:`PostProcessor <ingredient_parser.en.postprocess.PostProcessor>`, the postprocessor for English sentences.
+
+The first two functions are called by :func:`parse_ingredient <ingredient_parser.parsers.parse_ingredient>` and :func:`inspect_parser <ingredient_parser.parsers.inspect_parser>` respectively when English is the specified language. The :class:`PreProcessor <ingredient_parser.en.preprocess.PreProcessor>` and :class:`PostProcessor <ingredient_parser.en.postprocess.PostProcessor>` classes are exposed for model training and convenience.
+
+These same functions and classes should be implemented for any new languages and exposed in the same way.
+
+Example: Spanish
+~~~~~~~~~~~~~~~~
+
+To extend the package to include support for parsing Spanish sentences, we will need to add an ``es`` sub-package:
+
+.. code:: bash
+
+    ingredient_parser/
+    ├── es/
+    │   ├── __init__.py
+    │   ├── ModelCard.es.md
+    │   ├── model.es.crfsuite
+    │   ├── parser.py
+    │   ├── postprocess.py
+    │   ├── preprocess.py
+
+We will then need to implement Spanish versions for :func:`parse_ingredient_es` and :func:`inspect_parser_es`, as well as the Spanish equivalents of :class:`PreProcessor <ingredient_parser.en.preprocess.PreProcessor>` and :class:`PostProcessor <ingredient_parser.en.postprocess.PostProcessor>`.
+
+.. tip::
+
+    Use the code in the ``en`` sub-package as an example and modify as needed.
+
+    It is quite likely that much of the pre- and postprocessing is similar between languages that use the latin alphabet, so modifying the English implementation should be a good starting point.
+
+    The :ref:`training <training-a-new-model>` section below gives some further suggestions on specific changes that might be needed.
+
+
+The top level :func:`parse_ingredient <ingredient_parser.parsers.parse_ingredient>` and :func:`inspect_parser <ingredient_parser.parsers.inspect_parser>` functions in ``ingredient_parser/parsers.py`` will need updating along the lines of
+
+.. code:: python
+
+    from ingredient_parser.es import inspect_parser_es, parse_ingredient_es
+
+    def parse_ingredient(...):
+
+        match lang:
+            case "en":
+                return parse_ingredient_en(...)
+            case "es":
+                return parse_ingredient_es(...)
+
+
+.. attention::
+
+    The language specific implementations of the functions and classes exposed in the language specific sub-package must have the arguments as the English implementations.
+
+.. _training-a-new-model:
+
+Training a new model
+^^^^^^^^^^^^^^^^^^^^
+
+To support other languages, we will need a :abbr:`CRF (Conditional Random Fields)` model for that language. There will be a separate model for each language.
+
+The training pipeline (shown below) is agnostic of the target language, so we will take each step in turn and list the likely modifications that would be needed.
 
 .. image:: /_static/training-pipline.svg
   :width: 600
@@ -63,7 +140,7 @@ The majority of the normalisation steps fall into one of two categories:
 1. Singularising units
 2. Normalising numbers
 
-The singularising of units is done using a predefined dict of singualr and plural forms of units, which will need to be updated for the target language. This list is in ``ingredient_parser._constants.py``.
+The singularising of units is done using a predefined dict of singular and plural forms of units, which will need to be updated for the target language. The English list is in ``ingredient_parser.en._constants.py``.
 
 The normalising of numbers may be common across many languages. One key difference will be whether the target language uses decimal commas or decimal points. English uses decimal points, so the functions in :func:`PreProcessor.normalise <ingredient_parser.en.PreProcessor.normalise>` may need modifying (including the regular expressions they rely on) to correctly work with decimal commas.
 
@@ -72,122 +149,17 @@ The normalising of numbers may be common across many languages. One key differen
 
 There are a couple of things to consider here:
 
-* Changing the Stemmer to one specific to the target language
-* Does the Part of Speech tagger to one specific to the target language
-* Updates to the other feature generation function relevant to the target language
+* Changing the Stemmer to one specific to the target language.
+* Changing the Part of Speech tagger to one specific to the target language.
+* Updates to the other feature generation function relevant to the target language. Features can be specific to the target language.
 
 4 and 5. Train and Evaluate
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-With all the previous updates made, the training and evaluation steps shouldn't need any modification, other than to make sure they use to right data and :class:`PreProcessor <ingredient_parser.en.preprocess.PreProcessor>` implementation.
+With all the previous updates made, the only further change needed will be to update the :func:`select_preprocessor` function in ``train/training_utils.py`` to load the correct :class:`PreProcessor` class.
 
-The command to train a model has an option to set the database table. For example, to select the database table named "en":
+The command to train a model has an option to set the database and the database table. For example, to select the database table named "es":
 
 .. code:: bash
 
-    $ python train.py train --database train/data/training.sqlite3 --database-table en
-
-
-Parsing
-+++++++
-
-The parsing pipeline (shown below) is similarly agnostic of the language used, and luckily it benefits from many of the changes needed for the training pipeline.
-
-.. image:: /_static/parsing-pipline.svg
-  :width: 300
-  :alt: Parsing pipeline
-
-1. Normalise
-~~~~~~~~~~~~
-
-This uses the same :class:`PreProcessor <ingredient_parser.en.preprocess.PreProcessor>` as the training pipeline, so no further modifications will be needed.
-
-2. Extract features
-~~~~~~~~~~~~~~~~~~~
-
-This uses the same :class:`PreProcessor <ingredient_parser.en.preprocess.PreProcessor>` as the training pipeline, so no further modifications will be needed.
-
-3. Label
-~~~~~~~~
-
-This also does not require any updates because the labelling of tokens is independent of the language used, as long as the tokensiation and feature extraction have been appropriately updated.
-
-4. Postprocess
-~~~~~~~~~~~~~~
-
-The goal of the postprocessing step is to combine the labelled tokens into a useful :class:`ParsedIngredient <ingredient_parser.en.postprocess.ParsedIngredient>` object.
-
-For the most part, this is just a case of combining adjacent tokens with the same label into strings and should be language agnostic.
-
-The case to consider in more details is amounts. There are some special cases handled by the :func:`PostProcessor._postprocess_amounts <ingredient_parser.postprocess.PostProcess._postprocess_amounts>` function that are probably specific to English and would need modifying or removing.
-
-A good starting point would be to remove those special cases and rely on the fallback pattern processing to start with. For example:
-
-.. code:: python
-
-    def _postprocess_amounts(self) -> list[IngredientAmount]:
-        """ ...
-        """
-        funcs = [
-            #self._sizable_unit_pattern,  # Comment out or remove this
-            #self._composite_amounts_pattern,  # Comment out or remove this
-            self._fallback_pattern,
-        ]
-
-        amounts = []
-        for func in funcs:
-            idx = self._unconsumed(list(range(len(self.tokens))))
-            tokens = self._unconsumed(self.tokens)
-            labels = self._unconsumed(self.labels)
-            scores = self._unconsumed(self.scores)
-
-            parsed_amounts = func(idx, tokens, labels, scores)
-            amounts.extend(parsed_amounts)
-
-        return sorted(amounts, key=lambda x: x._starting_index)
-
-How to support multiple languages
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-This section is dump of ideas that could eventually allow multiple languages to be supported by this package.
-
-**Assumptions**:
-
-.. list-table::
-
-    * - Separate models
-      - There will a separate model for each supported language.
-    * - No language detection
-      - Automatic detection of the language of a sentence to be parsed is out of scope of this package. It is assumed the language is known prior to attempting to parse the sentence.
-
-Changes to training
-+++++++++++++++++++
-
-* The database of training data can trivially be updated to include a table of training data for each language. There may be benefit to separate databases, purely from the perspective of managing the database with git.
-
-* The ``train.py`` commands can be updated to have a ``--language`` option which will set the language model being trained. This will select the correct training data and ensure the correct tokeniser and PreProcessor implementations are used.
-
-* The output model file should be named with the language e.g. **model.en.crfsuite** for English.
-
-* There will need to be a separate and specific model card for model.
-
-Changes to parsing
-++++++++++++++++++
-
-* The :func:`parse_ingredient <ingredient_parser.parsers.parse_ingredient>` function can be updated to add a ``language`` keyword argument. There are then a couple of options:
-
-  * Use the ``language`` argument to select the correct model, ``PreProcessor`` and ``PostProcessor``. The :func:`parse_ingredient <ingredient_parser.parsers.parse_ingredient>` function would look similar to how it is now except there would be an extra bit of code to select the correct classes.
-
-  * Change the :func:`parse_ingredient <ingredient_parser.parsers.parse_ingredient>` function so it just passes the sentence and keyword arguments to the correct language specific version of the function e.g.
-
-    .. code:: python
-
-        def parse_ingredient(sentence, language="en", ...):
-
-            if language == "en":
-                return parse_ingredient_en(sentence, **kwargs)
-            elif language == "es":
-                return parse_ingredient_es(sentence, **kwargs)
-            # etc ...
-
-    This second approach might have advantages in terms of only importing the required functionality, and not everything.
+    $ python train.py train --database train/data/training.sqlite3 --database-table es
