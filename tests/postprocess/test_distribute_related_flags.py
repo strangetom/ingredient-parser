@@ -1,8 +1,6 @@
 import pytest
 
-from ingredient_parser.dataclasses import (
-    _PartialIngredientAmount,
-)
+from ingredient_parser.dataclasses import _PartialIngredientAmount
 from ingredient_parser.en import PostProcessor
 
 

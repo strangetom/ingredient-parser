@@ -1,7 +1,7 @@
 import pint
 
 from ingredient_parser.en import PostProcessor
-from ingredient_parser.en._utils import create_ingredient_amount
+from ingredient_parser.en._utils import ingredient_amount_factory
 
 
 class TestPostProcessor_sizable_unit_pattern:
@@ -44,10 +44,10 @@ class TestPostProcessor_sizable_unit_pattern:
         p = PostProcessor(sentence, tokens, labels, scores)
 
         expected = [
-            create_ingredient_amount(
+            ingredient_amount_factory(
                 quantity="1", unit="can", text="1 can", confidence=0, starting_index=0
             ),
-            create_ingredient_amount(
+            ingredient_amount_factory(
                 quantity="28",
                 unit=pint.Unit("ounces"),
                 text="28 ounces",
@@ -55,7 +55,7 @@ class TestPostProcessor_sizable_unit_pattern:
                 SINGULAR=True,
                 starting_index=1,
             ),
-            create_ingredient_amount(
+            ingredient_amount_factory(
                 quantity="400",
                 unit=pint.Unit("g"),
                 text="400 g",
@@ -63,7 +63,7 @@ class TestPostProcessor_sizable_unit_pattern:
                 starting_index=4,
                 SINGULAR=True,
             ),
-            create_ingredient_amount(
+            ingredient_amount_factory(
                 quantity="2",
                 unit=pint.Unit("cups"),
                 text="2 cups",
@@ -116,10 +116,10 @@ class TestPostProcessor_sizable_unit_pattern:
         p = PostProcessor(sentence, tokens, labels, scores)
 
         expected = [
-            create_ingredient_amount(
+            ingredient_amount_factory(
                 quantity="1", unit="can", text="1 can", confidence=0, starting_index=0
             ),
-            create_ingredient_amount(
+            ingredient_amount_factory(
                 quantity="28",
                 unit=pint.Unit("ounces"),
                 text="28 ounces",
@@ -127,7 +127,7 @@ class TestPostProcessor_sizable_unit_pattern:
                 starting_index=1,
                 SINGULAR=True,
             ),
-            create_ingredient_amount(
+            ingredient_amount_factory(
                 quantity="400",
                 unit=pint.Unit("g"),
                 text="400 g",
@@ -172,10 +172,10 @@ class TestPostProcessor_sizable_unit_pattern:
         p = PostProcessor(sentence, tokens, labels, scores)
 
         expected = [
-            create_ingredient_amount(
+            ingredient_amount_factory(
                 quantity="1", unit="can", text="1 can", confidence=0, starting_index=0
             ),
-            create_ingredient_amount(
+            ingredient_amount_factory(
                 quantity="28",
                 unit=pint.Unit("ounces"),
                 text="28 ounces",
@@ -222,10 +222,10 @@ class TestPostProcessor_sizable_unit_pattern:
         p = PostProcessor(sentence, tokens, labels, scores)
 
         expected = [
-            create_ingredient_amount(
+            ingredient_amount_factory(
                 quantity="1", unit="can", text="1 can", confidence=0, starting_index=3
             ),
-            create_ingredient_amount(
+            ingredient_amount_factory(
                 quantity="28",
                 unit=pint.Unit("ounces"),
                 text="28 ounces",
@@ -260,10 +260,10 @@ class TestPostProcessor_sizable_unit_pattern:
         p = PostProcessor(sentence, tokens, labels, scores, imperial_units=True)
 
         expected = [
-            create_ingredient_amount(
+            ingredient_amount_factory(
                 quantity="1", unit="can", text="1 can", confidence=0, starting_index=3
             ),
-            create_ingredient_amount(
+            ingredient_amount_factory(
                 quantity="28",
                 unit=pint.Unit("ounces"),
                 text="28 ounces",
@@ -298,10 +298,10 @@ class TestPostProcessor_sizable_unit_pattern:
         p = PostProcessor(sentence, tokens, labels, scores, string_units=True)
 
         expected = [
-            create_ingredient_amount(
+            ingredient_amount_factory(
                 quantity="1", unit="can", text="1 can", confidence=0, starting_index=3
             ),
-            create_ingredient_amount(
+            ingredient_amount_factory(
                 quantity="28",
                 unit="ounces",
                 text="28 ounces",

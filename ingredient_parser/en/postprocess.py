@@ -20,7 +20,7 @@ from ._constants import (
     SINGULAR_TOKENS,
     STOP_WORDS,
 )
-from ._utils import convert_to_pint_unit, create_ingredient_amount
+from ._utils import convert_to_pint_unit, ingredient_amount_factory
 
 WORD_CHAR = re.compile(r"\w")
 
@@ -450,7 +450,7 @@ class PostProcessor:
                         # common representation
                         unit = convert_to_pint_unit(unit, self.imperial_units)
 
-                    first = create_ingredient_amount(
+                    first = ingredient_amount_factory(
                         quantity=quantity,
                         unit=unit,
                         text=text,
@@ -479,7 +479,7 @@ class PostProcessor:
 
                         # If the first amount (e.g. 1 can) is approximate, so are all
                         # the pairs in between
-                        amount = create_ingredient_amount(
+                        amount = ingredient_amount_factory(
                             quantity=quantity,
                             unit=unit,
                             text=text,
@@ -561,7 +561,7 @@ class PostProcessor:
                         # Convert to pint.Unit if appropriate
                         unit_1 = convert_to_pint_unit(unit_1, self.imperial_units)
 
-                    first_amount = create_ingredient_amount(
+                    first_amount = ingredient_amount_factory(
                         quantity=quantity_1,
                         unit=unit_1,
                         text=text_1,
@@ -576,7 +576,7 @@ class PostProcessor:
                         # Convert to pint.Unit if appropriate
                         unit_2 = convert_to_pint_unit(unit_2, self.imperial_units)
 
-                    second_amount = create_ingredient_amount(
+                    second_amount = ingredient_amount_factory(
                         quantity=quantity_2,
                         unit=unit_2,
                         text=text_2,
@@ -774,7 +774,7 @@ class PostProcessor:
 
             # Convert to an IngredientAmount object for returning
             processed_amounts.append(
-                create_ingredient_amount(
+                ingredient_amount_factory(
                     quantity=amount.quantity,
                     unit=unit,
                     text=text,

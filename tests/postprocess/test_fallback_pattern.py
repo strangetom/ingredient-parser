@@ -2,7 +2,7 @@ import pint
 import pytest
 
 from ingredient_parser.en import PostProcessor
-from ingredient_parser.en._utils import create_ingredient_amount
+from ingredient_parser.en._utils import ingredient_amount_factory
 
 
 @pytest.fixture
@@ -38,7 +38,7 @@ class TestPostProcessor_fallback_pattern:
         idx = list(range(len(tokens)))
 
         expected = [
-            create_ingredient_amount(
+            ingredient_amount_factory(
                 quantity="3",
                 unit="large handfuls",
                 text="3 large handfuls",
@@ -61,7 +61,7 @@ class TestPostProcessor_fallback_pattern:
         idx = list(range(len(tokens)))
 
         expected = [
-            create_ingredient_amount(
+            ingredient_amount_factory(
                 quantity="1",
                 unit="large",
                 text="1 large",
@@ -84,7 +84,7 @@ class TestPostProcessor_fallback_pattern:
         idx = list(range(len(tokens)))
 
         expected = [
-            create_ingredient_amount(
+            ingredient_amount_factory(
                 quantity="", unit="bunch", text="bunch", confidence=0, starting_index=0
             )
         ]
@@ -102,7 +102,7 @@ class TestPostProcessor_fallback_pattern:
         idx = list(range(len(tokens)))
 
         expected = [
-            create_ingredient_amount(
+            ingredient_amount_factory(
                 quantity="2",
                 unit=pint.Unit("imperial_cup"),
                 text="2 cups",
@@ -125,7 +125,7 @@ class TestPostProcessor_fallback_pattern:
         idx = list(range(len(tokens)))
 
         expected = [
-            create_ingredient_amount(
+            ingredient_amount_factory(
                 quantity="2",
                 unit="cups",
                 text="2 cups",
@@ -148,7 +148,7 @@ class TestPostProcessor_fallback_pattern:
         idx = list(range(len(tokens)))
 
         expected = [
-            create_ingredient_amount(
+            ingredient_amount_factory(
                 quantity="2",
                 unit=pint.Unit("cup"),
                 text="2 cups",
@@ -173,14 +173,14 @@ class TestPostProcessor_fallback_pattern:
         p.consumed = [0, 1, 2, 3]
 
         expected = [
-            create_ingredient_amount(
+            ingredient_amount_factory(
                 quantity="2",
                 unit="",
                 text="2",
                 confidence=0,
                 starting_index=0,
             ),
-            create_ingredient_amount(
+            ingredient_amount_factory(
                 quantity="4",
                 unit=pint.Unit("ounces"),
                 text="4 ounces",
@@ -204,14 +204,14 @@ class TestPostProcessor_fallback_pattern:
         idx = list(range(len(tokens)))
 
         expected = [
-            create_ingredient_amount(
+            ingredient_amount_factory(
                 quantity="2",
                 unit="",
                 text="2",
                 confidence=0,
                 starting_index=0,
             ),
-            create_ingredient_amount(
+            ingredient_amount_factory(
                 quantity="4",
                 unit=pint.Unit("ounces"),
                 text="4 ounces",
@@ -235,14 +235,14 @@ class TestPostProcessor_fallback_pattern:
         idx = list(range(len(tokens)))
 
         expected = [
-            create_ingredient_amount(
+            ingredient_amount_factory(
                 quantity="2 dozen",
                 unit="",
                 text="2 dozen",
                 confidence=0,
                 starting_index=0,
             ),
-            create_ingredient_amount(
+            ingredient_amount_factory(
                 quantity="4",
                 unit=pint.Unit("ounces"),
                 text="4 ounces",
@@ -266,7 +266,7 @@ class TestPostProcessor_fallback_pattern:
         idx = list(range(len(tokens)))
 
         expected = [
-            create_ingredient_amount(
+            ingredient_amount_factory(
                 quantity="1-2",
                 unit=pint.Unit("tablespoon"),
                 text="1-2 tablespoons",
@@ -292,7 +292,7 @@ class TestPostProcessor_fallback_pattern:
         idx = list(range(len(tokens)))
 
         expected = [
-            create_ingredient_amount(
+            ingredient_amount_factory(
                 quantity="1x",
                 unit="tin",
                 text="1x tin",

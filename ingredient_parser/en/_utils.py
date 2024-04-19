@@ -183,7 +183,7 @@ def convert_to_pint_unit(unit: str, imperial_units: bool = False) -> str | pint.
     return unit
 
 
-def create_ingredient_amount(
+def ingredient_amount_factory(
     quantity: str,
     unit: str,
     text: str,
