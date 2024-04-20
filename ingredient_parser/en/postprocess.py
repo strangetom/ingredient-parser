@@ -20,7 +20,7 @@ from ._constants import (
     SINGULAR_TOKENS,
     STOP_WORDS,
 )
-from ._utils import convert_to_pint_unit, ingredient_amount_factory
+from ._utils import ingredient_amount_factory
 
 WORD_CHAR = re.compile(r"\w")
 
@@ -443,13 +443,6 @@ class PostProcessor:
                     unit = matching_tokens.pop(-1)
                     text = " ".join((quantity, unit)).strip()
 
-                    if not self.string_units:
-                        # If the unit is recognised in the pint unit registry, use
-                        # a pint.Unit object instead of a string. This has the benefit
-                        # of simplifying alternative unit representations into a single
-                        # common representation
-                        unit = convert_to_pint_unit(unit, self.imperial_units)
-
                     first = ingredient_amount_factory(
                         quantity=quantity,
                         unit=unit,
@@ -459,6 +452,8 @@ class PostProcessor:
                         ),
                         starting_index=idx[match[0]],
                         APPROXIMATE=self._is_approximate(match[0], tokens, labels, idx),
+                        string_units=self.string_units,
+                        imperial_units=self.imperial_units,
                     )
                     amounts.append(first)
                     # Pop the first and last items from the list of matching indices
@@ -473,10 +468,6 @@ class PostProcessor:
                         text = " ".join((quantity, unit)).strip()
                         confidence = mean(matching_scores[i : i + 1])
 
-                        if not self.string_units:
-                            # Conver to pint.Unit if appropriate
-                            unit = convert_to_pint_unit(unit, self.imperial_units)
-
                         # If the first amount (e.g. 1 can) is approximate, so are all
                         # the pairs in between
                         amount = ingredient_amount_factory(
@@ -487,6 +478,8 @@ class PostProcessor:
                             starting_index=idx[match[i]],
                             SINGULAR=True,
                             APPROXIMATE=first.APPROXIMATE,
+                            string_units=self.string_units,
+                            imperial_units=self.imperial_units,
                         )
                         amounts.append(amount)
 
@@ -557,9 +550,6 @@ class PostProcessor:
                     quantity_1 = tokens[match[0]]
                     unit_1 = tokens[match[1]]
                     text_1 = " ".join((quantity_1, unit_1)).strip()
-                    if not self.string_units:
-                        # Convert to pint.Unit if appropriate
-                        unit_1 = convert_to_pint_unit(unit_1, self.imperial_units)
 
                     first_amount = ingredient_amount_factory(
                         quantity=quantity_1,
@@ -567,14 +557,13 @@ class PostProcessor:
                         text=text_1,
                         confidence=mean([scores[i] for i in match[0:2]]),
                         starting_index=idx[first_unit_idx - 1],
+                        string_units=self.string_units,
+                        imperial_units=self.imperial_units,
                     )
                     # Second amount
                     quantity_2 = tokens[match[2]]
                     unit_2 = " ".join([tokens[i] for i in match[3:]])
                     text_2 = " ".join((quantity_2, unit_2)).strip()
-                    if not self.string_units:
-                        # Convert to pint.Unit if appropriate
-                        unit_2 = convert_to_pint_unit(unit_2, self.imperial_units)
 
                     second_amount = ingredient_amount_factory(
                         quantity=quantity_2,
@@ -582,6 +571,8 @@ class PostProcessor:
                         text=text_2,
                         confidence=round(mean([scores[i] for i in match[3:]]), 6),
                         starting_index=idx[last_unit_idx - 1],
+                        string_units=self.string_units,
+                        imperial_units=self.imperial_units,
                     )
                     composite_amounts.append(
                         CompositeIngredientAmount(
@@ -765,13 +756,6 @@ class PostProcessor:
             unit = " ".join(amount.unit)
             text = " ".join((amount.quantity, unit)).strip()
 
-            if not self.string_units:
-                # If the unit is recognised in the pint unit registry, use
-                # a pint.Unit object instead of a string. This has the benefit of
-                # simplifying alternative unit representations into a single
-                # common representation
-                unit = convert_to_pint_unit(unit, self.imperial_units)
-
             # Convert to an IngredientAmount object for returning
             processed_amounts.append(
                 ingredient_amount_factory(
@@ -782,6 +766,8 @@ class PostProcessor:
                     starting_index=amount._starting_index,
                     APPROXIMATE=amount.APPROXIMATE,
                     SINGULAR=amount.SINGULAR,
+                    string_units=self.string_units,
+                    imperial_units=self.imperial_units,
                 )
             )
 

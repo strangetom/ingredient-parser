@@ -11,7 +11,7 @@ class TestPostProcessor_IngredientAmount:
         """
         amount = ingredient_amount_factory(
             quantity="25",
-            unit=pint.Unit("g"),
+            unit="g",
             text="25 g",
             confidence=0,
             starting_index=0,
@@ -28,7 +28,7 @@ class TestPostProcessor_IngredientAmount:
         """
         amount = ingredient_amount_factory(
             quantity="25-30",
-            unit=pint.Unit("g"),
+            unit="g",
             text="25 g",
             confidence=0,
             starting_index=0,
@@ -70,7 +70,7 @@ class TestPostProcessor_IngredientAmount:
         """
         amount = ingredient_amount_factory(
             quantity="200",
-            unit=pint.Unit("gram"),
+            unit="gram",
             text="200 grams",
             confidence=0,
             starting_index=0,

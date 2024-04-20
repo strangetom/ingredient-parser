@@ -1,5 +1,3 @@
-import pint
-
 from ingredient_parser.dataclasses import CompositeIngredientAmount
 from ingredient_parser.en import PostProcessor
 from ingredient_parser.en._utils import ingredient_amount_factory
@@ -56,14 +54,14 @@ class TestPostProcessor_composite_amounts_pattern:
                 amounts=[
                     ingredient_amount_factory(
                         quantity="1",
-                        unit=pint.Unit("lb"),
+                        unit="lb",
                         text="1 lb",
                         confidence=0,
                         starting_index=3,
                     ),
                     ingredient_amount_factory(
                         quantity="2",
-                        unit=pint.Unit("oz"),
+                        unit="oz",
                         text="2 oz",
                         confidence=0,
                         starting_index=5,
@@ -108,14 +106,14 @@ class TestPostProcessor_composite_amounts_pattern:
                 amounts=[
                     ingredient_amount_factory(
                         quantity="2",
-                        unit=pint.Unit("pints"),
+                        unit="pint",
                         text="2 pints",
                         confidence=0,
                         starting_index=3,
                     ),
                     ingredient_amount_factory(
                         quantity="12.75",
-                        unit=pint.Unit("floz"),
+                        unit="floz",
                         text="12.75 fl oz",
                         confidence=0,
                         starting_index=5,
@@ -161,17 +159,19 @@ class TestPostProcessor_composite_amounts_pattern:
                 amounts=[
                     ingredient_amount_factory(
                         quantity="2",
-                        unit=pint.Unit("imperial_pints"),
+                        unit="pint",
                         text="2 pints",
                         confidence=0,
                         starting_index=3,
+                        imperial_units=True,
                     ),
                     ingredient_amount_factory(
                         quantity="12.75",
-                        unit=pint.Unit("imperial_fluid_ounce"),
+                        unit="fluid ounce",
                         text="12.75 fl oz",
                         confidence=0,
                         starting_index=5,
+                        imperial_units=True,
                     ),
                 ],
                 join="",
@@ -217,6 +217,7 @@ class TestPostProcessor_composite_amounts_pattern:
                         text="2 pints",
                         confidence=0,
                         starting_index=3,
+                        string_units=True,
                     ),
                     ingredient_amount_factory(
                         quantity="12.75",
@@ -224,6 +225,7 @@ class TestPostProcessor_composite_amounts_pattern:
                         text="12.75 fl oz",
                         confidence=0,
                         starting_index=5,
+                        string_units=True,
                     ),
                 ],
                 join="",

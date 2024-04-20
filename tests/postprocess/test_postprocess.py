@@ -1,4 +1,3 @@
-import pint
 import pytest
 
 from ingredient_parser.dataclasses import (
@@ -93,7 +92,7 @@ class TestPostProcessor_parsed:
                 ),
                 ingredient_amount_factory(
                     quantity="14",
-                    unit=pint.Unit("ounces"),
+                    unit="ounce",
                     text="14 ounces",
                     confidence=0.994150,
                     starting_index=1,
@@ -128,7 +127,7 @@ class TestPostProcessor_parsed:
                 ),
                 ingredient_amount_factory(
                     quantity="14",
-                    unit=pint.Unit("ounces"),
+                    unit="ounce",
                     text="14 ounces",
                     confidence=0.994150,
                     starting_index=1,

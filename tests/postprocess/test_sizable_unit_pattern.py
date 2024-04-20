@@ -1,5 +1,3 @@
-import pint
-
 from ingredient_parser.en import PostProcessor
 from ingredient_parser.en._utils import ingredient_amount_factory
 
@@ -49,7 +47,7 @@ class TestPostProcessor_sizable_unit_pattern:
             ),
             ingredient_amount_factory(
                 quantity="28",
-                unit=pint.Unit("ounces"),
+                unit="ounce",
                 text="28 ounces",
                 confidence=0,
                 SINGULAR=True,
@@ -57,7 +55,7 @@ class TestPostProcessor_sizable_unit_pattern:
             ),
             ingredient_amount_factory(
                 quantity="400",
-                unit=pint.Unit("g"),
+                unit="g",
                 text="400 g",
                 confidence=0,
                 starting_index=4,
@@ -65,7 +63,7 @@ class TestPostProcessor_sizable_unit_pattern:
             ),
             ingredient_amount_factory(
                 quantity="2",
-                unit=pint.Unit("cups"),
+                unit="cup",
                 text="2 cups",
                 confidence=0,
                 starting_index=7,
@@ -121,7 +119,7 @@ class TestPostProcessor_sizable_unit_pattern:
             ),
             ingredient_amount_factory(
                 quantity="28",
-                unit=pint.Unit("ounces"),
+                unit="ounce",
                 text="28 ounces",
                 confidence=0,
                 starting_index=1,
@@ -129,7 +127,7 @@ class TestPostProcessor_sizable_unit_pattern:
             ),
             ingredient_amount_factory(
                 quantity="400",
-                unit=pint.Unit("g"),
+                unit="g",
                 text="400 g",
                 confidence=0,
                 starting_index=4,
@@ -177,7 +175,7 @@ class TestPostProcessor_sizable_unit_pattern:
             ),
             ingredient_amount_factory(
                 quantity="28",
-                unit=pint.Unit("ounces"),
+                unit="ounce",
                 text="28 ounces",
                 confidence=0,
                 starting_index=1,
@@ -227,7 +225,7 @@ class TestPostProcessor_sizable_unit_pattern:
             ),
             ingredient_amount_factory(
                 quantity="28",
-                unit=pint.Unit("ounces"),
+                unit="ounce",
                 text="28 ounces",
                 confidence=0,
                 starting_index=4,
@@ -265,11 +263,12 @@ class TestPostProcessor_sizable_unit_pattern:
             ),
             ingredient_amount_factory(
                 quantity="28",
-                unit=pint.Unit("ounces"),
+                unit="ounce",
                 text="28 ounces",
                 confidence=0,
                 starting_index=4,
                 SINGULAR=True,
+                imperial_units=True,
             ),
         ]
 
@@ -303,11 +302,12 @@ class TestPostProcessor_sizable_unit_pattern:
             ),
             ingredient_amount_factory(
                 quantity="28",
-                unit="ounces",
+                unit="ounce",
                 text="28 ounces",
                 confidence=0,
                 starting_index=4,
                 SINGULAR=True,
+                string_units=True,
             ),
         ]
 

@@ -191,6 +191,8 @@ def ingredient_amount_factory(
     starting_index: int,
     APPROXIMATE: bool = False,
     SINGULAR: bool = False,
+    string_units: bool = False,
+    imperial_units: bool = False,
 ) -> IngredientAmount:
     """Create ingredient amount object from parts.
 
@@ -219,41 +221,64 @@ def ingredient_amount_factory(
     SINGULAR : bool, optional
         When True, indicates if the amount refers to a singular item of the ingredient.
         Default is False.
+    string_units : bool, optional
+        If True, return all IngredientAmount units as strings.
+        If False, convert IngredientAmount units to pint.Unit objects where possible.
+        Dfault is False.
+    imperial_units : bool, optional
+        If True, use imperial units instead of US customary units for pint.Unit objects
+        for the the following units: fluid ounce, cup, pint, quart, gallon.
+        Default is False, which results in US customary units being used.
+        This has no effect if string_units=True.
+
+    Returns
+    -------
+    IngredientAmount
     """
     RANGE = False
     MULTIPLIER = False
 
     if is_float(quantity):
         # If float, set quantity_max = quantity
-        quantity = float(quantity)
-        quantity_max = quantity
+        _quantity = float(quantity)
+        quantity_max = _quantity
     elif is_range(quantity):
         # If range, set quantity to min of range, set quantity_max to max
         # of range, set RANGE flag to True
         range_parts = [float(x) for x in quantity.split("-")]
-        quantity = min(range_parts)
+        _quantity = min(range_parts)
         quantity_max = max(range_parts)
         RANGE = True
     elif quantity.endswith("x"):
         # If multiplier, set quantity and quantity_max to value without 'x', and
         # set MULTIPLER flag.
-        quantity = float(quantity[:-1])
-        quantity_max = quantity
+        _quantity = float(quantity[:-1])
+        quantity_max = _quantity
         MULTIPLIER = True
     else:
+        _quantity = quantity
         # Fallback to setting quantity_max to quantity
-        quantity_max = quantity
+        quantity_max = _quantity
+
+    _unit = unit
+    # Convert unit to pint.Unit
+    if not string_units:
+        # If the unit is recognised in the pint unit registry, use
+        # a pint.Unit object instead of a string. This has the benefit
+        # of simplifying alternative unit representations into a single
+        # common representation
+        _unit = convert_to_pint_unit(_unit, imperial_units)
 
     # Pluralise unit as necessary
-    if quantity != 1 and quantity != "" and not RANGE:
+    if _quantity != 1 and _quantity != "" and not RANGE:
         text = pluralise_units(text)
-        if isinstance(unit, str):
-            unit = pluralise_units(unit)
+        if isinstance(_unit, str):
+            _unit = pluralise_units(_unit)
 
     return IngredientAmount(
-        quantity=quantity,
+        quantity=_quantity,
         quantity_max=quantity_max,
-        unit=unit,
+        unit=_unit,
         text=text,
         confidence=round(confidence, 6),
         starting_index=starting_index,

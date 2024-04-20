@@ -52,6 +52,8 @@ def parse_ingredient(
                 string_units=string_units,
                 imperial_units=imperial_units,
             )
+        case _:
+            raise ValueError(f'Unrecognised value "{lang}"')
 
 
 def parse_multiple_ingredients(
@@ -155,3 +157,5 @@ def inspect_parser(
                 string_units=string_units,
                 imperial_units=imperial_units,
             )
+        case _:
+            raise ValueError(f'Unrecognised value "{lang}"')

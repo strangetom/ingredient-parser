@@ -1,4 +1,3 @@
-import pint
 import pytest
 
 from ingredient_parser.en import PostProcessor
@@ -104,11 +103,12 @@ class TestPostProcessor_fallback_pattern:
         expected = [
             ingredient_amount_factory(
                 quantity="2",
-                unit=pint.Unit("imperial_cup"),
+                unit="cup",
                 text="2 cups",
                 confidence=0,
                 starting_index=1,
                 APPROXIMATE=True,
+                imperial_units=True,
             )
         ]
 
@@ -127,11 +127,12 @@ class TestPostProcessor_fallback_pattern:
         expected = [
             ingredient_amount_factory(
                 quantity="2",
-                unit="cups",
+                unit="cup",
                 text="2 cups",
                 confidence=0,
                 starting_index=1,
                 APPROXIMATE=True,
+                string_units=True,
             )
         ]
 
@@ -150,7 +151,7 @@ class TestPostProcessor_fallback_pattern:
         expected = [
             ingredient_amount_factory(
                 quantity="2",
-                unit=pint.Unit("cup"),
+                unit="cup",
                 text="2 cups",
                 confidence=0,
                 starting_index=1,
@@ -182,7 +183,7 @@ class TestPostProcessor_fallback_pattern:
             ),
             ingredient_amount_factory(
                 quantity="4",
-                unit=pint.Unit("ounces"),
+                unit="ounce",
                 text="4 ounces",
                 confidence=0,
                 starting_index=3,
@@ -213,7 +214,7 @@ class TestPostProcessor_fallback_pattern:
             ),
             ingredient_amount_factory(
                 quantity="4",
-                unit=pint.Unit("ounces"),
+                unit="ounce",
                 text="4 ounces",
                 confidence=0,
                 starting_index=5,
@@ -244,7 +245,7 @@ class TestPostProcessor_fallback_pattern:
             ),
             ingredient_amount_factory(
                 quantity="4",
-                unit=pint.Unit("ounces"),
+                unit="ounce",
                 text="4 ounces",
                 confidence=0,
                 starting_index=6,
@@ -268,7 +269,7 @@ class TestPostProcessor_fallback_pattern:
         expected = [
             ingredient_amount_factory(
                 quantity="1-2",
-                unit=pint.Unit("tablespoon"),
+                unit="tablespoon",
                 text="1-2 tablespoons",
                 confidence=0,
                 starting_index=0,
