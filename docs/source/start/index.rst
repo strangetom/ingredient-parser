@@ -73,7 +73,7 @@ The :func:`parse_ingredient <ingredient_parser.parsers.parse_ingredient>` functi
     )
 
 
-The returned :class:`ParsedIngredient <ingredient_parser.postprocess.ParsedIngredient>` object contains the following fields:
+The returned :class:`ParsedIngredient <ingredient_parser.dataclasses.ParsedIngredient>` object contains the following fields:
 
 +-----------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | Field           | Description                                                                                                                                                          |
@@ -138,7 +138,7 @@ The :func:`parse_ingredient <ingredient_parser.parsers.parse_ingredient>` functi
 
 - ``string_units``
 
-  If True, units in the :class:`IngredientAmount <ingredient_parser.postprocess.IngredientAmount>` objects are returned as strings. The default is False, where units will be :class:`pint.Unit` objects.
+  If True, units in the :class:`IngredientAmount <ingredient_parser.dataclasses.IngredientAmount>` objects are returned as strings. The default is False, where units will be :class:`pint.Unit` objects.
 
 - ``imperial_unts``
 
@@ -147,7 +147,7 @@ The :func:`parse_ingredient <ingredient_parser.parsers.parse_ingredient>` functi
 Multiple ingredient sentences
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The :func:`parse_multiple_ingredients <ingredient_parser.parsers.parse_multiple_ingredients>` function is provided for convenience. It accepts a list of ingredient sentences as it's input and returns a list of :class:`ParsedIngredient <ingredient_parser.postprocess.ParsedIngredient>` objects with the parsed information. It has the same optional arguments as :func:`parse_ingredient <ingredient_parser.parsers.parse_ingredient>`.
+The :func:`parse_multiple_ingredients <ingredient_parser.parsers.parse_multiple_ingredients>` function is provided for convenience. It accepts a list of ingredient sentences as it's input and returns a list of :class:`ParsedIngredient <ingredient_parser.dataclasses.ParsedIngredient>` objects with the parsed information. It has the same optional arguments as :func:`parse_ingredient <ingredient_parser.parsers.parse_ingredient>`.
 
 .. code:: python
 

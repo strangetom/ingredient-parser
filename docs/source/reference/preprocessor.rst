@@ -1,5 +1,5 @@
 PreProcess
 ==========
 
-.. automodule:: ingredient_parser.preprocess
+.. automodule:: ingredient_parser.en.preprocess
    :members:

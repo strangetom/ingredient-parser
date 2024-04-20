@@ -1,4 +1,4 @@
-from ingredient_parser.preprocess import tokenize
+from ingredient_parser.en._utils import tokenize
 
 
 class TestTokenize:

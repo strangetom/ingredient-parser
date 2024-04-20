@@ -1,46 +1,11 @@
 #!/usr/bin/env python3
 
-from dataclasses import InitVar, dataclass, field
+from dataclasses import dataclass, field
 from statistics import mean
+from typing import Any
 
 import pint
-
-from ingredient_parser._utils import is_float, is_range, pluralise_units
-
-
-@dataclass
-class _PartialIngredientAmount:
-    """Dataclass for incrementally building ingredient amount information.
-
-    Attributes
-    ----------
-    quantity : str
-        Parsed ingredient quantity
-    unit : list[str]
-        Unit or unit tokens of parsed ingredient quantity
-    confidence : list[float]
-        Average confidence of all tokens or list of confidences for each token of parsed
-        ingredient amount, between 0 and 1.
-    starting_index : int
-        Index of token that starts this amount
-    related_to_previous : bool, optional
-        If True, indicates it is related to the previous IngredientAmount object. All
-        related objects should have the same APPROXIMATE and SINGULAR flags
-    APPROXIMATE : bool, optional
-        When True, indicates that the amount is approximate.
-        Default is False.
-    SINGULAR : bool, optional
-        When True, indicates if the amount refers to a singular item of the ingredient.
-        Default is False.
-    """
-
-    quantity: str
-    unit: list[str]
-    confidence: list[float]
-    _starting_index: int
-    related_to_previous: bool = False
-    APPROXIMATE: bool = False
-    SINGULAR: bool = False
+import pycrfsuite
 
 
 @dataclass
@@ -67,6 +32,8 @@ class IngredientAmount:
     confidence : float
         Confidence of parsed ingredient amount, between 0 and 1.
         This is the average confidence of all tokens that contribute to this object.
+    starting_index : int
+        Index of token in sentence that starts this amount
     APPROXIMATE : bool, optional
         When True, indicates that the amount is approximate.
         Default is False.
@@ -82,52 +49,15 @@ class IngredientAmount:
     """
 
     quantity: float | str
-    quantity_max: float | str = field(init=False)
+    quantity_max: float | str
     unit: str | pint.Unit
     text: str
     confidence: float
-    starting_index: InitVar[int]
+    starting_index: int
     APPROXIMATE: bool = False
     SINGULAR: bool = False
     RANGE: bool = False
     MULTIPLIER: bool = False
-
-    def __post_init__(self, starting_index):
-        """Post-init functionality.
-
-        If required make the unit plural convert.
-        Set the value for quantity_max and set the RANGE and MULTIPLIER flags
-        as required by the type of quantity.
-        """
-        if is_float(self.quantity):
-            # If float, set quantity_max = quantity
-            self.quantity = float(self.quantity)
-            self.quantity_max = self.quantity
-        elif is_range(self.quantity):
-            # If range, set quantity to min of range, set quantity_max to max
-            # of range, set RANGE flag to True
-            range_parts = [float(x) for x in self.quantity.split("-")]
-            self.quantity = min(range_parts)
-            self.quantity_max = max(range_parts)
-            self.RANGE = True
-        elif self.quantity.endswith("x"):
-            # If multiplier, set quantity and quantity_max to value without 'x', and
-            # set MULTIPLER flag.
-            self.quantity = float(self.quantity[:-1])
-            self.quantity_max = self.quantity
-            self.MULTIPLIER = True
-        else:
-            # Fallback to setting quantity_max to quantity
-            self.quantity_max = self.quantity
-
-        # Pluralise unit as necessary
-        if self.quantity != 1 and self.quantity != "":
-            self.text = pluralise_units(self.text)
-            if isinstance(self.unit, str):
-                self.unit = pluralise_units(self.unit)
-
-        # Assign starting_index to _starting_index
-        self._starting_index = starting_index
 
 
 @dataclass
@@ -147,11 +77,18 @@ class CompositeIngredientAmount:
     text : str
         Composite amount as a string, automatically generated the amounts and
         join attributes.
+    confidence : float
+        Confidence of parsed ingredient amount, between 0 and 1.
+        This is the average confidence of all tokens that contribute to this object.
+    starting_index : int
+        Index of token in sentence that starts this amount
     """
 
     amounts: list[IngredientAmount]
     join: str
     text: str = field(init=False)
+    confidence: float = field(init=False)
+    starting_index: int = field(init=False)
 
     def __post_init__(self):
         """On dataclass instantiation, generate the text field."""
@@ -160,15 +97,15 @@ class CompositeIngredientAmount:
         else:
             self.text = f"{ self.join }".join([amount.text for amount in self.amounts])
 
-        # Set starting_index for composite amount to minimum _starting_index for
+        # Set starting_index for composite amount to minimum starting_index for
         # amounts that make up the composite amount.
-        self._starting_index = min(amount._starting_index for amount in self.amounts)
+        self.starting_index = min(amount.starting_index for amount in self.amounts)
 
         # Set confidence to average of confidence values for amounts that make up the
         # composite amount.
         self.confidence = mean(amount.confidence for amount in self.amounts)
 
-    def combined_amount(self) -> pint.Quantity:
+    def combined(self) -> pint.Quantity:
         """Return the combined amount in a single unit for the composite amount.
 
         The combined amount is returned as a pint.Quantity object.
@@ -230,3 +167,26 @@ class ParsedIngredient:
     preparation: IngredientText | None
     comment: IngredientText | None
     sentence: str
+
+
+@dataclass
+class ParserDebugInfo:
+    """Dataclass for holding intermediate objects generated during parsing.
+
+    Attributes
+    ----------
+    sentence : str
+        Input ingredient sentence.
+    PreProcessor : PreProcessor
+        PreProcessor object created using input sentence.
+    PostProcessor : PostProcessor
+        PostProcessor object created using tokens, labels and scores from
+        input sentence.
+    Tagger : pycrfsuite.Tagger
+        CRF model tagger object.
+    """
+
+    sentence: str
+    PreProcessor: Any
+    PostProcessor: Any
+    tagger: pycrfsuite.Tagger

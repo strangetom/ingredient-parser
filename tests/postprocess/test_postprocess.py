@@ -1,12 +1,11 @@
-import pint
 import pytest
 
-from ingredient_parser import PostProcessor
-from ingredient_parser.postprocess import (
-    IngredientAmount,
+from ingredient_parser.dataclasses import (
     IngredientText,
     ParsedIngredient,
 )
+from ingredient_parser.en import PostProcessor
+from ingredient_parser.en._utils import ingredient_amount_factory
 
 
 @pytest.fixture
@@ -82,7 +81,7 @@ class TestPostProcessor_parsed:
             name=IngredientText(text="coconut milk", confidence=0.993106),
             size=None,
             amount=[
-                IngredientAmount(
+                ingredient_amount_factory(
                     quantity="2",
                     unit="cans",
                     text="2 cans",
@@ -91,9 +90,9 @@ class TestPostProcessor_parsed:
                     APPROXIMATE=False,
                     SINGULAR=False,
                 ),
-                IngredientAmount(
+                ingredient_amount_factory(
                     quantity="14",
-                    unit=pint.Unit("ounces"),
+                    unit="ounce",
                     text="14 ounces",
                     confidence=0.994150,
                     starting_index=1,
@@ -117,7 +116,7 @@ class TestPostProcessor_parsed:
             name=IngredientText(text="coconut milk", confidence=0.993106),
             size=None,
             amount=[
-                IngredientAmount(
+                ingredient_amount_factory(
                     quantity="2",
                     unit="cans",
                     text="2 cans",
@@ -126,9 +125,9 @@ class TestPostProcessor_parsed:
                     APPROXIMATE=False,
                     SINGULAR=False,
                 ),
-                IngredientAmount(
+                ingredient_amount_factory(
                     quantity="14",
-                    unit=pint.Unit("ounces"),
+                    unit="ounce",
                     text="14 ounces",
                     confidence=0.994150,
                     starting_index=1,

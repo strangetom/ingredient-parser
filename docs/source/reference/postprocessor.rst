@@ -1,5 +1,5 @@
 PostProcess
 ===========
 
-.. automodule:: ingredient_parser.postprocess
+.. automodule:: ingredient_parser.en.postprocess
    :members:

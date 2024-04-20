@@ -4,14 +4,14 @@
 from flask import Flask, render_template, request
 
 from ingredient_parser import inspect_parser
-from ingredient_parser.postprocess import IngredientText
+from ingredient_parser.dataclasses import IngredientText
 
 app = Flask(__name__)
 
 
 @app.route("/", methods=["GET"])
 def home():
-    """Return homepage
+    """Return homepage.
 
     Returns
     -------

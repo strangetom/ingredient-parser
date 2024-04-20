@@ -1,6 +1,6 @@
 import pytest
 
-from ingredient_parser import PreProcessor
+from ingredient_parser.en import PreProcessor
 
 
 @pytest.fixture

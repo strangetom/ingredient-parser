@@ -2,7 +2,7 @@ import csv
 from collections import defaultdict
 from dataclasses import dataclass
 
-from ingredient_parser import PreProcessor
+from ingredient_parser.en import PreProcessor
 
 
 @dataclass(frozen=True, order=True)

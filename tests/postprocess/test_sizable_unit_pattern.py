@@ -1,9 +1,5 @@
-import pint
-
-from ingredient_parser import PostProcessor
-from ingredient_parser.postprocess import (
-    IngredientAmount,
-)
+from ingredient_parser.en import PostProcessor
+from ingredient_parser.en._utils import ingredient_amount_factory
 
 
 class TestPostProcessor_sizable_unit_pattern:
@@ -46,28 +42,28 @@ class TestPostProcessor_sizable_unit_pattern:
         p = PostProcessor(sentence, tokens, labels, scores)
 
         expected = [
-            IngredientAmount(
+            ingredient_amount_factory(
                 quantity="1", unit="can", text="1 can", confidence=0, starting_index=0
             ),
-            IngredientAmount(
+            ingredient_amount_factory(
                 quantity="28",
-                unit=pint.Unit("ounces"),
+                unit="ounce",
                 text="28 ounces",
                 confidence=0,
                 SINGULAR=True,
                 starting_index=1,
             ),
-            IngredientAmount(
+            ingredient_amount_factory(
                 quantity="400",
-                unit=pint.Unit("g"),
+                unit="g",
                 text="400 g",
                 confidence=0,
                 starting_index=4,
                 SINGULAR=True,
             ),
-            IngredientAmount(
+            ingredient_amount_factory(
                 quantity="2",
-                unit=pint.Unit("cups"),
+                unit="cup",
                 text="2 cups",
                 confidence=0,
                 starting_index=7,
@@ -81,7 +77,7 @@ class TestPostProcessor_sizable_unit_pattern:
         for out, expected in zip(output, expected):
             assert out.quantity == expected.quantity
             assert out.unit == expected.unit
-            assert out._starting_index == expected._starting_index
+            assert out.starting_index == expected.starting_index
             assert out.SINGULAR == expected.SINGULAR
             assert out.APPROXIMATE == expected.APPROXIMATE
 
@@ -118,20 +114,20 @@ class TestPostProcessor_sizable_unit_pattern:
         p = PostProcessor(sentence, tokens, labels, scores)
 
         expected = [
-            IngredientAmount(
+            ingredient_amount_factory(
                 quantity="1", unit="can", text="1 can", confidence=0, starting_index=0
             ),
-            IngredientAmount(
+            ingredient_amount_factory(
                 quantity="28",
-                unit=pint.Unit("ounces"),
+                unit="ounce",
                 text="28 ounces",
                 confidence=0,
                 starting_index=1,
                 SINGULAR=True,
             ),
-            IngredientAmount(
+            ingredient_amount_factory(
                 quantity="400",
-                unit=pint.Unit("g"),
+                unit="g",
                 text="400 g",
                 confidence=0,
                 starting_index=4,
@@ -145,7 +141,7 @@ class TestPostProcessor_sizable_unit_pattern:
         for out, expected in zip(output, expected):
             assert out.quantity == expected.quantity
             assert out.unit == expected.unit
-            assert out._starting_index == expected._starting_index
+            assert out.starting_index == expected.starting_index
             assert out.SINGULAR == expected.SINGULAR
             assert out.APPROXIMATE == expected.APPROXIMATE
 
@@ -174,12 +170,12 @@ class TestPostProcessor_sizable_unit_pattern:
         p = PostProcessor(sentence, tokens, labels, scores)
 
         expected = [
-            IngredientAmount(
+            ingredient_amount_factory(
                 quantity="1", unit="can", text="1 can", confidence=0, starting_index=0
             ),
-            IngredientAmount(
+            ingredient_amount_factory(
                 quantity="28",
-                unit=pint.Unit("ounces"),
+                unit="ounce",
                 text="28 ounces",
                 confidence=0,
                 starting_index=1,
@@ -193,7 +189,7 @@ class TestPostProcessor_sizable_unit_pattern:
         for out, expected in zip(output, expected):
             assert out.quantity == expected.quantity
             assert out.unit == expected.unit
-            assert out._starting_index == expected._starting_index
+            assert out.starting_index == expected.starting_index
             assert out.SINGULAR == expected.SINGULAR
             assert out.APPROXIMATE == expected.APPROXIMATE
 
@@ -224,12 +220,12 @@ class TestPostProcessor_sizable_unit_pattern:
         p = PostProcessor(sentence, tokens, labels, scores)
 
         expected = [
-            IngredientAmount(
+            ingredient_amount_factory(
                 quantity="1", unit="can", text="1 can", confidence=0, starting_index=3
             ),
-            IngredientAmount(
+            ingredient_amount_factory(
                 quantity="28",
-                unit=pint.Unit("ounces"),
+                unit="ounce",
                 text="28 ounces",
                 confidence=0,
                 starting_index=4,
@@ -243,7 +239,7 @@ class TestPostProcessor_sizable_unit_pattern:
         for out, expected in zip(output, expected):
             assert out.quantity == expected.quantity
             assert out.unit == expected.unit
-            assert out._starting_index == expected._starting_index
+            assert out.starting_index == expected.starting_index
             assert out.SINGULAR == expected.SINGULAR
             assert out.APPROXIMATE == expected.APPROXIMATE
 
@@ -262,16 +258,17 @@ class TestPostProcessor_sizable_unit_pattern:
         p = PostProcessor(sentence, tokens, labels, scores, imperial_units=True)
 
         expected = [
-            IngredientAmount(
+            ingredient_amount_factory(
                 quantity="1", unit="can", text="1 can", confidence=0, starting_index=3
             ),
-            IngredientAmount(
+            ingredient_amount_factory(
                 quantity="28",
-                unit=pint.Unit("ounces"),
+                unit="ounce",
                 text="28 ounces",
                 confidence=0,
                 starting_index=4,
                 SINGULAR=True,
+                imperial_units=True,
             ),
         ]
 
@@ -281,7 +278,7 @@ class TestPostProcessor_sizable_unit_pattern:
         for out, expected in zip(output, expected):
             assert out.quantity == expected.quantity
             assert out.unit == expected.unit
-            assert out._starting_index == expected._starting_index
+            assert out.starting_index == expected.starting_index
             assert out.SINGULAR == expected.SINGULAR
             assert out.APPROXIMATE == expected.APPROXIMATE
 
@@ -300,16 +297,17 @@ class TestPostProcessor_sizable_unit_pattern:
         p = PostProcessor(sentence, tokens, labels, scores, string_units=True)
 
         expected = [
-            IngredientAmount(
+            ingredient_amount_factory(
                 quantity="1", unit="can", text="1 can", confidence=0, starting_index=3
             ),
-            IngredientAmount(
+            ingredient_amount_factory(
                 quantity="28",
-                unit="ounces",
+                unit="ounce",
                 text="28 ounces",
                 confidence=0,
                 starting_index=4,
                 SINGULAR=True,
+                string_units=True,
             ),
         ]
 
@@ -319,6 +317,6 @@ class TestPostProcessor_sizable_unit_pattern:
         for out, expected in zip(output, expected):
             assert out.quantity == expected.quantity
             assert out.unit == expected.unit
-            assert out._starting_index == expected._starting_index
+            assert out.starting_index == expected.starting_index
             assert out.SINGULAR == expected.SINGULAR
             assert out.APPROXIMATE == expected.APPROXIMATE

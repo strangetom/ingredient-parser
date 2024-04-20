@@ -37,7 +37,7 @@ Documentation = "https://ingredient-parser.readthedocs.io/en/latest/"
 Source = "https://github.com/strangetom/ingredient-parser"
 
 [tool.setuptools]
-packages = ["ingredient_parser", "ingredient_parser.preprocess", "ingredient_parser.postprocess"]
+packages = ["ingredient_parser", "ingredient_parser.en"]
 
 [tool.setuptools.dynamic]
 version =  {attr = "ingredient_parser.__version__"}

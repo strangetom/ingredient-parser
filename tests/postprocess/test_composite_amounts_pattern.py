@@ -1,10 +1,6 @@
-import pint
-
-from ingredient_parser import PostProcessor
-from ingredient_parser.postprocess import (
-    CompositeIngredientAmount,
-    IngredientAmount,
-)
+from ingredient_parser.dataclasses import CompositeIngredientAmount
+from ingredient_parser.en import PostProcessor
+from ingredient_parser.en._utils import ingredient_amount_factory
 
 
 class TestPostProcessor_composite_amounts_pattern:
@@ -56,16 +52,16 @@ class TestPostProcessor_composite_amounts_pattern:
         expected = [
             CompositeIngredientAmount(
                 amounts=[
-                    IngredientAmount(
+                    ingredient_amount_factory(
                         quantity="1",
-                        unit=pint.Unit("lb"),
+                        unit="lb",
                         text="1 lb",
                         confidence=0,
                         starting_index=3,
                     ),
-                    IngredientAmount(
+                    ingredient_amount_factory(
                         quantity="2",
-                        unit=pint.Unit("oz"),
+                        unit="oz",
                         text="2 oz",
                         confidence=0,
                         starting_index=5,
@@ -82,7 +78,7 @@ class TestPostProcessor_composite_amounts_pattern:
             assert out.amounts == expected.amounts
             assert out.join == expected.join
             assert out.confidence == expected.confidence
-            assert out._starting_index == expected._starting_index
+            assert out.starting_index == expected.starting_index
 
     def test_pint_fl_oz_pattern(self):
         """
@@ -108,16 +104,16 @@ class TestPostProcessor_composite_amounts_pattern:
         expected = [
             CompositeIngredientAmount(
                 amounts=[
-                    IngredientAmount(
+                    ingredient_amount_factory(
                         quantity="2",
-                        unit=pint.Unit("pints"),
+                        unit="pint",
                         text="2 pints",
                         confidence=0,
                         starting_index=3,
                     ),
-                    IngredientAmount(
+                    ingredient_amount_factory(
                         quantity="12.75",
-                        unit=pint.Unit("floz"),
+                        unit="floz",
                         text="12.75 fl oz",
                         confidence=0,
                         starting_index=5,
@@ -134,7 +130,7 @@ class TestPostProcessor_composite_amounts_pattern:
             assert out.amounts == expected.amounts
             assert out.join == expected.join
             assert out.confidence == expected.confidence
-            assert out._starting_index == expected._starting_index
+            assert out.starting_index == expected.starting_index
 
     def test_imperial_pint_fl_oz_pattern(self):
         """
@@ -161,19 +157,21 @@ class TestPostProcessor_composite_amounts_pattern:
         expected = [
             CompositeIngredientAmount(
                 amounts=[
-                    IngredientAmount(
+                    ingredient_amount_factory(
                         quantity="2",
-                        unit=pint.Unit("imperial_pints"),
+                        unit="pint",
                         text="2 pints",
                         confidence=0,
                         starting_index=3,
+                        imperial_units=True,
                     ),
-                    IngredientAmount(
+                    ingredient_amount_factory(
                         quantity="12.75",
-                        unit=pint.Unit("imperial_fluid_ounce"),
+                        unit="fluid ounce",
                         text="12.75 fl oz",
                         confidence=0,
                         starting_index=5,
+                        imperial_units=True,
                     ),
                 ],
                 join="",
@@ -187,7 +185,7 @@ class TestPostProcessor_composite_amounts_pattern:
             assert out.amounts == expected.amounts
             assert out.join == expected.join
             assert out.confidence == expected.confidence
-            assert out._starting_index == expected._starting_index
+            assert out.starting_index == expected.starting_index
 
     def test_string_pint_fl_oz_pattern(self):
         """
@@ -213,19 +211,21 @@ class TestPostProcessor_composite_amounts_pattern:
         expected = [
             CompositeIngredientAmount(
                 amounts=[
-                    IngredientAmount(
+                    ingredient_amount_factory(
                         quantity="2",
                         unit="pints",
                         text="2 pints",
                         confidence=0,
                         starting_index=3,
+                        string_units=True,
                     ),
-                    IngredientAmount(
+                    ingredient_amount_factory(
                         quantity="12.75",
                         unit="fl oz",
                         text="12.75 fl oz",
                         confidence=0,
                         starting_index=5,
+                        string_units=True,
                     ),
                 ],
                 join="",
@@ -239,7 +239,7 @@ class TestPostProcessor_composite_amounts_pattern:
             assert out.amounts == expected.amounts
             assert out.join == expected.join
             assert out.confidence == expected.confidence
-            assert out._starting_index == expected._starting_index
+            assert out.starting_index == expected.starting_index
 
     def test_no_pattern(self):
         """
