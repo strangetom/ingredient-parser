@@ -77,7 +77,7 @@ class TestPostProcessor_sizable_unit_pattern:
         for out, expected in zip(output, expected):
             assert out.quantity == expected.quantity
             assert out.unit == expected.unit
-            assert out._starting_index == expected._starting_index
+            assert out.starting_index == expected.starting_index
             assert out.SINGULAR == expected.SINGULAR
             assert out.APPROXIMATE == expected.APPROXIMATE
 
@@ -141,7 +141,7 @@ class TestPostProcessor_sizable_unit_pattern:
         for out, expected in zip(output, expected):
             assert out.quantity == expected.quantity
             assert out.unit == expected.unit
-            assert out._starting_index == expected._starting_index
+            assert out.starting_index == expected.starting_index
             assert out.SINGULAR == expected.SINGULAR
             assert out.APPROXIMATE == expected.APPROXIMATE
 
@@ -189,7 +189,7 @@ class TestPostProcessor_sizable_unit_pattern:
         for out, expected in zip(output, expected):
             assert out.quantity == expected.quantity
             assert out.unit == expected.unit
-            assert out._starting_index == expected._starting_index
+            assert out.starting_index == expected.starting_index
             assert out.SINGULAR == expected.SINGULAR
             assert out.APPROXIMATE == expected.APPROXIMATE
 
@@ -239,7 +239,7 @@ class TestPostProcessor_sizable_unit_pattern:
         for out, expected in zip(output, expected):
             assert out.quantity == expected.quantity
             assert out.unit == expected.unit
-            assert out._starting_index == expected._starting_index
+            assert out.starting_index == expected.starting_index
             assert out.SINGULAR == expected.SINGULAR
             assert out.APPROXIMATE == expected.APPROXIMATE
 
@@ -278,7 +278,7 @@ class TestPostProcessor_sizable_unit_pattern:
         for out, expected in zip(output, expected):
             assert out.quantity == expected.quantity
             assert out.unit == expected.unit
-            assert out._starting_index == expected._starting_index
+            assert out.starting_index == expected.starting_index
             assert out.SINGULAR == expected.SINGULAR
             assert out.APPROXIMATE == expected.APPROXIMATE
 
@@ -317,6 +317,6 @@ class TestPostProcessor_sizable_unit_pattern:
         for out, expected in zip(output, expected):
             assert out.quantity == expected.quantity
             assert out.unit == expected.unit
-            assert out._starting_index == expected._starting_index
+            assert out.starting_index == expected.starting_index
             assert out.SINGULAR == expected.SINGULAR
             assert out.APPROXIMATE == expected.APPROXIMATE

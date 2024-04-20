@@ -78,7 +78,7 @@ class TestPostProcessor_composite_amounts_pattern:
             assert out.amounts == expected.amounts
             assert out.join == expected.join
             assert out.confidence == expected.confidence
-            assert out._starting_index == expected._starting_index
+            assert out.starting_index == expected.starting_index
 
     def test_pint_fl_oz_pattern(self):
         """
@@ -130,7 +130,7 @@ class TestPostProcessor_composite_amounts_pattern:
             assert out.amounts == expected.amounts
             assert out.join == expected.join
             assert out.confidence == expected.confidence
-            assert out._starting_index == expected._starting_index
+            assert out.starting_index == expected.starting_index
 
     def test_imperial_pint_fl_oz_pattern(self):
         """
@@ -185,7 +185,7 @@ class TestPostProcessor_composite_amounts_pattern:
             assert out.amounts == expected.amounts
             assert out.join == expected.join
             assert out.confidence == expected.confidence
-            assert out._starting_index == expected._starting_index
+            assert out.starting_index == expected.starting_index
 
     def test_string_pint_fl_oz_pattern(self):
         """
@@ -239,7 +239,7 @@ class TestPostProcessor_composite_amounts_pattern:
             assert out.amounts == expected.amounts
             assert out.join == expected.join
             assert out.confidence == expected.confidence
-            assert out._starting_index == expected._starting_index
+            assert out.starting_index == expected.starting_index
 
     def test_no_pattern(self):
         """

@@ -1,7 +1,7 @@
 import pytest
 
-from ingredient_parser.dataclasses import _PartialIngredientAmount
 from ingredient_parser.en import PostProcessor
+from ingredient_parser.en.postprocess import _PartialIngredientAmount
 
 
 @pytest.fixture

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import re
+from dataclasses import dataclass
 from functools import cached_property
 from itertools import chain, groupby
 from operator import itemgetter
@@ -13,7 +14,6 @@ from ..dataclasses import (
     IngredientAmount,
     IngredientText,
     ParsedIngredient,
-    _PartialIngredientAmount,
 )
 from ._constants import (
     APPROXIMATE_TOKENS,
@@ -23,6 +23,41 @@ from ._constants import (
 from ._utils import ingredient_amount_factory
 
 WORD_CHAR = re.compile(r"\w")
+
+
+@dataclass
+class _PartialIngredientAmount:
+    """Dataclass for incrementally building ingredient amount information.
+
+    Attributes
+    ----------
+    quantity : str
+        Parsed ingredient quantity
+    unit : list[str]
+        Unit or unit tokens of parsed ingredient quantity
+    confidence : list[float]
+        Average confidence of all tokens or list of confidences for each token of parsed
+        ingredient amount, between 0 and 1.
+    starting_index : int
+        Index of token in sentence that starts this amount
+    related_to_previous : bool, optional
+        If True, indicates it is related to the previous IngredientAmount object. All
+        related objects should have the same APPROXIMATE and SINGULAR flags
+    APPROXIMATE : bool, optional
+        When True, indicates that the amount is approximate.
+        Default is False.
+    SINGULAR : bool, optional
+        When True, indicates if the amount refers to a singular item of the ingredient.
+        Default is False.
+    """
+
+    quantity: str
+    unit: list[str]
+    confidence: list[float]
+    starting_index: int
+    related_to_previous: bool = False
+    APPROXIMATE: bool = False
+    SINGULAR: bool = False
 
 
 class PostProcessor:
@@ -216,7 +251,7 @@ class PostProcessor:
             parsed_amounts = func(idx, tokens, labels, scores)
             amounts.extend(parsed_amounts)
 
-        return sorted(amounts, key=lambda x: x._starting_index)
+        return sorted(amounts, key=lambda x: x.starting_index)
 
     def _unconsumed(self, list_: list[Any]) -> list[Any]:
         """Return elements from list whose index is not in the list of consumed indices.
@@ -525,17 +560,17 @@ class PostProcessor:
         """
         # Define patterns based on labels.
         # Assumes that only "x lb y oz" and "x pint y fl oz" patterns
-        patterns = [
-            ["QTY", "UNIT", "QTY", "UNIT", "UNIT"],
-            ["QTY", "UNIT", "QTY", "UNIT"],
-        ]
+        patterns = {
+            "ptfloz": ["QTY", "UNIT", "QTY", "UNIT", "UNIT"],
+            "lboz": ["QTY", "UNIT", "QTY", "UNIT"],
+        }
 
         # List of possible units for first and second amount matched
         first_unit = {"lb", "pound", "pt", "pint"}
         last_unit = {"oz", "ounce"}
 
         composite_amounts = []
-        for pattern in patterns:
+        for pattern_name, pattern in patterns.items():
             for match in self._match_pattern(
                 labels, pattern, ignore_other_labels=False
             ):
@@ -565,12 +600,18 @@ class PostProcessor:
                     unit_2 = " ".join([tokens[i] for i in match[3:]])
                     text_2 = " ".join((quantity_2, unit_2)).strip()
 
+                    # The starting_index for the second amount depends on the pattern
+                    if pattern_name == "ptfloz":
+                        starting_index_2 = idx[last_unit_idx - 2]
+                    else:
+                        starting_index_2 = idx[last_unit_idx - 1]
+
                     second_amount = ingredient_amount_factory(
                         quantity=quantity_2,
                         unit=unit_2,
                         text=text_2,
                         confidence=round(mean([scores[i] for i in match[3:]]), 6),
-                        starting_index=idx[last_unit_idx - 1],
+                        starting_index=starting_index_2,
                         string_units=self.string_units,
                         imperial_units=self.imperial_units,
                     )
@@ -706,7 +747,7 @@ class PostProcessor:
                             quantity=token,
                             unit=[],
                             confidence=[score],
-                            _starting_index=idx[i],
+                            starting_index=idx[i],
                             related_to_previous=i in related_idx,
                         )
                     )
@@ -720,7 +761,7 @@ class PostProcessor:
                             quantity="",
                             unit=[],
                             confidence=[score],
-                            _starting_index=idx[i],
+                            starting_index=idx[i],
                         )
                     )
 
@@ -763,7 +804,7 @@ class PostProcessor:
                     unit=unit,
                     text=text,
                     confidence=mean(amount.confidence),
-                    starting_index=amount._starting_index,
+                    starting_index=amount.starting_index,
                     APPROXIMATE=amount.APPROXIMATE,
                     SINGULAR=amount.SINGULAR,
                     string_units=self.string_units,

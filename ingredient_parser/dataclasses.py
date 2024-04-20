@@ -1,46 +1,11 @@
 #!/usr/bin/env python3
 
-from dataclasses import InitVar, dataclass, field
+from dataclasses import dataclass, field
 from statistics import mean
 from typing import Any
 
 import pint
 import pycrfsuite
-
-
-@dataclass
-class _PartialIngredientAmount:
-    """Dataclass for incrementally building ingredient amount information.
-
-    Attributes
-    ----------
-    quantity : str
-        Parsed ingredient quantity
-    unit : list[str]
-        Unit or unit tokens of parsed ingredient quantity
-    confidence : list[float]
-        Average confidence of all tokens or list of confidences for each token of parsed
-        ingredient amount, between 0 and 1.
-    starting_index : int
-        Index of token that starts this amount
-    related_to_previous : bool, optional
-        If True, indicates it is related to the previous IngredientAmount object. All
-        related objects should have the same APPROXIMATE and SINGULAR flags
-    APPROXIMATE : bool, optional
-        When True, indicates that the amount is approximate.
-        Default is False.
-    SINGULAR : bool, optional
-        When True, indicates if the amount refers to a singular item of the ingredient.
-        Default is False.
-    """
-
-    quantity: str
-    unit: list[str]
-    confidence: list[float]
-    _starting_index: int
-    related_to_previous: bool = False
-    APPROXIMATE: bool = False
-    SINGULAR: bool = False
 
 
 @dataclass
@@ -67,6 +32,8 @@ class IngredientAmount:
     confidence : float
         Confidence of parsed ingredient amount, between 0 and 1.
         This is the average confidence of all tokens that contribute to this object.
+    starting_index : int
+        Index of token in sentence that starts this amount
     APPROXIMATE : bool, optional
         When True, indicates that the amount is approximate.
         Default is False.
@@ -86,16 +53,11 @@ class IngredientAmount:
     unit: str | pint.Unit
     text: str
     confidence: float
-    starting_index: InitVar[int]
+    starting_index: int
     APPROXIMATE: bool = False
     SINGULAR: bool = False
     RANGE: bool = False
     MULTIPLIER: bool = False
-
-    def __post_init__(self, starting_index):
-        """Post-init functionality."""
-        # Assign starting_index to _starting_index
-        self._starting_index = starting_index
 
 
 @dataclass
@@ -115,11 +77,18 @@ class CompositeIngredientAmount:
     text : str
         Composite amount as a string, automatically generated the amounts and
         join attributes.
+    confidence : float
+        Confidence of parsed ingredient amount, between 0 and 1.
+        This is the average confidence of all tokens that contribute to this object.
+    starting_index : int
+        Index of token in sentence that starts this amount
     """
 
     amounts: list[IngredientAmount]
     join: str
     text: str = field(init=False)
+    confidence: float = field(init=False)
+    starting_index: int = field(init=False)
 
     def __post_init__(self):
         """On dataclass instantiation, generate the text field."""
@@ -128,15 +97,15 @@ class CompositeIngredientAmount:
         else:
             self.text = f"{ self.join }".join([amount.text for amount in self.amounts])
 
-        # Set starting_index for composite amount to minimum _starting_index for
+        # Set starting_index for composite amount to minimum starting_index for
         # amounts that make up the composite amount.
-        self._starting_index = min(amount._starting_index for amount in self.amounts)
+        self.starting_index = min(amount.starting_index for amount in self.amounts)
 
         # Set confidence to average of confidence values for amounts that make up the
         # composite amount.
         self.confidence = mean(amount.confidence for amount in self.amounts)
 
-    def combined_amount(self) -> pint.Quantity:
+    def combined(self) -> pint.Quantity:
         """Return the combined amount in a single unit for the composite amount.
 
         The combined amount is returned as a pint.Quantity object.
