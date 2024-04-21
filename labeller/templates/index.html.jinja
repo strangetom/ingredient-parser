@@ -13,113 +13,117 @@
         </header>
 
         <main>
-            <section id="datasets">
-                <h2>Datasets</h2>
-                <p>Browse a dataset, showing 500 entries at a time</p>
-                <ul>
-                    {%- for dataset, count in datasets -%}
-                    <li>
-                        <a href="/edit/{{ dataset }}?start=0&range=500">{{ dataset|upper }} - {{ count }} entries</a>
-                    </li>
-                    {%- endfor -%}
-                </ul>
-            </section>
+            <div class="column">
+                <section id="datasets">
+                    <h2>Datasets</h2>
+                    <p>Browse a dataset, showing 500 entries at a time</p>
+                    <ul>
+                        {%- for dataset, count in datasets -%}
+                        <li>
+                            <a href="/edit/{{ dataset }}?start=0&range=500">{{ dataset|upper }} - {{ count }} entries</a>
+                        </li>
+                        {%- endfor -%}
+                    </ul>
+                </section>
 
-            <section id="filter">
-                <h2>Filter</h2>
-                <p>Filter training data to search for a string, filtering by dataset and label.</p>
-                <form action="/filter" method="post">
-                    <div class="grid">
-                        <fieldset>
-                            <legend>Labels to apply filter to</legend>
-                            <div class="filter-labels">
+                <section id="filter">
+                    <h2>Filter</h2>
+                    <p>Filter training data to search for a string, filtering by dataset and label.</p>
+                    <form action="/filter" method="post">
+                        <div class="grid">
+                            <fieldset>
+                                <legend>Labels to apply filter to</legend>
+                                <div class="filter-labels">
+                                    <div class="checkbox">
+                                        <input type="checkbox" id="label-QTY" name="label-QTY" checked/>
+                                        <label for="label-QTY">QTY</label>
+                                    </div>
+                                    <div class="checkbox">
+                                        <input type="checkbox" id="label-UNIT" name="label-UNIT" checked/>
+                                        <label for="label-UNIT">UNIT</label>
+                                    </div>
+                                    <div>
+                                        <input type="checkbox" id="label-NAME" name="label-NAME" checked/>
+                                        <label for="label-NAME">NAME</label>
+                                    </div>
+                                    <div>
+                                        <input type="checkbox" id="label-SIZE" name="label-SIZE" checked/>
+                                        <label for="label-SIZE">SIZE</label>
+                                    </div>
+                                    <div class="checkbox">
+                                        <input type="checkbox" id="label-PREP" name="label-PREP" checked/>
+                                        <label for="label-PREP">PREP</label>
+                                    </div>
+                                    <div class="checkbox">
+                                        <input type="checkbox" id="label-COMMENT" name="label-COMMENT" checked/>
+                                        <label for="label-COMMENT">COMMENT</label>
+                                    </div>
+                                    <div class="checkbox">
+                                        <input type="checkbox" id="label-OTHER" name="label-OTHER" checked/>
+                                        <label for="label-OTHER">OTHER</label>
+                                    </div>
+                                </div>
+                            </fieldset>
+                            
+                            <fieldset>
+                                <legend>Datasets to apply filter to</legend>
+                                <div class="filter-datasets">
+                                    {%- for dataset, _ in datasets -%}
+                                    <div class="checkbox">
+                                        <input type="checkbox" id="dataset-{{ dataset }}" name="dataset-{{ dataset }}" checked/>
+                                        <label for="dataset-{{ dataset }}">{{ dataset|upper }}</label>
+                                    </div>
+                                    {%- endfor -%}
+                                </div>
+                            </fieldset>
+                            
+                            <fieldset>
+                                <legend>Filter settings</legend>
                                 <div class="checkbox">
-                                    <input type="checkbox" id="label-QTY" name="label-QTY" checked/>
-                                    <label for="label-QTY">QTY</label>
+                                    <input type="checkbox" id="case-sensitive" name="case-sensitive"/>
+                                    <label for="case-sensitive">Case-sensitive</label>
                                 </div>
                                 <div class="checkbox">
-                                    <input type="checkbox" id="label-UNIT" name="label-UNIT" checked/>
-                                    <label for="label-UNIT">UNIT</label>
+                                    <input type="checkbox" id="whole-word" name="whole-word" checked/>
+                                    <label for="whole-word">Whole word</label>
                                 </div>
-                                <div>
-                                    <input type="checkbox" id="label-NAME" name="label-NAME" checked/>
-                                    <label for="label-NAME">NAME</label>
-                                </div>
-                                <div>
-                                    <input type="checkbox" id="label-SIZE" name="label-SIZE" checked/>
-                                    <label for="label-SIZE">SIZE</label>
-                                </div>
-                                <div class="checkbox">
-                                    <input type="checkbox" id="label-PREP" name="label-PREP" checked/>
-                                    <label for="label-PREP">PREP</label>
-                                </div>
-                                <div class="checkbox">
-                                    <input type="checkbox" id="label-COMMENT" name="label-COMMENT" checked/>
-                                    <label for="label-COMMENT">COMMENT</label>
-                                </div>
-                                <div class="checkbox">
-                                    <input type="checkbox" id="label-OTHER" name="label-OTHER" checked/>
-                                    <label for="label-OTHER">OTHER</label>
-                                </div>
-                            </div>
-                        </fieldset>
-                        
-                        <fieldset>
-                            <legend>Datasets to apply filter to</legend>
-                            <div class="filter-datasets">
-                                {%- for dataset, _ in datasets -%}
-                                <div class="checkbox">
-                                    <input type="checkbox" id="dataset-{{ dataset }}" name="dataset-{{ dataset }}" checked/>
-                                    <label for="dataset-{{ dataset }}">{{ dataset|upper }}</label>
-                                </div>
-                                {%- endfor -%}
-                            </div>
-                        </fieldset>
-                        
-                        <fieldset>
-                            <legend>Filter settings</legend>
-                            <div class="checkbox">
-                                <input type="checkbox" id="case-sensitive" name="case-sensitive"/>
-                                <label for="case-sensitive">Case-sensitive</label>
-                            </div>
-                            <div class="checkbox">
-                                <input type="checkbox" id="whole-word" name="whole-word" checked/>
-                                <label for="whole-word">Whole word</label>
-                            </div>
-                        </fieldset>
-                    </div>
-
-                    <div class="searchbox">
-                        <label for="filter-string">Search string</label>
-                        <input id="filter-string" name="filter-string" type="search" autocopmlete="off"/>
-                    </div>
-                    <button type="submit">Filter</button>
-                </form>
-            </section>
-
-            <section id="insert">
-                <h2>Insert</h2>
-                <p>Insert new training sentences into the database. Add one sentence per line.</p>
-                <form action="/insert" method="post">
-                    <fieldset>
-                        <legend>Dataset to insert sentences to</legend>
-                        <select name="insert-dataset">
-                            {%- for dataset, _ in datasets -%}
-                            <option value="{{ dataset }}">{{ dataset }}</option>
-                            {%- endfor -%}
-                        </select>
-                    </fieldset>
-                    <fieldset>
-                        <legend>Labelling options</legend>
-                        <div class="checkbox">
-                            <input type="checkbox" id="guess-labels" name="guess-labels"/>
-                            <label for="guess-labels">Use current model to guess labels</label>
+                            </fieldset>
                         </div>
-                    </fieldset>
-                    <textarea id="insert-sentences" name="insert-sentences"></textarea>
-                    <button type="submit">Insert</button>
-                </form>
-            </section>
+
+                        <div class="searchbox">
+                            <label for="filter-string">Search string</label>
+                            <input id="filter-string" name="filter-string" type="search" autocopmlete="off"/>
+                        </div>
+                        <button type="submit">Filter</button>
+                    </form>
+                </section>
+            </div>
+
+            <div class="column">
+                <section id="insert">
+                    <h2>Insert</h2>
+                    <p>Insert new training sentences into the database. Add one sentence per line.</p>
+                    <form action="/insert" method="post">
+                        <fieldset>
+                            <legend>Dataset to insert sentences to</legend>
+                            <select name="insert-dataset">
+                                {%- for dataset, _ in datasets -%}
+                                <option value="{{ dataset }}">{{ dataset }}</option>
+                                {%- endfor -%}
+                            </select>
+                        </fieldset>
+                        <fieldset>
+                            <legend>Labelling options</legend>
+                            <div class="checkbox">
+                                <input type="checkbox" id="guess-labels" name="guess-labels"/>
+                                <label for="guess-labels">Use current model to guess labels</label>
+                            </div>
+                        </fieldset>
+                        <textarea id="insert-sentences" name="insert-sentences"></textarea>
+                        <button type="submit">Insert</button>
+                    </form>
+                </section>
+            </div>
         </main>
     </body>
     <script type="text/javascript">  
