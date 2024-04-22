@@ -3,6 +3,7 @@
 import json
 import sqlite3
 import sys
+from collections import defaultdict
 from pathlib import Path
 
 # Ensure the local ingredient_parser package can be found
@@ -35,7 +36,7 @@ def load_from_db() -> list[dict[str, str]]:
     return rows
 
 
-def validate_tokens(calculated_tokens: list[str], stored_tokens: list[str]) -> None:
+def validate_tokens(calculated_tokens: list[str], stored_tokens: list[str]) -> bool:
     """Validate that that tokens stored in the database are the same as the tokens
     obtained from the PreProcessor.
 
@@ -58,7 +59,7 @@ def validate_tokens(calculated_tokens: list[str], stored_tokens: list[str]) -> N
 
 def validate_token_label_length(
     calculated_tokens: list[str], stored_labels: list[str]
-) -> None:
+) -> bool:
     """Validate that that number of tokens and number of labels are the same.
 
     Parameters
@@ -76,6 +77,44 @@ def validate_token_label_length(
     return True
 
 
+def validate_duplicate_sentences(rows: list[dict]) -> int:
+    """Validate the duplicate sentences have the same labels.
+
+    Parameters
+    ----------
+    rows : list[dict]
+        List of database rows
+
+    Returns
+    -------
+    int
+        Number of duplicate sentences with mismatching labels
+    """
+    labels_dict = defaultdict(set)
+    uids_dict = defaultdict(set)
+    for row in rows:
+        uid = row["id"]
+        sentence = row["sentence"]
+        labels = "|".join(row["labels"])
+
+        labels_dict[sentence].add(labels)
+        uids_dict[sentence].add(uid)
+
+    errors = 0
+    for sentence, labels in labels_dict.items():
+        if len(labels) > 1:
+            uids = uids_dict[sentence]
+            unpacked_labels = [labs.split("|") for labs in labels]
+
+            print(f"[ERROR] ID: {','.join(uids)}")
+            print("\tDuplicate sentences have different labels")
+            print(f"\t{unpacked_labels}")
+
+            errors += 1
+
+    return errors
+
+
 if __name__ == "__main__":
     rows = load_from_db()
 
@@ -89,8 +128,13 @@ if __name__ == "__main__":
         if not validate_token_label_length(p.tokenized_sentence, row["labels"]):
             token_label_errors += 1
 
+    duplicate_sentence_errors = validate_duplicate_sentences(rows)
+
     if token_errors > 0:
         print(f"{token_errors} token errors")
 
     if token_label_errors > 0:
         print(f"{token_label_errors} token-label length mismatch errors")
+
+    if duplicate_sentence_errors > 0:
+        print(f"{duplicate_sentence_errors} duplicate sentences with mismatched labels")
