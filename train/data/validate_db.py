@@ -46,6 +46,11 @@ def validate_tokens(calculated_tokens: list[str], stored_tokens: list[str]) -> b
         Tokens calculated using PreProcessor
     stored_tokens : list[str]
         Token stored in database
+
+    Returns
+    -------
+    bool
+        True if no error, else False.
     """
     if calculated_tokens != stored_tokens:
         print(f"[ERROR] ID: {row['id']} [{row['source']}]")
@@ -68,6 +73,11 @@ def validate_token_label_length(
         Tokens calculated using PreProcessor
     stored_labels : list[str]
         Labels stored in database
+
+    Returns
+    -------
+    bool
+        True if no error, else False.
     """
     if len(calculated_tokens) != len(stored_labels):
         print(f"[ERROR] ID: {row['id']} [{row['source']}]")
