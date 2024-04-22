@@ -259,7 +259,9 @@ def check_label_consistency(args: argparse.Namespace) -> None:
     args : argparse.Namespace
         Cleaning utility configuration
     """
-    vectors = load_datasets(args.database, args.datasets, discard_other=False)
+    vectors = load_datasets(
+        args.database, args.table, args.datasets, discard_other=False
+    )
     sentences = vectors.sentences
     sentence_source = [(source, i) for i, source in enumerate(vectors.source)]
 
