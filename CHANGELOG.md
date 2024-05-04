@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.1.0-beta11
+
+### General
+
+* Refactor package structure to make it more suitable for expansion to over languages. **Note:** There aren't any plans to support other languages yet.
+
+### Model
+
+* Reduce duplication in training data
+
 ## 0.1.0-beta10
 
 ### Bugfix
@@ -39,7 +49,7 @@ Fix incorrect python version specifier in package which was preventing pip in Py
     - MULTIPLIER is set to True for quantities like `1x`
   - Conversion of quantity field to `float` where possible
 - PreProcessor improvements 
-  - Be aggressive about replacing written numbers (e.g. one) with the digit version. For example, in sentences like `1 tsp Chinese five-spice`, `five-spice` is now kept as written instead of being replaced by two tokens: `5 spice`.
+  - Be less aggressive about replacing written numbers (e.g. one) with the digit version. For example, in sentences like `1 tsp Chinese five-spice`, `five-spice` is now kept as written instead of being replaced by two tokens: `5 spice`.
   - Improve handling of ranges that duplicate the units e.g. `1 pound to 2 pound` is now returned as `1-2 pound`
 
 
