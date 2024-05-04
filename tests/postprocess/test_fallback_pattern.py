@@ -48,29 +48,6 @@ class TestPostProcessor_fallback_pattern:
 
         assert p._fallback_pattern(idx, tokens, labels, scores) == expected
 
-    def test_comma_before_unit(self, p):
-        """
-        Test that a single IngredientAmount object with no quantity and
-        unit "large" is returned.
-        """
-
-        tokens = ["1", "green", ",", "large", "pepper"]
-        labels = ["QTY", "NAME", "PUNC", "UNIT", "NAME"]
-        scores = [0] * len(tokens)
-        idx = list(range(len(tokens)))
-
-        expected = [
-            ingredient_amount_factory(
-                quantity="1",
-                unit="large",
-                text="1 large",
-                confidence=0,
-                starting_index=0,
-            )
-        ]
-
-        assert p._fallback_pattern(idx, tokens, labels, scores) == expected
-
     def test_no_quantity(self, p):
         """
         Test that a single IngredientAmount object with no quantity and

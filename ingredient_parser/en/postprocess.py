@@ -765,11 +765,6 @@ class PostProcessor:
                         )
                     )
 
-                if i > 0 and tokens[i - 1] == "," and amounts[-1].unit != []:
-                    # If the previous token was a comma, and the last amount has a unit,
-                    # append comma to unit of last IngredientAmount
-                    amounts[-1].unit.append(",")
-
                 # Append token and score for unit to last IngredientAmount
                 amounts[-1].unit.append(token)
                 amounts[-1].confidence.append(score)
