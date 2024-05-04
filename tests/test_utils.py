@@ -1,6 +1,5 @@
-import pint
-
 from ingredient_parser.en._utils import (
+    UREG,
     convert_to_pint_unit,
     pluralise_units,
 )
@@ -44,40 +43,45 @@ class Test_convert_to_pint_unit:
         This doesn't need to be comprehensive because we don't need to test
         pint works.
         """
-        assert convert_to_pint_unit("g") == pint.Unit("g")
-        assert convert_to_pint_unit("gram") == pint.Unit("g")
-        assert convert_to_pint_unit("grams") == pint.Unit("g")
-        assert convert_to_pint_unit("oz") == pint.Unit("oz")
-        assert convert_to_pint_unit("ounce") == pint.Unit("oz")
-        assert convert_to_pint_unit("ounces") == pint.Unit("oz")
+        assert convert_to_pint_unit("g") == UREG("g").units
+        assert convert_to_pint_unit("gram") == UREG("g").units
+        assert convert_to_pint_unit("grams") == UREG("g").units
+        assert convert_to_pint_unit("oz") == UREG("oz").units
+        assert convert_to_pint_unit("ounce") == UREG("oz").units
+        assert convert_to_pint_unit("ounces") == UREG("oz").units
 
     def test_modified_cases(self):
         """
-        Test fluid ounce variations are correctly matched to pint.Unit("fluid ounce")
+        Test fluid ounce variations are correctly matched to UREG("fluid ounce")
         """
-        assert convert_to_pint_unit("fl oz") == pint.Unit("fluid_ounce")
-        assert convert_to_pint_unit("fluid oz") == pint.Unit("fluid_ounce")
-        assert convert_to_pint_unit("fl ounce") == pint.Unit("fluid_ounce")
-        assert convert_to_pint_unit("fluid ounce") == pint.Unit("fluid_ounce")
+        assert convert_to_pint_unit("fl oz") == UREG("fluid_ounce").units
+        assert convert_to_pint_unit("fluid oz") == UREG("fluid_ounce").units
+        assert convert_to_pint_unit("fl ounce") == UREG("fluid_ounce").units
+        assert convert_to_pint_unit("fluid ounce") == UREG("fluid_ounce").units
 
     def test_imperial_units(self):
         """
         Test that imperial units are returned where appropriate
         """
-        assert convert_to_pint_unit("fl oz", imperial_units=True) == pint.Unit(
-            "imperial_fluid_ounce"
+        assert (
+            convert_to_pint_unit("fl oz", imperial_units=True)
+            == UREG("imperial_fluid_ounce").units
         )
-        assert convert_to_pint_unit("cup", imperial_units=True) == pint.Unit(
-            "imperial_cup"
+        assert (
+            convert_to_pint_unit("cup", imperial_units=True)
+            == UREG("imperial_cup").units
         )
-        assert convert_to_pint_unit("quart", imperial_units=True) == pint.Unit(
-            "imperial_quart"
+        assert (
+            convert_to_pint_unit("quart", imperial_units=True)
+            == UREG("imperial_quart").units
         )
-        assert convert_to_pint_unit("pint", imperial_units=True) == pint.Unit(
-            "imperial_pint"
+        assert (
+            convert_to_pint_unit("pint", imperial_units=True)
+            == UREG("imperial_pint").units
         )
-        assert convert_to_pint_unit("gallon", imperial_units=True) == pint.Unit(
-            "imperial_gallon"
+        assert (
+            convert_to_pint_unit("gallon", imperial_units=True)
+            == UREG("imperial_gallon").units
         )
 
     def test_unit_with_hypen(self):

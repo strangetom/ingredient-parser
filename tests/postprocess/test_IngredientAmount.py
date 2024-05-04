@@ -1,6 +1,4 @@
-import pint
-
-from ingredient_parser.en._utils import ingredient_amount_factory
+from ingredient_parser.en._utils import UREG, ingredient_amount_factory
 
 
 class TestPostProcessor_IngredientAmount:
@@ -76,5 +74,5 @@ class TestPostProcessor_IngredientAmount:
             starting_index=0,
         )
 
-        assert amount.unit == pint.Unit("gram")
+        assert amount.unit == UREG("gram").units
         assert amount.text == "200 grams"

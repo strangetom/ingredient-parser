@@ -178,7 +178,7 @@ def convert_to_pint_unit(unit: str, imperial_units: bool = False) -> str | pint.
     # If unit not empty string and found in Unit Registry,
     # return pint.Unit object for unit
     if unit != "" and unit in UREG:
-        return pint.Unit(unit)
+        return UREG(unit).units
 
     return unit
 
