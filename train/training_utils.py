@@ -48,6 +48,7 @@ class TokenStats:
     UNIT: Metrics
     SIZE: Metrics
     COMMENT: Metrics
+    PURPOSE: Metrics
     PREP: Metrics
     PUNC: Metrics
     macro_avg: Metrics

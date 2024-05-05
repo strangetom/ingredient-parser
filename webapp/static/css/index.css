@@ -48,6 +48,9 @@ input {
 .PUNC {
   --color: var(--gray);
 }
+.PURPOSE {
+  --color: var(--red-alt);
+}
 .AMOUNT {
   /* Mix of --green and --yellow */
   --color: #B8981E;

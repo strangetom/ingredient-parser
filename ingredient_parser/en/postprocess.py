@@ -151,6 +151,7 @@ class PostProcessor:
         name = self._postprocess("NAME")
         preparation = self._postprocess("PREP")
         comment = self._postprocess("COMMENT")
+        purpose = self._postprocess("PURPOSE")
 
         return ParsedIngredient(
             name=name,
@@ -158,6 +159,7 @@ class PostProcessor:
             amount=amounts,
             preparation=preparation,
             comment=comment,
+            purpose=purpose,
             sentence=self.sentence,
         )
 

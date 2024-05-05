@@ -25,6 +25,7 @@
                 <span class="SIZE">Size</span>
                 <span class="PREP">Prep</span>
                 <span class="COMMENT">Comment</span>
+                <span class="PURPOSE">Purpose</span>
                 <span class="PUNC">Punc</span>
                 <span class="flag">1</span> Singular
                 <span class="flag">~</span> Approximate
@@ -115,6 +116,16 @@
                             {%- endif -%}
                         </td>
                     </tr>
+                    <tr>
+                        <td class="type PURPOSE">Purpose</td>
+                        <td>
+                            {{ purpose.text }}
+                            {%- if purpose.confidence > 0 -%}
+                            <span class="confidence PURPOSE">
+                                {{ "%.2f"|format(100*purpose.confidence) }}%
+                            </span>
+                            {%- endif -%}
+                        </td>
                     </tr>
                 </tbody>
             </table>

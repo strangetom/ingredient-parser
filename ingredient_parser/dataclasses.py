@@ -157,6 +157,9 @@ class ParsedIngredient:
     comment : IngredientText | None
         Ingredient comment parsed from input sentence.
         If no ingredient comment was found, this is None.
+    purpose : IngredientText | None
+        The purpose of the ingredient parsed from the sentence.
+        If no purpose was found, this is None.
     sentence : str
         Normalised input sentence
     """
@@ -166,6 +169,7 @@ class ParsedIngredient:
     amount: list[IngredientAmount]
     preparation: IngredientText | None
     comment: IngredientText | None
+    purpose: IngredientText | None
     sentence: str
 
 
