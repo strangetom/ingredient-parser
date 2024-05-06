@@ -104,6 +104,7 @@ def write_csv(path: str, csv_rows: list[dict]) -> None:
             "size",
             "preparation",
             "comment",
+            "purpose",
         ]
         writer = csv.DictWriter(f, fieldnames, lineterminator="\n")
         writer.writeheader()
@@ -135,6 +136,7 @@ if __name__ == "__main__":
             csv_rows[index]["size"] = create_csv_value(db_row, "SIZE")
             csv_rows[index]["preparation"] = create_csv_value(db_row, "PREP")
             csv_rows[index]["comment"] = create_csv_value(db_row, "COMMENT")
+            csv_rows[index]["purpose"] = create_csv_value(db_row, "PURPOSE")
 
             # Set value at index to None so we can't match it again if there are
             # duplicate sentences
