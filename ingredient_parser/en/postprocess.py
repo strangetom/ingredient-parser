@@ -184,6 +184,14 @@ class PostProcessor:
             if label in [selected, "PUNC"] and i not in self.consumed
         ]
 
+        # If idx is empty or all the selected idx are PUNC, return None
+        if not idx or all(self.labels[i] == "PUNC" for i in idx):
+            return None
+
+        # Discard (certain) leading punctuation
+        while self.tokens[idx[0]] in [".", ",", ":", ";", "-"]:
+            idx = idx[1:]
+
         # Join consecutive tokens together and average their score
         parts = []
         confidence_parts = []
@@ -196,6 +204,11 @@ class PostProcessor:
                 # Discard part if it's a stop word
                 continue
 
+            if all(self.labels[i] == "PUNC" for i in idx):
+                # Discard if the group only contains PUNC
+                continue
+
+            self.consumed.extend(idx)
             parts.append(joined)
             confidence_parts.append(confidence)
 
@@ -300,7 +313,7 @@ class PostProcessor:
         text = text.replace("( ", "(").replace(" )", ")")
 
         # Correct space preceeding various punctuation
-        for punc in [",", ":", ";"]:
+        for punc in [",", ":", ";", "."]:
             text = text.replace(f" {punc}", punc)
 
         # Remove parentheses that aren't part of a matching pair
@@ -321,10 +334,6 @@ class PostProcessor:
         # Insert anything left in stack into idx_to_remove
         idx_to_remove.extend(stack)
         text = "".join(char for i, char in enumerate(text) if i not in idx_to_remove)
-
-        # Remove leading comma, colon, semi-colon, hyphen
-        while text[0] in [",", ";", ":", "-"]:
-            text = text[1:].strip()
 
         # Remove trailing comma, colon, semi-colon, hypehn
         while text[-1] in [",", ";", ":", "-"]:
@@ -864,6 +873,16 @@ class PostProcessor:
             # Mark i - 1 element as consumed
             self.consumed.append(idx[i - 1])
             return True
+        elif (
+            labels[i] == "QTY"
+            and tokens[i - 1] == "."
+            and tokens[i - 2].lower() in APPROXIMATE_TOKENS
+        ):
+            # Special case for "approx."
+            # Mark i - 1 and i - 2 elements as consumed
+            self.consumed.append(idx[i - 1])
+            self.consumed.append(idx[i - 2])
+            return True
 
         return False
 
@@ -961,8 +980,8 @@ class PostProcessor:
         >>> p = PostProcessor("", [], [], [])
         >>> p._is_approximate(
             1,
-            ["nearly", "3", "oz", "each"],
-            ["COMMENT", "QTY", "UNIT", "COMMENT"],
+            ["each", nearly", "3", "oz"],
+            ["COMMENT", "COMMENT", "QTY", "UNIT"],
             [0, 1, 2, 3]
         )
         True

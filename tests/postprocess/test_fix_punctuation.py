@@ -24,13 +24,6 @@ def p():
 
 
 class TestPostProcessor_fix_punctuation:
-    def test_leading_comma(self, p):
-        """
-        Test leading comma and space are removed
-        """
-        input_sentence = ", finely chopped"
-        assert p._fix_punctuation(input_sentence) == "finely chopped"
-
     def test_trailing_comma(self, p):
         """
         Test trailing comma is removed
