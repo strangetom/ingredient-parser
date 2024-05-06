@@ -101,3 +101,40 @@ class TestTokenize:
             "105°F",
             ")",
         ]
+
+    def test_full_stop(self):
+        """
+        Test full stop at end of sentence is separated from prior word.
+        """
+        sentence = "Freshly grated Parmesan cheese, for garnish."
+        assert tokenize(sentence) == [
+            "Freshly",
+            "grated",
+            "Parmesan",
+            "cheese",
+            ",",
+            "for",
+            "garnish",
+            ".",
+        ]
+
+    def test_full_stop_acronym(self):
+        """
+        Test full stop at end of acronym is not separated.
+        """
+        sentence = "Sprigs of herbs (e.g., rosemary, thyme, or oregano)"
+        assert tokenize(sentence) == [
+            "Sprigs",
+            "of",
+            "herbs",
+            "(",
+            "e.g.",
+            ",",
+            "rosemary",
+            ",",
+            "thyme",
+            ",",
+            "or",
+            "oregano",
+            ")",
+        ]

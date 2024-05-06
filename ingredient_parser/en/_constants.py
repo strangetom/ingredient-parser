@@ -406,7 +406,6 @@ STOP_WORDS = {
 APPROXIMATE_TOKENS = [
     "about",
     "approx",
-    "approx.",
     "approximately",
     "nearly",
     "roughly",
