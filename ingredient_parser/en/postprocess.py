@@ -198,9 +198,18 @@ class PostProcessor:
         for group in self._group_consecutive_idx(idx):
             idx = list(group)
 
-            if len(idx) > 1 and self.tokens[idx[-1]] in ["[", "(", "{"]:
-                # If last token in group with more than 1 element is opening brackets,
-                # then remove from group so it doesn't get consumed incorrectly.
+            if len(idx) > 1 and self.tokens[idx[-1]] in [
+                "[",
+                "(",
+                "{",
+                ",",
+                ":",
+                ";",
+                "-",
+            ]:
+                # If last token in group with more than 1 element is punctuation,
+                # that shouldn't be at the end of a phrase, then remove from group
+                # so it doesn't get consumed incorrectly.
                 idx = idx[:-1]
 
             joined = " ".join([self.tokens[i] for i in idx])
@@ -337,7 +346,7 @@ class PostProcessor:
                     # Remove last added index from stack when we find a closing parens
                     stack.pop()
 
-        # Insert anything left in stack into idx_to_remove
+        # Insert anything left in stack into idx_to_remove and remove
         idx_to_remove.extend(stack)
         text = "".join(char for i, char in enumerate(text) if i not in idx_to_remove)
 
