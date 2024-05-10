@@ -289,7 +289,7 @@ def check_label_consistency(args: argparse.Namespace) -> None:
                 "cluster",
                 HDBSCAN(
                     min_cluster_size=15,
-                    cluster_selection_epsilon=0.5,
+                    cluster_selection_epsilon=0.4,
                     n_jobs=4,
                     cluster_selection_method="leaf",
                 ),
