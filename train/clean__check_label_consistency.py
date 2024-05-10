@@ -3,9 +3,12 @@
 import argparse
 import re
 import xml.etree.ElementTree as ET
+from collections import Counter
 from itertools import chain
 
-from tqdm import tqdm
+from sklearn.cluster import HDBSCAN
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.pipeline import Pipeline
 
 from .training_utils import load_datasets
 
@@ -51,39 +54,6 @@ def tokenize(sentence: str) -> list[str]:
     return [tok for tok in chain.from_iterable(tokens) if tok]
 
 
-def score_sentence_similarity(first: str, second: str) -> float:
-    """Calculate Dice coefficient for two strings.
-
-    The dice coefficient is a measure of similarity determined by calculating
-    the proportion of shared bigrams.
-
-    Parameters
-    ----------
-    first : str
-        First string
-    second : str
-        Second string
-
-    Returns
-    -------
-    float
-        Similarity score between 0 and 1.
-        0 means the two strings do not share any bigrams.
-        1 means the two strings are identical.
-    """
-
-    if first == second:
-        # Indentical sentences have maximum score of 1
-        return 1
-
-    first_tokens = set(tokenize(first))
-    second_tokens = set(tokenize(second))
-
-    intersection = first_tokens & second_tokens
-
-    return 2.0 * len(intersection) / (len(first_tokens) + len(second_tokens))
-
-
 def create_html_table(
     indices: list[int],
     sentences: list[str],
@@ -116,6 +86,7 @@ def create_html_table(
         "Unit",
         "Preparation",
         "Comment",
+        "Purpose",
     ]:
         td = ET.Element("td", attrib={"class": "row-heading"})
         td.text = heading
@@ -123,8 +94,10 @@ def create_html_table(
 
     table.append(header_tr)
 
-    for idx in indices:
-        sentence = sentences[idx]
+    # Sort sentences
+    sorted_idx = sorted([(sentences[idx], idx) for idx in indices], key=lambda x: x[0])
+
+    for sentence, idx in sorted_idx:
         dataset, dataset_idx = sentence_source[idx]
 
         tr = ET.Element("tr")
@@ -177,13 +150,19 @@ def create_html_table(
         )
         tr.append(comment_td)
 
+        purpose_td = ET.Element("td", attrib={"class": "row"})
+        purpose_td.text = " ".join(
+            [tok for tok, label in zip(tokens[idx], labels[idx]) if label == "PURPOSE"]
+        )
+        tr.append(purpose_td)
+
         table.append(tr)
 
     return table
 
 
 def results_to_html(
-    similar: dict[int, list[int]],
+    similar: list[int],
     sentences: list[str],
     labels: list[list[str]],
     tokens: list[list[str]],
@@ -194,8 +173,8 @@ def results_to_html(
 
     Parameters
     ----------
-    similar : dict[int, list[int]]
-        Dictionary of sentence index and list of similar sentence indices
+    similar : list[int]
+        List of similar sentence indices
     sentences : list[str]
         List of ingredient sentences
     labels : list[dict[str, str]]
@@ -239,8 +218,7 @@ def results_to_html(
     heading.text = "Similar sentences and their labels"
     body.append(heading)
 
-    for k, v in similar.items():
-        idx = [k] + v
+    for idx in similar:
         table = create_html_table(idx, sentences, labels, tokens, sentence_source)
         body.append(table)
 
@@ -248,6 +226,30 @@ def results_to_html(
     with open("consistency_results.html", "w") as f:
         f.write("<!DOCTYPE html>\n")
         f.write(ET.tostring(html, encoding="unicode", method="html"))
+
+
+def cluster_sentence_ids(model, sources: list[tuple[str, int]], cluster_id: int):
+    """Return list of IDs for sentence in cluster.
+
+    Parameters
+    ----------
+    model : TYPE
+        Description
+    sources : list[tuple[str, int]]
+        Description
+    cluster_id : int
+        ID of cluster to return sentence IDs for
+
+    Returns
+    -------
+    list[int]
+        List of sentence ids for cluster
+    """
+    return [
+        uid
+        for label, (source, uid) in zip(model.labels_, sources)
+        if label == cluster_id
+    ]
 
 
 def check_label_consistency(args: argparse.Namespace) -> None:
@@ -265,37 +267,31 @@ def check_label_consistency(args: argparse.Namespace) -> None:
     sentences = vectors.sentences
     sentence_source = [(source, i) for i, source in enumerate(vectors.source)]
 
-    similar = {}
-    unmatched_indices = set(range(len(sentences)))
-    # This set contains the index of each entry in the dataframe
-    # Once an input has been matched, we will remove it's index from this set
-    # If the index is not in the set, we cannot match it again,
-    # nor will we find matches for it
-    for i, sentence in tqdm(
-        enumerate(sentences), total=len(sentences), unit="sentence"
-    ):
-        if i not in unmatched_indices:
+    pipeline = Pipeline(
+        steps=[
+            ("vectorize", TfidfVectorizer(tokenizer=tokenize, token_pattern=None)),
+            (
+                "cluster",
+                HDBSCAN(
+                    min_cluster_size=15,
+                    cluster_selection_epsilon=0.5,
+                    n_jobs=4,
+                    cluster_selection_method="leaf",
+                ),
+            ),
+        ],
+        verbose=True,
+    )
+    pipeline.fit(sentences)
+    model = pipeline.named_steps.get("cluster")
+    label_counts = Counter(model.labels_)
+
+    similar = []
+    for label, _ in label_counts.most_common():
+        if label == -1:
             continue
 
-        unmatched_indices.remove(i)
+        ids = cluster_sentence_ids(model, sentence_source, label)
+        similar.append(ids)
 
-        scores = [score_sentence_similarity(sentence, other) for other in sentences[i:]]
-        matches = [
-            i + j
-            for j, score in enumerate(scores)
-            if score > 0.85 and i + j in unmatched_indices
-        ]
-
-        for m in matches:
-            unmatched_indices.remove(m)
-
-        if len(matches) > 0:
-            similar[i] = matches
-
-    max_similarity = dict(
-        sorted(similar.items(), key=lambda item: len(item[1]), reverse=True)
-    )
-
-    results_to_html(
-        max_similarity, sentences, vectors.labels, vectors.tokens, sentence_source
-    )
+    results_to_html(similar, sentences, vectors.labels, vectors.tokens, sentence_source)
