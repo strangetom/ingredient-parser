@@ -7,6 +7,7 @@ from random import randint
 
 from train import (
     check_label_consistency,
+    feature_search,
     grid_search,
     train_multiple,
     train_single,
@@ -255,6 +256,62 @@ if __name__ == "__main__":
         default=dict(),
     )
 
+    featuresearch_parser_help = "Grid search over all sets of model features."
+    featuresearch_parser = subparsers.add_parser(
+        "featuresearch", help=featuresearch_parser_help
+    )
+    featuresearch_parser.add_argument(
+        "--database",
+        help="Path to database of training data",
+        type=str,
+        dest="database",
+        required=True,
+    )
+    featuresearch_parser.add_argument(
+        "--database-table",
+        help="Name of table in database containing training data",
+        type=str,
+        dest="table",
+        default="en",
+    )
+    featuresearch_parser.add_argument(
+        "--datasets",
+        help="Datasets to use in training and evaluating the model",
+        dest="datasets",
+        nargs="*",
+        default=["bbc", "cookstr", "nyt"],
+    )
+    featuresearch_parser.add_argument(
+        "--split",
+        default=0.20,
+        type=float,
+        help="Fraction of data to be used for testing",
+    )
+    featuresearch_parser.add_argument(
+        "--save-model",
+        default="ingredient_parser/en/model.en.crfsuite",
+        help="Path to save model to",
+    )
+    featuresearch_parser.add_argument(
+        "--keep-models",
+        action="store_true",
+        default=False,
+        help="Keep models after evaluation instead of deleting.",
+    )
+    featuresearch_parser.add_argument(
+        "-p",
+        "--processes",
+        default=os.cpu_count() - 1,
+        type=int,
+        help="Number of processes to spawn. Default to number of cpu cores.",
+    )
+    featuresearch_parser.add_argument(
+        "--seed",
+        default=randint(0, 1_000_000_000),
+        type=int,
+        help="Seed value used for train/test split.",
+    )
+
     utility_help = "Utilities to aid cleaning training data."
     utility_parser = subparsers.add_parser("utility", help=utility_help)
     utility_parser.add_argument(
@@ -292,6 +349,8 @@ if __name__ == "__main__":
         train_multiple(args)
     elif args.command == "gridsearch":
         grid_search(args)
+    elif args.command == "featuresearch":
+        feature_search(args)
     elif args.command == "utility":
         if args.utility == "consistency":
             check_label_consistency(args)
