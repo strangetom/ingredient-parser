@@ -102,6 +102,7 @@ class TestPostProcessor_parsed:
             ],
             preparation=None,
             comment=None,
+            purpose=None,
             sentence="2 14 ounce cans of coconut milk",
         )
 
@@ -137,6 +138,7 @@ class TestPostProcessor_parsed:
             ],
             preparation=None,
             comment=IngredientText(text="of", confidence=0.835286),
+            purpose=None,
             sentence="2 14 ounce cans of coconut milk",
         )
 

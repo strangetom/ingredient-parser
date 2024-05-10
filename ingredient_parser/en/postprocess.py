@@ -151,6 +151,7 @@ class PostProcessor:
         name = self._postprocess("NAME")
         preparation = self._postprocess("PREP")
         comment = self._postprocess("COMMENT")
+        purpose = self._postprocess("PURPOSE")
 
         return ParsedIngredient(
             name=name,
@@ -158,6 +159,7 @@ class PostProcessor:
             amount=amounts,
             preparation=preparation,
             comment=comment,
+            purpose=purpose,
             sentence=self.sentence,
         )
 
@@ -182,11 +184,34 @@ class PostProcessor:
             if label in [selected, "PUNC"] and i not in self.consumed
         ]
 
+        # If idx is empty or all the selected idx are PUNC, return None
+        if not idx or all(self.labels[i] == "PUNC" for i in idx):
+            return None
+
+        # Discard (certain) leading punctuation
+        while self.tokens[idx[0]] in [".", ",", ":", ";", "-"]:
+            idx = idx[1:]
+
         # Join consecutive tokens together and average their score
         parts = []
         confidence_parts = []
         for group in self._group_consecutive_idx(idx):
             idx = list(group)
+
+            if len(idx) > 1 and self.tokens[idx[-1]] in [
+                "[",
+                "(",
+                "{",
+                ",",
+                ":",
+                ";",
+                "-",
+            ]:
+                # If last token in group with more than 1 element is punctuation,
+                # that shouldn't be at the end of a phrase, then remove from group
+                # so it doesn't get consumed incorrectly.
+                idx = idx[:-1]
+
             joined = " ".join([self.tokens[i] for i in idx])
             confidence = mean([self.scores[i] for i in idx])
 
@@ -194,6 +219,11 @@ class PostProcessor:
                 # Discard part if it's a stop word
                 continue
 
+            if all(self.labels[i] == "PUNC" for i in idx):
+                # Discard if the group only contains PUNC
+                continue
+
+            self.consumed.extend(idx)
             parts.append(joined)
             confidence_parts.append(confidence)
 
@@ -298,7 +328,7 @@ class PostProcessor:
         text = text.replace("( ", "(").replace(" )", ")")
 
         # Correct space preceeding various punctuation
-        for punc in [",", ":", ";"]:
+        for punc in [",", ":", ";", "."]:
             text = text.replace(f" {punc}", punc)
 
         # Remove parentheses that aren't part of a matching pair
@@ -316,13 +346,9 @@ class PostProcessor:
                     # Remove last added index from stack when we find a closing parens
                     stack.pop()
 
-        # Insert anything left in stack into idx_to_remove
+        # Insert anything left in stack into idx_to_remove and remove
         idx_to_remove.extend(stack)
         text = "".join(char for i, char in enumerate(text) if i not in idx_to_remove)
-
-        # Remove leading comma, colon, semi-colon, hyphen
-        while text[0] in [",", ";", ":", "-"]:
-            text = text[1:].strip()
 
         # Remove trailing comma, colon, semi-colon, hypehn
         while text[-1] in [",", ";", ":", "-"]:
@@ -862,6 +888,16 @@ class PostProcessor:
             # Mark i - 1 element as consumed
             self.consumed.append(idx[i - 1])
             return True
+        elif (
+            labels[i] == "QTY"
+            and tokens[i - 1] == "."
+            and tokens[i - 2].lower() in APPROXIMATE_TOKENS
+        ):
+            # Special case for "approx."
+            # Mark i - 1 and i - 2 elements as consumed
+            self.consumed.append(idx[i - 1])
+            self.consumed.append(idx[i - 2])
+            return True
 
         return False
 
@@ -959,8 +995,8 @@ class PostProcessor:
         >>> p = PostProcessor("", [], [], [])
         >>> p._is_approximate(
             1,
-            ["nearly", "3", "oz", "each"],
-            ["COMMENT", "QTY", "UNIT", "COMMENT"],
+            ["each", nearly", "3", "oz"],
+            ["COMMENT", "COMMENT", "QTY", "UNIT"],
             [0, 1, 2, 3]
         )
         True

@@ -38,7 +38,7 @@ class TestPostProcessor_is_approximate:
         """
         Test that QTY at index is indicated as approximate
         """
-        tokens = ["approx.", "5", "cups", "orange", "juice"]
+        tokens = ["approx", ".", "5", "cups", "orange", "juice"]
         labels = ["COMMENT", "QTY", "UNIT", "NAME", "NAME"]
         idx = [0, 1, 2, 3, 4]
         assert p._is_approximate(1, tokens, labels, idx)

@@ -160,6 +160,9 @@ select {
 .SIZE {
   --background-color: color-mix(in srgb, var(--orange), #333);
 }
+.PURPOSE {
+  --background-color: color-mix(in srgb, var(--red), #333);
+}
 
 button.delete {
   border: 1px solid var(--red-alt);
