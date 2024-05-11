@@ -241,9 +241,10 @@ def confusion_matrix(
     flat_predictions = list(chain.from_iterable(predictions))
     flat_truths = list(chain.from_iterable(truths))
     labels = list(set(flat_predictions))
+    display_labels = [lab[:4] for lab in labels]
 
     cm = ConfusionMatrixDisplay.from_predictions(
-        flat_truths, flat_predictions, labels=labels
+        flat_truths, flat_predictions, labels=labels, display_labels=display_labels
     )
     cm.figure_.savefig(figure_path)
     print(f"[INFO] Confusion matrix saved to {figure_path}")
