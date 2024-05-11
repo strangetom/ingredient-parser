@@ -1,85 +1,81 @@
-import pytest
-
 from ingredient_parser.en import PostProcessor
 
 
-@pytest.fixture
-def p():
-    """Define a PostProcessor object to use for testing the PostProcessor
-    class methods.
-    """
-    sentence = "2 14 ounce cans coconut milk"
-    tokens = ["2", "14", "ounce", "can", "coconut", "milk"]
-    labels = ["QTY", "QTY", "UNIT", "UNIT", "NAME", "NAME"]
-    scores = [
-        0.9991370577083561,
-        0.9725378063405858,
-        0.9978510889596651,
-        0.9922350007952175,
-        0.9886087821704076,
-        0.9969237827902526,
-    ]
-
-    return PostProcessor(sentence, tokens, labels, scores)
-
-
 class TestPostProcessor_is_approximate:
-    def test_is_approximate_about(self, p):
+    def test_is_approximate_about(self):
         """
         Test that QTY at index is indicated as approximate
         """
+        sentence = "about 5 cups orange juice"
         tokens = ["about", "5", "cups", "orange", "juice"]
         labels = ["COMMENT", "QTY", "UNIT", "NAME", "NAME"]
         idx = [0, 1, 2, 3, 4]
+
+        p = PostProcessor(sentence, tokens, labels, [0] * len(tokens))
         assert p._is_approximate(1, tokens, labels, idx)
         assert p.consumed == [0]
 
-    def test_is_approximate_approx_period(self, p):
+    def test_is_approximate_approx_period(self):
         """
         Test that QTY at index is indicated as approximate
         """
+        sentence = "approx. 5 cups orange juice"
         tokens = ["approx", ".", "5", "cups", "orange", "juice"]
-        labels = ["COMMENT", "QTY", "UNIT", "NAME", "NAME"]
-        idx = [0, 1, 2, 3, 4]
-        assert p._is_approximate(1, tokens, labels, idx)
-        assert p.consumed == [0]
+        labels = ["COMMENT", "PUNC", "QTY", "UNIT", "NAME", "NAME"]
+        idx = [0, 1, 2, 3, 4, 5]
 
-    def test_is_approximate_approx(self, p):
+        p = PostProcessor(sentence, tokens, labels, [0] * len(tokens))
+        assert p._is_approximate(2, tokens, labels, idx)
+        assert p.consumed == [1, 0]
+
+    def test_is_approximate_approx(self):
         """
         Test that QTY at index is indicated as approximate
         """
+        sentence = "approx 5 cups orange juice"
         tokens = ["approx", "5", "cups", "orange", "juice"]
         labels = ["COMMENT", "QTY", "UNIT", "NAME", "NAME"]
         idx = [0, 1, 2, 3, 4]
+
+        p = PostProcessor(sentence, tokens, labels, [0] * len(tokens))
         assert p._is_approximate(1, tokens, labels, idx)
         assert p.consumed == [0]
 
-    def test_is_approximate_approximately(self, p):
+    def test_is_approximate_approximately(self):
         """
         Test that QTY at index is indicated as approximate
         """
+        sentence = "approximately 5 cups orange juice"
         tokens = ["approximately", "5", "cups", "orange", "juice"]
         labels = ["COMMENT", "QTY", "UNIT", "NAME", "NAME"]
         idx = [0, 1, 2, 3, 4]
+
+        p = PostProcessor(sentence, tokens, labels, [0] * len(tokens))
         assert p._is_approximate(1, tokens, labels, idx)
         assert p.consumed == [0]
 
-    def test_is_approximate_nearly(self, p):
+    def test_is_approximate_nearly(self):
         """
         Test that QTY at index is indicated as approximate
         """
+        sentence = "nearly 5 cups orange juice"
         tokens = ["nearly", "5", "cups", "orange", "juice"]
         labels = ["COMMENT", "QTY", "UNIT", "NAME", "NAME"]
         idx = [0, 1, 2, 3, 4]
+
+        p = PostProcessor(sentence, tokens, labels, [0] * len(tokens))
         assert p._is_approximate(1, tokens, labels, idx)
         assert p.consumed == [0]
 
-    def test_not_approximate(self, p):
+    def test_not_approximate(self):
         """
         Test that QTY at index is not indicated as approximate
         """
+        sentence = "maximum 5 cups orange juice"
         tokens = ["maximum", "5", "cups", "orange", "juice"]
         labels = ["COMMENT", "QTY", "UNIT", "NAME", "NAME"]
         idx = [0, 1, 2, 3, 4]
+
+        p = PostProcessor(sentence, tokens, labels, [0] * len(tokens))
         assert not p._is_approximate(1, tokens, labels, idx)
         assert p.consumed == []
