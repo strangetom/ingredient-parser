@@ -27,6 +27,7 @@ class DataVectors:
     tokens: list[list[str]]
     labels: list[list[str]]
     source: list[str]
+    uids: list[int]
 
 
 @dataclass
@@ -139,7 +140,7 @@ def load_datasets(
 
     PreProcessor = select_preprocessor(table)
 
-    source, sentences, features, tokens, labels = [], [], [], [], []
+    source, sentences, features, tokens, labels, uids = [], [], [], [], [], []
     discarded = 0
     for entry in data:
         if discard_other and "OTHER" in entry["labels"]:
@@ -152,6 +153,7 @@ def load_datasets(
         features.append(p.sentence_features())
         tokens.append(p.tokenized_sentence)
         labels.append(entry["labels"])
+        uids.append(entry["id"])
 
         # Ensure length of tokens and length of labels are the same
         if len(p.tokenized_sentence) != len(entry["labels"]):
@@ -165,7 +167,7 @@ def load_datasets(
 
     print(f"[INFO] {len(sentences):,} usable vectors.")
     print(f"[INFO] {discarded:,} discarded due to OTHER labels.")
-    return DataVectors(sentences, features, tokens, labels, source)
+    return DataVectors(sentences, features, tokens, labels, source, uids)
 
 
 def evaluate(predictions: list[list[str]], truths: list[list[str]]) -> Stats:

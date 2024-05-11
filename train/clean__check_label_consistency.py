@@ -10,7 +10,7 @@ from sklearn.cluster import HDBSCAN
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.pipeline import Pipeline
 
-from .training_utils import load_datasets
+from .training_utils import DataVectors, load_datasets
 
 # Define regular expressions used by tokenizer.
 # Matches one or more whitespace characters
@@ -69,13 +69,7 @@ def tokenize(sentence: str) -> list[str]:
     return [tok for tok in chain.from_iterable(tokens) if tok]
 
 
-def create_html_table(
-    indices: list[int],
-    sentences: list[str],
-    labels: list[list[str]],
-    tokens: list[list[str]],
-    sentence_source: list[tuple[str, int]],
-) -> ET.Element:
+def create_html_table(indices: list[int], vectors: DataVectors) -> ET.Element:
     """Create HTM table to show similar sentences and their labels
 
     Parameters
@@ -93,7 +87,7 @@ def create_html_table(
     header_tr = ET.Element("tr")
     for heading in [
         "Dataset",
-        "Index",
+        "ID",
         "Sentence",
         "Name",
         "Size",
@@ -103,17 +97,22 @@ def create_html_table(
         "Comment",
         "Purpose",
     ]:
-        td = ET.Element("td", attrib={"class": "row-heading"})
-        td.text = heading
-        header_tr.append(td)
+        th = ET.Element("th")
+        th.text = heading
+        header_tr.append(th)
 
     table.append(header_tr)
 
-    # Sort sentences
-    sorted_idx = sorted([(sentences[idx], idx) for idx in indices], key=lambda x: x[0])
+    # Sort indices according to sentences
+    sentences = [vectors.sentences[idx] for idx in indices]
+    sorted_idx = [idx for _, idx in sorted(zip(sentences, indices), key=lambda x: x[0])]
 
-    for sentence, idx in sorted_idx:
-        dataset, dataset_idx = sentence_source[idx]
+    for idx in sorted_idx:
+        sentence = vectors.sentences[idx]
+        tokens = vectors.tokens[idx]
+        labels = vectors.labels[idx]
+        dataset = vectors.source[idx]
+        uid = vectors.uids[idx]
 
         tr = ET.Element("tr")
 
@@ -122,52 +121,52 @@ def create_html_table(
         tr.append(dataset_td)
 
         index_td = ET.Element("td", attrib={"class": "row"})
-        index_td.text = str(dataset_idx + 2)
+        index_td.text = str(uid)
         tr.append(index_td)
 
         sentence_td = ET.Element("td", attrib={"class": "row"})
         sentence_td.text = sentence
         tr.append(sentence_td)
 
-        name_td = ET.Element("td", attrib={"class": "row"})
+        name_td = ET.Element("td", attrib={"class": "row NAME"})
         name_td.text = " ".join(
-            [tok for tok, label in zip(tokens[idx], labels[idx]) if label == "NAME"]
+            [tok for tok, label in zip(tokens, labels) if label == "NAME"]
         )
         tr.append(name_td)
 
-        size_td = ET.Element("td", attrib={"class": "row"})
+        size_td = ET.Element("td", attrib={"class": "row SIZE"})
         size_td.text = " ".join(
-            [tok for tok, label in zip(tokens[idx], labels[idx]) if label == "SIZE"]
+            [tok for tok, label in zip(tokens, labels) if label == "SIZE"]
         )
         tr.append(size_td)
 
-        quantity_td = ET.Element("td", attrib={"class": "row"})
+        quantity_td = ET.Element("td", attrib={"class": "row QTY"})
         quantity_td.text = " ".join(
-            [tok for tok, label in zip(tokens[idx], labels[idx]) if label == "QTY"]
+            [tok for tok, label in zip(tokens, labels) if label == "QTY"]
         )
         tr.append(quantity_td)
 
-        unit_td = ET.Element("td", attrib={"class": "row"})
+        unit_td = ET.Element("td", attrib={"class": "row UNIT"})
         unit_td.text = " ".join(
-            [tok for tok, label in zip(tokens[idx], labels[idx]) if label == "UNIT"]
+            [tok for tok, label in zip(tokens, labels) if label == "UNIT"]
         )
         tr.append(unit_td)
 
-        prep_td = ET.Element("td", attrib={"class": "row"})
+        prep_td = ET.Element("td", attrib={"class": "row PREP"})
         prep_td.text = " ".join(
-            [tok for tok, label in zip(tokens[idx], labels[idx]) if label == "PREP"]
+            [tok for tok, label in zip(tokens, labels) if label == "PREP"]
         )
         tr.append(prep_td)
 
-        comment_td = ET.Element("td", attrib={"class": "row"})
+        comment_td = ET.Element("td", attrib={"class": "row COMMENT"})
         comment_td.text = " ".join(
-            [tok for tok, label in zip(tokens[idx], labels[idx]) if label == "COMMENT"]
+            [tok for tok, label in zip(tokens, labels) if label == "COMMENT"]
         )
         tr.append(comment_td)
 
-        purpose_td = ET.Element("td", attrib={"class": "row"})
+        purpose_td = ET.Element("td", attrib={"class": "row PURPOSE"})
         purpose_td.text = " ".join(
-            [tok for tok, label in zip(tokens[idx], labels[idx]) if label == "PURPOSE"]
+            [tok for tok, label in zip(tokens, labels) if label == "PURPOSE"]
         )
         tr.append(purpose_td)
 
@@ -176,19 +175,14 @@ def create_html_table(
     return table
 
 
-def results_to_html(
-    similar: list[int],
-    sentences: list[str],
-    labels: list[list[str]],
-    tokens: list[list[str]],
-    sentence_source: list[tuple[str, int]],
-) -> None:
+def results_to_html(similar: list[list[int]], vectors: DataVectors) -> None:
     """Output similarity results to html file.
+
     The file contains a table for each group of similar sentences
 
     Parameters
     ----------
-    similar : list[int]
+    similar : list[list[int]]
         List of similar sentence indices
     sentences : list[str]
         List of ingredient sentences
@@ -214,17 +208,40 @@ def results_to_html(
       border-collapse: collapse;
       border: black 3px solid;
     }
-    td {
+    th {
+      position: sticky;
+      top: 0;
+      font-style: italic;
+      background-color: #ddd;
+    }
+    td, th {
       padding: 0.5rem 1rem;
       border: black 1px solid;
     }
     .mismatch {
       font-weight: 700;
-      background-color: #CC6666;
+      background-color: #CC666688;
     }
-    .row-heading {
-      font-style: italic;
-      background-color: #ddd;
+    .QTY {
+      background-color: #98971a88;
+    }
+    .UNIT {
+      background-color: #d7992188;
+    }
+    .NAME {
+      background-color: #689d6a88;
+    }
+    .COMMENT {
+      background-color: #b1628688;
+    }
+    .PREP {
+      background-color: #83a59888;
+    }
+    .PURPOSE {
+      background-color: #fb493488;
+    }
+    .SIZE {
+      background-color: #d65d0e88;
     }
     """
     head.append(style)
@@ -233,8 +250,8 @@ def results_to_html(
     heading.text = "Similar sentences and their labels"
     body.append(heading)
 
-    for idx in similar:
-        table = create_html_table(idx, sentences, labels, tokens, sentence_source)
+    for indices in similar:
+        table = create_html_table(indices, vectors)
         body.append(table)
 
     ET.indent(html, space="    ")
@@ -243,28 +260,22 @@ def results_to_html(
         f.write(ET.tostring(html, encoding="unicode", method="html"))
 
 
-def cluster_sentence_ids(model, sources: list[tuple[str, int]], cluster_id: int):
-    """Return list of IDs for sentence in cluster.
+def cluster_sentence_ids(model, cluster_id: int):
+    """Return list of indices for sentence in cluster.
 
     Parameters
     ----------
     model : TYPE
-        Description
-    sources : list[tuple[str, int]]
-        Description
+        HDBSCAN model
     cluster_id : int
         ID of cluster to return sentence IDs for
 
     Returns
     -------
     list[int]
-        List of sentence ids for cluster
+        List of indices for cluster
     """
-    return [
-        uid
-        for label, (source, uid) in zip(model.labels_, sources)
-        if label == cluster_id
-    ]
+    return [i for i, label in enumerate(model.labels_) if label == cluster_id]
 
 
 def check_label_consistency(args: argparse.Namespace) -> None:
@@ -279,8 +290,6 @@ def check_label_consistency(args: argparse.Namespace) -> None:
     vectors = load_datasets(
         args.database, args.table, args.datasets, discard_other=False
     )
-    sentences = vectors.sentences
-    sentence_source = [(source, i) for i, source in enumerate(vectors.source)]
 
     pipeline = Pipeline(
         steps=[
@@ -289,7 +298,7 @@ def check_label_consistency(args: argparse.Namespace) -> None:
                 "cluster",
                 HDBSCAN(
                     min_cluster_size=15,
-                    cluster_selection_epsilon=0.4,
+                    cluster_selection_epsilon=0.3,
                     n_jobs=4,
                     cluster_selection_method="leaf",
                 ),
@@ -297,7 +306,7 @@ def check_label_consistency(args: argparse.Namespace) -> None:
         ],
         verbose=True,
     )
-    pipeline.fit(sentences)
+    pipeline.fit(vectors.sentences)
     model = pipeline.named_steps.get("cluster")
     label_counts = Counter(model.labels_)
 
@@ -306,7 +315,7 @@ def check_label_consistency(args: argparse.Namespace) -> None:
         if label == -1:
             continue
 
-        ids = cluster_sentence_ids(model, sentence_source, label)
-        similar.append(ids)
+        indices = cluster_sentence_ids(model, label)
+        similar.append(indices)
 
-    results_to_html(similar, sentences, vectors.labels, vectors.tokens, sentence_source)
+    results_to_html(similar, vectors)
