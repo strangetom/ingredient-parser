@@ -188,17 +188,27 @@ class PostProcessor:
         if not idx or all(self.labels[i] == "PUNC" for i in idx):
             return None
 
-        # Discard (certain) leading punctuation
-        while self.tokens[idx[0]] in [".", ",", ":", ";", "-"]:
-            idx = idx[1:]
-
         # Join consecutive tokens together and average their score
         parts = []
         confidence_parts = []
         for group in self._group_consecutive_idx(idx):
             idx = list(group)
 
-            if len(idx) > 1 and self.tokens[idx[-1]] in [
+            # For groups with more than 1 element, fix leading and trailing
+            # punctuation so they don't get incorrectly consumed
+            while len(idx) > 1 and self.tokens[idx[0]] in [
+                ")",
+                "]",
+                "}",
+                ",",
+                ":",
+                ";",
+                "-",
+                ".",
+            ]:
+                idx = idx[1:]
+
+            while len(idx) > 1 and self.tokens[idx[-1]] in [
                 "[",
                 "(",
                 "{",
@@ -207,9 +217,6 @@ class PostProcessor:
                 ";",
                 "-",
             ]:
-                # If last token in group with more than 1 element is punctuation,
-                # that shouldn't be at the end of a phrase, then remove from group
-                # so it doesn't get consumed incorrectly.
                 idx = idx[:-1]
 
             joined = " ".join([self.tokens[i] for i in idx])
