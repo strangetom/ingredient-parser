@@ -141,6 +141,9 @@ class PreProcessor:
         else:
             self.pos_tags = []
 
+        # Replace all numeric tokens with "!num" for calculating features
+        self._feature_tokens = self._replace_numeric_tokens(self.tokenized_sentence)
+
     def __repr__(self) -> str:
         """__repr__ method.
 
@@ -1053,9 +1056,6 @@ class PreProcessor:
         if self.defer_pos_tagging:
             # If part of speech tagging was deferred, do it now
             self.pos_tags = self._tag_partofspeech(self.tokenized_sentence)
-
-        # Replace all numeric tokens with "!num" for calculating features
-        self._feature_tokens = self._replace_numeric_tokens(self.tokenized_sentence)
 
         features = []
         for idx, _ in enumerate(self.tokenized_sentence):
