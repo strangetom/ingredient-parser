@@ -23,7 +23,6 @@ from ._regex import (
     FRACTION_SPLIT_AND_PATTERN,
     QUANTITY_UNITS_PATTERN,
     QUANTITY_X_PATTERN,
-    RANGE_PATTERN,
     STRING_RANGE_PATTERN,
     UNITS_HYPHEN_QUANTITY_PATTERN,
     UNITS_QUANTITY_PATTERN,
@@ -676,12 +675,33 @@ class PreProcessor:
 
         return (tokenised_sentence, singularised_indices)
 
+    def _replace_numeric_tokens(self, tokens: list[str]) -> list[str]:
+        """Replace numeric tokens with single representation "!NUM".
+
+        This is so the model doesn't need to learn multiple different numeric tokens,
+        just the one.
+
+        Parameters
+        ----------
+        tokens : list[str]
+            List of tokens
+
+        Returns
+        -------
+        list[str]
+            List of tokens with numeric tokens replaced with "!NUM"
+        """
+        replaced_tokens = []
+        for token in tokens:
+            if self._is_numeric(token):
+                replaced_tokens.append("!NUM")
+            else:
+                replaced_tokens.append(token)
+
+        return replaced_tokens
+
     def _tag_partofspeech(self, tokens: list[str]) -> list[str]:
         """Tag tokens with part of speech using universal tagset.
-
-        This function manually fixes tags that are incorrect in the context of
-        ----------------------------------------------------------------------
-        1. Change tags of numeric ranges to CD
 
         Parameters
         ----------
@@ -697,7 +717,7 @@ class PreProcessor:
         # If we don't make each token lower case, that POS tag maybe different in
         # ways that are unhelpful. For example, if a sentence starts with a unit.
         for token, tag in pos_tag([t.lower() for t in tokens]):
-            if RANGE_PATTERN.match(token):
+            if self._is_numeric(token):
                 tag = "CD"
             tags.append(tag)
         return tags
@@ -780,6 +800,10 @@ class PreProcessor:
         True
 
         >>> p = PreProcessor("")
+        >>> p._is_numeric("1x")
+        True
+
+        >>> p = PreProcessor("")
         >>> p._is_numeric("beef")
         False
         """
@@ -789,6 +813,13 @@ class PreProcessor:
 
         if token == "dozen":
             return True
+
+        if token.endswith("x"):
+            try:
+                float(token[:-1])
+                return True
+            except ValueError:
+                return False
 
         try:
             float(token)
@@ -933,7 +964,6 @@ class PreProcessor:
             "stem": stem(token),
             "pos": self.pos_tags[index],
             "is_capitalised": self._is_capitalised(token),
-            "is_numeric": self._is_numeric(token),
             "is_unit": self._is_unit(token),
             "is_punc": self._is_punc(token),
             "is_ambiguous": self._is_ambiguous_unit(token),
@@ -953,7 +983,6 @@ class PreProcessor:
             )
             features["prev_stem"] = stem(prev_token)
             features["prev_is_capitalised"] = self._is_capitalised(prev_token)
-            features["prev_is_numeric"] = self._is_numeric(prev_token)
             features["prev_is_unit"] = self._is_unit(prev_token)
             features["prev_is_punc"] = self._is_punc(prev_token)
             features["prev_is_ambiguous"] = self._is_ambiguous_unit(prev_token)
@@ -972,7 +1001,6 @@ class PreProcessor:
             )
             features["prev_stem2"] = stem(prev_token2)
             features["prev_is_capitalised2"] = self._is_capitalised(prev_token2)
-            features["prev_is_numeric2"] = self._is_numeric(prev_token2)
             features["prev_is_unit2"] = self._is_unit(prev_token2)
             features["prev_is_punc2"] = self._is_punc(prev_token2)
             features["prev_is_ambiguous2"] = self._is_ambiguous_unit(prev_token2)
@@ -987,7 +1015,6 @@ class PreProcessor:
             )
             features["next_stem"] = stem(next_token)
             features["next_is_capitalised"] = self._is_capitalised(next_token)
-            features["next_is_numeric"] = self._is_numeric(next_token)
             features["next_is_unit"] = self._is_unit(next_token)
             features["next_is_punc"] = self._is_punc(next_token)
             features["next_is_ambiguous"] = self._is_ambiguous_unit(next_token)
@@ -1006,7 +1033,6 @@ class PreProcessor:
             )
             features["next_stem2"] = stem(next_token2)
             features["next_is_capitalised2"] = self._is_capitalised(next_token2)
-            features["next_is_numeric2"] = self._is_numeric(next_token2)
             features["next_is_unit2"] = self._is_unit(next_token2)
             features["next_is_punc2"] = self._is_punc(next_token2)
             features["next_is_ambiguous2"] = self._is_ambiguous_unit(next_token2)
@@ -1028,8 +1054,11 @@ class PreProcessor:
             # If part of speech tagging was deferred, do it now
             self.pos_tags = self._tag_partofspeech(self.tokenized_sentence)
 
+        # Replace all numeric tokens with "!NUM"
+        tokens = self._replace_numeric_tokens(self.tokenized_sentence)
+
         features = []
-        for idx, _ in enumerate(self.tokenized_sentence):
+        for idx, _ in enumerate(tokens):
             features.append(self._token_features(idx))
 
         return features

@@ -20,9 +20,6 @@ QUANTITY_UNITS_PATTERN = re.compile(rf"(\d)\-?({'|'.join(units_list)})")
 UNITS_QUANTITY_PATTERN = re.compile(rf"({'|'.join(units_list)})(\d)")
 UNITS_HYPHEN_QUANTITY_PATTERN = re.compile(rf"({'|'.join(units_list)})\-(\d)")
 
-# Regex pattern for matching a numeric range e.g. 1-2, 2-3.
-RANGE_PATTERN = re.compile(r"\d+\s*[\-]\d+")
-
 # Regex pattern for matching a range in string format e.g. 1 to 2, 8.5 to 12, 4 or 5.
 # Assumes fake fractions and unicode fraction have already been replaced.
 # Allows the range to include a hyphen, which are captured in separate groups.
