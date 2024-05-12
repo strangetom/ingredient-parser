@@ -676,7 +676,7 @@ class PreProcessor:
         return (tokenised_sentence, singularised_indices)
 
     def _replace_numeric_tokens(self, tokens: list[str]) -> list[str]:
-        """Replace numeric tokens with single representation "!NUM".
+        """Replace numeric tokens with single representation "!num".
 
         This is so the model doesn't need to learn multiple different numeric tokens,
         just the one.
@@ -689,12 +689,12 @@ class PreProcessor:
         Returns
         -------
         list[str]
-            List of tokens with numeric tokens replaced with "!NUM"
+            List of tokens with numeric tokens replaced with "!num"
         """
         replaced_tokens = []
         for token in tokens:
             if self._is_numeric(token):
-                replaced_tokens.append("!NUM")
+                replaced_tokens.append("!num")
             else:
                 replaced_tokens.append(token)
 
@@ -958,7 +958,7 @@ class PreProcessor:
         dict[str, str | bool]
             Dictionary of features for token at index
         """
-        token = self.tokenized_sentence[index]
+        token = self._feature_tokens[index]
         features = {
             "bias": "",
             "stem": stem(token),
@@ -977,7 +977,7 @@ class PreProcessor:
             features["token"] = token
 
         if index > 0:
-            prev_token = self.tokenized_sentence[index - 1]
+            prev_token = self._feature_tokens[index - 1]
             features["prev_pos"] = "+".join(
                 (self.pos_tags[index - 1], self.pos_tags[index])
             )
@@ -991,7 +991,7 @@ class PreProcessor:
             features["prev_is_after_plus"] = self._follows_plus(index - 1)
 
         if index > 1:
-            prev_token2 = self.tokenized_sentence[index - 2]
+            prev_token2 = self._feature_tokens[index - 2]
             features["prev_pos2"] = "+".join(
                 (
                     self.pos_tags[index - 2],
@@ -1008,8 +1008,8 @@ class PreProcessor:
             features["prev_is_after_comma2"] = self._follows_comma(index - 2)
             features["prev_is_after_plus2"] = self._follows_plus(index - 2)
 
-        if index < len(self.tokenized_sentence) - 1:
-            next_token = self.tokenized_sentence[index + 1]
+        if index < len(self._feature_tokens) - 1:
+            next_token = self._feature_tokens[index + 1]
             features["next_pos"] = "+".join(
                 (self.pos_tags[index], self.pos_tags[index + 1])
             )
@@ -1022,8 +1022,8 @@ class PreProcessor:
             features["next_is_after_comma"] = self._follows_comma(index + 1)
             features["next_is_after_plus"] = self._follows_plus(index + 1)
 
-        if index < len(self.tokenized_sentence) - 2:
-            next_token2 = self.tokenized_sentence[index + 2]
+        if index < len(self._feature_tokens) - 2:
+            next_token2 = self._feature_tokens[index + 2]
             features["next_pos2"] = "+".join(
                 (
                     self.pos_tags[index + 2],
@@ -1054,11 +1054,11 @@ class PreProcessor:
             # If part of speech tagging was deferred, do it now
             self.pos_tags = self._tag_partofspeech(self.tokenized_sentence)
 
-        # Replace all numeric tokens with "!NUM"
-        tokens = self._replace_numeric_tokens(self.tokenized_sentence)
+        # Replace all numeric tokens with "!num" for calculating features
+        self._feature_tokens = self._replace_numeric_tokens(self.tokenized_sentence)
 
         features = []
-        for idx, _ in enumerate(tokens):
+        for idx, _ in enumerate(self.tokenized_sentence):
             features.append(self._token_features(idx))
 
         return features
