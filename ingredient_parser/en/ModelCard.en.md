@@ -8,7 +8,7 @@
 
 ### Model Date and Version
 
-Date: April 2024
+Date: May 2024
 
 Version: The model version is the same has the `ingredient_parser_nlp` package version.
 
@@ -18,7 +18,7 @@ Filename: model.en.crfsuite
 
 Natural language model for labelling tokens in a recipe ingredient sentence.
 
-The model is a Conditional Random Fields (CRF) model, implemented using [pycrfsuite](https://github.com/scrapinghub/python-crfsuite). A pre-processing step is required before a sentence can be presented to the model, which performs a number of text normalisation operations. See [preprocess.py](https://github.com/strangetom/ingredient-parser/blob/master/ingredient_parser/preprocess.py). A postprocesing step takes the model output and interprets the tokens and labels to generate a structured representation of the ingredient sentence.
+The model is a Conditional Random Fields (CRF) model, implemented using [pycrfsuite](https://github.com/scrapinghub/python-crfsuite). A pre-processing step is required before a sentence can be presented to the model, which performs a number of text normalisation operations. See [preprocess.py](https://github.com/strangetom/ingredient-parser/blob/master/ingredient_parser/en/preprocess.py). A postprocesing step takes the model output and interprets the tokens and labels to generate a structured representation of the ingredient sentence.
 
 ### License
 
@@ -41,6 +41,7 @@ The ingredient parser model parses structured information from English language 
   - SIZE: Size of ingredient
   - PREP: Preparation notes for the ingredient
   - COMMENT: Comment in ingredient sentence
+  - PURPOSE: Purpose of the ingredient
   - OTHER, for text that cannot be classified into one of the above labels
 
 ### Primary Intended Users
@@ -97,7 +98,7 @@ The model has the following performance metrics:
 
 | Word level accuracy | Sentence level accuracy |
 | ------------------- | ----------------------- |
-| 97.73 ± 0.33%       | 94.24 ± 0.59%           |
+| 97.85 ± 0.29%       | 94.45 ± 0.69%           |
 
 These metrics were determined by executing 20 training/evaluation cycles and calculating the mean and standard deviation for the two metrics across all cycles. The uncertainty values provided represent the 99.7% confidence bounds (i.e. 3x standard deviation). The uncertainty is due to the randomisation of the selection of training and evaluation data whenever the model is trained.
 

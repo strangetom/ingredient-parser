@@ -32,23 +32,24 @@ ParsedIngredient(
                              SINGULAR=False)],
     preparation=IngredientText(text='cut into 2 inch chunks', confidence=0.999193),
     comment=None,
+    purpose=None,
     sentence='3 pounds pork shoulder, cut into 2-inch chunks'
 )
 ```
 
 ## Model accuracy
 
-The model used for labelling tokens in sentences, provided in the ```ingredient-parser/``` directory, has the following accuracy on a test data set of 25% of the total  data used:
+The model used for labelling tokens in sentences, provided in the ```ingredient-parser/``` directory, has the following accuracy on a test data set of 20% of the total  data used:
 
 ```
 Sentence-level results:
-	Accuracy: 94.24%
+	Accuracy: 94.45%
 
 Word-level results:
-	Accuracy 97.73%
-	Precision (micro) 97.72%
-	Recall (micro) 97.73%
-	F1 score (micro) 97.72%
+	Accuracy 97.85%
+	Precision (micro) 97.85%
+	Recall (micro) 97.85%
+	F1 score (micro) 97.85%
 ```
 
 ## Development
