@@ -2,6 +2,7 @@ import pytest
 
 from ingredient_parser._common import (
     consume,
+    group_consecutive_idx,
     is_float,
     is_range,
 )
@@ -78,3 +79,21 @@ class Test_is_range:
         Test string "1x" is correctly identified as not a range
         """
         assert not is_range("1x")
+
+
+class TestPostProcessor_group_consecutive_indices:
+    def test_single_group(self):
+        """
+        Return single group
+        """
+        input_indices = [0, 1, 2, 3, 4]
+        groups = group_consecutive_idx(input_indices)
+        assert [list(g) for g in groups] == [input_indices]
+
+    def test_multiple_groups(self):
+        """
+        Return groups of consecutive indices
+        """
+        input_indices = [0, 1, 2, 4, 5, 6, 8, 9]
+        groups = group_consecutive_idx(input_indices)
+        assert [list(g) for g in groups] == [[0, 1, 2], [4, 5, 6], [8, 9]]

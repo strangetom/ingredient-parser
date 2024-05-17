@@ -3,12 +3,11 @@
 import re
 from dataclasses import dataclass
 from functools import cached_property
-from itertools import chain, groupby
-from operator import itemgetter
+from itertools import chain
 from statistics import mean
-from typing import Any, Generator, Iterator
+from typing import Any
 
-from .._common import consume
+from .._common import consume, group_consecutive_idx
 from ..dataclasses import (
     CompositeIngredientAmount,
     IngredientAmount,
@@ -191,7 +190,7 @@ class PostProcessor:
         # Join consecutive tokens together and average their score
         parts = []
         confidence_parts = []
-        for group in self._group_consecutive_idx(idx):
+        for group in group_consecutive_idx(idx):
             idx = list(group)
 
             # For groups with more than 1 element, fix leading and trailing
@@ -404,33 +403,6 @@ class PostProcessor:
                 idx_to_keep.append(i)
 
         return idx_to_keep
-
-    def _group_consecutive_idx(
-        self, idx: list[int]
-    ) -> Generator[Iterator[int], None, None]:
-        """Yield groups of consecutive indices.
-
-        Given a list of integers, yield groups of integers where the value of each in a
-        group is adjacent to the previous element's value.
-
-        Parameters
-        ----------
-        idx : list[int]
-            List of indices
-
-        Yields
-        ------
-        list[list[int]]
-            List of lists, where each sub-list contains consecutive indices
-
-        Examples
-        --------
-        >>> groups = group_consecutive_idx([0, 1, 2, 4, 5, 6, 8, 9])
-        >>> [list(g) for g in groups]
-        [[0, 1, 2], [4, 5, 6], [8, 9]]
-        """
-        for _, g in groupby(enumerate(idx), key=lambda x: x[0] - x[1]):
-            yield map(itemgetter(1), g)
 
     def _sizable_unit_pattern(
         self, idx: list[int], tokens: list[str], labels: list[str], scores: list[float]
