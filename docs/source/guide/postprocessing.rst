@@ -12,10 +12,10 @@ The following dataclass is defined which will be output from the :func:`parse_in
 
 Each of the fields in the dataclass has to be determined from the output of the model. The :class:`PostProcessor` class handles this for us.
 
-Name, Size, Preparation, Comment
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Name, Size, Preparation, Purpose, Comment
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-For each of the labels NAME, SIZE, PREP, and COMMENT, the process of combining the tokens for each labels is the same.
+For each of the labels NAME, SIZE, PREP, PURPOSE and COMMENT, the process of combining the tokens for each labels is the same.
 
 The general steps are as follows:
 

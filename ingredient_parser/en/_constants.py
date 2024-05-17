@@ -5,6 +5,7 @@ from itertools import chain
 
 # Plural and singular units
 UNITS = {
+    "balls": "ball",
     "bags": "bag",
     "bars": "bar",
     "baskets": "basket",
@@ -138,6 +139,7 @@ AMBIGUOUS_UNITS = [
     "leaves",
     "slabs",
     "wedges",
+    "ribs",
 ]
 # Extend list automatically to include singular and capitalized forms
 _ambiguous_units_alt_forms = []
