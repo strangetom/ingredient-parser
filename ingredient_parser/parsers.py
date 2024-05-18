@@ -10,6 +10,7 @@ def parse_ingredient(
     sentence: str,
     lang: str = "en",
     discard_isolated_stop_words: bool = True,
+    guess_name_fallback: bool = True,
     string_units: bool = False,
     imperial_units: bool = False,
 ) -> ParsedIngredient:
@@ -25,6 +26,11 @@ def parse_ingredient(
     discard_isolated_stop_words : bool, optional
         If True, any isolated stop words in the name, preparation, or comment fields
         are discarded.
+        Default is True.
+    guess_name_fallback : bool, optional
+        If True, if the model doesn't label any words in the sentence as the name,
+        fallback to selecting the most likely name from all tokens even though the
+        model gives it a different label.
         Default is True.
     string_units : bool
         If True, return all IngredientAmount units as strings.
@@ -49,6 +55,7 @@ def parse_ingredient(
             return parse_ingredient_en(
                 sentence,
                 discard_isolated_stop_words=discard_isolated_stop_words,
+                guess_name_fallback=guess_name_fallback,
                 string_units=string_units,
                 imperial_units=imperial_units,
             )
@@ -60,6 +67,7 @@ def parse_multiple_ingredients(
     sentences: list[str],
     lang: str = "en",
     discard_isolated_stop_words: bool = True,
+    guess_name_fallback: bool = True,
     string_units: bool = False,
     imperial_units: bool = False,
 ) -> list[ParsedIngredient]:
@@ -82,6 +90,11 @@ def parse_multiple_ingredients(
         If True, any isolated stop words in the name, preparation, or comment fields
         are discarded.
         Default is True.
+    guess_name_fallback : bool, optional
+        If True, if the model doesn't label any words in the sentence as the name,
+        fallback to selecting the most likely name from all tokens even though the
+        model gives it a different label.
+        Default is True.
     string_units : bool
         If True, return all IngredientAmount units as strings.
         If False, convert IngredientAmount units to pint.Unit objects where possible.
@@ -103,6 +116,7 @@ def parse_multiple_ingredients(
             sentence,
             lang=lang,
             discard_isolated_stop_words=discard_isolated_stop_words,
+            guess_name_fallback=guess_name_fallback,
             string_units=string_units,
             imperial_units=imperial_units,
         )

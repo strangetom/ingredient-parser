@@ -34,6 +34,7 @@ def load_model_if_not_loaded():
 def parse_ingredient_en(
     sentence: str,
     discard_isolated_stop_words: bool = True,
+    guess_name_fallback: bool = True,
     string_units: bool = False,
     imperial_units: bool = False,
 ) -> ParsedIngredient:
@@ -47,11 +48,16 @@ def parse_ingredient_en(
         If True, any isolated stop words in the name, preparation, or comment fields
         are discarded.
         Default is True.
-    string_units : bool
+    guess_name_fallback : bool, optional
+        If True, if the model doesn't label any words in the sentence as the name,
+        fallback to selecting the most likely name from all tokens even though the
+        model gives it a different label.
+        Default is True.
+    string_units : bool, optional
         If True, return all IngredientAmount units as strings.
         If False, convert IngredientAmount units to pint.Unit objects where possible.
         Dfault is False.
-    imperial_units : bool
+    imperial_units : bool, optional
         If True, use imperial units instead of US customary units for pint.Unit objects
         for the the following units: fluid ounce, cup, pint, quart, gallon.
         Default is False, which results in US customary units being used.
@@ -77,7 +83,7 @@ def parse_ingredient_en(
         if label != "UNIT":
             tokens[idx] = pluralise_units(token)
 
-    if all(label != "NAME" for label in labels):
+    if guess_name_fallback and all(label != "NAME" for label in labels):
         # No tokens were assigned the NAME label, so guess if there's a name
         labels, scores = guess_ingredient_name(labels, scores)
 
@@ -96,10 +102,11 @@ def parse_ingredient_en(
 def inspect_parser_en(
     sentence: str,
     discard_isolated_stop_words: bool = True,
+    guess_name_fallback: bool = True,
     string_units: bool = False,
     imperial_units: bool = False,
 ) -> ParserDebugInfo:
-    """Dataclass for holding intermediate objects generated during parsing.
+    """
 
     Parameters
     ----------
@@ -109,11 +116,16 @@ def inspect_parser_en(
         If True, any isolated stop words in the name, preparation, or comment fields
         are discarded.
         Default is True.
-    string_units : bool
+    guess_name_fallback : bool, optional
+        If True, if the model doesn't label any words in the sentence as the name,
+        fallback to selecting the most likely name from all tokens even though the
+        model gives it a different label.
+        Default is True.
+    string_units : bool, optional
         If True, return all IngredientAmount units as strings.
         If False, convert IngredientAmount units to pint.Unit objects where possible.
         Dfault is False.
-    imperial_units : bool
+    imperial_units : bool, optional
         If True, use imperial units instead of US customary units for pint.Unit objects
         for the the following units: fluid ounce, cup, pint, quart, gallon.
         Default is False, which results in US customary units being used.
@@ -140,7 +152,7 @@ def inspect_parser_en(
         if label != "UNIT":
             tokens[idx] = pluralise_units(token)
 
-    if all(label != "NAME" for label in labels):
+    if guess_name_fallback and all(label != "NAME" for label in labels):
         # No tokens were assigned the NAME label, so guess if there's a name
         labels, scores = guess_ingredient_name(labels, scores)
 
@@ -163,13 +175,13 @@ def inspect_parser_en(
 
 
 def guess_ingredient_name(
-    labels: list[str], scores: list[float]
+    labels: list[str], scores: list[float], min_score: float = 0.2
 ) -> tuple[list[str], list[float]]:
     """Guess ingredient name from list of labels and scores.
 
     This only applies if the token labelling resulted in no tokens being assigned the
     NAME label. When this happens, calculate the confidence of each token being NAME,
-    and select the most likely value if the confidence is greater than 0.2.
+    and select the most likely value where the confidence is greater than min_score.
     If there are consecutive tokens that meet that criteria, give them all the NAME
     label.
 
@@ -179,6 +191,8 @@ def guess_ingredient_name(
         List of labels
     scores : list[float]
         List of scores
+    min_score : float
+        Minimum score to consider as candidate name
 
     Returns
     -------
@@ -186,9 +200,9 @@ def guess_ingredient_name(
         Labels and scores, modified to assign a name if possible.
     """
     # Calculate confidence of each token being labelled NAME and get indices where that
-    # confidence is greater than 0.2.
+    # confidence is greater than min_score.
     name_scores = [TAGGER.marginal("NAME", i) for i, _ in enumerate(labels)]
-    candidate_indices = [i for i, score in enumerate(name_scores) if score >= 0.2]
+    candidate_indices = [i for i, score in enumerate(name_scores) if score >= min_score]
 
     if len(candidate_indices) == 0:
         return labels, scores
