@@ -140,6 +140,10 @@ def inspect_parser_en(
         if label != "UNIT":
             tokens[idx] = pluralise_units(token)
 
+    if all(label != "NAME" for label in labels):
+        # No tokens were assigned the NAME label, so guess if there's a name
+        labels, scores = guess_ingredient_name(labels, scores)
+
     postprocessed_sentence = PostProcessor(
         sentence,
         tokens,
