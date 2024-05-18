@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 
 import re
+from collections import defaultdict
 from dataclasses import dataclass
 from functools import cached_property
-from itertools import chain
+from itertools import chain, pairwise
 from statistics import mean
 from typing import Any
 
@@ -192,31 +193,11 @@ class PostProcessor:
         confidence_parts = []
         for group in group_consecutive_idx(idx):
             idx = list(group)
+            idx = self._remove_invalid_indices(idx)
 
-            # For groups with more than 1 element, fix leading and trailing
-            # punctuation so they don't get incorrectly consumed
-            while len(idx) > 1 and self.tokens[idx[0]] in [
-                ")",
-                "]",
-                "}",
-                ",",
-                ":",
-                ";",
-                "-",
-                ".",
-            ]:
-                idx = idx[1:]
-
-            while len(idx) > 1 and self.tokens[idx[-1]] in [
-                "[",
-                "(",
-                "{",
-                ",",
-                ":",
-                ";",
-                "-",
-            ]:
-                idx = idx[:-1]
+            if all(self.labels[i] == "PUNC" for i in idx):
+                # Discard if the group only contains PUNC
+                continue
 
             joined = " ".join([self.tokens[i] for i in idx])
             confidence = mean([self.scores[i] for i in idx])
@@ -225,18 +206,13 @@ class PostProcessor:
                 # Discard part if it's a stop word
                 continue
 
-            if all(self.labels[i] == "PUNC" for i in idx):
-                # Discard if the group only contains PUNC
-                continue
-
             self.consumed.extend(idx)
             parts.append(joined)
             confidence_parts.append(confidence)
 
         # Find the indices of the joined tokens list where the element
-        # if a single punctuation mark or is the same as the previous element
-        # in the list
-        keep_idx = self._remove_isolated_punctuation_and_duplicate_indices(parts)
+        # is the same as the previous element in the list.
+        keep_idx = self._remove_adjacent_duplicates(parts)
         parts = [parts[i] for i in keep_idx]
         confidence_parts = [confidence_parts[i] for i in keep_idx]
 
@@ -270,7 +246,6 @@ class PostProcessor:
         list[IngredientAmount]
             List of IngredientAmount objects
         """
-
         funcs = [
             self._sizable_unit_pattern,
             self._composite_amounts_pattern,
@@ -304,6 +279,75 @@ class PostProcessor:
         """
         return [el for i, el in enumerate(list_) if i not in self.consumed]
 
+    def _remove_invalid_indices(self, idx: list[int]) -> list[int]:
+        """Remove indices of tokens that aren't valid in the group.
+
+        The invalid indices correspond to punctuation that cannot start or end a phrase,
+        or brackets that aren't part of a matched pair.
+
+        Parameters
+        ----------
+        idx : list[int]
+            List of indices for group of consecutive tokens
+            with same label or PUNC label.
+
+        Returns
+        -------
+        list[int]
+            List of indices with invalid punctuation removed.
+        """
+        # For groups with more than 1 element, remove invliad leading and trailing
+        # punctuation so they don't get incorrectly consumed.
+        while len(idx) > 1 and self.tokens[idx[0]] in [
+            ")",
+            "]",
+            "}",
+            ",",
+            ":",
+            ";",
+            "-",
+            ".",
+        ]:
+            idx = idx[1:]
+
+        while len(idx) > 1 and self.tokens[idx[-1]] in [
+            "[",
+            "(",
+            "{",
+            ",",
+            ":",
+            ";",
+            "-",
+        ]:
+            idx = idx[:-1]
+
+        # Remove brackets that aren't part of a matching pair
+        idx_to_remove = []
+        stack = defaultdict(list)  # Seperate stack for each bracket type
+        for i, tok in enumerate([self.tokens[i] for i in idx]):
+            if tok in ["(", ")"]:
+                tok_name = "PAREN"
+            elif tok in ["[", "]"]:
+                tok_name = "SQAURE"
+
+            if tok in ["(", "["]:
+                # Add index to stack when we find an opening parens
+                stack[tok_name].append(i)
+            elif tok in [")", "]"]:
+                if len(stack[tok_name]) == 0:
+                    # If the stack is empty, we've found a dangling closing parens
+                    idx_to_remove.append(i)
+                else:
+                    # Remove last added index from stack when we find a closing parens
+                    stack[tok_name].pop()
+
+        # Insert anything left in stack into idx_to_remove and remove
+        for stack_idx in stack.values():
+            idx_to_remove.extend(stack_idx)
+        idx = [idx[i] for i, _ in enumerate(idx) if i not in idx_to_remove]
+
+        return idx
+
     def _fix_punctuation(self, text: str) -> str:
         """Fix some common punctuation errors that result when combining tokens.
 
@@ -322,10 +366,6 @@ class PostProcessor:
         >>> p = PostProcessor("", [], [], [])
         >>> p._fix_punctuation(", some words ( inside ),")
         "some words (inside)"
-
-        >>> p = PostProcessor("", [], [], [])
-        >>> p._fix_punctuation("(unmatched parenthesis (inside)(")
-        "unmatched parenthesis (inside)"
         """
         if text == "":
             return text
@@ -337,69 +377,33 @@ class PostProcessor:
         for punc in [",", ":", ";", "."]:
             text = text.replace(f" {punc}", punc)
 
-        # Remove parentheses that aren't part of a matching pair
-        idx_to_remove = []
-        stack = []
-        for i, char in enumerate(text):
-            if char in ["(", "["]:
-                # Add index to stack when we find an opening parens
-                stack.append(i)
-            elif char in [")", "]"]:
-                if len(stack) == 0:
-                    # If the stack is empty, we've found a dangling closing parens
-                    idx_to_remove.append(i)
-                else:
-                    # Remove last added index from stack when we find a closing parens
-                    stack.pop()
-
-        # Insert anything left in stack into idx_to_remove and remove
-        idx_to_remove.extend(stack)
-        text = "".join(char for i, char in enumerate(text) if i not in idx_to_remove)
-
-        # Remove trailing comma, colon, semi-colon, hypehn
-        while text[-1] in [",", ";", ":", "-"]:
-            text = text[:-1].strip()
-
         return text.strip()
 
-    def _remove_isolated_punctuation_and_duplicate_indices(
-        self, parts: list[str]
-    ) -> list[int]:
-        """Find indices of isolated punctation marks and adjacent duplicate tokens.
-
-        Isolated punctuation and repeated adjacent tokens are removed from the list
-        of indices that are to be kept.
+    def _remove_adjacent_duplicates(self, parts: list[str]) -> list[int]:
+        """Find indices of adjacent duplicate strings.
 
         Parameters
         ----------
         parts : list[str]
-            List of tokens with single label, grouped if consecutive
+            List of strings with single label.
 
         Returns
         -------
         list[int]
-            Indices of elements in parts to keep
+            Indices of elements in parts to keep.
 
         Examples
         --------
         >>> p = PostProcessor("", [], [], [])
         >>> p._remove_isolated_punctuation_and_duplicate_indices(
-            ["word", ",", "with, comma"],
-        )
-        [0, 2]
-
-        >>> p = PostProcessor("", [], [], [])
-        >>> p._remove_isolated_punctuation_and_duplicate_indices(
             ["word", "word", "another"],
         )
-        [0, 2]
+        [1, 2]
         """
-        # Only keep a part if contains a word character
+
         idx_to_keep = []
-        for i, part in enumerate(parts):
-            if i == 0 and WORD_CHAR.search(part):
-                idx_to_keep.append(i)
-            elif WORD_CHAR.search(part) and part != parts[i - 1]:
+        for i, (first, second) in enumerate(pairwise(parts + [""])):
+            if first != second:
                 idx_to_keep.append(i)
 
         return idx_to_keep
