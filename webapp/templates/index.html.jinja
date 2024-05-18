@@ -14,7 +14,24 @@
 
         <main>
             <form method="get">
-                <input id="sentence" name="sentence" type="search" autocomplete="off" value="{{ sentence|e }}" autofocus/>
+                <input id="sentence" name="sentence" type="search" autocomplete="off" value="{{ sentence|e }}" autofocus />
+
+                <input id="discard_isolated_stop_words" name="discard_isolated_stop_words" type="checkbox" {{ "checked" if discard_isolated_stop_words }} />
+                <label id="discard_isolated_stop_words">
+                    Discard isolated stop words
+                </label>
+                <input id="guess_name_fallback" name="guess_name_fallback" type="checkbox" {{ "checked" if guess_name_fallback }} />
+                <label id="guess_name_fallback">
+                    Guess name fallback
+                </label>
+                <input id="string_units" name="string_units" type="checkbox" {{ "checked" if string_units }} />
+                <label id="string_units">
+                    String units
+                </label>
+                <input id="imperial_units" name="imperial_units" type="checkbox" {{ "checked" if imperial_units }} />
+                <label id="imperial_units">
+                    Imperial units
+                </label>
             </form>
 
             <p class="key">

@@ -18,7 +18,10 @@ h1 {
   font-weight: normal;
 }
 
-input {
+form {
+  text-align: center;
+}
+input[type="search"] {
   font-size: 1.4rem;  
   width: 100%;
   padding: .2em .5em;
@@ -28,6 +31,13 @@ input {
   border: 1px solid var(--fg-2);
   box-shadow: var(--big-shadow);
   border-radius: var(--small-radius);
+}
+input[type="checkbox"] {
+  margin-top: 1rem;
+  accent-color: var(--green-alt);
+}
+label {
+  margin-right: 2rem;
 }
 
 .QTY {
