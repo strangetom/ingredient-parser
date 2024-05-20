@@ -10,7 +10,7 @@ def parse_ingredient(
     sentence: str,
     lang: str = "en",
     discard_isolated_stop_words: bool = True,
-    guess_name_fallback: bool = True,
+    expect_name_in_output: bool = True,
     string_units: bool = False,
     imperial_units: bool = False,
 ) -> ParsedIngredient:
@@ -27,15 +27,16 @@ def parse_ingredient(
         If True, any isolated stop words in the name, preparation, or comment fields
         are discarded.
         Default is True.
-    guess_name_fallback : bool, optional
+    expect_name_in_output : bool, optional
         If True, if the model doesn't label any words in the sentence as the name,
         fallback to selecting the most likely name from all tokens even though the
-        model gives it a different label.
+        model gives it a different label. Note that this does guarantee the output
+        contains a name.
         Default is True.
     string_units : bool
         If True, return all IngredientAmount units as strings.
         If False, convert IngredientAmount units to pint.Unit objects where possible.
-        Dfault is False.
+        Default is False.
     imperial_units : bool
         If True, use imperial units instead of US customary units for pint.Unit objects
         for the the following units: fluid ounce, cup, pint, quart, gallon.
@@ -55,7 +56,7 @@ def parse_ingredient(
             return parse_ingredient_en(
                 sentence,
                 discard_isolated_stop_words=discard_isolated_stop_words,
-                guess_name_fallback=guess_name_fallback,
+                expect_name_in_output=expect_name_in_output,
                 string_units=string_units,
                 imperial_units=imperial_units,
             )
@@ -67,7 +68,7 @@ def parse_multiple_ingredients(
     sentences: list[str],
     lang: str = "en",
     discard_isolated_stop_words: bool = True,
-    guess_name_fallback: bool = True,
+    expect_name_in_output: bool = True,
     string_units: bool = False,
     imperial_units: bool = False,
 ) -> list[ParsedIngredient]:
@@ -90,15 +91,16 @@ def parse_multiple_ingredients(
         If True, any isolated stop words in the name, preparation, or comment fields
         are discarded.
         Default is True.
-    guess_name_fallback : bool, optional
+    expect_name_in_output : bool, optional
         If True, if the model doesn't label any words in the sentence as the name,
         fallback to selecting the most likely name from all tokens even though the
-        model gives it a different label.
+        model gives it a different label. Note that this does guarantee the output
+        contains a name.
         Default is True.
     string_units : bool
         If True, return all IngredientAmount units as strings.
         If False, convert IngredientAmount units to pint.Unit objects where possible.
-        Dfault is False.
+        Default is False.
     imperial_units : bool
         If True, use imperial units instead of US customary units for pint.Unit objects
         for the the following units: fluid ounce, cup, pint, quart, gallon.
@@ -116,7 +118,7 @@ def parse_multiple_ingredients(
             sentence,
             lang=lang,
             discard_isolated_stop_words=discard_isolated_stop_words,
-            guess_name_fallback=guess_name_fallback,
+            expect_name_in_output=expect_name_in_output,
             string_units=string_units,
             imperial_units=imperial_units,
         )
@@ -128,7 +130,7 @@ def inspect_parser(
     sentence: str,
     lang: str = "en",
     discard_isolated_stop_words: bool = True,
-    guess_name_fallback: bool = True,
+    expect_name_in_output: bool = True,
     string_units: bool = False,
     imperial_units: bool = False,
 ) -> ParserDebugInfo:
@@ -145,15 +147,16 @@ def inspect_parser(
         If True, any isolated stop words in the name, preparation, or comment fields
         are discarded.
         Default is True.
-    guess_name_fallback : bool, optional
+    expect_name_in_output : bool, optional
         If True, if the model doesn't label any words in the sentence as the name,
         fallback to selecting the most likely name from all tokens even though the
-        model gives it a different label.
+        model gives it a different label. Note that this does guarantee the output
+        contains a name.
         Default is True.
     string_units : bool
         If True, return all IngredientAmount units as strings.
         If False, convert IngredientAmount units to pint.Unit objects where possible.
-        Dfault is False.
+        Default is False.
     imperial_units : bool
         If True, use imperial units instead of US customary units for pint.Unit objects
         for the the following units: fluid ounce, cup, pint, quart, gallon.
@@ -174,7 +177,7 @@ def inspect_parser(
             return inspect_parser_en(
                 sentence,
                 discard_isolated_stop_words=discard_isolated_stop_words,
-                guess_name_fallback=guess_name_fallback,
+                expect_name_in_output=expect_name_in_output,
                 string_units=string_units,
                 imperial_units=imperial_units,
             )

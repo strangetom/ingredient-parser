@@ -34,7 +34,7 @@ def load_model_if_not_loaded():
 def parse_ingredient_en(
     sentence: str,
     discard_isolated_stop_words: bool = True,
-    guess_name_fallback: bool = True,
+    expect_name_in_output: bool = True,
     string_units: bool = False,
     imperial_units: bool = False,
 ) -> ParsedIngredient:
@@ -48,15 +48,16 @@ def parse_ingredient_en(
         If True, any isolated stop words in the name, preparation, or comment fields
         are discarded.
         Default is True.
-    guess_name_fallback : bool, optional
+    expect_name_in_output : bool, optional
         If True, if the model doesn't label any words in the sentence as the name,
         fallback to selecting the most likely name from all tokens even though the
-        model gives it a different label.
+        model gives it a different label. Note that this does guarantee the output
+        contains a name.
         Default is True.
     string_units : bool, optional
         If True, return all IngredientAmount units as strings.
         If False, convert IngredientAmount units to pint.Unit objects where possible.
-        Dfault is False.
+        Default is False.
     imperial_units : bool, optional
         If True, use imperial units instead of US customary units for pint.Unit objects
         for the the following units: fluid ounce, cup, pint, quart, gallon.
@@ -83,7 +84,7 @@ def parse_ingredient_en(
         if label != "UNIT":
             tokens[idx] = pluralise_units(token)
 
-    if guess_name_fallback and all(label != "NAME" for label in labels):
+    if expect_name_in_output and all(label != "NAME" for label in labels):
         # No tokens were assigned the NAME label, so guess if there's a name
         labels, scores = guess_ingredient_name(labels, scores)
 
@@ -102,7 +103,7 @@ def parse_ingredient_en(
 def inspect_parser_en(
     sentence: str,
     discard_isolated_stop_words: bool = True,
-    guess_name_fallback: bool = True,
+    expect_name_in_output: bool = True,
     string_units: bool = False,
     imperial_units: bool = False,
 ) -> ParserDebugInfo:
@@ -116,15 +117,16 @@ def inspect_parser_en(
         If True, any isolated stop words in the name, preparation, or comment fields
         are discarded.
         Default is True.
-    guess_name_fallback : bool, optional
+    expect_name_in_output : bool, optional
         If True, if the model doesn't label any words in the sentence as the name,
         fallback to selecting the most likely name from all tokens even though the
-        model gives it a different label.
+        model gives it a different label. Note that this does guarantee the output
+        contains a name.
         Default is True.
     string_units : bool, optional
         If True, return all IngredientAmount units as strings.
         If False, convert IngredientAmount units to pint.Unit objects where possible.
-        Dfault is False.
+        Default is False.
     imperial_units : bool, optional
         If True, use imperial units instead of US customary units for pint.Unit objects
         for the the following units: fluid ounce, cup, pint, quart, gallon.
@@ -152,7 +154,7 @@ def inspect_parser_en(
         if label != "UNIT":
             tokens[idx] = pluralise_units(token)
 
-    if guess_name_fallback and all(label != "NAME" for label in labels):
+    if expect_name_in_output and all(label != "NAME" for label in labels):
         # No tokens were assigned the NAME label, so guess if there's a name
         labels, scores = guess_ingredient_name(labels, scores)
 
@@ -179,7 +181,7 @@ def guess_ingredient_name(
 ) -> tuple[list[str], list[float]]:
     """Guess ingredient name from list of labels and scores.
 
-    This only applies if the token labelling resulted in no tokens being assigned the
+    This only applies if the token labeling resulted in no tokens being assigned the
     NAME label. When this happens, calculate the confidence of each token being NAME,
     and select the most likely value where the confidence is greater than min_score.
     If there are consecutive tokens that meet that criteria, give them all the NAME

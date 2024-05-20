@@ -130,7 +130,7 @@ The labelled training data is stored in an sqlite3 database at ``train/data/trai
 
 It is the data in this database that is used to train the models.
 
-:abbr:`CSV (Comma Seperated Values)` files of the full datasets are in the ``train/data/<dataset>`` directories. These :abbr:`CSV (Comma Seperated Values)` files contain the full set of ingredient sentences, including those not properly labelled. The :abbr:`CSV (Comma Seperated Values)` files are kept aligned with the database using the following command.
+:abbr:`CSV (Comma Separated Values)` files of the full datasets are in the ``train/data/<dataset>`` directories. These :abbr:`CSV (Comma Separated Values)` files contain the full set of ingredient sentences, including those not properly labelled. The :abbr:`CSV (Comma Separated Values)` files are kept aligned with the database using the following command.
 
 .. code::
 
