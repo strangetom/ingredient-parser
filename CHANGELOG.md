@@ -18,7 +18,7 @@
 
 * Various bug fixes to post-processing of tokens with labels NAME, COMMENT, PREP, PURPOSE, SIZE to correct punctuation and confidence calculations.
 * Modification of tokeniser to split full stops from the end of tokens. This helps to model avoid treating "`token.`" and "`token`" as different cases to learn.
-* If option to `parse_ingredient` to enable fallback behaviour if the model doesn't label any tokens as NAME. When enabled (default), this functionality will determine the confidence for each token being labelled NAME and choose the most likely above a threshold confidence value (0.2).
+* Add fallback functionality to `parse_ingredient` for cases where none of the tokens are labelled as NAME. This will select name as the token with the highest confidence of being labelled NAME, even though a different label has a high confidence for that token. This can be disabled by setting `expect_name_in_output=False` in `parse_ingredient`.
 
 ## 0.1.0-beta10
 
