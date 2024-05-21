@@ -20,9 +20,9 @@
                 <label for="discard_isolated_stop_words">
                     Discard isolated stop words
                 </label>
-                <input id="guess_name_fallback" name="guess_name_fallback" type="checkbox" {{ "checked" if guess_name_fallback }} />
-                <label for="guess_name_fallback">
-                    Guess name fallback
+                <input id="expect_name_in_output" name="expect_name_in_output" type="checkbox" {{ "checked" if expect_name_in_output }} />
+                <label for="expect_name_in_output">
+                    Expect name
                 </label>
                 <input id="string_units" name="string_units" type="checkbox" {{ "checked" if string_units }} />
                 <label for="string_units">
@@ -50,8 +50,17 @@
 
             {%- if display -%}
             <p class="sentence">
-                {%- for token, label, score in tokens -%}
-                <span class="{{ label }}" data-score="{{ '%.2f%%'|format(100*score) }}">{{ token }}</span><wbr>
+                {%- for token, label, scores in tokens -%}
+                <span class="{{ label }}">{{ token }}
+                    <span class="marginals">
+                        {%- for lbl, score in scores.items() -%}
+                        <span class="marginals-row">
+                            <span class="marginals-label">{{ lbl }}</span>
+                            <span class="marginals-score">{{ '%.2f%%'|format(100*score) }}</span>
+                        </span>
+                        {%- endfor -%}
+                    </span>
+                </span><wbr>
                 {%- endfor -%}
             </p>
 

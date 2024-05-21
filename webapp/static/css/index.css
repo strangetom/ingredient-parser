@@ -73,34 +73,50 @@ label {
   font-size: 1.2rem;
   text-align: center;
 }
-.sentence span {
+.sentence > span {
   padding: 0 1ch;
   background-color: var(--color);
   color: var(--bg);
   border: 1px solid var(--bg-s);
   position: relative;
 }
-.sentence span:hover:after {
-  content: attr(data-score);
+.sentence > span:hover span.marginals {
+  content: "";
   position: absolute;
   z-index: 1;
   display: block;
-  bottom: 2em;
-  left: 0;
+  top: 2.1em;
+  left: -.5rem;
   background-color: var(--bg-3);
   color: var(--fg);
   border-radius: var(--small-radius);
   border: 1px solid var(--fg-3);
-  padding: 1px .25rem;
+  padding: .25rem .5rem;
   white-space: nowrap;
   box-shadow: var(--big-shadow);
   font-size: .9rem;
+  text-align: left;
 }
-.sentence span:first-of-type {
+.sentence > span:first-of-type {
   border-radius: var(--small-radius) 0 0 var(--small-radius);
 }
-.sentence span:last-of-type {
+.sentence > span:last-of-type {
   border-radius: 0 var(--small-radius) var(--small-radius) 0;
+}
+
+.marginals {
+  display: none;
+}
+.marginals-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1ch;
+}
+.marginals-row:not(:last-of-type){
+  border-bottom: 1px solid var(--fg-4)
+}
+.marginals-score {
+  font-weight: bold;
 }
 
 .key {
