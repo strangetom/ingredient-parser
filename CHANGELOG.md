@@ -4,17 +4,21 @@
 
 ### General
 
-* Refactor package structure to make it more suitable for expansion to over languages. **Note:** There aren't any plans to support other languages yet.
+* Refactor package structure to make it more suitable for expansion to over languages. 
+
+  **Note:** There aren't any plans to support other languages yet.
 
 ### Model
 
 * Reduce duplication in training data
 * Introduce PURPOSE label for tokens that describe the purpose of the ingredient, such as `for the dressing` and `for garnish`.
+* Replace quantities with "!num" when calculating the features for tokens so that the model doesn't need to learn all possible values quantities can take. This results in a small reduction in model size.
 
 ### Processing
 
 * Various bug fixes to post-processing of tokens with labels NAME, COMMENT, PREP, PURPOSE, SIZE to correct punctuation and confidence calculations.
 * Modification of tokeniser to split full stops from the end of tokens. This helps to model avoid treating "`token.`" and "`token`" as different cases to learn.
+* If option to `parse_ingredient` to enable fallback behaviour if the model doesn't label any tokens as NAME. When enabled (default), this functionality will determine the confidence for each token being labelled NAME and choose the most likely above a threshold confidence value (0.2).
 
 ## 0.1.0-beta10
 
