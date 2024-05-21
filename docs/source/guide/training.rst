@@ -99,7 +99,7 @@ Tuning
 
 pycrfsuite offers a few different algorithms for training the model, each of which has a number of hyper-parameters that can be used to tune its performance. The selection of the best algorithm and optimal hyper-parameters involves iterating over the algorithms and their hyper-parameters and evaluating the trade-offs between model size, model accuracy and training time.
 
-To run a grid search over a number of different algorithms and hyper-parameters for each one, the ``gridsearch`` subcommand of ``train.py`` can be used.
+To run a grid search over a number of different algorithms and hyper-parameters for each one, the ``gridsearch`` sub-command of ``train.py`` can be used.
 
 .. code::
 
@@ -161,7 +161,7 @@ By default when training a model, a random integer is used as the seed for :func
 Historical performance
 ^^^^^^^^^^^^^^^^^^^^^^
 
-The model performance has improved over time as a result of improvements to the labelling consistency of the training data, the sentence normalisation steps and the feature selection. The figure below shows the sentence- and word-level performance for the last few releases.
+The model performance has improved over time as a result of improvements to the labeling consistency of the training data, the sentence normalization steps and the feature selection. The figure below shows the sentence- and word-level performance for the last few releases.
 
 .. image:: /_static/performance-history.svg
   :class: .dark-light

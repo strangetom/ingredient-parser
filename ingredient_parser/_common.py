@@ -6,8 +6,9 @@ import platform
 import re
 import subprocess
 from importlib.resources import as_file, files
-from itertools import islice
-from typing import Iterator
+from itertools import groupby, islice
+from operator import itemgetter
+from typing import Generator, Iterator
 
 from nltk import data, download
 
@@ -17,7 +18,7 @@ SUPPORTED_LANGUAGES = ["en"]
 RANGE_PATTERN = re.compile(r"\d+\s*[\-]\d+")
 
 
-def consume(iterator: Iterator, n: int) -> None:
+def consume(iterator: Iterator, n: int | None) -> None:
     """Advance the iterator n-steps ahead. If n is none, consume entirely.
 
     See consume from https://docs.python.org/3/library/itertools.html#itertools-recipes
@@ -26,8 +27,9 @@ def consume(iterator: Iterator, n: int) -> None:
     ----------
     iterator : Iterator
         Iterator to advance.
-    n : int
+    n : int | None
         Number of iterations to advance by.
+        If None, consume entire iterator.
 
     Examples
     --------
@@ -47,6 +49,32 @@ def consume(iterator: Iterator, n: int) -> None:
     else:
         # Advance to the empty slice starting at position n
         next(islice(iterator, n, n), None)
+
+
+def group_consecutive_idx(idx: list[int]) -> Generator[Iterator[int], None, None]:
+    """Yield groups of consecutive indices.
+
+    Given a list of integers, yield groups of integers where the value of each in a
+    group is adjacent to the previous element's value.
+
+    Parameters
+    ----------
+    idx : list[int]
+        List of indices
+
+    Yields
+    ------
+    list[list[int]]
+        List of lists, where each sub-list contains consecutive indices
+
+    Examples
+    --------
+    >>> groups = group_consecutive_idx([0, 1, 2, 4, 5, 6, 8, 9])
+    >>> [list(g) for g in groups]
+    [[0, 1, 2], [4, 5, 6], [8, 9]]
+    """
+    for _, g in groupby(enumerate(idx), key=lambda x: x[0] - x[1]):
+        yield map(itemgetter(1), g)
 
 
 def show_model_card(lang: str = "en") -> None:
