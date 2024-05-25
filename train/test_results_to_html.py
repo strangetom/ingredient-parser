@@ -61,6 +61,10 @@ def test_results_to_html(
       padding: 0.5rem 1rem;
       border: black 1px solid;
     }
+    div {
+      display: flex;
+      align-items: center;
+    }
     .mismatch {
       font-weight: 700;
       background-color: #CC6666;
@@ -72,6 +76,9 @@ def test_results_to_html(
     .row-title {
       font-style: italic;
       background-color: #ddd;
+    }
+    .copy {
+        margin-left: 1rem;
     }
     """
     head.append(style)
@@ -103,9 +110,14 @@ def test_results_to_html(
                     sentence, defer_pos_tagging=True
                 ).tokenized_sentence
                 table = create_html_table(tokens, truth, prediction, scores)
+                div = ET.Element("div")
                 p = ET.Element("p")
                 p.text = f"[{src.upper()}] {sentence}"
-                body.append(p)
+                copy_button = ET.Element("button", attrib={"class": "copy"})
+                copy_button.text = "Copy text"
+                div.append(p)
+                div.append(copy_button)
+                body.append(div)
                 body.append(table)
 
                 incorrect.append(src)
@@ -116,6 +128,21 @@ def test_results_to_html(
     heading2 = ET.Element("h2")
     heading2.text = f"{len(incorrect):,} incorrect sentences. [{src_count_str}]"
     body.insert(1, heading2)
+
+    # Script to add "click" event listener to all copy buttons
+    script = ET.Element("script")
+    script.text = """
+    let copyButtons = document.querySelectorAll("button.copy");
+    copyButtons.forEach((button) => {
+        button.addEventListener("click", (e) => {
+            let text = e.target.previousElementSibling.innerText;
+            // Strip off source from beginning
+            text = text.substring(text.indexOf(" ")+1);
+            navigator.clipboard.writeText(text);
+        });
+    });
+    """
+    body.append(script)
 
     ET.indent(html, space="    ")
     with open("test_results.html", "w") as f:
