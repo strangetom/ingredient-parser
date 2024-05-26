@@ -164,14 +164,24 @@ select {
   --background-color: color-mix(in srgb, var(--red), #333);
 }
 
-button.delete {
-  border: 1px solid var(--red-alt);
+button {
   border-radius: var(--small-radius);
-  color: var(--red-alt);
   background-color: var(--bg);
   padding: .25rem .5rem;
-  margin-left: 1rem;
+  margin-left: .5rem;
   font-size: 1rem;
   top: -2px;
   position: relative;  
+}
+button:focus {
+  background-color: var(--bg-3);
+  font-weight: bold;
+}
+button.delete {
+  border: 1px solid var(--red-alt);
+  color: var(--red-alt);
+}
+button.copy {
+  border: 1px solid var(--blue-alt);
+  color: var(--blue-alt);
 }

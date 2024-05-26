@@ -98,6 +98,11 @@ function remove(e) {
   }
 }
 
+function copy(e) {
+  let sentence = e.target.previousElementSibling.innerText;
+  navigator.clipboard.writeText(sentence);
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   let labelSelects = document.querySelectorAll("select");
   labelSelects.forEach((el) => {
@@ -107,6 +112,11 @@ document.addEventListener("DOMContentLoaded", () => {
   let deleteBtns = document.querySelectorAll("button.delete");
   deleteBtns.forEach((el) => {
     el.addEventListener("click", remove);
+  });
+
+  let copyBtns = document.querySelectorAll("button.copy");
+  copyBtns.forEach((el) => {
+    el.addEventListener("click", copy);
   });
 
   let saveBtn = document.querySelector("#save-btn");
