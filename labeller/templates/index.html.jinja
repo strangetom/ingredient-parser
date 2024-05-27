@@ -14,18 +14,6 @@
 
         <main>
             <div class="column">
-                <section id="datasets">
-                    <h2>Datasets</h2>
-                    <p>Browse a dataset, showing 500 entries at a time</p>
-                    <ul>
-                        {%- for dataset, count in datasets -%}
-                        <li>
-                            <a href="/edit/{{ dataset }}?start=0&range=500">{{ dataset|upper }} - {{ count }} entries</a>
-                        </li>
-                        {%- endfor -%}
-                    </ul>
-                </section>
-
                 <section id="filter">
                     <h2>Filter</h2>
                     <p>Filter training data to search for a string, filtering by dataset and label.</p>
@@ -104,6 +92,18 @@
                         </div>
                         <button type="submit">Filter</button>
                     </form>
+                </section>
+
+                <section id="browse">
+                    <h2>Browse</h2>
+                    <p>Browse a dataset, showing 500 entries at a time</p>
+                    <ul>
+                        {%- for dataset, count in datasets -%}
+                        <li>
+                            <a href="/edit/{{ dataset }}?start=0&range=500">{{ dataset|upper }} - {{ count }} entries</a>
+                        </li>
+                        {%- endfor -%}
+                    </ul>
                 </section>
             </div>
 
