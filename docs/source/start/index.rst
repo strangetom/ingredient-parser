@@ -87,7 +87,7 @@ The returned :class:`ParsedIngredient <ingredient_parser.dataclasses.ParsedIngre
 +-----------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | **size**        | A size modifier for the ingredient, such as small or large, or ``None``.                                                                                             |
 |                 |                                                                                                                                                                      |
-|                 | This size modifier only applies to the ingredient, not the unit. For example, *1 large pinch of salt* would have the unit as *large pinch* and size of ``None``.    |
+|                 | This size modifier only applies to the ingredient, not the unit. For example, *1 large pinch of salt* would have the unit as *large pinch* and size of ``None``.     |
 +-----------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | **amount**      | The amounts parsed from the sentence. Each amount has a quantity and a unit, plus optional flags indicating if the amount is approximate or is for a singular item.  |
 |                 |                                                                                                                                                                      |

@@ -24,8 +24,10 @@ This splits the sentence apart into wherever there is white space or a punctuati
     >>> p.tokenised_sentence
     ['0.5', 'cup', 'orange', 'juice', ',', 'freshly', 'squeezed']
 
-Features Calculation
-^^^^^^^^^^^^^^^^^^^^
+At this stage, any numeric tokens are replaced with ``!num``. This is so that the model doesn't need to learn lots of different values that are numeric, which helps improve performance and reduce model size.
+
+Feature Calculation
+^^^^^^^^^^^^^^^^^^^
 
 The features for each of each token in each sentence need to be selected and extracted.
 
