@@ -12,7 +12,7 @@
 
 * Reduce duplication in training data
 * Introduce PURPOSE label for tokens that describe the purpose of the ingredient, such as `for the dressing` and `for garnish`.
-* Replace quantities with "!num" when calculating the features for tokens so that the model doesn't need to learn all possible values quantities can take. This results in a small reduction in model size.
+* Replace quantities with "!num" when determining the features for tokens so that the model doesn't need to learn all possible values quantities can take. This results in a small reduction in model size.
 
 ### Processing
 
