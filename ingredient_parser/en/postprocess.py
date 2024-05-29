@@ -568,10 +568,12 @@ class PostProcessor:
             List of IngredientAmount objects
         """
         # Define patterns based on labels.
-        # Assumes that only "x lb y oz" and "x pint y fl oz" patterns
+        # Assumes that only "x lb y oz" and "x pint y fl oz",
+        # or x unit plus y unit are valid patterns.
         patterns = {
             "ptfloz": ["QTY", "UNIT", "QTY", "UNIT", "UNIT"],
             "lboz": ["QTY", "UNIT", "QTY", "UNIT"],
+            "plus": ["QTY", "UNIT", "COMMENT", "QTY", "UNIT"],
         }
 
         # List of possible units for first and second amount matched
@@ -586,54 +588,74 @@ class PostProcessor:
                 # Check units match known patterns
                 first_unit_idx = match[1]
                 last_unit_idx = match[-1]
-                if (
-                    tokens[first_unit_idx] in first_unit
-                    and tokens[last_unit_idx] in last_unit
-                ):
-                    # First amount
-                    quantity_1 = tokens[match[0]]
-                    unit_1 = tokens[match[1]]
-                    text_1 = " ".join((quantity_1, unit_1)).strip()
 
-                    first_amount = ingredient_amount_factory(
-                        quantity=quantity_1,
-                        unit=unit_1,
-                        text=text_1,
-                        confidence=mean([scores[i] for i in match[0:2]]),
-                        starting_index=idx[first_unit_idx - 1],
-                        string_units=self.string_units,
-                        imperial_units=self.imperial_units,
-                    )
-                    # Second amount
+                # Check if match fits with ptfloz or lboz patterns
+                if pattern_name in ["pltfloz", "lboz"]:
+                    if (
+                        tokens[first_unit_idx] not in first_unit
+                        or tokens[last_unit_idx] not in last_unit
+                    ):
+                        # Units of pattern match do not align with expectations for
+                        # ptfloz or lboz patterns, so skip
+                        continue
+
+                if pattern_name in ["plus"]:
+                    if tokens[match[2]].upper() != "PLUS":
+                        # Middle token with comment label is not "plus", so skip
+                        continue
+
+                # First amount
+                quantity_1 = tokens[match[0]]
+                unit_1 = tokens[match[1]]
+                text_1 = " ".join((quantity_1, unit_1)).strip()
+
+                first_amount = ingredient_amount_factory(
+                    quantity=quantity_1,
+                    unit=unit_1,
+                    text=text_1,
+                    confidence=mean([scores[i] for i in match[0:2]]),
+                    starting_index=idx[first_unit_idx - 1],
+                    string_units=self.string_units,
+                    imperial_units=self.imperial_units,
+                )
+
+                # Second amount
+                # Quantity starts at match index 3 for "plus" pattern, else match index
+                # 2 for other patterns
+                if pattern_name == "plus":
+                    quantity_2 = tokens[match[3]]
+                    unit_2 = " ".join([tokens[i] for i in match[4:]])
+                else:
                     quantity_2 = tokens[match[2]]
                     unit_2 = " ".join([tokens[i] for i in match[3:]])
-                    text_2 = " ".join((quantity_2, unit_2)).strip()
+                text_2 = " ".join((quantity_2, unit_2)).strip()
 
-                    # The starting_index for the second amount depends on the pattern
-                    if pattern_name == "ptfloz":
-                        starting_index_2 = idx[last_unit_idx - 2]
-                    else:
-                        starting_index_2 = idx[last_unit_idx - 1]
+                # The starting_index for the second amount depends on the pattern
+                if pattern_name == "ptfloz":
+                    starting_index_2 = idx[last_unit_idx - 2]
+                else:
+                    starting_index_2 = idx[last_unit_idx - 1]
 
-                    second_amount = ingredient_amount_factory(
-                        quantity=quantity_2,
-                        unit=unit_2,
-                        text=text_2,
-                        confidence=round(mean([scores[i] for i in match[3:]]), 6),
-                        starting_index=starting_index_2,
-                        string_units=self.string_units,
-                        imperial_units=self.imperial_units,
+                second_amount = ingredient_amount_factory(
+                    quantity=quantity_2,
+                    unit=unit_2,
+                    text=text_2,
+                    confidence=round(mean([scores[i] for i in match[3:]]), 6),
+                    starting_index=starting_index_2,
+                    string_units=self.string_units,
+                    imperial_units=self.imperial_units,
+                )
+
+                composite_amounts.append(
+                    CompositeIngredientAmount(
+                        amounts=[first_amount, second_amount],
+                        join="",
                     )
-                    composite_amounts.append(
-                        CompositeIngredientAmount(
-                            amounts=[first_amount, second_amount],
-                            join="",
-                        )
-                    )
+                )
 
-                    # Keep track of indices of matching elements so we don't use them
-                    # again elsewhere
-                    self.consumed.extend([idx[i] for i in match])
+                # Keep track of indices of matching elements so we don't use them
+                # again elsewhere
+                self.consumed.extend([idx[i] for i in match])
 
         return composite_amounts
 
