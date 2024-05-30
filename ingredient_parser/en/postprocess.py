@@ -568,28 +568,45 @@ class PostProcessor:
         list[CompositeIngredientAmount]
             List of IngredientAmount objects
         """
-        # Define patterns based on a sequence of labels.
-        # Also assign the indices of the pattern sequence where the first and
-        # second amounts start and set the string used to join the two amounts
-        # together in text
+        # Define patterns for composite amounts based on a sequence of labels.
+        # Also set the indices of the pattern sequence where the first and
+        # second amounts start, set the string used to join the two amounts
+        # together in text, and set whether the amounts combine subtractively or not.
         patterns = {
             "ptfloz": {
                 "pattern": ["QTY", "UNIT", "QTY", "UNIT", "UNIT"],
                 "start1": 0,
                 "start2": 2,
                 "join": "",
+                "subtractive": False,
             },
             "lboz": {
                 "pattern": ["QTY", "UNIT", "QTY", "UNIT"],
                 "start1": 0,
                 "start2": 2,
                 "join": "",
+                "subtractive": False,
             },
             "plus": {
                 "pattern": ["QTY", "UNIT", "COMMENT", "QTY", "UNIT"],
                 "start1": 0,
                 "start2": 3,
                 "join": " plus ",
+                "subtractive": False,
+            },
+            "minus": {
+                "pattern": ["QTY", "UNIT", "COMMENT", "QTY", "UNIT"],
+                "start1": 0,
+                "start2": 3,
+                "join": " minus ",
+                "subtractive": True,
+            },
+            "less": {
+                "pattern": ["QTY", "UNIT", "COMMENT", "QTY", "UNIT"],
+                "start1": 0,
+                "start2": 3,
+                "join": " minus ",
+                "subtractive": True,
             },
         }
 
@@ -604,6 +621,7 @@ class PostProcessor:
             start1 = pattern_info["start1"]
             start2 = pattern_info["start2"]
             join = pattern_info["join"]
+            subtractive = pattern_info["subtractive"]
 
             for match in self._match_pattern(
                 labels, pattern, ignore_other_labels=False
@@ -620,10 +638,11 @@ class PostProcessor:
                         # ptfloz or lboz patterns, so skip
                         continue
 
-                # Check if match fits with "plus" pattern constraints
-                if pattern_name in ["plus"]:
-                    if tokens[match[2]].lower() != "plus":
-                        # Middle token with COMMENT label is not "plus", so skip
+                # Check if match fits with plus/minus/less pattern constraints
+                if pattern_name in ["plus", "minus", "less"]:
+                    if tokens[match[2]].lower() != pattern_name:
+                        # Middle token with COMMENT label is not same as name of pattern
+                        # so skip.
                         continue
 
                 # First amount
@@ -662,6 +681,7 @@ class PostProcessor:
                     CompositeIngredientAmount(
                         amounts=[first_amount, second_amount],
                         join=join,
+                        subtractive=subtractive,
                     )
                 )
 
