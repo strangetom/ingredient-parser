@@ -107,7 +107,7 @@ def inspect_parser_en(
     string_units: bool = False,
     imperial_units: bool = False,
 ) -> ParserDebugInfo:
-    """
+    """Return intermediate objects generated during parsing for inspection.
 
     Parameters
     ----------

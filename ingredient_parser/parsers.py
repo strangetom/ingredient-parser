@@ -134,7 +134,7 @@ def inspect_parser(
     string_units: bool = False,
     imperial_units: bool = False,
 ) -> ParserDebugInfo:
-    """Dataclass for holding intermediate objects generated during parsing.
+    """Return intermediate objects generated during parsing for inspection.
 
     Parameters
     ----------
