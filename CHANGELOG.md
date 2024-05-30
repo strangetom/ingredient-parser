@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0
+
+### General
+
+Improve performance when tagging multiple sentences. For large numbers of sentences (>1000), the performance improvement is ~100x.
+
 ## 0.1.0-beta11
 
 ### General
