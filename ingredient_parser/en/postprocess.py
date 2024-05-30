@@ -637,7 +637,7 @@ class PostProcessor:
                     unit=unit_1,
                     text=text_1,
                     confidence=score_1,
-                    starting_index=idx[start1],
+                    starting_index=idx[match[start1]],
                     string_units=self.string_units,
                     imperial_units=self.imperial_units,
                 )
@@ -653,7 +653,7 @@ class PostProcessor:
                     unit=unit_2,
                     text=text_2,
                     confidence=score_2,
-                    starting_index=idx[start2],
+                    starting_index=idx[match[start2]],
                     string_units=self.string_units,
                     imperial_units=self.imperial_units,
                 )
