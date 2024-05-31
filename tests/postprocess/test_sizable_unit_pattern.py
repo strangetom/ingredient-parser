@@ -37,7 +37,7 @@ class TestPostProcessor_sizable_unit_pattern:
             "UNIT",
             "NAME",
         ]
-        scores = [0] * len(tokens)
+        scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
         p = PostProcessor(sentence, tokens, labels, scores)
 
@@ -109,7 +109,7 @@ class TestPostProcessor_sizable_unit_pattern:
             "UNIT",
             "NAME",
         ]
-        scores = [0] * len(tokens)
+        scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
         p = PostProcessor(sentence, tokens, labels, scores)
 
@@ -165,7 +165,7 @@ class TestPostProcessor_sizable_unit_pattern:
             "UNIT",
             "NAME",
         ]
-        scores = [0] * len(tokens)
+        scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
         p = PostProcessor(sentence, tokens, labels, scores)
 
@@ -200,7 +200,7 @@ class TestPostProcessor_sizable_unit_pattern:
         sentence = "400 g chickpeas or black beans"
         tokens = ["400", "g", "chickpeas", "or", "black", "beans"]
         labels = ["QTY", "UNIT", "NAME", "NAME", "NAME", "NAME"]
-        scores = [0] * len(tokens)
+        scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
         p = PostProcessor(sentence, tokens, labels, scores)
 
@@ -215,7 +215,7 @@ class TestPostProcessor_sizable_unit_pattern:
         sentence = "2 cups or 1 28 ounce can chickpeas"
         tokens = ["2", "cup", "or", "1", "28", "ounce", "can", "chickpeas"]
         labels = ["QTY", "UNIT", "COMMENT", "QTY", "QTY", "UNIT", "UNIT", "NAME"]
-        scores = [0] * len(tokens)
+        scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
         p = PostProcessor(sentence, tokens, labels, scores)
 
@@ -253,7 +253,7 @@ class TestPostProcessor_sizable_unit_pattern:
         sentence = "2 cups or 1 28 ounce can chickpeas"
         tokens = ["2", "cup", "or", "1", "28", "ounce", "can", "chickpeas"]
         labels = ["QTY", "UNIT", "COMMENT", "QTY", "QTY", "UNIT", "UNIT", "NAME"]
-        scores = [0] * len(tokens)
+        scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
         p = PostProcessor(sentence, tokens, labels, scores, imperial_units=True)
 
@@ -292,7 +292,7 @@ class TestPostProcessor_sizable_unit_pattern:
         sentence = "2 cups or 1 28 ounce can chickpeas"
         tokens = ["2", "cup", "or", "1", "28", "ounce", "can", "chickpeas"]
         labels = ["QTY", "UNIT", "COMMENT", "QTY", "QTY", "UNIT", "UNIT", "NAME"]
-        scores = [0] * len(tokens)
+        scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
         p = PostProcessor(sentence, tokens, labels, scores, string_units=True)
 
