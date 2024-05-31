@@ -222,7 +222,8 @@ A second case is where the full amount is made up of more than one quantity-unit
                              quantity_max=1.0,
                              unit=<Unit('pound')>,
                              text='1 lb',
-                             confidence=0.999942,
+                             confidence=0.999923,
+                             starting_index=0,
                              APPROXIMATE=False,
                              SINGULAR=False,
                              RANGE=False,
@@ -231,11 +232,16 @@ A second case is where the full amount is made up of more than one quantity-unit
                              quantity_max=2.0,
                              unit=<Unit('ounce')>,
                              text='2 oz',
-                             confidence=0.99928,
+                             confidence=0.998968,
+                             starting_index=2,
                              APPROXIMATE=False,
                              SINGULAR=False,
                              RANGE=False,
                              MULTIPLIER=False)],
         join='',
-        text='1 lb 2 oz')
-    ]
+        subtractive=False,
+        text='1 lb 2 oz',
+        confidence=0.9994455,
+        starting_index=0
+    )]
+
