@@ -122,13 +122,34 @@ class CompositeIngredientAmount:
         -------
         pint.Quantity
             Combined amount
+
+        Raises
+        ------
+        TypeError
+            Raised if any of the amounts in the object do not comprise a float quantity
+            and a pint.Unit unit. In these cases, they amounts cannot be combined.
         """
+        # Check amounts are compatible for combination
+        for amount in self.amounts:
+            if not (
+                isinstance(amount.quantity, float)
+                and isinstance(amount.unit, pint.Unit)
+            ):
+                q_type = type(amount.quantity).__name__
+                u_type = type(amount.unit).__name__
+                raise TypeError(
+                    (
+                        f"Incompatible quantity <{q_type}> "
+                        f"and unit <{u_type}> for combining."
+                    )
+                )
+
         if self.subtractive:
             op = operator.sub
         else:
             op = operator.add
 
-        return reduce(op, (amount.quantity * amount.unit for amount in self.amounts))
+        return reduce(op, (amount.quantity * amount.unit for amount in self.amounts))  # type: ignore
 
 
 @dataclass
