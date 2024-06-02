@@ -207,7 +207,7 @@ def validate_pa_params(pa_params: dict) -> None:
                 raise ValueError(f"Parameter values for {key} should be {type_str}")
 
         if key == "type":
-            if v not in (0, 1, 2):
+            if value not in (0, 1, 2):
                 raise ValueError("Type value must be 0, 1 or 2")
 
 
@@ -320,6 +320,7 @@ def generate_argument_sets(args: argparse.Namespace) -> list[list]:
 
     # Generate list of arguments for all combinations parameters for each algorithm
     argument_sets = []
+    params = None
     for algo in args.algos:
         if algo == "lbfgs":
             params = args.lbfgs_params
@@ -397,14 +398,14 @@ def train_model_grid_search(
     # in the train and tests sets, avoiding the possibility that train or tests sets
     # contain data from one dataset disproportionally.
     (
-        sentences_train,
-        sentences_test,
+        _,
+        _,
         features_train,
         features_test,
         truth_train,
         truth_test,
-        source_train,
-        source_test,
+        _,
+        _,
     ) = train_test_split(
         vectors.sentences,
         vectors.features,
@@ -416,7 +417,7 @@ def train_model_grid_search(
     )
 
     # Make model name unique
-    save_model = Path(save_model).with_stem("model-" + str(uuid4()))
+    save_model_path = Path(save_model).with_stem("model-" + str(uuid4()))
 
     # Train model
     trainer = pycrfsuite.Trainer(algo, verbose=False)
@@ -424,18 +425,18 @@ def train_model_grid_search(
     trainer.set_params(parameters)
     for X, y in zip(features_train, truth_train):
         trainer.append(X, y)
-    trainer.train(str(save_model))
+    trainer.train(str(save_model_path))
     # Get model size, in MB
-    model_size = os.path.getsize(save_model) / 1024**2
+    model_size = os.path.getsize(save_model_path) / 1024**2
 
     # Evaluate model
     tagger = pycrfsuite.Tagger()
-    tagger.open(str(save_model))
+    tagger.open(str(save_model_path))
     labels_pred = [tagger.tag(X) for X in features_test]
     stats = evaluate(labels_pred, truth_test)
 
     if not keep_model:
-        save_model.unlink(missing_ok=True)
+        save_model_path.unlink(missing_ok=True)
 
     return {
         "algo": algo,
@@ -507,7 +508,7 @@ def grid_search(args: argparse.Namespace):
         table.append(
             [
                 algo,
-                params,
+                ", ".join([f"{k}={v}" for k, v in params.items()]),
                 f"{100 * stats.token.accuracy:.2f}%",
                 f"{100 * stats.sentence.accuracy:.2f}%",
                 str(time),
@@ -515,4 +516,11 @@ def grid_search(args: argparse.Namespace):
             ]
         )
 
-    print(tabulate(table, headers=headers, tablefmt="simple_outline"))
+    print(
+        tabulate(
+            table,
+            headers=headers,
+            tablefmt="fancy_grid",
+            maxcolwidths=[None, 130, None, None, None, None],
+        )
+    )
