@@ -23,6 +23,21 @@ IMPERIAL_UNITS = {
     "gallon": "imperial_gallon",
 }
 
+# List of units that pint interprets as incorrect unit
+# The comment indicates what pint interprets the unit as
+MISINTERPRETED_UNITS = [
+    "pinch",  # pico-inch
+    "pinches",
+    "bar",  # bar (pressure)
+    "bars",
+    "link",  # link (distance)
+    "links",
+    "shake",  # shake (time)
+    "shakes",
+    "tin",  # tera-inch
+    "tins",
+]
+
 
 STEMMER = PorterStemmer()
 
@@ -176,9 +191,9 @@ def convert_to_pint_unit(unit: str, imperial_units: bool = False) -> str | pint.
         # the string.
         return unit
 
-    if unit in ["pinch"]:
-        # Special cases to prevent pint interpretting units incorrect
-        # pinch != pico-inch
+    if unit.lower() in MISINTERPRETED_UNITS:
+        # Special cases to prevent pint interprettng units incorrect
+        # e.g. pinch != pico-inch
         return unit
 
     # Define some replacements to ensure correct matches in pint Unit Registry
@@ -187,6 +202,12 @@ def convert_to_pint_unit(unit: str, imperial_units: bool = False) -> str | pint.
         "fluid oz": "fluid_ounce",
         "fl ounce": "fluid_ounce",
         "fluid ounce": "fluid_ounce",
+        "Cl": "centiliter",
+        "G": "gram",
+        "Ml": "milliliter",
+        "Mm": "millimeter",
+        "Pt": "pint",
+        "Tb": "tablespoon",
     }
     for original, replacement in replacements.items():
         unit = unit.replace(original, replacement)

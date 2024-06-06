@@ -52,12 +52,17 @@ class Test_convert_to_pint_unit:
 
     def test_modified_cases(self):
         """
-        Test fluid ounce variations are correctly matched to UREG("fluid ounce")
+        Test cases where we need to swap to unit to a version pint recognises
         """
         assert convert_to_pint_unit("fl oz") == UREG("fluid_ounce").units
         assert convert_to_pint_unit("fluid oz") == UREG("fluid_ounce").units
         assert convert_to_pint_unit("fl ounce") == UREG("fluid_ounce").units
         assert convert_to_pint_unit("fluid ounce") == UREG("fluid_ounce").units
+        assert convert_to_pint_unit("Cl") == UREG("centiliter").units
+        assert convert_to_pint_unit("G") == UREG("gram").units
+        assert convert_to_pint_unit("Ml") == UREG("milliliter").units
+        assert convert_to_pint_unit("Pt") == UREG("pint").units
+        assert convert_to_pint_unit("Tb") == UREG("tablespoon").units
 
     def test_imperial_units(self):
         """
@@ -97,3 +102,10 @@ class Test_convert_to_pint_unit:
         Test cases that pint would misinterpret as a different, incorrect unit
         """
         assert convert_to_pint_unit("pinch") == "pinch"
+        # Plural
+        assert convert_to_pint_unit("bars") == "bars"
+        # Title case
+        assert convert_to_pint_unit("Tin") == "Tin"
+        # Title case + plural
+        assert convert_to_pint_unit("Links") == "Links"
+        assert convert_to_pint_unit("shake") == "shake"

@@ -9,7 +9,7 @@
 ### Processing
 
 * Extend support for composite amounts that have the form e.g. `1 cup plus 1 tablespoon` or `1 cup minus 1 tablespoon`. Previously the phrase `plus/minus 1 tablespoon` would be returned in the comment. Now the whole phrase is captured as a `CompositeAmount` object.
-* 
+* Fix cases where the incorrect `pint.Unit` would be returned, caused by pint interpreting the unit as something else e.g. "pinch" -> "pico-inch".
 
 ## 0.1.0-beta11
 
