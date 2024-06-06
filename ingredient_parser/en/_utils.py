@@ -176,6 +176,11 @@ def convert_to_pint_unit(unit: str, imperial_units: bool = False) -> str | pint.
         # the string.
         return unit
 
+    if unit in ["pinch"]:
+        # Special cases to prevent pint interpretting units incorrect
+        # pinch != pico-inch
+        return unit
+
     # Define some replacements to ensure correct matches in pint Unit Registry
     replacements = {
         "fl oz": "floz",

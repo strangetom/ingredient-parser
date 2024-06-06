@@ -91,3 +91,9 @@ class Test_convert_to_pint_unit:
         we need to check this case.
         """
         assert convert_to_pint_unit("medium-size") == "medium-size"
+
+    def test_misinterpretted_units(self):
+        """
+        Test cases that pint would misinterpret as a different, incorrect unit
+        """
+        assert convert_to_pint_unit("pinch") == "pinch"
