@@ -170,7 +170,7 @@ The :func:`parse_ingredient <ingredient_parser.parsers.parse_ingredient>` functi
 
   If True, units in the :class:`IngredientAmount <ingredient_parser.dataclasses.IngredientAmount>` objects are returned as strings. The default is False, where units will be :class:`pint.Unit` objects.
 
-- ``imperial_unts``
+- ``imperial_units``
 
   If True, then any :class:`pint.Unit` objects for fluid ounces, cups, pints, quarts or gallons will be the Imperial measurement. The default is False, where the US customary measurements are used.
 
