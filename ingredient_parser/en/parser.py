@@ -21,12 +21,12 @@ def load_model_if_not_loaded():
     """Load model into TAGGER variable if not loaded.
 
     There isn't a simple way to check if the model if loaded or not, so
-    we try to call TAGGER.info() which will raise a RuntimeError if the
+    we try to call TAGGER.labels() which will raise a ValueError if the
     model is not loaded yet.
     """
     try:
-        TAGGER.info()
-    except RuntimeError:
+        TAGGER.labels()
+    except ValueError:
         with as_file(files(__package__) / "model.en.crfsuite") as p:
             TAGGER.open(str(p))
 
@@ -107,7 +107,7 @@ def inspect_parser_en(
     string_units: bool = False,
     imperial_units: bool = False,
 ) -> ParserDebugInfo:
-    """
+    """Return intermediate objects generated during parsing for inspection.
 
     Parameters
     ----------

@@ -23,6 +23,39 @@ IMPERIAL_UNITS = {
     "gallon": "imperial_gallon",
 }
 
+# List of units that pint interprets as incorrect unit
+# The comment indicates what pint interprets the unit as
+MISINTERPRETED_UNITS = [
+    "pinch",  # pico-inch
+    "pinches",
+    "bar",  # bar (pressure)
+    "bars",
+    "link",  # link (distance)
+    "links",
+    "shake",  # shake (time)
+    "shakes",
+    "tin",  # tera-inch
+    "tins",
+    "fat",  # femto-technical-atmosphere
+]
+
+# List of unit replacements so that these units get converted to the correct pint
+# units. Each entry is a tuple of a pre-compliled regex, and the replacement value.
+UNIT_REPLACEMENTS = [
+    (re.compile(r"\b(fl oz)\b"), "floz"),
+    (re.compile(r"\b(fluid oz)\b"), "fluid_ounce"),
+    (re.compile(r"\b(fl ounce)\b"), "fluid_ounce"),
+    (re.compile(r"\b(fluid ounce)\b"), "fluid_ounce"),
+    (re.compile(r"\b(C)\b"), "cup"),
+    (re.compile(r"\b(c)\b"), "cup"),
+    (re.compile(r"\b(Cl)\b"), "centiliter"),
+    (re.compile(r"\b(G)\b"), "gram"),
+    (re.compile(r"\b(Ml)\b"), "milliliter"),
+    (re.compile(r"\b(Mm)\b"), "millimeter"),
+    (re.compile(r"\b(Pt)\b"), "pint"),
+    (re.compile(r"\b(Tb)\b"), "tablespoon"),
+]
+
 
 STEMMER = PorterStemmer()
 
@@ -176,15 +209,14 @@ def convert_to_pint_unit(unit: str, imperial_units: bool = False) -> str | pint.
         # the string.
         return unit
 
-    # Define some replacements to ensure correct matches in pint Unit Registry
-    replacements = {
-        "fl oz": "floz",
-        "fluid oz": "fluid_ounce",
-        "fl ounce": "fluid_ounce",
-        "fluid ounce": "fluid_ounce",
-    }
-    for original, replacement in replacements.items():
-        unit = unit.replace(original, replacement)
+    if unit.lower() in MISINTERPRETED_UNITS:
+        # Special cases to prevent pint interprettng units incorrect
+        # e.g. pinch != pico-inch
+        return unit
+
+    # Apply replacements to ensure correct matches in pint Unit Registry
+    for regex, replacement in UNIT_REPLACEMENTS:
+        unit = regex.sub(replacement, unit)
 
     if imperial_units:
         for original, replacement in IMPERIAL_UNITS.items():

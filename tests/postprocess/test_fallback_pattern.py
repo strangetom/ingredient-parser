@@ -33,7 +33,7 @@ class TestPostProcessor_fallback_pattern:
 
         tokens = ["3", "large", "handful", "cherry", "tomatoes"]
         labels = ["QTY", "UNIT", "UNIT", "NAME", "NAME"]
-        scores = [0] * len(tokens)
+        scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
 
         expected = [
@@ -56,7 +56,7 @@ class TestPostProcessor_fallback_pattern:
 
         tokens = ["bunch", "of", "basil", "leaves"]
         labels = ["UNIT", "COMMENT", "NAME", "NAME"]
-        scores = [0] * len(tokens)
+        scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
 
         expected = [
@@ -74,7 +74,7 @@ class TestPostProcessor_fallback_pattern:
         p = PostProcessor("", [], [], [], imperial_units=True)
         tokens = ["About", "2", "cup", "flour"]
         labels = ["COMMENT", "QTY", "UNIT", "NAME"]
-        scores = [0] * len(tokens)
+        scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
 
         expected = [
@@ -98,7 +98,7 @@ class TestPostProcessor_fallback_pattern:
         p = PostProcessor("", [], [], [], string_units=True)
         tokens = ["About", "2", "cup", "flour"]
         labels = ["COMMENT", "QTY", "UNIT", "NAME"]
-        scores = [0] * len(tokens)
+        scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
 
         expected = [
@@ -122,7 +122,7 @@ class TestPostProcessor_fallback_pattern:
         """
         tokens = ["About", "2", "cup", "flour"]
         labels = ["COMMENT", "QTY", "UNIT", "NAME"]
-        scores = [0] * len(tokens)
+        scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
 
         expected = [
@@ -145,7 +145,7 @@ class TestPostProcessor_fallback_pattern:
         """
         tokens = ["2", "bananas", ",", "4", "ounce", "each"]
         labels = ["QTY", "NAME", "PUNC", "QTY", "UNIT", "COMMENT"]
-        scores = [0] * len(tokens)
+        scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
 
         p.consumed = [0, 1, 2, 3]
@@ -178,7 +178,7 @@ class TestPostProcessor_fallback_pattern:
         """
         tokens = ["2", "bananas", ",", "each", "about", "4", "ounce"]
         labels = ["QTY", "NAME", "PUNC", "COMMENT", "COMMENT", "QTY", "UNIT"]
-        scores = [0] * len(tokens)
+        scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
 
         expected = [
@@ -209,7 +209,7 @@ class TestPostProcessor_fallback_pattern:
         """
         tokens = ["2", "dozen", "bananas", ",", "each", "about", "4", "ounce"]
         labels = ["QTY", "QTY", "NAME", "PUNC", "COMMENT", "COMMENT", "QTY", "UNIT"]
-        scores = [0] * len(tokens)
+        scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
 
         expected = [
@@ -240,7 +240,7 @@ class TestPostProcessor_fallback_pattern:
         """
         tokens = ["1-2", "tablespoons", "local", "honey"]
         labels = ["QTY", "UNIT", "NAME", "NAME"]
-        scores = [0] * len(tokens)
+        scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
 
         expected = [
@@ -266,7 +266,7 @@ class TestPostProcessor_fallback_pattern:
         """
         tokens = ["1x", "tin", "condensed", "milk"]
         labels = ["QTY", "UNIT", "NAME", "NAME"]
-        scores = [0] * len(tokens)
+        scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
 
         expected = [

@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
+import operator
 from dataclasses import dataclass, field
+from functools import reduce
 from statistics import mean
 from typing import Any
 
@@ -74,6 +76,9 @@ class CompositeIngredientAmount:
         in this list is the order they appear in the sentence.
     join : str
         String of text that joins the amounts, e.g. "plus".
+    subtractive : bool
+        If True, the amounts combine subtractively. If False, the amounts combine
+        additively.
     text : str
         Composite amount as a string, automatically generated the amounts and
         join attributes.
@@ -86,6 +91,7 @@ class CompositeIngredientAmount:
 
     amounts: list[IngredientAmount]
     join: str
+    subtractive: bool
     text: str = field(init=False)
     confidence: float = field(init=False)
     starting_index: int = field(init=False)
@@ -108,14 +114,42 @@ class CompositeIngredientAmount:
     def combined(self) -> pint.Quantity:
         """Return the combined amount in a single unit for the composite amount.
 
+        The amounts that comprise the composite amount are combined according to whether
+        the composite amount is subtractive or not.
         The combined amount is returned as a pint.Quantity object.
 
         Returns
         -------
         pint.Quantity
             Combined amount
+
+        Raises
+        ------
+        TypeError
+            Raised if any of the amounts in the object do not comprise a float quantity
+            and a pint.Unit unit. In these cases, they amounts cannot be combined.
         """
-        return sum(amount.quantity * amount.unit for amount in self.amounts)
+        # Check amounts are compatible for combination
+        for amount in self.amounts:
+            if not (
+                isinstance(amount.quantity, float)
+                and isinstance(amount.unit, pint.Unit)
+            ):
+                q_type = type(amount.quantity).__name__
+                u_type = type(amount.unit).__name__
+                raise TypeError(
+                    (
+                        f"Incompatible quantity <{q_type}> "
+                        f"and unit <{u_type}> for combining."
+                    )
+                )
+
+        if self.subtractive:
+            op = operator.sub
+        else:
+            op = operator.add
+
+        return reduce(op, (amount.quantity * amount.unit for amount in self.amounts))  # type: ignore
 
 
 @dataclass
@@ -146,7 +180,7 @@ class ParsedIngredient:
         Ingredient name parsed from input sentence.
         If no ingredient name was found, this is None.
     size : IngredientText | None
-        Size modifer of ingredients, such as small or large.
+        Size modifier of ingredients, such as small or large.
         If no size modifier, this is None.
     amount : List[IngredientAmount]
         List of IngredientAmount objects, each representing a matching quantity and

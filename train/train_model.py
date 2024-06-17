@@ -69,13 +69,13 @@ def train_model(
     # in the train and tests sets, avoiding the possibility that train or tests sets
     # contain data from one dataset disproportionally.
     (
-        sentences_train,
+        _,
         sentences_test,
         features_train,
         features_test,
         truth_train,
         truth_test,
-        source_train,
+        _,
         source_test,
     ) = train_test_split(
         vectors.sentences,

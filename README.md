@@ -46,10 +46,10 @@ Sentence-level results:
 	Accuracy: 94.75%
 
 Word-level results:
-	Accuracy 97.83%
-	Precision (micro) 97.82%
-	Recall (micro) 97.83%
-	F1 score (micro) 97.82%
+	Accuracy 97.95%
+	Precision (micro) 97.95%
+	Recall (micro) 97.95%
+	F1 score (micro) 97.95%
 ```
 
 ## Development

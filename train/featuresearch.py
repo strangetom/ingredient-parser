@@ -102,14 +102,14 @@ def train_model_feature_search(
     # in the train and tests sets, avoiding the possibility that train or tests sets
     # contain data from one dataset disproportionally.
     (
-        sentences_train,
-        sentences_test,
+        _,
+        _,
         features_train,
         features_test,
         truth_train,
         truth_test,
-        source_train,
-        source_test,
+        _,
+        _,
     ) = train_test_split(
         vectors.sentences,
         vectors.features,
@@ -126,7 +126,7 @@ def train_model_feature_search(
     features_test = select_features(features_test, discard_features)
 
     # Make model name unique
-    save_model = Path(save_model).with_stem("model-" + str(uuid4()))
+    save_model_path = Path(save_model).with_stem("model-" + str(uuid4()))
 
     # Train model
     trainer = pycrfsuite.Trainer(verbose=False)
@@ -145,18 +145,18 @@ def train_model_feature_search(
     )
     for X, y in zip(features_train, truth_train):
         trainer.append(X, y)
-    trainer.train(str(save_model))
+    trainer.train(str(save_model_path))
     # Get model size, in MB
-    model_size = os.path.getsize(save_model) / 1024**2
+    model_size = os.path.getsize(save_model_path) / 1024**2
 
     # Evaluate model
     tagger = pycrfsuite.Tagger()
-    tagger.open(str(save_model))
+    tagger.open(str(save_model_path))
     labels_pred = [tagger.tag(X) for X in features_test]
     stats = evaluate(labels_pred, truth_test)
 
     if not keep_model:
-        save_model.unlink(missing_ok=True)
+        save_model_path.unlink(missing_ok=True)
 
     return {
         "feature_set": feature_set,
