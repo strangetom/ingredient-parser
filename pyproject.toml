@@ -15,7 +15,7 @@ authors = [
     { name="Tom Strange", email="tpstrange@gmail.com"},
 ]
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "License :: OSI Approved :: MIT License",
     "Natural Language :: English",
     "Operating System :: OS Independent",
