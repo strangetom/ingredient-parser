@@ -307,6 +307,8 @@ class PostProcessor:
             ";",
             "-",
             ".",
+            "!",
+            "?",
         ]:
             idx = idx[1:]
 
@@ -374,7 +376,7 @@ class PostProcessor:
         text = text.replace("( ", "(").replace(" )", ")")
 
         # Correct space preceeding various punctuation
-        for punc in [",", ":", ";", "."]:
+        for punc in [",", ":", ";", ".", "!", "?"]:
             text = text.replace(f" {punc}", punc)
 
         return text.strip()

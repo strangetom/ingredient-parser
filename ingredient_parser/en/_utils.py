@@ -62,8 +62,8 @@ STEMMER = PorterStemmer()
 # Define regular expressions used by tokenizer.
 # Matches one or more whitespace characters
 WHITESPACE_TOKENISER = re.compile(r"\S+")
-# Matches and captures one of the following: ( ) [ ] { } , " / : ;
-PUNCTUATION_TOKENISER = re.compile(r"([\(\)\[\]\{\}\,/:;])")
+# Matches and captures one of the following: ( ) [ ] { } , " / : ; ? !
+PUNCTUATION_TOKENISER = re.compile(r"([\(\)\[\]\{\}\,/:;\?\!])")
 # Matches and captures full stop at end of string
 # (?>!\.\w) is a negative lookbehind that prevents matches if the last full stop
 # is preceded by a a full stop then a word character.
