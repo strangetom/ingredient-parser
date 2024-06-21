@@ -284,3 +284,20 @@ class TestPreProcessor_is_ambiguous_unit:
         Cup is not indicated as ambiguous unit
         """
         assert not p._is_ambiguous_unit("cup")
+
+
+class TestPreProcessor_word_shape:
+    def test_word_shape(self, p):
+        """
+        Test words are transformed into correct shape pattern.
+        """
+        # Lower case
+        assert p._word_shape("pepper") == "xxxxxx"
+        # Upper case
+        assert p._word_shape("Pepper") == "Xxxxxx"
+        # Accents
+        assert p._word_shape("béchamel") == "xxxxxxxx"
+        # Numbers
+        assert p._word_shape("2-pound") == "d-xxxxx"
+        # Punctuation
+        assert p._word_shape(",") == ","

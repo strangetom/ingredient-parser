@@ -87,3 +87,7 @@ QUANTITY_X_PATTERN = re.compile(
 # Regex pattern to match a range that has spaces between the numbers and hyphen
 # e.g. 0.5 - 1. The numbers are captured in capture groups.
 EXPANDED_RANGE = re.compile(r"(\d)\s*\-\s*(\d)")
+
+LOWERCASE_PATTERN = re.compile(r"[a-z]")
+UPPERCASE_PATTERN = re.compile(r"[A-Z]")
+DIGIT_PATTERN = re.compile(r"[0-9]")

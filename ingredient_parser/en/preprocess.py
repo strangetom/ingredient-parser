@@ -2,6 +2,7 @@
 
 import re
 import string
+import unicodedata
 from fractions import Fraction
 from html import unescape
 
@@ -17,15 +18,18 @@ from ._constants import (
 )
 from ._regex import (
     CAPITALISED_PATTERN,
+    DIGIT_PATTERN,
     DUPE_UNIT_RANGES_PATTERN,
     EXPANDED_RANGE,
     FRACTION_PARTS_PATTERN,
     FRACTION_SPLIT_AND_PATTERN,
+    LOWERCASE_PATTERN,
     QUANTITY_UNITS_PATTERN,
     QUANTITY_X_PATTERN,
     STRING_RANGE_PATTERN,
     UNITS_HYPHEN_QUANTITY_PATTERN,
     UNITS_QUANTITY_PATTERN,
+    UPPERCASE_PATTERN,
 )
 from ._utils import stem, tokenize
 
@@ -948,6 +952,51 @@ class PreProcessor:
         """
         return token in AMBIGUOUS_UNITS
 
+    def _word_shape(self, token: str) -> str:
+        """Calculate the word shape for token.
+
+        The word shape is a representation of the word where all letter characters are
+        replaced with placeholders:
+        - All lowercase characters are replaced with "x"
+        - All uppercase characters are replaced with "X"
+        - All digits are replaced with "d"
+        - Punctuation is left unchanged
+
+        Parameters
+        ----------
+        token : str
+            Token to calculate word shape of.
+
+        Returns
+        -------
+        str
+            Word shape of token.
+        """
+        normalised = self._remove_accents(token)
+        shape = LOWERCASE_PATTERN.sub("x", normalised)
+        shape = UPPERCASE_PATTERN.sub("X", shape)
+        shape = DIGIT_PATTERN.sub("d", shape)
+        return shape
+
+    def _remove_accents(self, token: str) -> str:
+        """Remove accents from characters in token.
+
+        Parameters
+        ----------
+        token : str
+           Token to remove accents from.
+
+        Returns
+        -------
+        str
+           Token with accents removed.
+        """
+        return "".join(
+            c
+            for c in unicodedata.normalize("NFD", token)
+            if unicodedata.category(c) != "Mn"
+        )
+
     def _token_features(self, index: int) -> dict[str, str | bool]:
         """Return the features for each token in the sentence.
 
@@ -974,6 +1023,7 @@ class PreProcessor:
             "is_after_comma": self._follows_comma(index),
             "is_after_plus": self._follows_plus(index),
             "is_short_phrase": len(self.tokenized_sentence) < 3,
+            "word_shape": self._word_shape(token),
         }
 
         if token != stem(token):
