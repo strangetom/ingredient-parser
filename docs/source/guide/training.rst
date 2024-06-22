@@ -166,3 +166,6 @@ The model performance has improved over time as a result of improvements to the 
 .. image:: /_static/performance-history.svg
   :class: .dark-light
   :alt: Bar graph showing the model performance improving which each new release
+
+
+The complete history of the model performance used to generate this figure can be found in `performance_history.csv <https://github.com/strangetom/ingredient-parser/blob/master/train/performance_history.csv>`_.
