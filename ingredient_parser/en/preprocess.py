@@ -997,106 +997,155 @@ class PreProcessor:
             if unicodedata.category(c) != "Mn"
         )
 
+    def _common_features(self, index: int, prefix: str) -> dict[str, str | bool]:
+        """Return common features for token at given index.
+
+        Parameters
+        ----------
+        index : int
+            Index of token to return features for.
+        prefix : str
+            Feature label prefix.
+
+        Returns
+        -------
+        dict[str, str | bool]
+            Dict of features for token at given index.
+        """
+        token = self._feature_tokens[index]
+        return {
+            prefix + "is_capitalised": self._is_capitalised(token),
+            prefix + "is_unit": self._is_unit(token),
+            prefix + "is_punc": self._is_punc(token),
+            prefix + "is_ambiguous": self._is_ambiguous_unit(token),
+            prefix + "is_in_parens": self._is_inside_parentheses(index),
+            prefix + "is_after_comma": self._follows_comma(index),
+            prefix + "is_after_plus": self._follows_plus(index),
+            prefix + "word_shape": self._word_shape(token),
+        }
+
+    def _ngram_features(self, token: str, prefix: str) -> dict[str, str]:
+        """Return n-gram features for token in a dict.
+
+        N = 3, 4, 5 are returned if possible, for prefixes and suffixes.
+        An n-gram feature is only return if length of the token greater than N for that
+        n-gram.
+
+        If the token is "!num", don't return any n-gram features.
+
+        Parameters
+        ----------
+        token : str
+            Token to calculate n-gram features for.
+        prefix : str
+            Feature label prefix.
+
+        Returns
+        -------
+        dict[str, str]
+            Dict of n-gram features for token.
+        """
+        ngram_features = {}
+        if token != "!num" and len(token) >= 4:
+            ngram_features[prefix + "prefix_3"] = token[:3]
+            ngram_features[prefix + "suffix_3"] = token[-3:]
+
+        if token != "!num" and len(token) >= 5:
+            ngram_features[prefix + "prefix_4"] = token[:4]
+            ngram_features[prefix + "suffix_4"] = token[-4:]
+
+        if token != "!num" and len(token) >= 6:
+            ngram_features[prefix + "prefix_5"] = token[:5]
+            ngram_features[prefix + "suffix_5"] = token[-5:]
+
+        return ngram_features
+
     def _token_features(self, index: int) -> dict[str, str | bool]:
-        """Return the features for each token in the sentence.
+        """Return the features for the token at the given index in the sentence.
+
+        If the token at the given index appears in the corpus parameter, the token is
+        used as a feature. Otherwise (i.e. for tokens that only appear once), the token
+        stem is used as a feature.
 
         Parameters
         ----------
         index : int
             Index of token to get features for.
+        corpus : set[str]
+            Corpus of tokens that appear more than once in the training data.
 
         Returns
         -------
         dict[str, str | bool]
-            Dictionary of features for token at index
+            Dictionary of features for token at index.
         """
         token = self._feature_tokens[index]
-        features = {
-            "bias": "",
-            "stem": stem(token),
-            "pos": self.pos_tags[index],
-            "is_capitalised": self._is_capitalised(token),
-            "is_unit": self._is_unit(token),
-            "is_punc": self._is_punc(token),
-            "is_ambiguous": self._is_ambiguous_unit(token),
-            "is_in_parens": self._is_inside_parentheses(index),
-            "is_after_comma": self._follows_comma(index),
-            "is_after_plus": self._follows_plus(index),
-            "is_short_phrase": len(self.tokenized_sentence) < 3,
-            "word_shape": self._word_shape(token),
-        }
+        features: dict[str, str | bool] = {}
 
+        features["bias"] = ""
+
+        # Features for current token
+        features["pos"] = self.pos_tags[index]
+        features["stem"] = stem(token)
         if token != stem(token):
             features["token"] = token
 
+        features |= self._common_features(index, "")
+        features |= self._ngram_features(token, "")
+
+        # Features for previous token
         if index > 0:
             prev_token = self._feature_tokens[index - 1]
+            features["prev_stem"] = stem(prev_token)
             features["prev_pos"] = "+".join(
                 (self.pos_tags[index - 1], self.pos_tags[index])
             )
-            features["prev_stem"] = stem(prev_token)
-            features["prev_is_capitalised"] = self._is_capitalised(prev_token)
-            features["prev_is_unit"] = self._is_unit(prev_token)
-            features["prev_is_punc"] = self._is_punc(prev_token)
-            features["prev_is_ambiguous"] = self._is_ambiguous_unit(prev_token)
-            features["prev_is_in_parens"] = self._is_inside_parentheses(index - 1)
-            features["prev_is_after_comma"] = self._follows_comma(index - 1)
-            features["prev_is_after_plus"] = self._follows_plus(index - 1)
+            features |= self._common_features(index - 1, "prev_")
 
+        # Features for previous previous token
         if index > 1:
-            prev_token2 = self._feature_tokens[index - 2]
-            features["prev_pos2"] = "+".join(
+            prev2_token = self._feature_tokens[index - 2]
+            features["prev2_stem"] = stem(prev2_token)
+            features["prev2_pos"] = "+".join(
                 (
                     self.pos_tags[index - 2],
                     self.pos_tags[index - 1],
                     self.pos_tags[index],
                 )
             )
-            features["prev_stem2"] = stem(prev_token2)
-            features["prev_is_capitalised2"] = self._is_capitalised(prev_token2)
-            features["prev_is_unit2"] = self._is_unit(prev_token2)
-            features["prev_is_punc2"] = self._is_punc(prev_token2)
-            features["prev_is_ambiguous2"] = self._is_ambiguous_unit(prev_token2)
-            features["prev_is_in_parens2"] = self._is_inside_parentheses(index - 2)
-            features["prev_is_after_comma2"] = self._follows_comma(index - 2)
-            features["prev_is_after_plus2"] = self._follows_plus(index - 2)
+            features |= self._common_features(index - 2, "prev2_")
 
+        # Features for next token
         if index < len(self._feature_tokens) - 1:
             next_token = self._feature_tokens[index + 1]
+            features["next_stem"] = stem(next_token)
             features["next_pos"] = "+".join(
                 (self.pos_tags[index], self.pos_tags[index + 1])
             )
-            features["next_stem"] = stem(next_token)
-            features["next_is_capitalised"] = self._is_capitalised(next_token)
-            features["next_is_unit"] = self._is_unit(next_token)
-            features["next_is_punc"] = self._is_punc(next_token)
-            features["next_is_ambiguous"] = self._is_ambiguous_unit(next_token)
-            features["next_is_in_parens"] = self._is_inside_parentheses(index + 1)
-            features["next_is_after_comma"] = self._follows_comma(index + 1)
-            features["next_is_after_plus"] = self._follows_plus(index + 1)
+            features |= self._common_features(index + 1, "next_")
 
+        # Features for next next token
         if index < len(self._feature_tokens) - 2:
-            next_token2 = self._feature_tokens[index + 2]
-            features["next_pos2"] = "+".join(
+            next2_token = self._feature_tokens[index + 2]
+            features["next2_stem"] = stem(next2_token)
+            features["next2_pos"] = "+".join(
                 (
                     self.pos_tags[index + 2],
                     self.pos_tags[index + 1],
                     self.pos_tags[index],
                 )
             )
-            features["next_stem2"] = stem(next_token2)
-            features["next_is_capitalised2"] = self._is_capitalised(next_token2)
-            features["next_is_unit2"] = self._is_unit(next_token2)
-            features["next_is_punc2"] = self._is_punc(next_token2)
-            features["next_is_ambiguous2"] = self._is_ambiguous_unit(next_token2)
-            features["next_is_in_parens2"] = self._is_inside_parentheses(index + 2)
-            features["next_is_after_comma2"] = self._follows_comma(index + 2)
-            features["next_is_after_plus2"] = self._follows_plus(index + 2)
+            features |= self._common_features(index + 2, "next2_")
 
         return features
 
     def sentence_features(self) -> list[dict[str, str | bool]]:
         """Return features for all tokens in sentence.
+
+        Parameters
+        ----------
+        corpus : set[str]
+            Corpus of tokens that appear more than once in the training data.
 
         Returns
         -------
