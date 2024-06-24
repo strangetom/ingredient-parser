@@ -121,7 +121,7 @@ def train_model_feature_search(
     )
 
     # Remove features not in selected feature set
-    discard_features = DISCARDED_FEATURES.get(feature_set)
+    discard_features = DISCARDED_FEATURES.get(feature_set, [])
     features_train = select_features(features_train, discard_features)
     features_test = select_features(features_test, discard_features)
 
