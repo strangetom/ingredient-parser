@@ -137,7 +137,7 @@ def train_model_feature_search(
             "feature.possible_states": True,
             "feature.possible_transitions": True,
             "c1": 0.25,
-            "c2": 0.7,
+            "c2": 0.75,
             "max_linesearch": 5,
             "num_memories": 3,
             "period": 10,
