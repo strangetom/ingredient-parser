@@ -8,7 +8,7 @@
 
 ### Model Date and Version
 
-Date: May 2024
+Date: June 2024
 
 Version: The model version is the same has the `ingredient_parser_nlp` package version.
 
@@ -62,7 +62,7 @@ The model has been trained on datasets that have limitations.
 - The Cookstr dataset contains sentences that use US customary units as the primary unit, and often refer to ingredients or brands found only in the USA. Sentences often include amours in multiple unit formats (US customary, metric). The ingredient sentences are often quite long and complex.
 - The BBC Food dataset contains sentences that use metric units as the primary unit, but also often have the amounts in US customary units too. The ingredient sentences are generally quite simple and consistent in their structure.
 
-Certain sentence formats, such as consecutive numbers that should not be combined (e.g. 1 1/2-ounce steak) are not well managed in the preprocessing step and can result in unexpected parsing results. 
+Certain sentence formats, such as consecutive numbers that should not be combined (e.g. 1 1/2-ounce steak) are usually handled incorrectly in the preprocessing step and can result in unexpected parsing results. 
 
 Long sentences increase the likelihood of the model mislabelling tokens.
 
@@ -98,7 +98,7 @@ The model has the following performance metrics:
 
 | Word level accuracy | Sentence level accuracy |
 | ------------------- | ----------------------- |
-| 97.95 ± 0.28%       | 94.75 ± 0.64%           |
+| 97.97 ± 0.21%       | 95.10 ± 0.47%           |
 
 These metrics were determined by executing 20 training/evaluation cycles and calculating the mean and standard deviation for the two metrics across all cycles. The uncertainty values provided represent the 99.7% confidence bounds (i.e. 3x standard deviation). The uncertainty is due to the randomisation of the selection of training and evaluation data whenever the model is trained.
 
