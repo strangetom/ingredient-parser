@@ -325,6 +325,7 @@ class PostProcessor:
 
         # Remove brackets that aren't part of a matching pair
         idx_to_remove = []
+        tok_name = None  # Unnecessary, but prevents typing errors
         stack = defaultdict(list)  # Seperate stack for each bracket type
         for i, tok in enumerate([self.tokens[i] for i in idx]):
             if tok in ["(", ")"]:

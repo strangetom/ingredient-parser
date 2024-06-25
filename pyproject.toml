@@ -75,7 +75,7 @@ ignore = ["E402"]
 docstring-code-format = true
 
 [tool.pyright]
-include = ["ingredient_parser"]
+include = ["ingredient_parser", "train"]
 exclude = ["**/__pycache__"]
 reportUnusedImport = true
 reportUnusedClass = true

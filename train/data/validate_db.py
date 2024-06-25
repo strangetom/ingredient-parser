@@ -16,7 +16,7 @@ sqlite3.register_converter("json", json.loads)
 DATABASE = "train/data/training.sqlite3"
 
 
-def load_from_db() -> list[dict[str, str]]:
+def load_from_db() -> list[dict[str, str | list[str]]]:
     """Get all training sentences from the database
 
     Returns

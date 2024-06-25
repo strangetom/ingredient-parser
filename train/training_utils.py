@@ -200,7 +200,7 @@ def evaluate(predictions: list[list[str]], truths: list[list[str]]) -> Stats:
 
     # Convert report to TokenStats dataclass
     token_stats = {}
-    for k, v in report.items():
+    for k, v in report.items():  # type: ignore
         # Convert dict to Metrics
         if k in labels + ["macro avg", "weighted avg"]:
             k = k.replace(" ", "_")

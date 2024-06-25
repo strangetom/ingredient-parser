@@ -38,7 +38,7 @@ def load_from_db(source: str) -> list[dict[str, str]]:
     return rows
 
 
-def load_csv(path: str) -> list[dict[str, str]]:
+def load_csv(path: str) -> tuple[list[dict[str, str]], list[str]]:
     """Load csv file, returning rows as dicts
 
     Parameters
@@ -138,8 +138,8 @@ if __name__ == "__main__":
             csv_rows[index]["comment"] = create_csv_value(db_row, "COMMENT")
             csv_rows[index]["purpose"] = create_csv_value(db_row, "PURPOSE")
 
-            # Set value at index to None so we can't match it again if there are
+            # Set value at index to empty string so we can't match it again if there are
             # duplicate sentences
-            csv_sentences[index] = None
+            csv_sentences[index] = ""
 
         write_csv(csv_file, csv_rows)

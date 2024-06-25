@@ -90,7 +90,7 @@ def train_model(
     print(f"[INFO] {len(features_test):,} testing vectors.")
 
     print("[INFO] Training model with training data.")
-    trainer = pycrfsuite.Trainer(verbose=False)
+    trainer = pycrfsuite.Trainer(verbose=False)  # type: ignore
     trainer.set_params(
         {
             "feature.minfreq": 0,
@@ -108,7 +108,7 @@ def train_model(
     trainer.train(save_model)
 
     print("[INFO] Evaluating model with test data.")
-    tagger = pycrfsuite.Tagger()
+    tagger = pycrfsuite.Tagger()  # type: ignore
     tagger.open(save_model)
 
     labels_pred, scores_pred = [], []
