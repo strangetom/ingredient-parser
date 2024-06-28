@@ -74,6 +74,12 @@ class Test_is_range:
         """
         assert is_range("1-2")
 
+    def test_range_extra(self):
+        """
+        Test string "1-2 dozen" is correctly identified as not a range
+        """
+        assert not is_range("1-2 dozen")
+
     def test_x(self):
         """
         Test string "1x" is correctly identified as not a range
