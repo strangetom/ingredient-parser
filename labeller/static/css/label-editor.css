@@ -56,20 +56,21 @@ header a, header button {
   font-size: 1rem;
   line-height: 1.5;
   min-width: 10ch;
+  top: 0;
 }
 header a:hover, header button:hover {
   background-color: var(--bg-2);
 }
 
 .success {
-  background-color: var(--green-alt);
-  color: var(--bg);
-  border: 1px solid var(--bg);
+  background-color: var(--green-alt) !important;
+  color: var(--bg) !important;
+  border: 1px solid var(--bg) !important;
 }
 .failure {
-  background-color: var(--red-alt);
-  color: var(--bg);
-  border: 1px solid var(--bg);
+  background-color: var(--red-alt) !important;
+  color: var(--bg) !important;
+  border: 1px solid var(--bg) !important;
 }
 
 main {
