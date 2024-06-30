@@ -9,6 +9,7 @@ sqlite3.register_converter("json", json.loads)
 BBC_CSV = "train/data/bbc/bbc-ingredients-snapshot-2017.csv"
 COOKSTR_CSV = "train/data/cookstr/cookstr-ingredients-snapshot-2017.csv"
 NYT_CSV = "train/data/nytimes/nyt-ingredients-snapshot-2015.csv"
+ALLRECIPES_CSV = "train/data/allrecipes/allrecipes-ingredients-snapshot-2017.csv"
 
 DATABASE = "train/data/training.sqlite3"
 
@@ -117,6 +118,7 @@ if __name__ == "__main__":
         "bbc": BBC_CSV,
         "cookstr": COOKSTR_CSV,
         "nyt": NYT_CSV,
+        "allrecipes": ALLRECIPES_CSV,
     }
 
     for source, csv_file in source_csv.items():
