@@ -42,7 +42,7 @@ The ingredient parser model parses structured information from English language 
   - PREP: Preparation notes for the ingredient
   - COMMENT: Comment in ingredient sentence
   - PURPOSE: Purpose of the ingredient
-  - OTHER, for text that cannot be classified into one of the above labels
+  - OTHER: for text that cannot be classified into one of the above labels
 
 ### Primary Intended Users
 
@@ -61,6 +61,7 @@ The model has been trained on datasets that have limitations.
 - The New York Times dataset contains sentences that largely follow a consistent style, use US customary units, and often refer to ingredients or brands found only in the USA.
 - The Cookstr dataset contains sentences that use US customary units as the primary unit, and often refer to ingredients or brands found only in the USA. Sentences often include amours in multiple unit formats (US customary, metric). The ingredient sentences are often quite long and complex.
 - The BBC Food dataset contains sentences that use metric units as the primary unit, but also often have the amounts in US customary units too. The ingredient sentences are generally quite simple and consistent in their structure.
+- The AllRecipes dataset contains sentences that usually use US customary units and often reference US brand names or branded products. The ingredient sentences are generally quite simple and consistent in their structure.
 
 Certain sentence formats, such as consecutive numbers that should not be combined (e.g. 1 1/2-ounce steak) are usually handled incorrectly in the preprocessing step and can result in unexpected parsing results. 
 
@@ -88,9 +89,13 @@ There are 3 datasets used to train and evaluate model performance.
 
    The first 15,000 sentences are used in the training and evaluation of the model.
 
+4. AllRecipes, originally found as part of https://archive.org/details/recipes-en-201706.
+
+   The first 15,000 sentences are used in the training and evaluation of the model.
+
 All datasets have been through extensive cleaning to make the data consistent. The cleaned versions of the data are found in the repository for the ingredient_parser_nlp package: https://github.com/strangetom/ingredient-parser
 
-The model is trained on a randomised set of 75% of the total data, and evaluated on the remaining 25%.
+The model is trained on a randomised set of 80% of the total data, and evaluated on the remaining 20%.
 
 ## Quantitative Analysis
 
