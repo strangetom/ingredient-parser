@@ -163,12 +163,12 @@ class PostProcessor:
             sentence=self.sentence,
         )
 
-    def _postprocess(self, selected: str) -> IngredientText | None:
+    def _postprocess(self, selected_label: str) -> IngredientText | None:
         """Process tokens, labels and scores with selected label into IngredientText.
 
         Parameters
         ----------
-        selected : str
+        selected_label : str
             Label of tokens to postprocess
 
         Returns
@@ -176,12 +176,12 @@ class PostProcessor:
         IngredientText
             Object containing ingredient comment text and confidence
         """
-        # Select indices of tokens, labels and scores for selected label
+        # Select indices of tokens, labels and scores for selected_label
         # Do not include tokens, labels and scores in self.consumed
         idx = [
             i
             for i, label in enumerate(self.labels)
-            if label in [selected, "PUNC"] and i not in self.consumed
+            if label in [selected_label, "PUNC"] and i not in self.consumed
         ]
 
         # If idx is empty or all the selected idx are PUNC, return None
@@ -218,7 +218,12 @@ class PostProcessor:
 
         # Join all the parts together into a single string and fix any
         # punctuation weirdness as a result.
-        text = ", ".join(parts)
+        # If the selected_label is NAME, join with a space. For all other labels, join
+        # with a comma and a space.
+        if selected_label == "NAME":
+            text = " ".join(parts)
+        else:
+            text = ", ".join(parts)
         text = self._fix_punctuation(text)
 
         if len(parts) == 0:
