@@ -460,6 +460,7 @@ class PostProcessor:
             "block",
             "box",
             "can",
+            "container",
             "envelope",
             "jar",
             "package",
