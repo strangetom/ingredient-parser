@@ -63,7 +63,7 @@ STEMMER = PorterStemmer()
 # Matches one or more whitespace characters
 WHITESPACE_TOKENISER = re.compile(r"\S+")
 # Matches and captures one of the following: ( ) [ ] { } , " / : ; ? !
-PUNCTUATION_TOKENISER = re.compile(r"([\(\)\[\]\{\}\,/:;\?\!])")
+PUNCTUATION_TOKENISER = re.compile(r"([\(\)\[\]\{\}\,/:;\?\!\*])")
 # Matches and captures full stop at end of string
 # (?>!\.\w) is a negative lookbehind that prevents matches if the last full stop
 # is preceded by a a full stop then a word character.
@@ -103,6 +103,9 @@ def tokenize(sentence: str) -> list[str]:
 
     >>> tokenize("Freshly grated Parmesan cheese, for garnish.")
     ["Freshly", "grated", "Parmesan", "cheese", ",", "for", "garnish", "."]
+
+    >>> tokenize("2 onions, finely chopped*")
+    ["2", "onions", ",", "finely", "chopped", "*"]
     """
     tokens = [
         PUNCTUATION_TOKENISER.split(tok)

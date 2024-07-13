@@ -196,14 +196,14 @@ class PostProcessor:
             idx = self._remove_invalid_indices(idx)
 
             if all(self.labels[i] == "PUNC" for i in idx):
-                # Discard if the group only contains PUNC
+                # Skip if the group only contains PUNC
                 continue
 
             joined = " ".join([self.tokens[i] for i in idx])
             confidence = mean([self.scores[i] for i in idx])
 
             if self.discard_isolated_stop_words and joined in STOP_WORDS:
-                # Discard part if it's a stop word
+                # Skip part if it's a stop word
                 continue
 
             self.consumed.extend(idx)
@@ -296,7 +296,7 @@ class PostProcessor:
         list[int]
             List of indices with invalid punctuation removed.
         """
-        # For groups with more than 1 element, remove invliad leading and trailing
+        # For groups with more than 1 element, remove invalid leading and trailing
         # punctuation so they don't get incorrectly consumed.
         while len(idx) > 1 and self.tokens[idx[0]] in [
             ")",
@@ -309,6 +309,7 @@ class PostProcessor:
             ".",
             "!",
             "?",
+            "*",
         ]:
             idx = idx[1:]
 
@@ -326,7 +327,7 @@ class PostProcessor:
         # Remove brackets that aren't part of a matching pair
         idx_to_remove = []
         tok_name = None  # Unnecessary, but prevents typing errors
-        stack = defaultdict(list)  # Seperate stack for each bracket type
+        stack = defaultdict(list)  # Separate stack for each bracket type
         for i, tok in enumerate([self.tokens[i] for i in idx]):
             if tok in ["(", ")"]:
                 tok_name = "PAREN"
@@ -376,8 +377,8 @@ class PostProcessor:
         # Correct space following open parens or before close parens
         text = text.replace("( ", "(").replace(" )", ")")
 
-        # Correct space preceeding various punctuation
-        for punc in [",", ":", ";", ".", "!", "?"]:
+        # Correct space preceding various punctuation
+        for punc in [",", ":", ";", ".", "!", "?", "*"]:
             text = text.replace(f" {punc}", punc)
 
         return text.strip()

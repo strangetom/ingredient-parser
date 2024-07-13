@@ -65,3 +65,10 @@ class TestPostProcessor_fix_punctuation:
         """
         input_sentence = "finely chopped !"
         assert p._fix_punctuation(input_sentence) == "finely chopped!"
+
+    def test_space_before_asterisk(self, p):
+        """
+        Test space before asterisk is removed
+        """
+        input_sentence = "chopped *"
+        assert p._fix_punctuation(input_sentence) == "chopped*"
