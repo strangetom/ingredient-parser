@@ -25,7 +25,7 @@ STRING_QUANTITY_HYPHEN_PATTERN = re.compile(
     \-                                       # Followed by hyphen
     ({'|'.join(units_list)})                 # Followed by unit
     """,
-    re.VERBOSE,
+    re.VERBOSE | re.IGNORECASE,
 )
 
 # Regex pattern for matching a range in string format e.g. 1 to 2, 8.5 to 12, 4 or 5.
