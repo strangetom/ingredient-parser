@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import re
 import string
 import unicodedata
 from fractions import Fraction
@@ -12,7 +11,6 @@ from ._constants import (
     AMBIGUOUS_UNITS,
     FLATTENED_UNITS_LIST,
     STRING_NUMBERS,
-    STRING_NUMBERS_REGEXES,
     UNICODE_FRACTIONS,
     UNITS,
 )
@@ -26,6 +24,7 @@ from ._regex import (
     LOWERCASE_PATTERN,
     QUANTITY_UNITS_PATTERN,
     QUANTITY_X_PATTERN,
+    STRING_QUANTITY_HYPHEN_PATTERN,
     STRING_RANGE_PATTERN,
     UNITS_HYPHEN_QUANTITY_PATTERN,
     UNITS_QUANTITY_PATTERN,
@@ -191,7 +190,6 @@ class PreProcessor:
         # Note that the order matters
         funcs = [
             self._replace_en_em_dash,
-            self._replace_string_numbers,
             self._replace_html_fractions,
             self._replace_unicode_fractions,
             self._combine_quantities_split_by_and,
@@ -236,72 +234,6 @@ class PreProcessor:
         "3-4 sirloin steaks"
         """
         return sentence.replace("–", "-").replace("—", " - ")
-
-    def _replace_string_numbers(self, sentence: str) -> str:
-        """Replace string numbers (e.g. one, two) with numeric values (e.g. 1, 2).
-
-        Parameters
-        ----------
-        sentence : str
-            Ingredient sentence
-
-        Returns
-        -------
-        str
-            Ingredient sentence with string numbers replace with numeric values
-
-        Examples
-        --------
-        >>> p = PreProcessor("")
-        >>> p._replace_string_numbers("three large onions")
-        "3 large onions"
-
-        >>> p = PreProcessor("")
-        >>> p._replace_string_numbers("twelve bonbons")
-        "12 bonbons"
-        """
-        # STRING_NUMBER_REGEXES is a dict where the values are a tuple of the compiled
-        # regular expression for matching a string number e.g. 'one', 'two' and the
-        # substitution numerical value for that string number.
-        for regex, substitution in STRING_NUMBERS_REGEXES.values():
-            # Find matches for current string number
-            for match in regex.finditer(sentence):
-                if self._valid_string_number_replacement(match, sentence):
-                    sentence = regex.sub(rf"{substitution}", sentence)
-
-        return sentence
-
-    def _valid_string_number_replacement(self, match: re.Match, sentence: str) -> bool:
-        """Check if string number replacement is valid for the given Match in sentence.
-
-        Parameters
-        ----------
-        match : re.Match
-            Match object for matching string number in sentence
-        sentence : str
-            Sentence
-
-        Returns
-        -------
-        bool
-        """
-        # Check the character following the match, If it's not a hyphen, or we're at
-        # the end of the sentence, the replacement is valid.
-        next_char_idx = match.span()[-1]
-        if next_char_idx >= len(sentence) or sentence[next_char_idx] != "-":
-            return True
-
-        # If the next character is a hyphen, if the hyphen is followed by
-        # a unit or another string number, then also do the substitution.
-        sub_sentence = sentence[next_char_idx + 1 :]
-        units_and_numbers = FLATTENED_UNITS_LIST + list(STRING_NUMBERS.keys())
-        for unit_or_num in units_and_numbers:
-            # Add a space to end of unit_or_num to make sure we don't incorrectly
-            # get a substring match e.g. matching "g" when unit_or_num is grain.
-            if sub_sentence.startswith(unit_or_num + " "):
-                return True
-
-        return False
 
     def _replace_html_fractions(self, sentence: str) -> str:
         """Replace html fractions e.g. &frac12; with unicode equivalents.
@@ -484,7 +416,8 @@ class PreProcessor:
         """
         sentence = QUANTITY_UNITS_PATTERN.sub(r"\1 \2", sentence)
         sentence = UNITS_QUANTITY_PATTERN.sub(r"\1 \2", sentence)
-        return UNITS_HYPHEN_QUANTITY_PATTERN.sub(r"\1 - \2", sentence)
+        sentence = UNITS_HYPHEN_QUANTITY_PATTERN.sub(r"\1 - \2", sentence)
+        return STRING_QUANTITY_HYPHEN_PATTERN.sub(r"\1 \2", sentence)
 
     def _remove_unit_trailing_period(self, sentence: str) -> str:
         """Remove trailing periods from units e.g. tsp. -> tsp.
@@ -811,6 +744,10 @@ class PreProcessor:
         True
 
         >>> p = PreProcessor("")
+        >>> p._is_numeric("three")
+        True
+
+        >>> p = PreProcessor("")
         >>> p._is_numeric("beef")
         False
         """
@@ -827,6 +764,9 @@ class PreProcessor:
                 return True
             except ValueError:
                 return False
+
+        if token.lower() in STRING_NUMBERS.keys():
+            return True
 
         try:
             float(token)

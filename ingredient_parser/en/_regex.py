@@ -2,7 +2,7 @@
 
 import re
 
-from ._constants import FLATTENED_UNITS_LIST
+from ._constants import FLATTENED_UNITS_LIST, STRING_NUMBERS
 
 # Regex pattern for fraction parts.
 # Matches 0+ numbers followed by 0+ white space characters followed by a number then
@@ -19,6 +19,14 @@ units_list = FLATTENED_UNITS_LIST + ["in", "x"]
 QUANTITY_UNITS_PATTERN = re.compile(rf"(\d)\-?({'|'.join(units_list)})")
 UNITS_QUANTITY_PATTERN = re.compile(rf"({'|'.join(units_list)})(\d)")
 UNITS_HYPHEN_QUANTITY_PATTERN = re.compile(rf"({'|'.join(units_list)})\-(\d)")
+STRING_QUANTITY_HYPHEN_PATTERN = re.compile(
+    rf"""
+    \b({'|'.join(STRING_NUMBERS.keys())})\b  # Capture string number
+    \-                                       # Followed by hyphen
+    ({'|'.join(units_list)})                 # Followed by unit
+    """,
+    re.VERBOSE,
+)
 
 # Regex pattern for matching a range in string format e.g. 1 to 2, 8.5 to 12, 4 or 5.
 # Assumes fake fractions and unicode fraction have already been replaced.
