@@ -153,6 +153,7 @@ AMBIGUOUS_UNITS.extend(_ambiguous_units_alt_forms)
 
 # Strings and their numeric representation
 STRING_NUMBERS = {
+    "one-quarter": "1/4",
     "one-half": "1/2",
     "one": "1",
     "two": "2",

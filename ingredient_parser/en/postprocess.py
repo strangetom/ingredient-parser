@@ -19,8 +19,13 @@ from ._constants import (
     APPROXIMATE_TOKENS,
     SINGULAR_TOKENS,
     STOP_WORDS,
+    STRING_NUMBERS_REGEXES,
 )
-from ._utils import ingredient_amount_factory
+from ._utils import (
+    combine_quantities_split_by_and,
+    ingredient_amount_factory,
+    replace_string_range,
+)
 
 WORD_CHAR = re.compile(r"\w")
 
@@ -251,6 +256,8 @@ class PostProcessor:
         list[IngredientAmount]
             List of IngredientAmount objects
         """
+        self._convert_string_number_qty()
+
         funcs = [
             self._sizable_unit_pattern,
             self._composite_amounts_pattern,
@@ -417,6 +424,118 @@ class PostProcessor:
 
         return idx_to_keep
 
+    def _replace_string_numbers(self, text: str) -> str:
+        """Replace string numbers (e.g. one, two) with numeric values (e.g. 1, 2).
+
+        Parameters
+        ----------
+        text : str
+            Ingredient sentence
+
+        Returns
+        -------
+        str
+            Ingredient sentence with string numbers replace with numeric values
+
+        Examples
+        --------
+        >>> p = PreProcessor("")
+        >>> p._replace_string_numbers("three large onions")
+        "3 large onions"
+
+        >>> p = PreProcessor("")
+        >>> p._replace_string_numbers("twelve bonbons")
+        "12 bonbons"
+        """
+        # STRING_NUMBER_REGEXES is a dict where the values are a tuple of the compiled
+        # regular expression for matching a string number e.g. 'one', 'two' and the
+        # substitution numerical value for that string number.
+        for regex, substitution in STRING_NUMBERS_REGEXES.values():
+            text = regex.sub(rf"{substitution}", text)
+
+        return text
+
+    def _collapse_replacable_QTY_tokens(
+        self, reduction_idx: list[list[int]], reductions: list[str]
+    ) -> None:
+        """Collapse consecutive QTY tokens that can be represented as a numeric value.
+
+        Modify the tokens, labels and scores lists to remove tokens that can be replaced
+        by a single numeric value. The score for the replacement token is the average
+        score for all tokens being replaced.
+
+        Parameters
+        ----------
+        reduction_idx : list[list[int]]
+            List of lists of indices for tokens that can be replaced.
+            The first index in each list will be replaced, all other will be removed.
+        reductions : list[str]
+            Replacement tokens for each replaceable group of indices.
+        """
+        idx_to_delete = []
+        for idx_group, replacement in zip(reduction_idx, reductions):
+            mod_idx = idx_group[0]  # Index to replace with replacement
+            self.scores[mod_idx] = mean([self.scores[i] for i in idx_group])
+            self.tokens[mod_idx] = replacement
+
+            idx_to_delete.extend(idx_group[1:])
+
+        self.tokens = [
+            self.tokens[i] for i, _ in enumerate(self.tokens) if i not in idx_to_delete
+        ]
+        self.labels = [
+            self.labels[i] for i, _ in enumerate(self.labels) if i not in idx_to_delete
+        ]
+        self.scores = [
+            self.scores[i] for i, _ in enumerate(self.scores) if i not in idx_to_delete
+        ]
+
+    def _convert_string_number_qty(self) -> None:
+        """Convert QTY tokens that are string numbers to numeric values
+
+        This function modifies to tokens, labels and scores lists to replace any
+        string numbers with QTY label with their numeric value.
+
+        This function also collapses any quantities split by 'and' into a single
+        number e.g.
+        one and one-half -> 1 and 1/2 -> 1.5
+
+        This function also collapses any string ranges into a single range e.g.
+        one or two -> 1 or 2 -> 1-2
+        """
+        for i, (token, label) in enumerate(zip(self.tokens, self.labels)):
+            if label == "QTY":
+                self.tokens[i] = self._replace_string_numbers(token)
+
+        QTY_idx = [i for i, label in enumerate(self.labels) if label == "QTY"]
+
+        # Find any cases where a group of consecutuve QTY tokens can be collapsed into
+        # a single token.
+        # reduction is a list of (idx_group, replacement_token) tuples which we will use
+        # to modify the tokens, labels and scores lists
+        reduction_idx, reductions = [], []
+        for idx_group in group_consecutive_idx(QTY_idx):
+            idx_group = list(idx_group)
+            if len(idx_group) == 1:
+                continue
+
+            fragment = " ".join([self.tokens[i] for i in idx_group])
+
+            replacement = combine_quantities_split_by_and(fragment)
+            if replacement != fragment:
+                reduction_idx.append(idx_group)
+                reductions.append(replacement)
+                continue
+
+            replacement = replace_string_range(fragment)
+            if replacement != fragment:
+                reduction_idx.append(idx_group)
+                reductions.append(replacement)
+                continue
+
+        if reductions:
+            self._collapse_replacable_QTY_tokens(reduction_idx, reductions)
+
     def _sizable_unit_pattern(
         self, idx: list[int], tokens: list[str], labels: list[str], scores: list[float]
     ) -> list[IngredientAmount]:
@@ -469,6 +588,7 @@ class PostProcessor:
             "container",
             "envelope",
             "jar",
+            "loaf",
             "package",
             "packet",
             "piece",
