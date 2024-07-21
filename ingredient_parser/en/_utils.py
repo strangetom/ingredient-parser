@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import re
+from fractions import Fraction
 from functools import lru_cache
 from itertools import chain
 
@@ -10,6 +11,7 @@ from nltk.stem.porter import PorterStemmer
 from .._common import is_float, is_range
 from ..dataclasses import IngredientAmount
 from ._constants import UNITS
+from ._regex import FRACTION_SPLIT_AND_PATTERN, STRING_RANGE_PATTERN
 
 UREG = pint.UnitRegistry()
 
@@ -231,6 +233,70 @@ def convert_to_pint_unit(unit: str, imperial_units: bool = False) -> str | pint.
         return UREG(unit).units
 
     return unit
+
+
+def combine_quantities_split_by_and(text: str) -> str:
+    """Combine fractional quantities split by 'and' into single value.
+
+    Parameters
+    ----------
+    text : str
+        Text to combine
+
+    Returns
+    -------
+    str
+        Text with split fractions replaced with
+        single decimal value.
+
+    Examples
+    --------
+    >>> combine_quantities_split_by_and("1 and 1/2 tsp fine grain sea salt")
+    "1.5 tsp fine grain sea salt"
+
+    >>> combine_quantities_split_by_and("1 and 1/4 cups dark chocolate morsels")
+    "1.25 cups dark chocolate morsels"
+    """
+    matches = FRACTION_SPLIT_AND_PATTERN.findall(text)
+
+    for match in matches:
+        combined_quantity = float(Fraction(match[1]) + Fraction(match[2]))
+        rounded = round(combined_quantity, 3)
+        text = text.replace(match[0], f"{rounded:g}")
+
+    return text
+
+
+def replace_string_range(text: str) -> str:
+    """Replace range in the form "<num> to <num" with range "<num>-<num>".
+
+    For example
+    -----------
+    1 to 2 -> 1-2
+    8.5 to 12.5 -> 8.5-12.5
+    16- to 9-
+
+    Parameters
+    ----------
+    text : str
+        Text to replace within
+
+    Returns
+    -------
+    str
+        Text with string ranges replaced with standardised range
+
+    Examples
+    --------
+    >>> p = PreProcessor("")
+    >>> p._replace_string_range("1 to 2 mashed bananas")
+    "1-2 mashed bananas"
+
+    >>> p = PreProcessor("")
+    >>> p._replace_string_range("5- or 6- large apples")
+    "5-6- large apples"
+    """
+    return STRING_RANGE_PATTERN.sub(r"\1-\5", text)
 
 
 def ingredient_amount_factory(

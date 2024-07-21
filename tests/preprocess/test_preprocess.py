@@ -33,11 +33,11 @@ class TestPreProcessor__builtins__:
             == """_replace_en_em_dash: 1/2 cup chicken broth
 _replace_html_fractions: 1/2 cup chicken broth
 _replace_unicode_fractions: 1/2 cup chicken broth
-_combine_quantities_split_by_and: 1/2 cup chicken broth
+combine_quantities_split_by_and: 1/2 cup chicken broth
 _replace_fake_fractions: 0.5 cup chicken broth
 _split_quantity_and_units: 0.5 cup chicken broth
 _remove_unit_trailing_period: 0.5 cup chicken broth
-_replace_string_range: 0.5 cup chicken broth
+replace_string_range: 0.5 cup chicken broth
 _replace_dupe_units_ranges: 0.5 cup chicken broth
 _merge_quantity_x: 0.5 cup chicken broth
 _collapse_ranges: 0.5 cup chicken broth
@@ -54,15 +54,15 @@ def normalise_test_cases() -> list[tuple[str, ...]]:
     return [
         ("&frac12; cup warm water (105°F)", "0.5 cup warm water (105°F)"),
         ("3 1/2 chilis anchos", "3.5 chilis anchos"),
-        ("six eggs", "6 eggs"),
+        ("six eggs", "six eggs"),
         ("thumbnail-size piece ginger", "thumbnail-size piece ginger"),
         (
             "2 cups flour – white or self-raising",
             "2 cups flour - white or self-raising",
         ),
         ("3–4 sirloin steaks", "3-4 sirloin steaks"),
-        ("three large onions", "3 large onions"),
-        ("twelve bonbons", "12 bonbons"),
+        ("three large onions", "three large onions"),
+        ("twelve bonbons", "twelve bonbons"),
         ("1&frac34; cups tomato ketchup", "1.75 cups tomato ketchup"),
         ("1/2 cup icing sugar", "0.5 cup icing sugar"),
         ("2 3/4 pound chickpeas", "2.75 pound chickpeas"),

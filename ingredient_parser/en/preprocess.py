@@ -20,17 +20,20 @@ from ._regex import (
     DUPE_UNIT_RANGES_PATTERN,
     EXPANDED_RANGE,
     FRACTION_PARTS_PATTERN,
-    FRACTION_SPLIT_AND_PATTERN,
     LOWERCASE_PATTERN,
     QUANTITY_UNITS_PATTERN,
     QUANTITY_X_PATTERN,
     STRING_QUANTITY_HYPHEN_PATTERN,
-    STRING_RANGE_PATTERN,
     UNITS_HYPHEN_QUANTITY_PATTERN,
     UNITS_QUANTITY_PATTERN,
     UPPERCASE_PATTERN,
 )
-from ._utils import stem, tokenize
+from ._utils import (
+    combine_quantities_split_by_and,
+    replace_string_range,
+    stem,
+    tokenize,
+)
 
 
 class PreProcessor:
@@ -192,11 +195,11 @@ class PreProcessor:
             self._replace_en_em_dash,
             self._replace_html_fractions,
             self._replace_unicode_fractions,
-            self._combine_quantities_split_by_and,
+            combine_quantities_split_by_and,
             self._replace_fake_fractions,
             self._split_quantity_and_units,
             self._remove_unit_trailing_period,
-            self._replace_string_range,
+            replace_string_range,
             self._replace_dupe_units_ranges,
             self._merge_quantity_x,
             self._collapse_ranges,
@@ -308,39 +311,6 @@ class PreProcessor:
             summed = float(sum(Fraction(s) for s in split))
             rounded = round(summed, 3)
             sentence = sentence.replace(match, f"{rounded:g}")
-
-        return sentence
-
-    def _combine_quantities_split_by_and(self, sentence: str) -> str:
-        """Combine fractional quantities split by 'and' into single value.
-
-        Parameters
-        ----------
-        sentence : str
-            Ingredient sentence
-
-        Returns
-        -------
-        str
-            Ingredient sentence with split fractions replaced with
-            single decimal value.
-
-        Examples
-        --------
-        >>> p = PreProcessor("")
-        >>> p._combine_quantities_split_by_and("1 and 1/2 tsp fine grain sea salt")
-        "1.5 tsp fine grain sea salt"
-
-        >>> p = PreProcessor("")
-        >>> p._combine_quantities_split_by_and("1 and 1/4 cups dark chocolate morsels")
-        "1.25 cups dark chocolate morsels"
-        """
-        matches = FRACTION_SPLIT_AND_PATTERN.findall(sentence)
-
-        for match in matches:
-            combined_quantity = float(Fraction(match[1]) + Fraction(match[2]))
-            rounded = round(combined_quantity, 3)
-            sentence = sentence.replace(match[0], f"{rounded:g}")
 
         return sentence
 
@@ -459,37 +429,6 @@ class PreProcessor:
             sentence = sentence.replace(unit, unit_no_period)
 
         return sentence
-
-    def _replace_string_range(self, sentence: str) -> str:
-        """Replace range in the form "<num> to <num" with range "<num>-<num>".
-
-        For example
-        -----------
-        1 to 2 -> 1-2
-        8.5 to 12.5 -> 8.5-12.5
-        16- to 9-
-
-        Parameters
-        ----------
-        sentence : str
-            Ingredient sentence
-
-        Returns
-        -------
-        str
-            Ingredient sentence with string ranges replaced with standardised range
-
-        Examples
-        --------
-        >>> p = PreProcessor("")
-        >>> p._replace_string_range("1 to 2 mashed bananas")
-        "1-2 mashed bananas"
-
-        >>> p = PreProcessor("")
-        >>> p._replace_string_range("5- or 6- large apples")
-        "5-6- large apples"
-        """
-        return STRING_RANGE_PATTERN.sub(r"\1-\5", sentence)
 
     def _replace_dupe_units_ranges(self, sentence: str) -> str:
         """Replace ranges where the unit appears twice with standard range then unit.
