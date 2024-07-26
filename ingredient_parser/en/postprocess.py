@@ -455,46 +455,11 @@ class PostProcessor:
 
         return text
 
-    def _collapse_replacable_QTY_tokens(
-        self, reduction_idx: list[list[int]], reductions: list[str]
-    ) -> None:
-        """Collapse consecutive QTY tokens that can be represented as a numeric value.
-
-        Modify the tokens, labels and scores lists to remove tokens that can be replaced
-        by a single numeric value. The score for the replacement token is the average
-        score for all tokens being replaced.
-
-        Parameters
-        ----------
-        reduction_idx : list[list[int]]
-            List of lists of indices for tokens that can be replaced.
-            The first index in each list will be replaced, all other will be removed.
-        reductions : list[str]
-            Replacement tokens for each replaceable group of indices.
-        """
-        idx_to_delete = []
-        for idx_group, replacement in zip(reduction_idx, reductions):
-            mod_idx = idx_group[0]  # Index to replace with replacement
-            self.scores[mod_idx] = mean([self.scores[i] for i in idx_group])
-            self.tokens[mod_idx] = replacement
-
-            idx_to_delete.extend(idx_group[1:])
-
-        self.tokens = [
-            self.tokens[i] for i, _ in enumerate(self.tokens) if i not in idx_to_delete
-        ]
-        self.labels = [
-            self.labels[i] for i, _ in enumerate(self.labels) if i not in idx_to_delete
-        ]
-        self.scores = [
-            self.scores[i] for i, _ in enumerate(self.scores) if i not in idx_to_delete
-        ]
-
     def _convert_string_number_qty(self) -> None:
         """Convert QTY tokens that are string numbers to numeric values
 
-        This function modifies to tokens, labels and scores lists to replace any
-        string numbers with QTY label with their numeric value.
+        This function modifies the tokens, labels and scores lists in place to replace
+        any string numbers with QTY label with their numeric value.
 
         This function also collapses any quantities split by 'and' into a single
         number e.g.
@@ -510,10 +475,9 @@ class PostProcessor:
         QTY_idx = [i for i, label in enumerate(self.labels) if label == "QTY"]
 
         # Find any cases where a group of consecutuve QTY tokens can be collapsed into
-        # a single token.
-        # reduction is a list of (idx_group, replacement_token) tuples which we will use
-        # to modify the tokens, labels and scores lists
-        reduction_idx, reductions = [], []
+        # a single token. Modify the first token and score in the group and mark all
+        # others in group for deletion.
+        idx_to_remove = []
         for idx_group in group_consecutive_idx(QTY_idx):
             idx_group = list(idx_group)
             if len(idx_group) == 1:
@@ -523,18 +487,38 @@ class PostProcessor:
 
             replacement = combine_quantities_split_by_and(fragment)
             if replacement != fragment:
-                reduction_idx.append(idx_group)
-                reductions.append(replacement)
+                mod_idx = idx_group[0]  # Index to replace with replacement
+                self.scores[mod_idx] = mean([self.scores[i] for i in idx_group])
+                self.tokens[mod_idx] = replacement
+
+                idx_to_remove.extend(idx_group[1:])
                 continue
 
             replacement = replace_string_range(fragment)
             if replacement != fragment:
-                reduction_idx.append(idx_group)
-                reductions.append(replacement)
+                mod_idx = idx_group[0]  # Index to replace with replacement
+                self.scores[mod_idx] = mean([self.scores[i] for i in idx_group])
+                self.tokens[mod_idx] = replacement
+
+                idx_to_remove.extend(idx_group[1:])
                 continue
 
-        if reductions:
-            self._collapse_replacable_QTY_tokens(reduction_idx, reductions)
+        if idx_to_remove:
+            self.tokens = [
+                self.tokens[i]
+                for i, _ in enumerate(self.tokens)
+                if i not in idx_to_remove
+            ]
+            self.labels = [
+                self.labels[i]
+                for i, _ in enumerate(self.labels)
+                if i not in idx_to_remove
+            ]
+            self.scores = [
+                self.scores[i]
+                for i, _ in enumerate(self.scores)
+                if i not in idx_to_remove
+            ]
 
     def _sizable_unit_pattern(
         self, idx: list[int], tokens: list[str], labels: list[str], scores: list[float]
