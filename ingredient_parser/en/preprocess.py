@@ -690,6 +690,9 @@ class PreProcessor:
         >>> p._is_numeric("beef")
         False
         """
+        if token.lower() in STRING_NUMBERS.keys():
+            return True
+
         if "-" in token:
             parts = token.split("-")
             return all([self._is_numeric(part) for part in parts])
@@ -703,9 +706,6 @@ class PreProcessor:
                 return True
             except ValueError:
                 return False
-
-        if token.lower() in STRING_NUMBERS.keys():
-            return True
 
         try:
             float(token)

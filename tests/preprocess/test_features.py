@@ -98,6 +98,12 @@ class TestPreProcessor_is_numeric:
         """
         assert p._is_numeric("dozen")
 
+    def test_quart(self, p):
+        """
+        "one-quarter" is numeric
+        """
+        assert p._is_numeric("one-quarter")
+
 
 class TestPreProcessor_is_capitalised:
     def test_capitalised(self, p):

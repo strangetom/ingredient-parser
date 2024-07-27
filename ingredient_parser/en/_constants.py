@@ -155,6 +155,8 @@ AMBIGUOUS_UNITS.extend(_ambiguous_units_alt_forms)
 STRING_NUMBERS = {
     "one-quarter": "1/4",
     "one-half": "1/2",
+    "three-quarter": "3/4",
+    "three-quarters": "3/4",
     "one": "1",
     "two": "2",
     "three": "3",

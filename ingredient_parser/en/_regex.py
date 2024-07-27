@@ -23,7 +23,7 @@ STRING_QUANTITY_HYPHEN_PATTERN = re.compile(
     rf"""
     \b({'|'.join(STRING_NUMBERS.keys())})\b  # Capture string number
     \-                                       # Followed by hyphen
-    ({'|'.join(units_list)})                 # Followed by unit
+    \b({'|'.join(units_list)})\b             # Followed by unit
     """,
     re.VERBOSE | re.IGNORECASE,
 )
