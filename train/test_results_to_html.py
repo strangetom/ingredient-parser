@@ -124,6 +124,7 @@ def test_results_to_html(
                     attrib={
                         "class": "wrapper hidden",
                         "data-mismatches": str(mismatches),
+                        "data-src": src,
                     },
                 )
                 wrapper.append(div)
@@ -154,6 +155,7 @@ def test_results_to_html(
         });
     });
     function applyFilter() {
+        let filtered_src = {};
         let sentences = document.querySelectorAll(".wrapper");
         let filters = [...document.querySelectorAll("input")]
             .filter(el => el.checked)
@@ -163,8 +165,20 @@ def test_results_to_html(
                 sent.classList.add("hidden");
             } else {
                 sent.classList.remove("hidden");
+                if (filtered_src[sent.dataset.src] == undefined){
+                    filtered_src[sent.dataset.src] = 1;
+                } else {
+                    filtered_src[sent.dataset.src] += 1;
+                }
+                
             }
         })
+        let filter_counts = []
+        for (const [k, v] of Object.entries(filtered_src)) {
+            filter_counts.push(`${k.toUpperCase()}: ${v}, `);
+        };
+        let filter_count_el = document.querySelector("#filter-counts");
+        filter_count_el.innerText = " [" + filter_counts.join("") + "]";
     };
     let filterInputs = document.querySelectorAll("input[type='checkbox']");
     filterInputs.forEach((input) => {
@@ -172,7 +186,6 @@ def test_results_to_html(
             applyFilter();
         })
     });
-
     """
     body.append(script)
 
@@ -270,7 +283,9 @@ def create_filter_elements(mismatch_counts: set[int]) -> ET.Element:
     div = ET.Element("div")
 
     h4 = ET.Element("h4")
-    h4.text = "Filter by number of mismatches"
+    h4.text = "Filter by number of mismatches."
+    span = ET.Element("span", attrib={"id": "filter-counts"})
+    h4.append(span)
     div.append(h4)
 
     for count in mismatch_counts:
