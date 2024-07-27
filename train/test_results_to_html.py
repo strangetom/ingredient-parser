@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
 
-import inspect
 import sys
 import xml.etree.ElementTree as ET
 from collections import Counter
 from pathlib import Path
-from typing import Callable
 
 # Ensure the local ingredient_parser package can be found
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -19,7 +17,6 @@ def test_results_to_html(
     labels_prediction: list[list[str]],
     scores_prediction: list[list[float]],
     sentence_sources: list[str],
-    mismatch_condition: Callable,
 ) -> None:
     """Output results for test vectors that failed to label entire sentence with the
     truth labels in HTML format.
@@ -36,9 +33,6 @@ def test_results_to_html(
         Scores for predicted labels for sentence
     sentence_sources : list[str]
         List of sentence sources, either NYT of SF
-    mismatch_condition : Callable
-        Condition used to determine which sentences to include based
-        on the number of matches
     """
     html = ET.Element("html")
     head = ET.Element("head")
@@ -61,7 +55,7 @@ def test_results_to_html(
       padding: 0.5rem 1rem;
       border: black 1px solid;
     }
-    div {
+    div > div {
       display: flex;
       align-items: center;
     }
@@ -77,8 +71,17 @@ def test_results_to_html(
       font-style: italic;
       background-color: #ddd;
     }
+    h4 {
+      margin-bottom: 0;
+    }
+    label {
+      margin-right: 1rem;
+    }
     .copy {
-        margin-left: 1rem;
+      margin-left: 1rem;
+    }
+    .hidden {
+      display: none;
     }
     """
     head.append(style)
@@ -87,12 +90,8 @@ def test_results_to_html(
     heading.text = "Incorrect sentences in test data"
     body.append(heading)
 
-    heading3 = ET.Element("h3")
-    cond = format_mismatch_condition(mismatch_condition)
-    heading3.text = f"Showing results where number of label mismatches {cond}."
-    body.append(heading3)
-
     incorrect = []
+    mismatch_counts = set()
     # Sort by sentence sort
     for src, sentence, truth, prediction, scores in sorted(
         zip(
@@ -104,8 +103,10 @@ def test_results_to_html(
         )
     ):
         if truth != prediction:
-            # Count mismatches and only include if greater than set limit
-            if mismatch_condition(sum(i != j for i, j in zip(truth, prediction))):
+            # Count mismatches and only include if greater than 0
+            mismatches = sum(i != j for i, j in zip(truth, prediction))
+            if mismatches > 0:
+                mismatch_counts.add(mismatches)
                 tokens: list[str] = PreProcessor(
                     sentence, defer_pos_tagging=True
                 ).tokenized_sentence
@@ -117,13 +118,24 @@ def test_results_to_html(
                 copy_button.text = "Copy text"
                 div.append(p)
                 div.append(copy_button)
-                body.append(div)
-                body.append(table)
+
+                wrapper = ET.Element(
+                    "div",
+                    attrib={
+                        "class": "wrapper hidden",
+                        "data-mismatches": str(mismatches),
+                    },
+                )
+                wrapper.append(div)
+                wrapper.append(table)
+                body.append(wrapper)
 
                 incorrect.append(src)
 
     src_count = Counter(incorrect)
     src_count_str = "".join([f"{k.upper()}: {v}, " for k, v in src_count.items()])
+
+    body.insert(1, create_filter_elements(mismatch_counts))
 
     heading2 = ET.Element("h2")
     heading2.text = f"{len(incorrect):,} incorrect sentences. [{src_count_str}]"
@@ -141,6 +153,26 @@ def test_results_to_html(
             navigator.clipboard.writeText(text);
         });
     });
+    function applyFilter() {
+        let sentences = document.querySelectorAll(".wrapper");
+        let filters = [...document.querySelectorAll("input")]
+            .filter(el => el.checked)
+            .map(el => el.dataset.value);
+        sentences.forEach((sent) => {
+            if (!filters.includes(sent.dataset.mismatches)) {
+                sent.classList.add("hidden");
+            } else {
+                sent.classList.remove("hidden");
+            }
+        })
+    };
+    let filterInputs = document.querySelectorAll("input[type='checkbox']");
+    filterInputs.forEach((input) => {
+        input.addEventListener("change", (e) => {
+            applyFilter();
+        })
+    });
+
     """
     body.append(script)
 
@@ -221,19 +253,39 @@ def create_html_table(
     return table
 
 
-def format_mismatch_condition(mismatch_condition: Callable) -> str:
-    """Format condition in mismatch_condition as a string
+def create_filter_elements(mismatch_counts: set[int]) -> ET.Element:
+    """Create div element containing checkboxes for filter incorrect sentences by
+    numbers of incorrect tokens.
 
     Parameters
     ----------
-    mismatch_condition : Callable
-        mismatch_condition lambda function
+    mismatch_counts : set[int]
+        Filter options
 
     Returns
     -------
-    str
-        Text of conditions
+    ET.Element
+        Elelemt to insert into test results HTML
     """
-    src = inspect.getsource(mismatch_condition).strip()
-    condition = src.replace("lambda x: x", "").replace(",", "").strip()
-    return condition
+    div = ET.Element("div")
+
+    h4 = ET.Element("h4")
+    h4.text = "Filter by number of mismatches"
+    div.append(h4)
+
+    for count in mismatch_counts:
+        inp = ET.Element(
+            "input",
+            attrib={
+                "type": "checkbox",
+                "name": f"filter-{count}",
+                "data-value": f"{count}",
+            },
+        )
+        label = ET.Element("label", attrib={"for": f"filter-{count}"})
+        label.text = f"{count}"
+
+        div.append(inp)
+        div.append(label)
+
+    return div

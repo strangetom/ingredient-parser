@@ -126,7 +126,6 @@ def train_model(
             labels_pred,
             scores_pred,
             source_test,
-            lambda x: x >= 1,
         )
 
     if detailed_results:
