@@ -136,7 +136,7 @@ def test_results_to_html(
     src_count = Counter(incorrect)
     src_count_str = "".join([f"{k.upper()}: {v}, " for k, v in src_count.items()])
 
-    body.insert(1, create_filter_elements(mismatch_counts))
+    body.insert(1, create_filter_elements(mismatch_counts, set(sentence_sources)))
 
     heading2 = ET.Element("h2")
     heading2.text = f"{len(incorrect):,} incorrect sentences. [{src_count_str}]"
@@ -157,20 +157,23 @@ def test_results_to_html(
     function applyFilter() {
         let filtered_src = {};
         let sentences = document.querySelectorAll(".wrapper");
-        let filters = [...document.querySelectorAll("input")]
+        let mismatch_filters = [...document.querySelectorAll("input.mismatch")]
+            .filter(el => el.checked)
+            .map(el => el.dataset.value);
+        let src_filters = [...document.querySelectorAll("input.src")]
             .filter(el => el.checked)
             .map(el => el.dataset.value);
         sentences.forEach((sent) => {
-            if (!filters.includes(sent.dataset.mismatches)) {
-                sent.classList.add("hidden");
-            } else {
+            if (mismatch_filters.includes(sent.dataset.mismatches) &&
+                src_filters.includes(sent.dataset.src)) {
                 sent.classList.remove("hidden");
                 if (filtered_src[sent.dataset.src] == undefined){
                     filtered_src[sent.dataset.src] = 1;
                 } else {
                     filtered_src[sent.dataset.src] += 1;
                 }
-                
+            } else {
+                sent.classList.add("hidden");
             }
         })
         let filter_counts = []
@@ -266,14 +269,16 @@ def create_html_table(
     return table
 
 
-def create_filter_elements(mismatch_counts: set[int]) -> ET.Element:
+def create_filter_elements(mismatch_counts: set[int], sources: set[str]) -> ET.Element:
     """Create div element containing checkboxes for filter incorrect sentences by
-    numbers of incorrect tokens.
+    numbers of incorrect tokens and by source.
 
     Parameters
     ----------
     mismatch_counts : set[int]
-        Filter options
+        Filter options for mismatches
+    sources : set[str]
+        Filter options for sources
 
     Returns
     -------
@@ -288,19 +293,43 @@ def create_filter_elements(mismatch_counts: set[int]) -> ET.Element:
     h4.append(span)
     div.append(h4)
 
+    div_mismatch_filters = ET.Element("div")
     for count in mismatch_counts:
         inp = ET.Element(
             "input",
             attrib={
                 "type": "checkbox",
+                "class": "mismatch",
                 "name": f"filter-{count}",
+                "id": f"filter-{count}",
                 "data-value": f"{count}",
             },
         )
         label = ET.Element("label", attrib={"for": f"filter-{count}"})
         label.text = f"{count}"
 
-        div.append(inp)
-        div.append(label)
+        div_mismatch_filters.append(inp)
+        div_mismatch_filters.append(label)
+
+    div_src_filters = ET.Element("div")
+    for src in sources:
+        inp = ET.Element(
+            "input",
+            attrib={
+                "type": "checkbox",
+                "class": "src",
+                "name": f"filter-{src}",
+                "id": f"filter-{src}",
+                "data-value": f"{src}",
+            },
+        )
+        label = ET.Element("label", attrib={"for": f"filter-{src}"})
+        label.text = f"{src}"
+
+        div_src_filters.append(inp)
+        div_src_filters.append(label)
+
+    div.append(div_mismatch_filters)
+    div.append(div_src_filters)
 
     return div
