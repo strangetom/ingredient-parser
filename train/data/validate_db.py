@@ -55,8 +55,8 @@ def validate_tokens(calculated_tokens: list[str], stored_tokens: list[str]) -> b
     if calculated_tokens != stored_tokens:
         print(f"[ERROR] ID: {row['id']} [{row['source']}]")
         print("Database tokens do not match PreProcessor output.")
-        print(f"\t{calculated_tokens}")
-        print(f"\t{stored_tokens}")
+        print(f"\t{calculated_tokens} (calc)")
+        print(f"\t{stored_tokens} (db)")
         return False
 
     return True

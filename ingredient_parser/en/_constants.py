@@ -101,6 +101,7 @@ UNITS = {
     "teaspoons": "teaspoon",
     "tins": "tin",
     "tsps": "tsp",
+    "tubes": "tube",
     "twists": "twist",
     "wedges": "wedge",
     "wheels": "wheel",
