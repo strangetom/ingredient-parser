@@ -96,7 +96,7 @@ def train_model(
             "feature.minfreq": 0,
             "feature.possible_states": True,
             "feature.possible_transitions": True,
-            "c1": 0.25,
+            "c1": 0.4,
             "c2": 0.75,
             "max_linesearch": 5,
             "num_memories": 3,

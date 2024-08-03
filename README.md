@@ -37,19 +37,23 @@ ParsedIngredient(
 )
 ```
 
-## Model accuracy
+Refer to the documentation [here](https://ingredient-parser.readthedocs.io/en/latest/start/index.html#optional-parameters) for the optional parameters that can be used with `parse_ingredient` .
 
-The model used for labelling tokens in sentences, provided in the ```ingredient-parser/``` directory, has the following accuracy on a test data set of 20% of the total  data used:
+## Model
+
+The core of the library is a sequence labelling model that is used to label each token in the sentence with the part of the sentence it belongs to. A data set of 75,000 example sentences is used to train and evaluate the model. See the [Model Guide](https://ingredient-parser.readthedocs.io/en/latest/guide/index.html) in the documentation for mode details.
+
+The model has the following accuracy on a test data set of 20% of the total data used:
 
 ```
 Sentence-level results:
-	Accuracy: 95.10%
+	Accuracy: 95.86%
 
 Word-level results:
-	Accuracy 97.97%
-	Precision (micro) 97.98%
-	Recall (micro) 97.97%
-	F1 score (micro) 97.97%
+	Accuracy 98.41%
+	Precision (micro) 98.41%
+	Recall (micro) 98.41%
+	F1 score (micro) 98.41%
 ```
 
 ## Development

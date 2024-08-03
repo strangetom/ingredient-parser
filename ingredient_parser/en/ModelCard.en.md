@@ -75,7 +75,7 @@ Sentence level accuracy measures the percentage of ingredient sentences where al
 
 ## Training and Evaluation Data
 
-There are 3 datasets used to train and evaluate model performance.
+There are 4 datasets used to train and evaluate model performance.
 
 1. New York Times, originally found at https://github.com/nytimes/ingredient-phrase-tagger.
 
@@ -103,7 +103,7 @@ The model has the following performance metrics:
 
 | Word level accuracy | Sentence level accuracy |
 | ------------------- | ----------------------- |
-| 97.97 ± 0.21%       | 95.10 ± 0.47%           |
+| 98.41 ± 0.18%       | 95.86 ± 0.25%           |
 
 These metrics were determined by executing 20 training/evaluation cycles and calculating the mean and standard deviation for the two metrics across all cycles. The uncertainty values provided represent the 99.7% confidence bounds (i.e. 3x standard deviation). The uncertainty is due to the randomisation of the selection of training and evaluation data whenever the model is trained.
 
