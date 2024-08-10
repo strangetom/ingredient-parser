@@ -140,7 +140,7 @@ def train_model(
     if plot_confusion_matrix:
         confusion_matrix(labels_pred, truth_test)
 
-    stats = evaluate(labels_pred, truth_test)
+    stats = evaluate(labels_pred, truth_test, seed)
     return stats
 
 
@@ -206,10 +206,11 @@ def train_multiple(args: argparse.Namespace) -> None:
             for future in tqdm(cf.as_completed(futures), total=len(futures)):
                 eval_results.append(future.result())
 
-    word_accuracies, sentence_accuracies = [], []
+    word_accuracies, sentence_accuracies, seeds = [], [], []
     for result in eval_results:
         sentence_accuracies.append(result.sentence.accuracy)
         word_accuracies.append(result.token.accuracy)
+        seeds.append(result.seed)
 
     sentence_mean = 100 * mean(sentence_accuracies)
     sentence_uncertainty = 3 * 100 * stdev(sentence_accuracies)
@@ -222,3 +223,19 @@ def train_multiple(args: argparse.Namespace) -> None:
     print()
     print("Average word-level accuracy:")
     print(f"\t-> {word_mean:.2f}% ± {word_uncertainty:.2f}%")
+
+    index_best = max(
+        range(len(sentence_accuracies)), key=sentence_accuracies.__getitem__
+    )
+    max_sent = 100 * sentence_accuracies[index_best]
+    max_word = 100 * word_accuracies[index_best]
+    max_seed = seeds[index_best]
+    index_worst = min(
+        range(len(sentence_accuracies)), key=sentence_accuracies.__getitem__
+    )
+    min_sent = 100 * sentence_accuracies[index_worst]
+    min_word = 100 * word_accuracies[index_worst]
+    min_seed = seeds[index_worst]
+    print()
+    print(f"Best:  Sentence {max_sent:.2f}% / Word {max_word:.2f}% (Seed: {max_seed})")
+    print(f"Worst: Sentence {min_sent:.2f}% / Word {min_word:.2f}% (Seed: {min_seed})")
