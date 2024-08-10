@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.0.1
+
+> [!WARNING]
+>
+> This version requires NLTK >=3.8.2
+
+NLTK 3.8.2 changes the file format (from pickle to json) of the weights used by the part of speech tagger used in this project, to address some security concerns. This patch updates the NLTK resource checks performed when `ingredient-parser` is imported to check for the new json files, and downloads them if they are not present. 
+
+This version requires NLTK>=3.8.2.
+
 ## 1.0
 
 ### General

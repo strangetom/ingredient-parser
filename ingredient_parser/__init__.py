@@ -11,4 +11,4 @@ __all__ = [
     "show_model_card",
 ]
 
-__version__ = "1.0.0"
+__version__ = "1.0.1"
