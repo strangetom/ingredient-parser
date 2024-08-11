@@ -7,6 +7,7 @@ from itertools import chain
 
 import pint
 from nltk.stem.porter import PorterStemmer
+from nltk.tag.perceptron import PerceptronTagger
 
 from .._common import is_float, is_range
 from ..dataclasses import IngredientAmount
@@ -60,6 +61,7 @@ UNIT_REPLACEMENTS = [
 
 
 STEMMER = PorterStemmer()
+TAGGER = PerceptronTagger()
 
 # Define regular expressions used by tokenizer.
 # Matches one or more whitespace characters
@@ -140,6 +142,23 @@ def stem(token: str) -> str:
         Stem of token
     """
     return STEMMER.stem(token)
+
+
+def pos_tag(tokens: list[str]) -> list[tuple[str]]:
+    """Re-implmentation of nltk.pos_tag to avoid having to load the weights each time
+    the function is called.
+
+    Parameters
+    ----------
+    tokens : list[str]
+        List of tokens to tag.
+
+    Returns
+    -------
+    list[tuple[str]]
+        List of (token, tag) tuples.
+    """
+    return TAGGER.tag(tokens)
 
 
 def pluralise_units(sentence: str) -> str:
