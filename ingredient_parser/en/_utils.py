@@ -9,7 +9,7 @@ import pint
 from nltk.stem.porter import PorterStemmer
 from nltk.tag.perceptron import PerceptronTagger
 
-from .._common import is_float, is_range
+from .._common import download_nltk_resources, is_float, is_range
 from ..dataclasses import IngredientAmount
 from ._constants import UNITS
 from ._regex import FRACTION_SPLIT_AND_PATTERN, STRING_RANGE_PATTERN
@@ -59,7 +59,7 @@ UNIT_REPLACEMENTS = [
     (re.compile(r"\b(Tb)\b"), "tablespoon"),
 ]
 
-
+download_nltk_resources()
 STEMMER = PorterStemmer()
 TAGGER = PerceptronTagger()
 
