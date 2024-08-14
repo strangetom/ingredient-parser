@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.1
+
+### General
+
+Require NLTK >= 3.8.2 due to change in POS tagger weights format.
+
+### Model
+
+* Include new tokens features, which help improve performance:
+  * Word shape (e.g. cheese -> xxxxxx; Cheese -> Xxxxxx)
+  * N-gram (n=3, 4, 5) prefixes and suffixes of tokens
+* Add 15,000 new sentences to training data from AllRecipes. This dataset includes lots of branded ingredients, which the existing datasets were quite light on.
+* Tweaks to the model hyperparameters have yielded a model that is ~25% small, but with better performance than the previous model.
+
+### Processing
+
+* Change processing of numbers written as words (e.g. 'one', 'two' ). If the token is labelled as QTY, then the number will converted to a digit (i.e. 'one' -> 1) or collapsed into a range (i.e. 'one or two' -> 1-2), otherwise the token is left unchanged.
+
 ## 1.0.1
 
 > [!WARNING]
