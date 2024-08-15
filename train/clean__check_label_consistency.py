@@ -293,7 +293,7 @@ def check_label_consistency(args: argparse.Namespace) -> None:
 
     pipeline = Pipeline(
         steps=[
-            ("vectorize", TfidfVectorizer(tokenizer=tokenize, token_pattern=None)),
+            ("vectorize", TfidfVectorizer(tokenizer=tokenize, token_pattern="")),
             (
                 "cluster",
                 HDBSCAN(
@@ -307,7 +307,7 @@ def check_label_consistency(args: argparse.Namespace) -> None:
         verbose=True,
     )
     pipeline.fit(vectors.sentences)
-    model = pipeline.named_steps.get("cluster")
+    model = pipeline.named_steps["cluster"]
     label_counts = Counter(model.labels_)
 
     similar = []

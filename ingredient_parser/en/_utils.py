@@ -1,15 +1,18 @@
 #!/usr/bin/env python3
 
 import re
+from fractions import Fraction
 from functools import lru_cache
 from itertools import chain
 
 import pint
 from nltk.stem.porter import PorterStemmer
+from nltk.tag.perceptron import PerceptronTagger
 
-from .._common import is_float, is_range
+from .._common import download_nltk_resources, is_float, is_range
 from ..dataclasses import IngredientAmount
 from ._constants import UNITS
+from ._regex import FRACTION_SPLIT_AND_PATTERN, STRING_RANGE_PATTERN
 
 UREG = pint.UnitRegistry()
 
@@ -56,14 +59,15 @@ UNIT_REPLACEMENTS = [
     (re.compile(r"\b(Tb)\b"), "tablespoon"),
 ]
 
-
+download_nltk_resources()
 STEMMER = PorterStemmer()
+TAGGER = PerceptronTagger()
 
 # Define regular expressions used by tokenizer.
 # Matches one or more whitespace characters
 WHITESPACE_TOKENISER = re.compile(r"\S+")
-# Matches and captures one of the following: ( ) [ ] { } , " / : ;
-PUNCTUATION_TOKENISER = re.compile(r"([\(\)\[\]\{\}\,/:;])")
+# Matches and captures one of the following: ( ) [ ] { } , " / : ; ? !
+PUNCTUATION_TOKENISER = re.compile(r"([\(\)\[\]\{\}\,/:;\?\!\*])")
 # Matches and captures full stop at end of string
 # (?>!\.\w) is a negative lookbehind that prevents matches if the last full stop
 # is preceded by a a full stop then a word character.
@@ -103,6 +107,9 @@ def tokenize(sentence: str) -> list[str]:
 
     >>> tokenize("Freshly grated Parmesan cheese, for garnish.")
     ["Freshly", "grated", "Parmesan", "cheese", ",", "for", "garnish", "."]
+
+    >>> tokenize("2 onions, finely chopped*")
+    ["2", "onions", ",", "finely", "chopped", "*"]
     """
     tokens = [
         PUNCTUATION_TOKENISER.split(tok)
@@ -135,6 +142,23 @@ def stem(token: str) -> str:
         Stem of token
     """
     return STEMMER.stem(token)
+
+
+def pos_tag(tokens: list[str]) -> list[tuple[str]]:
+    """Re-implmentation of nltk.pos_tag to avoid having to load the weights each time
+    the function is called.
+
+    Parameters
+    ----------
+    tokens : list[str]
+        List of tokens to tag.
+
+    Returns
+    -------
+    list[tuple[str]]
+        List of (token, tag) tuples.
+    """
+    return TAGGER.tag(tokens)
 
 
 def pluralise_units(sentence: str) -> str:
@@ -228,6 +252,70 @@ def convert_to_pint_unit(unit: str, imperial_units: bool = False) -> str | pint.
         return UREG(unit).units
 
     return unit
+
+
+def combine_quantities_split_by_and(text: str) -> str:
+    """Combine fractional quantities split by 'and' into single value.
+
+    Parameters
+    ----------
+    text : str
+        Text to combine
+
+    Returns
+    -------
+    str
+        Text with split fractions replaced with
+        single decimal value.
+
+    Examples
+    --------
+    >>> combine_quantities_split_by_and("1 and 1/2 tsp fine grain sea salt")
+    "1.5 tsp fine grain sea salt"
+
+    >>> combine_quantities_split_by_and("1 and 1/4 cups dark chocolate morsels")
+    "1.25 cups dark chocolate morsels"
+    """
+    matches = FRACTION_SPLIT_AND_PATTERN.findall(text)
+
+    for match in matches:
+        combined_quantity = float(Fraction(match[1]) + Fraction(match[2]))
+        rounded = round(combined_quantity, 3)
+        text = text.replace(match[0], f"{rounded:g}")
+
+    return text
+
+
+def replace_string_range(text: str) -> str:
+    """Replace range in the form "<num> to <num" with range "<num>-<num>".
+
+    For example
+    -----------
+    1 to 2 -> 1-2
+    8.5 to 12.5 -> 8.5-12.5
+    16- to 9-
+
+    Parameters
+    ----------
+    text : str
+        Text to replace within
+
+    Returns
+    -------
+    str
+        Text with string ranges replaced with standardised range
+
+    Examples
+    --------
+    >>> p = PreProcessor("")
+    >>> p._replace_string_range("1 to 2 mashed bananas")
+    "1-2 mashed bananas"
+
+    >>> p = PreProcessor("")
+    >>> p._replace_string_range("5- or 6- large apples")
+    "5-6- large apples"
+    """
+    return STRING_RANGE_PATTERN.sub(r"\1-\5", text)
 
 
 def ingredient_amount_factory(

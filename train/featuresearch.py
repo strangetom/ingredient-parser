@@ -121,7 +121,7 @@ def train_model_feature_search(
     )
 
     # Remove features not in selected feature set
-    discard_features = DISCARDED_FEATURES.get(feature_set)
+    discard_features = DISCARDED_FEATURES.get(feature_set, [])
     features_train = select_features(features_train, discard_features)
     features_test = select_features(features_test, discard_features)
 
@@ -129,15 +129,15 @@ def train_model_feature_search(
     save_model_path = Path(save_model).with_stem("model-" + str(uuid4()))
 
     # Train model
-    trainer = pycrfsuite.Trainer(verbose=False)
+    trainer = pycrfsuite.Trainer(verbose=False)  # type: ignore
     # Set parameters
     trainer.set_params(
         {
             "feature.minfreq": 0,
             "feature.possible_states": True,
             "feature.possible_transitions": True,
-            "c1": 0.1,
-            "c2": 0.7,
+            "c1": 0.25,
+            "c2": 0.75,
             "max_linesearch": 5,
             "num_memories": 3,
             "period": 10,
@@ -150,7 +150,7 @@ def train_model_feature_search(
     model_size = os.path.getsize(save_model_path) / 1024**2
 
     # Evaluate model
-    tagger = pycrfsuite.Tagger()
+    tagger = pycrfsuite.Tagger()  # type: ignore
     tagger.open(str(save_model_path))
     labels_pred = [tagger.tag(X) for X in features_test]
     stats = evaluate(labels_pred, truth_test)

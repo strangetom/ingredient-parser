@@ -420,7 +420,7 @@ def train_model_grid_search(
     save_model_path = Path(save_model).with_stem("model-" + str(uuid4()))
 
     # Train model
-    trainer = pycrfsuite.Trainer(algo, verbose=False)
+    trainer = pycrfsuite.Trainer(algo, verbose=False)  # type: ignore
     # Set parameters
     trainer.set_params(parameters)
     for X, y in zip(features_train, truth_train):
@@ -430,7 +430,7 @@ def train_model_grid_search(
     model_size = os.path.getsize(save_model_path) / 1024**2
 
     # Evaluate model
-    tagger = pycrfsuite.Tagger()
+    tagger = pycrfsuite.Tagger()  # type: ignore
     tagger.open(str(save_model_path))
     labels_pred = [tagger.tag(X) for X in features_test]
     stats = evaluate(labels_pred, truth_test)

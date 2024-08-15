@@ -70,6 +70,7 @@ class Stats:
 
     token: TokenStats
     sentence: SentenceStats
+    seed: int
 
 
 def select_preprocessor(lang: str) -> Any:
@@ -170,7 +171,7 @@ def load_datasets(
     return DataVectors(sentences, features, tokens, labels, source, uids)
 
 
-def evaluate(predictions: list[list[str]], truths: list[list[str]]) -> Stats:
+def evaluate(predictions: list[list[str]], truths: list[list[str]], seed: int) -> Stats:
     """Calculate statistics on the predicted labels for the test data.
 
     Parameters
@@ -179,6 +180,8 @@ def evaluate(predictions: list[list[str]], truths: list[list[str]]) -> Stats:
         Predicted labels for each test sentence
     truths : list[list[str]]
         True labels for each test sentence
+    seed : int
+        Seed value that produced the results
 
     Returns
     -------
@@ -200,7 +203,7 @@ def evaluate(predictions: list[list[str]], truths: list[list[str]]) -> Stats:
 
     # Convert report to TokenStats dataclass
     token_stats = {}
-    for k, v in report.items():
+    for k, v in report.items():  # type: ignore
         # Convert dict to Metrics
         if k in labels + ["macro avg", "weighted avg"]:
             k = k.replace(" ", "_")
@@ -218,7 +221,7 @@ def evaluate(predictions: list[list[str]], truths: list[list[str]]) -> Stats:
     correct_sentences = len([p for p, t in zip(predictions, truths) if p == t])
     sentence_stats = SentenceStats(correct_sentences / len(predictions))
 
-    return Stats(token_stats, sentence_stats)
+    return Stats(token_stats, sentence_stats, seed)
 
 
 def confusion_matrix(

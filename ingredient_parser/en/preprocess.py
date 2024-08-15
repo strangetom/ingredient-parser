@@ -1,33 +1,38 @@
 #!/usr/bin/env python3
 
-import re
 import string
+import unicodedata
 from fractions import Fraction
 from html import unescape
-
-from nltk.tag import pos_tag
 
 from ._constants import (
     AMBIGUOUS_UNITS,
     FLATTENED_UNITS_LIST,
     STRING_NUMBERS,
-    STRING_NUMBERS_REGEXES,
     UNICODE_FRACTIONS,
     UNITS,
 )
 from ._regex import (
     CAPITALISED_PATTERN,
+    DIGIT_PATTERN,
     DUPE_UNIT_RANGES_PATTERN,
     EXPANDED_RANGE,
     FRACTION_PARTS_PATTERN,
-    FRACTION_SPLIT_AND_PATTERN,
+    LOWERCASE_PATTERN,
     QUANTITY_UNITS_PATTERN,
     QUANTITY_X_PATTERN,
-    STRING_RANGE_PATTERN,
+    STRING_QUANTITY_HYPHEN_PATTERN,
     UNITS_HYPHEN_QUANTITY_PATTERN,
     UNITS_QUANTITY_PATTERN,
+    UPPERCASE_PATTERN,
 )
-from ._utils import stem, tokenize
+from ._utils import (
+    combine_quantities_split_by_and,
+    pos_tag,
+    replace_string_range,
+    stem,
+    tokenize,
+)
 
 
 class PreProcessor:
@@ -187,14 +192,13 @@ class PreProcessor:
         # Note that the order matters
         funcs = [
             self._replace_en_em_dash,
-            self._replace_string_numbers,
             self._replace_html_fractions,
             self._replace_unicode_fractions,
-            self._combine_quantities_split_by_and,
+            combine_quantities_split_by_and,
             self._replace_fake_fractions,
             self._split_quantity_and_units,
             self._remove_unit_trailing_period,
-            self._replace_string_range,
+            replace_string_range,
             self._replace_dupe_units_ranges,
             self._merge_quantity_x,
             self._collapse_ranges,
@@ -232,72 +236,6 @@ class PreProcessor:
         "3-4 sirloin steaks"
         """
         return sentence.replace("–", "-").replace("—", " - ")
-
-    def _replace_string_numbers(self, sentence: str) -> str:
-        """Replace string numbers (e.g. one, two) with numeric values (e.g. 1, 2).
-
-        Parameters
-        ----------
-        sentence : str
-            Ingredient sentence
-
-        Returns
-        -------
-        str
-            Ingredient sentence with string numbers replace with numeric values
-
-        Examples
-        --------
-        >>> p = PreProcessor("")
-        >>> p._replace_string_numbers("three large onions")
-        "3 large onions"
-
-        >>> p = PreProcessor("")
-        >>> p._replace_string_numbers("twelve bonbons")
-        "12 bonbons"
-        """
-        # STRING_NUMBER_REGEXES is a dict where the values are a tuple of the compiled
-        # regular expression for matching a string number e.g. 'one', 'two' and the
-        # substitution numerical value for that string number.
-        for regex, substitution in STRING_NUMBERS_REGEXES.values():
-            # Find matches for current string number
-            for match in regex.finditer(sentence):
-                if self._valid_string_number_replacement(match, sentence):
-                    sentence = regex.sub(rf"{substitution}", sentence)
-
-        return sentence
-
-    def _valid_string_number_replacement(self, match: re.Match, sentence: str) -> bool:
-        """Check if string number replacement is valid for the given Match in sentence.
-
-        Parameters
-        ----------
-        match : re.Match
-            Match object for matching string number in sentence
-        sentence : str
-            Sentence
-
-        Returns
-        -------
-        bool
-        """
-        # Check the character following the match, If it's not a hyphen, or we're at
-        # the end of the sentence, the replacement is valid.
-        next_char_idx = match.span()[-1]
-        if next_char_idx >= len(sentence) or sentence[next_char_idx] != "-":
-            return True
-
-        # If the next character is a hyphen, if the hyphen is followed by
-        # a unit or another string number, then also do the substitution.
-        sub_sentence = sentence[next_char_idx + 1 :]
-        units_and_numbers = FLATTENED_UNITS_LIST + list(STRING_NUMBERS.keys())
-        for unit_or_num in units_and_numbers:
-            # Add a space to end of unit_or_num to make sure we don't incorrectly
-            # get a substring match e.g. matching "g" when unit_or_num is grain.
-            if sub_sentence.startswith(unit_or_num + " "):
-                return True
-
-        return False
 
     def _replace_html_fractions(self, sentence: str) -> str:
         """Replace html fractions e.g. &frac12; with unicode equivalents.
@@ -375,39 +313,6 @@ class PreProcessor:
 
         return sentence
 
-    def _combine_quantities_split_by_and(self, sentence: str) -> str:
-        """Combine fractional quantities split by 'and' into single value.
-
-        Parameters
-        ----------
-        sentence : str
-            Ingredient sentence
-
-        Returns
-        -------
-        str
-            Ingredient sentence with split fractions replaced with
-            single decimal value.
-
-        Examples
-        --------
-        >>> p = PreProcessor("")
-        >>> p._combine_quantities_split_by_and("1 and 1/2 tsp fine grain sea salt")
-        "1.5 tsp fine grain sea salt"
-
-        >>> p = PreProcessor("")
-        >>> p._combine_quantities_split_by_and("1 and 1/4 cups dark chocolate morsels")
-        "1.25 cups dark chocolate morsels"
-        """
-        matches = FRACTION_SPLIT_AND_PATTERN.findall(sentence)
-
-        for match in matches:
-            combined_quantity = float(Fraction(match[1]) + Fraction(match[2]))
-            rounded = round(combined_quantity, 3)
-            sentence = sentence.replace(match[0], f"{rounded:g}")
-
-        return sentence
-
     def _replace_unicode_fractions(self, sentence: str) -> str:
         """Replace unicode fractions with a 'fake' ascii equivalent.
 
@@ -480,7 +385,8 @@ class PreProcessor:
         """
         sentence = QUANTITY_UNITS_PATTERN.sub(r"\1 \2", sentence)
         sentence = UNITS_QUANTITY_PATTERN.sub(r"\1 \2", sentence)
-        return UNITS_HYPHEN_QUANTITY_PATTERN.sub(r"\1 - \2", sentence)
+        sentence = UNITS_HYPHEN_QUANTITY_PATTERN.sub(r"\1 - \2", sentence)
+        return STRING_QUANTITY_HYPHEN_PATTERN.sub(r"\1 \2", sentence)
 
     def _remove_unit_trailing_period(self, sentence: str) -> str:
         """Remove trailing periods from units e.g. tsp. -> tsp.
@@ -522,37 +428,6 @@ class PreProcessor:
             sentence = sentence.replace(unit, unit_no_period)
 
         return sentence
-
-    def _replace_string_range(self, sentence: str) -> str:
-        """Replace range in the form "<num> to <num" with range "<num>-<num>".
-
-        For example
-        -----------
-        1 to 2 -> 1-2
-        8.5 to 12.5 -> 8.5-12.5
-        16- to 9-
-
-        Parameters
-        ----------
-        sentence : str
-            Ingredient sentence
-
-        Returns
-        -------
-        str
-            Ingredient sentence with string ranges replaced with standardised range
-
-        Examples
-        --------
-        >>> p = PreProcessor("")
-        >>> p._replace_string_range("1 to 2 mashed bananas")
-        "1-2 mashed bananas"
-
-        >>> p = PreProcessor("")
-        >>> p._replace_string_range("5- or 6- large apples")
-        "5-6- large apples"
-        """
-        return STRING_RANGE_PATTERN.sub(r"\1-\5", sentence)
 
     def _replace_dupe_units_ranges(self, sentence: str) -> str:
         """Replace ranges where the unit appears twice with standard range then unit.
@@ -807,9 +682,16 @@ class PreProcessor:
         True
 
         >>> p = PreProcessor("")
+        >>> p._is_numeric("three")
+        True
+
+        >>> p = PreProcessor("")
         >>> p._is_numeric("beef")
         False
         """
+        if token.lower() in STRING_NUMBERS.keys():
+            return True
+
         if "-" in token:
             parts = token.split("-")
             return all([self._is_numeric(part) for part in parts])
@@ -948,105 +830,200 @@ class PreProcessor:
         """
         return token in AMBIGUOUS_UNITS
 
+    def _word_shape(self, token: str) -> str:
+        """Calculate the word shape for token.
+
+        The word shape is a representation of the word where all letter characters are
+        replaced with placeholders:
+        - All lowercase characters are replaced with "x"
+        - All uppercase characters are replaced with "X"
+        - All digits are replaced with "d"
+        - Punctuation is left unchanged
+
+        Parameters
+        ----------
+        token : str
+            Token to calculate word shape of.
+
+        Returns
+        -------
+        str
+            Word shape of token.
+        """
+        normalised = self._remove_accents(token)
+        shape = LOWERCASE_PATTERN.sub("x", normalised)
+        shape = UPPERCASE_PATTERN.sub("X", shape)
+        shape = DIGIT_PATTERN.sub("d", shape)
+        return shape
+
+    def _remove_accents(self, token: str) -> str:
+        """Remove accents from characters in token.
+
+        Parameters
+        ----------
+        token : str
+           Token to remove accents from.
+
+        Returns
+        -------
+        str
+           Token with accents removed.
+        """
+        return "".join(
+            c
+            for c in unicodedata.normalize("NFD", token)
+            if unicodedata.category(c) != "Mn"
+        )
+
+    def _common_features(self, index: int, prefix: str) -> dict[str, str | bool]:
+        """Return common features for token at given index.
+
+        Parameters
+        ----------
+        index : int
+            Index of token to return features for.
+        prefix : str
+            Feature label prefix.
+
+        Returns
+        -------
+        dict[str, str | bool]
+            Dict of features for token at given index.
+        """
+        token = self._feature_tokens[index]
+        return {
+            prefix + "is_capitalised": self._is_capitalised(token),
+            prefix + "is_unit": self._is_unit(token),
+            prefix + "is_punc": self._is_punc(token),
+            prefix + "is_ambiguous": self._is_ambiguous_unit(token),
+            prefix + "is_in_parens": self._is_inside_parentheses(index),
+            prefix + "is_after_comma": self._follows_comma(index),
+            prefix + "is_after_plus": self._follows_plus(index),
+            prefix + "word_shape": self._word_shape(token),
+        }
+
+    def _ngram_features(self, token: str, prefix: str) -> dict[str, str]:
+        """Return n-gram features for token in a dict.
+
+        N = 3, 4, 5 are returned if possible, for prefixes and suffixes.
+        An n-gram feature is only return if length of the token greater than N for that
+        n-gram.
+
+        If the token is "!num", don't return any n-gram features.
+
+        Parameters
+        ----------
+        token : str
+            Token to calculate n-gram features for.
+        prefix : str
+            Feature label prefix.
+
+        Returns
+        -------
+        dict[str, str]
+            Dict of n-gram features for token.
+        """
+        ngram_features = {}
+        if token != "!num" and len(token) >= 4:
+            ngram_features[prefix + "prefix_3"] = token[:3]
+            ngram_features[prefix + "suffix_3"] = token[-3:]
+
+        if token != "!num" and len(token) >= 5:
+            ngram_features[prefix + "prefix_4"] = token[:4]
+            ngram_features[prefix + "suffix_4"] = token[-4:]
+
+        if token != "!num" and len(token) >= 6:
+            ngram_features[prefix + "prefix_5"] = token[:5]
+            ngram_features[prefix + "suffix_5"] = token[-5:]
+
+        return ngram_features
+
     def _token_features(self, index: int) -> dict[str, str | bool]:
-        """Return the features for each token in the sentence.
+        """Return the features for the token at the given index in the sentence.
+
+        If the token at the given index appears in the corpus parameter, the token is
+        used as a feature. Otherwise (i.e. for tokens that only appear once), the token
+        stem is used as a feature.
 
         Parameters
         ----------
         index : int
             Index of token to get features for.
+        corpus : set[str]
+            Corpus of tokens that appear more than once in the training data.
 
         Returns
         -------
         dict[str, str | bool]
-            Dictionary of features for token at index
+            Dictionary of features for token at index.
         """
         token = self._feature_tokens[index]
-        features = {
-            "bias": "",
-            "stem": stem(token),
-            "pos": self.pos_tags[index],
-            "is_capitalised": self._is_capitalised(token),
-            "is_unit": self._is_unit(token),
-            "is_punc": self._is_punc(token),
-            "is_ambiguous": self._is_ambiguous_unit(token),
-            "is_in_parens": self._is_inside_parentheses(index),
-            "is_after_comma": self._follows_comma(index),
-            "is_after_plus": self._follows_plus(index),
-            "is_short_phrase": len(self.tokenized_sentence) < 3,
-        }
+        features: dict[str, str | bool] = {}
 
+        features["bias"] = ""
+
+        # Features for current token
+        features["pos"] = self.pos_tags[index]
+        features["stem"] = stem(token)
         if token != stem(token):
             features["token"] = token
 
+        features |= self._common_features(index, "")
+        features |= self._ngram_features(token, "")
+
+        # Features for previous token
         if index > 0:
             prev_token = self._feature_tokens[index - 1]
+            features["prev_stem"] = stem(prev_token)
             features["prev_pos"] = "+".join(
                 (self.pos_tags[index - 1], self.pos_tags[index])
             )
-            features["prev_stem"] = stem(prev_token)
-            features["prev_is_capitalised"] = self._is_capitalised(prev_token)
-            features["prev_is_unit"] = self._is_unit(prev_token)
-            features["prev_is_punc"] = self._is_punc(prev_token)
-            features["prev_is_ambiguous"] = self._is_ambiguous_unit(prev_token)
-            features["prev_is_in_parens"] = self._is_inside_parentheses(index - 1)
-            features["prev_is_after_comma"] = self._follows_comma(index - 1)
-            features["prev_is_after_plus"] = self._follows_plus(index - 1)
+            features |= self._common_features(index - 1, "prev_")
 
+        # Features for previous previous token
         if index > 1:
-            prev_token2 = self._feature_tokens[index - 2]
-            features["prev_pos2"] = "+".join(
+            prev2_token = self._feature_tokens[index - 2]
+            features["prev2_stem"] = stem(prev2_token)
+            features["prev2_pos"] = "+".join(
                 (
                     self.pos_tags[index - 2],
                     self.pos_tags[index - 1],
                     self.pos_tags[index],
                 )
             )
-            features["prev_stem2"] = stem(prev_token2)
-            features["prev_is_capitalised2"] = self._is_capitalised(prev_token2)
-            features["prev_is_unit2"] = self._is_unit(prev_token2)
-            features["prev_is_punc2"] = self._is_punc(prev_token2)
-            features["prev_is_ambiguous2"] = self._is_ambiguous_unit(prev_token2)
-            features["prev_is_in_parens2"] = self._is_inside_parentheses(index - 2)
-            features["prev_is_after_comma2"] = self._follows_comma(index - 2)
-            features["prev_is_after_plus2"] = self._follows_plus(index - 2)
+            features |= self._common_features(index - 2, "prev2_")
 
+        # Features for next token
         if index < len(self._feature_tokens) - 1:
             next_token = self._feature_tokens[index + 1]
+            features["next_stem"] = stem(next_token)
             features["next_pos"] = "+".join(
                 (self.pos_tags[index], self.pos_tags[index + 1])
             )
-            features["next_stem"] = stem(next_token)
-            features["next_is_capitalised"] = self._is_capitalised(next_token)
-            features["next_is_unit"] = self._is_unit(next_token)
-            features["next_is_punc"] = self._is_punc(next_token)
-            features["next_is_ambiguous"] = self._is_ambiguous_unit(next_token)
-            features["next_is_in_parens"] = self._is_inside_parentheses(index + 1)
-            features["next_is_after_comma"] = self._follows_comma(index + 1)
-            features["next_is_after_plus"] = self._follows_plus(index + 1)
+            features |= self._common_features(index + 1, "next_")
 
+        # Features for next next token
         if index < len(self._feature_tokens) - 2:
-            next_token2 = self._feature_tokens[index + 2]
-            features["next_pos2"] = "+".join(
+            next2_token = self._feature_tokens[index + 2]
+            features["next2_stem"] = stem(next2_token)
+            features["next2_pos"] = "+".join(
                 (
                     self.pos_tags[index + 2],
                     self.pos_tags[index + 1],
                     self.pos_tags[index],
                 )
             )
-            features["next_stem2"] = stem(next_token2)
-            features["next_is_capitalised2"] = self._is_capitalised(next_token2)
-            features["next_is_unit2"] = self._is_unit(next_token2)
-            features["next_is_punc2"] = self._is_punc(next_token2)
-            features["next_is_ambiguous2"] = self._is_ambiguous_unit(next_token2)
-            features["next_is_in_parens2"] = self._is_inside_parentheses(index + 2)
-            features["next_is_after_comma2"] = self._follows_comma(index + 2)
-            features["next_is_after_plus2"] = self._follows_plus(index + 2)
+            features |= self._common_features(index + 2, "next2_")
 
         return features
 
     def sentence_features(self) -> list[dict[str, str | bool]]:
         """Return features for all tokens in sentence.
+
+        Parameters
+        ----------
+        corpus : set[str]
+            Corpus of tokens that appear more than once in the training data.
 
         Returns
         -------

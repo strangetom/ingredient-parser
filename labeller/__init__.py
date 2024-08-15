@@ -111,34 +111,6 @@ def sentences_by_id():
     )
 
 
-@app.route("/shuffle", methods=["GET"])
-def shuffle():
-    """Return <range> random sentences from database, where <range> is a URL
-    query paramters.
-
-    Returns
-    -------
-    str
-        Rendered HTML template
-    """
-    count = int(request.args.get("range", 500))
-
-    with sqlite3.connect(DATABASE, detect_types=sqlite3.PARSE_DECLTYPES) as conn:
-        conn.row_factory = sqlite3.Row
-        c = conn.cursor()
-        c.execute(
-            "SELECT * FROM en ORDER BY RANDOM() LIMIT ?;",
-            (count,),
-        )
-        data = [dict(row) for row in c.fetchall()]
-    conn.close()
-
-    return render_template(
-        "label-editor-shuffle.html.jinja",
-        data=data[:count],
-    )
-
-
 @app.route("/filter", methods=["POST"])
 def filter():
     if request.method == "POST":

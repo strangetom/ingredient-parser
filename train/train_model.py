@@ -90,14 +90,14 @@ def train_model(
     print(f"[INFO] {len(features_test):,} testing vectors.")
 
     print("[INFO] Training model with training data.")
-    trainer = pycrfsuite.Trainer(verbose=False)
+    trainer = pycrfsuite.Trainer(verbose=False)  # type: ignore
     trainer.set_params(
         {
             "feature.minfreq": 0,
             "feature.possible_states": True,
             "feature.possible_transitions": True,
-            "c1": 0.1,
-            "c2": 0.7,
+            "c1": 0.4,
+            "c2": 0.75,
             "max_linesearch": 5,
             "num_memories": 3,
             "period": 10,
@@ -108,7 +108,7 @@ def train_model(
     trainer.train(save_model)
 
     print("[INFO] Evaluating model with test data.")
-    tagger = pycrfsuite.Tagger()
+    tagger = pycrfsuite.Tagger()  # type: ignore
     tagger.open(save_model)
 
     labels_pred, scores_pred = [], []
@@ -126,7 +126,6 @@ def train_model(
             labels_pred,
             scores_pred,
             source_test,
-            lambda x: x >= 1,
         )
 
     if detailed_results:
@@ -141,7 +140,7 @@ def train_model(
     if plot_confusion_matrix:
         confusion_matrix(labels_pred, truth_test)
 
-    stats = evaluate(labels_pred, truth_test)
+    stats = evaluate(labels_pred, truth_test, seed)
     return stats
 
 
@@ -207,10 +206,11 @@ def train_multiple(args: argparse.Namespace) -> None:
             for future in tqdm(cf.as_completed(futures), total=len(futures)):
                 eval_results.append(future.result())
 
-    word_accuracies, sentence_accuracies = [], []
+    word_accuracies, sentence_accuracies, seeds = [], [], []
     for result in eval_results:
         sentence_accuracies.append(result.sentence.accuracy)
         word_accuracies.append(result.token.accuracy)
+        seeds.append(result.seed)
 
     sentence_mean = 100 * mean(sentence_accuracies)
     sentence_uncertainty = 3 * 100 * stdev(sentence_accuracies)
@@ -223,3 +223,19 @@ def train_multiple(args: argparse.Namespace) -> None:
     print()
     print("Average word-level accuracy:")
     print(f"\t-> {word_mean:.2f}% ± {word_uncertainty:.2f}%")
+
+    index_best = max(
+        range(len(sentence_accuracies)), key=sentence_accuracies.__getitem__
+    )
+    max_sent = 100 * sentence_accuracies[index_best]
+    max_word = 100 * word_accuracies[index_best]
+    max_seed = seeds[index_best]
+    index_worst = min(
+        range(len(sentence_accuracies)), key=sentence_accuracies.__getitem__
+    )
+    min_sent = 100 * sentence_accuracies[index_worst]
+    min_word = 100 * word_accuracies[index_worst]
+    min_seed = seeds[index_worst]
+    print()
+    print(f"Best:  Sentence {max_sent:.2f}% / Word {max_word:.2f}% (Seed: {max_seed})")
+    print(f"Worst: Sentence {min_sent:.2f}% / Word {min_word:.2f}% (Seed: {min_seed})")

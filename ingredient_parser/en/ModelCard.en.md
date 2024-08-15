@@ -8,7 +8,7 @@
 
 ### Model Date and Version
 
-Date: May 2024
+Date: June 2024
 
 Version: The model version is the same has the `ingredient_parser_nlp` package version.
 
@@ -42,7 +42,7 @@ The ingredient parser model parses structured information from English language 
   - PREP: Preparation notes for the ingredient
   - COMMENT: Comment in ingredient sentence
   - PURPOSE: Purpose of the ingredient
-  - OTHER, for text that cannot be classified into one of the above labels
+  - OTHER: for text that cannot be classified into one of the above labels
 
 ### Primary Intended Users
 
@@ -61,8 +61,9 @@ The model has been trained on datasets that have limitations.
 - The New York Times dataset contains sentences that largely follow a consistent style, use US customary units, and often refer to ingredients or brands found only in the USA.
 - The Cookstr dataset contains sentences that use US customary units as the primary unit, and often refer to ingredients or brands found only in the USA. Sentences often include amours in multiple unit formats (US customary, metric). The ingredient sentences are often quite long and complex.
 - The BBC Food dataset contains sentences that use metric units as the primary unit, but also often have the amounts in US customary units too. The ingredient sentences are generally quite simple and consistent in their structure.
+- The AllRecipes dataset contains sentences that usually use US customary units and often reference US brand names or branded products. The ingredient sentences are generally quite simple and consistent in their structure.
 
-Certain sentence formats, such as consecutive numbers that should not be combined (e.g. 1 1/2-ounce steak) are not well managed in the preprocessing step and can result in unexpected parsing results. 
+Certain sentence formats, such as consecutive numbers that should not be combined (e.g. 1 1/2-ounce steak) are usually handled incorrectly in the preprocessing step and can result in unexpected parsing results. 
 
 Long sentences increase the likelihood of the model mislabelling tokens.
 
@@ -74,7 +75,7 @@ Sentence level accuracy measures the percentage of ingredient sentences where al
 
 ## Training and Evaluation Data
 
-There are 3 datasets used to train and evaluate model performance.
+There are 4 datasets used to train and evaluate model performance.
 
 1. New York Times, originally found at https://github.com/nytimes/ingredient-phrase-tagger.
 
@@ -88,9 +89,13 @@ There are 3 datasets used to train and evaluate model performance.
 
    The first 15,000 sentences are used in the training and evaluation of the model.
 
+4. AllRecipes, originally found as part of https://archive.org/details/recipes-en-201706.
+
+   The first 15,000 sentences are used in the training and evaluation of the model.
+
 All datasets have been through extensive cleaning to make the data consistent. The cleaned versions of the data are found in the repository for the ingredient_parser_nlp package: https://github.com/strangetom/ingredient-parser
 
-The model is trained on a randomised set of 75% of the total data, and evaluated on the remaining 25%.
+The model is trained on a randomised set of 80% of the total data, and evaluated on the remaining 20%.
 
 ## Quantitative Analysis
 
@@ -98,7 +103,7 @@ The model has the following performance metrics:
 
 | Word level accuracy | Sentence level accuracy |
 | ------------------- | ----------------------- |
-| 97.95 ± 0.28%       | 94.75 ± 0.64%           |
+| 98.41 ± 0.18%       | 95.86 ± 0.25%           |
 
 These metrics were determined by executing 20 training/evaluation cycles and calculating the mean and standard deviation for the two metrics across all cycles. The uncertainty values provided represent the 99.7% confidence bounds (i.e. 3x standard deviation). The uncertainty is due to the randomisation of the selection of training and evaluation data whenever the model is trained.
 

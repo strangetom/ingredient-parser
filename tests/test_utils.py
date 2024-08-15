@@ -1,7 +1,9 @@
 from ingredient_parser.en._utils import (
     UREG,
+    combine_quantities_split_by_and,
     convert_to_pint_unit,
     pluralise_units,
+    replace_string_range,
 )
 
 
@@ -111,3 +113,90 @@ class Test_convert_to_pint_unit:
         # Title case + plural
         assert convert_to_pint_unit("Links") == "Links"
         assert convert_to_pint_unit("shake") == "shake"
+
+
+class Testcombine_quantities_split_by_and:
+    def test_half(self):
+        """
+        "1 and 1/2" is replaced by 1.5
+        """
+        input_sentence = "1 and 1/2 tsp salt"
+        assert combine_quantities_split_by_and(input_sentence) == "1.5 tsp salt"
+
+    def test_quarter(self):
+        """
+        "1 and 1/4" is replaced by 1.25
+        """
+        input_sentence = "1 and 1/4 tsp salt"
+        assert combine_quantities_split_by_and(input_sentence) == "1.25 tsp salt"
+
+    def test_three_quarters(self):
+        """
+        "1 and 3/4" is replaced by 1.75
+        """
+        input_sentence = "1 and 3/4 tsp salt"
+        assert combine_quantities_split_by_and(input_sentence) == "1.75 tsp salt"
+
+    def test_third(self):
+        """
+        "1 and 1/3" is replaced by 1.333
+        """
+        input_sentence = "1 and 1/3 tsp salt"
+        assert combine_quantities_split_by_and(input_sentence) == "1.333 tsp salt"
+
+
+class Test_replace_string_range:
+    def test_integers(self):
+        """
+        Test range with format <num> or <num> where <num> are integers
+        """
+        input_sentence = "4 9 or 10 inch flour tortillas"
+        assert replace_string_range(input_sentence) == "4 9-10 inch flour tortillas"
+
+    def test_decimals(self):
+        """
+        Test range with format <num> or <num> where <num> are decimals
+        """
+        input_sentence = "1 15.5 or 16 ounce can black beans"
+        assert replace_string_range(input_sentence) == "1 15.5-16 ounce can black beans"
+
+    def test_decimals_less_than_one(self):
+        """
+        Test range with format <num> or <num> where <num> are decimals
+        """
+        input_sentence = "0.5 to 0.75 teaspoon hot Hungarian paprika"
+        assert (
+            replace_string_range(input_sentence)
+            == "0.5-0.75 teaspoon hot Hungarian paprika"
+        )
+
+    def test_hyphens(self):
+        """
+        Test range where the numbers are followed by hyphens
+        """
+        input_sentence = "1 6- or 7-ounce can of wild salmon"
+        assert replace_string_range(input_sentence) == "1 6-7-ounce can of wild salmon"
+
+    def test_hyphens_with_spaces(self):
+        """
+        Test range where the numbers are followed by hyphens, where the hyphens are
+        surrounded by spaces.
+        """
+        input_sentence = "1 6 - or 7 - ounce can of wild salmon"
+        assert (
+            replace_string_range(input_sentence) == "1 6-7 - ounce can of wild salmon"
+        )
+
+    def test_first_starts_with_zero(self):
+        """
+        Test (false) range where the first of the numbers starts with 0
+        """
+        input_sentence = "Type 00 or 1 flour"
+        assert replace_string_range(input_sentence) == "Type 00 or 1 flour"
+
+    def test_second_starts_with_zero(self):
+        """
+        Test (false) range where the second of the numbers starts with 0
+        """
+        input_sentence = "Type 1 or 00 flour"
+        assert replace_string_range(input_sentence) == "Type 1 or 00 flour"

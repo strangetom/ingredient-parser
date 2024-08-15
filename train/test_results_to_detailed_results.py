@@ -17,8 +17,8 @@ class _TokenPrediction:
 @dataclass(frozen=True, order=True)
 class _SentenceLabeling:
     sentence: str
-    truth: str
-    prediction: str
+    truth: list[str]
+    prediction: list[str]
 
 
 def test_results_to_detailed_results(
@@ -47,13 +47,13 @@ def test_results_to_detailed_results(
     # sentence_classif: sentence => (# correct, # incorrect)
     sentence_classif = defaultdict(lambda: defaultdict(int))
     # sentence_details: sentence => classification details about the sentence
-    sentence_details = defaultdict(_SentenceLabeling)
+    sentence_details = {}
     # token_classif: token => (# correct, # incorrect)
     token_classif = defaultdict(lambda: defaultdict(int))
     # token_details: auxilliary info for misclassified tokens
     token_details = []
 
-    for src, sentence, truth, prediction, scores in sorted(
+    for _, sentence, truth, prediction, scores in sorted(
         zip(
             sentence_sources,
             sentences,
@@ -72,7 +72,7 @@ def test_results_to_detailed_results(
             sentence, defer_pos_tagging=True
         ).tokenized_sentence
         idx = 0
-        for token, truth1, prediction1, score in zip(tokens, truth, prediction, scores):
+        for token, truth1, prediction1, _ in zip(tokens, truth, prediction, scores):
             correct = truth1 == prediction1
             token_classif[token][correct] += 1
             if not correct:

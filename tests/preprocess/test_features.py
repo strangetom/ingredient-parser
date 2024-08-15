@@ -98,6 +98,12 @@ class TestPreProcessor_is_numeric:
         """
         assert p._is_numeric("dozen")
 
+    def test_quart(self, p):
+        """
+        "one-quarter" is numeric
+        """
+        assert p._is_numeric("one-quarter")
+
 
 class TestPreProcessor_is_capitalised:
     def test_capitalised(self, p):
@@ -284,3 +290,20 @@ class TestPreProcessor_is_ambiguous_unit:
         Cup is not indicated as ambiguous unit
         """
         assert not p._is_ambiguous_unit("cup")
+
+
+class TestPreProcessor_word_shape:
+    def test_word_shape(self, p):
+        """
+        Test words are transformed into correct shape pattern.
+        """
+        # Lower case
+        assert p._word_shape("pepper") == "xxxxxx"
+        # Upper case
+        assert p._word_shape("Pepper") == "Xxxxxx"
+        # Accents
+        assert p._word_shape("béchamel") == "xxxxxxxx"
+        # Numbers
+        assert p._word_shape("2-pound") == "d-xxxxx"
+        # Punctuation
+        assert p._word_shape(",") == ","

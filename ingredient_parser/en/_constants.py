@@ -101,6 +101,7 @@ UNITS = {
     "teaspoons": "teaspoon",
     "tins": "tin",
     "tsps": "tsp",
+    "tubes": "tube",
     "twists": "twist",
     "wedges": "wedge",
     "wheels": "wheel",
@@ -153,7 +154,10 @@ AMBIGUOUS_UNITS.extend(_ambiguous_units_alt_forms)
 
 # Strings and their numeric representation
 STRING_NUMBERS = {
+    "one-quarter": "1/4",
     "one-half": "1/2",
+    "three-quarter": "3/4",
+    "three-quarters": "3/4",
     "one": "1",
     "two": "2",
     "three": "3",

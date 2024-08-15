@@ -138,3 +138,10 @@ class TestTokenize:
             "oregano",
             ")",
         ]
+
+    def test_asteriks(self):
+        """
+        Test asterisk at end of word is separated.
+        """
+        sentence = "2 onions, finely chopped*"
+        assert tokenize(sentence) == ["2", "onions", ",", "finely", "chopped", "*"]

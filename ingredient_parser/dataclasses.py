@@ -227,4 +227,4 @@ class ParserDebugInfo:
     sentence: str
     PreProcessor: Any
     PostProcessor: Any
-    tagger: pycrfsuite.Tagger
+    tagger: pycrfsuite.Tagger  # type: ignore

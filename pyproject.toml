@@ -15,7 +15,7 @@ authors = [
     { name="Tom Strange", email="tpstrange@gmail.com"},
 ]
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "License :: OSI Approved :: MIT License",
     "Natural Language :: English",
     "Operating System :: OS Independent",
@@ -35,6 +35,7 @@ dependencies = [
 Homepage = "https://github.com/strangetom/ingredient-parser/"
 Documentation = "https://ingredient-parser.readthedocs.io/en/latest/"
 Source = "https://github.com/strangetom/ingredient-parser"
+Changelog = "https://github.com/strangetom/ingredient-parser/blob/master/CHANGELOG.md"
 
 [tool.setuptools]
 packages = ["ingredient_parser", "ingredient_parser.en"]
@@ -75,7 +76,7 @@ ignore = ["E402"]
 docstring-code-format = true
 
 [tool.pyright]
-include = ["ingredient_parser"]
+include = ["ingredient_parser", "train"]
 exclude = ["**/__pycache__"]
 reportUnusedImport = true
 reportUnusedClass = true

@@ -19,8 +19,13 @@ from ._constants import (
     APPROXIMATE_TOKENS,
     SINGULAR_TOKENS,
     STOP_WORDS,
+    STRING_NUMBERS_REGEXES,
 )
-from ._utils import ingredient_amount_factory
+from ._utils import (
+    combine_quantities_split_by_and,
+    ingredient_amount_factory,
+    replace_string_range,
+)
 
 WORD_CHAR = re.compile(r"\w")
 
@@ -163,12 +168,12 @@ class PostProcessor:
             sentence=self.sentence,
         )
 
-    def _postprocess(self, selected: str) -> IngredientText | None:
+    def _postprocess(self, selected_label: str) -> IngredientText | None:
         """Process tokens, labels and scores with selected label into IngredientText.
 
         Parameters
         ----------
-        selected : str
+        selected_label : str
             Label of tokens to postprocess
 
         Returns
@@ -176,12 +181,12 @@ class PostProcessor:
         IngredientText
             Object containing ingredient comment text and confidence
         """
-        # Select indices of tokens, labels and scores for selected label
+        # Select indices of tokens, labels and scores for selected_label
         # Do not include tokens, labels and scores in self.consumed
         idx = [
             i
             for i, label in enumerate(self.labels)
-            if label in [selected, "PUNC"] and i not in self.consumed
+            if label in [selected_label, "PUNC"] and i not in self.consumed
         ]
 
         # If idx is empty or all the selected idx are PUNC, return None
@@ -196,14 +201,14 @@ class PostProcessor:
             idx = self._remove_invalid_indices(idx)
 
             if all(self.labels[i] == "PUNC" for i in idx):
-                # Discard if the group only contains PUNC
+                # Skip if the group only contains PUNC
                 continue
 
             joined = " ".join([self.tokens[i] for i in idx])
             confidence = mean([self.scores[i] for i in idx])
 
             if self.discard_isolated_stop_words and joined in STOP_WORDS:
-                # Discard part if it's a stop word
+                # Skip part if it's a stop word
                 continue
 
             self.consumed.extend(idx)
@@ -218,7 +223,12 @@ class PostProcessor:
 
         # Join all the parts together into a single string and fix any
         # punctuation weirdness as a result.
-        text = ", ".join(parts)
+        # If the selected_label is NAME, join with a space. For all other labels, join
+        # with a comma and a space.
+        if selected_label == "NAME":
+            text = " ".join(parts)
+        else:
+            text = ", ".join(parts)
         text = self._fix_punctuation(text)
 
         if len(parts) == 0:
@@ -246,6 +256,8 @@ class PostProcessor:
         list[IngredientAmount]
             List of IngredientAmount objects
         """
+        self._convert_string_number_qty()
+
         funcs = [
             self._sizable_unit_pattern,
             self._composite_amounts_pattern,
@@ -296,7 +308,7 @@ class PostProcessor:
         list[int]
             List of indices with invalid punctuation removed.
         """
-        # For groups with more than 1 element, remove invliad leading and trailing
+        # For groups with more than 1 element, remove invalid leading and trailing
         # punctuation so they don't get incorrectly consumed.
         while len(idx) > 1 and self.tokens[idx[0]] in [
             ")",
@@ -307,6 +319,9 @@ class PostProcessor:
             ";",
             "-",
             ".",
+            "!",
+            "?",
+            "*",
         ]:
             idx = idx[1:]
 
@@ -323,7 +338,8 @@ class PostProcessor:
 
         # Remove brackets that aren't part of a matching pair
         idx_to_remove = []
-        stack = defaultdict(list)  # Seperate stack for each bracket type
+        tok_name = None  # Unnecessary, but prevents typing errors
+        stack = defaultdict(list)  # Separate stack for each bracket type
         for i, tok in enumerate([self.tokens[i] for i in idx]):
             if tok in ["(", ")"]:
                 tok_name = "PAREN"
@@ -373,8 +389,8 @@ class PostProcessor:
         # Correct space following open parens or before close parens
         text = text.replace("( ", "(").replace(" )", ")")
 
-        # Correct space preceeding various punctuation
-        for punc in [",", ":", ";", "."]:
+        # Correct space preceding various punctuation
+        for punc in [",", ":", ";", ".", "!", "?", "*"]:
             text = text.replace(f" {punc}", punc)
 
         return text.strip()
@@ -407,6 +423,102 @@ class PostProcessor:
                 idx_to_keep.append(i)
 
         return idx_to_keep
+
+    def _replace_string_numbers(self, text: str) -> str:
+        """Replace string numbers (e.g. one, two) with numeric values (e.g. 1, 2).
+
+        Parameters
+        ----------
+        text : str
+            Ingredient sentence
+
+        Returns
+        -------
+        str
+            Ingredient sentence with string numbers replace with numeric values
+
+        Examples
+        --------
+        >>> p = PreProcessor("")
+        >>> p._replace_string_numbers("three large onions")
+        "3 large onions"
+
+        >>> p = PreProcessor("")
+        >>> p._replace_string_numbers("twelve bonbons")
+        "12 bonbons"
+        """
+        # STRING_NUMBER_REGEXES is a dict where the values are a tuple of the compiled
+        # regular expression for matching a string number e.g. 'one', 'two' and the
+        # substitution numerical value for that string number.
+        for regex, substitution in STRING_NUMBERS_REGEXES.values():
+            text = regex.sub(rf"{substitution}", text)
+
+        return text
+
+    def _convert_string_number_qty(self) -> None:
+        """Convert QTY tokens that are string numbers to numeric values
+
+        This function modifies the tokens, labels and scores lists in place to replace
+        any string numbers with QTY label with their numeric value.
+
+        This function also collapses any quantities split by 'and' into a single
+        number e.g.
+        one and one-half -> 1 and 1/2 -> 1.5
+
+        This function also collapses any string ranges into a single range e.g.
+        one or two -> 1 or 2 -> 1-2
+        """
+        for i, (token, label) in enumerate(zip(self.tokens, self.labels)):
+            if label == "QTY":
+                self.tokens[i] = self._replace_string_numbers(token)
+
+        QTY_idx = [i for i, label in enumerate(self.labels) if label == "QTY"]
+
+        # Find any cases where a group of consecutuve QTY tokens can be collapsed into
+        # a single token. Modify the first token and score in the group and mark all
+        # others in group for deletion.
+        idx_to_remove = []
+        for idx_group in group_consecutive_idx(QTY_idx):
+            idx_group = list(idx_group)
+            if len(idx_group) == 1:
+                continue
+
+            fragment = " ".join([self.tokens[i] for i in idx_group])
+
+            replacement = combine_quantities_split_by_and(fragment)
+            if replacement != fragment:
+                mod_idx = idx_group[0]  # Index to replace with replacement
+                self.scores[mod_idx] = mean([self.scores[i] for i in idx_group])
+                self.tokens[mod_idx] = replacement
+
+                idx_to_remove.extend(idx_group[1:])
+                continue
+
+            replacement = replace_string_range(fragment)
+            if replacement != fragment:
+                mod_idx = idx_group[0]  # Index to replace with replacement
+                self.scores[mod_idx] = mean([self.scores[i] for i in idx_group])
+                self.tokens[mod_idx] = replacement
+
+                idx_to_remove.extend(idx_group[1:])
+                continue
+
+        if idx_to_remove:
+            self.tokens = [
+                self.tokens[i]
+                for i, _ in enumerate(self.tokens)
+                if i not in idx_to_remove
+            ]
+            self.labels = [
+                self.labels[i]
+                for i, _ in enumerate(self.labels)
+                if i not in idx_to_remove
+            ]
+            self.scores = [
+                self.scores[i]
+                for i, _ in enumerate(self.scores)
+                if i not in idx_to_remove
+            ]
 
     def _sizable_unit_pattern(
         self, idx: list[int], tokens: list[str], labels: list[str], scores: list[float]
@@ -457,8 +569,10 @@ class PostProcessor:
             "block",
             "box",
             "can",
+            "container",
             "envelope",
             "jar",
+            "loaf",
             "package",
             "packet",
             "piece",

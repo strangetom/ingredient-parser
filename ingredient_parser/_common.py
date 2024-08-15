@@ -15,7 +15,7 @@ from nltk import data, download
 SUPPORTED_LANGUAGES = ["en"]
 
 # Regex pattern for matching a numeric range e.g. 1-2, 2-3.
-RANGE_PATTERN = re.compile(r"\d+\s*[\-]\d+")
+RANGE_PATTERN = re.compile(r"^\d+\s*[\-]\d+$")
 
 
 def consume(iterator: Iterator, n: int | None) -> None:

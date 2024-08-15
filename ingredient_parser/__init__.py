@@ -1,7 +1,5 @@
-from ._common import SUPPORTED_LANGUAGES, download_nltk_resources, show_model_card
+from ._common import SUPPORTED_LANGUAGES, show_model_card
 from .parsers import inspect_parser, parse_ingredient, parse_multiple_ingredients
-
-download_nltk_resources()
 
 __all__ = [
     "SUPPORTED_LANGUAGES",
@@ -11,4 +9,4 @@ __all__ = [
     "show_model_card",
 ]
 
-__version__ = "1.0.1"
+__version__ = "1.1.0"

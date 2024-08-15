@@ -14,7 +14,7 @@ from .preprocess import PreProcessor
 # We only want to load the model into TAGGER once, but only do it
 # when we need to (from parse_ingredient() or inspect_parser()) and
 # not whenever anything from ingredient_parser is imported.
-TAGGER = pycrfsuite.Tagger()
+TAGGER = pycrfsuite.Tagger()  # type: ignore
 
 
 def load_model_if_not_loaded():
