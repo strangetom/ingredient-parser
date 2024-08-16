@@ -1020,11 +1020,6 @@ class PreProcessor:
     def sentence_features(self) -> list[dict[str, str | bool]]:
         """Return features for all tokens in sentence.
 
-        Parameters
-        ----------
-        corpus : set[str]
-            Corpus of tokens that appear more than once in the training data.
-
         Returns
         -------
         list[dict[str, str | bool]]

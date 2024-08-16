@@ -88,7 +88,7 @@ The top level :func:`parse_ingredient <ingredient_parser.parsers.parse_ingredien
 
 .. attention::
 
-    The language specific implementations of the functions and classes exposed in the language specific sub-package must have the arguments as the English implementations.
+    The language specific implementations of the functions and classes exposed in the language specific sub-package must have the same arguments as the English implementations.
 
 .. _training-a-new-model:
 
