@@ -1,5 +1,9 @@
 # Changelog
 
+### 1.1.1
+
+Revert upgrade to NLTK 3.8.2 after 3.8.2 removed to PyPI.
+
 ## 1.1
 
 ### General

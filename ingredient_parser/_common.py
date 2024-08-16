@@ -101,17 +101,11 @@ def download_nltk_resources() -> None:
     """Check if required nltk resources can be found and if not, download them."""
     try:
         data.find(
-            "taggers/averaged_perceptron_tagger_eng/averaged_perceptron_tagger_eng.classes.json"
-        )
-        data.find(
-            "taggers/averaged_perceptron_tagger_eng/averaged_perceptron_tagger_eng.tagdict.json"
-        )
-        data.find(
-            "taggers/averaged_perceptron_tagger_eng/averaged_perceptron_tagger_eng.weights.json"
+            "taggers/averaged_perceptron_tagger/averaged_perceptron_tagger.pickle"
         )
     except LookupError:
-        print("Downloading required NLTK resource: averaged_perceptron_tagger_eng")
-        download("averaged_perceptron_tagger_eng")
+        print("Downloading required NLTK resource: averaged_perceptron_tagger")
+        download("averaged_perceptron_tagger")
 
 
 def is_float(value: str) -> bool:
