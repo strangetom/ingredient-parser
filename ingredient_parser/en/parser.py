@@ -37,6 +37,7 @@ def parse_ingredient_en(
     expect_name_in_output: bool = True,
     string_units: bool = False,
     imperial_units: bool = False,
+    core_names: bool = False,
 ) -> ParsedIngredient:
     """Parse an English language ingredient sentence to return structured data.
 
@@ -63,6 +64,12 @@ def parse_ingredient_en(
         for the the following units: fluid ounce, cup, pint, quart, gallon.
         Default is False, which results in US customary units being used.
         This has no effect if string_units=True.
+    core_names : bool
+        If True, return only the core name of the ingredient in the name field. The core
+        name is the fundamental ingredient name e.g. "flour" in "plain flour" or
+        "vinegar" in "red wine vinegar". Tokens that would have been part of the name
+        if this was set to False are added to the comment.
+        Default is False.
 
     Returns
     -------
@@ -84,7 +91,7 @@ def parse_ingredient_en(
         if label != "UNIT":
             tokens[idx] = pluralise_units(token)
 
-    if expect_name_in_output and all(label != "NAME" for label in labels):
+    if expect_name_in_output and not any(label.startswith("NAME") for label in labels):
         # No tokens were assigned the NAME label, so guess if there's a name
         labels, scores = guess_ingredient_name(labels, scores)
 
@@ -96,6 +103,7 @@ def parse_ingredient_en(
         discard_isolated_stop_words=discard_isolated_stop_words,
         string_units=string_units,
         imperial_units=imperial_units,
+        core_names=core_names,
     )
     return postprocessed_sentence.parsed
 
@@ -106,6 +114,7 @@ def inspect_parser_en(
     expect_name_in_output: bool = True,
     string_units: bool = False,
     imperial_units: bool = False,
+    core_names: bool = False,
 ) -> ParserDebugInfo:
     """Return intermediate objects generated during parsing for inspection.
 
@@ -132,6 +141,12 @@ def inspect_parser_en(
         for the the following units: fluid ounce, cup, pint, quart, gallon.
         Default is False, which results in US customary units being used.
         This has no effect if string_units=True.
+    core_names : bool
+        If True, return only the core name of the ingredient in the name field. The core
+        name is the fundamental ingredient name e.g. "flour" in "plain flour" or
+        "vinegar" in "red wine vinegar". Tokens that would have been part of the name
+        if this was set to False are added to the comment.
+        Default is False.
 
     Returns
     -------
@@ -154,7 +169,7 @@ def inspect_parser_en(
         if label != "UNIT":
             tokens[idx] = pluralise_units(token)
 
-    if expect_name_in_output and all(label != "NAME" for label in labels):
+    if expect_name_in_output and not any(label.startswith("NAME") for label in labels):
         # No tokens were assigned the NAME label, so guess if there's a name
         labels, scores = guess_ingredient_name(labels, scores)
 
@@ -166,6 +181,7 @@ def inspect_parser_en(
         discard_isolated_stop_words=discard_isolated_stop_words,
         string_units=string_units,
         imperial_units=imperial_units,
+        core_names=core_names,
     )
 
     return ParserDebugInfo(
@@ -203,7 +219,7 @@ def guess_ingredient_name(
     """
     # Calculate confidence of each token being labelled NAME and get indices where that
     # confidence is greater than min_score.
-    name_scores = [TAGGER.marginal("NAME", i) for i, _ in enumerate(labels)]
+    name_scores = [TAGGER.marginal("NAME_CORE", i) for i, _ in enumerate(labels)]
     candidate_indices = [i for i, score in enumerate(name_scores) if score >= min_score]
 
     if len(candidate_indices) == 0:
@@ -215,7 +231,7 @@ def guess_ingredient_name(
     # Take longest group
     indices = sorted(groups, key=len)[0]
     for i in indices:
-        labels[i] = "NAME"
+        labels[i] = "NAME_CORE"
         scores[i] = name_scores[i]
 
     return labels, scores

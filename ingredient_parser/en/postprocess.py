@@ -108,6 +108,7 @@ class PostProcessor:
         discard_isolated_stop_words: bool = True,
         string_units: bool = False,
         imperial_units: bool = False,
+        core_names: bool = False,
     ):
         self.sentence = sentence
         self.tokens = tokens
@@ -116,6 +117,7 @@ class PostProcessor:
         self.discard_isolated_stop_words = discard_isolated_stop_words
         self.string_units = string_units
         self.imperial_units = imperial_units
+        self.core_names = core_names
         self.consumed = []
 
     def __repr__(self) -> str:
@@ -152,11 +154,16 @@ class PostProcessor:
             Object containing structured data from sentence.
         """
         amounts = self._postprocess_amounts()
-        size = self._postprocess("SIZE")
-        name = self._postprocess("NAME")
-        preparation = self._postprocess("PREP")
-        comment = self._postprocess("COMMENT")
-        purpose = self._postprocess("PURPOSE")
+        if self.core_names:
+            name = self._postprocess(["NAME_CORE"])
+            comment = self._postprocess(["COMMENT", "NAME_DESC"])
+        else:
+            name = self._postprocess(["NAME_CORE", "NAME_DESC"])
+            comment = self._postprocess(["COMMENT"])
+
+        size = self._postprocess(["SIZE"])
+        preparation = self._postprocess(["PREP"])
+        purpose = self._postprocess(["PURPOSE"])
 
         return ParsedIngredient(
             name=name,
@@ -168,25 +175,25 @@ class PostProcessor:
             sentence=self.sentence,
         )
 
-    def _postprocess(self, selected_label: str) -> IngredientText | None:
+    def _postprocess(self, selected_labels: list[str]) -> IngredientText | None:
         """Process tokens, labels and scores with selected label into IngredientText.
 
         Parameters
         ----------
-        selected_label : str
-            Label of tokens to postprocess
+        selected_labels : list[str]
+            Labels of tokens to postprocess
 
         Returns
         -------
         IngredientText
             Object containing ingredient comment text and confidence
         """
-        # Select indices of tokens, labels and scores for selected_label
+        # Select indices of tokens, labels and scores for selected_labels
         # Do not include tokens, labels and scores in self.consumed
         idx = [
             i
             for i, label in enumerate(self.labels)
-            if label in [selected_label, "PUNC"] and i not in self.consumed
+            if label in selected_labels + ["PUNC"] and i not in self.consumed
         ]
 
         # If idx is empty or all the selected idx are PUNC, return None
@@ -197,21 +204,21 @@ class PostProcessor:
         parts = []
         confidence_parts = []
         for group in group_consecutive_idx(idx):
-            idx = list(group)
-            idx = self._remove_invalid_indices(idx)
+            idxs = list(group)
+            idxs = self._remove_invalid_indices(idx)
 
-            if all(self.labels[i] == "PUNC" for i in idx):
+            if all(self.labels[i] == "PUNC" for i in idxs):
                 # Skip if the group only contains PUNC
                 continue
 
-            joined = " ".join([self.tokens[i] for i in idx])
-            confidence = mean([self.scores[i] for i in idx])
+            joined = " ".join([self.tokens[i] for i in idxs])
+            confidence = mean([self.scores[i] for i in idxs])
 
             if self.discard_isolated_stop_words and joined in STOP_WORDS:
                 # Skip part if it's a stop word
                 continue
 
-            self.consumed.extend(idx)
+            self.consumed.extend(idxs)
             parts.append(joined)
             confidence_parts.append(confidence)
 
@@ -223,9 +230,9 @@ class PostProcessor:
 
         # Join all the parts together into a single string and fix any
         # punctuation weirdness as a result.
-        # If the selected_label is NAME, join with a space. For all other labels, join
-        # with a comma and a space.
-        if selected_label == "NAME":
+        # If all the selected_label start with NAME, join with a space. For all other
+        # labels, join with a comma and a space.
+        if all(label.startswith("NAME") for label in selected_labels):
             text = " ".join(parts)
         else:
             text = ", ".join(parts)
