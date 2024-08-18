@@ -1,0 +1,211 @@
+# Foundation foods
+
+List of foundation foods derived from the following sources:
+
+* [Food Data Central](https://fdc.nal.usda.gov/download-datasets.html) Foundation Foods
+
+Foods have been modified from the original format in the above sources into format most likely to found in ingredients sentences.
+
+ - [ ] almond butter
+ - [ ] almond milk
+ - [ ] apple juice
+ - [ ] apples
+ - [ ] applesauce
+ - [ ] bananas
+ - [ ] black beans
+ - [ ] cannellini beans
+ - [ ] red kidney beans
+ - [ ] great northern beans
+ - [ ] navy beans
+ - [ ] pinto beans
+ - [ ] green snap beans
+ - [ ] green beans
+ - [ ] beef chuck
+ - [ ] flank steak
+ - [ ] ground beef
+ - [ ] minced beef
+ - [ ] beef tenderloin
+ - [ ] ribeye
+ - [ ] beef top round
+ - [ ] beets
+ - [ ] blackeye pea
+ - [ ] blueberries
+ - [ ] white bread
+ - [ ] whole-wheat bread
+ - [ ] broccoli
+ - [ ] brussels sprouts
+ - [ ] buckwheat
+ - [ ] salted butter
+ - [ ] unsalted butter
+ - [ ] buttermilk
+ - [ ] bok choy
+ - [ ] cabbage
+ - [ ] red cabbage
+ - [ ] baby carrots
+ - [ ] carrots
+ - [ ] cauliflower
+ - [ ] celery
+ - [ ] american cheese
+ - [ ] cheddar cheese
+ - [ ] cottage cheese
+ - [ ] queso seco
+ - [ ] feat
+ - [ ] monterey jack cheese
+ - [ ] mozzarella
+ - [ ] parmesan
+ - [ ] provolone
+ - [ ] queso fresco
+ - [ ] ricotta
+ - [ ] swiss cheese
+ - [ ] cherries
+ - [ ] chicken breast
+ - [ ] ground chicken
+ - [ ] minced chicken
+ - [ ] chicken thigh
+ - [ ] chickpeas
+ - [ ] collard greens
+ - [ ] cranberry juice
+ - [ ] cream cheese
+ - [ ] heavy cream
+ - [ ] double cream
+ - [ ] single cream
+ - [ ] sour cream
+ - [ ] crab
+ - [ ] shrimp
+ - [ ] cucumber
+ - [ ] egg white
+ - [ ] egg
+ - [ ] egg yolk
+ - [ ] eggplant
+ - [ ] aubergine
+ - [ ] figs
+ - [ ] catfish
+ - [ ] cod
+ - [ ] haddock
+ - [ ] pollock
+ - [ ] salmon
+ - [ ] tilapia
+ - [ ] tuna
+ - [ ] ground flaxseed
+ - [ ] 00 flour
+ - [ ] almond flour
+ - [ ] barley flour
+ - [ ] white bread flour
+ - [ ] buckwheat flour
+ - [ ] cassava flour
+ - [ ] cornflour
+ - [ ] potato flour
+ - [ ] quinoa
+ - [ ] rice flour
+ - [ ] rye flour
+ - [ ] semolina
+ - [ ] white flour
+ - [ ] frankfurter
+ - [ ] garlic
+ - [ ] grape juice
+ - [ ] grapefruit juice
+ - [ ] grapefruit
+ - [ ] green grapes
+ - [ ] red grapes
+ - [ ] ham
+ - [ ] hummus
+ - [ ] kale
+ - [ ] ketchup
+ - [ ] kiwifruit
+ - [ ] lentils
+ - [ ] cos lettuce
+ - [ ] romaine lettuce
+ - [ ] iceberg 
+ - [ ] cantaloupe
+ - [ ] milk
+ - [ ] whole milk
+ - [ ] skimmed milk
+ - [ ] whole grain millet
+ - [ ] crimini mushroom
+ - [ ] chestnut mushroom
+ - [ ] enoki mushroom
+ - [ ] king oyster mushroom
+ - [ ] lion's mane mushroom
+ - [ ] maitake mushroom
+ - [ ] oyster mushroom
+ - [ ] pioppini mushroom
+ - [ ] portabella mushroom
+ - [ ] shiitake mushrooms
+ - [ ] white button mushrooms
+ - [ ] mustard
+ - [ ] nectarines
+ - [ ] almonds
+ - [ ] brazilnuts
+ - [ ] cashew nuts
+ - [ ] hazelnuts
+ - [ ] macadamia nuts
+ - [ ] pecans
+ - [ ] pine nuts
+ - [ ] pistachio nuts
+ - [ ] walnuts
+ - [ ] oat milk
+ - [ ] rolled oats
+ - [ ] canola oil
+ - [ ] coconut oil
+ - [ ] corn oil
+ - [x] olive oil
+ - [ ] peanut oil
+ - [ ] safflower oil
+ - [ ] soybean oil
+ - [ ] sunflower oil
+ - [ ] olives
+ - [ ] onion rings
+ - [ ] red onions
+ - [ ] white onions
+ - [ ] yellow onions
+ - [ ] sprint onions
+ - [ ] orange juice
+ - [ ] oranges
+ - [ ] peaches
+ - [ ] peanut butter
+ - [ ] peanut
+ - [ ] pears
+ - [ ] green peas
+ - [ ] green peppers
+ - [ ] red peppers
+ - [ ] orange peppers
+ - [ ] yellow peppers
+ - [ ] dill pickles
+ - [ ] pineapple
+ - [ ] bacon
+ - [ ] ground pork
+ - [ ] minced pork
+ - [ ] pork loin
+ - [ ] pork tenderloin
+ - [ ] gold potatoes
+ - [ ] red potatoes
+ - [ ] russet potatoes
+ - [ ] new potatoes
+ - [ ] raspberries
+ - [ ] brown rice
+ - [ ] white rice
+ - [ ] salt
+ - [ ] salsa
+ - [ ] breakfast
+ - [ ] italian sausage
+ - [ ] chorizo
+ - [ ] pumpkin seeds
+ - [ ] sunflower seed
+ - [ ] sesame butter
+ - [ ] soy milk
+ - [ ] spinach
+ - [ ] zucchini
+ - [ ] courgette
+ - [ ] summer squash
+ - [ ] butternut squash
+ - [ ] strawberries
+ - [ ] sugar
+ - [ ] sweet potatoes
+ - [ ] tomato juice
+ - [ ] tomato paste
+ - [ ] tomato puree
+ - [ ] tomato
+ - [ ] ground turkey
+ - [ ] minced turkey
+ - [ ] greek yogurt
+ - [ ] yogurt
