@@ -154,9 +154,14 @@ class PostProcessor:
             Object containing structured data from sentence.
         """
         amounts = self._postprocess_amounts()
-        if self.core_names:
+
+        if "NAME_CORE" in self.labels and self.core_names:
             name = self._postprocess(["NAME_CORE"])
-            comment = self._postprocess(["COMMENT", "NAME_DESC"])
+            if not name:
+                name = self._postprocess(["NAME_CORE", "NAME_DESC"])
+                comment = self._postprocess(["COMMENT"])
+            else:
+                comment = self._postprocess(["COMMENT", "NAME_DESC"])
         else:
             name = self._postprocess(["NAME_CORE", "NAME_DESC"])
             comment = self._postprocess(["COMMENT"])

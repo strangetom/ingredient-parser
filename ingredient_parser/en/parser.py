@@ -217,9 +217,11 @@ def guess_ingredient_name(
     list[str], list[float]
         Labels and scores, modified to assign a name if possible.
     """
-    # Calculate confidence of each token being labelled NAME and get indices where that
-    # confidence is greater than min_score.
-    name_scores = [TAGGER.marginal("NAME_CORE", i) for i, _ in enumerate(labels)]
+    # Calculate confidence of each token being labelled NAME_DESC and get indices where
+    # that confidence is greater than min_score.
+    # NAME_DESC is used here because we can only get here if there aren't any NAME_CORE
+    # labelled tokens.
+    name_scores = [TAGGER.marginal("NAME_DESC", i) for i, _ in enumerate(labels)]
     candidate_indices = [i for i, score in enumerate(name_scores) if score >= min_score]
 
     if len(candidate_indices) == 0:
