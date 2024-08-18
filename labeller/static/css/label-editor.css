@@ -146,10 +146,10 @@ select {
 .UNIT {
   --background-color: color-mix(in srgb, var(--yellow), #333);
 }
-.NAME_CORE {
+.NAME_DESC {
   --background-color: color-mix(in srgb, var(--aqua), #333);
 }
-.NAME_DESC {
+.NAME_CORE {
   --background-color: color-mix(in srgb, var(--aqua-blend), #000);
 }
 .COMMENT {

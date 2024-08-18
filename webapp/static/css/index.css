@@ -37,7 +37,7 @@ input[type="checkbox"] {
   accent-color: var(--green-alt);
 }
 label {
-  margin-right: 2rem;
+  margin-right: 1rem;
 }
 
 .QTY {
@@ -46,8 +46,11 @@ label {
 .UNIT {
   --color: var(--yellow);
 }
-.NAME {
-  --color: var(--aqua);
+.NAME_CORE {
+  --color: var(--aqua-alt);
+}
+.NAME_DESC {
+  --color: var(--aqua-blend);
 }
 .COMMENT {
   --color: var(--purple);

@@ -32,13 +32,18 @@
                 <label for="imperial_units">
                     Imperial units
                 </label>
+                <input id="core_names" name="core_names" type="checkbox" {{ "checked" if core_names }} />
+                <label for="core_names">
+                    Core names
+                </label>
             </form>
 
             <p class="key">
                 Key: 
                 <span class="QTY">Quantity</span>
                 <span class="UNIT">Unit</span>
-                <span class="NAME">Name</span>
+                <span class="NAME_CORE">Name (core)</span>
+                <span class="NAME_DESC">Name</span>
                 <span class="SIZE">Size</span>
                 <span class="PREP">Prep</span>
                 <span class="COMMENT">Comment</span>
@@ -71,7 +76,7 @@
                         <td>
                             {{ name.text }}
                             {%- if name.confidence > 0 -%}
-                            <span class="confidence NAME">
+                            <span class="confidence NAME_CORE">
                                 {{ "%.2f"|format(100*name.confidence) }}%
                             </span>
                             {%- endif -%}
