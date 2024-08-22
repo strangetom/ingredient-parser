@@ -6,20 +6,20 @@ List of foundation foods derived from the following sources:
 
 Foods have been modified from the original format in the above sources into format most likely to found in ingredients sentences.
 
- - [ ] almond butter
- - [ ] almond milk
- - [ ] apple juice
- - [ ] apples
- - [ ] applesauce
- - [ ] bananas
- - [ ] black beans
- - [ ] cannellini beans
- - [ ] red kidney beans
- - [ ] great northern beans
- - [ ] navy beans
- - [ ] pinto beans
- - [ ] green snap beans
- - [ ] green beans
+ - [x] almond butter
+ - [x] almond milk
+ - [x] apple juice
+ - [x] apples
+ - [x] applesauce
+ - [x] bananas
+ - [x] black beans
+ - [x] cannellini beans
+ - [x] red kidney beans
+ - [x] great northern beans
+ - [x] navy beans
+ - [x] pinto beans
+ - [x] green snap beans
+ - [x] green beans
  - [ ] beef chuck
  - [ ] flank steak
  - [ ] ground beef
@@ -27,18 +27,18 @@ Foods have been modified from the original format in the above sources into form
  - [ ] beef tenderloin
  - [ ] ribeye
  - [ ] beef top round
- - [ ] beets
- - [ ] blackeye pea
- - [ ] blueberries
+ - [x] beets
+ - [x] blackeye pea
+ - [x] blueberries
  - [ ] white bread
  - [ ] whole-wheat bread
- - [ ] broccoli
- - [ ] brussels sprouts
- - [ ] buckwheat
+ - [x] broccoli
+ - [x] brussels sprouts
+ - [x] buckwheat
  - [ ] salted butter
  - [ ] unsalted butter
- - [ ] buttermilk
- - [ ] bok choy
+ - [x] buttermilk
+ - [x] bok choy
  - [ ] cabbage
  - [ ] red cabbage
  - [ ] baby carrots
