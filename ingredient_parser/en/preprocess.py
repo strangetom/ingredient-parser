@@ -5,6 +5,8 @@ import unicodedata
 from fractions import Fraction
 from html import unescape
 
+from nltk import pos_tag
+
 from ._constants import (
     AMBIGUOUS_UNITS,
     FLATTENED_UNITS_LIST,
@@ -28,7 +30,6 @@ from ._regex import (
 )
 from ._utils import (
     combine_quantities_split_by_and,
-    pos_tag,
     replace_string_range,
     stem,
     tokenize,
@@ -1019,11 +1020,6 @@ class PreProcessor:
 
     def sentence_features(self) -> list[dict[str, str | bool]]:
         """Return features for all tokens in sentence.
-
-        Parameters
-        ----------
-        corpus : set[str]
-            Corpus of tokens that appear more than once in the training data.
 
         Returns
         -------
