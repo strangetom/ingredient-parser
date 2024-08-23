@@ -90,3 +90,4 @@ The Ingredient Parser package is a Python package for parsing information from r
    Model Guide <guide/index>
    API reference <reference/index>
    Resources <resources/index>
+   changelog
