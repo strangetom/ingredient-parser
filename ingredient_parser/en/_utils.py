@@ -5,7 +5,7 @@ from fractions import Fraction
 from functools import lru_cache
 from itertools import chain
 
-import nltk.stem.porter as nltkstem
+import nltk.stem.porter as nsp
 import pint
 
 from .._common import download_nltk_resources, is_float, is_range
@@ -59,7 +59,7 @@ UNIT_REPLACEMENTS = [
 ]
 
 download_nltk_resources()
-STEMMER = nltkstem.PorterStemmer()
+STEMMER = nsp.PorterStemmer()
 
 # Define regular expressions used by tokenizer.
 # Matches one or more whitespace characters
