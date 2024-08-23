@@ -10,7 +10,7 @@ from itertools import groupby, islice
 from operator import itemgetter
 from typing import Generator, Iterator
 
-from nltk import data, download
+import nltk
 
 SUPPORTED_LANGUAGES = ["en"]
 
@@ -100,12 +100,18 @@ def show_model_card(lang: str = "en") -> None:
 def download_nltk_resources() -> None:
     """Check if required nltk resources can be found and if not, download them."""
     try:
-        data.find(
-            "taggers/averaged_perceptron_tagger/averaged_perceptron_tagger.pickle"
+        nltk.data.find(
+            "taggers/averaged_perceptron_tagger_eng/averaged_perceptron_tagger_eng.classes.json"
+        )
+        nltk.data.find(
+            "taggers/averaged_perceptron_tagger_eng/averaged_perceptron_tagger_eng.tagdict.json"
+        )
+        nltk.data.find(
+            "taggers/averaged_perceptron_tagger_eng/averaged_perceptron_tagger_eng.weights.json"
         )
     except LookupError:
-        print("Downloading required NLTK resource: averaged_perceptron_tagger")
-        download("averaged_perceptron_tagger")
+        print("Downloading required NLTK resource: averaged_perceptron_tagger_eng")
+        nltk.download("averaged_perceptron_tagger_eng")
 
 
 def is_float(value: str) -> bool:
