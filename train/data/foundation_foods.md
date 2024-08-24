@@ -35,24 +35,25 @@ Foods have been modified from the original format in the above sources into form
  - [x] broccoli
  - [x] brussels sprouts
  - [x] buckwheat
- - [ ] salted butter
- - [ ] unsalted butter
+ - [x] salted butter
+ - [x] unsalted butter
  - [x] buttermilk
  - [x] bok choy
  - [x] cabbage
  - [x] red cabbage
- - [ ] baby carrots
- - [ ] carrots
+ - [x] baby carrots
+ - [x] carrots
  - [x] cauliflower
- - [ ] celery
+ - [x] celery
+ - [x] celeriac
  - [x] american cheese
- - [ ] cheddar cheese
+ - [x] cheddar cheese
  - [x] cottage cheese
  - [x] queso seco
  - [x] feta
  - [x] monterey jack cheese
  - [x] mozzarella
- - [ ] parmesan
+ - [x] parmesan
  - [x] provolone
  - [x] queso fresco
  - [x] gruyère
@@ -164,7 +165,7 @@ Foods have been modified from the original format in the above sources into form
  - [ ] orange juice
  - [ ] oranges
  - [ ] peaches
- - [ ] peanut butter
+ - [x] peanut butter
  - [ ] peanut
  - [ ] pears
  - [ ] green peas
