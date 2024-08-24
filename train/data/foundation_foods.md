@@ -67,15 +67,15 @@ Foods have been modified from the original format in the above sources into form
  - [x] chickpeas
  - [x] collard greens
  - [x] cranberry juice
- - [ ] cream cheese
- - [ ] heavy cream
- - [ ] double cream
- - [ ] single cream
- - [ ] sour cream
+ - [x] cream cheese
+ - [x] heavy cream
+ - [x] double cream
+ - [x] single cream
+ - [x] sour cream
  - [ ] crab
  - [ ] shrimp
  - [ ] prawns
- - [ ] cucumber
+ - [x] cucumber
  - [ ] egg white
  - [ ] egg
  - [ ] egg yolk
