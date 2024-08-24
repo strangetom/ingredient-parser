@@ -6,7 +6,7 @@ Require NLTK >= 3.9.1, due to change in their resources format.
 
 ### 1.1.1
 
-Revert upgrade to NLTK 3.8.2 after 3.8.2 removed to PyPI.
+Revert upgrade to NLTK 3.8.2 after 3.8.2 removed from PyPI.
 
 ## 1.1
 
