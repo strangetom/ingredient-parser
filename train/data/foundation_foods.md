@@ -39,32 +39,33 @@ Foods have been modified from the original format in the above sources into form
  - [ ] unsalted butter
  - [x] buttermilk
  - [x] bok choy
- - [ ] cabbage
- - [ ] red cabbage
+ - [x] cabbage
+ - [x] red cabbage
  - [ ] baby carrots
  - [ ] carrots
- - [ ] cauliflower
+ - [x] cauliflower
  - [ ] celery
- - [ ] american cheese
+ - [x] american cheese
  - [ ] cheddar cheese
- - [ ] cottage cheese
- - [ ] queso seco
- - [ ] feat
- - [ ] monterey jack cheese
- - [ ] mozzarella
+ - [x] cottage cheese
+ - [x] queso seco
+ - [x] feta
+ - [x] monterey jack cheese
+ - [x] mozzarella
  - [ ] parmesan
- - [ ] provolone
- - [ ] queso fresco
- - [ ] ricotta
- - [ ] swiss cheese
- - [ ] cherries
+ - [x] provolone
+ - [x] queso fresco
+ - [x] gruyère
+ - [x] ricotta
+ - [x] swiss cheese
+ - [x] cherries
  - [ ] chicken breast
  - [ ] ground chicken
  - [ ] minced chicken
  - [ ] chicken thigh
- - [ ] chickpeas
- - [ ] collard greens
- - [ ] cranberry juice
+ - [x] chickpeas
+ - [x] collard greens
+ - [x] cranberry juice
  - [ ] cream cheese
  - [ ] heavy cream
  - [ ] double cream
@@ -72,6 +73,7 @@ Foods have been modified from the original format in the above sources into form
  - [ ] sour cream
  - [ ] crab
  - [ ] shrimp
+ - [ ] prawns
  - [ ] cucumber
  - [ ] egg white
  - [ ] egg
