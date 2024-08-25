@@ -87,9 +87,9 @@ Foods have been modified from the original format in the above sources into form
  - [x] haddock
  - [x] pollock
  - [x] salmon
- - [ ] tilapia
- - [ ] tuna
- - [ ] ground flaxseed
+ - [x] tilapia
+ - [x] tuna
+ - [x] ground flaxseed
  - [ ] 00 flour
  - [ ] almond flour
  - [ ] barley flour
@@ -103,40 +103,46 @@ Foods have been modified from the original format in the above sources into form
  - [ ] rye flour
  - [ ] semolina
  - [ ] white flour
- - [ ] frankfurter
- - [ ] garlic
- - [ ] grape juice
- - [ ] grapefruit juice
- - [ ] grapefruit
- - [ ] green grapes
- - [ ] red grapes
+ - [x] frankfurter
+ - [x] garlic
+ - [x] grape juice
+ - [x] grapefruit juice
+ - [x] grapefruit
+ - [x] green grapes
+ - [x] red grapes
  - [ ] ham
- - [ ] hummus
- - [ ] kale
- - [ ] ketchup
- - [ ] kiwifruit
- - [ ] lentils
- - [ ] cos lettuce
- - [ ] romaine lettuce
- - [ ] iceberg 
- - [ ] cantaloupe
- - [ ] milk
- - [ ] whole milk
- - [ ] skimmed milk
- - [ ] whole grain millet
- - [ ] crimini mushroom
- - [ ] chestnut mushroom
- - [ ] enoki mushroom
- - [ ] king oyster mushroom
- - [ ] lion's mane mushroom
- - [ ] maitake mushroom
- - [ ] oyster mushroom
- - [ ] pioppini mushroom
- - [ ] portabella mushroom
- - [ ] shiitake mushrooms
- - [ ] white button mushrooms
+ - [x] hummus
+ - [x] kale
+ - [x] ketchup
+ - [x] kiwifruit
+ - [x] lentils
+ - [x] cos lettuce
+ - [x] romaine lettuce
+ - [x] iceberg 
+ - [x] cantaloupe
+ - [x] milk
+ - [x] whole milk
+ - [x] skimmed milk
+ - [x] oat milk
+ - [x] soy milk
+ - [x] evaporated milk
+ - [x] condensed milk
+ - [x] coconut milk
+ - [x] almond milk
+ - [x] whole grain millet
+ - [x] crimini mushroom
+ - [x] chestnut mushroom
+ - [x] enoki mushroom
+ - [x] king oyster mushroom
+ - [x] lion's mane mushroom
+ - [x] maitake mushroom
+ - [x] oyster mushroom
+ - [x] pioppini mushroom
+ - [x] portabella mushroom
+ - [x] shiitake mushrooms
+ - [x] white button mushrooms
  - [ ] mustard
- - [ ] nectarines
+ - [x] nectarines
  - [ ] almonds
  - [ ] brazilnuts
  - [ ] cashew nuts
@@ -164,7 +170,7 @@ Foods have been modified from the original format in the above sources into form
  - [ ] sprint onions
  - [ ] orange juice
  - [ ] oranges
- - [ ] peaches
+ - [x] peaches
  - [x] peanut butter
  - [ ] peanut
  - [ ] pears
