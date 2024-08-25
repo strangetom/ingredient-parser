@@ -72,21 +72,21 @@ Foods have been modified from the original format in the above sources into form
  - [x] double cream
  - [x] single cream
  - [x] sour cream
- - [ ] crab
- - [ ] shrimp
- - [ ] prawns
+ - [x] crab
+ - [x] shrimp
+ - [x] prawns
  - [x] cucumber
  - [ ] egg white
  - [ ] egg
  - [ ] egg yolk
- - [ ] eggplant
- - [ ] aubergine
- - [ ] figs
- - [ ] catfish
- - [ ] cod
- - [ ] haddock
- - [ ] pollock
- - [ ] salmon
+ - [x] eggplant
+ - [x] aubergine
+ - [x] figs
+ - [x] catfish
+ - [x] cod
+ - [x] haddock
+ - [x] pollock
+ - [x] salmon
  - [ ] tilapia
  - [ ] tuna
  - [ ] ground flaxseed
