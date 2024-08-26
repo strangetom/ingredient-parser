@@ -175,13 +175,13 @@ Foods have been modified from the original format in the above sources into form
  - [x] peanut butter
  - [x] peanut
  - [x] pears
- - [ ] green peas
- - [ ] green peppers
- - [ ] red peppers
- - [ ] orange peppers
- - [ ] yellow peppers
- - [ ] dill pickles
- - [ ] pineapple
+ - [x] green peas
+ - [x] green peppers
+ - [x] red peppers
+ - [x] orange peppers
+ - [x] yellow peppers
+ - [x] dill pickles
+ - [x] pineapple
  - [ ] bacon
  - [ ] ground pork
  - [ ] minced pork
