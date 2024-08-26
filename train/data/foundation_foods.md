@@ -143,37 +143,38 @@ Foods have been modified from the original format in the above sources into form
  - [x] white button mushrooms
  - [ ] mustard
  - [x] nectarines
- - [ ] almonds
- - [ ] brazilnuts
- - [ ] cashew nuts
- - [ ] hazelnuts
- - [ ] macadamia nuts
- - [ ] pecans
- - [ ] pine nuts
- - [ ] pistachio nuts
- - [ ] walnuts
- - [ ] oat milk
+ - [x] almonds
+ - [x] brazilnuts
+ - [x] cashew nuts
+ - [x] hazelnuts
+ - [x] macadamia nuts
+ - [x] pecans
+ - [x] pine nuts
+ - [x] pistachio nuts
+ - [x] walnuts
+ - [x] oat milk
  - [ ] rolled oats
- - [ ] canola oil
- - [ ] coconut oil
- - [ ] corn oil
+ - [x] canola oil
+ - [x] coconut oil
+ - [x] corn oil
  - [x] olive oil
- - [ ] peanut oil
- - [ ] safflower oil
- - [ ] soybean oil
- - [ ] sunflower oil
- - [ ] olives
+ - [x] peanut oil
+ - [x] safflower oil
+ - [x] soybean oil
+ - [x] sunflower oil
+ - [x] vegetable oil
+ - [x] olives
  - [ ] onion rings
  - [ ] red onions
  - [ ] white onions
  - [ ] yellow onions
  - [ ] sprint onions
- - [ ] orange juice
- - [ ] oranges
+ - [x] orange juice
+ - [x] oranges
  - [x] peaches
  - [x] peanut butter
- - [ ] peanut
- - [ ] pears
+ - [x] peanut
+ - [x] pears
  - [ ] green peas
  - [ ] green peppers
  - [ ] red peppers
