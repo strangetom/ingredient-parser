@@ -164,11 +164,11 @@ Foods have been modified from the original format in the above sources into form
  - [x] sunflower oil
  - [x] vegetable oil
  - [x] olives
- - [ ] onion rings
- - [ ] red onions
- - [ ] white onions
- - [ ] yellow onions
- - [ ] sprint onions
+ - [x] onion rings
+ - [x] red onions
+ - [x] white onions
+ - [x] yellow onions
+ - [x] spring onions
  - [x] orange juice
  - [x] oranges
  - [x] peaches
@@ -192,30 +192,29 @@ Foods have been modified from the original format in the above sources into form
  - [ ] russet potatoes
  - [ ] new potatoes
  - [ ] raspberries
- - [ ] brown rice
- - [ ] white rice
+ - [x] rice
  - [ ] salt
  - [ ] salsa
- - [ ] breakfast
+ - [ ] breakfast sausage
  - [ ] italian sausage
  - [ ] chorizo
- - [ ] pumpkin seeds
- - [ ] sunflower seed
+ - [x] pumpkin seeds
+ - [x] sunflower seeds
  - [ ] sesame butter
- - [ ] soy milk
- - [ ] spinach
- - [ ] zucchini
- - [ ] courgette
- - [ ] summer squash
- - [ ] butternut squash
- - [ ] strawberries
+ - [x] soy milk
+ - [x] spinach
+ - [x] zucchini
+ - [x] courgette
+ - [x] summer squash
+ - [x] butternut squash
+ - [x] strawberries
  - [ ] sugar
- - [ ] sweet potatoes
- - [ ] tomato juice
- - [ ] tomato paste
- - [ ] tomato puree
- - [ ] tomato
+ - [x] sweet potatoes
+ - [x] tomato juice
+ - [x] tomato paste
+ - [x] tomato puree
+ - [x] tomato
  - [ ] ground turkey
  - [ ] minced turkey
- - [ ] greek yogurt
- - [ ] yogurt
+ - [x] greek yogurt
+ - [x] yogurt
