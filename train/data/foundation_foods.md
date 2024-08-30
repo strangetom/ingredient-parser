@@ -76,9 +76,9 @@ Foods have been modified from the original format in the above sources into form
  - [x] shrimp
  - [x] prawns
  - [x] cucumber
- - [ ] egg white
- - [ ] egg
- - [ ] egg yolk
+ - [x] egg white
+ - [x] egg
+ - [x] egg yolk
  - [x] eggplant
  - [x] aubergine
  - [x] figs
@@ -141,7 +141,7 @@ Foods have been modified from the original format in the above sources into form
  - [x] portabella mushroom
  - [x] shiitake mushrooms
  - [x] white button mushrooms
- - [ ] mustard
+ - [x] mustard
  - [x] nectarines
  - [x] almonds
  - [x] brazilnuts
@@ -153,7 +153,7 @@ Foods have been modified from the original format in the above sources into form
  - [x] pistachio nuts
  - [x] walnuts
  - [x] oat milk
- - [ ] rolled oats
+ - [x] oats
  - [x] canola oil
  - [x] coconut oil
  - [x] corn oil
@@ -182,25 +182,20 @@ Foods have been modified from the original format in the above sources into form
  - [x] yellow peppers
  - [x] dill pickles
  - [x] pineapple
- - [ ] bacon
+ - [x] bacon
  - [ ] ground pork
  - [ ] minced pork
  - [ ] pork loin
  - [ ] pork tenderloin
- - [ ] gold potatoes
- - [ ] red potatoes
- - [ ] russet potatoes
- - [ ] new potatoes
- - [ ] raspberries
+ - [x] potatoes
+ - [x] raspberries
  - [x] rice
  - [ ] salt
  - [ ] salsa
- - [ ] breakfast sausage
- - [ ] italian sausage
- - [ ] chorizo
+ - [x] sausage
+ - [x] chorizo
  - [x] pumpkin seeds
  - [x] sunflower seeds
- - [ ] sesame butter
  - [x] soy milk
  - [x] spinach
  - [x] zucchini
