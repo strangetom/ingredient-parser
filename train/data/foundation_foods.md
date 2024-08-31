@@ -20,18 +20,11 @@ Foods have been modified from the original format in the above sources into form
  - [x] pinto beans
  - [x] green snap beans
  - [x] green beans
- - [ ] beef chuck
- - [ ] flank steak
- - [ ] ground beef
- - [ ] minced beef
- - [ ] beef tenderloin
- - [ ] ribeye
- - [ ] beef top round
+ - [x] beef
  - [x] beets
  - [x] blackeye pea
  - [x] blueberries
- - [ ] white bread
- - [ ] whole-wheat bread
+ - [x] bread
  - [x] broccoli
  - [x] brussels sprouts
  - [x] buckwheat
@@ -60,10 +53,7 @@ Foods have been modified from the original format in the above sources into form
  - [x] ricotta
  - [x] swiss cheese
  - [x] cherries
- - [ ] chicken breast
- - [ ] ground chicken
- - [ ] minced chicken
- - [ ] chicken thigh
+ - [x] chicken
  - [x] chickpeas
  - [x] collard greens
  - [x] cranberry juice
@@ -110,8 +100,9 @@ Foods have been modified from the original format in the above sources into form
  - [x] grapefruit
  - [x] green grapes
  - [x] red grapes
- - [ ] ham
+ - [x] ham
  - [x] hummus
+ - [x] lamb
  - [x] kale
  - [x] ketchup
  - [x] kiwifruit
@@ -183,15 +174,12 @@ Foods have been modified from the original format in the above sources into form
  - [x] dill pickles
  - [x] pineapple
  - [x] bacon
- - [ ] ground pork
- - [ ] minced pork
- - [ ] pork loin
- - [ ] pork tenderloin
+ - [x] pork
  - [x] potatoes
  - [x] raspberries
  - [x] rice
  - [ ] salt
- - [ ] salsa
+ - [x] salsa
  - [x] sausage
  - [x] chorizo
  - [x] pumpkin seeds
@@ -209,7 +197,6 @@ Foods have been modified from the original format in the above sources into form
  - [x] tomato paste
  - [x] tomato puree
  - [x] tomato
- - [ ] ground turkey
- - [ ] minced turkey
+ - [x] turkey
  - [x] greek yogurt
  - [x] yogurt
