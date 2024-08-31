@@ -80,19 +80,8 @@ Foods have been modified from the original format in the above sources into form
  - [x] tilapia
  - [x] tuna
  - [x] ground flaxseed
- - [ ] 00 flour
- - [ ] almond flour
- - [ ] barley flour
- - [ ] white bread flour
- - [ ] buckwheat flour
- - [ ] cassava flour
- - [ ] cornflour
- - [ ] potato flour
- - [ ] quinoa
- - [ ] rice flour
- - [ ] rye flour
+ - [x] flour
  - [ ] semolina
- - [ ] white flour
  - [x] frankfurter
  - [x] garlic
  - [x] grape juice
@@ -178,7 +167,7 @@ Foods have been modified from the original format in the above sources into form
  - [x] potatoes
  - [x] raspberries
  - [x] rice
- - [ ] salt
+ - [x] salt
  - [x] salsa
  - [x] sausage
  - [x] chorizo
@@ -191,7 +180,7 @@ Foods have been modified from the original format in the above sources into form
  - [x] summer squash
  - [x] butternut squash
  - [x] strawberries
- - [ ] sugar
+ - [x] sugar
  - [x] sweet potatoes
  - [x] tomato juice
  - [x] tomato paste
