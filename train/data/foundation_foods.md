@@ -81,9 +81,10 @@ Foods have been modified from the original format in the above sources into form
  - [x] tuna
  - [x] ground flaxseed
  - [x] flour
- - [ ] semolina
+ - [x] semolina
  - [x] frankfurter
  - [x] garlic
+ - [x] garlic powder
  - [x] grape juice
  - [x] grapefruit juice
  - [x] grapefruit
@@ -160,6 +161,7 @@ Foods have been modified from the original format in the above sources into form
  - [x] red peppers
  - [x] orange peppers
  - [x] yellow peppers
+ - [x] red pepper flakes
  - [x] dill pickles
  - [x] pineapple
  - [x] bacon
