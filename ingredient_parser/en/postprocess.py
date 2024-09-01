@@ -168,25 +168,25 @@ class PostProcessor:
             sentence=self.sentence,
         )
 
-    def _postprocess(self, selected_labels: list[str]) -> IngredientText | None:
+    def _postprocess(self, selected_label: str) -> IngredientText | None:
         """Process tokens, labels and scores with selected label into IngredientText.
 
         Parameters
         ----------
-        selected_labels : list[str]
-            Labels of tokens to postprocess
+        selected_label : str
+            Label of tokens to postprocess
 
         Returns
         -------
         IngredientText
             Object containing ingredient comment text and confidence
         """
-        # Select indices of tokens, labels and scores for selected_labels
+        # Select indices of tokens, labels and scores for selected_label
         # Do not include tokens, labels and scores in self.consumed
         idx = [
             i
             for i, label in enumerate(self.labels)
-            if label in selected_labels + ["PUNC"] and i not in self.consumed
+            if label in [selected_label, "PUNC"] and i not in self.consumed
         ]
 
         # If idx is empty or all the selected idx are PUNC, return None
@@ -197,21 +197,21 @@ class PostProcessor:
         parts = []
         confidence_parts = []
         for group in group_consecutive_idx(idx):
-            idxs = list(group)
-            idxs = self._remove_invalid_indices(idx)
+            idx = list(group)
+            idx = self._remove_invalid_indices(idx)
 
-            if all(self.labels[i] == "PUNC" for i in idxs):
+            if all(self.labels[i] == "PUNC" for i in idx):
                 # Skip if the group only contains PUNC
                 continue
 
-            joined = " ".join([self.tokens[i] for i in idxs])
-            confidence = mean([self.scores[i] for i in idxs])
+            joined = " ".join([self.tokens[i] for i in idx])
+            confidence = mean([self.scores[i] for i in idx])
 
             if self.discard_isolated_stop_words and joined in STOP_WORDS:
                 # Skip part if it's a stop word
                 continue
 
-            self.consumed.extend(idxs)
+            self.consumed.extend(idx)
             parts.append(joined)
             confidence_parts.append(confidence)
 
@@ -223,9 +223,9 @@ class PostProcessor:
 
         # Join all the parts together into a single string and fix any
         # punctuation weirdness as a result.
-        # If all the selected_label start with NAME, join with a space. For all other
-        # labels, join with a comma and a space.
-        if all(label.startswith("NAME") for label in selected_labels):
+        # If the selected_label is NAME, join with a space. For all other labels, join
+        # with a comma and a space.
+        if selected_label == "NAME":
             text = " ".join(parts)
         else:
             text = ", ".join(parts)

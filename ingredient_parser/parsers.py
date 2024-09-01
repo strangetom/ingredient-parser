@@ -13,7 +13,6 @@ def parse_ingredient(
     expect_name_in_output: bool = True,
     string_units: bool = False,
     imperial_units: bool = False,
-    core_names: bool = False,
 ) -> ParsedIngredient:
     """Parse an ingredient sentence to return structured data.
 
@@ -43,12 +42,6 @@ def parse_ingredient(
         for the the following units: fluid ounce, cup, pint, quart, gallon.
         Default is False, which results in US customary units being used.
         This has no effect if string_units=True.
-    core_names : bool
-        If True, return only the core name of the ingredient in the name field. The core
-        name is the fundamental ingredient name e.g. "flour" in "plain flour" or
-        "vinegar" in "red wine vinegar". Tokens that would have been part of the name
-        if this was set to False are added to the comment.
-        Default is False.
 
     Returns
     -------
@@ -66,7 +59,6 @@ def parse_ingredient(
                 expect_name_in_output=expect_name_in_output,
                 string_units=string_units,
                 imperial_units=imperial_units,
-                core_names=core_names,
             )
         case _:
             raise ValueError(f'Unrecognised value "{lang}"')
@@ -79,7 +71,6 @@ def parse_multiple_ingredients(
     expect_name_in_output: bool = True,
     string_units: bool = False,
     imperial_units: bool = False,
-    core_names: bool = False,
 ) -> list[ParsedIngredient]:
     """Parse multiple ingredient sentences in one go.
 
@@ -115,12 +106,6 @@ def parse_multiple_ingredients(
         for the the following units: fluid ounce, cup, pint, quart, gallon.
         Default is False, which results in US customary units being used.
         This has no effect if string_units=True.
-    core_names : bool
-        If True, return only the core name of the ingredient in the name field. The core
-        name is the fundamental ingredient name e.g. "flour" in "plain flour" or
-        "vinegar" in "red wine vinegar". Tokens that would have been part of the name
-        if this was set to False are added to the comment.
-        Default is False.
 
     Returns
     -------
@@ -136,7 +121,6 @@ def parse_multiple_ingredients(
             expect_name_in_output=expect_name_in_output,
             string_units=string_units,
             imperial_units=imperial_units,
-            core_names=core_names,
         )
         for sentence in sentences
     ]
@@ -149,7 +133,6 @@ def inspect_parser(
     expect_name_in_output: bool = True,
     string_units: bool = False,
     imperial_units: bool = False,
-    core_names: bool = False,
 ) -> ParserDebugInfo:
     """Return intermediate objects generated during parsing for inspection.
 
@@ -179,12 +162,6 @@ def inspect_parser(
         for the the following units: fluid ounce, cup, pint, quart, gallon.
         Default is False, which results in US customary units being used.
         This has no effect if string_units=True.
-    core_names : bool
-        If True, return only the core name of the ingredient in the name field. The core
-        name is the fundamental ingredient name e.g. "flour" in "plain flour" or
-        "vinegar" in "red wine vinegar". Tokens that would have been part of the name
-        if this was set to False are added to the comment.
-        Default is False.
 
     Returns
     -------
@@ -203,7 +180,6 @@ def inspect_parser(
                 expect_name_in_output=expect_name_in_output,
                 string_units=string_units,
                 imperial_units=imperial_units,
-                core_names=core_names,
             )
         case _:
             raise ValueError(f'Unrecognised value "{lang}"')
