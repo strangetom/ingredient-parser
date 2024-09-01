@@ -111,7 +111,7 @@ p {
   box-shadow: var(--big-shadow);
 }
 .sentence {
-  font-size: 1.1rem;
+  font-size: 1.2rem;
   margin: 0.25rem;
 }
 
@@ -123,7 +123,7 @@ table {
 }
 td {
   text-align: center;
-  font-size: 1rem;
+  font-size: 1.1rem;
   padding: 3px;
   border: 1px solid var(--bg);
   background-color: var(--background-color, --bg-s);
@@ -136,7 +136,7 @@ select {
   border-radius: var(--small-radius);
   padding: .3rem;
   background-color: var(--background-color);
-  width: 15ch;
+  width: 13ch;
   word-break: break-word;
 }
 
@@ -146,11 +146,8 @@ select {
 .UNIT {
   --background-color: color-mix(in srgb, var(--yellow), #333);
 }
-.NAME-CORE {
+.NAME {
   --background-color: color-mix(in srgb, var(--aqua), #333);
-}
-.NAME-DESC {
-  --background-color: color-mix(in srgb, var(--aqua-blend), #000);
 }
 .COMMENT {
   --background-color: color-mix(in srgb, var(--purple), #333);
