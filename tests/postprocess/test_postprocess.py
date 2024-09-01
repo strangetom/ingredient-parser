@@ -15,7 +15,7 @@ def p():
     """
     sentence = "2 14 ounce cans of coconut milk"
     tokens = ["2", "14", "ounce", "can", "of", "coconut", "milk"]
-    labels = ["QTY", "QTY", "UNIT", "UNIT", "COMMENT", "NAME_DESC", "NAME_DESC"]
+    labels = ["QTY", "QTY", "UNIT", "UNIT", "COMMENT", "NAME", "NAME"]
     scores = [
         0.9995971493946465,
         0.9941502269360797,
@@ -51,8 +51,8 @@ def p_string_numbers():
     ]
     labels = [
         "QTY",
-        "NAME_DESC",
-        "NAME_DESC",
+        "NAME",
+        "NAME",
         "PUNC",
         "COMMENT",
         "QTY",
@@ -86,7 +86,7 @@ def p_no_discard():
     """
     sentence = "2 14 ounce cans of coconut milk"
     tokens = ["2", "14", "ounce", "can", "of", "coconut", "milk"]
-    labels = ["QTY", "QTY", "UNIT", "UNIT", "COMMENT", "NAME_DESC", "NAME_DESC"]
+    labels = ["QTY", "QTY", "UNIT", "UNIT", "COMMENT", "NAME", "NAME"]
     scores = [
         0.9995971493946465,
         0.9941502269360797,
@@ -109,7 +109,7 @@ class TestPostProcessor__builtins__:
         """
         truth = """Post-processed recipe ingredient sentence
 \t[('2', 'QTY'), ('14', 'QTY'), ('ounce', 'UNIT'), ('can', 'UNIT'), ('of', 'COMMENT'), \
-('coconut', 'NAME_DESC'), ('milk', 'NAME_DESC')]"""
+('coconut', 'NAME'), ('milk', 'NAME')]"""
         assert str(p) == truth
 
     def test__repr__(self, p):
