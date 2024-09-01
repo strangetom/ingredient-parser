@@ -25,7 +25,6 @@ def home():
     expect_name_in_output = request.args.get("expect_name_in_output", None) == "on"
     string_units = request.args.get("string_units", None) == "on"
     imperial_units = request.args.get("imperial_units", None) == "on"
-    core_names = request.args.get("core_names", None) == "on"
 
     if sentence is None:
         return render_template(
@@ -36,7 +35,6 @@ def home():
             expect_name_in_output=True,
             string_units=False,
             imperial_units=False,
-            core_names=False,
         )
 
     parser_info = inspect_parser(
@@ -45,7 +43,6 @@ def home():
         expect_name_in_output=expect_name_in_output,
         string_units=string_units,
         imperial_units=imperial_units,
-        core_names=core_names,
     )
     parsed = parser_info.PostProcessor.parsed
     marginals = get_all_marginals(parser_info)
@@ -58,7 +55,6 @@ def home():
         expect_name_in_output=expect_name_in_output,
         string_units=string_units,
         imperial_units=imperial_units,
-        core_names=core_names,
         tokens=zip(
             parser_info.PostProcessor.tokens,
             parser_info.PostProcessor.labels,
@@ -89,8 +85,7 @@ def get_all_marginals(parser_info: ParserDebugInfo) -> list[dict[str, float]]:
         Dict of label-score pairs for each token.
     """
     labels = [
-        "NAME_CORE",
-        "NAME_DESC",
+        "NAME",
         "QTY",
         "UNIT",
         "PREP",
