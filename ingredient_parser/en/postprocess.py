@@ -108,7 +108,6 @@ class PostProcessor:
         discard_isolated_stop_words: bool = True,
         string_units: bool = False,
         imperial_units: bool = False,
-        core_names: bool = False,
     ):
         self.sentence = sentence
         self.tokens = tokens
@@ -117,7 +116,6 @@ class PostProcessor:
         self.discard_isolated_stop_words = discard_isolated_stop_words
         self.string_units = string_units
         self.imperial_units = imperial_units
-        self.core_names = core_names
         self.consumed = []
 
     def __repr__(self) -> str:
@@ -154,21 +152,11 @@ class PostProcessor:
             Object containing structured data from sentence.
         """
         amounts = self._postprocess_amounts()
-
-        if "NAME_CORE" in self.labels and self.core_names:
-            name = self._postprocess(["NAME_CORE"])
-            if not name:
-                name = self._postprocess(["NAME_CORE", "NAME_DESC"])
-                comment = self._postprocess(["COMMENT"])
-            else:
-                comment = self._postprocess(["COMMENT", "NAME_DESC"])
-        else:
-            name = self._postprocess(["NAME_CORE", "NAME_DESC"])
-            comment = self._postprocess(["COMMENT"])
-
-        size = self._postprocess(["SIZE"])
-        preparation = self._postprocess(["PREP"])
-        purpose = self._postprocess(["PURPOSE"])
+        size = self._postprocess("SIZE")
+        name = self._postprocess("NAME")
+        preparation = self._postprocess("PREP")
+        comment = self._postprocess("COMMENT")
+        purpose = self._postprocess("PURPOSE")
 
         return ParsedIngredient(
             name=name,
