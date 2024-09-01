@@ -31,11 +31,18 @@ header .control-group {
 }
 header h1 {
   margin: 0;
+  font-size: 1.75rem;
 }
 header h1 .data-length {
   font-size: 1rem;
   font-weight: normal;
   color: var(--fg-2);
+}
+header h2 {
+  font-weight: normal;
+  font-size: .8rem;
+  padding: 0;
+  margin: 0;
 }
 header p {
   margin: 0;
@@ -128,6 +135,12 @@ td {
   border: 1px solid var(--bg);
   background-color: var(--background-color, --bg-s);
 }
+td > div {
+  display: grid;
+}
+td > div > * {
+  grid-area: 1 / 1;
+}
 select {
   text-align: center;
   color: var(--fg);
@@ -138,6 +151,28 @@ select {
   background-color: var(--background-color);
   width: 13ch;
   word-break: break-word;
+}
+input[type="checkbox"] {
+  appearance: none;
+  background: none;
+  border: none;
+  block-size: 100%;
+  inline-size: 100%;
+  margin: 0;
+}
+label {
+  position: relative;
+  cursor: pointer;
+}
+input[type=checkbox]:checked~label {
+  background-color: var(--bg-4);
+}
+input[type=checkbox]:checked~label:after {
+  content: "*";
+  position: absolute;
+  top: -4px;
+  right: 0;
+  color: var(--yellow-alt);
 }
 
 .QTY {
