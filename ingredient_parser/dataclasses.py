@@ -194,6 +194,10 @@ class ParsedIngredient:
     purpose : IngredientText | None
         The purpose of the ingredient parsed from the sentence.
         If no purpose was found, this is None.
+    foundation_foods : list[str] | None
+        List of foundation foods from the parsed sentence.
+        If no foundation foods are found, or if the functionality is disabled,
+        this is None.
     sentence : str
         Normalised input sentence
     """
@@ -204,6 +208,7 @@ class ParsedIngredient:
     preparation: IngredientText | None
     comment: IngredientText | None
     purpose: IngredientText | None
+    foundation_foods: list[str] | None
     sentence: str
 
 
