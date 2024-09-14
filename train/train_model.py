@@ -29,6 +29,7 @@ def train_model(
     html: bool,
     detailed_results: bool,
     plot_confusion_matrix: bool,
+    foundation_foods: bool,
 ) -> Stats:
     """Train model using vectors, splitting the vectors into a train and evaluation
     set based on <split>. The trained model is saved to <save_model>.
@@ -52,6 +53,9 @@ def train_model(
         the test set.
     plot_confusion_matrix : bool
         If True, plot a confusion matrix of the token labels.
+    foundation_foods : bool
+        If True, foundation foods model is being trained, else the parser model
+        is being trained.
 
     Returns
     -------
@@ -140,7 +144,7 @@ def train_model(
     if plot_confusion_matrix:
         confusion_matrix(labels_pred, truth_test)
 
-    stats = evaluate(labels_pred, truth_test, seed)
+    stats = evaluate(labels_pred, truth_test, seed, foundation_foods)
     return stats
 
 
@@ -152,7 +156,9 @@ def train_single(args: argparse.Namespace) -> None:
     args : argparse.Namespace
         Model training configuration
     """
-    vectors = load_datasets(args.database, args.table, args.datasets)
+    vectors = load_datasets(
+        args.database, args.table, args.datasets, args.model == "foundationfoods"
+    )
     stats = train_model(
         vectors,
         args.split,
@@ -161,6 +167,7 @@ def train_single(args: argparse.Namespace) -> None:
         args.html,
         args.detailed,
         args.confusion,
+        args.model == "foundationfoods",
     )
 
     print("Sentence-level results:")
@@ -183,7 +190,9 @@ def train_multiple(args: argparse.Namespace) -> None:
     args : argparse.Namespace
         Model training configuration
     """
-    vectors = load_datasets(args.database, args.table, args.datasets)
+    vectors = load_datasets(
+        args.database, args.table, args.datasets, args.model == "foundationfoods"
+    )
 
     # The first None argument is for the seed. This is set to None so each
     # iteration of the training function uses a different random seed.
@@ -196,6 +205,7 @@ def train_multiple(args: argparse.Namespace) -> None:
             args.html,
             args.detailed,
             args.confusion,
+            args.model == "foundationfoods",
         )
     ] * args.runs
 
