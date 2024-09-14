@@ -81,11 +81,14 @@ def train_model(
         truth_test,
         _,
         source_test,
+        _,
+        tokens_test,
     ) = train_test_split(
         vectors.sentences,
         vectors.features,
         vectors.labels,
         vectors.source,
+        vectors.tokens,
         test_size=split,
         stratify=vectors.source,
         random_state=seed,
@@ -126,6 +129,7 @@ def train_model(
     if html:
         test_results_to_html(
             sentences_test,
+            tokens_test,
             truth_test,
             labels_pred,
             scores_pred,
@@ -135,10 +139,10 @@ def train_model(
     if detailed_results:
         test_results_to_detailed_results(
             sentences_test,
+            tokens_test,
             truth_test,
             labels_pred,
             scores_pred,
-            source_test,
         )
 
     if plot_confusion_matrix:
