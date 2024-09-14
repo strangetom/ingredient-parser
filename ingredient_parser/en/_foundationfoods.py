@@ -56,9 +56,7 @@ def join_adjacent_FF_tokens(labels: list[str], tokens: list[str]) -> list[str]:
         if label == "NF":
             continue
 
-        foundation_food = " ".join([tok for _, tok in group])
-        if foundation_food:
-            foundation_foods.append(foundation_food)
+        foundation_foods.append(" ".join([tok for _, tok in group]))
 
     return foundation_foods
 
