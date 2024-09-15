@@ -9,7 +9,9 @@ class Teste_extract_foundation_foods:
         features = p.sentence_features()
         labels = ["QTY", "UNIT", "PREP", "PREP", "NAME", "NAME"]
 
-        assert extract_foundation_foods(tokens, labels, features) == ["red onion"]
+        ff = extract_foundation_foods(tokens, labels, features)
+        assert len(ff) == 1
+        assert ff[0].text == "red onion"
 
     def test_no_FF_token(self):
         p = PreProcessor("1 cup finely chopped")
@@ -17,4 +19,4 @@ class Teste_extract_foundation_foods:
         features = p.sentence_features()
         labels = ["QTY", "UNIT", "PREP", "PREP"]
 
-        assert extract_foundation_foods(tokens, labels, features) is None
+        assert extract_foundation_foods(tokens, labels, features) == []

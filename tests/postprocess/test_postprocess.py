@@ -151,7 +151,7 @@ class TestPostProcessor_parsed:
             preparation=None,
             comment=None,
             purpose=None,
-            foundation_foods=None,
+            foundation_foods=[],
             sentence="2 14 ounce cans of coconut milk",
         )
 
@@ -188,7 +188,7 @@ class TestPostProcessor_parsed:
             preparation=None,
             comment=None,
             purpose=None,
-            foundation_foods=None,
+            foundation_foods=[],
             sentence="2 butternut squash, about one and one-half pounds each",
         )
 
@@ -225,7 +225,7 @@ class TestPostProcessor_parsed:
             preparation=None,
             comment=IngredientText(text="of", confidence=0.835286),
             purpose=None,
-            foundation_foods=None,
+            foundation_foods=[],
             sentence="2 14 ounce cans of coconut milk",
         )
 

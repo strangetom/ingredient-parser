@@ -194,10 +194,8 @@ class ParsedIngredient:
     purpose : IngredientText | None
         The purpose of the ingredient parsed from the sentence.
         If no purpose was found, this is None.
-    foundation_foods : list[str] | None
+    foundation_foods : list[IngredientText]
         List of foundation foods from the parsed sentence.
-        If no foundation foods are found, or if the functionality is disabled,
-        this is None.
     sentence : str
         Normalised input sentence
     """
@@ -208,7 +206,7 @@ class ParsedIngredient:
     preparation: IngredientText | None
     comment: IngredientText | None
     purpose: IngredientText | None
-    foundation_foods: list[str] | None
+    foundation_foods: list[IngredientText]
     sentence: str
 
 
@@ -225,7 +223,7 @@ class ParserDebugInfo:
     PostProcessor : PostProcessor
         PostProcessor object created using tokens, labels and scores from
         input sentence.
-    foundation_foods : list[str] | None
+    foundation_foods : list[IngredientText]
         List of foundation foods extracted from parsed ingredient name, or None.
     Tagger : pycrfsuite.Tagger
         CRF model tagger object.
@@ -234,5 +232,5 @@ class ParserDebugInfo:
     sentence: str
     PreProcessor: Any
     PostProcessor: Any
-    foundation_foods: list[str] | None
+    foundation_foods: list[IngredientText]
     tagger: pycrfsuite.Tagger  # type: ignore

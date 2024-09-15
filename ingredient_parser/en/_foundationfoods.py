@@ -2,10 +2,12 @@
 
 from importlib.resources import as_file, files
 from itertools import groupby
+from statistics import mean
 
 import pycrfsuite
 
 from .._common import group_consecutive_idx
+from ..dataclasses import IngredientText
 
 # Create FF_TAGGER object that can be reused between function calls.
 # We only want to load the model into FF_TAGGER once, but only do it
@@ -28,7 +30,9 @@ def load_ffmodel_if_not_loaded():
             FF_TAGGER.open(str(p))
 
 
-def join_adjacent_FF_tokens(labels: list[str], tokens: list[str]) -> list[str]:
+def join_adjacent_FF_tokens(
+    labels: list[str], tokens: list[str], scores: list[float]
+) -> list[IngredientText]:
     """Join adjacent tokens labelled as FF into strings.
 
     Parameters
@@ -36,11 +40,13 @@ def join_adjacent_FF_tokens(labels: list[str], tokens: list[str]) -> list[str]:
     labels : list[str]
         List of token labels: FF (foundation food) of NF (not foundation food)
     tokens : list[str]
-        List of NAME token
+        List of NAME tokens
+    scores : list[float]
+        List of confidence scores for labels
 
     Returns
     -------
-    list[str]
+    list[IngredientText]
         List of foundation foods
 
     Examples
@@ -52,18 +58,23 @@ def join_adjacent_FF_tokens(labels: list[str], tokens: list[str]) -> list[str]:
     """
     foundation_foods = []
     # Group into groups of adjacent FF tags, ignoring any NF tags.
-    for label, group in groupby(zip(labels, tokens), key=lambda x: x[0]):
+    for label, group in groupby(zip(labels, tokens, scores), key=lambda x: x[0]):
         if label == "NF":
             continue
 
-        foundation_foods.append(" ".join([tok for _, tok in group]))
+        group = list(group)
+        score = mean([score for _, _, score in group])
+
+        foundation_foods.append(
+            IngredientText(" ".join([tok for _, tok, _ in group]), round(score, 6))
+        )
 
     return foundation_foods
 
 
 def extract_foundation_foods(
     tokens: list[str], labels: list[str], features: list[dict[str, str | bool]]
-) -> list[str] | None:
+) -> list[IngredientText]:
     """Extract foundation foods from tokens labelled as NAME.
 
     Parameters
@@ -77,16 +88,14 @@ def extract_foundation_foods(
 
     Returns
     -------
-    list[str] | None
-        List of foundation foods, or None.
+    list[IngredientText]
+        List of foundation foods.
     """
     load_ffmodel_if_not_loaded()
 
     name_idx = [idx for idx, label in enumerate(labels) if label == "NAME"]
     name_tokens = [tok for tok, label in zip(tokens, labels) if label == "NAME"]
     name_features = [feat for feat, label in zip(features, labels) if label == "NAME"]
-
-    ff_labels = FF_TAGGER.tag(name_features)
 
     # We want to join consecutive foundation food tokens together into a single
     # string, but keep any token seperated by a non-foundation food or another
@@ -100,10 +109,12 @@ def extract_foundation_foods(
         name_tokens = [tok for idx, tok in enumerate(tokens) if idx in group]
         name_features = [feat for idx, feat in enumerate(features) if idx in group]
         ff_labels = FF_TAGGER.tag(name_features)
+        name_scores = [
+            FF_TAGGER.marginal(label, i) for i, label in enumerate(ff_labels)
+        ]
 
-        foundation_foods.extend(join_adjacent_FF_tokens(ff_labels, name_tokens))
+        foundation_foods.extend(
+            join_adjacent_FF_tokens(ff_labels, name_tokens, name_scores)
+        )
 
-    if foundation_foods:
-        return foundation_foods
-
-    return None
+    return foundation_foods
