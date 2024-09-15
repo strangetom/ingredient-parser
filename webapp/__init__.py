@@ -25,6 +25,7 @@ def home():
     expect_name_in_output = request.args.get("expect_name_in_output", None) == "on"
     string_units = request.args.get("string_units", None) == "on"
     imperial_units = request.args.get("imperial_units", None) == "on"
+    foundation_foods = request.args.get("foundation_foods", None) == "on"
 
     if sentence is None:
         return render_template(
@@ -35,6 +36,7 @@ def home():
             expect_name_in_output=True,
             string_units=False,
             imperial_units=False,
+            foundation_foods=False,
         )
 
     parser_info = inspect_parser(
@@ -43,8 +45,10 @@ def home():
         expect_name_in_output=expect_name_in_output,
         string_units=string_units,
         imperial_units=imperial_units,
+        foundation_foods=foundation_foods,
     )
     parsed = parser_info.PostProcessor.parsed
+    parsed.foundation_foods = parser_info.foundation_foods
     marginals = get_all_marginals(parser_info)
 
     return render_template(
@@ -55,6 +59,7 @@ def home():
         expect_name_in_output=expect_name_in_output,
         string_units=string_units,
         imperial_units=imperial_units,
+        foundation_foods=foundation_foods,
         tokens=zip(
             parser_info.PostProcessor.tokens,
             parser_info.PostProcessor.labels,
@@ -68,6 +73,7 @@ def home():
         else IngredientText("", 0),
         comment=parsed.comment if parsed.comment is not None else IngredientText("", 0),
         purpose=parsed.purpose if parsed.purpose is not None else IngredientText("", 0),
+        foundation=parsed.foundation_foods,
     )
 
 

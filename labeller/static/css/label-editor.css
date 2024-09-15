@@ -165,7 +165,7 @@ label {
   cursor: pointer;
 }
 input[type=checkbox]:checked~label {
-  background-color: var(--bg-4);
+  background-color: color-mix(in srgb, var(--bg-2) 85%, var(--aqua-alt));
 }
 input[type=checkbox]:checked~label:after {
   content: "*";
