@@ -78,6 +78,7 @@ def parse_multiple_ingredients(
     expect_name_in_output: bool = True,
     string_units: bool = False,
     imperial_units: bool = False,
+    foundation_foods: bool = False,
 ) -> list[ParsedIngredient]:
     """Parse multiple ingredient sentences in one go.
 
@@ -113,6 +114,11 @@ def parse_multiple_ingredients(
         for the the following units: fluid ounce, cup, pint, quart, gallon.
         Default is False, which results in US customary units being used.
         This has no effect if string_units=True.
+    foundation_foods : bool, optional
+        If True, extract foundation foods from ingredient name. Foundation foods are
+        the fundamental foods without any descriptive terms, e.g. 'cucumber' instead
+        of 'organic cucumber'.
+        Default is False.
 
     Returns
     -------
@@ -128,6 +134,7 @@ def parse_multiple_ingredients(
             expect_name_in_output=expect_name_in_output,
             string_units=string_units,
             imperial_units=imperial_units,
+            foundation_foods=foundation_foods,
         )
         for sentence in sentences
     ]
@@ -140,6 +147,7 @@ def inspect_parser(
     expect_name_in_output: bool = True,
     string_units: bool = False,
     imperial_units: bool = False,
+    foundation_foods: bool = False,
 ) -> ParserDebugInfo:
     """Return intermediate objects generated during parsing for inspection.
 
@@ -169,6 +177,11 @@ def inspect_parser(
         for the the following units: fluid ounce, cup, pint, quart, gallon.
         Default is False, which results in US customary units being used.
         This has no effect if string_units=True.
+    foundation_foods : bool, optional
+        If True, extract foundation foods from ingredient name. Foundation foods are
+        the fundamental foods without any descriptive terms, e.g. 'cucumber' instead
+        of 'organic cucumber'.
+        Default is False.
 
     Returns
     -------
@@ -187,6 +200,7 @@ def inspect_parser(
                 expect_name_in_output=expect_name_in_output,
                 string_units=string_units,
                 imperial_units=imperial_units,
+                foundation_foods=foundation_foods,
             )
         case _:
             raise ValueError(f'Unrecognised value "{lang}"')

@@ -225,6 +225,8 @@ class ParserDebugInfo:
     PostProcessor : PostProcessor
         PostProcessor object created using tokens, labels and scores from
         input sentence.
+    foundation_foods : list[str] | None
+        List of foundation foods extracted from parsed ingredient name, or None.
     Tagger : pycrfsuite.Tagger
         CRF model tagger object.
     """
@@ -232,4 +234,5 @@ class ParserDebugInfo:
     sentence: str
     PreProcessor: Any
     PostProcessor: Any
+    foundation_foods: list[str] | None
     tagger: pycrfsuite.Tagger  # type: ignore

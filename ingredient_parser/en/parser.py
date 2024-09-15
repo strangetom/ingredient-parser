@@ -119,6 +119,7 @@ def inspect_parser_en(
     expect_name_in_output: bool = True,
     string_units: bool = False,
     imperial_units: bool = False,
+    foundation_foods: bool = False,
 ) -> ParserDebugInfo:
     """Return intermediate objects generated during parsing for inspection.
 
@@ -145,6 +146,11 @@ def inspect_parser_en(
         for the the following units: fluid ounce, cup, pint, quart, gallon.
         Default is False, which results in US customary units being used.
         This has no effect if string_units=True.
+    foundation_foods : bool, optional
+        If True, extract foundation foods from ingredient name. Foundation foods are
+        the fundamental foods without any descriptive terms, e.g. 'cucumber' instead
+        of 'organic cucumber'.
+        Default is False.
 
     Returns
     -------
@@ -156,7 +162,8 @@ def inspect_parser_en(
 
     processed_sentence = PreProcessor(sentence)
     tokens = processed_sentence.tokenized_sentence
-    labels = TAGGER.tag(processed_sentence.sentence_features())
+    features = processed_sentence.sentence_features()
+    labels = TAGGER.tag(features)
     scores = [TAGGER.marginal(label, i) for i, label in enumerate(labels)]
 
     # Re-plurise tokens that were singularised if the label isn't UNIT
@@ -181,10 +188,17 @@ def inspect_parser_en(
         imperial_units=imperial_units,
     )
 
+    parsed = postprocessed_sentence.parsed
+    if foundation_foods and parsed.name:
+        foundation = extract_foundation_foods(tokens, labels, features)
+    else:
+        foundation = None
+
     return ParserDebugInfo(
         sentence=sentence,
         PreProcessor=processed_sentence,
         PostProcessor=postprocessed_sentence,
+        foundation_foods=foundation,
         tagger=TAGGER,
     )
 
