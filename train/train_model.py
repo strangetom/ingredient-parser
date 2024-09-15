@@ -21,7 +21,7 @@ from .training_utils import (
 )
 
 
-def train_model(
+def train_parser_model(
     vectors: DataVectors,
     split: float,
     save_model: str,
@@ -29,7 +29,6 @@ def train_model(
     html: bool,
     detailed_results: bool,
     plot_confusion_matrix: bool,
-    foundation_foods: bool,
 ) -> Stats:
     """Train model using vectors, splitting the vectors into a train and evaluation
     set based on <split>. The trained model is saved to <save_model>.
@@ -53,9 +52,6 @@ def train_model(
         the test set.
     plot_confusion_matrix : bool
         If True, plot a confusion matrix of the token labels.
-    foundation_foods : bool
-        If True, foundation foods model is being trained, else the parser model
-        is being trained.
 
     Returns
     -------
@@ -148,8 +144,141 @@ def train_model(
     if plot_confusion_matrix:
         confusion_matrix(labels_pred, truth_test)
 
-    stats = evaluate(labels_pred, truth_test, seed, foundation_foods)
+    stats = evaluate(labels_pred, truth_test, seed, False)
     return stats
+
+
+def train_ff_model(
+    vectors: DataVectors,
+    split: float,
+    save_model: str,
+    seed: int | None,
+    html: bool,
+    detailed_results: bool,
+    plot_confusion_matrix: bool,
+) -> Stats:
+    """Train model using vectors, splitting the vectors into a train and evaluation
+    set based on <split>. The trained model is saved to <save_model>.
+
+    Parameters
+    ----------
+    vectors : DataVectors
+        Vectors loaded from training csv files
+    split : float
+        Fraction of vectors to use for evaluation.
+    save_model : str
+        Path to save trained model to.
+    seed : int | None
+        Integer used as seed for splitting the vectors between the training and
+        testing sets. If None, a random seed is generated within this function.
+    html : bool
+        If True, write html file of incorrect evaluation sentences
+        and print out details about OTHER labels.
+    detailed_results : bool
+        If True, write output files with details about how labeling performed on
+        the test set.
+    plot_confusion_matrix : bool
+        If True, plot a confusion matrix of the token labels.
+
+    Returns
+    -------
+    Stats
+        Statistics evaluating the model
+    """
+    # Generate random seed for the train/test split if none provided.
+    if seed is None:
+        seed = randint(0, 1_000_000_000)
+
+    print(f"[INFO] {seed} is the random seed used for the train/test split.")
+
+    # Split data into train and test sets
+    # The stratify argument means that each dataset is represented proprtionally
+    # in the train and tests sets, avoiding the possibility that train or tests sets
+    # contain data from one dataset disproportionally.
+    (
+        _,
+        sentences_test,
+        features_train,
+        features_test,
+        truth_train,
+        truth_test,
+        _,
+        source_test,
+        _,
+        tokens_test,
+    ) = train_test_split(
+        vectors.sentences,
+        vectors.features,
+        vectors.labels,
+        vectors.source,
+        vectors.tokens,
+        test_size=split,
+        stratify=vectors.source,
+        random_state=seed,
+    )
+    print(f"[INFO] {len(features_train):,} training vectors.")
+    print(f"[INFO] {len(features_test):,} testing vectors.")
+
+    print("[INFO] Training model with training data.")
+    trainer = pycrfsuite.Trainer(verbose=False)  # type: ignore
+    trainer.set_params(
+        {
+            "feature.minfreq": 1,
+            "feature.possible_states": True,
+            "feature.possible_transitions": True,
+            "c1": 0.3,
+            "c2": 0.1,
+            "max_linesearch": 5,
+            "num_memories": 3,
+            "period": 10,
+        }
+    )
+    for X, y in zip(features_train, truth_train):
+        trainer.append(X, y)
+    trainer.train(save_model)
+
+    print("[INFO] Evaluating model with test data.")
+    tagger = pycrfsuite.Tagger()  # type: ignore
+    tagger.open(save_model)
+
+    labels_pred, scores_pred = [], []
+    for X in features_test:
+        labels = tagger.tag(X)
+        labels_pred.append(labels)
+        scores_pred.append(
+            [tagger.marginal(label, i) for i, label in enumerate(labels)]
+        )
+
+    if html:
+        test_results_to_html(
+            sentences_test,
+            tokens_test,
+            truth_test,
+            labels_pred,
+            scores_pred,
+            source_test,
+        )
+
+    if detailed_results:
+        test_results_to_detailed_results(
+            sentences_test,
+            tokens_test,
+            truth_test,
+            labels_pred,
+            scores_pred,
+        )
+
+    if plot_confusion_matrix:
+        confusion_matrix(labels_pred, truth_test)
+
+    stats = evaluate(labels_pred, truth_test, seed, True)
+    return stats
+
+
+MODEL_FCNS = {
+    "parser": train_parser_model,
+    "foundationfoods": train_ff_model,
+}
 
 
 def train_single(args: argparse.Namespace) -> None:
@@ -163,7 +292,9 @@ def train_single(args: argparse.Namespace) -> None:
     vectors = load_datasets(
         args.database, args.table, args.datasets, args.model == "foundationfoods"
     )
-    stats = train_model(
+
+    model_fcn = MODEL_FCNS[args.model]
+    stats = model_fcn(
         vectors,
         args.split,
         args.save_model,
@@ -171,7 +302,6 @@ def train_single(args: argparse.Namespace) -> None:
         args.html,
         args.detailed,
         args.confusion,
-        args.model == "foundationfoods",
     )
 
     print("Sentence-level results:")
@@ -198,6 +328,7 @@ def train_multiple(args: argparse.Namespace) -> None:
         args.database, args.table, args.datasets, args.model == "foundationfoods"
     )
 
+    model_fcn = MODEL_FCNS[args.model]
     # The first None argument is for the seed. This is set to None so each
     # iteration of the training function uses a different random seed.
     arguments = [
@@ -209,14 +340,13 @@ def train_multiple(args: argparse.Namespace) -> None:
             args.html,
             args.detailed,
             args.confusion,
-            args.model == "foundationfoods",
         )
     ] * args.runs
 
     eval_results = []
     with contextlib.redirect_stdout(None):  # Suppress print output
         with cf.ProcessPoolExecutor(max_workers=args.processes) as executor:
-            futures = [executor.submit(train_model, *a) for a in arguments]
+            futures = [executor.submit(model_fcn, *a) for a in arguments]
             for future in tqdm(cf.as_completed(futures), total=len(futures)):
                 eval_results.append(future.result())
 
