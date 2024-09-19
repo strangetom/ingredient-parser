@@ -192,7 +192,7 @@ def inspect_parser_en(
     if foundation_foods and parsed.name:
         foundation = extract_foundation_foods(tokens, labels, features)
     else:
-        foundation = None
+        foundation = []
 
     return ParserDebugInfo(
         sentence=sentence,
