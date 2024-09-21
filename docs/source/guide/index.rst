@@ -81,4 +81,5 @@ See :doc:`Post-processing <postprocessing>` for more information.
    Training the model <training>
    Using the model <usage>
    Post-processing the model output <postprocessing>
+   Foundation foods <foundation>
    Extending to other languages <extending>

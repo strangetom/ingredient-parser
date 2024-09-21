@@ -74,33 +74,38 @@ The :func:`parse_ingredient <ingredient_parser.parsers.parse_ingredient>` functi
                                    confidence=0.999193),
         comment=None,
         purpose=None,
+        foundation_foods=[],
         sentence='3 pounds pork shoulder, cut into 2-inch chunks'
     )
 
 
 The returned :class:`ParsedIngredient <ingredient_parser.dataclasses.ParsedIngredient>` object contains the following fields:
 
-+-----------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Field           | Description                                                                                                                                                          |
-+=================+======================================================================================================================================================================+
-| **name**        | The name of the ingredient sentence, or ``None``.                                                                                                                    |
-+-----------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| **size**        | A size modifier for the ingredient, such as small or large, or ``None``.                                                                                             |
-|                 |                                                                                                                                                                      |
-|                 | This size modifier only applies to the ingredient, not the unit. For example, *1 large pinch of salt* would have the unit as *large pinch* and size of ``None``.     |
-+-----------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| **amount**      | The amounts parsed from the sentence. Each amount has a quantity and a unit, plus optional flags indicating if the amount is approximate or is for a singular item.  |
-|                 |                                                                                                                                                                      |
-|                 | By default the unit field is a :class:`pint.Unit` object, if the unit can be matched to a unit in the pint unit registry.                                            |
-+-----------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| **preparation** | The preparation notes for the ingredient. This is a string, or ``None`` is there are no preparation notes for the ingredient.                                        |
-+-----------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| **comment**     | The comment from the ingredient sentence. This is a string, or ``None`` if there is no comment.                                                                      |
-+-----------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| **purpose**     | The purpose of the ingredient. This is a string, or ``None`` if there is no purpose.                                                                                 |
-+-----------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| **sentence**    | The input sentence passed to the :func:`parse_ingredient <ingredient_parser.parsers.parse_ingredient>` function.                                                     |
-+-----------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------+
++----------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Field                | Description                                                                                                                                                          |
++======================+======================================================================================================================================================================+
+| **name**             | The name of the ingredient sentence, or ``None``.                                                                                                                    |
++----------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| **size**             | A size modifier for the ingredient, such as small or large, or ``None``.                                                                                             |
+|                      |                                                                                                                                                                      |
+|                      | This size modifier only applies to the ingredient, not the unit. For example, *1 large pinch of salt* would have the unit as *large pinch* and size of ``None``.     |
++----------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| **amount**           | The amounts parsed from the sentence. Each amount has a quantity and a unit, plus optional flags indicating if the amount is approximate or is for a singular item.  |
+|                      |                                                                                                                                                                      |
+|                      | By default the unit field is a :class:`pint.Unit` object, if the unit can be matched to a unit in the pint unit registry.                                            |
++----------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| **preparation**      | The preparation notes for the ingredient. This is a string, or ``None`` is there are no preparation notes for the ingredient.                                        |
++----------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| **comment**          | The comment from the ingredient sentence. This is a string, or ``None`` if there is no comment.                                                                      |
++----------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| **purpose**          | The purpose of the ingredient. This is a string, or ``None`` if there is no purpose.                                                                                 |
++----------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| **foundation_foods** | List of foundation foods identified from the sentence (see below).                                                                                                   |
+|                      |                                                                                                                                                                      |
+|                      | If the foundation foods functionality is disabled, or no foundation foods are identified, this is an empty list.                                                     |
++----------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| **sentence**         | The input sentence passed to the :func:`parse_ingredient <ingredient_parser.parsers.parse_ingredient>` function.                                                     |
++----------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
 Each of the fields (except sentence) has a confidence value associated with it. This is a value between 0 and 1, where 0 represents no confidence and 1 represent full confidence. This is the confidence that the natural language model has that the given label is correct, averaged across all tokens that contribute to that particular field.
 
@@ -173,6 +178,10 @@ The :func:`parse_ingredient <ingredient_parser.parsers.parse_ingredient>` functi
 - ``imperial_units``
 
   If True, then any :class:`pint.Unit` objects for fluid ounces, cups, pints, quarts or gallons will be the Imperial measurement. The default is False, where the US customary measurements are used.
+
+- ``foundation_foods``
+
+  If True, foundation foods are extracted from the ingredient name and return as a list in the ``foundation_foods`` field of the :class:`ParsedIngredient` object. See the :doc:`Foundation foods </guide/foundation>` page of the Model Guide for more details. If no foundation foods are identified, the ``foundation_foods`` field will be an empty list. The default is False, where the ``foundation_foods`` field will be an empty list.
 
 Multiple ingredient sentences
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

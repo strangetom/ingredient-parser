@@ -53,7 +53,8 @@ The features used for this model are a little different
 * Whether the token is inside parentheses
 * Whether the token is after a comma
 * Whether the token follows a + symbol
-* Whether the sentence is a short sentence (having less than 3 tokens)
+* n-grams (where n = 3, 4, 5) at the start and end of the token
+* Token shape (e.g. ``Xxxxx`` for "Apple")
 
 If possible, based on the position of the token in the sentence, the following features are also added
 
@@ -76,4 +77,4 @@ The :func:`sentence_features` function of :class:`PreProcessor` return the featu
 
 .. attention::
 
-    It is likely that some of these features aren't necessary. There is a chunk of work for the future to determine the most useful features.
+    It is possible that some of these features aren't necessary and there could be other useful features. There is a chunk of work for the future to determine the most useful features.

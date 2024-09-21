@@ -7,14 +7,15 @@ However, rather than re-using the same tools and process the New York Times did,
 
 The training data is stored in an sqlite3 database. The ``training`` table contains the following fields:
 
-* source - the source dataset for the sentence
-* sentence - the original sentence
-* tokens - the tokenised sentence, stored as a list
-* labels - the labels for each token, stored as a list
+- source - the source dataset for the sentence
+- sentence - the original sentence
+- tokens - the tokenised sentence, stored as a list
+- labels - the labels for each token, stored as a list
+- foundationfoods - the indices of tokens that are foundation foods, stored as a list. See :doc:`Foundation foods <foundation>` for more details.
 
 This method of storing the training data means that we can load the data straight from the database in the format required for training the model. The utility function :func:`load_datasets` in ``train/training_utils.py`` loads the data from the specified datasets, with an option (default true) to discard any sentence that contain an OTHER label.
 
-The data is then split into training and evaluation sets. A split of 80% training, 20% evaluation is used be default and data in the training and evaluation sets are randomised using :func:`sklearn.model_selection.train_test_split`.
+The data is then split into training and evaluation sets. A split of 80% training, 20% evaluation is used by default and data in the training and evaluation sets are randomised using :func:`sklearn.model_selection.train_test_split`.
 
 Training
 ^^^^^^^^
@@ -55,7 +56,7 @@ All of the above steps are implemented in the ``train.py`` script. The following
 
 .. code::
 
-    $ python train.py train --database train/data/training.sqlite3
+    $ python train.py train --model parser --database train/data/training.sqlite3
 
 You can run ``python train.py --help`` to view all the available options for tweaking the training process.
 
@@ -82,7 +83,9 @@ An outline of the code for testing the model is shown below, which opens the tra
     labels_pred = [tagger.tag(X) for X in features_evaluate]
     stats = evaluate(labels_pred, truth_evaluate)
 
-See the `Model Card <https://github.com/strangetom/ingredient-parser/blob/master/ingredient_parser/ModelCard.md>`_ for the current model performance.
+.. note::
+
+    See the `Parser Model Card <https://github.com/strangetom/ingredient-parser/blob/master/ingredient_parser/en/ModelCard.en.md>`_ for the current model performance.
 
 Each time the model is trained, the training data is partitioned randomly between the training and evaluation sets. This means there will be some variation in model performance each time the model is trained. However, ff the model is representing the training data well, then the variation in performance metrics should be small (i.e. << 1%).
 
@@ -90,7 +93,7 @@ The model training process can be executed multiple times to obtain the average 
 
 .. code::
 
-    $ python train.py multiple --database train/data/training.sqlite3 --runs 10
+    $ python train.py multiple --model parser --database train/data/training.sqlite3 --runs 10
 
 where the ``--runs`` argument sets the number of training cycles to run.
 
@@ -107,15 +110,15 @@ To run a grid search over a number of different algorithms and hyper-parameters 
     $ python train.py gridsearch --help
 
     # Train models using the LBFGS and AP algorithms, using default hyper-parameters
-    $ python train.py gridseach --database train/data/training.sqlite3 --algos lbfgs ap
+    $ python train.py gridseach --model parser --database train/data/training.sqlite3 --algos lbfgs ap
 
     # Train models using the LBFGS algorithm, using all combinations of the specified
     # hyper-parameters and the default values for any not specified
-    $ python train.py gridseach --database train/data/training.sqlite3 --algos lbfgs --lbfgs-params '{"c1": [0.05, 0.1, 0.5, 1], "c2":[0.1, 0.5, 1, 2]}'
+    $ python train.py gridseach --model parser --database train/data/training.sqlite3 --algos lbfgs --lbfgs-params '{"c1": [0.05, 0.1, 0.5, 1], "c2":[0.1, 0.5, 1, 2]}'
 
     # Train models using the LBFGS and AP algorithms, only varying the global hyper-parameters
     # which apply to all models
-    $ python train.py gridseach --database train/data/training.sqlite3 --algos lbfgs  ap --global-params '{"feature.minfreq":[0, 1, 5],"feature.possible_transitions":[true, false],"feature.possible_states":[true, false]}'
+    $ python train.py gridseach --model parser --database train/data/training.sqlite3 --algos lbfgs  ap --global-params '{"feature.minfreq":[0, 1, 5],"feature.possible_transitions":[true, false],"feature.possible_states":[true, false]}'
 
 When a grid search is performed, the same train/evaluation split of the data is used for every model, so the performances can be directly compared. Each model trained is given a random unique name. By default, the models are deleted after their performance has been evaluated. To keep the models, the ``--keep-models`` option can be used.
 
@@ -123,7 +126,7 @@ For example, to train models using each of the possible algorithms with their de
 
 .. code::
 
-    $ python train.py gridsearch --database train/data/training.sqlite3 --algos lbfgs l2sgd ap pa arow
+    $ python train.py gridsearch --model parser --database train/data/training.sqlite3 --algos lbfgs l2sgd ap pa arow
     [INFO] Loading and transforming training data.
     [INFO] 59,928 usable vectors
     [INFO] 72 discarded due to OTHER labels
@@ -151,7 +154,7 @@ By default when training a model, a random integer is used as the seed for :func
 
 .. code::
 
-    $ python train.py train --database train/data/training.sqlite3 --seed 354876538
+    $ python train.py train --model parser --database train/data/training.sqlite3 --seed 354876538
     [INFO] Loading and transforming training data.
     [INFO] 59,928 usable vectors.
     [INFO] 72 discarded due to OTHER labels.

@@ -89,6 +89,7 @@ html[data-theme=dark] {
     --pst-color-info-bg: #4585884d;
     --pst-color-warning-bg: #d65d0e80;
     --pst-color-success-bg: #689d6a80;
+    --pst-color-table-row-hover-bg: #b1628620;
 }
 
 html[data-theme=light] {
@@ -141,6 +142,7 @@ html[data-theme=light] {
     --pst-color-info-bg: #45858880;
     --pst-color-warning-bg: #d65d0e80;
     --pst-color-success-bg: #689d6a;
+    --pst-color-table-row-hover-bg: #b1628620;
 }
 
 /* Fix text colour in search box on search result page */
