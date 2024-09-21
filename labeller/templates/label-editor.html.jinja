@@ -14,8 +14,9 @@
                 <p>Dataset:</p>
                 <h1>
                     {{ dataset }}
-                    <span class="data-length">({{ data|length }} sentences)</span>
+                    <span class="data-length">({{ data|length }} sentences)</span>                    
                 </h1>
+                <h2>* Foundation Food</h2>
             </div>
             <div class="controls">
                 <div class="control-group">
@@ -44,7 +45,12 @@
                 <table>
                     <tr>
                         {%- for token in entry.tokens -%}
-                        <td>{{ token }}</td>
+                        <td>
+                            <div>
+                                <input id="{{ entry.id }}-{{ loop.index0 }}" name="{{ entry.id }}-{{ loop.index0 }}" type="checkbox" {{ "checked" if loop.index0 in entry.foundation_foods }} />
+                                <label for="{{ entry.id }}-{{ loop.index0 }}">{{ token }}</label>
+                            </div>
+                        </td>
                         {%- endfor -%}
                     </tr>
                     <tr>

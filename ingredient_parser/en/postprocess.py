@@ -165,6 +165,7 @@ class PostProcessor:
             preparation=preparation,
             comment=comment,
             purpose=purpose,
+            foundation_foods=[],
             sentence=self.sentence,
         )
 

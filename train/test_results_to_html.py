@@ -8,11 +8,10 @@ from pathlib import Path
 # Ensure the local ingredient_parser package can be found
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from ingredient_parser.en import PreProcessor
-
 
 def test_results_to_html(
     sentences: list[str],
+    sentence_tokens: list[str],
     labels_truth: list[list[str]],
     labels_prediction: list[list[str]],
     scores_prediction: list[list[float]],
@@ -25,14 +24,16 @@ def test_results_to_html(
     ----------
     sentences : list[str]
         List of ingredient sentences
+    sentence_tokens : list[str]
+        List of tokens for sentence
     labels_truth : list[list[str]]
-        True labels for sentence
+        True labels for tokens
     labels_prediction : list[list[str]]
-        Predicted labels for sentence
+        Predicted labels for tokens
     scores_prediction : list[list[float]]
-        Scores for predicted labels for sentence
+        Scores for predicted labels for tokens
     sentence_sources : list[str]
-        List of sentence sources, either NYT of SF
+        List of sentence sources
     """
     html = ET.Element("html")
     head = ET.Element("head")
@@ -93,10 +94,11 @@ def test_results_to_html(
     incorrect = []
     mismatch_counts = set()
     # Sort by sentence sort
-    for src, sentence, truth, prediction, scores in sorted(
+    for src, sentence, tokens, truth, prediction, scores in sorted(
         zip(
             sentence_sources,
             sentences,
+            sentence_tokens,
             labels_truth,
             labels_prediction,
             scores_prediction,
@@ -107,9 +109,6 @@ def test_results_to_html(
             mismatches = sum(i != j for i, j in zip(truth, prediction))
             if mismatches > 0:
                 mismatch_counts.add(mismatches)
-                tokens: list[str] = PreProcessor(
-                    sentence, defer_pos_tagging=True
-                ).tokenized_sentence
                 table = create_html_table(tokens, truth, prediction, scores)
                 div = ET.Element("div")
                 p = ET.Element("p")
