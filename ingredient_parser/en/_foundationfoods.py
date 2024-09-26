@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from collections import defaultdict
 from importlib.resources import as_file, files
 from itertools import groupby
 from statistics import mean
@@ -72,6 +73,32 @@ def join_adjacent_FF_tokens(
     return foundation_foods
 
 
+def deduplicate_foundation_foods(
+    foundation_foods: list[IngredientText],
+) -> list[IngredientText]:
+    """Deduplicate foundation foods by averaging the score of duplicates.
+
+    Parameters
+    ----------
+    foundation_foods : list[IngredientText]
+        List of foundation foods found in ingredient name.
+
+    Returns
+    -------
+    list[IngredientText]
+        Description
+    """
+
+    seen_foods = defaultdict(list)
+    for ff in foundation_foods:
+        seen_foods[ff.text].append(ff.confidence)
+
+    return [
+        IngredientText(name, mean(confidences))
+        for name, confidences in seen_foods.items()
+    ]
+
+
 def extract_foundation_foods(
     tokens: list[str], labels: list[str], features: list[dict[str, str | bool]]
 ) -> list[IngredientText]:
@@ -117,4 +144,4 @@ def extract_foundation_foods(
             join_adjacent_FF_tokens(ff_labels, name_tokens, name_scores)
         )
 
-    return foundation_foods
+    return deduplicate_foundation_foods(foundation_foods)
