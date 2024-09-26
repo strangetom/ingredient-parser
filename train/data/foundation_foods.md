@@ -3,6 +3,7 @@
 List of foundation foods derived from the following sources:
 
 * [Food Data Central](https://fdc.nal.usda.gov/download-datasets.html) Foundation Foods
+* [FooDB](https://foodb.ca/)
 
 Foods have been modified from the original format in the above sources into format most likely to found in ingredients sentences.
 
@@ -170,6 +171,8 @@ Foods have been modified from the original format in the above sources into form
  - [x] raspberries
  - [x] rice
  - [x] salt
+ - [x] sea salt
+ - [x] kosher salt
  - [x] salsa
  - [x] sausage
  - [x] chorizo
@@ -191,3 +194,730 @@ Foods have been modified from the original format in the above sources into form
  - [x] turkey
  - [x] greek yogurt
  - [x] yogurt
+ - [x] leek
+ - [x] chives
+ - [x] dill
+ - [x] horseradish
+ - [x] tarragon
+ - [x] asparagus
+ - [x] star fruit
+ - [x] swede
+ - [x] turnip
+ - [x] tea
+ - [x] capers
+ - [x] papaya
+ - [x] caraway seeds
+ - [x] chestnuts
+ - [x] endive
+ - [x] chicory
+ - [x] cinnamon
+ - [x] watermelon
+ - [x] lime
+ - [x] lemon
+ - [x] clementine
+ - [x] tangerine
+ - [x] coffee
+ - [x] coriander
+ - [x] cilantro
+ - [x] coriander leaf
+ - [x] coriander seeds
+ - [x] saffron
+ - [x] cumin
+ - [x] turmeric
+ - [x] quince
+ - [x] lemon grass
+ - [x] artichoke
+ - [x] Jerusalem artichoke
+ - [x] persimmon
+ - [x] cardamom
+ - [x] fennel
+ - [x] barley
+ - [x] star anise
+ - [x] oregano
+ - [x] mango
+ - [x] mint
+ - [x] nutmeg
+ - [x] basil
+ - [x] marjoram
+ - [x] passion fruit
+ - [x] parsnip
+ - [x] avocado
+ - [x] parsley
+ - [x] lima bean
+ - [x] date
+ - [ ] Pepper (Spice)
+ - [x] apricot
+ - [x] plum
+ - [x] pomegranate
+ - [x] radish
+ - [x] rhubarb
+ - [x] blackcurrant
+ - [x] redcurrant
+ - [x] gooseberry
+ - [x] watercress
+ - [x] rosemary
+ - [x] blackberry 
+ - [x] sorrel
+ - [x] sage
+ - [x] elderberry
+ - [x] savory
+ - [x] sesame
+ - [x] tahini
+ - [x] cloves
+ - [x] tamarind
+ - [x] dandelion
+ - [x] thyme
+ - [x] fenugreek
+ - [ ] vanilla
+ - [x] broad bean
+ - [x] ginger
+ - [x] cranberry
+ - [x] ginseng
+ - [x] swiss chard
+ - [x] chard
+ - [x] lemon thyme
+ - [x] shallot
+ - [x] rocket
+ - [x] arugula
+ - [x] beetroot
+ - [x] currant
+ - [x] red currant
+ - [x] beer
+ - [x] sourdough
+ - [x] allspice
+ - [ ] Amaranth
+ - [ ] Arrowhead
+ - [ ] Arrowroot
+ - [ ] Asian pear
+ - [ ] Atlantic herring
+ - [ ] Atlantic mackerel
+ - [ ] Painted comber
+ - [ ] Atlantic pollock
+ - [ ] Atlantic wolffish
+ - [ ] Bamboo shoots
+ - [ ] Striped bass
+ - [ ] Beech nut
+ - [ ] Beluga whale
+ - [ ] Bison
+ - [ ] Alaska blackfish
+ - [ ] Blue crab
+ - [ ] Blue mussel
+ - [ ] Northern bluefin tuna
+ - [ ] Bluefish
+ - [ ] Wild boar
+ - [ ] Bowhead whale
+ - [ ] Breadfruit
+ - [ ] Breadnut tree seed
+ - [ ] Rapini
+ - [ ] Buffalo
+ - [ ] Burbot
+ - [ ] Giant butterbur
+ - [ ] American butterfish
+ - [ ] Butternut
+ - [ ] Butternut squash
+ - [ ] Calabash
+ - [ ] Cardoon
+ - [ ] Carob
+ - [ ] Common carp
+ - [ ] Cassava
+ - [ ] Channel catfish
+ - [ ] Chayote
+ - [ ] Cherimoya
+ - [ ] Chervil
+ - [ ] Chia
+ - [ ] Chicken
+ - [ ] Chinese broccoli
+ - [ ] Chinese chestnut
+ - [ ] Chinese water chestnut
+ - [ ] Garland chrysanthemum
+ - [ ] Cisco
+ - [ ] Nuttall cockle
+ - [ ] Coconut
+ - [ ] Pacific cod
+ - [ ] Atlantic cod
+ - [ ] Common octopus
+ - [ ] Corn salad
+ - [ ] Cottonseed
+ - [ ] Catjang pea
+ - [ ] Malus (Crab apple)
+ - [ ] Squashberry
+ - [ ] Atlantic croaker
+ - [ ] Cusk
+ - [ ] Cuttlefish
+ - [ ] Mule deer
+ - [ ] Devilfish
+ - [ ] Dock
+ - [ ] Dolphin fish
+ - [ ] Freshwater drum
+ - [ ] Mallard duck
+ - [ ] Dungeness crab
+ - [ ] Durian
+ - [ ] Eastern oyster
+ - [ ] Freshwater eel
+ - [ ] Elderberry
+ - [ ] Elk
+ - [ ] Emu
+ - [ ] Oregon yampah
+ - [ ] European anchovy
+ - [ ] European chestnut
+ - [ ] Turbot
+ - [ ] Fireweed
+ - [ ] Florida pompano
+ - [ ] Ginkgo nuts
+ - [ ] Greylag goose
+ - [ ] Grape
+ - [ ] Greenland halibut/turbot
+ - [ ] Groundcherry
+ - [ ] Grouper
+ - [ ] Guinea hen
+ - [ ] Haddock
+ - [ ] Hippoglossus (Common halibut)
+ - [ ] Hazelnut
+ - [ ] Hickory nut
+ - [ ] Horse
+ - [ ] Horseradish tree
+ - [ ] Alaska blueberry
+ - [ ] Hyacinth bean
+ - [ ] Irish moss
+ - [ ] Pacific jack mackerel
+ - [ ] Jackfruit
+ - [ ] Japanese chestnut
+ - [ ] Jujube
+ - [ ] Jute
+ - [ ] Kale
+ - [ ] Kelp
+ - [ ] King mackerel
+ - [ ] Kumquat
+ - [ ] Lambsquarters
+ - [ ] Leather chiton
+ - [ ] Wild leek
+ - [ ] Common ling
+ - [ ] Lingcod
+ - [ ] American lobster
+ - [ ] Loganberry
+ - [ ] Lotus
+ - [ ] Sacred lotus
+ - [ ] White lupine
+ - [ ] Mammee apple
+ - [ ] Purple mangosteen
+ - [ ] Alpine sweetvetch
+ - [ ] Milkfish
+ - [ ] Monkfish
+ - [ ] Moth bean
+ - [ ] Mountain yam
+ - [ ] Striped mullet
+ - [ ] White mustard
+ - [ ] Nopal
+ - [ ] Ocean pout
+ - [ ] North Pacific giant octopus
+ - [ ] Ohelo berry
+ - [ ] Okra
+ - [ ] Tunicate
+ - [ ] Ostrich
+ - [ ] Spotted seal
+ - [ ] Pacific herring
+ - [ ] Pacific oyster
+ - [ ] Pacific rockfish
+ - [ ] Velvet duck
+ - [ ] Pepper (C. frutescens)
+ - [ ] Common persimmon
+ - [ ] Pheasant
+ - [ ] Northern pike
+ - [ ] Pili nut
+ - [ ] Colorado pinyon
+ - [ ] Pitanga
+ - [ ] Plains prickly pear
+ - [ ] French plantain
+ - [ ] American pokeweed
+ - [ ] Opium poppy
+ - [ ] Prickly pear
+ - [ ] Quinoa
+ - [ ] European rabbit
+ - [ ] Rainbow smelt
+ - [ ] Rainbow trout
+ - [ ] Rose hip
+ - [ ] Roselle
+ - [ ] Orange roughy
+ - [ ] Sablefish
+ - [ ] Pink salmon
+ - [ ] Chum salmon
+ - [ ] Coho salmon
+ - [ ] Sockeye salmon
+ - [ ] Chinook salmon
+ - [ ] Atlantic salmon
+ - [ ] Salmonberry
+ - [ ] Common salsify
+ - [ ] Sapodilla
+ - [ ] Mamey sapote
+ - [ ] Spanish mackerel
+ - [ ] Pacific sardine
+ - [ ] Scallop
+ - [ ] Scup
+ - [ ] Sea cucumber
+ - [ ] Steller sea lion
+ - [ ] Bearded seal
+ - [ ] Ringed seal
+ - [ ] Sea trout
+ - [ ] Sesbania flower
+ - [ ] American shad
+ - [ ] Shark
+ - [ ] Sheefish
+ - [ ] Sheep (Mutton, Lamb)
+ - [ ] Sheepshead
+ - [ ] Hedge mustard
+ - [ ] Skipjack tuna
+ - [ ] Snapper
+ - [ ] Soursop
+ - [ ] Spelt
+ - [ ] Spirulina
+ - [ ] Squab
+ - [ ] Greater sturgeon
+ - [ ] White sucker
+ - [ ] Sugar apple
+ - [ ] Pumpkinseed sunfish
+ - [ ] Swordfish
+ - [ ] Taro
+ - [ ] Teff
+ - [ ] Tilefish
+ - [ ] Mexican groundcherry
+ - [ ] Towel gourd
+ - [ ] Salmonidae (Salmon, Trout)
+ - [ ] Turkey
+ - [ ] Cattle (Beef, Veal)
+ - [ ] Walleye
+ - [ ] Alaska pollock
+ - [ ] Wasabi
+ - [ ] Wax gourd
+ - [ ] Whelk
+ - [ ] Coalfish pollock
+ - [ ] Broad whitefish
+ - [ ] Whitefish
+ - [ ] Whiting
+ - [ ] Wild rice
+ - [ ] Tea leaf willow
+ - [ ] Winged bean
+ - [ ] Yam
+ - [ ] Jicama
+ - [ ] Yautia
+ - [ ] Yellowfin tuna
+ - [ ] Yellowtail amberjack
+ - [ ] Pollock
+ - [ ] Albacore tuna
+ - [ ] Gadus (Common cod)
+ - [ ] Atlantic halibut
+ - [ ] Pacific halibut
+ - [ ] Pacific salmon
+ - [ ] Smelt
+ - [ ] Clupeinae (Herring, Sardine, Sprat)
+ - [ ] Spiny lobster
+ - [ ] Snow crab
+ - [ ] Black-eyed pea
+ - [ ] Deer
+ - [ ] Macadamia nut
+ - [ ] Percoidei (Bass and others)
+ - [ ] Perciformes
+ - [ ] Rabbit
+ - [ ] Domestic goat
+ - [ ] Beefalo
+ - [ ] Bivalvia (Clam, Mussel, Oyster)
+ - [ ] Squid
+ - [ ] Shrimp
+ - [ ] Crayfish
+ - [ ] Flatfish
+ - [ ] Domestic pig
+ - [ ] Walrus
+ - [ ] Alaska wild rhubarb
+ - [ ] Oriental wheat
+ - [ ] Yardlong bean
+ - [ ] Quail
+ - [ ] Boysenberry
+ - [ ] Persian lime
+ - [ ] Feijoa
+ - [ ] Rowal
+ - [ ] Jew's ear
+ - [ ] Common mushroom
+ - [ ] Shiitake
+ - [ ] Purple laver
+ - [ ] Wakame
+ - [ ] Enokitake
+ - [ ] Epazote
+ - [ ] Oyster mushroom
+ - [ ] Cloud ear fungus
+ - [ ] Maitake
+ - [ ] Ostrich fern
+ - [ ] Spot croaker
+ - [ ] Sourdock
+ - [ ] Tinda
+ - [ ] Atlantic menhaden
+ - [ ] Wheat
+ - [ ] Common chokecherry
+ - [ ] Agave
+ - [ ] Narrowleaf cattail
+ - [ ] Jellyfish
+ - [ ] Anchovy
+ - [ ] Blue whiting
+ - [ ] Carp bream
+ - [ ] Chanterelle
+ - [ ] Sturgeon
+ - [ ] Charr
+ - [ ] Cinnamon
+ - [ ] Crab
+ - [ ] Common dab
+ - [ ] Spiny dogfish
+ - [ ] Anatidae
+ - [ ] Anguilliformes
+ - [ ] True frog
+ - [ ] Garfish
+ - [ ] Gadiformes
+ - [ ] Mountain hare
+ - [ ] Lake trout
+ - [ ] Lemon sole
+ - [ ] Clawed lobster
+ - [ ] Lumpsucker
+ - [ ] Scombridae (Bonito, Mackerel, Tuna)
+ - [ ] Marine mussel
+ - [ ] Norway haddock
+ - [ ] Norway lobster
+ - [ ] Norway pout
+ - [ ] Oil palm
+ - [ ] True oyster
+ - [ ] Sago palm
+ - [ ] Persimmon
+ - [ ] Pikeperch
+ - [ ] Pleuronectidae (Dab, Halibut, Plaice)
+ - [ ] Rock ptarmigan
+ - [ ] Pacific ocean perch
+ - [ ] Black salsify
+ - [ ] True seal
+ - [ ] Red algae
+ - [ ] Kombu
+ - [ ] Snail
+ - [ ] True sole
+ - [ ] Catfish
+ - [ ] Thistle
+ - [ ] Thunnus
+ - [ ] Cetacea (Dolphin, Porpoise, Whale)
+ - [ ] Columbidae (Dove, Pigeon)
+ - [ ] Conch
+ - [ ] Grape wine
+ - [ ] Berry wine
+ - [ ] Other wine
+ - [ ] Apple cider
+ - [ ] Liquor
+ - [ ] Cheese
+ - [ ] Milk (Cow)
+ - [ ] Eggs
+ - [ ] Yogurt
+ - [ ] Bean
+ - [ ] Vodka
+ - [ ] Whisky
+ - [ ] Ice cream
+ - [ ] Gin
+ - [ ] Honey
+ - [ ] Liquorice
+ - [ ] Vinegar
+ - [ ] Rum
+ - [ ] Port wine
+ - [ ] Vermouth
+ - [ ] Sherry
+ - [ ] Madeira wine
+ - [ ] Nougat
+ - [ ] Toffee
+ - [ ] Cake
+ - [ ] Pizza
+ - [ ] Ymer
+ - [ ] Other snack food
+ - [ ] Crisp bread
+ - [ ] Pastry
+ - [ ] Dragée
+ - [ ] Chewing gum
+ - [ ] Marzipan
+ - [ ] Salad dressing
+ - [ ] Sauce
+ - [ ] Salt
+ - [ ] Butter
+ - [ ] Butter substitute
+ - [ ] Cream
+ - [ ] Sugar
+ - [ ] Sausage
+ - [ ] Meatball
+ - [ ] Mustard
+ - [ ] Pate
+ - [ ] Sugar substitute
+ - [ ] Meat bouillon
+ - [ ] Whey
+ - [ ] Casein
+ - [ ] Fruit preserve
+ - [ ] Leavening agent
+ - [ ] Marshmallow
+ - [ ] Gelatin
+ - [ ] Water
+ - [ ] Other fish product
+ - [ ] Milk (Human)
+ - [ ] Other beverage
+ - [ ] Baby food
+ - [ ] Dumpling
+ - [ ] Soup
+ - [ ] Other vegetable product
+ - [ ] Unclassified food or beverage
+ - [ ] Syrup
+ - [ ] Tallow
+ - [ ] Remoulade
+ - [ ] Chocolate spread
+ - [ ] Fruit gum
+ - [ ] Curry powder
+ - [ ] Other candy
+ - [ ] Meringue
+ - [ ] Lard
+ - [ ] Other animal fat
+ - [ ] Other cocoa product
+ - [ ] Cocoa butter
+ - [ ] Cocoa powder
+ - [ ] Cocoa liquor
+ - [ ] Chocolate
+ - [ ] Hot chocolate
+ - [ ] Dried milk
+ - [ ] Milk (Other mammals)
+ - [ ] Kefir
+ - [ ] Buttermilk
+ - [ ] Other fermented milk
+ - [ ] Soy sauce
+ - [ ] Miso
+ - [ ] Tofu
+ - [ ] Zwieback
+ - [ ] Roe
+ - [ ] Cichlidae (Tilapia)
+ - [ ] Icing
+ - [ ] Snack bar
+ - [ ] Green turtle
+ - [ ] Energy drink
+ - [ ] Burrito
+ - [ ] Hamburger
+ - [ ] Baked beans
+ - [ ] Chili
+ - [ ] Taco
+ - [ ] Tortilla
+ - [ ] Nachos
+ - [ ] Processed cheese
+ - [ ] Salad
+ - [ ] Cream substitute
+ - [ ] Dulce de leche
+ - [ ] Topping
+ - [ ] Sweet custard
+ - [ ] Egg roll
+ - [ ] Heart of palm
+ - [ ] Popcorn
+ - [ ] Potato chip
+ - [ ] Tortilla chip
+ - [ ] Corn chip
+ - [ ] Hibiscus tea
+ - [ ] Stew
+ - [ ] Gelatin dessert
+ - [ ] Junket
+ - [ ] Falafel
+ - [ ] Frybread
+ - [ ] Other frozen dessert
+ - [ ] Lasagna
+ - [ ] Morchella (Morel)
+ - [ ] Pancake
+ - [ ] Pectin
+ - [ ] Pudding
+ - [ ] Waffle
+ - [ ] Soy milk
+ - [ ] Meatloaf
+ - [ ] Sake
+ - [ ] Cocktail
+ - [ ] Couscous
+ - [ ] Bulgur
+ - [ ] Chimichanga
+ - [ ] Semolina
+ - [ ] Tapioca pearl
+ - [ ] Tostada
+ - [ ] Quesadilla
+ - [ ] Baked potato
+ - [ ] Hot dog
+ - [ ] Spread
+ - [ ] Enchilada
+ - [ ] Egg substitute
+ - [ ] Nutritional drink
+ - [ ] Other sandwich
+ - [ ] Ketchup
+ - [ ] Breakfast sandwich
+ - [ ] Adobo
+ - [ ] Macaroni and cheese
+ - [ ] Butterfat
+ - [ ] Horned melon
+ - [ ] Hushpuppy
+ - [ ] Fruit juice
+ - [ ] Relish
+ - [ ] Other fruit product
+ - [ ] Fruit salad
+ - [ ] Soy yogurt
+ - [ ] Vegetarian food
+ - [ ] Veggie burger
+ - [ ] Cold cut
+ - [ ] Mixed nuts
+ - [ ] Canola
+ - [ ] Babassu palm
+ - [ ] Cupuaçu
+ - [ ] Shea tree
+ - [ ] Oil-seed Camellia
+ - [ ] Ucuhuba
+ - [ ] Phyllo dough
+ - [ ] Cooking oil
+ - [ ] Pie crust
+ - [ ] Pie filling
+ - [ ] Pie
+ - [ ] Shortening
+ - [ ] Soy cream
+ - [ ] Ice cream cone
+ - [ ] Molasses
+ - [ ] Cracker
+ - [ ] Nance
+ - [ ] Naranjilla
+ - [ ] Natto
+ - [ ] Ravioli
+ - [ ] Scrapple
+ - [ ] Other pasta dish
+ - [ ] Succotash
+ - [ ] Tamale
+ - [ ] Rice cake
+ - [ ] Tree fern
+ - [ ] Evaporated milk
+ - [ ] Flour
+ - [ ] Akutaq
+ - [ ] Dough
+ - [ ] Pita bread
+ - [ ] Focaccia
+ - [ ] Bagel
+ - [ ] Other bread product
+ - [ ] Piki bread
+ - [ ] French toast
+ - [ ] Wheat bread
+ - [ ] Rye bread
+ - [ ] Oat bread
+ - [ ] Potato bread
+ - [ ] Cornbread
+ - [ ] Corn grits
+ - [ ] Multigrain bread
+ - [ ] Rice bread
+ - [ ] Pan dulce
+ - [ ] Raisin bread
+ - [ ] Wonton wrapper
+ - [ ] Trail mix
+ - [ ] Greenthread tea
+ - [ ] Fruit-flavor drink
+ - [ ] Vegetable juice
+ - [ ] Horchata
+ - [ ] Soft drink
+ - [ ] Frozen yogurt
+ - [ ] Milkshake
+ - [ ] Chocolate mousse
+ - [ ] Dripping
+ - [ ] Pupusa
+ - [ ] Empanada
+ - [ ] Arepa
+ - [ ] Ascidians
+ - [ ] Gefilte fish
+ - [ ] Yellow pond-lily
+ - [ ] Fish burger
+ - [ ] Other dish
+ - [ ] Pot pie
+ - [ ] Stuffing
+ - [ ] Edible shell
+ - [ ] Fudge
+ - [ ] Candy bar
+ - [ ] Condensed milk
+ - [ ] Margarine
+ - [ ] Margarine-like spread
+ - [ ] Hummus
+ - [ ] Potato puffs
+ - [ ] Potato gratin
+ - [ ] Chinese bayberry
+ - [ ] Mushrooms
+ - [ ] Citrus
+ - [ ] Crustaceans
+ - [ ] Fishes
+ - [ ] Pulses
+ - [ ] Mollusks
+ - [ ] Nuts
+ - [ ] Beverages
+ - [ ] Fruits
+ - [ ] Green vegetables
+ - [ ] Root vegetables
+ - [ ] Sunburst squash (pattypan squash)
+ - [ ] Green zucchini
+ - [ ] Yellow zucchini
+ - [ ] Green bell pepper
+ - [ ] Yellow bell pepper
+ - [ ] Orange bell pepper
+ - [ ] Red bell pepper
+ - [ ] Italian sweet red pepper
+ - [ ] Yellow wax bean
+ - [ ] Green bean
+ - [ ] Saskatoon berry
+ - [ ] Nanking cherry
+ - [ ] Japanese pumpkin
+ - [ ] Romaine lettuce
+ - [ ] Rabbiteye blueberry
+ - [ ] Yali pear
+ - [ ] Evergreen blackberry
+ - [ ] Thornless blackberry
+ - [ ] Tropical highland blackberry
+ - [ ] Andean blackberry
+ - [ ] Blackberry
+ - [ ] Black tea
+ - [ ] Green tea
+ - [ ] Olive oil
+ - [ ] Macroalgae
+ - [ ] Red wine
+ - [ ] linseed oil
+ - [ ] Rapeseed oil
+ - [ ] Soybean oil
+ - [ ] Guarana
+ - [ ] Mate
+ - [ ] White wine
+ - [ ] Sour orange
+ - [ ] Rosé wine
+ - [ ] White mulberry
+ - [ ] Canola oil
+ - [ ] Dessert wine
+ - [ ] Red champagne
+ - [ ] White champagne
+ - [ ] Blue cheese
+ - [ ] Clam
+ - [ ] Sour cream
+ - [ ] Whole wheat bread
+ - [ ] Jalapeno pepper
+ - [ ] Greek feta cheese
+ - [ ] Eddoe
+ - [ ] Plantain
+ - [ ] Clementine
+ - [ ] Green apple
+ - [ ] White onion
+ - [ ] Red onion
+ - [ ] Green onion
+ - [ ] Green grape
+ - [ ] Red grape
+ - [ ] Black raisin
+ - [ ] Cannellini bean
+ - [ ] Green lentil
+ - [ ] Cubanelle pepper
+ - [ ] Acorn squash
+ - [ ] Iceberg lettuce
+ - [ ] Japanese sea bass
+ - [ ] Pea shoots
+ - [ ] Yau choy
+ - [ ] Wampee
+ - [ ] Pitaya
+ - [ ] Goji
+ - [ ] Monk fruit
+ - [ ] Cantaloupe melon
+ - [ ] Hawthorn
+ - [ ] Lantern fruit
+ - [ ] White bread
+ - [ ] Cape gooseberry
+ - [ ] Herbal tea
+ - [ ] Fish oil
+ - [ ] Taco shell
+ - [ ] Tostada shell
