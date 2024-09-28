@@ -36,7 +36,7 @@ def home():
             expect_name_in_output=True,
             string_units=False,
             imperial_units=False,
-            foundation_foods=False,
+            foundation_foods=True,
         )
 
     parser_info = inspect_parser(
