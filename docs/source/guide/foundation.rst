@@ -66,6 +66,17 @@ The table below gives some examples of the foundation foods for different ingred
 
     Interpretation and extrapolation has been applied in the development of this functionality.
 
+
+Limitations
+^^^^^^^^^^^
+
+The current approach to identifying foundation foods has a few limitations.
+
+First, we rely on the specific tokens in the sentence to identify foundation foods. There will be cases where a foundation food uses a slightly different spelling or phrasing that is not part of the training data and therefore will not be identified as a foundation food.
+
+Secondly, because of the reliance of the specific tokens in the sentence, we cannot identify foundation foods where the name is split. For example if the ingredient name is **red or yellow pepper**, only **yellow pepper** is identified. However **red pepper** is also a foundation food in that name, but is not identified.
+
+
 Model
 ^^^^^
 
