@@ -44,6 +44,7 @@ UNITS = {
     "heads": "head",
     "inches": "inch",
     "jars": "jar",
+    "jiggers": "jigger",
     "kg": "kg",
     "kilograms": "kilogram",
     "knobs": "knob",
