@@ -1,10 +1,20 @@
 # Changelog
 
-### 1.1.2
+## 1.2
+
+### General
+
+* New optional keyword argument to extract foundation foods from the ingredient name. Foundation foods are the fundamental item of food, excluding any qualifiers or descriptive adjectives, e.g. for the name `organic cucumber`, the foundation food is `cucumber`. 
+
+  See https://ingredient-parser.readthedocs.io/en/latest/guide/foundation.html for additional details.
+
+* Some minor post processing fixes.
+
+## 1.1.2
 
 Require NLTK >= 3.9.1, due to change in their resources format.
 
-### 1.1.1
+## 1.1.1
 
 Revert upgrade to NLTK 3.8.2 after 3.8.2 removed from PyPI.
 
