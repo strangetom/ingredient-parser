@@ -142,7 +142,11 @@ def save():
             c = conn.cursor()
             c.executemany(
                 """UPDATE en 
-                SET sentence = :sentence, tokens = :tokens, labels = :labels 
+                SET 
+                sentence = :sentence, 
+                tokens = :tokens, 
+                labels = :labels, 
+                foundation_foods = :foundation_foods
                 WHERE id = :id;""",
                 update["entries"],
             )

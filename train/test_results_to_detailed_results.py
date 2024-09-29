@@ -2,8 +2,6 @@ import csv
 from collections import defaultdict
 from dataclasses import dataclass
 
-from ingredient_parser.en import PreProcessor
-
 
 @dataclass(frozen=True, order=True)
 class _TokenPrediction:
@@ -23,10 +21,10 @@ class _SentenceLabeling:
 
 def test_results_to_detailed_results(
     sentences: list[str],
+    sentence_tokens: list[str],
     labels_truth: list[list[str]],
     labels_prediction: list[list[str]],
     scores_prediction: list[list[float]],
-    sentence_sources: list[str],
 ) -> None:
     """Output detailed labeling results for test vectors to tab-separated values files.
 
@@ -34,14 +32,14 @@ def test_results_to_detailed_results(
     ----------
     sentences : list[str]
         List of ingredient sentences
+    sentence_tokens : list[str]
+        List of tokens for sentence
     labels_truth : list[list[str]]
         True labels for sentence
     labels_prediction : list[list[str]]
         Predicted labels for sentence
     scores_prediction : list[list[float]]
         Scores for predicted labels for sentence
-    sentence_sources : list[str]
-        List of sentence sources, either NYT of SF
     """
     # Compute classification stats
     # sentence_classif: sentence => (# correct, # incorrect)
@@ -53,10 +51,10 @@ def test_results_to_detailed_results(
     # token_details: auxilliary info for misclassified tokens
     token_details = []
 
-    for _, sentence, truth, prediction, scores in sorted(
+    for sentence, tokens, truth, prediction, scores in sorted(
         zip(
-            sentence_sources,
             sentences,
+            sentence_tokens,
             labels_truth,
             labels_prediction,
             scores_prediction,
@@ -68,9 +66,6 @@ def test_results_to_detailed_results(
         sentence_details[sentence] = _SentenceLabeling(sentence, truth, prediction)
 
         # per-token numbers
-        tokens: list[str] = PreProcessor(
-            sentence, defer_pos_tagging=True
-        ).tokenized_sentence
         idx = 0
         for token, truth1, prediction1, _ in zip(tokens, truth, prediction, scores):
             correct = truth1 == prediction1

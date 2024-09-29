@@ -10,3 +10,4 @@ API Reference
    preprocessor
    postprocessor
    common
+   dataclasses

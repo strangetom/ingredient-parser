@@ -5,7 +5,7 @@ body {
   margin: 0 auto;
   padding: 0;
   line-height: 1.5;
-  max-width: 90ch;
+  max-width: 95ch;
   background-color: var(--bg-s);
   color: var(--fg);
 }
@@ -37,7 +37,7 @@ input[type="checkbox"] {
   accent-color: var(--green-alt);
 }
 label {
-  margin-right: 2rem;
+  margin-right: 1rem;
 }
 
 .QTY {
@@ -67,6 +67,9 @@ label {
 }
 .SIZE {
   --color: var(--orange);
+}
+.FOUNDATION {
+  --color: var(--fg-1);
 }
 
 .sentence {

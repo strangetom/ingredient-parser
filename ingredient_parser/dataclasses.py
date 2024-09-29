@@ -171,6 +171,26 @@ class IngredientText:
 
 
 @dataclass
+class FoudationFood:
+    """Dataclass for holding a foundation food string.
+
+    This is separate to the IngredientText dataclass so that it can be expanded on
+    in the future.
+
+    Attributes
+    ----------
+    text : str
+        Foundation food identified from ingredient name.
+    confidence : float
+        Confidence of the identification of the foudnation food, between 0 and 1.
+        This is the average confidence of all tokens that contribute to this object.
+    """
+
+    text: str
+    confidence: float
+
+
+@dataclass
 class ParsedIngredient:
     """Dataclass for holding the parsed values for an input sentence.
 
@@ -194,6 +214,8 @@ class ParsedIngredient:
     purpose : IngredientText | None
         The purpose of the ingredient parsed from the sentence.
         If no purpose was found, this is None.
+    foundation_foods : list[FoudationFood]
+        List of foundation foods from the parsed sentence.
     sentence : str
         Normalised input sentence
     """
@@ -204,6 +226,7 @@ class ParsedIngredient:
     preparation: IngredientText | None
     comment: IngredientText | None
     purpose: IngredientText | None
+    foundation_foods: list[FoudationFood]
     sentence: str
 
 
@@ -220,6 +243,8 @@ class ParserDebugInfo:
     PostProcessor : PostProcessor
         PostProcessor object created using tokens, labels and scores from
         input sentence.
+    foundation_foods : list[FoudationFood]
+        List of foundation foods extracted from parsed ingredient name, or None.
     Tagger : pycrfsuite.Tagger
         CRF model tagger object.
     """
@@ -227,4 +252,5 @@ class ParserDebugInfo:
     sentence: str
     PreProcessor: Any
     PostProcessor: Any
+    foundation_foods: list[FoudationFood]
     tagger: pycrfsuite.Tagger  # type: ignore

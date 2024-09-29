@@ -58,6 +58,17 @@ class TokenStats:
 
 
 @dataclass
+class FFTokenStats:
+    """Statistics for token classification performance."""
+
+    FF: Metrics
+    NF: Metrics
+    macro_avg: Metrics
+    weighted_avg: Metrics
+    accuracy: float
+
+
+@dataclass
 class SentenceStats:
     """Statistics for sentence classification performance."""
 
@@ -102,7 +113,11 @@ def select_preprocessor(lang: str) -> Any:
 
 
 def load_datasets(
-    database: str, table: str, datasets: list[str], discard_other: bool = True
+    database: str,
+    table: str,
+    datasets: list[str],
+    foundation_foods: bool = False,
+    discard_other: bool = True,
 ) -> DataVectors:
     """Load raw data from csv files and transform into format required for training.
 
@@ -115,6 +130,9 @@ def load_datasets(
     datasets : list[str]
         List of data source to include.
         Valid options are: nyt, cookstr, bbc
+    foundation_foods : bool, optional
+        If True, prepare data for training foundation foods model.
+        If False, load data for training parser model.
     discard_other : bool, optional
         If True, discard sentences containing tokens with OTHER label
 
@@ -151,10 +169,31 @@ def load_datasets(
         source.append(entry["source"])
         sentences.append(entry["sentence"])
         p = PreProcessor(entry["sentence"])
-        features.append(p.sentence_features())
-        tokens.append(p.tokenized_sentence)
-        labels.append(entry["labels"])
         uids.append(entry["id"])
+
+        if foundation_foods:
+            name_idx = [idx for idx, lab in enumerate(entry["labels"]) if lab == "NAME"]
+            name_labels = [
+                "FF" if idx in entry["foundation_foods"] else "NF" for idx in name_idx
+            ]
+            name_features = [
+                feat
+                for idx, feat in enumerate(p.sentence_features())
+                if idx in name_idx
+            ]
+            name_tokens = [
+                token
+                for idx, token in enumerate(p.tokenized_sentence)
+                if idx in name_idx
+            ]
+
+            features.append(name_features)
+            tokens.append(name_tokens)
+            labels.append(name_labels)
+        else:
+            features.append(p.sentence_features())
+            tokens.append(p.tokenized_sentence)
+            labels.append(entry["labels"])
 
         # Ensure length of tokens and length of labels are the same
         if len(p.tokenized_sentence) != len(entry["labels"]):
@@ -171,7 +210,12 @@ def load_datasets(
     return DataVectors(sentences, features, tokens, labels, source, uids)
 
 
-def evaluate(predictions: list[list[str]], truths: list[list[str]], seed: int) -> Stats:
+def evaluate(
+    predictions: list[list[str]],
+    truths: list[list[str]],
+    seed: int,
+    foundation_foods: bool = False,
+) -> Stats:
     """Calculate statistics on the predicted labels for the test data.
 
     Parameters
@@ -182,6 +226,9 @@ def evaluate(predictions: list[list[str]], truths: list[list[str]], seed: int) -
         True labels for each test sentence
     seed : int
         Seed value that produced the results
+    foundation_foods : bool, optional
+        If True, generate stats for foundation foods model.
+        If False, generate stats for parser model.
 
     Returns
     -------
@@ -213,7 +260,10 @@ def evaluate(predictions: list[list[str]], truths: list[list[str]], seed: int) -
         else:
             token_stats[k] = v
 
-    token_stats = TokenStats(**token_stats)
+    if foundation_foods:
+        token_stats = FFTokenStats(**token_stats)
+    else:
+        token_stats = TokenStats(**token_stats)
 
     # Generate sentence statistics
     # The only statistics that makes sense here is accuracy because there are only

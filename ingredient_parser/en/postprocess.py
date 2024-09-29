@@ -165,6 +165,7 @@ class PostProcessor:
             preparation=preparation,
             comment=comment,
             purpose=purpose,
+            foundation_foods=[],
             sentence=self.sentence,
         )
 
@@ -389,8 +390,11 @@ class PostProcessor:
         # Correct space following open parens or before close parens
         text = text.replace("( ", "(").replace(" )", ")")
 
+        # Remove space around forward slash
+        text = text.replace(" / ", "/")
+
         # Correct space preceding various punctuation
-        for punc in [",", ":", ";", ".", "!", "?", "*"]:
+        for punc in [",", ":", ";", ".", "!", "?", "*", "'"]:
             text = text.replace(f" {punc}", punc)
 
         return text.strip()

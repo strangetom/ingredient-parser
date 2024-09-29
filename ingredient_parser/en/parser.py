@@ -6,11 +6,12 @@ import pycrfsuite
 
 from .._common import group_consecutive_idx
 from ..dataclasses import ParsedIngredient, ParserDebugInfo
+from ._foundationfoods import extract_foundation_foods
 from ._utils import pluralise_units
 from .postprocess import PostProcessor
 from .preprocess import PreProcessor
 
-# Create TAGGER object that can be reused between function calls
+# Create TAGGER object that can be reused between function calls.
 # We only want to load the model into TAGGER once, but only do it
 # when we need to (from parse_ingredient() or inspect_parser()) and
 # not whenever anything from ingredient_parser is imported.
@@ -37,6 +38,7 @@ def parse_ingredient_en(
     expect_name_in_output: bool = True,
     string_units: bool = False,
     imperial_units: bool = False,
+    foundation_foods: bool = False,
 ) -> ParsedIngredient:
     """Parse an English language ingredient sentence to return structured data.
 
@@ -63,6 +65,11 @@ def parse_ingredient_en(
         for the the following units: fluid ounce, cup, pint, quart, gallon.
         Default is False, which results in US customary units being used.
         This has no effect if string_units=True.
+    foundation_foods : bool, optional
+        If True, extract foundation foods from ingredient name. Foundation foods are
+        the fundamental foods without any descriptive terms, e.g. 'cucumber' instead
+        of 'organic cucumber'.
+        Default is False.
 
     Returns
     -------
@@ -73,7 +80,8 @@ def parse_ingredient_en(
 
     processed_sentence = PreProcessor(sentence)
     tokens = processed_sentence.tokenized_sentence
-    labels = TAGGER.tag(processed_sentence.sentence_features())
+    features = processed_sentence.sentence_features()
+    labels = TAGGER.tag(features)
     scores = [TAGGER.marginal(label, i) for i, label in enumerate(labels)]
 
     # Re-pluralise tokens that were singularised if the label isn't UNIT
@@ -97,7 +105,12 @@ def parse_ingredient_en(
         string_units=string_units,
         imperial_units=imperial_units,
     )
-    return postprocessed_sentence.parsed
+    parsed = postprocessed_sentence.parsed
+
+    if foundation_foods and parsed.name:
+        parsed.foundation_foods = extract_foundation_foods(tokens, labels, features)
+
+    return parsed
 
 
 def inspect_parser_en(
@@ -106,6 +119,7 @@ def inspect_parser_en(
     expect_name_in_output: bool = True,
     string_units: bool = False,
     imperial_units: bool = False,
+    foundation_foods: bool = False,
 ) -> ParserDebugInfo:
     """Return intermediate objects generated during parsing for inspection.
 
@@ -132,6 +146,11 @@ def inspect_parser_en(
         for the the following units: fluid ounce, cup, pint, quart, gallon.
         Default is False, which results in US customary units being used.
         This has no effect if string_units=True.
+    foundation_foods : bool, optional
+        If True, extract foundation foods from ingredient name. Foundation foods are
+        the fundamental foods without any descriptive terms, e.g. 'cucumber' instead
+        of 'organic cucumber'.
+        Default is False.
 
     Returns
     -------
@@ -143,7 +162,8 @@ def inspect_parser_en(
 
     processed_sentence = PreProcessor(sentence)
     tokens = processed_sentence.tokenized_sentence
-    labels = TAGGER.tag(processed_sentence.sentence_features())
+    features = processed_sentence.sentence_features()
+    labels = TAGGER.tag(features)
     scores = [TAGGER.marginal(label, i) for i, label in enumerate(labels)]
 
     # Re-plurise tokens that were singularised if the label isn't UNIT
@@ -168,10 +188,17 @@ def inspect_parser_en(
         imperial_units=imperial_units,
     )
 
+    parsed = postprocessed_sentence.parsed
+    if foundation_foods and parsed.name:
+        foundation = extract_foundation_foods(tokens, labels, features)
+    else:
+        foundation = []
+
     return ParserDebugInfo(
         sentence=sentence,
         PreProcessor=processed_sentence,
         PostProcessor=postprocessed_sentence,
+        foundation_foods=foundation,
         tagger=TAGGER,
     )
 
