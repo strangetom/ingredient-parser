@@ -13,7 +13,7 @@ Once the input sentence has been normalised, it can be split into tokens. Each t
 The tokenizer splits the sentence according the following rules:
 
 .. literalinclude:: ../../../ingredient_parser/en/_utils.py
-    :lines: 29-68
+    :lines: 64-121
 
 This splits the sentence apart into wherever there is white space or a punctuation mark in ``PUNCTUATION_TOKENISER``.
 

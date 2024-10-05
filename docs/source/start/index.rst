@@ -139,6 +139,7 @@ The :func:`parse_ingredient <ingredient_parser.parsers.parse_ingredient>` functi
         preparation=None,
         comment=None,
         purpose=None,
+        foundation_foods=[],
         sentence='2 tbsp of olive oil'
     )
     >>> parse_ingredient("2 tbsp of olive oil", discard_isolated_stop_words=False)
@@ -160,6 +161,7 @@ The :func:`parse_ingredient <ingredient_parser.parsers.parse_ingredient>` functi
         purpose=None,
         comment=IngredientText(text='of',
                                confidence=0.915292),  # <-- Note the difference here
+        foundation_foods=[],
         sentence='2 tbsp of olive oil'
     )
 
@@ -215,6 +217,7 @@ The :func:`parse_multiple_ingredients <ingredient_parser.parsers.parse_multiple_
             comment=None,
             purpose=IngredientText(text='for serving',
                                    confidence=0.999462),
+            foundation_foods=[],
             sentence='3 lime wedges, for serving'
         ),
         ParsedIngredient(
@@ -234,6 +237,7 @@ The :func:`parse_multiple_ingredients <ingredient_parser.parsers.parse_multiple_
             preparation=None,
             comment=None,
             purpose=None,
+            foundation_foods=[],
             sentence='2 tablespoons extra-virgin olive oil'
         ),
         ParsedIngredient(
@@ -254,6 +258,7 @@ The :func:`parse_multiple_ingredients <ingredient_parser.parsers.parse_multiple_
                                        confidence=0.997482),
             comment=None,
             purpose=None,
+            foundation_foods=[],
             sentence='2 large garlic cloves, finely grated'
         )
     ]
