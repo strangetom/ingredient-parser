@@ -34,7 +34,7 @@ the :func:`parse_ingredient <ingredient_parser.parsers.parse_ingredient>` functi
         preparation=None,
         comment=None,
         purpose=None,
-        foundation_foods=[IngredientText(text='cucumber',
+        foundation_foods=[FoundationFood(text='cucumber',
                                          confidence=0.997391)],
         sentence='1 large organic cucumber'
     )
