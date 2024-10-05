@@ -107,7 +107,7 @@ class PreProcessor:
     sentence : str
         Input ingredient sentence, cleaned to standardised form.
     singularised_indices : list[int]
-        Indices of tokens in tokenised sentence that have been converted from plural
+        Indices of tokens in tokenized sentence that have been converted from plural
         to singular
     tokenized_sentence : list[str]
         Tokenised ingredient sentence.
@@ -135,11 +135,11 @@ class PreProcessor:
         self.input: str = input_sentence
         self.sentence: str = self._normalise(input_sentence)
 
-        _tokenised_sentence = tokenize(self.sentence)
+        _tokenized_sentence = tokenize(self.sentence)
         (
             self.tokenized_sentence,
             self.singularised_indices,
-        ) = self._singlarise_units(_tokenised_sentence)
+        ) = self._singlarise_units(_tokenized_sentence)
 
         self.defer_pos_tagging: bool = defer_pos_tagging
         if not defer_pos_tagging:
@@ -501,17 +501,17 @@ class PreProcessor:
         return QUANTITY_X_PATTERN.sub(r"\1x ", sentence)
 
     def _collapse_ranges(self, sentence: str) -> str:
-        """Collapse any whitespace found in a range so the range has the standard form.
+        """Collapse any whites pace found in a range so the range has the standard form.
 
         Parameters
         ----------
         sentence : str
-            Ingedient sentence
+            Ingredient sentence
 
         Returns
         -------
         str
-            Ingredient sentence with whitespace removed from ranges
+            Ingredient sentence with white space removed from ranges
 
         Examples
         --------
@@ -526,16 +526,16 @@ class PreProcessor:
         return EXPANDED_RANGE.sub(r"\1-\2", sentence)
 
     def _singlarise_units(
-        self, tokenised_sentence: list[str]
+        self, tokenized_sentence: list[str]
     ) -> tuple[list[str], list[int]]:
-        """Singularise units in tokenised sentence.
+        """Singularise units in tokenized sentence.
 
         Returns the tokenized sentence with plural units made singular, and a list of
-        indices of tokens in the tokenised sentence that have been singularised.
+        indices of tokens in the tokenized sentence that have been singularised.
 
         Parameters
         ----------
-        tokenised_sentence : list[str]
+        tokenized_sentence : list[str]
             Tokenised sentence
 
         Returns
@@ -543,16 +543,16 @@ class PreProcessor:
         list[str]
             Tokenised sentence with units singularised
         list[int]
-            List of indices of tokenised sentence that have been singularised
+            List of indices of tokenized sentence that have been singularised
         """
         singularised_indices = []
-        for idx, token in enumerate(tokenised_sentence):
+        for idx, token in enumerate(tokenized_sentence):
             singular = UNITS.get(token, None)
             if singular is not None:
-                tokenised_sentence[idx] = singular
+                tokenized_sentence[idx] = singular
                 singularised_indices.append(idx)
 
-        return (tokenised_sentence, singularised_indices)
+        return (tokenized_sentence, singularised_indices)
 
     def _replace_numeric_tokens(self, tokens: list[str]) -> list[str]:
         """Replace numeric tokens with single representation "!num".
@@ -580,7 +580,7 @@ class PreProcessor:
         return replaced_tokens
 
     def _tag_partofspeech(self, tokens: list[str]) -> list[str]:
-        """Tag tokens with part of speech using universal tagset.
+        """Tag tokens with part of speech using universal tag set.
 
         Parameters
         ----------

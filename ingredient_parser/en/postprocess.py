@@ -88,7 +88,7 @@ class PostProcessor:
     string_units : bool
         If True, return all IngredientAmount units as strings.
         If False, convert IngredientAmount units to pint.Unit objects where possible.
-        Dfault is False.
+        Default is False.
     imperial_units : bool
         If True, use imperial units instead of US customary units for pint.Unit objects
         for the the following units: fluid ounce, cup, pint, quart, gallon.
@@ -184,20 +184,21 @@ class PostProcessor:
         """
         # Select indices of tokens, labels and scores for selected_label
         # Do not include tokens, labels and scores in self.consumed
-        idx = [
+        label_idx = [
             i
             for i, label in enumerate(self.labels)
             if label in [selected_label, "PUNC"] and i not in self.consumed
         ]
 
         # If idx is empty or all the selected idx are PUNC, return None
-        if not idx or all(self.labels[i] == "PUNC" for i in idx):
+        if not label_idx or all(self.labels[i] == "PUNC" for i in label_idx):
             return None
 
         # Join consecutive tokens together and average their score
         parts = []
         confidence_parts = []
-        for group in group_consecutive_idx(idx):
+        starting_index = label_idx[-1]
+        for group in group_consecutive_idx(label_idx):
             idx = list(group)
             idx = self._remove_invalid_indices(idx)
 
@@ -215,6 +216,7 @@ class PostProcessor:
             self.consumed.extend(idx)
             parts.append(joined)
             confidence_parts.append(confidence)
+            starting_index = min(starting_index, idx[0])
 
         # Find the indices of the joined tokens list where the element
         # is the same as the previous element in the list.
@@ -238,6 +240,7 @@ class PostProcessor:
         return IngredientText(
             text=text,
             confidence=round(mean(confidence_parts), 6),
+            starting_index=starting_index,
         )
 
     def _postprocess_amounts(self) -> list[IngredientAmount]:
@@ -478,7 +481,7 @@ class PostProcessor:
 
         QTY_idx = [i for i, label in enumerate(self.labels) if label == "QTY"]
 
-        # Find any cases where a group of consecutuve QTY tokens can be collapsed into
+        # Find any cases where a group of consecutive QTY tokens can be collapsed into
         # a single token. Modify the first token and score in the group and mark all
         # others in group for deletion.
         idx_to_remove = []
@@ -546,7 +549,7 @@ class PostProcessor:
         Parameters
         ----------
         idx : list[int]
-            List of indices of the tokens/labels/scores in the full tokenizsed sentence
+            List of indices of the tokens/labels/scores in the full tokenized sentence
         tokens : list[str]
             Tokens for input sentence
         labels : list[str]
@@ -659,7 +662,7 @@ class PostProcessor:
         * 1 pint 2 fl oz
         * 2 cups plus 1 tablespoon
 
-        Return a compositive amount object made from the adjacent amounts.
+        Return a composite amount object made from the adjacent amounts.
 
         For example, for the sentence: 1 lb 2 oz ...; the composite amount is:
         CompositeAmount(
@@ -673,7 +676,7 @@ class PostProcessor:
         Parameters
         ----------
         idx : list[int]
-            List of indices of the tokens/labels/scores in the full tokenizsed sentence
+            List of indices of the tokens/labels/scores in the full tokenized sentence
         tokens : list[str]
             Tokens for input sentence
         labels : list[str]
@@ -891,7 +894,7 @@ class PostProcessor:
         Parameters
         ----------
         idx : list[int]
-            List of indices of the tokens/labels/scores in the full tokenizsed sentence
+            List of indices of the tokens/labels/scores in the full tokenized sentence
         tokens : list[str]
             Tokens for input sentence
         labels : list[str]
@@ -1009,7 +1012,7 @@ class PostProcessor:
         labels : list[str]
             List of all token labels
         idx : list[int]
-            List of indices of the tokens/labels/scores in the full tokenizsed sentence
+            List of indices of the tokens/labels/scores in the full tokenized sentence
 
         Returns
         -------
@@ -1075,7 +1078,7 @@ class PostProcessor:
         labels : list[str]
             List of all token labels
         idx : list[int]
-            List of indices of the tokens/labels/scores in the full tokenizsed sentence
+            List of indices of the tokens/labels/scores in the full tokenized sentence
 
         Returns
         -------
@@ -1104,7 +1107,7 @@ class PostProcessor:
         if i == len(tokens) - 2:
             return False
 
-        # Case where the amonut is in brackets
+        # Case where the amount is in brackets
         if (
             labels[i] == "UNIT"
             and tokens[i + 1] in [")", "]"]
@@ -1138,7 +1141,7 @@ class PostProcessor:
         labels : list[str]
             List of all token labels
         idx : list[int]
-            List of indices of the tokens/labels/scores in the full tokenizsed sentence
+            List of indices of the tokens/labels/scores in the full tokenized sentence
 
         Returns
         -------

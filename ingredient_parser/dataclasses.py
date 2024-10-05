@@ -48,6 +48,10 @@ class IngredientAmount:
     MULTIPLIER : bool, optional
         When True, indicates the amount is a multiplier e.g. 1x, 2x.
         Default is False.
+    PREPARED_INGREDIENT : bool, optional
+        When True, indicates the amount applies to the prepared ingredient.
+        When False, indicates the amount applies to the ingredient before preparation.
+        Default is False.
     """
 
     quantity: float | str
@@ -60,6 +64,7 @@ class IngredientAmount:
     SINGULAR: bool = False
     RANGE: bool = False
     MULTIPLIER: bool = False
+    PREPARED_INGREDIENT: bool = False
 
 
 @dataclass
@@ -164,10 +169,13 @@ class IngredientText:
     confidence : float
         Confidence of parsed ingredient amount, between 0 and 1.
         This is the average confidence of all tokens that contribute to this object.
+    starting_index : int
+        Index of token in sentence that starts this text
     """
 
     text: str
     confidence: float
+    starting_index: int
 
 
 @dataclass
@@ -182,7 +190,7 @@ class FoudationFood:
     text : str
         Foundation food identified from ingredient name.
     confidence : float
-        Confidence of the identification of the foudnation food, between 0 and 1.
+        Confidence of the identification of the foundation food, between 0 and 1.
         This is the average confidence of all tokens that contribute to this object.
     """
 
@@ -228,6 +236,15 @@ class ParsedIngredient:
     purpose: IngredientText | None
     foundation_foods: list[FoudationFood]
     sentence: str
+
+    def __post_init__(self):
+        """Set PREPARED_INGREDIENT flag for amounts in the preparation instructions
+        are before the name.
+        """
+        if self.name and self.preparation:
+            if self.preparation.starting_index < self.name.starting_index:
+                for amount in self.amount:
+                    amount.PREPARED_INGREDIENT = True
 
 
 @dataclass
