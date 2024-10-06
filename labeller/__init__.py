@@ -265,7 +265,12 @@ def insert_sentences(params: dict[str, str]):
     Response
         Redirection to sentences_by_id page.
     """
-    source = params.get("insert-dataset")
+    # If new dataset ID is set, use that as source. Otherwise use source from dropdown.
+    if params.get("insert-new-dataset", False):
+        source = params.get("insert-new-dataset")
+    else:
+        source = params.get("insert-dataset")
+
     sentences = params.get("insert-sentences", "").splitlines()
     guess_labels = params.get("guess-labels", "") == "on"
 
@@ -276,18 +281,22 @@ def insert_sentences(params: dict[str, str]):
             if not sentence:
                 continue
 
-            ins = inspect_parser(sentence)
+            ins = inspect_parser(sentence, foundation_foods=True)
             tokens = ins.PostProcessor.tokens
             if guess_labels:
                 labels = ins.PostProcessor.labels
+
+                ff_tokens = " ".join(ff.text for ff in ins.foundation_foods)
+                ff = [idx for idx, token in enumerate(tokens) if token in ff_tokens]
             else:
                 labels = [""] * len(tokens)
+                ff = []
 
             c.execute(
                 """
-                INSERT INTO en (source, sentence, tokens, labels) 
-                VALUES (?, ?, ?, ?)""",
-                (source, sentence, tokens, labels),
+                INSERT INTO en (source, sentence, tokens, labels, foundation_foods) 
+                VALUES (?, ?, ?, ?, ?)""",
+                (source, sentence, tokens, labels, ff),
             )
             indices.append(str(c.lastrowid))
 
