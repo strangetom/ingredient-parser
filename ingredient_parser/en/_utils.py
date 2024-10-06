@@ -50,6 +50,7 @@ UNIT_REPLACEMENTS = [
     (re.compile(r"\b(fluid ounce)\b"), "fluid_ounce"),
     (re.compile(r"\b(C)\b"), "cup"),
     (re.compile(r"\b(c)\b"), "cup"),
+    (re.compile(r"\b(qt)\b"), "quart"),
     (re.compile(r"\b(Cl)\b"), "centiliter"),
     (re.compile(r"\b(G)\b"), "gram"),
     (re.compile(r"\b(Ml)\b"), "milliliter"),
