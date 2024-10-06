@@ -418,6 +418,7 @@ APPROXIMATE_TOKENS = [
     "approximately",
     "nearly",
     "roughly",
+    "~",
 ]
 # Tokens that indicate an amount is singular
 SINGULAR_TOKENS = ["each"]
