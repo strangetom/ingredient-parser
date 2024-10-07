@@ -238,12 +238,19 @@ class ParsedIngredient:
     sentence: str
 
     def __post_init__(self):
-        """Set PREPARED_INGREDIENT flag for amounts in the preparation instructions
-        are before the name.
+        """Set PREPARED_INGREDIENT flag for amounts.
+
+        The flag is set if:
+         * the preparation instructions are before the name, and
+         * the amount is before the preparation instructions
         """
         if self.name and self.preparation:
-            if self.preparation.starting_index < self.name.starting_index:
-                for amount in self.amount:
+            for amount in self.amount:
+                if (
+                    amount.starting_index
+                    < self.preparation.starting_index
+                    < self.name.starting_index
+                ):
                     amount.PREPARED_INGREDIENT = True
 
 
