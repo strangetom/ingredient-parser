@@ -243,6 +243,9 @@ class ParsedIngredient:
         The flag is set if:
          * the preparation instructions are before the name, and
          * the amount is before the preparation instructions
+        or
+         * the amount is after the preparation instruction, and
+         * the preparation instruction is after the name
         """
         if self.name and self.preparation:
             for amount in self.amount:
@@ -250,6 +253,10 @@ class ParsedIngredient:
                     amount.starting_index
                     < self.preparation.starting_index
                     < self.name.starting_index
+                ) or (
+                    self.name.starting_index
+                    < self.preparation.starting_index
+                    < amount.starting_index
                 ):
                     amount.PREPARED_INGREDIENT = True
 
