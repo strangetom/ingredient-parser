@@ -116,7 +116,7 @@ def validate_duplicate_sentences(rows: list[dict]) -> int:
             uids = uids_dict[sentence]
             unpacked_labels = [labs.split("|") for labs in labels]
 
-            print(f"[ERROR] ID: {','.join(uids)}")
+            print(f"[ERROR] ID: {','.join([str(uid) for uid in uids])}")
             print("\tDuplicate sentences have different labels")
             print(f"\t{unpacked_labels}")
 
