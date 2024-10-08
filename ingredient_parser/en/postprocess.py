@@ -575,6 +575,7 @@ class PostProcessor:
             "bag",
             "block",
             "box",
+            "bucket",
             "can",
             "container",
             "envelope",
