@@ -693,6 +693,10 @@ class PreProcessor:
         >>> p._is_numeric("beef")
         False
         """
+        if token in ["00"]:
+            # Special cases of digits that don't represent numbers
+            return False
+
         if token.lower() in STRING_NUMBERS.keys():
             return True
 
