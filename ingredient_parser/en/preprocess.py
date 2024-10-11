@@ -598,6 +598,9 @@ class PreProcessor:
         for token, tag in pos_tag([t.lower() for t in tokens]):
             if self._is_numeric(token):
                 tag = "CD"
+            elif token in ["c", "g"]:
+                # Special cases for c (cup) and g (gram)
+                tag = "NN"
             tags.append(tag)
         return tags
 
