@@ -41,6 +41,7 @@ UNITS = {
     "fl": "fl",
     "floz": "floz",
     "g": "g",
+    "gm": "gm",
     "gallons": "gallon",
     "glasses": "glass",
     "grams": "gram",
@@ -118,9 +119,9 @@ _capitalized_units = {}
 for plural, singular in UNITS.items():
     _capitalized_units[plural.capitalize()] = singular.capitalize()
 UNITS = UNITS | _capitalized_units
-# Create a flattened list of all keys and values in UNITS dict
+# Create a flattened set of all keys and values in UNITS dict
 # since we need this in a few places
-FLATTENED_UNITS_LIST = list(chain.from_iterable(UNITS.items()))
+FLATTENED_UNITS_LIST = set(chain.from_iterable(UNITS.items()))
 
 # Words that can modify a unit
 UNIT_MODIFIERS = [

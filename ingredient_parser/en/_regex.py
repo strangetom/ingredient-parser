@@ -13,14 +13,16 @@ FRACTION_PARTS_PATTERN = re.compile(r"(\d*\s*\d/\d+)")
 CAPITALISED_PATTERN = re.compile(r"^[A-Z]")
 
 # Regex pattern for finding quantity and units without space between them.
-# Add additional strings to units list that aren't necessarily units, but we want to
+# Add additional strings to units set that aren't necessarily units, but we want to
 # treat them like units for the purposes of splitting quantities from units.
-units_list = FLATTENED_UNITS_LIST + ["in", "x"]
+units_list = FLATTENED_UNITS_LIST | {"in", "x"}
 # The negative lookahead at the end of QUANTITY_UNITS_PATTERN is there specifically
 # to handle units like 'c' where it could be the start of another word. We have to
 # check that the next character after the unit is *not* another letter in order
 # to match.
-QUANTITY_UNITS_PATTERN = re.compile(rf"(\d)\-?({'|'.join(units_list)})(?![a-zA-Z])")
+# "x" is excluded from the possible following characters to allow constructs
+# like 2cmx2cm.
+QUANTITY_UNITS_PATTERN = re.compile(rf"(\d)\-?({'|'.join(units_list)})(?![a-wyzA-WYZ])")
 UNITS_QUANTITY_PATTERN = re.compile(rf"({'|'.join(units_list)})(\d)")
 UNITS_HYPHEN_QUANTITY_PATTERN = re.compile(rf"({'|'.join(units_list)})\-(\d)")
 STRING_QUANTITY_HYPHEN_PATTERN = re.compile(
