@@ -575,6 +575,7 @@ class PostProcessor:
             "bag",
             "block",
             "box",
+            "bucket",
             "can",
             "container",
             "envelope",
@@ -696,6 +697,7 @@ class PostProcessor:
         patterns = {
             "ptfloz": {
                 "pattern": ["QTY", "UNIT", "QTY", "UNIT", "UNIT"],
+                "conjunction": None,
                 "start1": 0,
                 "start2": 2,
                 "join": "",
@@ -703,6 +705,7 @@ class PostProcessor:
             },
             "lboz": {
                 "pattern": ["QTY", "UNIT", "QTY", "UNIT"],
+                "conjunction": None,
                 "start1": 0,
                 "start2": 2,
                 "join": "",
@@ -710,13 +713,31 @@ class PostProcessor:
             },
             "plus": {
                 "pattern": ["QTY", "UNIT", "COMMENT", "QTY", "UNIT"],
+                "conjunction": "plus",
                 "start1": 0,
                 "start2": 3,
                 "join": " plus ",
                 "subtractive": False,
             },
+            "and": {
+                "pattern": ["QTY", "UNIT", "COMMENT", "QTY", "UNIT"],
+                "conjunction": "and",
+                "start1": 0,
+                "start2": 3,
+                "join": " and ",
+                "subtractive": False,
+            },
+            "plus_punc": {
+                "pattern": ["QTY", "UNIT", "PUNC", "QTY", "UNIT"],
+                "conjunction": "+",
+                "start1": 0,
+                "start2": 3,
+                "join": " + ",
+                "subtractive": False,
+            },
             "minus": {
                 "pattern": ["QTY", "UNIT", "COMMENT", "QTY", "UNIT"],
+                "conjunction": "minus",
                 "start1": 0,
                 "start2": 3,
                 "join": " minus ",
@@ -724,6 +745,7 @@ class PostProcessor:
             },
             "less": {
                 "pattern": ["QTY", "UNIT", "COMMENT", "QTY", "UNIT"],
+                "conjunction": "less",
                 "start1": 0,
                 "start2": 3,
                 "join": " minus ",
@@ -748,7 +770,7 @@ class PostProcessor:
                 labels, pattern, ignore_other_labels=False
             ):
                 # Check if match fits with "ptfloz" or "lboz" pattern constraints
-                if pattern_name in ["pltfloz", "lboz"]:
+                if pattern_name in ["ptfloz", "lboz"]:
                     first_unit = tokens[match[start1 + 1]]
                     last_unit = tokens[match[-1]]
                     if (
@@ -759,12 +781,10 @@ class PostProcessor:
                         # ptfloz or lboz patterns, so skip
                         continue
 
-                # Check if match fits with plus/minus/less pattern constraints
-                if pattern_name in ["plus", "minus", "less"]:
-                    if tokens[match[2]].lower() != pattern_name:
-                        # Middle token with COMMENT label is not same as name of pattern
-                        # so skip.
-                        continue
+                # For other patterns, check if third token in match matches conjunction
+                # and skip if not.
+                elif tokens[match[2]].lower() != pattern_info["conjunction"]:
+                    continue
 
                 # First amount
                 quantity_1 = tokens[match[start1]]

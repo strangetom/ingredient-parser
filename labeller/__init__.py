@@ -287,7 +287,11 @@ def insert_sentences(params: dict[str, str]):
                 labels = ins.PostProcessor.labels
 
                 ff_tokens = " ".join(ff.text for ff in ins.foundation_foods)
-                ff = [idx for idx, token in enumerate(tokens) if token in ff_tokens]
+                ff = [
+                    idx
+                    for idx, (token, label) in enumerate(zip(tokens, labels))
+                    if token in ff_tokens and label == "NAME"
+                ]
             else:
                 labels = [""] * len(tokens)
                 ff = []

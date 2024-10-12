@@ -91,7 +91,7 @@ def deduplicate_foundation_foods(
 
     seen_foods = defaultdict(list)
     for ff in foundation_foods:
-        seen_foods[ff.text].append(ff.confidence)
+        seen_foods[ff.text.lower()].append(ff.confidence)
 
     return [
         FoudationFood(name, mean(confidences))

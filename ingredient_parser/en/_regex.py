@@ -16,7 +16,11 @@ CAPITALISED_PATTERN = re.compile(r"^[A-Z]")
 # Add additional strings to units list that aren't necessarily units, but we want to
 # treat them like units for the purposes of splitting quantities from units.
 units_list = FLATTENED_UNITS_LIST + ["in", "x"]
-QUANTITY_UNITS_PATTERN = re.compile(rf"(\d)\-?({'|'.join(units_list)})")
+# The negative lookahead at the end of QUANTITY_UNITS_PATTERN is there specifically
+# to handle units like 'c' where it could be the start of another word. We have to
+# check that the next character after the unit is *not* another letter in order
+# to match.
+QUANTITY_UNITS_PATTERN = re.compile(rf"(\d)\-?({'|'.join(units_list)})(?![a-zA-Z])")
 UNITS_QUANTITY_PATTERN = re.compile(rf"({'|'.join(units_list)})(\d)")
 UNITS_HYPHEN_QUANTITY_PATTERN = re.compile(rf"({'|'.join(units_list)})\-(\d)")
 STRING_QUANTITY_HYPHEN_PATTERN = re.compile(
