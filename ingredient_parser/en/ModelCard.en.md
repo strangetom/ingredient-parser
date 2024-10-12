@@ -96,7 +96,7 @@ There are 4 datasets used to train and evaluate model performance.
 
 5. Tastecooking, scraped in September 2024
 
-   All 6319 sentences are used in the training and evaluation of the model.
+   All 6318 sentences are used in the training and evaluation of the model.
 
 
 All datasets have been through extensive cleaning to make the data consistent. The cleaned versions of the data are found in the repository for the ingredient_parser_nlp package: https://github.com/strangetom/ingredient-parser
