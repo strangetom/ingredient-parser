@@ -80,7 +80,7 @@ The replacements are predefined in a dictionary.
 For performance reasons, the regular expressions used to substitute the text with the number are pre-compiled and provided in the ``STRING_NUMBERS_REGEXES`` constant, which is a dictionary where the value is a tuple of (pre-compiled regular expression, substitute value).
 
 .. literalinclude:: ../../../ingredient_parser/en/_constants.py
-    :lines: 156-188
+    :lines: 163-195
 
 .. literalinclude:: ../../../ingredient_parser/en/postprocess.py
     :pyobject: PostProcessor._replace_string_numbers

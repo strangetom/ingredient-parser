@@ -15,20 +15,12 @@ we want to extract information about the quantity, units, name, preparation and 
       - Unit
       - Name
       - Preparation
-      - Comment
     * - 200
       - g
       - plain flour
       - sifted
-      -
 
-This package uses a Conditional Random Fields model trained on 60,000 example ingredient sentences. The model has been trained on data from three sources:
-
-* The New York Times released a large dataset when they did some similar work in 2015 in their `Ingredient Phrase Tagger <https://github.com/nytimes/ingredient-phrase-tagger>`_ repository.
-* A dump of recipes taken from Cookstr in 2017.
-* A dump of recipe taken from BBC Food in 2017.
-
-More information on how the model is trained and the output interpreted can be found in the :doc:`Model Guide </guide/index>`.
+This package uses a Conditional Random Fields model trained on ~80,000 example ingredient sentences to identify the parts of an ingredient sentence. More information on how the model is trained and the output interpreted can be found in the :doc:`Model Guide </guide/index>`.
 
 Installation
 ^^^^^^^^^^^^
