@@ -30,6 +30,7 @@ from ._regex import (
 )
 from ._utils import (
     combine_quantities_split_by_and,
+    is_unit_synonym,
     replace_string_range,
     stem,
     tokenize,
@@ -464,7 +465,7 @@ class PreProcessor:
 
         for full_match, quantity1, unit1, quantity2, unit2 in matches:
             # We are only interested if the both captured units are the same
-            if unit1 != unit2:
+            if not is_unit_synonym(unit1, unit2):
                 continue
 
             # If capture unit not in units list, abort
@@ -807,6 +808,23 @@ class PreProcessor:
             if start < index < end:
                 return True
 
+        return False
+
+    def _is_example(self, index: int) -> bool:
+        """Return True is the token is part of an example in the sentence.
+
+        Examples are indicated using phrases like "such as", "for example"
+
+        Parameters
+        ----------
+        index : int
+            Index of token to check
+
+        Returns
+        -------
+        bool
+            True if index is part of an example, else False
+        """
         return False
 
     def _is_ambiguous_unit(self, token: str) -> bool:

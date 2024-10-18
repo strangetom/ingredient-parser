@@ -2,6 +2,7 @@ from ingredient_parser.en._utils import (
     UREG,
     combine_quantities_split_by_and,
     convert_to_pint_unit,
+    is_unit_synonym,
     pluralise_units,
     replace_string_range,
 )
@@ -200,3 +201,17 @@ class Test_replace_string_range:
         """
         input_sentence = "Type 1 or 00 flour"
         assert replace_string_range(input_sentence) == "Type 1 or 00 flour"
+
+
+class Test_is_unit_synonym:
+    def test_singular(self):
+        assert is_unit_synonym("oz", "ounce")
+
+    def test_plural_singular(self):
+        assert is_unit_synonym("cups", "c")
+
+    def test_plural(self):
+        assert is_unit_synonym("lbs", "pounds")
+
+    def test_not_synonym(self):
+        assert not is_unit_synonym("kg", "gram")

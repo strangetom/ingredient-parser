@@ -10,7 +10,7 @@ import pint
 
 from .._common import download_nltk_resources, is_float, is_range
 from ..dataclasses import IngredientAmount
-from ._constants import UNITS
+from ._constants import FLATTENED_UNITS_LIST, UNIT_SYNONYMS, UNITS
 from ._regex import FRACTION_SPLIT_AND_PATTERN, STRING_RANGE_PATTERN
 
 UREG = pint.UnitRegistry()
@@ -234,6 +234,50 @@ def convert_to_pint_unit(unit: str, imperial_units: bool = False) -> str | pint.
         return UREG(unit).units
 
     return unit
+
+
+def is_unit_synonym(unit1: str, unit2: str) -> bool:
+    """Check if given units are synonyms.
+
+    Parameters
+    ----------
+    unit1 : str
+        First unit to check.
+    unit2 : str
+        Second unit to check.
+
+    Returns
+    -------
+    bool
+        True if units are synonyms.
+
+    Examples
+    --------
+    >>> is_unit_synonym("oz", "ounce")
+    True
+
+    >>> is_unit_synonym("cups", "c")
+    True
+
+    >>> is_unit_synonym("kg", "g")
+    False
+    """
+    # If not in units list, then cannot be unit synonyms
+    if unit1 not in FLATTENED_UNITS_LIST or unit2 not in FLATTENED_UNITS_LIST:
+        return False
+
+    # Make singular if plural
+    if unit1 in UNITS.keys():
+        unit1 = UNITS[unit1]
+
+    if unit2 in UNITS.keys():
+        unit2 = UNITS[unit2]
+
+    for synonyms in UNIT_SYNONYMS:
+        if unit1 in synonyms and unit2 in synonyms:
+            return True
+
+    return False
 
 
 def combine_quantities_split_by_and(text: str) -> str:

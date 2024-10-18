@@ -427,3 +427,16 @@ APPROXIMATE_TOKENS = [
 ]
 # Tokens that indicate an amount is singular
 SINGULAR_TOKENS = ["each"]
+
+# List of sets, where each set contains the synonyms that represent the same unit.
+UNIT_SYNONYMS = [
+    {"cup", "c"},
+    {"gram", "g", "gm"},
+    {"kilogram", "kg"},
+    {"litre", "liter", "l"},
+    {"ounce", "oz"},
+    {"pound", "lb"},
+    {"quart", "qt"},
+    {"tablespoon", "tbsp", "tbs", "tb"},
+    {"teaspoon", "tsp"},
+]
