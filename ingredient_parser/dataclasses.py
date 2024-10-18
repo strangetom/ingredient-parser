@@ -241,11 +241,15 @@ class ParsedIngredient:
         """Set PREPARED_INGREDIENT flag for amounts.
 
         The flag is set if:
-         * the preparation instructions are before the name, and
-         * the amount is before the preparation instructions
-        or
-         * the amount is after the preparation instruction, and
-         * the preparation instruction is after the name
+         * the amount is before the preparation instructions AND
+         * the preparation instructions are before the name
+        e.g. 100 g sifted flour
+
+        OR
+         * the preparation instruction is after the name AND
+         * the amount is after the preparation instruction
+        e.g. Onion, thinly sliced (about 1 cup)
+
         """
         if self.name and self.preparation:
             for amount in self.amount:

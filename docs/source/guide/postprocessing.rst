@@ -63,7 +63,8 @@ For most cases, the amounts are determined by combining a QTY label with the fol
                   APPROXIMATE=False,
                   SINGULAR=False,
                   RANGE=False,
-                  MULTIPLIER=False),
+                  MULTIPLIER=False,
+                  PREPARED_INGREDIENT=False),
         IngredientAmount(quantity=170.0,
                   quantity_max=170.0,
                   unit=<Unit('gram')>,
@@ -72,7 +73,8 @@ For most cases, the amounts are determined by combining a QTY label with the fol
                   APPROXIMATE=False,
                   SINGULAR=False,
                   RANGE=False,
-                  MULTIPLIER=False)
+                  MULTIPLIER=False,
+                  PREPARED_INGREDIENT=False)
     ]
 
 Tokens with the QTY label that are numbers represented in textual form e.g. "one", "two" are replaced with numeric forms.
@@ -116,7 +118,8 @@ By default, US customary units are used where a unit has more than one definitio
                                  APPROXIMATE=False,
                                  SINGULAR=False,
                                  RANGE=False,
-                                 MULTIPLIER=False)],
+                                 MULTIPLIER=False,
+                                 PREPARED_INGREDIENT=False)],
         preparation=None,
         comment=None,
         sentence='3/4 cup heavy cream'
@@ -134,7 +137,8 @@ By default, US customary units are used where a unit has more than one definitio
                                  APPROXIMATE=False,
                                  SINGULAR=False,
                                  RANGE=False,
-                                 MULTIPLIER=False)],
+                                 MULTIPLIER=False,
+                                 PREPARED_INGREDIENT=False)],
         preparation=None,
         comment=None,
         sentence='3/4 cup heavy cream'
@@ -197,7 +201,8 @@ There are some particular cases where the combination of QTY and UNIT labels tha
                       APPROXIMATE=False,
                       SINGULAR=False,
                       RANGE=False,
-                      MULTIPLIER=False),
+                      MULTIPLIER=False,
+                      PREPARED_INGREDIENT=False),
      IngredientAmount(quantity=14.0,
                       quantity_max=14.0,
                       unit=<Unit('ounce')>,
@@ -206,7 +211,8 @@ There are some particular cases where the combination of QTY and UNIT labels tha
                       APPROXIMATE=False,
                       SINGULAR=True,
                       RANGE=False,
-                      MULTIPLIER=False)]
+                      MULTIPLIER=False,
+                      PREPARED_INGREDIENT=False)]
 
 
 Identifying and handling this pattern of QTY and UNIT labels is done by the :func:`PostProcessor._sizable_unit_pattern()` function.
@@ -228,7 +234,8 @@ A second case is where the full amount is made up of more than one quantity-unit
                              APPROXIMATE=False,
                              SINGULAR=False,
                              RANGE=False,
-                             MULTIPLIER=False),
+                             MULTIPLIER=False,
+                             PREPARED_INGREDIENT=False),
             IngredientAmount(quantity=2.0,
                              quantity_max=2.0,
                              unit=<Unit('ounce')>,
@@ -238,7 +245,8 @@ A second case is where the full amount is made up of more than one quantity-unit
                              APPROXIMATE=False,
                              SINGULAR=False,
                              RANGE=False,
-                             MULTIPLIER=False)],
+                             MULTIPLIER=False,
+                             PREPARED_INGREDIENT=False)],
         join='',
         subtractive=False,
         text='1 lb 2 oz',
