@@ -457,6 +457,10 @@ class PreProcessor:
         >>> p = PreProcessor("")
         >>> p._replace_dupe_units_ranges("400-500 g/14 oz - 17 oz rhubarb")
         "400-500 g/14-17 oz rhubarb"
+
+        >>> p = PreProcessor("")
+        >>> p._replace_dupe_units_ranges("0.5 c to 1 cup shelled raw pistachios")
+        "0.5-1 c shell raw pistachios"
         """
         matches = DUPE_UNIT_RANGES_PATTERN.findall(sentence)
 
