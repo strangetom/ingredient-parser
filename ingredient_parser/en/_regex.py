@@ -72,15 +72,15 @@ FRACTION_SPLIT_AND_PATTERN = re.compile(r"((\d+)\sand\s(\d/\d+))")
 DUPE_UNIT_RANGES_PATTERN = re.compile(
     r"""
     (
-        ([\d\.]+)    # Capture decimal number
-        \s           # Space
-        ([a-zA-Z]+)  # Capture text string (possible unit)
-        \s           # Space
-        (?:\-|to|or) # Hyphen, 'to' or 'or'
-        \s           # Space
-        ([\d\.]+)    # Capture decimal number
-        \s           # Space
-        ([a-zA-Z]+)  # Capture text string (possible unit)
+        ([\d\.\#\$]+)  # Capture decimal number or fake fraction
+        \s             # Space
+        ([a-zA-Z]+)    # Capture text string (possible unit)
+        \s             # Space
+        (?:\-|to|or)   # Hyphen, 'to' or 'or'
+        \s             # Space
+        ([\d\.\#\$]+)  # Capture decimal number or fake fraction
+        \s             # Space
+        ([a-zA-Z]+)    # Capture text string (possible unit)
     )
     """,
     re.I | re.VERBOSE,
@@ -90,7 +90,7 @@ DUPE_UNIT_RANGES_PATTERN = re.compile(
 # e.g. 0.5 x, 1 x, 2 x. The number is captured in a capture group.
 QUANTITY_X_PATTERN = re.compile(
     r"""
-    ([\d\.]+)   # Capture decimal number
+    ([\d\.\#\$]+)   # Capture decimal number or fake fraction
     \s          # Space
     [xX]        # Character 'x' or 'X'
     \s*         # Optional space
@@ -100,8 +100,16 @@ QUANTITY_X_PATTERN = re.compile(
 
 # Regex pattern to match a range that has spaces between the numbers and hyphen
 # e.g. 0.5 - 1. The numbers are captured in capture groups.
-EXPANDED_RANGE = re.compile(r"(\d)\s*\-\s*(\d)")
+# Allow the second number to start with # to catch fake fractions
+# e.g. #1$4 - #1$2.
+EXPANDED_RANGE = re.compile(r"(\d)\s*\-\s*([\d\#])")
 
 LOWERCASE_PATTERN = re.compile(r"[a-z]")
 UPPERCASE_PATTERN = re.compile(r"[A-Z]")
 DIGIT_PATTERN = re.compile(r"[0-9]")
+
+# Regex pattern to match a fraction token.
+# This is a token for a fake fraction where the forward slash has been replaced by $ and
+# any space between the whole part and fraction part has been replaced by #
+# e.g. #1$2 for 1/2, or 1#1$3 for 1 1/3
+FRACTION_TOKEN_PATTERN = re.compile(r"\d*\#\d\$\d+")

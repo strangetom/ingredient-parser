@@ -11,8 +11,8 @@ class TestPreProcessor__builtins__:
         p = PreProcessor("1/2 cup chicken broth")
         truth = """Pre-processed recipe ingredient sentence
 \t    Input: 1/2 cup chicken broth
-\t  Cleaned: 0.5 cup chicken broth
-\tTokenized: ['0.5', 'cup', 'chicken', 'broth']"""
+\t  Cleaned: #1$2 cup chicken broth
+\tTokenized: ['#1$2', 'cup', 'chicken', 'broth']"""
         assert str(p) == truth
 
     def test__repr__(self):
@@ -34,13 +34,13 @@ class TestPreProcessor__builtins__:
 _replace_html_fractions: 1/2 cup chicken broth
 _replace_unicode_fractions: 1/2 cup chicken broth
 combine_quantities_split_by_and: 1/2 cup chicken broth
-_replace_fake_fractions: 0.5 cup chicken broth
-_split_quantity_and_units: 0.5 cup chicken broth
-_remove_unit_trailing_period: 0.5 cup chicken broth
-replace_string_range: 0.5 cup chicken broth
-_replace_dupe_units_ranges: 0.5 cup chicken broth
-_merge_quantity_x: 0.5 cup chicken broth
-_collapse_ranges: 0.5 cup chicken broth
+_identify_fake_fractions: #1$2 cup chicken broth
+_split_quantity_and_units: #1$2 cup chicken broth
+_remove_unit_trailing_period: #1$2 cup chicken broth
+replace_string_range: #1$2 cup chicken broth
+_replace_dupe_units_ranges: #1$2 cup chicken broth
+_merge_quantity_x: #1$2 cup chicken broth
+_collapse_ranges: #1$2 cup chicken broth
 """
         )
 
@@ -52,8 +52,8 @@ def normalise_test_cases() -> list[tuple[str, ...]]:
     PreProcessor functions.
     """
     return [
-        ("&frac12; cup warm water (105°F)", "0.5 cup warm water (105°F)"),
-        ("3 1/2 chilis anchos", "3.5 chilis anchos"),
+        ("&frac12; cup warm water (105°F)", "#1$2 cup warm water (105°F)"),
+        ("3 1/2 chilis anchos", "3#1$2 chilis anchos"),
         ("six eggs", "six eggs"),
         ("thumbnail-size piece ginger", "thumbnail-size piece ginger"),
         (
@@ -63,14 +63,14 @@ def normalise_test_cases() -> list[tuple[str, ...]]:
         ("3–4 sirloin steaks", "3-4 sirloin steaks"),
         ("three large onions", "three large onions"),
         ("twelve bonbons", "twelve bonbons"),
-        ("1&frac34; cups tomato ketchup", "1.75 cups tomato ketchup"),
-        ("1/2 cup icing sugar", "0.5 cup icing sugar"),
-        ("2 3/4 pound chickpeas", "2.75 pound chickpeas"),
-        ("1 and 1/2 tsp fine grain sea salt", "1.5 tsp fine grain sea salt"),
-        ("1 and 1/4 cups dark chocolate morsels", "1.25 cups dark chocolate morsels"),
-        ("½ cup icing sugar", "0.5 cup icing sugar"),
-        ("3⅓ cups warm water", "3.333 cups warm water"),
-        ("¼-½ teaspoon", "0.25-0.5 teaspoon"),
+        ("1&frac34; cups tomato ketchup", "1#3$4 cups tomato ketchup"),
+        ("1/2 cup icing sugar", "#1$2 cup icing sugar"),
+        ("2 3/4 pound chickpeas", "2#3$4 pound chickpeas"),
+        ("1 and 1/2 tsp fine grain sea salt", "1#1$2 tsp fine grain sea salt"),
+        ("1 and 1/4 cups dark chocolate morsels", "1#1$4 cups dark chocolate morsels"),
+        ("½ cup icing sugar", "#1$2 cup icing sugar"),
+        ("3⅓ cups warm water", "3#1$3 cups warm water"),
+        ("¼-½ teaspoon", "#1$4-#1$2 teaspoon"),
         ("100g green beans", "100 g green beans"),
         ("2-pound red peppers, sliced", "2 pound red peppers, sliced"),
         ("2lb1oz cherry tomatoes", "2 lb 1 oz cherry tomatoes"),
@@ -85,7 +85,7 @@ def normalise_test_cases() -> list[tuple[str, ...]]:
         ("4 x 100 g wild salmon fillet", "4x 100 g wild salmon fillet"),
         (
             "½ - ¾ cup heavy cream, plus extra for brushing the tops of the scones",
-            "0.5-0.75 cup heavy cream, plus extra for brushing the tops of the scones",
+            "#1$2-#3$4 cup heavy cream, plus extra for brushing the tops of the scones",
         ),
     ]
 

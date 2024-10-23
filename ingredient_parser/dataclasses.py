@@ -2,6 +2,7 @@
 
 import operator
 from dataclasses import dataclass, field
+from fractions import Fraction
 from functools import reduce
 from statistics import mean
 from typing import Any
@@ -137,7 +138,7 @@ class CompositeIngredientAmount:
         # Check amounts are compatible for combination
         for amount in self.amounts:
             if not (
-                isinstance(amount.quantity, float)
+                isinstance(amount.quantity, (float, Fraction))
                 and isinstance(amount.unit, pint.Unit)
             ):
                 q_type = type(amount.quantity).__name__
@@ -154,7 +155,10 @@ class CompositeIngredientAmount:
         else:
             op = operator.add
 
-        return reduce(op, (amount.quantity * amount.unit for amount in self.amounts))  # type: ignore
+        # Force quantity to float in case it's a Fraction
+        return reduce(
+            op, (float(amount.quantity) * amount.unit for amount in self.amounts)
+        )  # type: ignore
 
 
 @dataclass

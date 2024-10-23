@@ -119,31 +119,31 @@ class Test_convert_to_pint_unit:
 class Testcombine_quantities_split_by_and:
     def test_half(self):
         """
-        "1 and 1/2" is replaced by 1.5
+        "1 and 1/2" is replaced by 1#1$2
         """
         input_sentence = "1 and 1/2 tsp salt"
-        assert combine_quantities_split_by_and(input_sentence) == "1.5 tsp salt"
+        assert combine_quantities_split_by_and(input_sentence) == "1#1$2 tsp salt"
 
     def test_quarter(self):
         """
-        "1 and 1/4" is replaced by 1.25
+        "1 and 1/4" is replaced by 1#1$4
         """
         input_sentence = "1 and 1/4 tsp salt"
-        assert combine_quantities_split_by_and(input_sentence) == "1.25 tsp salt"
+        assert combine_quantities_split_by_and(input_sentence) == "1#1$4 tsp salt"
 
     def test_three_quarters(self):
         """
-        "1 and 3/4" is replaced by 1.75
+        "1 and 3/4" is replaced by 1#3$4
         """
         input_sentence = "1 and 3/4 tsp salt"
-        assert combine_quantities_split_by_and(input_sentence) == "1.75 tsp salt"
+        assert combine_quantities_split_by_and(input_sentence) == "1#3$4 tsp salt"
 
     def test_third(self):
         """
-        "1 and 1/3" is replaced by 1.333
+        "1 and 1/3" is replaced by 1#1$3
         """
         input_sentence = "1 and 1/3 tsp salt"
-        assert combine_quantities_split_by_and(input_sentence) == "1.333 tsp salt"
+        assert combine_quantities_split_by_and(input_sentence) == "1#1$3 tsp salt"
 
 
 class Test_replace_string_range:

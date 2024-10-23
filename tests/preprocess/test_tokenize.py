@@ -145,3 +145,10 @@ class TestTokenize:
         """
         sentence = "2 onions, finely chopped*"
         assert tokenize(sentence) == ["2", "onions", ",", "finely", "chopped", "*"]
+
+    def test_fake_fraction(self):
+        """
+        Test fake fraction is no separated.
+        """
+        sentence = "#1$2 cups milk"
+        assert tokenize(sentence) == ["#1$2", "cups", "milk"]

@@ -2,7 +2,6 @@
 
 import string
 import unicodedata
-from fractions import Fraction
 from html import unescape
 
 from nltk import pos_tag
@@ -20,6 +19,7 @@ from ._regex import (
     DUPE_UNIT_RANGES_PATTERN,
     EXPANDED_RANGE,
     FRACTION_PARTS_PATTERN,
+    FRACTION_TOKEN_PATTERN,
     LOWERCASE_PATTERN,
     QUANTITY_UNITS_PATTERN,
     QUANTITY_X_PATTERN,
@@ -197,7 +197,7 @@ class PreProcessor:
             self._replace_html_fractions,
             self._replace_unicode_fractions,
             combine_quantities_split_by_and,
-            self._replace_fake_fractions,
+            self._identify_fractions,
             self._split_quantity_and_units,
             self._remove_unit_trailing_period,
             replace_string_range,
@@ -260,10 +260,12 @@ class PreProcessor:
         """
         return unescape(sentence)
 
-    def _replace_fake_fractions(self, sentence: str) -> str:
-        """Attempt to parse fractions from sentence and convert to decimal.
+    def _identify_fractions(self, sentence: str) -> str:
+        """Identify fractions and modify them so that they are do not get split by
+        the tokenizer.
 
-        This looks for fractions with the format of 1/2, 1/4, 1 1/2 etc.
+        This looks for fractions with the format of 1/2, 1/4, 1 1/2 etc. and replaces
+        the forward slash with $ and inserts a # before the fractional part.
 
         Parameters
         ----------
@@ -278,16 +280,16 @@ class PreProcessor:
         Examples
         --------
         >>> p = PreProcessor("")
-        >>> p._replace_fake_fractions("1/2 cup icing sugar")
-        "0.5 cup icing sugar"
+        >>> p._identify_fractions("1/2 cup icing sugar")
+        "#1$2 cup icing sugar"
 
         >>> p = PreProcessor("")
-        >>> p._replace_fake_fractions("2 3/4 pound chickpeas")
-        "2.75 pound chickpeas"
+        >>> p._identify_fractions("2 3/4 pound chickpeas")
+        "2#3$4 pound chickpeas"
 
         >>> p = PreProcessor("")
-        >>> p._replace_fake_fractions("1 1⁄2 cups fresh corn")
-        "1.5 cups fresh corn"
+        >>> p._identify_fractions("1 1⁄2 cups fresh corn")
+        "1#1$2 cups fresh corn"
         """
         # Replace unicode FRACTION SLASH (U+2044) with forward slash
         sentence = sentence.replace("\u2044", "/")
@@ -308,10 +310,14 @@ class PreProcessor:
         matches.sort(key=len, reverse=True)
 
         for match in matches:
-            split = match.split()
-            summed = float(sum(Fraction(s) for s in split))
-            rounded = round(summed, 3)
-            sentence = sentence.replace(match, f"{rounded:g}")
+            # Replace / with $
+            replacement = match.replace("/", "$")
+            # If there's a space in the match, replace with #, otherwise prepend #
+            if " " in replacement:
+                replacement = replacement.replace(" ", "#")
+            else:
+                replacement = "#" + replacement
+            sentence = sentence.replace(match, replacement)
 
         return sentence
 
@@ -701,6 +707,10 @@ class PreProcessor:
         if token in ["00"]:
             # Special cases of digits that don't represent numbers
             return False
+
+        if FRACTION_TOKEN_PATTERN.match(token):
+            # Fraction tokens e.g. #1$4 or 1#2$3
+            return True
 
         if token.lower() in STRING_NUMBERS.keys():
             return True

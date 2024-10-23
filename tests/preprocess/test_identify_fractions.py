@@ -11,13 +11,13 @@ def p():
     return PreProcessor("", defer_pos_tagging=True)
 
 
-class TestPreProcessor_replace_fake_fractions:
+class TestPreProcessor_identify_fractions:
     def test_less_than_one(self, p):
         """
         The fake fraction 1/2 is replaced with 0.5
         """
         input_sentence = "1/2 cup sugar"
-        assert p._replace_fake_fractions(input_sentence) == "0.5 cup sugar"
+        assert p._identify_fractions(input_sentence) == "#1$2 cup sugar"
 
     def test_greater_than_one(self, p):
         """
@@ -25,8 +25,8 @@ class TestPreProcessor_replace_fake_fractions:
         """
         input_sentence = "1 pound melted butter, about 3 1/3 cups"
         assert (
-            p._replace_fake_fractions(input_sentence)
-            == "1 pound melted butter, about 3.333 cups"
+            p._identify_fractions(input_sentence)
+            == "1 pound melted butter, about 3#1$3 cups"
         )
 
     def test_no_fraction(self, p):
@@ -34,7 +34,7 @@ class TestPreProcessor_replace_fake_fractions:
         There is no fake fraction in the input
         """
         input_sentence = "pinch of salt"
-        assert p._replace_fake_fractions(input_sentence) == input_sentence
+        assert p._identify_fractions(input_sentence) == input_sentence
 
     def test_leading_space(self, p):
         """
@@ -42,7 +42,7 @@ class TestPreProcessor_replace_fake_fractions:
         The input sentence starts with a space
         """
         input_sentence = " 1/2 cup sugar"
-        assert p._replace_fake_fractions(input_sentence) == " 0.5 cup sugar"
+        assert p._identify_fractions(input_sentence) == " #1$2 cup sugar"
 
     def test_vulgar_fraction(self, p):
         """
@@ -51,6 +51,6 @@ class TestPreProcessor_replace_fake_fractions:
         """
         input_sentence = "1⁄2 x 20g pack fresh thyme, leaves only"
         assert (
-            p._replace_fake_fractions(input_sentence)
-            == "0.5 x 20g pack fresh thyme, leaves only"
+            p._identify_fractions(input_sentence)
+            == "#1$2 x 20g pack fresh thyme, leaves only"
         )
