@@ -35,13 +35,13 @@ STRING_QUANTITY_HYPHEN_PATTERN = re.compile(
 )
 
 # Regex pattern for matching a range in string format e.g. 1 to 2, 8.5 to 12, 4 or 5.
-# Assumes fake fractions and unicode fraction have already been replaced.
+# Assumes fractions have been converted to the #1$2 form.
 # Allows the range to include a hyphen, which are captured in separate groups.
 # Captures the two number in the range in separate capture groups.
 # If a number starts with a zero, it must be followed by decimal point to be matched
 STRING_RANGE_PATTERN = re.compile(
     r"""
-    (0\.[0-9]|[1-9][\d\.]*?|\d*\#\d+\$\d+)  # Capture number.
+    (0\.[0-9]|[1-9][\d\.]*?|\d*\#\d+\$\d+)  # Capture number
     \s*                                     # Optional space
     (\-)?                                   # Optional hyphen
     \s*                                     # Optional space
@@ -100,7 +100,7 @@ QUANTITY_X_PATTERN = re.compile(
 
 # Regex pattern to match a range that has spaces between the numbers and hyphen
 # e.g. 0.5 - 1. The numbers are captured in capture groups.
-# Allow the second number to start with # to catch fake fractions
+# Allow the second number to start with # to catch fractions
 # e.g. #1$4 - #1$2.
 EXPANDED_RANGE = re.compile(r"(\d)\s*\-\s*([\d\#])")
 
@@ -109,7 +109,7 @@ UPPERCASE_PATTERN = re.compile(r"[A-Z]")
 DIGIT_PATTERN = re.compile(r"[0-9]")
 
 # Regex pattern to match a fraction token.
-# This is a token for a fake fraction where the forward slash has been replaced by $ and
+# This is a token for a fraction where the forward slash has been replaced by $ and
 # any space between the whole part and fraction part has been replaced by #
 # e.g. #1$2 for 1/2, or 1#1$3 for 1 1/3
 FRACTION_TOKEN_PATTERN = re.compile(r"^\d*\#\d+\$\d+$")

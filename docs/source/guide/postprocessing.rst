@@ -77,6 +77,47 @@ For most cases, the amounts are determined by combining a QTY label with the fol
                   PREPARED_INGREDIENT=False)
     ]
 
+Quantities
+++++++++++
+
+By default quantities are returned as ``float``, rounded to 3 decimal places. If the ``quantity_fractions`` keyword argument to :func:`parse_ingredient <ingredient_parser.parsers.parse_ingredient>`, then quantities are returned as :class:`fractions.Fraction` objects.
+
+.. code:: python
+
+    >>> parsed = parse_ingredient("1/3 cup oil")
+    >>> parsed.amount
+    [
+        IngredientAmount(quantity=0.333,
+                         quantity_max=0.333,
+                         unit=<Unit('cup')>,
+                         text=' 1/3 cups',
+                         confidence=0.999341,
+                         starting_index=0,
+                         APPROXIMATE=False,
+                         SINGULAR=False,
+                         RANGE=False,
+                         MULTIPLIER=False,
+                         PREPARED_INGREDIENT=False)
+    ]
+
+    >>> parsed = parse_ingredient("1/3 cup oil", quantity_fractions=True)
+    >>> parsed.amount
+    [
+        IngredientAmount(quantity=Fraction(1, 3),
+                         quantity_max=Fraction(1, 3),
+                         unit=<Unit('cup')>,
+                         text=' 1/3 cups',
+                         confidence=0.999341,
+                         starting_index=0,
+                         APPROXIMATE=False,
+                         SINGULAR=False,
+                         RANGE=False,
+                         MULTIPLIER=False,
+                         PREPARED_INGREDIENT=False)
+    ]
+
+
+
 Tokens with the QTY label that are numbers represented in textual form e.g. "one", "two" are replaced with numeric forms.
 The replacements are predefined in a dictionary.
 For performance reasons, the regular expressions used to substitute the text with the number are pre-compiled and provided in the ``STRING_NUMBERS_REGEXES`` constant, which is a dictionary where the value is a tuple of (pre-compiled regular expression, substitute value).
@@ -87,9 +128,6 @@ For performance reasons, the regular expressions used to substitute the text wit
 .. literalinclude:: ../../../ingredient_parser/en/postprocess.py
     :pyobject: PostProcessor._replace_string_numbers
     :dedent: 4
-
-
-Therefore in the example sentence above, there are two amounts identified: **0.75 cups** and **170 g**.
 
 Units
 +++++

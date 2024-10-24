@@ -64,7 +64,7 @@ We have to handle two cases: where the character before the unicode fraction is 
 ``combine_quantities_split_by_and``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Fractional quantities split by 'and' e.g. 1 and 1/2 are replaced by the decimal equivalent.
+Fractional quantities split by 'and' e.g. 1 and 1/2 are converted to the format described in `_identify_fractions`_.
 
 A regular expression is used to find these in the sentence.
 
@@ -75,18 +75,21 @@ A regular expression is used to find these in the sentence.
     :pyobject: combine_quantities_split_by_and
 
 
-``_replace_fake_fractions``
+``_identify_fractions``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Fractions represented in a textual format (e.g. 1/2, 3/4) are replaced with decimals.
+Fractions represented in a textual format (e.g. 1/2, 3/4) are identified and modified so that they survive tokenisation as a single token.
+A regular expression is used to find these in the sentence. The regular expression also matches fractions greater than 1.
 
-A regular expression is used to find these in the sentence. The regular expression also matches fractions greater than 1 (e.g. 1 1/2 is 1.5).
+For fractions less than 1, the foward slash is replaced by ``$`` and a ``#`` is prepended e.g. #1$2 for 1/2.
+
+For fractions greater than 1, the foward slash is replaced by ``$`` and a ``#`` is inserted between the integer and the fraction e.g. 2#3$4 for 2 3/4.
 
 .. literalinclude:: ../../../ingredient_parser/en/_regex.py
     :lines: 7-10
 
 .. literalinclude:: ../../../ingredient_parser/en/preprocess.py
-    :pyobject: PreProcessor._replace_fake_fractions
+    :pyobject: PreProcessor._identify_fractions
     :dedent: 4
 
 
@@ -136,7 +139,10 @@ The purpose of this is to ensure the range is kept as a single token.
 ``_replace_dupe_units_ranges``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Ranges are where the unit is given for both quantities are replaced with the standardised range format, e.g. 5 oz - 8 oz is replaced by 5-8 oz.
+Ranges where the unit is given for both quantities are replaced with the standardised range format, e.g. 5 oz - 8 oz is replaced by 5-8 oz. Cases where the same unit is used, but in a different form (e.g. 5 oz - 8 ounce) are also considered for the unit synonyms defined in ``UNIT_SYNONYMS``.
+
+.. literalinclude:: ../../../ingredient_parser/en/_constants.py
+    :lines: 431-442
 
 .. literalinclude:: ../../../ingredient_parser/en/_regex.py
     :lines: 64-87
@@ -166,7 +172,7 @@ Merge quantities followed by an "x" into a single token, for example:
 Remove any white space surrounding the hyphen in a range
 
 .. literalinclude:: ../../../ingredient_parser/en/_regex.py
-    :lines: 101-103
+    :lines: 101-105
 
 .. literalinclude:: ../../../ingredient_parser/en/preprocess.py
     :pyobject: PreProcessor._collapse_ranges

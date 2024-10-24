@@ -194,7 +194,7 @@ for s, n in STRING_NUMBERS.items():
     # the start of the sentence
     STRING_NUMBERS_REGEXES[s] = (re.compile(rf"\b({s})\b", flags=re.IGNORECASE), n)
 
-# Unicode fractions and their replacements as fake fractions
+# Unicode fractions and their replacements as string fractions
 # Most of the time we need to insert a space in front of the replacement so we don't
 # merge the replacement with the previous token i.e. 1½ != 11/2
 # However, if the prior chaacter is a hyphen, we don't want to insert a space as this

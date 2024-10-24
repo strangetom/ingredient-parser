@@ -19,10 +19,10 @@ class IngredientAmount:
 
     Attributes
     ----------
-    quantity : float | str
+    quantity : float | Fraction | str
         Parsed ingredient quantity, as a float where possible, otherwise a string.
         If the amount if a range, this is the lower limit of the range.
-    quantity_max : float | str
+    quantity_max : float | Fraction | str
         If the amount is a range, this is the upper limit of the range.
         Otherwise, this is the same as the quantity field.
         This is set automatically depending on the type of quantity.
@@ -55,8 +55,8 @@ class IngredientAmount:
         Default is False.
     """
 
-    quantity: float | str
-    quantity_max: float | str
+    quantity: float | Fraction | str
+    quantity_max: float | Fraction | str
     unit: str | pint.Unit
     text: str
     confidence: float

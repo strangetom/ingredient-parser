@@ -176,9 +176,15 @@ The :func:`parse_ingredient <ingredient_parser.parsers.parse_ingredient>` functi
 
   If True, then any :class:`pint.Unit` objects for fluid ounces, cups, pints, quarts or gallons will be the Imperial measurement. The default is False, where the US customary measurements are used.
 
+- ``quantity_fractions``
+
+  If True, then :class:`fractions.Fraction` objects are used for ingredient quantities instead of ``float``. The default is False, where ``float`` is used.
+
+  Note that if a quantity is not numeric, it will always be a ``str``.
+
 - ``foundation_foods``
 
-  If True, foundation foods are extracted from the ingredient name and return as a list in the ``foundation_foods`` field of the :class:`ParsedIngredient` object. See the :doc:`Foundation foods </guide/foundation>` page of the Model Guide for more details. If no foundation foods are identified, the ``foundation_foods`` field will be an empty list. The default is False, where the ``foundation_foods`` field will be an empty list.
+  If True, foundation foods are extracted from the ingredient name and return as a list in the ``foundation_foods`` field of the :class:`ParsedIngredient <ingredient_parser.dataclasses.ParsedIngredient>` object. See the :doc:`Foundation foods </guide/foundation>` page of the Model Guide for more details. If no foundation foods are identified, the ``foundation_foods`` field will be an empty list. The default is False, where the ``foundation_foods`` field will be an empty list.
 
 Multiple ingredient sentences
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

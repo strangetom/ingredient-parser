@@ -61,8 +61,8 @@ class PreProcessor:
     4. | Replace unicode fractions with the equivalent decimal form. Decimals are
        | rounded to a maximum of 3 decimal places.
        | e.g. ½ >> 0.5
-    5. | Replace "fake" fractions represented by 1/2, 2/3 etc. with the equivalent
-       | decimal form
+    5. | Identify fractions represented by 1/2, 2/3 etc. by replaceing the slash with $
+       | and the prepending # in front of the fraction e.g. #1$2
        | e.g. 1/2 >> 0.5
     6. | A space is enforced between quantities and units
     7. | Remove trailing periods from units
