@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import re
 import string
 import unicodedata
 from html import unescape
@@ -35,6 +36,8 @@ from ._utils import (
     stem,
     tokenize,
 )
+
+CONSECUTIVE_SPACES = re.compile(r"\s+")
 
 
 class PreProcessor:
@@ -314,7 +317,7 @@ class PreProcessor:
             replacement = match.replace("/", "$")
             # If there's a space in the match, replace with #, otherwise prepend #
             if " " in replacement:
-                replacement = replacement.replace(" ", "#")
+                replacement = CONSECUTIVE_SPACES.sub("#", replacement)
             else:
                 replacement = "#" + replacement
             sentence = sentence.replace(match, replacement)
@@ -475,7 +478,7 @@ class PreProcessor:
 
         for full_match, quantity1, unit1, quantity2, unit2 in matches:
             # We are only interested if the both captured units are the same
-            if not is_unit_synonym(unit1, unit2):
+            if unit1 != unit2 and not is_unit_synonym(unit1, unit2):
                 continue
 
             # If capture unit not in units list, abort

@@ -41,17 +41,17 @@ STRING_QUANTITY_HYPHEN_PATTERN = re.compile(
 # If a number starts with a zero, it must be followed by decimal point to be matched
 STRING_RANGE_PATTERN = re.compile(
     r"""
-    (0\.[0-9]|[1-9][\d\.]*?)  # Capture number. Leading zero must be followed by '.'
-    \s*                       # Optional space
-    (\-)?                     # Optional hyphen
-    \s*                       # Optional space
-    (to|or)                   # Match to or or
-    \s*                       # Optional space
-    (\-)*                     # Optional hyphen
-    \s*                       # Optional space
-    (                         # Capture next two groups together
-    (0\.[0-9]+|[1-9][\d\.]*?) # Capture number
-    (\-)?                     # Optional hyphen
+    (0\.[0-9]|[1-9][\d\.]*?|\d*\#\d+\$\d+)  # Capture number.
+    \s*                                     # Optional space
+    (\-)?                                   # Optional hyphen
+    \s*                                     # Optional space
+    (to|or)                                 # Match to or or
+    \s*                                     # Optional space
+    (\-)*                                   # Optional hyphen
+    \s*                                     # Optional space
+    (                                       # Capture next two groups together
+    (0\.[0-9]+|[1-9][\d\.]*?|\d*\#\d+\$\d+) # Capture number
+    (\-)?                                   # Optional hyphen
     )
     """,
     re.VERBOSE,
@@ -72,15 +72,15 @@ FRACTION_SPLIT_AND_PATTERN = re.compile(r"((\d+)\sand\s(\d/\d+))")
 DUPE_UNIT_RANGES_PATTERN = re.compile(
     r"""
     (
-        ([\d\.\#\$]+)  # Capture decimal number or fake fraction
-        \s             # Space
-        ([a-zA-Z]+)    # Capture text string (possible unit)
-        \s             # Space
-        (?:\-|to|or)   # Hyphen, 'to' or 'or'
-        \s             # Space
-        ([\d\.\#\$]+)  # Capture decimal number or fake fraction
-        \s             # Space
-        ([a-zA-Z]+)    # Capture text string (possible unit)
+        ([\d\.]+|\d*\#\d+\$\d+)  # Capture decimal number or fraction
+        \s                       # Space
+        ([a-zA-Z]+)              # Capture text string (possible unit)
+        \s*                      # Space
+        (?:\-|to|or)             # Hyphen, 'to' or 'or'
+        \s*                      # Space
+        ([\d\.]+|\d*\#\d+\$\d+)  # Capture decimal number or fraction
+        \s                       # Space
+        ([a-zA-Z]+)              # Capture text string (possible unit)
     )
     """,
     re.I | re.VERBOSE,
@@ -90,10 +90,10 @@ DUPE_UNIT_RANGES_PATTERN = re.compile(
 # e.g. 0.5 x, 1 x, 2 x. The number is captured in a capture group.
 QUANTITY_X_PATTERN = re.compile(
     r"""
-    ([\d\.\#\$]+)   # Capture decimal number or fake fraction
-    \s          # Space
-    [xX]        # Character 'x' or 'X'
-    \s*         # Optional space
+    ([\d\.]+|\d*\#\d+\$\d+)  # Capture decimal number or fraction
+    \s                       # Space
+    [xX]                     # Character 'x' or 'X'
+    \s*                      # Optional space
     """,
     re.VERBOSE,
 )
@@ -112,4 +112,4 @@ DIGIT_PATTERN = re.compile(r"[0-9]")
 # This is a token for a fake fraction where the forward slash has been replaced by $ and
 # any space between the whole part and fraction part has been replaced by #
 # e.g. #1$2 for 1/2, or 1#1$3 for 1 1/3
-FRACTION_TOKEN_PATTERN = re.compile(r"\d*\#\d\$\d+")
+FRACTION_TOKEN_PATTERN = re.compile(r"\d*\#\d+\$\d+")

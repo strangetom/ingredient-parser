@@ -34,7 +34,7 @@ class TestPreProcessor__builtins__:
 _replace_html_fractions: 1/2 cup chicken broth
 _replace_unicode_fractions: 1/2 cup chicken broth
 combine_quantities_split_by_and: 1/2 cup chicken broth
-_identify_fake_fractions: #1$2 cup chicken broth
+_identify_fractions: #1$2 cup chicken broth
 _split_quantity_and_units: #1$2 cup chicken broth
 _remove_unit_trailing_period: #1$2 cup chicken broth
 replace_string_range: #1$2 cup chicken broth
