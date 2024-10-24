@@ -112,4 +112,4 @@ DIGIT_PATTERN = re.compile(r"[0-9]")
 # This is a token for a fake fraction where the forward slash has been replaced by $ and
 # any space between the whole part and fraction part has been replaced by #
 # e.g. #1$2 for 1/2, or 1#1$3 for 1 1/3
-FRACTION_TOKEN_PATTERN = re.compile(r"\d*\#\d+\$\d+")
+FRACTION_TOKEN_PATTERN = re.compile(r"^\d*\#\d+\$\d+$")
