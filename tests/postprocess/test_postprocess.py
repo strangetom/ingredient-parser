@@ -80,6 +80,54 @@ def p_string_numbers():
 
 
 @pytest.fixture
+def p_string_numbers_range():
+    """Define a PostProcessor object with discard_isolated_stop_words set to True
+    to use for testing the PostProcessor class methods.
+    """
+    sentence = "2 butternut squash, about one or two pounds each"
+    tokens = [
+        "2",
+        "butternut",
+        "squash",
+        ",",
+        "about",
+        "one",
+        "or",
+        "two",
+        "pounds",
+        "each",
+    ]
+    labels = [
+        "QTY",
+        "NAME",
+        "NAME",
+        "PUNC",
+        "COMMENT",
+        "QTY",
+        "QTY",
+        "QTY",
+        "UNIT",
+        "COMMENT",
+    ]
+    scores = [
+        0.9984380824450226,
+        0.9978651159111281,
+        0.9994189046396519,
+        0.9999962272946663,
+        0.9922077606027025,
+        0.8444345718042952,
+        0.711112570789477,
+        0.7123166610204924,
+        0.7810746702425934,
+        0.9447105511029686,
+    ]
+
+    return PostProcessor(
+        sentence, tokens, labels, scores, discard_isolated_stop_words=True
+    )
+
+
+@pytest.fixture
 def p_quantity_fractions():
     """Define a PostProcessor object with quantity_fractions set to True
     to use for testing the PostProcessor class methods.
@@ -263,6 +311,45 @@ class TestPostProcessor_parsed:
         )
 
         assert p_string_numbers.parsed == expected
+
+    def test_string_numbers_range(self, p_string_numbers_range):
+        """
+        Test fixture returns expected ParsedIngredient object, with the string
+        numbers replaced with numeric range.
+        """
+        expected = ParsedIngredient(
+            name=IngredientText(
+                text="butternut squash", confidence=0.998642, starting_index=1
+            ),
+            size=None,
+            amount=[
+                ingredient_amount_factory(
+                    quantity="2",
+                    unit="",
+                    text="2",
+                    confidence=0.998438,
+                    starting_index=0,
+                    APPROXIMATE=False,
+                    SINGULAR=False,
+                ),
+                ingredient_amount_factory(
+                    quantity="1-2",
+                    unit="pounds",
+                    text="1-2 pounds",
+                    confidence=0.768515,
+                    starting_index=5,
+                    APPROXIMATE=True,
+                    SINGULAR=True,
+                ),
+            ],
+            preparation=None,
+            comment=None,
+            purpose=None,
+            foundation_foods=[],
+            sentence="2 butternut squash, about one or two pounds each",
+        )
+
+        assert p_string_numbers_range.parsed == expected
 
     def test_quantity_fractions(self, p_quantity_fractions):
         """
