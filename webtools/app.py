@@ -227,10 +227,9 @@ def labeller_save():
 @app.route("/labeller/search", methods=["POST"])
 def labeller_search():
     """
-    Apply selected filter to database and return page for editing sentences that
-    match the filter.
+    Endpoint for applying selected filter to database and returning editable sentences that match the filter.
 
-    TODO NOTE: Querying, offsets (i.e. pagination), and limits uses primitive Python lists sitting ontop of SQLite, but a better approach is to use some skilled SQLite queries for better readibility
+    TODO: Some skilled SQLite queries should be used for better readibility and performance
     """
 
     if request.method == "POST":
@@ -342,6 +341,9 @@ def labeller_search():
 
 @app.route('/train/precheck')
 def pre_check():
+    """
+    Endpoint for a precheck to determine if the 'train model' feature should be available on the web tool; looks at requirements.txt files
+    """
 
     checks = { "passed": [], "failed": [] }
     satisfied = True
@@ -377,7 +379,11 @@ def pre_check():
 
 @sock.route('/echo')
 def echo(ws):
+    """
+    Endpoint for testing basic websockets with comms between webtool and server to trigger and monitor processed
 
+    TODO: Needs a little TLC and engineering perspective before deciding best approach
+    """
 
     while True:
 
@@ -423,68 +429,6 @@ def echo(ws):
                     "output": stderr.decode('utf-8').splitlines()
                 }))
 
-
-@app.route('/train/single')
-def train_single():
-
-    '''
-    def processor():
-        yield 'data: Starting... \n\n'
-
-
-        try:
-            handler = io.StringIO()
-            with redirect_stdout(handler):
-                yield 'data: Loading datasets \n\n'
-                vectors = load_datasets(
-                    SQL3_DATABASE,
-                    "en",
-                    ["bbc", "cookstr", "nyt", "allrecipes"]
-                )
-                yield 'data: Training the model on CRFsuite \n\n'
-                stats = train_model(
-                    vectors,
-                    0.20,
-                    "ingredient_parser/en/model.en.crfsuite",
-                    None,
-                    False,
-                    False,
-                    False,
-                    True
-                )
-
-                yield 'data: Sentence-level results\n\n'
-                yield f"data: \tAccuracy: {100*stats.sentence.accuracy:.2f}%"
-                yield 'data: Word-level results\n\n'
-                yield f"data: \tAccuracy {100*stats.token.accuracy:.2f}%"
-                #print(f"\tPrecision (micro) {100*stats.token.weighted_avg.precision:.2f}%")
-                #print(f"\tRecall (micro) {100*stats.token.weighted_avg.recall:.2f}%")
-                #print(f"\tF1 score (micro) {100*stats.token.weighted_avg.f1_score:.2f}%")
-
-                yield 'data: close \n\n'
-
-        except Exception as ex:
-            traced = ''.join(traceback.TracebackException.from_exception(ex).format())
-            print(traced)
-            yield 'data: error \n\n'
-            yield 'data: close \n\n'
-    '''
-
-    def stepper():
-        time.sleep(1.0)
-        s = time.ctime(time.time())
-        return s
-
-    def processor():
-        for i in range(0,4):
-            yield 'data: {}\n\n'.format(stepper())
-            if i == 2:
-                yield 'data: error \n\n'
-                yield 'data: close \n\n'
-            if i == 3:
-                yield 'data: close \n\n'
-
-    return Response( processor(), mimetype= 'text/event-stream' )
 
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
