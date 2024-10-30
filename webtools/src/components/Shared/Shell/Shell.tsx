@@ -108,7 +108,7 @@ export function Shell({
           message: null,
           position: 'top-right'
         })
-        console.log(msg.output)
+
         setStatus(status => ({ ...status, loading: false}))
         clearInterval(poller.current)
       }

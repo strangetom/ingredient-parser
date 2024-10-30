@@ -218,9 +218,7 @@ function Upload(){
   const [error, setError] = useState(false)
   // Handlers
   const [values, handlers] = useListState<never[] | any[]>([]);
-  useEffect(() => {
-    if(values) console.log(values)
-  },[values])
+
   const onBackHandler = useCallback(() => {
     setSubmitted(false)
   }, [])
