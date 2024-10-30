@@ -1,0 +1,51 @@
+.root {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+.log {
+    display: flex;
+    flex-grow: 1;
+    flex-shrink: 1;
+    padding: var(--small-spacing);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+}
+
+.left,
+.right,
+.trash {
+    border-left: 1px solid color-mix(in srgb,var(--fg),transparent 66%);
+    padding: var(--small-spacing);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-grow: 0;
+    flex-shrink: 0;
+}
+
+.control {
+    color: var(--fg);
+    background-color: var(--bg-2);
+    border: 1px solid var(--fg-2);
+    box-shadow: var(--small-shadow);
+    border-radius: var(--small-radius);
+
+    @mixin hover {
+      &:where(:not(:disabled, [data-disabled])) {
+          background-color: var(--fg);
+          color: var(--bg-2);
+      }
+    }
+
+    &:where([data-active]) {
+      background-color: var(--bg);
+      border: 1px solid var(--fg-2);
+      color: var(--fg);
+
+    }
+}

@@ -1,0 +1,14 @@
+.scrollbar {
+
+    &,
+    &:hover {
+      background-color: transparent;
+    }
+    &[data-orientation='vertical'] .thumb {
+        background-color: var(--fg);
+    }
+
+    &[data-orientation='horizontal'] .thumb {
+        background-color: var(--fg);
+    }
+}

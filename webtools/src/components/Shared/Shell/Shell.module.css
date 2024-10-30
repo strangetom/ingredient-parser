@@ -1,0 +1,80 @@
+.appShellLogo {
+    height: calc(var(--app-shell-header-height) / 1.5);
+}
+
+.appShellHeader,
+.appShellNavBar {
+    background-color: var(--bg-s);
+}
+
+.appShellHeader {
+    box-shadow: none;
+    border-bottom: 1px solid color-mix(in srgb,var(--fg),transparent 66%);
+}
+
+.appShellNavBar {
+    border-inline-end-color: color-mix(in srgb, var(--fg), transparent 66%);
+}
+
+.link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-decoration: none;
+  font-size: var(--mantine-font-size-sm);
+  color: var(--fg);
+  padding: var(--small-spacing);
+  border-radius: var(--small-radius);
+  font-weight: 500;
+  text-decoration: none !important;
+
+  &:not(:first-child){
+      margin-top: calc(var(--small-spacing) / 2);
+  }
+  &:disabled{
+    opacity: 0.66;
+  }
+
+  @mixin hover {
+      &:not(:disabled){
+        background-color: color-mix(in srgb, var(--fg), transparent 46%);
+        color: var(--bg-s);
+
+        .linkIcon {
+            color: color-mix(in srgb, var(--fg), transparent 46%);
+        }
+      }
+  }
+
+  &[data-active] {
+    &,
+    &:hover {
+      background-color: var(--fg);
+      color: var(--bg-s);
+
+      .linkIcon {
+        color: var(--bg-s);
+      }
+    }
+  }
+}
+
+.linkIcon {
+  color: var(--fg);
+  margin-right: var(--mantine-spacing-sm);
+  width: rem(25px);
+  height: rem(25px);
+}
+
+.badge{
+    margin-left: 12px;
+    cursor: help;
+}
+
+.notice {
+    padding: 0;
+}
+
+.noticeSection {
+    padding: var(--small-spacing);
+}

@@ -1,0 +1,21 @@
+.root {
+    display: flex;
+    flex-grow: 0;
+    position: relative;
+    border-top: 1px solid color-mix(in srgb,var(--fg),transparent 66%);
+}
+
+.grow {
+    flex-grow: 1 !important;
+}
+
+.groupings {
+    width: 100%;
+    height: 100%;
+    padding: var(--small-spacing);
+    gap: var(--small-spacing);
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}

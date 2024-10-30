@@ -1,0 +1,35 @@
+.root {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 0;
+    position: relative;
+}
+
+.grow {
+    flex-grow: 1 !important;
+}
+
+.full {
+    height: 100%;
+    width: 100%;
+}
+
+.padded {
+    padding: var(--small-spacing) var(--small-spacing);
+}
+
+.bordered {
+
+    &[data-bordered=right] {
+        border-right: 1px solid color-mix(in srgb,var(--fg),transparent 66%);
+    }
+    &[data-bordered=left] {
+        border-left: 1px solid color-mix(in srgb,var(--fg),transparent 66%);
+    }
+    &[data-bordered=bottom] {
+        border-bottom: 1px solid color-mix(in srgb,var(--fg),transparent 66%);
+    }
+    &[data-bordered=top] {
+        border-top: 1px solid color-mix(in srgb,var(--fg),transparent 66%);
+    }
+}

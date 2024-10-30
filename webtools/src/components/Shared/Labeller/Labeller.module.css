@@ -1,0 +1,110 @@
+.labeller {
+    font-size: 1.2rem;
+    position: relative;
+    padding: 0 calc(var(--small-spacing) / 2);
+    background-color: var(--color);
+    color: var(--bg);
+
+    &[data-size=small]{
+        font-size: 1rem;
+    }
+    &[data-size=medium]{
+        font-size: 1.25rem;
+    }
+    &[data-size=large]{
+        font-size: 1.5rem;
+    }
+
+    &::before {
+        align-items: center;
+        justify-content: center;
+        display: flex;
+        padding: 4px;
+        color: var(--bg);
+        position:absolute;
+        left: 0;
+        font-size: 10px;
+        line-height: 1;
+        top: -18px;
+    }
+
+    &[data-labeller=QTY] {
+        --color: var(--green-alt);
+        &::before {
+            content: "QTY";
+            background-color: var(--green);
+        }
+    }
+    &[data-labeller=UNIT] {
+        --color: var(--yellow-alt);
+        &::before {
+            content: "UNIT";
+            background-color: var(--yellow);
+        }
+    }
+    &[data-labeller=NAME] {
+        --color: var(--aqua-alt);
+        &::before {
+            content: "NAME";
+            background-color: var(--aqua);
+        }
+    }
+    &[data-labeller=COMMENT] {
+        --color: var(--purple-alt);
+        &::before {
+            content: "COMMENT";
+            background-color: var(--purple);
+        }
+    }
+    &[data-labeller=PREP] {
+        --color: var(--blue-alt);
+        &::before {
+            content: "PREP";
+            background-color: var(--blue);
+        }
+    }
+    &[data-labeller=PUNC] {
+        --color: var(--gray);
+        &::before {
+            content: "PUNC";
+            background-color: var(--gray);
+        }
+    }
+    &[data-labeller=PURPOSE] {
+        --color: var(--red-alt);
+        &::before {
+            content: "PREP";
+            background-color: var(--red);
+        }
+    }
+    &[data-labeller=AMOUNT] {
+        --color: #B8981E;
+        &::before {
+            content: "AMOUNT";
+            background-color: var(--yellow);
+        }
+    }
+    &[data-labeller=SIZE] {
+        --color: var(--orange);
+        &::before {
+            content: "SIZE";
+            background-color: var(--orange-alt);
+        }
+    }
+}
+
+.editable {
+    cursor: pointer;
+    display: inline-flex;
+    gap: 6px;
+    align-items: center;
+    border: none;
+}
+
+.marginable {
+   cursor: help;
+}
+
+.menuItem {
+    padding: calc(var(--small-spacing) / 4);
+}
