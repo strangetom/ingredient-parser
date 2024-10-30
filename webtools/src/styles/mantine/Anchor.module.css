@@ -1,0 +1,21 @@
+.root {
+
+    color: var(--fg);
+    text-decoration-line: underline;
+    font-weight: 700;
+    text-underline-offset: 4px;
+
+    &[data-variant=dark] {
+        color: var(--bg-3);
+    }
+
+    &[data-variant=light] {
+        color: var(--fg);
+    }
+
+    &:focus,
+    &:focus-within,
+    &:focus-visible {
+        outline: 1px solid var(--fg);
+    }
+}

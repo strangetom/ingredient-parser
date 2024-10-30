@@ -1,0 +1,50 @@
+.root {
+
+    background: var(--bg-3);
+    color: var(--fg);
+    font-weight: normal;
+    border-radius: var(--small-radius);
+
+    &[data-variant=dark] {
+        background: var(--bg-3);
+        color: var(--fg);
+    }
+    &[data-variant=light] {
+        background: var(--fg);
+        color: var(--bg-3);
+    }
+
+    &[data-variant=AMOUNTS] {
+      background: var(--yellow-alt);
+      color: var(--bg);
+    }
+    &[data-variant=NAME] {
+      background: var(--aqua-alt);
+      color: var(--bg);
+    }
+    &[data-variant=COMMENT] {
+      background: var(--purple-alt);
+      color: var(--bg);
+    }
+    &[data-variant=PREP] {
+      background: var(--blue-alt);
+      color: var(--bg);
+    }
+    &[data-variant=QTY] {
+      background: var(--green-alt);
+      color: var(--bg);
+    }
+    &[data-variant=PURPOSE] {
+      background: var(--red-alt);
+      color: var(--bg);
+    }
+    &[data-variant=PUNC] {
+      background: var(--gray);
+      color: var(--bg);
+    }
+    &[data-variant=SIZE] {
+      background: var(--orange);
+      color: var(--bg);
+    }
+
+}

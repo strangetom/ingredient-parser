@@ -1,0 +1,27 @@
+.dropdown {
+    background: var(--bg-1);
+    color: var(--fg);
+    border: 1px solid color-mix(in srgb,var(--fg),transparent 86%);
+    border-radius: var(--small-radius);
+}
+
+.label {
+    font-size: var(--mantine-font-size-sm);
+    color: var(--bg-3);
+}
+
+.divider {
+    margin-left: -4px;
+    width: calc(100% + 8px);
+    border-color: color-mix(in srgb,var(--fg),transparent 86%);
+}
+
+.item {
+    color: var(--fg);
+    padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
+
+    &:hover, &[data-hovered] {
+        background-color: var(--bg-3);
+        color: var(--fg);
+    }
+}

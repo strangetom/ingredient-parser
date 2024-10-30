@@ -1,0 +1,18 @@
+.input {
+
+    color: var(--fg);
+    background-color: var(--bg-2);
+    border: 1px solid color-mix(in srgb,var(--fg),transparent 86%);
+    border-radius: var(--small-radius);
+
+    &::placeholder {
+      color: var(--fg);
+      opacity: 0.33;
+    }
+
+    &:focus,
+    &:focus-within,
+    &:focus-visible {
+        outline: 1px solid var(--fg);
+    }
+}
