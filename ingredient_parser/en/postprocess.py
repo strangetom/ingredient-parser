@@ -211,7 +211,7 @@ class PostProcessor:
             joined = " ".join([self.tokens[i] for i in idx])
             confidence = mean([self.scores[i] for i in idx])
 
-            if self.discard_isolated_stop_words and joined in STOP_WORDS:
+            if self.discard_isolated_stop_words and joined.lower() in STOP_WORDS:
                 # Skip part if it's a stop word
                 continue
 
