@@ -142,7 +142,7 @@ The purpose of this is to ensure the range is kept as a single token.
 Ranges where the unit is given for both quantities are replaced with the standardised range format, e.g. 5 oz - 8 oz is replaced by 5-8 oz. Cases where the same unit is used, but in a different form (e.g. 5 oz - 8 ounce) are also considered for the unit synonyms defined in ``UNIT_SYNONYMS``.
 
 .. literalinclude:: ../../../ingredient_parser/en/_constants.py
-    :lines: 431-442
+    :lines: 404-415
 
 .. literalinclude:: ../../../ingredient_parser/en/_regex.py
     :lines: 64-87
