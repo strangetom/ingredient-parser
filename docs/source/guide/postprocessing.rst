@@ -63,7 +63,8 @@ For most cases, the amounts are determined by combining a QTY label with the fol
                   APPROXIMATE=False,
                   SINGULAR=False,
                   RANGE=False,
-                  MULTIPLIER=False),
+                  MULTIPLIER=False,
+                  PREPARED_INGREDIENT=False),
         IngredientAmount(quantity=170.0,
                   quantity_max=170.0,
                   unit=<Unit('gram')>,
@@ -72,22 +73,61 @@ For most cases, the amounts are determined by combining a QTY label with the fol
                   APPROXIMATE=False,
                   SINGULAR=False,
                   RANGE=False,
-                  MULTIPLIER=False)
+                  MULTIPLIER=False,
+                  PREPARED_INGREDIENT=False)
     ]
+
+Quantities
+++++++++++
+
+By default quantities are returned as ``float``, rounded to 3 decimal places. If the ``quantity_fractions`` keyword argument to :func:`parse_ingredient <ingredient_parser.parsers.parse_ingredient>`, then quantities are returned as :class:`fractions.Fraction` objects.
+
+.. code:: python
+
+    >>> parsed = parse_ingredient("1/3 cup oil")
+    >>> parsed.amount
+    [
+        IngredientAmount(quantity=0.333,
+                         quantity_max=0.333,
+                         unit=<Unit('cup')>,
+                         text=' 1/3 cups',
+                         confidence=0.999341,
+                         starting_index=0,
+                         APPROXIMATE=False,
+                         SINGULAR=False,
+                         RANGE=False,
+                         MULTIPLIER=False,
+                         PREPARED_INGREDIENT=False)
+    ]
+
+    >>> parsed = parse_ingredient("1/3 cup oil", quantity_fractions=True)
+    >>> parsed.amount
+    [
+        IngredientAmount(quantity=Fraction(1, 3),
+                         quantity_max=Fraction(1, 3),
+                         unit=<Unit('cup')>,
+                         text=' 1/3 cups',
+                         confidence=0.999341,
+                         starting_index=0,
+                         APPROXIMATE=False,
+                         SINGULAR=False,
+                         RANGE=False,
+                         MULTIPLIER=False,
+                         PREPARED_INGREDIENT=False)
+    ]
+
+
 
 Tokens with the QTY label that are numbers represented in textual form e.g. "one", "two" are replaced with numeric forms.
 The replacements are predefined in a dictionary.
 For performance reasons, the regular expressions used to substitute the text with the number are pre-compiled and provided in the ``STRING_NUMBERS_REGEXES`` constant, which is a dictionary where the value is a tuple of (pre-compiled regular expression, substitute value).
 
 .. literalinclude:: ../../../ingredient_parser/en/_constants.py
-    :lines: 155-187
+    :lines: 163-195
 
 .. literalinclude:: ../../../ingredient_parser/en/postprocess.py
     :pyobject: PostProcessor._replace_string_numbers
     :dedent: 4
-
-
-There are two amounts identified: **0.75 cups** and **170 g**.
 
 Units
 +++++
@@ -100,18 +140,7 @@ The `pint <https://pint.readthedocs.io/en/stable/>`_ library is used to standard
 
 This has the benefit of standardising units that can be represented in different formats, for example a `gram` could be represented in the sentence as `g`, `gram`, `grams`. These will all be represented using the same ``<Unit('gram')>`` object in the parsed information.
 
-This has benefits if you wish to use the parsed information to convert between different units. For example:
-
-.. code:: python
-
-    >>> p = parse_ingredient("3/4 cup heavy cream")
-    >>> q = p.amount[0].quantity * p.amount[0].unit
-    >>> q
-    0.75 <Unit('cup')>
-    >>> q.to("ml")
-    177.44117737499994 <Unit('milliliter')>
-
-By default, US customary version of units are used where a unit has more than one definition. This can be changed to use the Imperial definition by setting ``imperial_units=True`` in the :func:`parse_ingredient <ingredient_parser.parsers.parse_ingredient>` function call.
+By default, US customary units are used where a unit has more than one definition. This can be changed to use the Imperial unit by setting ``imperial_units=True`` in the :func:`parse_ingredient <ingredient_parser.parsers.parse_ingredient>` function call.
 
 .. code:: python
 
@@ -127,7 +156,8 @@ By default, US customary version of units are used where a unit has more than on
                                  APPROXIMATE=False,
                                  SINGULAR=False,
                                  RANGE=False,
-                                 MULTIPLIER=False)],
+                                 MULTIPLIER=False,
+                                 PREPARED_INGREDIENT=False)],
         preparation=None,
         comment=None,
         sentence='3/4 cup heavy cream'
@@ -145,7 +175,8 @@ By default, US customary version of units are used where a unit has more than on
                                  APPROXIMATE=False,
                                  SINGULAR=False,
                                  RANGE=False,
-                                 MULTIPLIER=False)],
+                                 MULTIPLIER=False,
+                                 PREPARED_INGREDIENT=False)],
         preparation=None,
         comment=None,
         sentence='3/4 cup heavy cream'
@@ -170,25 +201,26 @@ By default, US customary version of units are used where a unit has more than on
 IngredientAmount flags
 ++++++++++++++++++++++
 
-:class:`IngredientAmount` objects have a number of flags that can be set.
+:class:`IngredientAmount` objects have a number of flags that can be set that provide additional information about the amount.
 
-**APPROXIMATE**
+.. list-table::
 
-This is set to True when the QTY is preceded by a word such as `about`, `approximately` and indicates if the amount is approximate.
+    * - Flag
+      - Description
+    * - **APPROXIMATE**
+      - This is set to True when the QTY is preceded by a word such as `about`, `approximately` and indicates if the amount is approximate.
+    * - **SINGULAR**
+      - This is set to True when the amount is followed by a word such as `each` and indicates that the amount refers to a singular item of the ingredient.
 
-**SINGULAR**
+        There is also a special case (below), where an inner amount that inside a QTY-UNIT pair will be marked as SINGULAR.
+    * - **RANGE**
+      - This is set to True with the amount if a range of values, e.g. 1-2, 300-400. In these cases, the ``quantity`` field of the :class:`IngredientAmount` object is set to the lower value in the range and ``quantity_max`` is the upper end of the range.
+    * - **MULTIPLIER**
+      - This is set to True when the amount is represented as a multiple such as 1x. The ``quantity`` field in set to the value of the multiplier (e.g. for ``1x`` the quantity is  ``1``).
+    * - **PREPARED_INGREDIENT**
+      - This is set to True when the amount refers to the ingredient after any preparation instructions in the ingredient sentence have been followed.
 
-This is set to True when the amount is followed by a word such as `each` and indicates that the amount refers to a singular item of the ingredient.
-
-There is also a special case (below), where an inner amount that inside a QTY-UNIT pair will be marked as SINGULAR.
-
-**RANGE**
-
-This is set to True with the amount if a range of values, e.g. 1-2, 300-400. In these cases, the ``quantity`` field of the :class:`IngredientAmount` object is set to the lower value in the range and ``quantity_max`` is the upper end of the range.
-
-**MULTIPLIER**
-
-This is set to True when the amount is represented as a multiple such as 1x. The ``quantity`` field in set to the value of the multiplier (e.g. for ``1x`` the quantity is  ``1``).
+        For example in the sentence **1 tbsp chopped nuts**, we would want 1 tablespoon of nuts, measured after they have been chopped. If the sentence was **1 tbsp nuts, chopped**, we would want to chop the nuts after we have measured 1 tablespoon.
 
 Special cases for amounts
 +++++++++++++++++++++++++
@@ -207,7 +239,8 @@ There are some particular cases where the combination of QTY and UNIT labels tha
                       APPROXIMATE=False,
                       SINGULAR=False,
                       RANGE=False,
-                      MULTIPLIER=False),
+                      MULTIPLIER=False,
+                      PREPARED_INGREDIENT=False),
      IngredientAmount(quantity=14.0,
                       quantity_max=14.0,
                       unit=<Unit('ounce')>,
@@ -216,7 +249,8 @@ There are some particular cases where the combination of QTY and UNIT labels tha
                       APPROXIMATE=False,
                       SINGULAR=True,
                       RANGE=False,
-                      MULTIPLIER=False)]
+                      MULTIPLIER=False,
+                      PREPARED_INGREDIENT=False)]
 
 
 Identifying and handling this pattern of QTY and UNIT labels is done by the :func:`PostProcessor._sizable_unit_pattern()` function.
@@ -238,7 +272,8 @@ A second case is where the full amount is made up of more than one quantity-unit
                              APPROXIMATE=False,
                              SINGULAR=False,
                              RANGE=False,
-                             MULTIPLIER=False),
+                             MULTIPLIER=False,
+                             PREPARED_INGREDIENT=False),
             IngredientAmount(quantity=2.0,
                              quantity_max=2.0,
                              unit=<Unit('ounce')>,
@@ -248,7 +283,8 @@ A second case is where the full amount is made up of more than one quantity-unit
                              APPROXIMATE=False,
                              SINGULAR=False,
                              RANGE=False,
-                             MULTIPLIER=False)],
+                             MULTIPLIER=False,
+                             PREPARED_INGREDIENT=False)],
         join='',
         subtractive=False,
         text='1 lb 2 oz',

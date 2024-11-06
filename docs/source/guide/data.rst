@@ -13,7 +13,7 @@ The New York Times released a dataset of labelled ingredients in their `Ingredie
 
 * The dataset is has each sentence labelled, but the labelling is inconsistent.
 * The dataset primarily uses imperial/US customary units
-* The dataset is large, roughly 178,000 entries
+* The dataset is large, roughly 175,000 entries
 
 Cookstr
 ~~~~~~~
@@ -21,26 +21,47 @@ Cookstr
 The Cookstr dataset is derived from 7,918 recipes scraped from `<cookstr.com>`_ (no longer available) between 2017-06 and 2017-07. The scraped data can be found at https://archive.org/details/recipes-en-201706.
 
 * The dataset is unlabelled and will need labelling manually.
-* The dataset primarily uses imperial/US customary units, although many ingredients give the quantity in multiple units
-* The dataset is medium sized, roughly 40,000 entries
+* The dataset primarily uses imperial/US customary units, although many ingredients give the quantity in multiple units.
+* The dataset is medium sized, roughly 40,000 entries.
 
 BBC Food
 ~~~~~~~~
 
-The Cookstr dataset is derived from 10,599 recipes scraped from `<bbc.co.uk/food>`_ between 2017-06 and 2017-07. The scraped data can be found at https://archive.org/details/recipes-en-201706.
+The BBC dataset is derived from 10,599 recipes scraped from `<bbc.co.uk/food>`_ between 2017-06 and 2017-07. The scraped data can be found at https://archive.org/details/recipes-en-201706.
 
 * The dataset is unlabelled and will need labelling manually.
-* The dataset primarily uses metric units, although many ingredients give the quantity in multiple units
-* The dataset is medium sized, roughly 63,000 entries
+* The dataset primarily uses metric units, although many ingredients give the quantity in multiple units.
+* The dataset is medium sized, roughly 63,000 entries.
 
 The three datasets have different advantages and disadvantages, therefore combining the two should yield an improvement over using any on their own.
+
+All Recipes
+~~~~~~~~~~~
+
+The All Recipes dataset is derived from 87,730 recipes scraped from `<https://www.allrecipes.com>`_ between 2017-06 and 2017-07. The scraped data can be found at https://archive.org/details/recipes-en-201706.
+
+* The dataset is unlabelled and will need labelling manually.
+* The dataset primarily uses US customary units.
+* The dataset includes lots of brand names of ingredients.
+* The full dataset is large sized, roughly 178,000 entries.
+
+The four datasets have different advantages and disadvantages, therefore combining them should yield an improvement over using any on their own.
+
+Taste Cooking
+~~~~~~~~~~~~~
+
+The Taste Cooking dataset comprises 6318 ingredients sentences scraped from `<https://tastecooking.com>`_ in 2024-09.
+
+* The dataset is unlabelled and will need labelling manually.
+* The dataset primarily uses US customary units.
+* The dataset uses some unique abbreviation for units and sizes not found in the other datasets.
 
 Labelling the data
 ^^^^^^^^^^^^^^^^^^
 
 .. note::
 
-    The details described in this section also apply to how the labelling was performed for the Cookstr and BBC Food datasets.
+    This section was written from the perspective of correcting labels for the New York Times dataset, but the details described in this section also apply to how the labelling was performed for all datasets.
 
 The New York Times dataset has gone through, and continues to go through, the very manual process of labelling the training data. This process is there to ensure that the labels assigned to each token in each ingredient sentence are correct and consistent across the dataset. In general, the idea is to avoid modifying the input sentence and only correct the labels for each, although entries have been removed where there is too much missing information or the entry is not actually an ingredient sentence (a few recipe instructions have been found mixed into the data).
 
@@ -70,7 +91,7 @@ The following operations were done to clean up the labelling (note that this is 
 
     1. **If the adjective changes the ingredient in a way that the chef cannot, it should be part of the name.**
     2. **If the adjective changes the item you would purchase in a shop, it should be part of the name.**
-    3. **If the adjectve changes the item in a way that the chef would not expect to do as part of the recipe, it should be part of the name.**
+    3. **If the adjective changes the item in a way that the chef would not expect to do as part of the recipe, it should be part of the name.**
 
     It is recognised that this can be subjective. Universal correctness is not the main goal of this, only consistency.
 
@@ -104,6 +125,8 @@ The following operations were done to clean up the labelling (note that this is 
     * The first 30,000 sentences of the New York Times dataset
     * The first 15,000 sentences of the Cookstr dataset
     * The first 15,000 sentences of the BBC Food dataset
+    * The first 15,000 sentences of the All Recipes dataset
+    * All 6,318 sentences of the Taste Cooking dataset.
 
 
 .. _data-storage:
@@ -127,6 +150,8 @@ The labelled training data is stored in an sqlite3 database at ``train/data/trai
       - List of tokens from the sentence
     * - **labels**
       - List of token labels
+    * - **foundation_foods**
+      - List of indices of tokens that are foundation foods
 
 It is the data in this database that is used to train the models.
 

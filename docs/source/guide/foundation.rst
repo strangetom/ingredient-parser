@@ -30,11 +30,12 @@ the :func:`parse_ingredient <ingredient_parser.parsers.parse_ingredient>` functi
                                  APPROXIMATE=False,
                                  SINGULAR=False,
                                  RANGE=False,
-                                 MULTIPLIER=False)],
+                                 MULTIPLIER=False,
+                                 PREPARED_INGREDIENT=False)],
         preparation=None,
         comment=None,
         purpose=None,
-        foundation_foods=[IngredientText(text='cucumber',
+        foundation_foods=[FoundationFood(text='cucumber',
                                          confidence=0.997391)],
         sentence='1 large organic cucumber'
     )
@@ -62,7 +63,7 @@ The table below gives some examples of the foundation foods for different ingred
 
 .. attention::
 
-    The foundation foods are based on the USDA's `FoodData Central Foundation Foods <https://fdc.nal.usda.gov/fdc-app.html#/food-search?type=Foundation&query=>`_ database. However, that database does not perfectly align with how ingredients are referred to in recipes so you may find that examples where a foundation food from the :abbr:`FDC (FoodData Central)` database is not identified, or an identified foundation food is not in the :abbr:`FDC (FoodData Central)` database.
+    The foundation foods are based on the `FoodData Central Foundation Foods <https://fdc.nal.usda.gov/fdc-app.html#/food-search?type=Foundation&query=>`_ and `FooDB <https://foodb.ca>`_ databases. However, these databases does not perfectly align with how ingredients are referred to in recipes so you may find that examples where a foundation food from the :abbr:`FDC (FoodData Central)` database is not identified, or an identified foundation food is not in the :abbr:`FDC (FoodData Central)` database.
 
     Interpretation and extrapolation has been applied in the development of this functionality.
 

@@ -1,5 +1,44 @@
 # Changelog
 
+## 1.3
+
+### Processing
+
+* Various minor improvements to feature generation.
+
+* Add PREPARED_INGREDIENT flag to IngredientAmount objects. This is used to indicate if the amount refers to the prepared ingredient (`PREPARED_INGREDIENT=True`) or the unpreprared ingredient (`PREPARED_INGREDIENT=False`).
+
+* Add `starting_index` attribute to IngredientText objects, indicating the index of the token that starts the IngredientText. 
+
+* Improve detection of composite amounts in sentences.
+
+* Add `quantity_fractions` keyword argument to `parse_ingredient`. When True, the `quantity` and `quantity_max` fields of `IngredientAmount` objects will be `fractions.Fraction` objects instead of floats. This allows fractions such as 1/3 to be represented exactly. The default behaviour is when `quantity_fractions=False`, where quantities are floats as previously. For Example
+
+  ```python
+  >>> parse_ingredient("1 1/3 cups flour").amount[0]
+  IngredientAmount(
+      quantity=1.333,
+      quantity_max=1.333,
+      unit=<Unit('cup')>, 
+      text='1 1/3 cups', 
+      ...
+  )
+  >>> parse_ingredient("1 1/3 cups flour", quantity_fractions=True).amount[0]
+  IngredientAmount(
+      quantity=Fraction(4, 3),
+      quantity_max=Fraction(4, 3),
+      unit=<Unit('cup')>,
+      text='1 1/3 cups',
+      ...
+  )
+  ```
+
+  
+
+### Model
+
+* Addition of new dataset: tastecooking. This is a relatively small dataset, but includes a number of unique abbreviations for units and sizes.
+
 ## 1.2
 
 ### General

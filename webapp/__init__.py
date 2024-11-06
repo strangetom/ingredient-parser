@@ -65,14 +65,18 @@ def home():
             parser_info.PostProcessor.labels,
             marginals,
         ),
-        name=parsed.name if parsed.name is not None else IngredientText("", 0),
-        size=parsed.size if parsed.size is not None else IngredientText("", 0),
+        name=parsed.name if parsed.name is not None else IngredientText("", 0, 0),
+        size=parsed.size if parsed.size is not None else IngredientText("", 0, 0),
         amounts=parsed.amount,
         preparation=parsed.preparation
         if parsed.preparation is not None
-        else IngredientText("", 0),
-        comment=parsed.comment if parsed.comment is not None else IngredientText("", 0),
-        purpose=parsed.purpose if parsed.purpose is not None else IngredientText("", 0),
+        else IngredientText("", 0, 0),
+        comment=parsed.comment
+        if parsed.comment is not None
+        else IngredientText("", 0, 0),
+        purpose=parsed.purpose
+        if parsed.purpose is not None
+        else IngredientText("", 0, 0),
         foundation=parsed.foundation_foods,
     )
 

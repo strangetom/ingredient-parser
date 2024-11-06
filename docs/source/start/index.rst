@@ -15,20 +15,12 @@ we want to extract information about the quantity, units, name, preparation and 
       - Unit
       - Name
       - Preparation
-      - Comment
     * - 200
       - g
       - plain flour
       - sifted
-      -
 
-This package uses a Conditional Random Fields model trained on 60,000 example ingredient sentences. The model has been trained on data from three sources:
-
-* The New York Times released a large dataset when they did some similar work in 2015 in their `Ingredient Phrase Tagger <https://github.com/nytimes/ingredient-phrase-tagger>`_ repository.
-* A dump of recipes taken from Cookstr in 2017.
-* A dump of recipe taken from BBC Food in 2017.
-
-More information on how the model is trained and the output interpreted can be found in the :doc:`Model Guide </guide/index>`.
+This package uses a Conditional Random Fields model trained on ~80,000 example ingredient sentences to identify the parts of an ingredient sentence. More information on how the model is trained and the output interpreted can be found in the :doc:`Model Guide </guide/index>`.
 
 Installation
 ^^^^^^^^^^^^
@@ -69,7 +61,8 @@ The :func:`parse_ingredient <ingredient_parser.parsers.parse_ingredient>` functi
                                  APPROXIMATE=False,
                                  SINGULAR=False,
                                  RANGE=False,
-                                 MULTIPLIER=False))],
+                                 MULTIPLIER=False,
+                                 PREPARED_INGREDIENT=False))],
         preparation=IngredientText(text='cut into 2 inch chunks',
                                    confidence=0.999193),
         comment=None,
@@ -135,10 +128,12 @@ The :func:`parse_ingredient <ingredient_parser.parsers.parse_ingredient>` functi
                                  APPROXIMATE=False,
                                  SINGULAR=False,
                                  RANGE=False,
-                                 MULTIPLIER=False)],
+                                 MULTIPLIER=False,
+                                 PREPARED_INGREDIENT=False)],
         preparation=None,
         comment=None,
         purpose=None,
+        foundation_foods=[],
         sentence='2 tbsp of olive oil'
     )
     >>> parse_ingredient("2 tbsp of olive oil", discard_isolated_stop_words=False)
@@ -155,11 +150,13 @@ The :func:`parse_ingredient <ingredient_parser.parsers.parse_ingredient>` functi
                                  APPROXIMATE=False,
                                  SINGULAR=False,
                                  RANGE=False,
-                                 MULTIPLIER=False)],
+                                 MULTIPLIER=False,
+                                 PREPARED_INGREDIENT=False)],
         preparation=None,
         purpose=None,
         comment=IngredientText(text='of',
                                confidence=0.915292),  # <-- Note the difference here
+        foundation_foods=[],
         sentence='2 tbsp of olive oil'
     )
 
@@ -179,9 +176,15 @@ The :func:`parse_ingredient <ingredient_parser.parsers.parse_ingredient>` functi
 
   If True, then any :class:`pint.Unit` objects for fluid ounces, cups, pints, quarts or gallons will be the Imperial measurement. The default is False, where the US customary measurements are used.
 
+- ``quantity_fractions``
+
+  If True, then :class:`fractions.Fraction` objects are used for ingredient quantities instead of ``float``. The default is False, where ``float`` is used.
+
+  Note that if a quantity is not numeric, it will always be a ``str``.
+
 - ``foundation_foods``
 
-  If True, foundation foods are extracted from the ingredient name and return as a list in the ``foundation_foods`` field of the :class:`ParsedIngredient` object. See the :doc:`Foundation foods </guide/foundation>` page of the Model Guide for more details. If no foundation foods are identified, the ``foundation_foods`` field will be an empty list. The default is False, where the ``foundation_foods`` field will be an empty list.
+  If True, foundation foods are extracted from the ingredient name and return as a list in the ``foundation_foods`` field of the :class:`ParsedIngredient <ingredient_parser.dataclasses.ParsedIngredient>` object. See the :doc:`Foundation foods </guide/foundation>` page of the Model Guide for more details. If no foundation foods are identified, the ``foundation_foods`` field will be an empty list. The default is False, where the ``foundation_foods`` field will be an empty list.
 
 Multiple ingredient sentences
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -210,11 +213,13 @@ The :func:`parse_multiple_ingredients <ingredient_parser.parsers.parse_multiple_
                                      APPROXIMATE=False,
                                      SINGULAR=False,
                                      RANGE=False,
-                                     MULTIPLIER=False)],
+                                     MULTIPLIER=False,
+                                     PREPARED_INGREDIENT=False)],
             preparation=None,
             comment=None,
             purpose=IngredientText(text='for serving',
                                    confidence=0.999462),
+            foundation_foods=[],
             sentence='3 lime wedges, for serving'
         ),
         ParsedIngredient(
@@ -230,10 +235,12 @@ The :func:`parse_multiple_ingredients <ingredient_parser.parsers.parse_multiple_
                                      APPROXIMATE=False,
                                      SINGULAR=False,
                                      RANGE=False,
-                                     MULTIPLIER=False)],
+                                     MULTIPLIER=False,
+                                     PREPARED_INGREDIENT=False)],
             preparation=None,
             comment=None,
             purpose=None,
+            foundation_foods=[],
             sentence='2 tablespoons extra-virgin olive oil'
         ),
         ParsedIngredient(
@@ -249,11 +256,13 @@ The :func:`parse_multiple_ingredients <ingredient_parser.parsers.parse_multiple_
                                      APPROXIMATE=False,
                                      SINGULAR=False,
                                      RANGE=False,
-                                     MULTIPLIER=False)],
+                                     MULTIPLIER=False,
+                                     PREPARED_INGREDIENT=False)],
             preparation=IngredientText(text='finely grated',
                                        confidence=0.997482),
             comment=None,
             purpose=None,
+            foundation_foods=[],
             sentence='2 large garlic cloves, finely grated'
         )
     ]

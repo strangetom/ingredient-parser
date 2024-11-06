@@ -14,13 +14,17 @@ UNITS = {
     "bottles": "bottle",
     "boxes": "box",
     "branches": "branch",
+    "buckets": "bucket",
     "bulbs": "bulb",
     "bunches": "bunch",
     "bundles": "bundle",
+    "c": "c",
     "cans": "can",
+    "canisters": "canister",
     "chunks": "chunk",
     "cloves": "clove",
     "clusters": "cluster",
+    "counts": "count",
     "cl": "cl",
     "cL": "cL",
     "cm": "cm",
@@ -35,7 +39,9 @@ UNITS = {
     "envelopes": "envelope",
     "feet": "foot",
     "fl": "fl",
+    "floz": "floz",
     "g": "g",
+    "gm": "gm",
     "gallons": "gallon",
     "glasses": "glass",
     "grams": "gram",
@@ -81,6 +87,7 @@ UNITS = {
     "rectangles": "rectangle",
     "ribs": "rib",
     "quarts": "quart",
+    "qt": "qt",
     "sachets": "sachet",
     "scoops": "scoop",
     "segments": "segment",
@@ -112,9 +119,9 @@ _capitalized_units = {}
 for plural, singular in UNITS.items():
     _capitalized_units[plural.capitalize()] = singular.capitalize()
 UNITS = UNITS | _capitalized_units
-# Create a flattened list of all keys and values in UNITS dict
+# Create a flattened set of all keys and values in UNITS dict
 # since we need this in a few places
-FLATTENED_UNITS_LIST = list(chain.from_iterable(UNITS.items()))
+FLATTENED_UNITS_LIST = set(chain.from_iterable(UNITS.items()))
 
 # Words that can modify a unit
 UNIT_MODIFIERS = [
@@ -187,7 +194,7 @@ for s, n in STRING_NUMBERS.items():
     # the start of the sentence
     STRING_NUMBERS_REGEXES[s] = (re.compile(rf"\b({s})\b", flags=re.IGNORECASE), n)
 
-# Unicode fractions and their replacements as fake fractions
+# Unicode fractions and their replacements as string fractions
 # Most of the time we need to insert a space in front of the replacement so we don't
 # merge the replacement with the previous token i.e. 1½ != 11/2
 # However, if the prior chaacter is a hyphen, we don't want to insert a space as this
@@ -225,8 +232,10 @@ UNICODE_FRACTIONS = {
     "\xbd": " 1/2",
 }
 
-# Stop words - high frequency grammatical words
-# Taken from nltk.corpus.stopwords
+# Stop words - high frequency grammatical words derived from nltk.corpus.stopwords
+# The original list from NLTK has been edited to remove words that the tokenizer cannot
+# output.
+# See also https://dx.doi.org/10.18653/v1/W18-2502
 STOP_WORDS = {
     "i",
     "me",
@@ -354,58 +363,29 @@ STOP_WORDS = {
     "than",
     "too",
     "very",
-    "s",
-    "t",
     "can",
     "will",
     "just",
-    "don",
     "don't",
     "should",
     "should've",
     "now",
-    "d",
-    "ll",
-    "m",
-    "o",
-    "re",
-    "ve",
-    "y",
-    "ain",
-    "aren",
     "aren't",
-    "couldn",
     "couldn't",
-    "didn",
     "didn't",
-    "doesn",
     "doesn't",
-    "hadn",
     "hadn't",
-    "hasn",
     "hasn't",
-    "haven",
     "haven't",
-    "isn",
     "isn't",
-    "ma",
-    "mightn",
     "mightn't",
-    "mustn",
     "mustn't",
-    "needn",
     "needn't",
-    "shan",
     "shan't",
-    "shouldn",
     "shouldn't",
-    "wasn",
     "wasn't",
-    "weren",
     "weren't",
-    "won",
     "won't",
-    "wouldn",
     "wouldn't",
 }
 
@@ -416,6 +396,20 @@ APPROXIMATE_TOKENS = [
     "approximately",
     "nearly",
     "roughly",
+    "~",
 ]
 # Tokens that indicate an amount is singular
 SINGULAR_TOKENS = ["each"]
+
+# List of sets, where each set contains the synonyms that represent the same unit.
+UNIT_SYNONYMS = [
+    {"cup", "c"},
+    {"gram", "g", "gm"},
+    {"kilogram", "kg"},
+    {"litre", "liter", "l"},
+    {"ounce", "oz"},
+    {"pound", "lb"},
+    {"quart", "qt"},
+    {"tablespoon", "tbsp", "tbs", "tb"},
+    {"teaspoon", "tsp"},
+]

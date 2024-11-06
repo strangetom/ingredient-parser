@@ -48,8 +48,11 @@
                 <span class="COMMENT">Comment</span>
                 <span class="PURPOSE">Purpose</span>
                 <span class="PUNC">Punc</span>
+            </p>
+            <p class="key">
                 <span class="flag">1</span> Singular
                 <span class="flag">~</span> Approximate
+                <span class="flag">P</span> Prepared Ingredient
             </p>
 
             {%- if display -%}
@@ -103,6 +106,9 @@
                         {%- if amounts[0].SINGULAR -%}
                         <span class="flag">1</span>
                         {%- endif -%}
+                        {%- if amounts[0].PREPARED_INGREDIENT -%}
+                        <span class="flag">P</span>
+                        {%- endif -%}
                         <span class="confidence AMOUNT">
                             {{ "%.2f"|format(100*amounts[0].confidence) }}%
                         </span>
@@ -115,6 +121,9 @@
                             {%- endif -%}
                             {%- if amount.SINGULAR -%}
                             <span class="flag">1</span>
+                            {%- endif -%}
+                            {%- if amount.PREPARED_INGREDIENT -%}
+                            <span class="flag">P</span>
                             {%- endif -%}
                             <span class="confidence AMOUNT">
                                 {{ "%.2f"|format(100*amount.confidence) }}%

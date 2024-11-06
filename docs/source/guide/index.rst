@@ -77,7 +77,7 @@ See :doc:`Post-processing <postprocessing>` for more information.
 
    Training data <data>
    Normalisation <normalisation>
-   Extracting the features <features>
+   Feature selection <features>
    Training the model <training>
    Using the model <usage>
    Post-processing the model output <postprocessing>

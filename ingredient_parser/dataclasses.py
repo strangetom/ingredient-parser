@@ -2,6 +2,7 @@
 
 import operator
 from dataclasses import dataclass, field
+from fractions import Fraction
 from functools import reduce
 from statistics import mean
 from typing import Any
@@ -18,10 +19,10 @@ class IngredientAmount:
 
     Attributes
     ----------
-    quantity : float | str
+    quantity : float | Fraction | str
         Parsed ingredient quantity, as a float where possible, otherwise a string.
         If the amount if a range, this is the lower limit of the range.
-    quantity_max : float | str
+    quantity_max : float | Fraction | str
         If the amount is a range, this is the upper limit of the range.
         Otherwise, this is the same as the quantity field.
         This is set automatically depending on the type of quantity.
@@ -48,10 +49,14 @@ class IngredientAmount:
     MULTIPLIER : bool, optional
         When True, indicates the amount is a multiplier e.g. 1x, 2x.
         Default is False.
+    PREPARED_INGREDIENT : bool, optional
+        When True, indicates the amount applies to the prepared ingredient.
+        When False, indicates the amount applies to the ingredient before preparation.
+        Default is False.
     """
 
-    quantity: float | str
-    quantity_max: float | str
+    quantity: float | Fraction | str
+    quantity_max: float | Fraction | str
     unit: str | pint.Unit
     text: str
     confidence: float
@@ -60,6 +65,7 @@ class IngredientAmount:
     SINGULAR: bool = False
     RANGE: bool = False
     MULTIPLIER: bool = False
+    PREPARED_INGREDIENT: bool = False
 
 
 @dataclass
@@ -132,7 +138,7 @@ class CompositeIngredientAmount:
         # Check amounts are compatible for combination
         for amount in self.amounts:
             if not (
-                isinstance(amount.quantity, float)
+                isinstance(amount.quantity, (float, Fraction))
                 and isinstance(amount.unit, pint.Unit)
             ):
                 q_type = type(amount.quantity).__name__
@@ -149,7 +155,10 @@ class CompositeIngredientAmount:
         else:
             op = operator.add
 
-        return reduce(op, (amount.quantity * amount.unit for amount in self.amounts))  # type: ignore
+        # Force quantity to float in case it's a Fraction
+        return reduce(
+            op, (float(amount.quantity) * amount.unit for amount in self.amounts)
+        )  # type: ignore
 
 
 @dataclass
@@ -164,10 +173,13 @@ class IngredientText:
     confidence : float
         Confidence of parsed ingredient amount, between 0 and 1.
         This is the average confidence of all tokens that contribute to this object.
+    starting_index : int
+        Index of token in sentence that starts this text
     """
 
     text: str
     confidence: float
+    starting_index: int
 
 
 @dataclass
@@ -182,7 +194,7 @@ class FoudationFood:
     text : str
         Foundation food identified from ingredient name.
     confidence : float
-        Confidence of the identification of the foudnation food, between 0 and 1.
+        Confidence of the identification of the foundation food, between 0 and 1.
         This is the average confidence of all tokens that contribute to this object.
     """
 
@@ -228,6 +240,33 @@ class ParsedIngredient:
     purpose: IngredientText | None
     foundation_foods: list[FoudationFood]
     sentence: str
+
+    def __post_init__(self):
+        """Set PREPARED_INGREDIENT flag for amounts.
+
+        The flag is set if:
+         * the amount is before the preparation instructions AND
+         * the preparation instructions are before the name
+        e.g. 100 g sifted flour
+
+        OR
+         * the preparation instruction is after the name AND
+         * the amount is after the preparation instruction
+        e.g. Onion, thinly sliced (about 1 cup)
+
+        """
+        if self.name and self.preparation:
+            for amount in self.amount:
+                if (
+                    amount.starting_index
+                    < self.preparation.starting_index
+                    < self.name.starting_index
+                ) or (
+                    self.name.starting_index
+                    < self.preparation.starting_index
+                    < amount.starting_index
+                ):
+                    amount.PREPARED_INGREDIENT = True
 
 
 @dataclass

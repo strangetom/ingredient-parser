@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
+import re
 import string
 import unicodedata
-from fractions import Fraction
 from html import unescape
 
 from nltk import pos_tag
@@ -20,6 +20,7 @@ from ._regex import (
     DUPE_UNIT_RANGES_PATTERN,
     EXPANDED_RANGE,
     FRACTION_PARTS_PATTERN,
+    FRACTION_TOKEN_PATTERN,
     LOWERCASE_PATTERN,
     QUANTITY_UNITS_PATTERN,
     QUANTITY_X_PATTERN,
@@ -30,10 +31,13 @@ from ._regex import (
 )
 from ._utils import (
     combine_quantities_split_by_and,
+    is_unit_synonym,
     replace_string_range,
     stem,
     tokenize,
 )
+
+CONSECUTIVE_SPACES = re.compile(r"\s+")
 
 
 class PreProcessor:
@@ -57,8 +61,8 @@ class PreProcessor:
     4. | Replace unicode fractions with the equivalent decimal form. Decimals are
        | rounded to a maximum of 3 decimal places.
        | e.g. ½ >> 0.5
-    5. | Replace "fake" fractions represented by 1/2, 2/3 etc. with the equivalent
-       | decimal form
+    5. | Identify fractions represented by 1/2, 2/3 etc. by replaceing the slash with $
+       | and the prepending # in front of the fraction e.g. #1$2
        | e.g. 1/2 >> 0.5
     6. | A space is enforced between quantities and units
     7. | Remove trailing periods from units
@@ -107,7 +111,7 @@ class PreProcessor:
     sentence : str
         Input ingredient sentence, cleaned to standardised form.
     singularised_indices : list[int]
-        Indices of tokens in tokenised sentence that have been converted from plural
+        Indices of tokens in tokenized sentence that have been converted from plural
         to singular
     tokenized_sentence : list[str]
         Tokenised ingredient sentence.
@@ -135,11 +139,11 @@ class PreProcessor:
         self.input: str = input_sentence
         self.sentence: str = self._normalise(input_sentence)
 
-        _tokenised_sentence = tokenize(self.sentence)
+        _tokenized_sentence = tokenize(self.sentence)
         (
             self.tokenized_sentence,
             self.singularised_indices,
-        ) = self._singlarise_units(_tokenised_sentence)
+        ) = self._singlarise_units(_tokenized_sentence)
 
         self.defer_pos_tagging: bool = defer_pos_tagging
         if not defer_pos_tagging:
@@ -196,7 +200,7 @@ class PreProcessor:
             self._replace_html_fractions,
             self._replace_unicode_fractions,
             combine_quantities_split_by_and,
-            self._replace_fake_fractions,
+            self._identify_fractions,
             self._split_quantity_and_units,
             self._remove_unit_trailing_period,
             replace_string_range,
@@ -259,10 +263,12 @@ class PreProcessor:
         """
         return unescape(sentence)
 
-    def _replace_fake_fractions(self, sentence: str) -> str:
-        """Attempt to parse fractions from sentence and convert to decimal.
+    def _identify_fractions(self, sentence: str) -> str:
+        """Identify fractions and modify them so that they are do not get split by
+        the tokenizer.
 
-        This looks for fractions with the format of 1/2, 1/4, 1 1/2 etc.
+        This looks for fractions with the format of 1/2, 1/4, 1 1/2 etc. and replaces
+        the forward slash with $ and inserts a # before the fractional part.
 
         Parameters
         ----------
@@ -277,16 +283,16 @@ class PreProcessor:
         Examples
         --------
         >>> p = PreProcessor("")
-        >>> p._replace_fake_fractions("1/2 cup icing sugar")
-        "0.5 cup icing sugar"
+        >>> p._identify_fractions("1/2 cup icing sugar")
+        "#1$2 cup icing sugar"
 
         >>> p = PreProcessor("")
-        >>> p._replace_fake_fractions("2 3/4 pound chickpeas")
-        "2.75 pound chickpeas"
+        >>> p._identify_fractions("2 3/4 pound chickpeas")
+        "2#3$4 pound chickpeas"
 
         >>> p = PreProcessor("")
-        >>> p._replace_fake_fractions("1 1⁄2 cups fresh corn")
-        "1.5 cups fresh corn"
+        >>> p._identify_fractions("1 1⁄2 cups fresh corn")
+        "1#1$2 cups fresh corn"
         """
         # Replace unicode FRACTION SLASH (U+2044) with forward slash
         sentence = sentence.replace("\u2044", "/")
@@ -307,10 +313,14 @@ class PreProcessor:
         matches.sort(key=len, reverse=True)
 
         for match in matches:
-            split = match.split()
-            summed = float(sum(Fraction(s) for s in split))
-            rounded = round(summed, 3)
-            sentence = sentence.replace(match, f"{rounded:g}")
+            # Replace / with $
+            replacement = match.replace("/", "$")
+            # If there's a space in the match, replace with #, otherwise prepend #
+            if " " in replacement:
+                replacement = CONSECUTIVE_SPACES.sub("#", replacement)
+            else:
+                replacement = "#" + replacement
+            sentence = sentence.replace(match, replacement)
 
         return sentence
 
@@ -456,6 +466,10 @@ class PreProcessor:
         >>> p = PreProcessor("")
         >>> p._replace_dupe_units_ranges("400-500 g/14 oz - 17 oz rhubarb")
         "400-500 g/14-17 oz rhubarb"
+
+        >>> p = PreProcessor("")
+        >>> p._replace_dupe_units_ranges("0.5 c to 1 cup shelled raw pistachios")
+        "0.5-1 c shell raw pistachios"
         """
         matches = DUPE_UNIT_RANGES_PATTERN.findall(sentence)
 
@@ -464,7 +478,7 @@ class PreProcessor:
 
         for full_match, quantity1, unit1, quantity2, unit2 in matches:
             # We are only interested if the both captured units are the same
-            if unit1 != unit2:
+            if unit1 != unit2 and not is_unit_synonym(unit1, unit2):
                 continue
 
             # If capture unit not in units list, abort
@@ -501,17 +515,17 @@ class PreProcessor:
         return QUANTITY_X_PATTERN.sub(r"\1x ", sentence)
 
     def _collapse_ranges(self, sentence: str) -> str:
-        """Collapse any whitespace found in a range so the range has the standard form.
+        """Collapse any whites pace found in a range so the range has the standard form.
 
         Parameters
         ----------
         sentence : str
-            Ingedient sentence
+            Ingredient sentence
 
         Returns
         -------
         str
-            Ingredient sentence with whitespace removed from ranges
+            Ingredient sentence with white space removed from ranges
 
         Examples
         --------
@@ -526,16 +540,16 @@ class PreProcessor:
         return EXPANDED_RANGE.sub(r"\1-\2", sentence)
 
     def _singlarise_units(
-        self, tokenised_sentence: list[str]
+        self, tokenized_sentence: list[str]
     ) -> tuple[list[str], list[int]]:
-        """Singularise units in tokenised sentence.
+        """Singularise units in tokenized sentence.
 
         Returns the tokenized sentence with plural units made singular, and a list of
-        indices of tokens in the tokenised sentence that have been singularised.
+        indices of tokens in the tokenized sentence that have been singularised.
 
         Parameters
         ----------
-        tokenised_sentence : list[str]
+        tokenized_sentence : list[str]
             Tokenised sentence
 
         Returns
@@ -543,16 +557,16 @@ class PreProcessor:
         list[str]
             Tokenised sentence with units singularised
         list[int]
-            List of indices of tokenised sentence that have been singularised
+            List of indices of tokenized sentence that have been singularised
         """
         singularised_indices = []
-        for idx, token in enumerate(tokenised_sentence):
+        for idx, token in enumerate(tokenized_sentence):
             singular = UNITS.get(token, None)
             if singular is not None:
-                tokenised_sentence[idx] = singular
+                tokenized_sentence[idx] = singular
                 singularised_indices.append(idx)
 
-        return (tokenised_sentence, singularised_indices)
+        return (tokenized_sentence, singularised_indices)
 
     def _replace_numeric_tokens(self, tokens: list[str]) -> list[str]:
         """Replace numeric tokens with single representation "!num".
@@ -580,7 +594,7 @@ class PreProcessor:
         return replaced_tokens
 
     def _tag_partofspeech(self, tokens: list[str]) -> list[str]:
-        """Tag tokens with part of speech using universal tagset.
+        """Tag tokens with part of speech using universal tag set.
 
         Parameters
         ----------
@@ -598,6 +612,9 @@ class PreProcessor:
         for token, tag in pos_tag([t.lower() for t in tokens]):
             if self._is_numeric(token):
                 tag = "CD"
+            elif token in ["c", "g"]:
+                # Special cases for c (cup) and g (gram)
+                tag = "NN"
             tags.append(tag)
         return tags
 
@@ -690,6 +707,14 @@ class PreProcessor:
         >>> p._is_numeric("beef")
         False
         """
+        if token in ["00"]:
+            # Special cases of digits that don't represent numbers
+            return False
+
+        if FRACTION_TOKEN_PATTERN.match(token):
+            # Fraction tokens e.g. #1$4 or 1#2$3
+            return True
+
         if token.lower() in STRING_NUMBERS.keys():
             return True
 
@@ -800,6 +825,23 @@ class PreProcessor:
             if start < index < end:
                 return True
 
+        return False
+
+    def _is_example(self, index: int) -> bool:
+        """Return True is the token is part of an example in the sentence.
+
+        Examples are indicated using phrases like "such as", "for example"
+
+        Parameters
+        ----------
+        index : int
+            Index of token to check
+
+        Returns
+        -------
+        bool
+            True if index is part of an example, else False
+        """
         return False
 
     def _is_ambiguous_unit(self, token: str) -> bool:

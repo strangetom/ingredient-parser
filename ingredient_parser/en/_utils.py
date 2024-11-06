@@ -10,8 +10,12 @@ import pint
 
 from .._common import download_nltk_resources, is_float, is_range
 from ..dataclasses import IngredientAmount
-from ._constants import UNITS
-from ._regex import FRACTION_SPLIT_AND_PATTERN, STRING_RANGE_PATTERN
+from ._constants import FLATTENED_UNITS_LIST, UNIT_SYNONYMS, UNITS
+from ._regex import (
+    FRACTION_SPLIT_AND_PATTERN,
+    FRACTION_TOKEN_PATTERN,
+    STRING_RANGE_PATTERN,
+)
 
 UREG = pint.UnitRegistry()
 
@@ -50,6 +54,7 @@ UNIT_REPLACEMENTS = [
     (re.compile(r"\b(fluid ounce)\b"), "fluid_ounce"),
     (re.compile(r"\b(C)\b"), "cup"),
     (re.compile(r"\b(c)\b"), "cup"),
+    (re.compile(r"\b(qt)\b"), "quart"),
     (re.compile(r"\b(Cl)\b"), "centiliter"),
     (re.compile(r"\b(G)\b"), "gram"),
     (re.compile(r"\b(Ml)\b"), "milliliter"),
@@ -64,10 +69,10 @@ STEMMER = nsp.PorterStemmer()
 # Define regular expressions used by tokenizer.
 # Matches one or more whitespace characters
 WHITESPACE_TOKENISER = re.compile(r"\S+")
-# Matches and captures one of the following: ( ) [ ] { } , " / : ; ? !
-PUNCTUATION_TOKENISER = re.compile(r"([\(\)\[\]\{\}\,/:;\?\!\*])")
+# Matches and captures one of the following: ( ) [ ] { } , " / : ; ? ! ~
+PUNCTUATION_TOKENISER = re.compile(r"([\(\)\[\]\{\}\,/:;\?\!\*\~])")
 # Matches and captures full stop at end of string
-# (?>!\.\w) is a negative lookbehind that prevents matches if the last full stop
+# (?<!\.\w) is a negative lookbehind that prevents matches if the last full stop
 # is preceded by a a full stop then a word character.
 FULL_STOP_TOKENISER = re.compile(r"(?<!\.\w)(\.)$")
 
@@ -215,7 +220,7 @@ def convert_to_pint_unit(unit: str, imperial_units: bool = False) -> str | pint.
         return unit
 
     if unit.lower() in MISINTERPRETED_UNITS:
-        # Special cases to prevent pint interprettng units incorrect
+        # Special cases to prevent pint interprettng units incorrectly
         # e.g. pinch != pico-inch
         return unit
 
@@ -235,6 +240,50 @@ def convert_to_pint_unit(unit: str, imperial_units: bool = False) -> str | pint.
     return unit
 
 
+def is_unit_synonym(unit1: str, unit2: str) -> bool:
+    """Check if given units are synonyms.
+
+    Parameters
+    ----------
+    unit1 : str
+        First unit to check.
+    unit2 : str
+        Second unit to check.
+
+    Returns
+    -------
+    bool
+        True if units are synonyms.
+
+    Examples
+    --------
+    >>> is_unit_synonym("oz", "ounce")
+    True
+
+    >>> is_unit_synonym("cups", "c")
+    True
+
+    >>> is_unit_synonym("kg", "g")
+    False
+    """
+    # If not in units list, then cannot be unit synonyms
+    if unit1 not in FLATTENED_UNITS_LIST or unit2 not in FLATTENED_UNITS_LIST:
+        return False
+
+    # Make singular if plural
+    if unit1 in UNITS.keys():
+        unit1 = UNITS[unit1]
+
+    if unit2 in UNITS.keys():
+        unit2 = UNITS[unit2]
+
+    for synonyms in UNIT_SYNONYMS:
+        if unit1 in synonyms and unit2 in synonyms:
+            return True
+
+    return False
+
+
 def combine_quantities_split_by_and(text: str) -> str:
     """Combine fractional quantities split by 'and' into single value.
 
@@ -252,17 +301,16 @@ def combine_quantities_split_by_and(text: str) -> str:
     Examples
     --------
     >>> combine_quantities_split_by_and("1 and 1/2 tsp fine grain sea salt")
-    "1.5 tsp fine grain sea salt"
+    "1#1$2 tsp fine grain sea salt"
 
     >>> combine_quantities_split_by_and("1 and 1/4 cups dark chocolate morsels")
-    "1.25 cups dark chocolate morsels"
+    "1#1$4 cups dark chocolate morsels"
     """
     matches = FRACTION_SPLIT_AND_PATTERN.findall(text)
 
     for match in matches:
-        combined_quantity = float(Fraction(match[1]) + Fraction(match[2]))
-        rounded = round(combined_quantity, 3)
-        text = text.replace(match[0], f"{rounded:g}")
+        replacement = match[1] + "#" + match[2].replace("/", "$")
+        text = text.replace(match[0], replacement)
 
     return text
 
@@ -299,6 +347,26 @@ def replace_string_range(text: str) -> str:
     return STRING_RANGE_PATTERN.sub(r"\1-\5", text)
 
 
+def to_frac(token: str) -> Fraction:
+    """Convert a QTY token into a Fraction object
+
+    Parameters
+    ----------
+    token : str
+        Token with QTY label
+
+    Returns
+    -------
+    Fraction
+        Fraction object represeting the same quantity as token.
+    """
+    if FRACTION_TOKEN_PATTERN.match(token):
+        fraction_parts = [p.replace("$", "/") for p in token.split("#") if p]
+        return sum(Fraction(p) for p in fraction_parts)
+
+    return Fraction(token)
+
+
 def ingredient_amount_factory(
     quantity: str,
     unit: str,
@@ -309,6 +377,7 @@ def ingredient_amount_factory(
     SINGULAR: bool = False,
     string_units: bool = False,
     imperial_units: bool = False,
+    quantity_fractions: bool = False,
 ) -> IngredientAmount:
     """Create ingredient amount object from parts.
 
@@ -346,6 +415,9 @@ def ingredient_amount_factory(
         for the the following units: fluid ounce, cup, pint, quart, gallon.
         Default is False, which results in US customary units being used.
         This has no effect if string_units=True.
+    quantity_fractions: bool, optional
+        If True, return numeric quantities as Fraction objects.
+        Default is False, where numeric quantities are returned as floats.
 
     Returns
     -------
@@ -353,28 +425,33 @@ def ingredient_amount_factory(
     """
     RANGE = False
     MULTIPLIER = False
-
-    if is_float(quantity):
-        # If float, set quantity_max = quantity
-        _quantity = float(quantity)
+    if is_float(quantity) or FRACTION_TOKEN_PATTERN.match(quantity):
+        # If float or fraction, set quantity_max = quantity
+        _quantity = to_frac(quantity)
         quantity_max = _quantity
     elif is_range(quantity):
         # If range, set quantity to min of range, set quantity_max to max
         # of range, set RANGE flag to True
-        range_parts = [float(x) for x in quantity.split("-")]
+        range_parts = [to_frac(x) for x in quantity.split("-")]
         _quantity = min(range_parts)
         quantity_max = max(range_parts)
         RANGE = True
     elif quantity.endswith("x"):
         # If multiplier, set quantity and quantity_max to value without 'x', and
         # set MULTIPLER flag.
-        _quantity = float(quantity[:-1])
+        _quantity = to_frac(quantity[:-1])
         quantity_max = _quantity
         MULTIPLIER = True
     else:
         _quantity = quantity
         # Fallback to setting quantity_max to quantity
         quantity_max = _quantity
+
+    if not quantity_fractions:
+        # Convert to floats if not using Fractions
+        if isinstance(_quantity, Fraction) and isinstance(quantity_max, Fraction):
+            _quantity = round(float(_quantity), 3)
+            quantity_max = round(float(quantity_max), 3)
 
     _unit = unit
     # Convert unit to pint.Unit
@@ -395,7 +472,7 @@ def ingredient_amount_factory(
         quantity=_quantity,
         quantity_max=quantity_max,
         unit=_unit,
-        text=text,
+        text=text.replace("#", " ").replace("$", "/"),
         confidence=round(confidence, 6),
         starting_index=starting_index,
         APPROXIMATE=APPROXIMATE,
