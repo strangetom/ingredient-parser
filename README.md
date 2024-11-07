@@ -33,6 +33,7 @@ ParsedIngredient(
     preparation=IngredientText(text='cut into 2 inch chunks', confidence=0.999193),
     comment=None,
     purpose=None,
+    foundation_foods=[],
     sentence='3 pounds pork shoulder, cut into 2-inch chunks'
 )
 ```
@@ -47,13 +48,13 @@ The model has the following accuracy on a test data set of 20% of the total data
 
 ```
 Sentence-level results:
-	Accuracy: 95.86%
+	Accuracy: 95.87%
 
 Word-level results:
-	Accuracy 98.41%
-	Precision (micro) 98.41%
-	Recall (micro) 98.41%
-	F1 score (micro) 98.41%
+	Accuracy 98.29%
+	Precision (micro) 98.29%
+	Recall (micro) 98.29%
+	F1 score (micro) 98.29%
 ```
 
 ## Development
