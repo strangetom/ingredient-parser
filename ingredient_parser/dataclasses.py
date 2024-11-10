@@ -183,6 +183,19 @@ class IngredientText:
 
 
 @dataclass
+class AlternativeIngredients:
+    """Dataclass for holding alternative ingredient names.
+
+    Attributes
+    ----------
+    ingredients : list[IngredientText]
+        IngredientText object for each alternative ingredient.
+    """
+
+    ingredients: list[IngredientText]
+
+
+@dataclass
 class FoudationFood:
     """Dataclass for holding a foundation food string.
 
@@ -208,8 +221,9 @@ class ParsedIngredient:
 
     Attributes
     ----------
-    name : IngredientText | None
+    name : IngredientText | AlternativeIngredients | None
         Ingredient name parsed from input sentence.
+        If multiple alternative ingredients are found, AlternativeIngredients is used.
         If no ingredient name was found, this is None.
     size : IngredientText | None
         Size modifier of ingredients, such as small or large.
@@ -232,7 +246,7 @@ class ParsedIngredient:
         Normalised input sentence
     """
 
-    name: IngredientText | None
+    name: IngredientText | AlternativeIngredients | None
     size: IngredientText | None
     amount: list[IngredientAmount]
     preparation: IngredientText | None

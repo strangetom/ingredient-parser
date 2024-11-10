@@ -10,6 +10,7 @@ from typing import Any
 
 from .._common import consume, group_consecutive_idx
 from ..dataclasses import (
+    AlternativeIngredients,
     CompositeIngredientAmount,
     IngredientAmount,
     IngredientText,
@@ -156,8 +157,8 @@ class PostProcessor:
             Object containing structured data from sentence.
         """
         amounts = self._postprocess_amounts()
+        name = self._postprocess_name()
         size = self._postprocess("SIZE")
-        name = self._postprocess("NAME")
         preparation = self._postprocess("PREP")
         comment = self._postprocess("COMMENT")
         purpose = self._postprocess("PURPOSE")
@@ -198,6 +199,118 @@ class PostProcessor:
         if not label_idx or all(self.labels[i] == "PUNC" for i in label_idx):
             return None
 
+        return self._postprocess_indices(label_idx, selected_label)
+
+    def _postprocess_name(self) -> IngredientText | AlternativeIngredients | None:
+        """Process tokens, labels and score for the ingredient name(s).
+
+        The approach has a lot in common with _postprocess, but has additional logic to
+        handle multiple alternative ingredient names e.g. "butter or olive oil". Where
+        multiple alternative ingredients names are identified, each one is returned in a
+        separate IngredientText object.
+
+        Returns
+        -------
+        IngredientText | AlternativeIngredients | None
+        """
+        name_idx = [
+            i
+            for i, label in enumerate(self.labels)
+            if label in ["NAME", "PUNC"] and i not in self.consumed
+        ]
+
+        # If idx is empty or all the selected idx are PUNC, return None
+        if not name_idx or all(self.labels[i] == "PUNC" for i in name_idx):
+            return None
+
+        # Check if there are multiple alternative ingredients by looking for the token
+        # "or" that has the POS tag of "CC". If present in name tokens, split into
+        # separate names.
+        name_tokens = [self.tokens[i] for i in name_idx]
+        name_pos_tags = [self.pos_tags[i] for i in name_idx]
+
+        if "or" in name_tokens and name_pos_tags[name_tokens.index("or")] == "CC":
+            alternatives = [
+                self._postprocess_indices(group, "NAME")
+                for group in self._split_name_tokens(
+                    name_tokens, name_pos_tags, name_idx
+                )
+            ]
+            return AlternativeIngredients(ingredients=alternatives)
+        else:
+            # "or" not found
+            return self._postprocess_indices(name_idx, "NAME")
+
+    def _split_name_tokens(
+        self, tokens: list[str], pos_tags: list[str], indices: list[int]
+    ) -> list[list[int]]:
+        """Split name tokens into subgroups.
+
+        Splits occur whenever a conjunction is (e.g. "or") or when a comma is followed
+        by a noun.
+
+        Parameters
+        ----------
+        tokens : list[str]
+            List of name tokens
+        pos_tags : list[str]
+            List of name token part of speech tags
+        indices : list[int]
+            List of indices of name tokens
+
+        Returns
+        -------
+        list[list[int]]
+            List of lists of indices, for groups of name tokens
+        """
+        all_splits = []
+        current_split = []
+        prev_token = None
+        for token, pos, idx in zip(tokens, pos_tags, indices):
+            if pos == "CC":
+                # Split when encountering a conjunction
+                if current_split:
+                    all_splits.append(current_split)
+                current_split = []
+                prev_token = token
+                continue
+
+            if prev_token == "," and pos.startswith("NN"):
+                # Split if encountering a noun preceded by a comma
+                if current_split:
+                    all_splits.append(current_split)
+                current_split = []
+
+            current_split.append(idx)
+            prev_token = token
+
+        all_splits.append(current_split)
+        return all_splits
+
+    def _postprocess_indices(
+        self, label_idx: list[int], selected_label: str
+    ) -> IngredientText | None:
+        """Process list of token indices into a single IngredientText object.
+
+        Consecutive tokens are joined together, with non-consecutive groups being joined
+        by a comma (unless selected_label is NAME).
+
+        Indices for tokens that would be ungrammatical are removed prior to joining.
+        Duplicate tokens that are adjacent are also removed.
+
+        Parameters
+        ----------
+        label_idx : list[int]
+            List of indices of tokens to postprocess into IngredientText
+        selected_label : str
+            Label of tokens being post processed.
+
+        Returns
+        -------
+        IngredientText | None
+            IngredientText object for selected tokens.
+            If the post processing results in all tokens being ignored, return None.
+        """
         # Join consecutive tokens together and average their score
         parts = []
         confidence_parts = []
