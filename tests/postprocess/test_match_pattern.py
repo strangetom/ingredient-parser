@@ -20,7 +20,7 @@ class TestPostProcessor_match_pattern:
             "UNIT",
             "UNIT",
         ]
-        p = PostProcessor("", [], [], [])
+        p = PostProcessor("", [], [], [], [])
 
         assert p._match_pattern(labels, pattern, ignore_other_labels=True) == [
             [2, 3, 4, 5, 6, 7, 8, 9]
@@ -41,7 +41,7 @@ class TestPostProcessor_match_pattern:
             "UNIT",
             "UNIT",
         ]
-        p = PostProcessor("", [], [], [])
+        p = PostProcessor("", [], [], [], [])
 
         assert p._match_pattern(labels, pattern, ignore_other_labels=True) == [
             [0, 1, 2, 3, 4, 5]
@@ -64,7 +64,7 @@ class TestPostProcessor_match_pattern:
             "UNIT",
             "UNIT",
         ]
-        p = PostProcessor("", [], [], [])
+        p = PostProcessor("", [], [], [], [])
 
         assert p._match_pattern(labels, pattern, ignore_other_labels=True) == [
             [2, 3, 4, 5]
@@ -83,7 +83,7 @@ class TestPostProcessor_match_pattern:
             "UNIT",
             "UNIT",
         ]
-        p = PostProcessor("", [], [], [])
+        p = PostProcessor("", [], [], [], [])
 
         assert p._match_pattern(labels, pattern, ignore_other_labels=True) == []
 
@@ -104,7 +104,7 @@ class TestPostProcessor_match_pattern:
             "UNIT",
             "UNIT",
         ]
-        p = PostProcessor("", [], [], [])
+        p = PostProcessor("", [], [], [], [])
 
         assert p._match_pattern(labels, pattern, ignore_other_labels=True) == [
             [0, 1, 2, 3],
@@ -124,7 +124,7 @@ class TestPostProcessor_match_pattern:
             "UNIT",
             "UNIT",
         ]
-        p = PostProcessor("", [], [], [])
+        p = PostProcessor("", [], [], [], [])
 
         assert p._match_pattern(labels, pattern, ignore_other_labels=False) == []
 
@@ -141,7 +141,7 @@ class TestPostProcessor_match_pattern:
             "UNIT",
             "UNIT",
         ]
-        p = PostProcessor("", [], [], [])
+        p = PostProcessor("", [], [], [], [])
 
         assert p._match_pattern(labels, pattern, ignore_other_labels=True) == [
             [0, 1, 3, 4]

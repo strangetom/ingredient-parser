@@ -23,6 +23,20 @@ class TestPostProcessor_sizable_unit_pattern:
             "can",
             "chickpeas",
         ]
+        pos_tags = [
+            "CD",
+            "CD",
+            "NN",
+            "(",
+            "CD",
+            "NN",
+            "VBD",
+            "CD",
+            "NN",
+            ")",
+            "MD",
+            "VB",
+        ]
         labels = [
             "QTY",
             "QTY",
@@ -39,7 +53,7 @@ class TestPostProcessor_sizable_unit_pattern:
         ]
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
-        p = PostProcessor(sentence, tokens, labels, scores)
+        p = PostProcessor(sentence, tokens, pos_tags, labels, scores)
 
         expected = [
             ingredient_amount_factory(
@@ -98,6 +112,7 @@ class TestPostProcessor_sizable_unit_pattern:
             "can",
             "chickpeas",
         ]
+        pos_tags = ["CD", "CD", "NN", "(", "CD", "NN", ")", "MD", "VB"]
         labels = [
             "QTY",
             "QTY",
@@ -111,7 +126,7 @@ class TestPostProcessor_sizable_unit_pattern:
         ]
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
-        p = PostProcessor(sentence, tokens, labels, scores)
+        p = PostProcessor(sentence, tokens, pos_tags, labels, scores)
 
         expected = [
             ingredient_amount_factory(
@@ -158,6 +173,7 @@ class TestPostProcessor_sizable_unit_pattern:
             "can",
             "chickpeas",
         ]
+        pos_tags = ["CD", "CD", "NN", "MD", "VB"]
         labels = [
             "QTY",
             "QTY",
@@ -167,7 +183,7 @@ class TestPostProcessor_sizable_unit_pattern:
         ]
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
-        p = PostProcessor(sentence, tokens, labels, scores)
+        p = PostProcessor(sentence, tokens, pos_tags, labels, scores)
 
         expected = [
             ingredient_amount_factory(
@@ -199,10 +215,11 @@ class TestPostProcessor_sizable_unit_pattern:
         """
         sentence = "400 g chickpeas or black beans"
         tokens = ["400", "g", "chickpeas", "or", "black", "beans"]
+        pos_tags = ["CD", "NN", "NNS", "CC", "JJ", "NNS"]
         labels = ["QTY", "UNIT", "NAME", "NAME", "NAME", "NAME"]
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
-        p = PostProcessor(sentence, tokens, labels, scores)
+        p = PostProcessor(sentence, tokens, pos_tags, labels, scores)
 
         # Don't check scores
         assert p._sizable_unit_pattern(idx, tokens, labels, scores) == []
@@ -214,10 +231,11 @@ class TestPostProcessor_sizable_unit_pattern:
         """
         sentence = "2 cups or 1 28 ounce can chickpeas"
         tokens = ["2", "cup", "or", "1", "28", "ounce", "can", "chickpeas"]
+        pos_tags = ["CD", "NN", "CC", "CD", "CD", "NN", "MD", "VB"]
         labels = ["QTY", "UNIT", "COMMENT", "QTY", "QTY", "UNIT", "UNIT", "NAME"]
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
-        p = PostProcessor(sentence, tokens, labels, scores)
+        p = PostProcessor(sentence, tokens, pos_tags, labels, scores)
 
         expected = [
             ingredient_amount_factory(
@@ -252,10 +270,13 @@ class TestPostProcessor_sizable_unit_pattern:
         """
         sentence = "2 cups or 1 28 ounce can chickpeas"
         tokens = ["2", "cup", "or", "1", "28", "ounce", "can", "chickpeas"]
+        pos_tags = ["CD", "NN", "CC", "CD", "CD", "NN", "MD", "VB"]
         labels = ["QTY", "UNIT", "COMMENT", "QTY", "QTY", "UNIT", "UNIT", "NAME"]
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
-        p = PostProcessor(sentence, tokens, labels, scores, imperial_units=True)
+        p = PostProcessor(
+            sentence, tokens, pos_tags, labels, scores, imperial_units=True
+        )
 
         expected = [
             ingredient_amount_factory(
@@ -291,10 +312,11 @@ class TestPostProcessor_sizable_unit_pattern:
         """
         sentence = "2 cups or 1 28 ounce can chickpeas"
         tokens = ["2", "cup", "or", "1", "28", "ounce", "can", "chickpeas"]
+        pos_tags = ["CD", "NN", "CC", "CD", "CD", "NN", "MD", "VB"]
         labels = ["QTY", "UNIT", "COMMENT", "QTY", "QTY", "UNIT", "UNIT", "NAME"]
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
-        p = PostProcessor(sentence, tokens, labels, scores, string_units=True)
+        p = PostProcessor(sentence, tokens, pos_tags, labels, scores, string_units=True)
 
         expected = [
             ingredient_amount_factory(

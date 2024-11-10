@@ -104,6 +104,7 @@ def parse_ingredient_en(
     postprocessed_sentence = PostProcessor(
         sentence,
         tokens,
+        processed_sentence.pos_tags,
         labels,
         scores,
         discard_isolated_stop_words=discard_isolated_stop_words,
@@ -192,6 +193,7 @@ def inspect_parser_en(
     postprocessed_sentence = PostProcessor(
         sentence,
         tokens,
+        processed_sentence.pos_tags,
         labels,
         scores,
         discard_isolated_stop_words=discard_isolated_stop_words,

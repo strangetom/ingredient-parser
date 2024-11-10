@@ -103,6 +103,7 @@ class PostProcessor:
         self,
         sentence: str,
         tokens: list[str],
+        pos_tags: list[str],
         labels: list[str],
         scores: list[float],
         discard_isolated_stop_words: bool = True,
@@ -113,6 +114,7 @@ class PostProcessor:
         self.sentence = sentence
         self.tokens = tokens
         self.labels = labels
+        self.pos_tags = pos_tags
         self.scores = scores
         self.discard_isolated_stop_words = discard_isolated_stop_words
         self.string_units = string_units

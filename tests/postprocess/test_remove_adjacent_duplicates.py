@@ -9,6 +9,7 @@ def p():
     class methods.
     """
     sentence = "2 14 ounce cans coconut milk"
+    pos_tags = ["CD", "CD", "NN", "MD", "NN", "NN"]
     tokens = ["2", "14", "ounce", "can", "coconut", "milk"]
     labels = ["QTY", "QTY", "UNIT", "UNIT", "NAME", "NAME"]
     scores = [
@@ -20,7 +21,7 @@ def p():
         0.9969237827902526,
     ]
 
-    return PostProcessor(sentence, tokens, labels, scores)
+    return PostProcessor(sentence, tokens, pos_tags, labels, scores)
 
 
 class TestPostProcessor_remove_adjacent_duplicates:

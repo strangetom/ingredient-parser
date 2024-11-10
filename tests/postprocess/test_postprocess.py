@@ -15,6 +15,7 @@ def p():
     """
     sentence = "2 14 ounce cans of coconut milk"
     tokens = ["2", "14", "ounce", "can", "of", "coconut", "milk"]
+    pos_tags = ["CD", "CD", "NN", "MD", "IN", "NN", "NN"]
     labels = ["QTY", "QTY", "UNIT", "UNIT", "COMMENT", "NAME", "NAME"]
     scores = [
         0.9995971493946465,
@@ -27,7 +28,7 @@ def p():
     ]
 
     return PostProcessor(
-        sentence, tokens, labels, scores, discard_isolated_stop_words=True
+        sentence, tokens, pos_tags, labels, scores, discard_isolated_stop_words=True
     )
 
 
@@ -49,6 +50,7 @@ def p_string_numbers():
         "pound",
         "each",
     ]
+    pos_tags = ["CD", "NN", "NN", ",", "IN", "CD", "CC", "CD", "NN", "DT"]
     labels = [
         "QTY",
         "NAME",
@@ -75,7 +77,7 @@ def p_string_numbers():
     ]
 
     return PostProcessor(
-        sentence, tokens, labels, scores, discard_isolated_stop_words=True
+        sentence, tokens, pos_tags, labels, scores, discard_isolated_stop_words=True
     )
 
 
@@ -97,6 +99,7 @@ def p_string_numbers_range():
         "pounds",
         "each",
     ]
+    pos_tags = ["CD", "NN", "NN", ",", "IN", "CD", "CC", "CD", "NN", "DT"]
     labels = [
         "QTY",
         "NAME",
@@ -123,7 +126,7 @@ def p_string_numbers_range():
     ]
 
     return PostProcessor(
-        sentence, tokens, labels, scores, discard_isolated_stop_words=True
+        sentence, tokens, pos_tags, labels, scores, discard_isolated_stop_words=True
     )
 
 
@@ -145,6 +148,7 @@ def p_quantity_fractions():
         "pound",
         "each",
     ]
+    pos_tags = ["CD", "NN", "NN", ",", "IN", "CD", "CC", "CD", "NN", "DT"]
     labels = [
         "QTY",
         "NAME",
@@ -170,7 +174,9 @@ def p_quantity_fractions():
         0.9447105511029686,
     ]
 
-    return PostProcessor(sentence, tokens, labels, scores, quantity_fractions=True)
+    return PostProcessor(
+        sentence, tokens, pos_tags, labels, scores, quantity_fractions=True
+    )
 
 
 @pytest.fixture
@@ -180,6 +186,7 @@ def p_postprep():
     """
     sentence = "1 tbsp chopped pistachios"
     tokens = ["1", "tbsp", "chopped", "pistachios"]
+    pos_tags = ["CD", "NN", "VBD", "NNS"]
     labels = ["QTY", "UNIT", "PREP", "NAME"]
     scores = [
         0.9997566777785302,
@@ -189,7 +196,7 @@ def p_postprep():
     ]
 
     return PostProcessor(
-        sentence, tokens, labels, scores, discard_isolated_stop_words=False
+        sentence, tokens, pos_tags, labels, scores, discard_isolated_stop_words=False
     )
 
 
@@ -200,6 +207,7 @@ def p_no_discard():
     """
     sentence = "2 14 ounce cans of coconut milk"
     tokens = ["2", "14", "ounce", "can", "of", "coconut", "milk"]
+    pos_tags = ["CD", "CD", "NN", "MD", "IN", "NN", "NN"]
     labels = ["QTY", "QTY", "UNIT", "UNIT", "COMMENT", "NAME", "NAME"]
     scores = [
         0.9995971493946465,
@@ -212,7 +220,7 @@ def p_no_discard():
     ]
 
     return PostProcessor(
-        sentence, tokens, labels, scores, discard_isolated_stop_words=False
+        sentence, tokens, pos_tags, labels, scores, discard_isolated_stop_words=False
     )
 
 

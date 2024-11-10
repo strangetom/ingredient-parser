@@ -8,10 +8,11 @@ class TestPostProcessor_is_singular:
         """
         sentence = "4 salmon fillets 2 pounds each"
         tokens = ["4", "salmon", "fillets", "2", "pounds", "each"]
+        pos_tags = ["CD", "JJ", "NNS", "CD", "NN", "DT"]
         labels = ["QTY", "NAME", "NAME", "QTY", "UNIT", "COMMENT"]
         idx = [0, 1, 2, 3, 4, 5]
 
-        p = PostProcessor(sentence, tokens, labels, [0] * len(tokens))
+        p = PostProcessor(sentence, tokens, pos_tags, labels, [0] * len(tokens))
         assert p._is_singular(4, tokens, labels, idx)
         assert p.consumed == [5]
 
@@ -21,6 +22,7 @@ class TestPostProcessor_is_singular:
         """
         sentence = "4 salmon fillets 2 pounds (900 g) each"
         tokens = ["4", "salmon", "fillets", "2", "pounds", "(", "900", "g", ")", "each"]
+        pos_tags = ["CD", "JJ", "NNS", "CD", "NN", "DT"]
         labels = [
             "QTY",
             "NAME",
@@ -35,7 +37,7 @@ class TestPostProcessor_is_singular:
         ]
         idx = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 
-        p = PostProcessor(sentence, tokens, labels, [0] * len(tokens))
+        p = PostProcessor(sentence, tokens, pos_tags, labels, [0] * len(tokens))
         assert p._is_singular(7, tokens, labels, idx)
         assert p.consumed == [9]
 
@@ -45,9 +47,10 @@ class TestPostProcessor_is_singular:
         """
         sentence = "4 salmon fillets 2 pounds minimum"
         tokens = ["4", "salmon", "fillets", "2", "pounds", "minimum"]
+        pos_tags = ["CD", "JJ", "NNS", "CD", "NN", "NN"]
         labels = ["QTY", "NAME", "NAME", "QTY", "UNIT", "COMMENT"]
         idx = [0, 1, 2, 3, 4, 5]
 
-        p = PostProcessor(sentence, tokens, labels, [0] * len(tokens))
+        p = PostProcessor(sentence, tokens, pos_tags, labels, [0] * len(tokens))
         assert not p._is_singular(4, tokens, labels, idx)
         assert p.consumed == []
