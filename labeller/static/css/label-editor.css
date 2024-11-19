@@ -152,28 +152,6 @@ select {
   width: 13ch;
   word-break: break-word;
 }
-input[type="checkbox"] {
-  appearance: none;
-  background: none;
-  border: none;
-  block-size: 100%;
-  inline-size: 100%;
-  margin: 0;
-}
-label {
-  position: relative;
-  cursor: pointer;
-}
-input[type=checkbox]:checked~label {
-  background-color: color-mix(in srgb, var(--bg-2) 85%, var(--aqua-alt));
-}
-input[type=checkbox]:checked~label:after {
-  content: "*";
-  position: absolute;
-  top: -4px;
-  right: 0;
-  color: var(--yellow-alt);
-}
 
 .QTY {
   --background-color: color-mix(in srgb, var(--green), #333);
@@ -198,6 +176,19 @@ input[type=checkbox]:checked~label:after {
 }
 .PURPOSE {
   --background-color: color-mix(in srgb, var(--red), #333);
+}
+
+.B_CORE {
+  --background-color: color-mix(in srgb, var(--yellow-alt), #333);
+}
+.I_CORE {
+  --background-color: color-mix(in srgb, var(--yellow), #333);
+}
+.B_PREFIX {
+  --background-color: color-mix(in srgb, var(--purple-alt), #333);
+}
+.I_PREFIX {
+  --background-color: color-mix(in srgb, var(--purple), #333);
 }
 
 button {

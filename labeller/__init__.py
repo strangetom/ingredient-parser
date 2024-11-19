@@ -146,7 +146,7 @@ def save():
                 sentence = :sentence, 
                 tokens = :tokens, 
                 labels = :labels, 
-                foundation_foods = :foundation_foods
+                foundation_labels = :foundation_labels
                 WHERE id = :id;""",
                 update["entries"],
             )

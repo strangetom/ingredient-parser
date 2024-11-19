@@ -45,12 +45,7 @@
                 <table>
                     <tr>
                         {%- for token in entry.tokens -%}
-                        <td>
-                            <div>
-                                <input id="{{ entry.id }}-{{ loop.index0 }}" name="{{ entry.id }}-{{ loop.index0 }}" type="checkbox" {{ "checked" if loop.index0 in entry.foundation_foods }} />
-                                <label for="{{ entry.id }}-{{ loop.index0 }}">{{ token }}</label>
-                            </div>
-                        </td>
+                        <td>{{ token }}</td>
                         {%- endfor -%}
                     </tr>
                     <tr>
@@ -66,6 +61,19 @@
                               <option value="PUNC" {{ "selected" if label == "PUNC" }}>PUNC</option>
                               <option value="PURPOSE" {{ "selected" if label == "PURPOSE" }}>PURPOSE</option>
                               <option value="COMMENT" {{ "selected" if label == "COMMENT" }}>COMMENT</option>
+                            </select>
+                        </td>
+                        {%- endfor -%}
+                    </tr>
+                    <tr>
+                        {%- for label in entry.foundation_labels -%}
+                        <td class="{{ label }}">
+                            <select>
+                              <option value="O" {{ "selected" if label == "O" }}>O</option>
+                              <option value="B_CORE" {{ "selected" if label == "B_CORE" }}>B_CORE</option>
+                              <option value="I_CORE" {{ "selected" if label == "I_CORE" }}>I_CORE</option>
+                              <option value="B_PREFIX" {{ "selected" if label == "B_PREFIX" }}>B_PREFIX</option>
+                              <option value="I_PREFIX" {{ "selected" if label == "I_PREFIX" }}>I_PREFIX</option>
                             </select>
                         </td>
                         {%- endfor -%}
