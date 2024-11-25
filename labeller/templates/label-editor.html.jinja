@@ -71,9 +71,13 @@
                             <select>
                               <option value="O" {{ "selected" if label == "O" }}>O</option>
                               <option value="B_CORE" {{ "selected" if label == "B_CORE" }}>B_CORE</option>
-                              <option value="I_CORE" {{ "selected" if label == "I_CORE" }}>I_CORE</option>
                               <option value="B_PREFIX" {{ "selected" if label == "B_PREFIX" }}>B_PREFIX</option>
+                              <option value="B_NAME" {{ "selected" if label == "B_NAME" }}>B_NAME</option>
+                              <option value="I_CORE" {{ "selected" if label == "I_CORE" }}>I_CORE</option>
                               <option value="I_PREFIX" {{ "selected" if label == "I_PREFIX" }}>I_PREFIX</option>
+                              <option value="I_NAME" {{ "selected" if label == "I_NAME" }}>I_NAME</option>
+                              <option value="N_SPLIT" {{ "selected" if label == "N_SPLIT" }}>N_SPLIT</option>
+                              <option value="ING_SPLIT" {{ "selected" if label == "ING_SPLIT" }}>ING_SPLIT</option>
                             </select>
                         </td>
                         {%- endfor -%}

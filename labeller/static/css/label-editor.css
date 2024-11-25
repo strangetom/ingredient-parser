@@ -190,6 +190,18 @@ select {
 .I_PREFIX {
   --background-color: color-mix(in srgb, var(--purple), #333);
 }
+.B_NAME {
+  --background-color: color-mix(in srgb, var(--orange-alt), #333);
+}
+.I_NAME {
+  --background-color: color-mix(in srgb, var(--orange), #333);
+}
+.N_SPLIT {
+  --background-color: color-mix(in srgb, var(--gray), #333);
+}
+.ING_SPLIT {
+  --background-color: color-mix(in srgb, var(--red), #333);
+}
 
 button {
   border-radius: var(--small-radius);
