@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.3.1
+
+> [!WARNING]
+>
+> This version requires pint >=0.24.4
+
+### General
+
+* Support Python 3.13. Requires pint >= 0.24.4.
+
 ## 1.3
 
 ### Processing
