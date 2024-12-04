@@ -21,6 +21,7 @@ from ._constants import (
     STOP_WORDS,
     STRING_NUMBERS_REGEXES,
 )
+from ._regex import FRACTION_IN_STRING_PATTERN
 from ._utils import (
     combine_quantities_split_by_and,
     ingredient_amount_factory,
@@ -238,6 +239,11 @@ class PostProcessor:
 
         if len(parts) == 0:
             return None
+
+        # Convert any fractions back to textual format
+        for match in FRACTION_IN_STRING_PATTERN.finditer(text):
+            replacement = match.group().replace("#", " ").replace("$", "/").strip()
+            text = text.replace(match.group(), replacement)
 
         return IngredientText(
             text=text,
