@@ -178,10 +178,10 @@ select {
   --background-color: color-mix(in srgb, var(--red), #333);
 }
 
-.B_CORE {
+.B_GLOBAL {
   --background-color: color-mix(in srgb, var(--yellow-alt), #333);
 }
-.I_CORE {
+.I_GLOBAL {
   --background-color: color-mix(in srgb, var(--yellow), #333);
 }
 .B_PREFIX {
