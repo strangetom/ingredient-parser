@@ -21,6 +21,7 @@ from ._constants import (
     STOP_WORDS,
     STRING_NUMBERS_REGEXES,
 )
+from ._regex import FRACTION_TOKEN_PATTERN
 from ._utils import (
     combine_quantities_split_by_and,
     ingredient_amount_factory,
@@ -208,7 +209,17 @@ class PostProcessor:
                 # Skip if the group only contains PUNC
                 continue
 
-            joined = " ".join([self.tokens[i] for i in idx])
+            # Convert any fractions in intermediate form (i.e. #1$2) into text
+            group_tokens = []
+            for i in idx:
+                if FRACTION_TOKEN_PATTERN.match(self.tokens[i]):
+                    group_tokens.append(
+                        self.tokens[i].replace("#", " ").replace("$", "/").strip()
+                    )
+                else:
+                    group_tokens.append(self.tokens[i])
+
+            joined = " ".join(group_tokens)
             confidence = mean([self.scores[i] for i in idx])
 
             if self.discard_isolated_stop_words and joined.lower() in STOP_WORDS:

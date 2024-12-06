@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.3.2
+
+### Processing
+
+* Fix bug that allowed fractions in the intermediate form (i.e. #1$2) to appear in the name, prep, comment, size, purpose fields of the `ParsedIngredient` output.
+
 ## 1.3.1
 
 > [!WARNING]

@@ -216,6 +216,64 @@ def p_no_discard():
     )
 
 
+@pytest.fixture
+def p_fraction_in_prep():
+    """Define a PostProcessor object for sentence with a fraction in prep
+    to use for testing the PostProcessor class methods.
+    """
+    sentence = "3 carrots, peeled and sliced into 5mm (¼in) coins"
+    tokens = [
+        "3",
+        "carrots",
+        ",",
+        "peeled",
+        "and",
+        "sliced",
+        "into",
+        "5",
+        "mm",
+        "(",
+        "#1$4",
+        "in",
+        ")",
+        "coins",
+    ]
+    labels = [
+        "QTY",
+        "NAME",
+        "PUNC",
+        "PREP",
+        "PREP",
+        "PREP",
+        "PREP",
+        "PREP",
+        "PREP",
+        "PUNC",
+        "PREP",
+        "PREP",
+        "PUNC",
+        "PREP",
+    ]
+    scores = [
+        0.9994675946370136,
+        0.9982121821692039,
+        0.9999986664162547,
+        0.9999349193863984,
+        0.999720763986239,
+        0.9999682855629554,
+        0.9999116643460678,
+        0.9998989415285744,
+        0.9994126452404396,
+        0.999365113705119,
+        0.649315853101702,
+        0.651598144547812,
+        0.9992304409607873,
+        0.660356736493678,
+    ]
+
+    return PostProcessor(sentence, tokens, labels, scores)
+
+
 class TestPostProcessor__builtins__:
     def test__str__(self, p):
         """
@@ -457,3 +515,29 @@ class TestPostProcessor_parsed:
         )
 
         assert p_no_discard.parsed == expected
+
+    def test_fraction_in_prep(self, p_fraction_in_prep):
+        expected = ParsedIngredient(
+            name=IngredientText(text="carrots", confidence=0.998212, starting_index=1),
+            size=None,
+            amount=[
+                ingredient_amount_factory(
+                    quantity="3",
+                    unit="",
+                    text="3",
+                    confidence=0.999468,
+                    starting_index=0,
+                )
+            ],
+            preparation=IngredientText(
+                text="peeled and sliced into 5 mm (1/4 in) coins",
+                confidence=0.905338,
+                starting_index=3,
+            ),
+            comment=None,
+            purpose=None,
+            foundation_foods=[],
+            sentence="3 carrots, peeled and sliced into 5mm (¼in) coins",
+        )
+
+        assert p_fraction_in_prep.parsed == expected
