@@ -113,5 +113,3 @@ DIGIT_PATTERN = re.compile(r"[0-9]")
 # any space between the whole part and fraction part has been replaced by #
 # e.g. #1$2 for 1/2, or 1#1$3 for 1 1/3
 FRACTION_TOKEN_PATTERN = re.compile(r"^\d*\#\d+\$\d+$")
-# Regex pattern to match a fraction inside a string.
-FRACTION_IN_STRING_PATTERN = re.compile(r"(\d*)\#(\d+)\$(\d+)")
