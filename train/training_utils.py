@@ -4,6 +4,7 @@ import json
 import sqlite3
 import sys
 from dataclasses import dataclass
+from enum import Enum, auto
 from itertools import chain
 from pathlib import Path
 from typing import Any
@@ -16,6 +17,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from ingredient_parser import SUPPORTED_LANGUAGES
 
 sqlite3.register_converter("json", json.loads)
+
+
+class ModelType(Enum):
+    PARSER = auto()
+    FOUNDATION_FOODS = auto()
+    NAME = auto()
 
 
 @dataclass
@@ -55,6 +62,24 @@ class TokenStats:
     macro_avg: Metrics
     weighted_avg: Metrics
     accuracy: float
+
+
+@dataclass
+class NameTokenStats:
+    """Statistics for token classification performance."""
+
+    B_NAME: Metrics
+    I_NAME: Metrics
+    B_GLOBAL: Metrics
+    # I_GLOBAL: Metrics
+    B_PREFIX: Metrics
+    I_PREFIX: Metrics
+    N_SPLIT: Metrics
+    ING_SPLIT: Metrics
+    O: Metrics
+    macro_avg: Metrics
+    weighted_avg: Metrics
+    # accuracy: float
 
 
 @dataclass
@@ -116,7 +141,7 @@ def load_datasets(
     database: str,
     table: str,
     datasets: list[str],
-    foundation_foods: bool = False,
+    model_type: ModelType = ModelType.PARSER,
     discard_other: bool = True,
 ) -> DataVectors:
     """Load raw data from csv files and transform into format required for training.
@@ -130,9 +155,9 @@ def load_datasets(
     datasets : list[str]
         List of data source to include.
         Valid options are: nyt, cookstr, bbc
-    foundation_foods : bool, optional
-        If True, prepare data for training foundation foods model.
-        If False, load data for training parser model.
+    model_type : ModelType, optional
+        The type of model to prepare data for training.
+        Default is PARSER.
     discard_other : bool, optional
         If True, discard sentences containing tokens with OTHER label
 
@@ -171,7 +196,7 @@ def load_datasets(
         p = PreProcessor(entry["sentence"])
         uids.append(entry["id"])
 
-        if foundation_foods:
+        if model_type == ModelType.FOUNDATION_FOODS:
             name_idx = [idx for idx, lab in enumerate(entry["labels"]) if lab == "NAME"]
             name_labels = [
                 "FF" if idx in entry["foundation_foods"] else "NF" for idx in name_idx
@@ -190,6 +215,23 @@ def load_datasets(
             features.append(name_features)
             tokens.append(name_tokens)
             labels.append(name_labels)
+        elif model_type == ModelType.NAME:
+            feats = p.sentence_features()
+            # Include label of current and surrounding tokens as features
+            for feat, label in zip(feats, entry["labels"]):
+                feat["label"] = label
+            for feat, label in zip(feats[1:], entry["labels"][:-1]):
+                feat["prev_label"] = label
+            for feat, label in zip(feats[:-1], entry["labels"][1:]):
+                feat["next_label"] = label
+            for feat, label in zip(feats[2:], entry["labels"][:-2]):
+                feat["prev2_label"] = label
+            for feat, label in zip(feats[:-2], entry["labels"][2:]):
+                feat["next2_label"] = label
+
+            features.append(feats)
+            tokens.append(p.tokenized_sentence)
+            labels.append(entry["foundation_labels"])
         else:
             features.append(p.sentence_features())
             tokens.append(p.tokenized_sentence)
@@ -214,7 +256,7 @@ def evaluate(
     predictions: list[list[str]],
     truths: list[list[str]],
     seed: int,
-    foundation_foods: bool = False,
+    model_type: ModelType = ModelType.PARSER,
 ) -> Stats:
     """Calculate statistics on the predicted labels for the test data.
 
@@ -226,9 +268,9 @@ def evaluate(
         True labels for each test sentence
     seed : int
         Seed value that produced the results
-    foundation_foods : bool, optional
-        If True, generate stats for foundation foods model.
-        If False, generate stats for parser model.
+    model_type : ModelType, optional
+        The type of model to generate stats for training.
+        Default is PARSER.
 
     Returns
     -------
@@ -257,11 +299,13 @@ def evaluate(
             token_stats[k] = Metrics(
                 v["precision"], v["recall"], v["f1-score"], int(v["support"])
             )
-        else:
-            token_stats[k] = v
+        # else:
+        #    token_stats[k] = v
 
-    if foundation_foods:
+    if model_type == ModelType.FOUNDATION_FOODS:
         token_stats = FFTokenStats(**token_stats)
+    elif model_type == ModelType.NAME:
+        token_stats = NameTokenStats(**token_stats)
     else:
         token_stats = TokenStats(**token_stats)
 
