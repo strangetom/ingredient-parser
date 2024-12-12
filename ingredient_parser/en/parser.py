@@ -16,6 +16,7 @@ from .preprocess import PreProcessor
 # when we need to (from parse_ingredient() or inspect_parser()) and
 # not whenever anything from ingredient_parser is imported.
 TAGGER = pycrfsuite.Tagger()  # type: ignore
+NAME_TAGGER = pycrfsuite.Tagger()  # type: ignore
 
 
 def load_model_if_not_loaded():
@@ -30,6 +31,12 @@ def load_model_if_not_loaded():
     except ValueError:
         with as_file(files(__package__) / "model.en.crfsuite") as p:
             TAGGER.open(str(p))
+
+    try:
+        NAME_TAGGER.labels()
+    except ValueError:
+        with as_file(files(__package__) / "name_model.en.crfsuite") as p:
+            NAME_TAGGER.open(str(p))
 
 
 def parse_ingredient_en(
@@ -89,6 +96,22 @@ def parse_ingredient_en(
     labels = TAGGER.tag(features)
     scores = [TAGGER.marginal(label, i) for i, label in enumerate(labels)]
 
+    # Tag names
+    name_features = processed_sentence.sentence_features()
+    # Include label of current and surrounding tokens as features
+    for feat, label in zip(name_features, labels):
+        feat["label"] = label
+    for feat, label in zip(name_features[1:], labels[:-1]):
+        feat["prev_label"] = label
+    for feat, label in zip(name_features[:-1], labels[1:]):
+        feat["next_label"] = label
+    for feat, label in zip(name_features[2:], labels[:-2]):
+        feat["prev2_label"] = label
+    for feat, label in zip(name_features[:-2], labels[2:]):
+        feat["next2_label"] = label
+
+    name_labels = NAME_TAGGER.tag(name_features)
+
     # Re-pluralise tokens that were singularised if the label isn't UNIT
     # For tokens with UNIT label, we'll deal with them below
     for idx in processed_sentence.singularised_indices:
@@ -104,7 +127,7 @@ def parse_ingredient_en(
     postprocessed_sentence = PostProcessor(
         sentence,
         tokens,
-        processed_sentence.pos_tags,
+        name_labels,
         labels,
         scores,
         discard_isolated_stop_words=discard_isolated_stop_words,

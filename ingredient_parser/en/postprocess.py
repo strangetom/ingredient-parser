@@ -10,7 +10,6 @@ from typing import Any
 
 from .._common import consume, group_consecutive_idx
 from ..dataclasses import (
-    AlternativeIngredients,
     CompositeIngredientAmount,
     IngredientAmount,
     IngredientText,
@@ -104,7 +103,7 @@ class PostProcessor:
         self,
         sentence: str,
         tokens: list[str],
-        pos_tags: list[str],
+        name_labels: list[str],
         labels: list[str],
         scores: list[float],
         discard_isolated_stop_words: bool = True,
@@ -115,7 +114,7 @@ class PostProcessor:
         self.sentence = sentence
         self.tokens = tokens
         self.labels = labels
-        self.pos_tags = pos_tags
+        self.name_labels = name_labels
         self.scores = scores
         self.discard_isolated_stop_words = discard_isolated_stop_words
         self.string_units = string_units
@@ -157,7 +156,7 @@ class PostProcessor:
             Object containing structured data from sentence.
         """
         amounts = self._postprocess_amounts()
-        name = self._postprocess_name()
+        name = self._postprocess_names()
         size = self._postprocess("SIZE")
         preparation = self._postprocess("PREP")
         comment = self._postprocess("COMMENT")
@@ -201,7 +200,7 @@ class PostProcessor:
 
         return self._postprocess_indices(label_idx, selected_label)
 
-    def _postprocess_name(self) -> IngredientText | AlternativeIngredients | None:
+    def _postprocess_names(self) -> list[IngredientText]:
         """Process tokens, labels and score for the ingredient name(s).
 
         The approach has a lot in common with _postprocess, but has additional logic to
@@ -211,7 +210,7 @@ class PostProcessor:
 
         Returns
         -------
-        IngredientText | AlternativeIngredients | None
+        list[IngredientText]
         """
         name_idx = [
             i
@@ -221,25 +220,54 @@ class PostProcessor:
 
         # If idx is empty or all the selected idx are PUNC, return None
         if not name_idx or all(self.labels[i] == "PUNC" for i in name_idx):
-            return None
+            return []
 
-        # Check if there are multiple alternative ingredients by looking for the token
-        # "or" that has the POS tag of "CC". If present in name tokens, split into
-        # separate names.
-        name_tokens = [self.tokens[i] for i in name_idx]
-        name_pos_tags = [self.pos_tags[i] for i in name_idx]
+        name_labels = [self.name_labels[i] for i in name_idx]
 
-        if "or" in name_tokens and name_pos_tags[name_tokens.index("or")] == "CC":
-            alternatives = [
-                self._postprocess_indices(group, "NAME")
-                for group in self._split_name_tokens(
-                    name_tokens, name_pos_tags, name_idx
-                )
-            ]
-            return AlternativeIngredients(ingredients=alternatives)
-        else:
-            # "or" not found
-            return self._postprocess_indices(name_idx, "NAME")
+        # Group BIO labels
+        bio_groups = []
+        current_group = []
+        for idx, label in enumerate(name_labels):
+            if label in ["O", "N_SPLIT"]:
+                if current_group:
+                    bio_groups.append(current_group)
+                current_group = []
+            elif label.startswith("B"):
+                if current_group:
+                    bio_groups.append(current_group)
+                current_group = [(idx, label)]
+            else:
+                current_group.append((idx, label))
+
+        bio_groups.append(current_group)
+
+        # Prepend prefixes to next name
+        # Preprend global to all following names
+        constructed_groups = []
+        last_encountered_name = None
+        for group in reversed(bio_groups):
+            idx, labels = zip(*group)
+            group_label = labels[0].split("_")[-1]
+
+            if group_label == "NAME":
+                if last_encountered_name:
+                    constructed_groups.append(last_encountered_name)
+
+                last_encountered_name = group
+
+            elif group_label == "PREFIX":
+                constructed_groups.append(group + last_encountered_name)
+
+            elif group_label == "GLOBAL":
+                for constructed_group in constructed_groups:
+                    constructed_group = group + constructed_group
+
+        names = []
+        for group in reversed(constructed_groups):
+            token_idx = [name_idx[i] for i, _ in group]
+            names.append(self._postprocess_indices(token_idx, "NAME"))
+
+        return names
 
     def _split_name_tokens(
         self, tokens: list[str], pos_tags: list[str], indices: list[int]
@@ -285,6 +313,12 @@ class PostProcessor:
             prev_token = token
 
         all_splits.append(current_split)
+
+        # Iterate over all and strip trailing PUNC
+        for group in all_splits:
+            if len(group) > 1 and self.labels[group[-1]] == "PUNC":
+                del group[-1]
+
         return all_splits
 
     def _postprocess_indices(
