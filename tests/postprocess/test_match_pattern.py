@@ -8,7 +8,7 @@ class TestPostProcessor_match_pattern:
         """
         pattern = ["QTY", "QTY", "UNIT", "QTY", "UNIT", "QTY", "UNIT", "UNIT"]
 
-        labels = [
+        token_labels = [
             "QTY",
             "UNIT",
             "QTY",
@@ -22,7 +22,7 @@ class TestPostProcessor_match_pattern:
         ]
         p = PostProcessor("", [], [], [], [])
 
-        assert p._match_pattern(labels, pattern, ignore_other_labels=True) == [
+        assert p._match_pattern(token_labels, pattern, ignore_other_labels=True) == [
             [2, 3, 4, 5, 6, 7, 8, 9]
         ]
 
@@ -32,7 +32,7 @@ class TestPostProcessor_match_pattern:
         """
         pattern = ["QTY", "QTY", "UNIT", "QTY", "UNIT", "UNIT"]
 
-        labels = [
+        token_labels = [
             "QTY",
             "QTY",
             "UNIT",
@@ -43,7 +43,7 @@ class TestPostProcessor_match_pattern:
         ]
         p = PostProcessor("", [], [], [], [])
 
-        assert p._match_pattern(labels, pattern, ignore_other_labels=True) == [
+        assert p._match_pattern(token_labels, pattern, ignore_other_labels=True) == [
             [0, 1, 2, 3, 4, 5]
         ]
 
@@ -53,7 +53,7 @@ class TestPostProcessor_match_pattern:
         """
         pattern = ["QTY", "QTY", "UNIT", "UNIT"]
 
-        labels = [
+        token_labels = [
             "QTY",
             "UNIT",
             "QTY",
@@ -66,7 +66,7 @@ class TestPostProcessor_match_pattern:
         ]
         p = PostProcessor("", [], [], [], [])
 
-        assert p._match_pattern(labels, pattern, ignore_other_labels=True) == [
+        assert p._match_pattern(token_labels, pattern, ignore_other_labels=True) == [
             [2, 3, 4, 5]
         ]
 
@@ -77,7 +77,7 @@ class TestPostProcessor_match_pattern:
         """
         pattern = ["QTY", "QTY", "UNIT", "QTY", "UNIT", "UNIT"]
 
-        labels = [
+        token_labels = [
             "QTY",
             "QTY",
             "UNIT",
@@ -85,7 +85,7 @@ class TestPostProcessor_match_pattern:
         ]
         p = PostProcessor("", [], [], [], [])
 
-        assert p._match_pattern(labels, pattern, ignore_other_labels=True) == []
+        assert p._match_pattern(token_labels, pattern, ignore_other_labels=True) == []
 
     def test_multiple_matches(self):
         """
@@ -93,7 +93,7 @@ class TestPostProcessor_match_pattern:
         """
         pattern = ["QTY", "QTY", "UNIT", "UNIT"]
 
-        labels = [
+        token_labels = [
             "QTY",
             "QTY",
             "UNIT",
@@ -106,7 +106,7 @@ class TestPostProcessor_match_pattern:
         ]
         p = PostProcessor("", [], [], [], [])
 
-        assert p._match_pattern(labels, pattern, ignore_other_labels=True) == [
+        assert p._match_pattern(token_labels, pattern, ignore_other_labels=True) == [
             [0, 1, 2, 3],
             [5, 6, 7, 8],
         ]
@@ -117,7 +117,7 @@ class TestPostProcessor_match_pattern:
         """
         pattern = ["QTY", "QTY", "UNIT", "UNIT"]
 
-        labels = [
+        token_labels = [
             "QTY",
             "QTY",
             "COMMENT",
@@ -126,7 +126,7 @@ class TestPostProcessor_match_pattern:
         ]
         p = PostProcessor("", [], [], [], [])
 
-        assert p._match_pattern(labels, pattern, ignore_other_labels=False) == []
+        assert p._match_pattern(token_labels, pattern, ignore_other_labels=False) == []
 
     def test_interrupted_pattern_with_ignore(self):
         """
@@ -134,7 +134,7 @@ class TestPostProcessor_match_pattern:
         """
         pattern = ["QTY", "QTY", "UNIT", "UNIT"]
 
-        labels = [
+        token_labels = [
             "QTY",
             "QTY",
             "COMMENT",
@@ -143,6 +143,6 @@ class TestPostProcessor_match_pattern:
         ]
         p = PostProcessor("", [], [], [], [])
 
-        assert p._match_pattern(labels, pattern, ignore_other_labels=True) == [
+        assert p._match_pattern(token_labels, pattern, ignore_other_labels=True) == [
             [0, 1, 3, 4]
         ]

@@ -74,14 +74,16 @@ class PostProcessor:
 
     Attributes
     ----------
-    labels : list[str]
-        List of labels for tokens.
-    scores : list[float]
-        Confidence associated with the label for each token.
     sentence : str
         Original ingredient sentence.
     tokens : list[str]
         List of tokens for original ingredient sentence.
+    token_labels : list[str]
+        List of labels for tokens.
+    name_labels : list[str]
+        List of labels for tokens.
+    scores : list[float]
+        Confidence associated with the label for each token.
     discard_isolated_stop_words : bool
         If True, isolated stop words are discarded from the name, preparation or
         comment fields. Default value is True.
@@ -103,8 +105,8 @@ class PostProcessor:
         self,
         sentence: str,
         tokens: list[str],
+        token_labels: list[str],
         name_labels: list[str],
-        labels: list[str],
         scores: list[float],
         discard_isolated_stop_words: bool = True,
         string_units: bool = False,
@@ -113,7 +115,7 @@ class PostProcessor:
     ):
         self.sentence = sentence
         self.tokens = tokens
-        self.labels = labels
+        self.token_labels = token_labels
         self.name_labels = name_labels
         self.scores = scores
         self.discard_isolated_stop_words = discard_isolated_stop_words
@@ -142,7 +144,7 @@ class PostProcessor:
         """
         _str = [
             "Post-processed recipe ingredient sentence",
-            f"\t{list(zip(self.tokens, self.labels))}",
+            f"\t{list(zip(self.tokens, self.token_labels))}",
         ]
         return "\n".join(_str)
 
@@ -190,12 +192,12 @@ class PostProcessor:
         # Do not include tokens, labels and scores in self.consumed
         label_idx = [
             i
-            for i, label in enumerate(self.labels)
+            for i, label in enumerate(self.token_labels)
             if label in [selected_label, "PUNC"] and i not in self.consumed
         ]
 
         # If idx is empty or all the selected idx are PUNC, return None
-        if not label_idx or all(self.labels[i] == "PUNC" for i in label_idx):
+        if not label_idx or all(self.token_labels[i] == "PUNC" for i in label_idx):
             return None
 
         return self._postprocess_indices(label_idx, selected_label)
@@ -214,12 +216,12 @@ class PostProcessor:
         """
         name_idx = [
             i
-            for i, label in enumerate(self.labels)
+            for i, label in enumerate(self.token_labels)
             if label in ["NAME", "PUNC"] and i not in self.consumed
         ]
 
         # If idx is empty or all the selected idx are PUNC, return None
-        if not name_idx or all(self.labels[i] == "PUNC" for i in name_idx):
+        if not name_idx or all(self.token_labels[i] == "PUNC" for i in name_idx):
             return []
 
         name_labels = [self.name_labels[i] for i in name_idx]
@@ -316,7 +318,7 @@ class PostProcessor:
 
         # Iterate over all and strip trailing PUNC
         for group in all_splits:
-            if len(group) > 1 and self.labels[group[-1]] == "PUNC":
+            if len(group) > 1 and self.token_labels[group[-1]] == "PUNC":
                 del group[-1]
 
         return all_splits
@@ -353,7 +355,7 @@ class PostProcessor:
             idx = list(group)
             idx = self._remove_invalid_indices(idx)
 
-            if all(self.labels[i] == "PUNC" for i in idx):
+            if all(self.token_labels[i] == "PUNC" for i in idx):
                 # Skip if the group only contains PUNC
                 continue
 
@@ -423,7 +425,7 @@ class PostProcessor:
         for func in funcs:
             idx = self._unconsumed(list(range(len(self.tokens))))
             tokens = self._unconsumed(self.tokens)
-            labels = self._unconsumed(self.labels)
+            labels = self._unconsumed(self.token_labels)
             scores = self._unconsumed(self.scores)
 
             parsed_amounts = func(idx, tokens, labels, scores)
@@ -626,11 +628,11 @@ class PostProcessor:
         This function also collapses any string ranges into a single range e.g.
         one or two -> 1 or 2 -> 1-2
         """
-        for i, (token, label) in enumerate(zip(self.tokens, self.labels)):
+        for i, (token, label) in enumerate(zip(self.tokens, self.token_labels)):
             if label == "QTY":
                 self.tokens[i] = self._replace_string_numbers(token)
 
-        QTY_idx = [i for i, label in enumerate(self.labels) if label == "QTY"]
+        QTY_idx = [i for i, label in enumerate(self.token_labels) if label == "QTY"]
 
         # Find any cases where a group of consecutive QTY tokens can be collapsed into
         # a single token. Modify the first token and score in the group and mark all
@@ -667,9 +669,9 @@ class PostProcessor:
                 for i, _ in enumerate(self.tokens)
                 if i not in idx_to_remove
             ]
-            self.labels = [
-                self.labels[i]
-                for i, _ in enumerate(self.labels)
+            self.token_labels = [
+                self.token_labels[i]
+                for i, _ in enumerate(self.token_labels)
                 if i not in idx_to_remove
             ]
             self.scores = [

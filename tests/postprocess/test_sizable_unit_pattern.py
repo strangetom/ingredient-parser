@@ -23,21 +23,7 @@ class TestPostProcessor_sizable_unit_pattern:
             "can",
             "chickpeas",
         ]
-        pos_tags = [
-            "CD",
-            "CD",
-            "NN",
-            "(",
-            "CD",
-            "NN",
-            "VBD",
-            "CD",
-            "NN",
-            ")",
-            "MD",
-            "VB",
-        ]
-        labels = [
+        token_labels = [
             "QTY",
             "QTY",
             "UNIT",
@@ -51,9 +37,10 @@ class TestPostProcessor_sizable_unit_pattern:
             "UNIT",
             "NAME",
         ]
+        name_labels = ["O", "O", "O", "O", "O", "O", "O", "O", "O", "O", "O", "B_NAME"]
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
-        p = PostProcessor(sentence, tokens, pos_tags, labels, scores)
+        p = PostProcessor(sentence, tokens, token_labels, name_labels, scores)
 
         expected = [
             ingredient_amount_factory(
@@ -86,7 +73,7 @@ class TestPostProcessor_sizable_unit_pattern:
         ]
 
         # Don't check scores
-        output = p._sizable_unit_pattern(idx, tokens, labels, scores)
+        output = p._sizable_unit_pattern(idx, tokens, token_labels, scores)
         assert len(output) == len(expected)
         for out, expected in zip(output, expected):
             assert out.quantity == expected.quantity
@@ -112,8 +99,7 @@ class TestPostProcessor_sizable_unit_pattern:
             "can",
             "chickpeas",
         ]
-        pos_tags = ["CD", "CD", "NN", "(", "CD", "NN", ")", "MD", "VB"]
-        labels = [
+        token_labels = [
             "QTY",
             "QTY",
             "UNIT",
@@ -124,9 +110,10 @@ class TestPostProcessor_sizable_unit_pattern:
             "UNIT",
             "NAME",
         ]
+        name_labels = ["O", "O", "O", "O", "O", "O", "O", "O", "B_NAME"]
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
-        p = PostProcessor(sentence, tokens, pos_tags, labels, scores)
+        p = PostProcessor(sentence, tokens, token_labels, name_labels, scores)
 
         expected = [
             ingredient_amount_factory(
@@ -151,7 +138,7 @@ class TestPostProcessor_sizable_unit_pattern:
         ]
 
         # Don't check scores
-        output = p._sizable_unit_pattern(idx, tokens, labels, scores)
+        output = p._sizable_unit_pattern(idx, tokens, token_labels, scores)
         assert len(output) == len(expected)
         for out, expected in zip(output, expected):
             assert out.quantity == expected.quantity
@@ -173,17 +160,17 @@ class TestPostProcessor_sizable_unit_pattern:
             "can",
             "chickpeas",
         ]
-        pos_tags = ["CD", "CD", "NN", "MD", "VB"]
-        labels = [
+        token_labels = [
             "QTY",
             "QTY",
             "UNIT",
             "UNIT",
             "NAME",
         ]
+        name_labels = ["O", "O", "O", "O", "B_NAME"]
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
-        p = PostProcessor(sentence, tokens, pos_tags, labels, scores)
+        p = PostProcessor(sentence, tokens, token_labels, name_labels, scores)
 
         expected = [
             ingredient_amount_factory(
@@ -200,7 +187,7 @@ class TestPostProcessor_sizable_unit_pattern:
         ]
 
         # Don't check scores
-        output = p._sizable_unit_pattern(idx, tokens, labels, scores)
+        output = p._sizable_unit_pattern(idx, tokens, token_labels, scores)
         assert len(output) == len(expected)
         for out, expected in zip(output, expected):
             assert out.quantity == expected.quantity
@@ -215,14 +202,14 @@ class TestPostProcessor_sizable_unit_pattern:
         """
         sentence = "400 g chickpeas or black beans"
         tokens = ["400", "g", "chickpeas", "or", "black", "beans"]
-        pos_tags = ["CD", "NN", "NNS", "CC", "JJ", "NNS"]
-        labels = ["QTY", "UNIT", "NAME", "NAME", "NAME", "NAME"]
+        token_labels = ["QTY", "UNIT", "NAME", "NAME", "NAME", "NAME"]
+        name_labels = ["O", "O", "B_NAME", "N_SPLIT", "B_NAME", "I_NAME"]
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
-        p = PostProcessor(sentence, tokens, pos_tags, labels, scores)
+        p = PostProcessor(sentence, tokens, token_labels, name_labels, scores)
 
         # Don't check scores
-        assert p._sizable_unit_pattern(idx, tokens, labels, scores) == []
+        assert p._sizable_unit_pattern(idx, tokens, token_labels, scores) == []
 
     def test_mixed_pattern(self):
         """
@@ -231,11 +218,11 @@ class TestPostProcessor_sizable_unit_pattern:
         """
         sentence = "2 cups or 1 28 ounce can chickpeas"
         tokens = ["2", "cup", "or", "1", "28", "ounce", "can", "chickpeas"]
-        pos_tags = ["CD", "NN", "CC", "CD", "CD", "NN", "MD", "VB"]
-        labels = ["QTY", "UNIT", "COMMENT", "QTY", "QTY", "UNIT", "UNIT", "NAME"]
+        token_labels = ["QTY", "UNIT", "COMMENT", "QTY", "QTY", "UNIT", "UNIT", "NAME"]
+        name_labels = ["O", "O", "O", "O", "O", "O", "O", "B_NAME"]
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
-        p = PostProcessor(sentence, tokens, pos_tags, labels, scores)
+        p = PostProcessor(sentence, tokens, token_labels, name_labels, scores)
 
         expected = [
             ingredient_amount_factory(
@@ -252,7 +239,7 @@ class TestPostProcessor_sizable_unit_pattern:
         ]
 
         # Don't check scores
-        output = p._sizable_unit_pattern(idx, tokens, labels, scores)
+        output = p._sizable_unit_pattern(idx, tokens, token_labels, scores)
         assert len(output) == len(expected)
         for out, expected in zip(output, expected):
             assert out.quantity == expected.quantity
@@ -270,12 +257,12 @@ class TestPostProcessor_sizable_unit_pattern:
         """
         sentence = "2 cups or 1 28 ounce can chickpeas"
         tokens = ["2", "cup", "or", "1", "28", "ounce", "can", "chickpeas"]
-        pos_tags = ["CD", "NN", "CC", "CD", "CD", "NN", "MD", "VB"]
-        labels = ["QTY", "UNIT", "COMMENT", "QTY", "QTY", "UNIT", "UNIT", "NAME"]
+        token_labels = ["QTY", "UNIT", "COMMENT", "QTY", "QTY", "UNIT", "UNIT", "NAME"]
+        name_labels = ["O", "O", "O", "O", "O", "O", "O", "B_NAME"]
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
         p = PostProcessor(
-            sentence, tokens, pos_tags, labels, scores, imperial_units=True
+            sentence, tokens, token_labels, name_labels, scores, imperial_units=True
         )
 
         expected = [
@@ -294,7 +281,7 @@ class TestPostProcessor_sizable_unit_pattern:
         ]
 
         # Don't check scores
-        output = p._sizable_unit_pattern(idx, tokens, labels, scores)
+        output = p._sizable_unit_pattern(idx, tokens, token_labels, scores)
         assert len(output) == len(expected)
         for out, expected in zip(output, expected):
             assert out.quantity == expected.quantity
@@ -312,11 +299,13 @@ class TestPostProcessor_sizable_unit_pattern:
         """
         sentence = "2 cups or 1 28 ounce can chickpeas"
         tokens = ["2", "cup", "or", "1", "28", "ounce", "can", "chickpeas"]
-        pos_tags = ["CD", "NN", "CC", "CD", "CD", "NN", "MD", "VB"]
-        labels = ["QTY", "UNIT", "COMMENT", "QTY", "QTY", "UNIT", "UNIT", "NAME"]
+        token_labels = ["QTY", "UNIT", "COMMENT", "QTY", "QTY", "UNIT", "UNIT", "NAME"]
+        name_labels = ["O", "O", "O", "O", "O", "O", "O", "B_NAME"]
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
-        p = PostProcessor(sentence, tokens, pos_tags, labels, scores, string_units=True)
+        p = PostProcessor(
+            sentence, tokens, token_labels, name_labels, scores, string_units=True
+        )
 
         expected = [
             ingredient_amount_factory(
@@ -334,7 +323,7 @@ class TestPostProcessor_sizable_unit_pattern:
         ]
 
         # Don't check scores
-        output = p._sizable_unit_pattern(idx, tokens, labels, scores)
+        output = p._sizable_unit_pattern(idx, tokens, token_labels, scores)
         assert len(output) == len(expected)
         for out, expected in zip(output, expected):
             assert out.quantity == expected.quantity

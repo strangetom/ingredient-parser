@@ -10,9 +10,9 @@ def p():
     class methods.
     """
     sentence = "2 14 ounce cans coconut milk"
-    pos_tags = ["CD", "CD", "NN", "MD", "VB", "NN"]
     tokens = ["2", "14", "ounce", "can", "coconut", "milk"]
-    labels = ["QTY", "QTY", "UNIT", "UNIT", "NAME", "NAME"]
+    token_labels = ["QTY", "QTY", "UNIT", "UNIT", "NAME", "NAME"]
+    name_labels = ["O", "O", "O", "O", "B_NAME", "I_NAME"]
     scores = [
         0.9991370577083561,
         0.9725378063405858,
@@ -22,7 +22,7 @@ def p():
         0.9969237827902526,
     ]
 
-    return PostProcessor(sentence, tokens, pos_tags, labels, scores)
+    return PostProcessor(sentence, tokens, token_labels, name_labels, scores)
 
 
 class TestPostProcessor_fallback_pattern:
@@ -33,7 +33,7 @@ class TestPostProcessor_fallback_pattern:
         """
 
         tokens = ["3", "large", "handful", "cherry", "tomatoes"]
-        labels = ["QTY", "UNIT", "UNIT", "NAME", "NAME"]
+        token_labels = ["QTY", "UNIT", "UNIT", "NAME", "NAME"]
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
 
@@ -47,7 +47,7 @@ class TestPostProcessor_fallback_pattern:
             )
         ]
 
-        assert p._fallback_pattern(idx, tokens, labels, scores) == expected
+        assert p._fallback_pattern(idx, tokens, token_labels, scores) == expected
 
     def test_no_quantity(self, p):
         """
@@ -56,7 +56,7 @@ class TestPostProcessor_fallback_pattern:
         """
 
         tokens = ["bunch", "of", "basil", "leaves"]
-        labels = ["UNIT", "COMMENT", "NAME", "NAME"]
+        token_labels = ["UNIT", "COMMENT", "NAME", "NAME"]
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
 
@@ -66,7 +66,7 @@ class TestPostProcessor_fallback_pattern:
             )
         ]
 
-        assert p._fallback_pattern(idx, tokens, labels, scores) == expected
+        assert p._fallback_pattern(idx, tokens, token_labels, scores) == expected
 
     def test_imperial(self):
         """
@@ -74,7 +74,7 @@ class TestPostProcessor_fallback_pattern:
         """
         p = PostProcessor("", [], [], [], [], imperial_units=True)
         tokens = ["About", "2", "cup", "flour"]
-        labels = ["COMMENT", "QTY", "UNIT", "NAME"]
+        token_labels = ["COMMENT", "QTY", "UNIT", "NAME"]
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
 
@@ -90,7 +90,7 @@ class TestPostProcessor_fallback_pattern:
             )
         ]
 
-        assert p._fallback_pattern(idx, tokens, labels, scores) == expected
+        assert p._fallback_pattern(idx, tokens, token_labels, scores) == expected
 
     def test_string_units(self):
         """
@@ -98,7 +98,7 @@ class TestPostProcessor_fallback_pattern:
         """
         p = PostProcessor("", [], [], [], [], string_units=True)
         tokens = ["About", "2", "cup", "flour"]
-        labels = ["COMMENT", "QTY", "UNIT", "NAME"]
+        token_labels = ["COMMENT", "QTY", "UNIT", "NAME"]
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
 
@@ -114,7 +114,7 @@ class TestPostProcessor_fallback_pattern:
             )
         ]
 
-        assert p._fallback_pattern(idx, tokens, labels, scores) == expected
+        assert p._fallback_pattern(idx, tokens, token_labels, scores) == expected
 
     def test_approximate(self, p):
         """
@@ -122,7 +122,7 @@ class TestPostProcessor_fallback_pattern:
         is returned
         """
         tokens = ["About", "2", "cup", "flour"]
-        labels = ["COMMENT", "QTY", "UNIT", "NAME"]
+        token_labels = ["COMMENT", "QTY", "UNIT", "NAME"]
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
 
@@ -137,7 +137,7 @@ class TestPostProcessor_fallback_pattern:
             )
         ]
 
-        assert p._fallback_pattern(idx, tokens, labels, scores) == expected
+        assert p._fallback_pattern(idx, tokens, token_labels, scores) == expected
 
     def test_singular(self, p):
         """
@@ -145,7 +145,7 @@ class TestPostProcessor_fallback_pattern:
         is returned
         """
         tokens = ["2", "bananas", ",", "4", "ounce", "each"]
-        labels = ["QTY", "NAME", "PUNC", "QTY", "UNIT", "COMMENT"]
+        token_labels = ["QTY", "NAME", "PUNC", "QTY", "UNIT", "COMMENT"]
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
 
@@ -170,7 +170,7 @@ class TestPostProcessor_fallback_pattern:
             ),
         ]
 
-        assert p._fallback_pattern(idx, tokens, labels, scores) == expected
+        assert p._fallback_pattern(idx, tokens, token_labels, scores) == expected
 
     def test_singular_and_approximate(self, p):
         """
@@ -178,7 +178,7 @@ class TestPostProcessor_fallback_pattern:
         SINGULAR flags set is returned
         """
         tokens = ["2", "bananas", ",", "each", "about", "4", "ounce"]
-        labels = ["QTY", "NAME", "PUNC", "COMMENT", "COMMENT", "QTY", "UNIT"]
+        token_labels = ["QTY", "NAME", "PUNC", "COMMENT", "COMMENT", "QTY", "UNIT"]
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
 
@@ -201,7 +201,7 @@ class TestPostProcessor_fallback_pattern:
             ),
         ]
 
-        assert p._fallback_pattern(idx, tokens, labels, scores) == expected
+        assert p._fallback_pattern(idx, tokens, token_labels, scores) == expected
 
     def test_dozen(self, p):
         """
@@ -209,7 +209,16 @@ class TestPostProcessor_fallback_pattern:
         single IngredientAmount object.
         """
         tokens = ["2", "dozen", "bananas", ",", "each", "about", "4", "ounce"]
-        labels = ["QTY", "QTY", "NAME", "PUNC", "COMMENT", "COMMENT", "QTY", "UNIT"]
+        token_labels = [
+            "QTY",
+            "QTY",
+            "NAME",
+            "PUNC",
+            "COMMENT",
+            "COMMENT",
+            "QTY",
+            "UNIT",
+        ]
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
 
@@ -232,7 +241,7 @@ class TestPostProcessor_fallback_pattern:
             ),
         ]
 
-        assert p._fallback_pattern(idx, tokens, labels, scores) == expected
+        assert p._fallback_pattern(idx, tokens, token_labels, scores) == expected
 
     def test_range(self, p):
         """
@@ -240,7 +249,7 @@ class TestPostProcessor_fallback_pattern:
         quantity_max fields in the IngredientAmount object
         """
         tokens = ["1-2", "tablespoons", "local", "honey"]
-        labels = ["QTY", "UNIT", "NAME", "NAME"]
+        token_labels = ["QTY", "UNIT", "NAME", "NAME"]
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
 
@@ -254,7 +263,7 @@ class TestPostProcessor_fallback_pattern:
             ),
         ]
 
-        actual = p._fallback_pattern(idx, tokens, labels, scores)
+        actual = p._fallback_pattern(idx, tokens, token_labels, scores)
         assert actual == expected
         assert actual[0].RANGE
         assert actual[0].quantity == 1
@@ -266,7 +275,7 @@ class TestPostProcessor_fallback_pattern:
         flag, quantity and quantity_max fields in the IngredientAmount object
         """
         tokens = ["1x", "tin", "condensed", "milk"]
-        labels = ["QTY", "UNIT", "NAME", "NAME"]
+        token_labels = ["QTY", "UNIT", "NAME", "NAME"]
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
 
@@ -280,7 +289,7 @@ class TestPostProcessor_fallback_pattern:
             ),
         ]
 
-        actual = p._fallback_pattern(idx, tokens, labels, scores)
+        actual = p._fallback_pattern(idx, tokens, token_labels, scores)
         assert actual == expected
         assert actual[0].MULTIPLIER
         assert actual[0].quantity == 1

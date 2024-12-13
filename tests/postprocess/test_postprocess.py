@@ -15,8 +15,8 @@ def p():
     """
     sentence = "2 14 ounce cans of coconut milk"
     tokens = ["2", "14", "ounce", "can", "of", "coconut", "milk"]
-    pos_tags = ["CD", "CD", "NN", "MD", "IN", "NN", "NN"]
-    labels = ["QTY", "QTY", "UNIT", "UNIT", "COMMENT", "NAME", "NAME"]
+    token_labels = ["QTY", "QTY", "UNIT", "UNIT", "COMMENT", "NAME", "NAME"]
+    name_labels = ["O", "O", "O", "O", "O", "B_NAME", "I_NAME"]
     scores = [
         0.9995971493946465,
         0.9941502269360797,
@@ -28,7 +28,12 @@ def p():
     ]
 
     return PostProcessor(
-        sentence, tokens, pos_tags, labels, scores, discard_isolated_stop_words=True
+        sentence,
+        tokens,
+        token_labels,
+        name_labels,
+        scores,
+        discard_isolated_stop_words=True,
     )
 
 
@@ -50,8 +55,7 @@ def p_string_numbers():
         "pound",
         "each",
     ]
-    pos_tags = ["CD", "NN", "NN", ",", "IN", "CD", "CC", "CD", "NN", "DT"]
-    labels = [
+    token_labels = [
         "QTY",
         "NAME",
         "NAME",
@@ -63,6 +67,7 @@ def p_string_numbers():
         "UNIT",
         "COMMENT",
     ]
+    name_labels = ["O", "B_NAME", "I_NAME", "O", "O", "O", "O", "O", "O", "O"]
     scores = [
         0.9984380824450226,
         0.9978651159111281,
@@ -77,7 +82,12 @@ def p_string_numbers():
     ]
 
     return PostProcessor(
-        sentence, tokens, pos_tags, labels, scores, discard_isolated_stop_words=True
+        sentence,
+        tokens,
+        token_labels,
+        name_labels,
+        scores,
+        discard_isolated_stop_words=True,
     )
 
 
@@ -99,8 +109,7 @@ def p_string_numbers_range():
         "pounds",
         "each",
     ]
-    pos_tags = ["CD", "NN", "NN", ",", "IN", "CD", "CC", "CD", "NN", "DT"]
-    labels = [
+    token_labels = [
         "QTY",
         "NAME",
         "NAME",
@@ -112,6 +121,7 @@ def p_string_numbers_range():
         "UNIT",
         "COMMENT",
     ]
+    name_labels = ["O", "B_NAME", "I_NAME", "O", "O", "O", "O", "O", "O", "O"]
     scores = [
         0.9984380824450226,
         0.9978651159111281,
@@ -126,7 +136,12 @@ def p_string_numbers_range():
     ]
 
     return PostProcessor(
-        sentence, tokens, pos_tags, labels, scores, discard_isolated_stop_words=True
+        sentence,
+        tokens,
+        token_labels,
+        name_labels,
+        scores,
+        discard_isolated_stop_words=True,
     )
 
 
@@ -148,8 +163,7 @@ def p_quantity_fractions():
         "pound",
         "each",
     ]
-    pos_tags = ["CD", "NN", "NN", ",", "IN", "CD", "CC", "CD", "NN", "DT"]
-    labels = [
+    token_labels = [
         "QTY",
         "NAME",
         "NAME",
@@ -161,6 +175,7 @@ def p_quantity_fractions():
         "UNIT",
         "COMMENT",
     ]
+    name_labels = ["O", "B_NAME", "I_NAME", "O", "O", "O", "O", "O", "O", "O"]
     scores = [
         0.9984380824450226,
         0.9978651159111281,
@@ -175,7 +190,7 @@ def p_quantity_fractions():
     ]
 
     return PostProcessor(
-        sentence, tokens, pos_tags, labels, scores, quantity_fractions=True
+        sentence, tokens, token_labels, name_labels, scores, quantity_fractions=True
     )
 
 
@@ -186,8 +201,8 @@ def p_postprep():
     """
     sentence = "1 tbsp chopped pistachios"
     tokens = ["1", "tbsp", "chopped", "pistachios"]
-    pos_tags = ["CD", "NN", "VBD", "NNS"]
-    labels = ["QTY", "UNIT", "PREP", "NAME"]
+    token_labels = ["QTY", "UNIT", "PREP", "NAME"]
+    name_labels = ["O", "O", "O", "B_NAME"]
     scores = [
         0.9997566777785302,
         0.9975314001146002,
@@ -196,7 +211,12 @@ def p_postprep():
     ]
 
     return PostProcessor(
-        sentence, tokens, pos_tags, labels, scores, discard_isolated_stop_words=False
+        sentence,
+        tokens,
+        token_labels,
+        name_labels,
+        scores,
+        discard_isolated_stop_words=False,
     )
 
 
@@ -207,8 +227,8 @@ def p_no_discard():
     """
     sentence = "2 14 ounce cans of coconut milk"
     tokens = ["2", "14", "ounce", "can", "of", "coconut", "milk"]
-    pos_tags = ["CD", "CD", "NN", "MD", "IN", "NN", "NN"]
-    labels = ["QTY", "QTY", "UNIT", "UNIT", "COMMENT", "NAME", "NAME"]
+    token_labels = ["QTY", "QTY", "UNIT", "UNIT", "COMMENT", "NAME", "NAME"]
+    name_labels = ["O", "O", "O", "O", "O", "B_NAME", "I_NAME"]
     scores = [
         0.9995971493946465,
         0.9941502269360797,
@@ -220,7 +240,12 @@ def p_no_discard():
     ]
 
     return PostProcessor(
-        sentence, tokens, pos_tags, labels, scores, discard_isolated_stop_words=False
+        sentence,
+        tokens,
+        token_labels,
+        name_labels,
+        scores,
+        discard_isolated_stop_words=False,
     )
 
 
@@ -248,9 +273,11 @@ class TestPostProcessor_parsed:
         discarded due to discard_isolated_stop_words being set to True.
         """
         expected = ParsedIngredient(
-            name=IngredientText(
-                text="coconut milk", confidence=0.993106, starting_index=5
-            ),
+            name=[
+                IngredientText(
+                    text="coconut milk", confidence=0.993106, starting_index=5
+                )
+            ],
             size=None,
             amount=[
                 ingredient_amount_factory(
@@ -287,9 +314,11 @@ class TestPostProcessor_parsed:
         numbers replaced with numeric range.
         """
         expected = ParsedIngredient(
-            name=IngredientText(
-                text="butternut squash", confidence=0.998642, starting_index=1
-            ),
+            name=[
+                IngredientText(
+                    text="butternut squash", confidence=0.998642, starting_index=1
+                )
+            ],
             size=None,
             amount=[
                 ingredient_amount_factory(
@@ -326,9 +355,11 @@ class TestPostProcessor_parsed:
         numbers replaced with numeric range.
         """
         expected = ParsedIngredient(
-            name=IngredientText(
-                text="butternut squash", confidence=0.998642, starting_index=1
-            ),
+            name=[
+                IngredientText(
+                    text="butternut squash", confidence=0.998642, starting_index=1
+                )
+            ],
             size=None,
             amount=[
                 ingredient_amount_factory(
@@ -365,9 +396,11 @@ class TestPostProcessor_parsed:
         numbers replaced with numeric range.
         """
         expected = ParsedIngredient(
-            name=IngredientText(
-                text="butternut squash", confidence=0.998642, starting_index=1
-            ),
+            name=[
+                IngredientText(
+                    text="butternut squash", confidence=0.998642, starting_index=1
+                )
+            ],
             size=None,
             amount=[
                 ingredient_amount_factory(
@@ -403,9 +436,9 @@ class TestPostProcessor_parsed:
     def test_postprep_amounts(self, p_postprep):
         """ """
         expected = ParsedIngredient(
-            name=IngredientText(
-                text="pistachios", confidence=0.998841, starting_index=3
-            ),
+            name=[
+                IngredientText(text="pistachios", confidence=0.998841, starting_index=3)
+            ],
             size=None,
             amount=[
                 ingredient_amount_factory(
@@ -433,9 +466,11 @@ class TestPostProcessor_parsed:
         kept due to discard_isolated_stop_words being set to False.
         """
         expected = ParsedIngredient(
-            name=IngredientText(
-                text="coconut milk", confidence=0.993106, starting_index=5
-            ),
+            name=[
+                IngredientText(
+                    text="coconut milk", confidence=0.993106, starting_index=5
+                )
+            ],
             size=None,
             amount=[
                 ingredient_amount_factory(
