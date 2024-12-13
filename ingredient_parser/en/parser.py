@@ -99,16 +99,16 @@ def parse_ingredient_en(
     # Tag names
     name_features = processed_sentence.sentence_features()
     # Include label of current and surrounding tokens as features
-    for feat, label in zip(name_features, labels):
+    for i, (feat, label) in enumerate(zip(name_features, labels)):
         feat["label"] = label
-    for feat, label in zip(name_features[1:], labels[:-1]):
-        feat["prev_label"] = label
-    for feat, label in zip(name_features[:-1], labels[1:]):
-        feat["next_label"] = label
-    for feat, label in zip(name_features[2:], labels[:-2]):
-        feat["prev2_label"] = label
-    for feat, label in zip(name_features[:-2], labels[2:]):
-        feat["next2_label"] = label
+        if i > 0:
+            feat["prev_label"] = labels[i - 1]
+        if i > 1:
+            feat["prev2_label"] = labels[i - 2]
+        if i < len(labels) - 1:
+            feat["next_label"] = labels[i + 1]
+        if i < len(labels) - 2:
+            feat["next2_label"] = labels[i + 2]
 
     name_labels = NAME_TAGGER.tag(name_features)
 
@@ -201,6 +201,22 @@ def inspect_parser_en(
     labels = TAGGER.tag(features)
     scores = [TAGGER.marginal(label, i) for i, label in enumerate(labels)]
 
+    # Tag names
+    name_features = processed_sentence.sentence_features()
+    # Include label of current and surrounding tokens as features
+    for feat, label in zip(name_features, labels):
+        feat["label"] = label
+    for feat, label in zip(name_features[1:], labels[:-1]):
+        feat["prev_label"] = label
+    for feat, label in zip(name_features[:-1], labels[1:]):
+        feat["next_label"] = label
+    for feat, label in zip(name_features[2:], labels[:-2]):
+        feat["prev2_label"] = label
+    for feat, label in zip(name_features[:-2], labels[2:]):
+        feat["next2_label"] = label
+
+    name_labels = NAME_TAGGER.tag(name_features)
+
     # Re-plurise tokens that were singularised if the label isn't UNIT
     # For tokens with UNIT label, we'll deal with them below
     for idx in processed_sentence.singularised_indices:
@@ -216,7 +232,7 @@ def inspect_parser_en(
     postprocessed_sentence = PostProcessor(
         sentence,
         tokens,
-        processed_sentence.pos_tags,
+        name_labels,
         labels,
         scores,
         discard_isolated_stop_words=discard_isolated_stop_words,

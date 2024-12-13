@@ -217,17 +217,18 @@ def load_datasets(
             labels.append(name_labels)
         elif model_type == ModelType.NAME:
             feats = p.sentence_features()
+            token_labels = entry["labels"]
             # Include label of current and surrounding tokens as features
-            for feat, label in zip(feats, entry["labels"]):
+            for i, (feat, label) in enumerate(zip(feats, token_labels)):
                 feat["label"] = label
-            for feat, label in zip(feats[1:], entry["labels"][:-1]):
-                feat["prev_label"] = label
-            for feat, label in zip(feats[:-1], entry["labels"][1:]):
-                feat["next_label"] = label
-            for feat, label in zip(feats[2:], entry["labels"][:-2]):
-                feat["prev2_label"] = label
-            for feat, label in zip(feats[:-2], entry["labels"][2:]):
-                feat["next2_label"] = label
+                if i > 0:
+                    feat["prev_label"] = token_labels[i - 1]
+                if i > 1:
+                    feat["prev2_label"] = token_labels[i - 2]
+                if i < len(feats) - 1:
+                    feat["next_label"] = token_labels[i + 1]
+                if i < len(feats) - 2:
+                    feat["next2_label"] = token_labels[i + 2]
 
             features.append(feats)
             tokens.append(p.tokenized_sentence)
