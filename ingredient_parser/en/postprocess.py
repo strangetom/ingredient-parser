@@ -247,6 +247,7 @@ class PostProcessor:
         # Preprend global to all following names
         constructed_groups = []
         last_encountered_name = None
+        last_encountered_name_used = False
         for group in reversed(bio_groups):
             idx, labels = zip(*group)
             group_label = labels[0].split("_")[-1]
@@ -256,13 +257,20 @@ class PostProcessor:
                     constructed_groups.append(last_encountered_name)
 
                 last_encountered_name = group
+                last_encountered_name_used = False
 
             elif group_label == "PREFIX":
                 constructed_groups.append(group + last_encountered_name)
+                last_encountered_name_used = True
 
             elif group_label == "GLOBAL":
                 for constructed_group in constructed_groups:
                     constructed_group = group + constructed_group
+
+        # If we've iterated through all BIO groups and haven't used
+        # last_encountered_name_used, add it to constructed_groups now.
+        if last_encountered_name and not last_encountered_name_used:
+            constructed_groups.append(last_encountered_name)
 
         names = []
         for group in reversed(constructed_groups):
