@@ -241,7 +241,8 @@ class PostProcessor:
             else:
                 current_group.append((idx, label))
 
-        bio_groups.append(current_group)
+        if current_group:
+            bio_groups.append(current_group)
 
         # Prepend prefixes to next name
         # Preprend global to all following names
