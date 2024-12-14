@@ -96,6 +96,10 @@ def parse_ingredient_en(
     token_labels = TAGGER.tag(features)
     scores = [TAGGER.marginal(label, i) for i, label in enumerate(token_labels)]
 
+    if expect_name_in_output and all(label != "NAME" for label in token_labels):
+        # No tokens were assigned the NAME label, so guess if there's a name
+        token_labels, scores = guess_ingredient_name(token_labels, scores)
+
     # Tag names
     name_features = processed_sentence.sentence_features()
     # Include token label of current and surrounding tokens as features
@@ -119,10 +123,6 @@ def parse_ingredient_en(
         label = token_labels[idx]
         if label != "UNIT":
             tokens[idx] = pluralise_units(token)
-
-    if expect_name_in_output and all(label != "NAME" for label in token_labels):
-        # No tokens were assigned the NAME label, so guess if there's a name
-        token_labels, scores = guess_ingredient_name(token_labels, scores)
 
     postprocessed_sentence = PostProcessor(
         sentence,
@@ -203,6 +203,10 @@ def inspect_parser_en(
     token_labels = TAGGER.tag(features)
     scores = [TAGGER.marginal(label, i) for i, label in enumerate(token_labels)]
 
+    if expect_name_in_output and all(label != "NAME" for label in token_labels):
+        # No tokens were assigned the NAME label, so guess if there's a name
+        token_labels, scores = guess_ingredient_name(token_labels, scores)
+
     # Tag names
     name_features = processed_sentence.sentence_features()
     # Include token label of current and surrounding tokens as features
@@ -226,10 +230,6 @@ def inspect_parser_en(
         label = token_labels[idx]
         if label != "UNIT":
             tokens[idx] = pluralise_units(token)
-
-    if expect_name_in_output and all(label != "NAME" for label in token_labels):
-        # No tokens were assigned the NAME label, so guess if there's a name
-        token_labels, scores = guess_ingredient_name(token_labels, scores)
 
     postprocessed_sentence = PostProcessor(
         sentence,
