@@ -204,12 +204,12 @@ class PostProcessor:
         return self._postprocess_indices(label_idx, selected_label)
 
     def _postprocess_names(self) -> list[IngredientText]:
-        """Process tokens, labels and score for the ingredient name(s).
+        """Process tokens, labels and scores for the ingredient name(s).
 
-        The approach has a lot in common with _postprocess, but has additional logic to
-        handle multiple alternative ingredient names e.g. "butter or olive oil". Where
-        multiple alternative ingredients names are identified, each one is returned in a
-        separate IngredientText object.
+        This function handles multiple ingredient names e.g. "butter or olive oil",
+        determined by the name_labels provided for each token.
+        Where multiple alternative ingredients names are identified, each one is
+        returned in a separate IngredientText object.
 
         Returns
         -------
@@ -226,112 +226,122 @@ class PostProcessor:
             return []
 
         name_labels = [self.name_labels[i] for i in name_idx]
-
-        # Group BIO labels
-        bio_groups = []
-        current_group = []
-        for idx, label in enumerate(name_labels):
-            if label in ["O", "N_SPLIT"]:
-                if current_group:
-                    bio_groups.append(current_group)
-                current_group = []
-            elif label.startswith("B"):
-                if current_group:
-                    bio_groups.append(current_group)
-                current_group = [(idx, label)]
-            else:
-                current_group.append((idx, label))
-
-        if current_group:
-            bio_groups.append(current_group)
-
-        # Prepend prefixes to next name
-        # Preprend global to all following names
-        constructed_groups = []
-        last_encountered_name = None
-        last_encountered_name_used = False
-        for group in reversed(bio_groups):
-            idx, labels = zip(*group)
-            group_label = labels[0].split("_")[-1]
-
-            if group_label == "NAME":
-                if last_encountered_name:
-                    constructed_groups.append(last_encountered_name)
-
-                last_encountered_name = group
-                last_encountered_name_used = False
-
-            elif group_label == "PREFIX":
-                constructed_groups.append(group + last_encountered_name)
-                last_encountered_name_used = True
-
-            elif group_label == "GLOBAL":
-                for constructed_group in constructed_groups:
-                    constructed_group = group + constructed_group
-
-        # If we've iterated through all BIO groups and haven't used
-        # last_encountered_name_used, add it to constructed_groups now.
-        if last_encountered_name and not last_encountered_name_used:
-            constructed_groups.append(last_encountered_name)
+        bio_groups = self._group_BIO_labels(name_labels)
+        constructed_names = self._construct_names(bio_groups)
 
         names = []
-        for group in reversed(constructed_groups):
-            token_idx = [name_idx[i] for i, _ in group]
+        for group in constructed_names:
+            # Convert from name_label indices to token indices
+            token_idx = [name_idx[idx] for idx in group]
             names.append(self._postprocess_indices(token_idx, "NAME"))
 
         return names
 
-    def _split_name_tokens(
-        self, tokens: list[str], pos_tags: list[str], indices: list[int]
-    ) -> list[list[int]]:
-        """Split name tokens into subgroups.
+    def _group_BIO_labels(self, name_labels: list[str]) -> list[list[tuple[int, str]]]:
+        """Group name labels according to BIO groups.
 
-        Splits occur whenever a conjunction is (e.g. "or") or when a comma is followed
-        by a noun.
+        A B_* label starts a new group, containing all subsequent I_* labels of the same
+        type. O and N_SPLIT labels are also used to split the input list, but are
+        discarded from output.
 
         Parameters
         ----------
-        tokens : list[str]
-            List of name tokens
-        pos_tags : list[str]
-            List of name token part of speech tags
-        indices : list[int]
-            List of indices of name tokens
+        name_labels : list[str]
+            List of name labels.
+
+        Returns
+        -------
+        list[list[tuple[int, str]]]
+            List of BIO groups.
+            Each group is a list of tuples, where each tuple is the (index, label) of
+            the original name_labels list element.
+        """
+        bio_groups = []
+        current_group = []
+        for idx, label in enumerate(name_labels):
+            # Start new group on "O" and "N_SPLIT" name labels
+            if label in ["O", "N_SPLIT"]:
+                if current_group:
+                    bio_groups.append(current_group)
+                current_group = []
+            # Start new group for new "B_*" name label
+            elif label.startswith("B"):
+                if current_group:
+                    bio_groups.append(current_group)
+                current_group = [(idx, label)]
+            # Must be an I_* name label, so append to current group
+            else:
+                current_group.append((idx, label))
+
+        # Add last group to list if not empty
+        if current_group:
+            bio_groups.append(current_group)
+
+        return bio_groups
+
+    def _construct_names(
+        self, bio_groups: list[list[tuple[int, str]]]
+    ) -> list[list[int]]:
+        """Construct names from BIO groups.
+
+        All PREFIX groups are prepended to the next NAME group.
+        GLOBAL groups are prepended to all subsequent NAME groups or PREFIX+NAME groups.
+
+        To make this easier, iterate through the BIO groups from last to first. This
+        means we can easily keep track of which NAME group to prepend PREFIX and GLOBAL
+        groups.
+
+        Parameters
+        ----------
+        bio_groups : list[list[tuple[int, str]]]
+            List of BIO groups.
+            Each group is a list of tuples, where each tuple if the (index, label) of
+            the original list element.
 
         Returns
         -------
         list[list[int]]
-            List of lists of indices, for groups of name tokens
+            List of name_label indices for each name.
         """
-        all_splits = []
-        current_split = []
-        prev_token = None
-        for token, pos, idx in zip(tokens, pos_tags, indices):
-            if pos == "CC":
-                # Split when encountering a conjunction
-                if current_split:
-                    all_splits.append(current_split)
-                current_split = []
-                prev_token = token
-                continue
+        constructed_names = []
 
-            if prev_token == "," and pos.startswith("NN"):
-                # Split if encountering a noun preceded by a comma
-                if current_split:
-                    all_splits.append(current_split)
-                current_split = []
+        # Keep track the last NAME group we come across (moving from last to first).
+        # Also keep track of whether we have used it by prepending a PREFIX or GLOBAL
+        # group.
+        last_encountered_name = None
+        last_encountered_name_used = False
 
-            current_split.append(idx)
-            prev_token = token
+        # Iterate from last to first BIO group
+        for group in reversed(bio_groups):
+            current_group_idx, labels = zip(*group)
+            current_label = labels[0].split("_")[-1]
 
-        all_splits.append(current_split)
+            if current_label == "NAME":
+                # If we've previously come across a NAME group, store it.
+                if last_encountered_name:
+                    constructed_names.append(last_encountered_name)
 
-        # Iterate over all and strip trailing PUNC
-        for group in all_splits:
-            if len(group) > 1 and self.token_labels[group[-1]] == "PUNC":
-                del group[-1]
+                # Set current group to last_encountered_name group.
+                last_encountered_name = current_group_idx
+                last_encountered_name_used = False
 
-        return all_splits
+            elif current_label == "PREFIX":
+                # Prepend this group to last encountered NAME group
+                constructed_names.append(current_group_idx + last_encountered_name)
+                last_encountered_name_used = True
+
+            elif current_label == "GLOBAL":
+                # Prepend this group to all constructed names so far
+                for name in constructed_names:
+                    name = current_group_idx + name
+
+        # If we've iterated through all BIO groups and haven't used
+        # last_encountered_name, add it to constructed_names now.
+        if last_encountered_name and not last_encountered_name_used:
+            constructed_names.append(last_encountered_name)
+
+        # Return reversed list, so names are in the order they appear in sentence.
+        return reversed(constructed_names)
 
     def _postprocess_indices(
         self, label_idx: list[int], selected_label: str
