@@ -271,7 +271,7 @@ def p_fraction_in_prep():
         ")",
         "coins",
     ]
-    labels = [
+    token_labels = [
         "QTY",
         "NAME",
         "PUNC",
@@ -286,6 +286,22 @@ def p_fraction_in_prep():
         "PREP",
         "PUNC",
         "PREP",
+    ]
+    name_labels = [
+        "O",
+        "B_NAME",
+        "O",
+        "O",
+        "O",
+        "O",
+        "O",
+        "O",
+        "O",
+        "O",
+        "O",
+        "O",
+        "O",
+        "O",
     ]
     scores = [
         0.9994675946370136,
@@ -304,7 +320,7 @@ def p_fraction_in_prep():
         0.660356736493678,
     ]
 
-    return PostProcessor(sentence, tokens, labels, scores)
+    return PostProcessor(sentence, tokens, token_labels, name_labels, scores)
 
 
 class TestPostProcessor__builtins__:
@@ -561,7 +577,9 @@ class TestPostProcessor_parsed:
 
     def test_fraction_in_prep(self, p_fraction_in_prep):
         expected = ParsedIngredient(
-            name=IngredientText(text="carrots", confidence=0.998212, starting_index=1),
+            name=[
+                IngredientText(text="carrots", confidence=0.998212, starting_index=1)
+            ],
             size=None,
             amount=[
                 ingredient_amount_factory(
