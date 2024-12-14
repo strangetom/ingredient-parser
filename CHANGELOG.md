@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.3.2
+
+### Processing
+
+* Fix bug that allowed fractions in the intermediate form (i.e. #1$2) to appear in the name, prep, comment, size, purpose fields of the `ParsedIngredient` output.
+
+## 1.3.1
+
+> [!WARNING]
+>
+> This version requires pint >=0.24.4
+
+### General
+
+* Support Python 3.13. Requires pint >= 0.24.4.
+
 ## 1.3
 
 ### Processing
