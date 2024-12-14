@@ -76,7 +76,7 @@ class NameTokenStats:
     I_PREFIX: Metrics
     N_SPLIT: Metrics
     ING_SPLIT: Metrics
-    O: Metrics
+    O: Metrics  #  noqa: E741
     macro_avg: Metrics
     weighted_avg: Metrics
     # accuracy: float
