@@ -8,7 +8,7 @@ class Test_expect_name_in_output:
         """
         sentence = "3 cloves, lightly bruised"
         parsed = parse_ingredient(sentence, expect_name_in_output=True)
-        assert parsed.name is not None
+        assert parsed.name != []
 
     def test_disabled(self):
         """
@@ -16,7 +16,7 @@ class Test_expect_name_in_output:
         """
         sentence = "3 cloves, lightly bruised"
         parsed = parse_ingredient(sentence, expect_name_in_output=False)
-        assert parsed.name is None
+        assert parsed.name == []
 
     def test_enabled_but_no_name(self):
         """
@@ -24,4 +24,4 @@ class Test_expect_name_in_output:
         """
         sentence = "2 tablespoons"
         parsed = parse_ingredient(sentence, expect_name_in_output=True)
-        assert parsed.name is None
+        assert parsed.name == []
