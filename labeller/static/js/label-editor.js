@@ -128,7 +128,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Save on Ctrl+S keypress
   document.addEventListener("keydown", (e) => {
-    if (e.ctrlKey && e.key === "s") {
+    if (e.ctrlKey && e.key === "s" || e.ctrlKey && e.key === "S") {
       e.preventDefault();
       save();
     }
