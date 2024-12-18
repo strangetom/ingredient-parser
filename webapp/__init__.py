@@ -62,7 +62,7 @@ def home():
         foundation_foods=foundation_foods,
         tokens=zip(
             parser_info.PostProcessor.tokens,
-            parser_info.PostProcessor.labels,
+            parser_info.PostProcessor.token_labels,
             marginals,
         ),
         name=parsed.name if parsed.name is not None else IngredientText("", 0, 0),
