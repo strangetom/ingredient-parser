@@ -21,6 +21,12 @@ from .training_utils import (
     load_datasets,
 )
 
+DEFAULT_MODEL_LOCATION = {
+    "parser": "ingredient_parser/en/model.en.crfsuite",
+    "foundationfoods": "ingredient_parser/en/ff_model.en.crfsuite",
+    "name": "ingredient_parser/en/name_model.en.crfsuite",
+}
+
 
 def get_model_type(cmd_arg: str) -> ModelType:
     """Convert command line argument for model type into enum
@@ -442,11 +448,16 @@ def train_single(args: argparse.Namespace) -> None:
         args.database, args.table, args.datasets, get_model_type(args.model)
     )
 
+    if args.save_model is None:
+        save_model = DEFAULT_MODEL_LOCATION[args.model]
+    else:
+        save_model = args.save_model
+
     model_fcn = MODEL_FCNS[args.model]
     stats = model_fcn(
         vectors,
         args.split,
-        args.save_model,
+        save_model,
         args.seed,
         args.html,
         args.detailed,
@@ -478,13 +489,19 @@ def train_multiple(args: argparse.Namespace) -> None:
     )
 
     model_fcn = MODEL_FCNS[args.model]
+
+    if args.save_model is None:
+        save_model = DEFAULT_MODEL_LOCATION[args.model]
+    else:
+        save_model = args.save_model
+
     # The first None argument is for the seed. This is set to None so each
     # iteration of the training function uses a different random seed.
     arguments = [
         (
             vectors,
             args.split,
-            args.save_model,
+            save_model,
             None,
             args.html,
             args.detailed,

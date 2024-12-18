@@ -61,7 +61,7 @@ if __name__ == "__main__":
     )
     train_parser.add_argument(
         "--save-model",
-        default="ingredient_parser/en/model.en.crfsuite",
+        default=None,
         help="Path to save model to",
     )
     train_parser.add_argument(
@@ -123,7 +123,7 @@ if __name__ == "__main__":
     )
     multiple_parser.add_argument(
         "--save-model",
-        default="ingredient_parser/en/model.en.crfsuite",
+        default=None,
         help="Path to save model to",
     )
     multiple_parser.add_argument(
@@ -195,7 +195,7 @@ if __name__ == "__main__":
     )
     gridsearch_parser.add_argument(
         "--save-model",
-        default="ingredient_parser/en/model.en.crfsuite",
+        default=None,
         help="Path to save model to",
     )
     gridsearch_parser.add_argument(
@@ -307,7 +307,7 @@ if __name__ == "__main__":
     )
     featuresearch_parser.add_argument(
         "--save-model",
-        default="ingredient_parser/en/model.en.crfsuite",
+        default=None,
         help="Path to save model to",
     )
     featuresearch_parser.add_argument(
