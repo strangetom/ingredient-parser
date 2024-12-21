@@ -3,6 +3,7 @@
 import json
 import re
 import sqlite3
+import string
 from collections import Counter
 
 from flask import Flask, Response, redirect, render_template, request, url_for
@@ -217,6 +218,11 @@ def apply_filter(params: dict[str, str]):
     # Create regex for search query
     escaped = re.escape(params["filter-string"])
     if params.get("whole-word", "") == "on":
+        # Strip trailing punctuation to make this work how I want it to, otherwise the
+        # trailing punctuation in <escaped> means the trailing <\b> in the regex does
+        # not match anything.
+        while escaped[-1] in string.punctuation:
+            escaped = escaped[:-1]
         expression = rf"\b{escaped}\b"
     else:
         expression = escaped
