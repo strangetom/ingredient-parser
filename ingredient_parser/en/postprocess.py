@@ -317,8 +317,9 @@ class PostProcessor:
             current_label = labels[0].split("_")[-1]
 
             if current_label == "NAME":
-                # If we've previously come across a NAME group, store it.
-                if last_encountered_name:
+                # If we've previously come across a NAME group and haven't used it,
+                # then store it.
+                if last_encountered_name and not last_encountered_name_used:
                     constructed_names.append(last_encountered_name)
 
                 # Set current group to last_encountered_name group.
