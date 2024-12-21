@@ -77,6 +77,7 @@ def test_results_to_html(
     }
     label {
       margin-right: 1rem;
+      text-transform: uppercase;
     }
     .copy {
       margin-left: 1rem;
