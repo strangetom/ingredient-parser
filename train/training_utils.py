@@ -9,7 +9,11 @@ from itertools import chain
 from pathlib import Path
 from typing import Any
 
-from sklearn.metrics import ConfusionMatrixDisplay, classification_report
+from sklearn.metrics import (
+    ConfusionMatrixDisplay,
+    accuracy_score,
+    classification_report,
+)
 
 # Ensure the local ingredient_parser package can be found
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -300,8 +304,8 @@ def evaluate(
             token_stats[k] = Metrics(
                 v["precision"], v["recall"], v["f1-score"], int(v["support"])
             )
-        # else:
-        #    token_stats[k] = v
+
+    token_stats["accuracy"] = accuracy_score(flat_truths, flat_predictions)
 
     if model_type == ModelType.FOUNDATION_FOODS:
         token_stats = FFTokenStats(**token_stats)
