@@ -75,15 +75,14 @@ class NameTokenStats:
     B_NAME: Metrics
     I_NAME: Metrics
     B_GLOBAL: Metrics
-    # I_GLOBAL: Metrics
+    I_GLOBAL: Metrics
     B_PREFIX: Metrics
     I_PREFIX: Metrics
     N_SPLIT: Metrics
-    ING_SPLIT: Metrics
     O: Metrics  #  noqa: E741
     macro_avg: Metrics
     weighted_avg: Metrics
-    # accuracy: float
+    accuracy: float
 
 
 @dataclass
