@@ -213,9 +213,13 @@ class PostProcessor:
             group_tokens = []
             for i in idx:
                 if FRACTION_TOKEN_PATTERN.match(self.tokens[i]):
-                    group_tokens.append(
+                    text_fraction = (
                         self.tokens[i].replace("#", " ").replace("$", "/").strip()
                     )
+                    # If fraction range, remove space that will follow hyphen caused by
+                    # replacing # with space.
+                    text_fraction = text_fraction.replace("- ", "-")
+                    group_tokens.append(text_fraction)
                 else:
                     group_tokens.append(self.tokens[i])
 

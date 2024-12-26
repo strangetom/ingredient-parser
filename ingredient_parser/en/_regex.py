@@ -108,8 +108,10 @@ LOWERCASE_PATTERN = re.compile(r"[a-z]")
 UPPERCASE_PATTERN = re.compile(r"[A-Z]")
 DIGIT_PATTERN = re.compile(r"[0-9]")
 
-# Regex pattern to match a fraction token.
+# Regex pattern to match a fraction token or a range formed by fractions.
 # This is a token for a fraction where the forward slash has been replaced by $ and
 # any space between the whole part and fraction part has been replaced by #
 # e.g. #1$2 for 1/2, or 1#1$3 for 1 1/3
-FRACTION_TOKEN_PATTERN = re.compile(r"^\d*\#\d+\$\d+$")
+# The group at the end of the regex is optional, for capturing the upper end if the
+# token is a range.
+FRACTION_TOKEN_PATTERN = re.compile(r"^\d*\#\d+\$\d+(?:\-\d*\#\d+\$\d+)?$")
