@@ -79,7 +79,7 @@
                         {%- if name | length == 1 -%}
                             {{ name[0].text }}
                             <span class="confidence NAME">
-                                {{ "%.2f"|format(100*name.confidence) }}%
+                                {{ "%.2f"|format(100*name[0].confidence) }}%
                             </span>
                         {%- else -%}
                         {%- for n in name -%}
@@ -179,7 +179,7 @@
                         <td class="type FOUNDATION">Foundation</td>
                         <td>
                             {%- for f in foundation -%}
-                            <span class="amount">
+                            <span class="item">
                                 {{ f.text }}
                                 <span class="confidence FOUNDATION">
                                     {{ "%.2f"|format(100*f.confidence) }}%
