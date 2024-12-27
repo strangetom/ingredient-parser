@@ -332,6 +332,12 @@ class PostProcessor:
                 last_encountered_name_used = True
 
             elif current_label == "GLOBAL":
+                # If we've previously come across a NAME group and haven't used it,
+                # then store it.
+                if last_encountered_name and not last_encountered_name_used:
+                    constructed_names.append(last_encountered_name)
+                    last_encountered_name_used = True
+
                 # Prepend this group to all constructed names so far
                 constructed_names = [
                     current_group_idx + name for name in constructed_names
@@ -763,6 +769,7 @@ class PostProcessor:
         end_units = [
             "bag",
             "block",
+            "bottle",
             "box",
             "bucket",
             "can",
