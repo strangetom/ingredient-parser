@@ -333,8 +333,9 @@ class PostProcessor:
 
             elif current_label == "GLOBAL":
                 # Prepend this group to all constructed names so far
-                for name in constructed_names:
-                    name = current_group_idx + name
+                constructed_names = [
+                    current_group_idx + name for name in constructed_names
+                ]
 
         # If we've iterated through all BIO groups and haven't used
         # last_encountered_name, add it to constructed_names now.
