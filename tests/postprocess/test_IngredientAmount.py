@@ -76,3 +76,22 @@ class TestPostProcessor_IngredientAmount:
 
         assert amount.unit == UREG("gram").units
         assert amount.text == "200 grams"
+
+    def test_fraction_range_quantity(self):
+        """
+        Test that the string quantity is correctly identified as a range
+        and that quantity and quantity_max are set correctly, and the RANGE
+        flag is also set.
+        """
+        amount = ingredient_amount_factory(
+            quantity="#1$4-#1$2",
+            unit="tsp",
+            text="1/4-1/2 tsp",
+            confidence=0,
+            starting_index=0,
+        )
+
+        assert amount.quantity == 0.25
+        assert amount.quantity_max == 0.5
+        assert amount.text == "1/4-1/2 tsp"
+        assert amount.RANGE

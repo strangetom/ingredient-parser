@@ -425,17 +425,17 @@ def ingredient_amount_factory(
     """
     RANGE = False
     MULTIPLIER = False
-    if is_float(quantity) or FRACTION_TOKEN_PATTERN.match(quantity):
-        # If float or fraction, set quantity_max = quantity
-        _quantity = to_frac(quantity)
-        quantity_max = _quantity
-    elif is_range(quantity):
+    if is_range(quantity):
         # If range, set quantity to min of range, set quantity_max to max
         # of range, set RANGE flag to True
         range_parts = [to_frac(x) for x in quantity.split("-")]
         _quantity = min(range_parts)
         quantity_max = max(range_parts)
         RANGE = True
+    elif is_float(quantity) or FRACTION_TOKEN_PATTERN.match(quantity):
+        # If float or fraction, set quantity_max = quantity
+        _quantity = to_frac(quantity)
+        quantity_max = _quantity
     elif quantity.endswith("x"):
         # If multiplier, set quantity and quantity_max to value without 'x', and
         # set MULTIPLER flag.
@@ -468,11 +468,18 @@ def ingredient_amount_factory(
         if isinstance(_unit, str):
             _unit = pluralise_units(_unit)
 
+    # Fix up text:
+    # 1. Replace intermediate fractions with text fraction
+    # 2. Remove additional leading and trailing spaces
+    # 3. Remove additional spaces in fraction ranges
+    text = text.replace("#", " ").replace("$", "/").strip()
+    text = text.replace("- ", "-")
+
     return IngredientAmount(
         quantity=_quantity,
         quantity_max=quantity_max,
         unit=_unit,
-        text=text.replace("#", " ").replace("$", "/"),
+        text=text,
         confidence=round(confidence, 6),
         starting_index=starting_index,
         APPROXIMATE=APPROXIMATE,
