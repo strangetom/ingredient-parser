@@ -228,14 +228,35 @@ def load_datasets(
                     feat["prev_label"] = token_labels[i - 1]
                 if i > 1:
                     feat["prev2_label"] = token_labels[i - 2]
+                if i > 2:
+                    feat["prev3_label"] = token_labels[i - 3]
                 if i < len(feats) - 1:
                     feat["next_label"] = token_labels[i + 1]
                 if i < len(feats) - 2:
                     feat["next2_label"] = token_labels[i + 2]
+                if i < len(feats) - 3:
+                    feat["next3_label"] = token_labels[i + 3]
 
-            features.append(feats)
-            tokens.append(p.tokenized_sentence)
-            labels.append(entry["foundation_labels"])
+            name_idx = [
+                idx
+                for idx, lab in enumerate(entry["labels"])
+                if lab in ["NAME", "PUNC"]
+            ]
+            name_labels = [
+                label
+                for idx, label in enumerate(entry["foundation_labels"])
+                if idx in name_idx
+            ]
+            name_features = [feat for idx, feat in enumerate(feats) if idx in name_idx]
+            name_tokens = [
+                token
+                for idx, token in enumerate(p.tokenized_sentence)
+                if idx in name_idx
+            ]
+
+            features.append(name_features)
+            tokens.append(name_tokens)
+            labels.append(name_labels)
         else:
             features.append(p.sentence_features())
             tokens.append(p.tokenized_sentence)
