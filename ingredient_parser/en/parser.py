@@ -101,6 +101,7 @@ def parse_ingredient_en(
         token_labels, scores = guess_ingredient_name(token_labels, scores)
 
     # Tag names
+    name_idx = [idx for idx, lab in enumerate(token_labels) if lab in ["NAME", "PUNC"]]
     name_features = processed_sentence.sentence_features()
     # Include token label of current and surrounding tokens as features
     for i, (feat, label) in enumerate(zip(name_features, token_labels)):
@@ -109,12 +110,20 @@ def parse_ingredient_en(
             feat["prev_label"] = token_labels[i - 1]
         if i > 1:
             feat["prev2_label"] = token_labels[i - 2]
+        if i > 2:
+            feat["prev3_label"] = token_labels[i - 3]
         if i < len(token_labels) - 1:
             feat["next_label"] = token_labels[i + 1]
         if i < len(token_labels) - 2:
             feat["next2_label"] = token_labels[i + 2]
+        if i < len(token_labels) - 3:
+            feat["next3_label"] = token_labels[i + 3]
 
-    name_labels = NAME_TAGGER.tag(name_features)
+    name_labels = NAME_TAGGER.tag([name_features[i] for i in name_idx])
+    # Restore name name_labels to full length, making all other elements "O"
+    full_name_labels = ["O"] * len(tokens)
+    for i, idx in enumerate(name_idx):
+        full_name_labels[idx] = name_labels[i]
 
     # Re-pluralise tokens that were singularised if the label isn't UNIT
     # For tokens with UNIT label, we'll deal with them below
@@ -128,7 +137,7 @@ def parse_ingredient_en(
         sentence,
         tokens,
         token_labels,
-        name_labels,
+        full_name_labels,
         scores,
         discard_isolated_stop_words=discard_isolated_stop_words,
         string_units=string_units,
@@ -208,6 +217,7 @@ def inspect_parser_en(
         token_labels, scores = guess_ingredient_name(token_labels, scores)
 
     # Tag names
+    name_idx = [idx for idx, lab in enumerate(token_labels) if lab in ["NAME", "PUNC"]]
     name_features = processed_sentence.sentence_features()
     # Include token label of current and surrounding tokens as features
     for i, (feat, label) in enumerate(zip(name_features, token_labels)):
@@ -216,12 +226,20 @@ def inspect_parser_en(
             feat["prev_label"] = token_labels[i - 1]
         if i > 1:
             feat["prev2_label"] = token_labels[i - 2]
+        if i > 2:
+            feat["prev3_label"] = token_labels[i - 3]
         if i < len(token_labels) - 1:
             feat["next_label"] = token_labels[i + 1]
         if i < len(token_labels) - 2:
             feat["next2_label"] = token_labels[i + 2]
+        if i < len(token_labels) - 3:
+            feat["next3_label"] = token_labels[i + 3]
 
-    name_labels = NAME_TAGGER.tag(name_features)
+    name_labels = NAME_TAGGER.tag([name_features[i] for i in name_idx])
+    # Restore name name_labels to full length, making all other elements "O"
+    full_name_labels = ["O"] * len(tokens)
+    for i, idx in enumerate(name_idx):
+        full_name_labels[idx] = name_labels[i]
 
     # Re-plurise tokens that were singularised if the label isn't UNIT
     # For tokens with UNIT label, we'll deal with them below
@@ -235,7 +253,7 @@ def inspect_parser_en(
         sentence,
         tokens,
         token_labels,
-        name_labels,
+        full_name_labels,
         scores,
         discard_isolated_stop_words=discard_isolated_stop_words,
         string_units=string_units,

@@ -1036,6 +1036,20 @@ class PreProcessor:
             )
             features |= self._common_features(index - 2, "prev2_")
 
+        # Features for previous previous previous token
+        if index > 2:
+            prev3_token = self._feature_tokens[index - 3]
+            features["prev3_stem"] = stem(prev3_token)
+            features["prev3_pos"] = "+".join(
+                (
+                    self.pos_tags[index - 3],
+                    self.pos_tags[index - 2],
+                    self.pos_tags[index - 1],
+                    self.pos_tags[index],
+                )
+            )
+            features |= self._common_features(index - 3, "prev3_")
+
         # Features for next token
         if index < len(self._feature_tokens) - 1:
             next_token = self._feature_tokens[index + 1]
@@ -1057,6 +1071,20 @@ class PreProcessor:
                 )
             )
             features |= self._common_features(index + 2, "next2_")
+
+        # Features for next next next token
+        if index < len(self._feature_tokens) - 3:
+            next3_token = self._feature_tokens[index + 3]
+            features["next3_stem"] = stem(next3_token)
+            features["next3_pos"] = "+".join(
+                (
+                    self.pos_tags[index + 3],
+                    self.pos_tags[index + 2],
+                    self.pos_tags[index + 1],
+                    self.pos_tags[index],
+                )
+            )
+            features |= self._common_features(index + 3, "next3_")
 
         return features
 
