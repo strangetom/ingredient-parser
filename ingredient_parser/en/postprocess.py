@@ -259,8 +259,11 @@ class PostProcessor:
         bio_groups = []
         current_group = []
         for idx, label in enumerate(name_labels):
-            # Start new group on "O" and "N_SPLIT" name labels
-            if label in ["O", "N_SPLIT"]:
+            # Skip over O labels
+            if label == "O":
+                continue
+            # Start new group on "N_SPLIT" name label
+            if label == "N_SPLIT":
                 if current_group:
                     bio_groups.append(current_group)
                 current_group = []
