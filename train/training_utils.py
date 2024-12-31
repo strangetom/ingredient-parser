@@ -26,7 +26,6 @@ sqlite3.register_converter("json", json.loads)
 class ModelType(Enum):
     PARSER = auto()
     FOUNDATION_FOODS = auto()
-    NAME = auto()
 
 
 @dataclass
@@ -55,31 +54,20 @@ class Metrics:
 class TokenStats:
     """Statistics for token classification performance."""
 
-    NAME: Metrics
+    B_NAME_TOK: Metrics
+    I_NAME_TOK: Metrics
+    B_NAME_VAR: Metrics
+    I_NAME_VAR: Metrics
+    B_NAME_MOD: Metrics
+    I_NAME_MOD: Metrics
     QTY: Metrics
     UNIT: Metrics
+    SEP: Metrics
     SIZE: Metrics
     COMMENT: Metrics
     PURPOSE: Metrics
     PREP: Metrics
     PUNC: Metrics
-    macro_avg: Metrics
-    weighted_avg: Metrics
-    accuracy: float
-
-
-@dataclass
-class NameTokenStats:
-    """Statistics for token classification performance."""
-
-    B_NAME: Metrics
-    I_NAME: Metrics
-    B_GLOBAL: Metrics
-    I_GLOBAL: Metrics
-    B_PREFIX: Metrics
-    I_PREFIX: Metrics
-    N_SPLIT: Metrics
-    O: Metrics  #  noqa: E741
     macro_avg: Metrics
     weighted_avg: Metrics
     accuracy: float
@@ -218,45 +206,6 @@ def load_datasets(
             features.append(name_features)
             tokens.append(name_tokens)
             labels.append(name_labels)
-        elif model_type == ModelType.NAME:
-            feats = p.sentence_features()
-            token_labels = entry["labels"]
-            # Include label of current and surrounding tokens as features
-            for i, (feat, label) in enumerate(zip(feats, token_labels)):
-                feat["label"] = label
-                if i > 0:
-                    feat["prev_label"] = token_labels[i - 1]
-                if i > 1:
-                    feat["prev2_label"] = token_labels[i - 2]
-                if i > 2:
-                    feat["prev3_label"] = token_labels[i - 3]
-                if i < len(feats) - 1:
-                    feat["next_label"] = token_labels[i + 1]
-                if i < len(feats) - 2:
-                    feat["next2_label"] = token_labels[i + 2]
-                if i < len(feats) - 3:
-                    feat["next3_label"] = token_labels[i + 3]
-
-            name_idx = [
-                idx
-                for idx, lab in enumerate(entry["labels"])
-                if lab in ["NAME", "PUNC"]
-            ]
-            name_labels = [
-                label
-                for idx, label in enumerate(entry["foundation_labels"])
-                if idx in name_idx
-            ]
-            name_features = [feat for idx, feat in enumerate(feats) if idx in name_idx]
-            name_tokens = [
-                token
-                for idx, token in enumerate(p.tokenized_sentence)
-                if idx in name_idx
-            ]
-
-            features.append(name_features)
-            tokens.append(name_tokens)
-            labels.append(name_labels)
         else:
             features.append(p.sentence_features())
             tokens.append(p.tokenized_sentence)
@@ -329,8 +278,6 @@ def evaluate(
 
     if model_type == ModelType.FOUNDATION_FOODS:
         token_stats = FFTokenStats(**token_stats)
-    elif model_type == ModelType.NAME:
-        token_stats = NameTokenStats(**token_stats)
     else:
         token_stats = TokenStats(**token_stats)
 

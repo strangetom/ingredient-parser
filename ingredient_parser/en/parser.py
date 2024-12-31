@@ -16,7 +16,6 @@ from .preprocess import PreProcessor
 # when we need to (from parse_ingredient() or inspect_parser()) and
 # not whenever anything from ingredient_parser is imported.
 TAGGER = pycrfsuite.Tagger()  # type: ignore
-NAME_TAGGER = pycrfsuite.Tagger()  # type: ignore
 
 
 def load_model_if_not_loaded():
@@ -31,12 +30,6 @@ def load_model_if_not_loaded():
     except ValueError:
         with as_file(files(__package__) / "model.en.crfsuite") as p:
             TAGGER.open(str(p))
-
-    try:
-        NAME_TAGGER.labels()
-    except ValueError:
-        with as_file(files(__package__) / "name_model.en.crfsuite") as p:
-            NAME_TAGGER.open(str(p))
 
 
 def parse_ingredient_en(
@@ -93,51 +86,25 @@ def parse_ingredient_en(
     processed_sentence = PreProcessor(sentence)
     tokens = processed_sentence.tokenized_sentence
     features = processed_sentence.sentence_features()
-    token_labels = TAGGER.tag(features)
-    scores = [TAGGER.marginal(label, i) for i, label in enumerate(token_labels)]
+    labels = TAGGER.tag(features)
+    scores = [TAGGER.marginal(label, i) for i, label in enumerate(labels)]
 
-    if expect_name_in_output and all(label != "NAME" for label in token_labels):
+    if expect_name_in_output and all(label != "NAME" for label in labels):
         # No tokens were assigned the NAME label, so guess if there's a name
-        token_labels, scores = guess_ingredient_name(token_labels, scores)
-
-    # Tag names
-    name_idx = [idx for idx, lab in enumerate(token_labels) if lab in ["NAME", "PUNC"]]
-    name_features = processed_sentence.sentence_features()
-    # Include token label of current and surrounding tokens as features
-    for i, (feat, label) in enumerate(zip(name_features, token_labels)):
-        feat["label"] = label
-        if i > 0:
-            feat["prev_label"] = token_labels[i - 1]
-        if i > 1:
-            feat["prev2_label"] = token_labels[i - 2]
-        if i > 2:
-            feat["prev3_label"] = token_labels[i - 3]
-        if i < len(token_labels) - 1:
-            feat["next_label"] = token_labels[i + 1]
-        if i < len(token_labels) - 2:
-            feat["next2_label"] = token_labels[i + 2]
-        if i < len(token_labels) - 3:
-            feat["next3_label"] = token_labels[i + 3]
-
-    name_labels = NAME_TAGGER.tag([name_features[i] for i in name_idx])
-    # Restore name name_labels to full length, making all other elements "O"
-    full_name_labels = ["O"] * len(tokens)
-    for i, idx in enumerate(name_idx):
-        full_name_labels[idx] = name_labels[i]
+        labels, scores = guess_ingredient_name(labels, scores)
 
     # Re-pluralise tokens that were singularised if the label isn't UNIT
     # For tokens with UNIT label, we'll deal with them below
     for idx in processed_sentence.singularised_indices:
         token = tokens[idx]
-        label = token_labels[idx]
+        label = labels[idx]
         if label != "UNIT":
             tokens[idx] = pluralise_units(token)
 
     postprocessed_sentence = PostProcessor(
         sentence,
         tokens,
-        token_labels,
-        full_name_labels,
+        labels,
         scores,
         discard_isolated_stop_words=discard_isolated_stop_words,
         string_units=string_units,
@@ -147,9 +114,7 @@ def parse_ingredient_en(
     parsed = postprocessed_sentence.parsed
 
     if foundation_foods and parsed.name:
-        parsed.foundation_foods = extract_foundation_foods(
-            tokens, token_labels, features
-        )
+        parsed.foundation_foods = extract_foundation_foods(tokens, labels, features)
 
     return parsed
 
@@ -209,51 +174,25 @@ def inspect_parser_en(
     processed_sentence = PreProcessor(sentence)
     tokens = processed_sentence.tokenized_sentence
     features = processed_sentence.sentence_features()
-    token_labels = TAGGER.tag(features)
-    scores = [TAGGER.marginal(label, i) for i, label in enumerate(token_labels)]
+    labels = TAGGER.tag(features)
+    scores = [TAGGER.marginal(label, i) for i, label in enumerate(labels)]
 
-    if expect_name_in_output and all(label != "NAME" for label in token_labels):
+    if expect_name_in_output and all(label != "NAME" for label in labels):
         # No tokens were assigned the NAME label, so guess if there's a name
-        token_labels, scores = guess_ingredient_name(token_labels, scores)
-
-    # Tag names
-    name_idx = [idx for idx, lab in enumerate(token_labels) if lab in ["NAME", "PUNC"]]
-    name_features = processed_sentence.sentence_features()
-    # Include token label of current and surrounding tokens as features
-    for i, (feat, label) in enumerate(zip(name_features, token_labels)):
-        feat["label"] = label
-        if i > 0:
-            feat["prev_label"] = token_labels[i - 1]
-        if i > 1:
-            feat["prev2_label"] = token_labels[i - 2]
-        if i > 2:
-            feat["prev3_label"] = token_labels[i - 3]
-        if i < len(token_labels) - 1:
-            feat["next_label"] = token_labels[i + 1]
-        if i < len(token_labels) - 2:
-            feat["next2_label"] = token_labels[i + 2]
-        if i < len(token_labels) - 3:
-            feat["next3_label"] = token_labels[i + 3]
-
-    name_labels = NAME_TAGGER.tag([name_features[i] for i in name_idx])
-    # Restore name name_labels to full length, making all other elements "O"
-    full_name_labels = ["O"] * len(tokens)
-    for i, idx in enumerate(name_idx):
-        full_name_labels[idx] = name_labels[i]
+        labels, scores = guess_ingredient_name(labels, scores)
 
     # Re-plurise tokens that were singularised if the label isn't UNIT
     # For tokens with UNIT label, we'll deal with them below
     for idx in processed_sentence.singularised_indices:
         token = tokens[idx]
-        label = token_labels[idx]
+        label = labels[idx]
         if label != "UNIT":
             tokens[idx] = pluralise_units(token)
 
     postprocessed_sentence = PostProcessor(
         sentence,
         tokens,
-        token_labels,
-        full_name_labels,
+        labels,
         scores,
         discard_isolated_stop_words=discard_isolated_stop_words,
         string_units=string_units,
@@ -263,7 +202,7 @@ def inspect_parser_en(
 
     parsed = postprocessed_sentence.parsed
     if foundation_foods and parsed.name:
-        foundation = extract_foundation_foods(tokens, token_labels, features)
+        foundation = extract_foundation_foods(tokens, labels, features)
     else:
         foundation = []
 
@@ -277,9 +216,9 @@ def inspect_parser_en(
 
 
 def guess_ingredient_name(
-    token_labels: list[str], scores: list[float], min_score: float = 0.2
+    labels: list[str], scores: list[float], min_score: float = 0.2
 ) -> tuple[list[str], list[float]]:
-    """Guess ingredient name from list of token_labels and scores.
+    """Guess ingredient name from list of labels and scores.
 
     This only applies if the token labeling resulted in no tokens being assigned the
     NAME label. When this happens, calculate the confidence of each token being NAME,
@@ -289,7 +228,7 @@ def guess_ingredient_name(
 
     Parameters
     ----------
-    token_labels : list[str]
+    labels : list[str]
         List of token labels
     scores : list[float]
         List of scores
@@ -303,11 +242,11 @@ def guess_ingredient_name(
     """
     # Calculate confidence of each token being labelled NAME and get indices where that
     # confidence is greater than min_score.
-    name_scores = [TAGGER.marginal("NAME", i) for i, _ in enumerate(token_labels)]
+    name_scores = [TAGGER.marginal("NAME", i) for i, _ in enumerate(labels)]
     candidate_indices = [i for i, score in enumerate(name_scores) if score >= min_score]
 
     if len(candidate_indices) == 0:
-        return token_labels, scores
+        return labels, scores
 
     # Group candidate indices into groups of consecutive indices and order by longest
     groups = [list(group) for group in group_consecutive_idx(candidate_indices)]
@@ -315,7 +254,7 @@ def guess_ingredient_name(
     # Take longest group
     indices = sorted(groups, key=len)[0]
     for i in indices:
-        token_labels[i] = "NAME"
+        labels[i] = "NAME"
         scores[i] = name_scores[i]
 
-    return token_labels, scores
+    return labels, scores

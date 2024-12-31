@@ -32,9 +32,6 @@ function save() {
     let labels = [...rows[1].querySelectorAll("select")].map(
       (el) => el.options[el.selectedIndex].value,
     );
-    let foundation_labels = [...rows[2].querySelectorAll("select")].map(
-      (el) => el.options[el.selectedIndex].value,
-    );
     let foundation_foods = [];
     for (const [idx, el] of [...rows[0].querySelectorAll("input[type='checkbox']")].entries()) {
       if (el.checked) {
@@ -49,7 +46,6 @@ function save() {
       tokens: tokens,
       labels: labels,
       foundation_foods: foundation_foods,
-      foundation_labels: foundation_labels,
     });
   });
 

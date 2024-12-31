@@ -136,17 +136,20 @@ def validate_BIO_labels(row: list[dict]) -> bool:
     bool
         True if no error, else False.
     """
-    prev_label = ""
-    for label in row["foundation_labels"]:
-        label_type = label.split("_")[-1]
+    prev_name_label = ""
+    for label in row["labels"]:
+        if not (label.startswith("B_") or label.startswith("I_")):
+            continue
+
+        label_type = label.split("_", 1)[-1]
         if label.startswith("I_"):
             # Check I label is preceded by same B or I label of same type.
-            if not (prev_label in [label, "O"] or prev_label == "B_" + label_type):
+            if not (prev_name_label == label or prev_name_label == "B_" + label_type):
                 print(f"[ERROR] ID: {row['id']} [{row['source']}]")
                 print("\tError in BIO labels")
                 return False
 
-        prev_label = label
+        prev_name_label = label
 
     return True
 

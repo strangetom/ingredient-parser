@@ -87,7 +87,7 @@ if __name__ == "__main__":
     )
     train_parser.add_argument(
         "--model",
-        choices=["parser", "foundationfoods", "name"],
+        choices=["parser", "foundationfoods"],
         required=True,
         help="Specify which model to train.",
     )
@@ -157,7 +157,7 @@ if __name__ == "__main__":
     )
     multiple_parser.add_argument(
         "--model",
-        choices=["parser", "foundationfoods", "name"],
+        choices=["parser", "foundationfoods"],
         required=True,
         help="Specify which model to train.",
     )
@@ -269,7 +269,7 @@ if __name__ == "__main__":
     )
     gridsearch_parser.add_argument(
         "--model",
-        choices=["parser", "foundationfoods", "name"],
+        choices=["parser", "foundationfoods"],
         required=True,
         help="Specify which model to train.",
     )
@@ -331,7 +331,7 @@ if __name__ == "__main__":
     )
     featuresearch_parser.add_argument(
         "--model",
-        choices=["parser", "foundationfoods", "name"],
+        choices=["parser", "foundationfoods"],
         required=True,
         help="Specify which model to train.",
     )

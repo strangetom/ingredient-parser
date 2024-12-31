@@ -79,9 +79,7 @@ class PostProcessor:
         Original ingredient sentence.
     tokens : list[str]
         List of tokens for original ingredient sentence.
-    token_labels : list[str]
-        List of labels for tokens.
-    name_labels : list[str]
+    labels : list[str]
         List of labels for tokens.
     scores : list[float]
         Confidence associated with the label for each token.
@@ -106,8 +104,7 @@ class PostProcessor:
         self,
         sentence: str,
         tokens: list[str],
-        token_labels: list[str],
-        name_labels: list[str],
+        labels: list[str],
         scores: list[float],
         discard_isolated_stop_words: bool = True,
         string_units: bool = False,
@@ -116,8 +113,7 @@ class PostProcessor:
     ):
         self.sentence = sentence
         self.tokens = tokens
-        self.token_labels = token_labels
-        self.name_labels = name_labels
+        self.labels = labels
         self.scores = scores
         self.discard_isolated_stop_words = discard_isolated_stop_words
         self.string_units = string_units
@@ -145,7 +141,7 @@ class PostProcessor:
         """
         _str = [
             "Post-processed recipe ingredient sentence",
-            f"\t{list(zip(self.tokens, self.token_labels))}",
+            f"\t{list(zip(self.tokens, self.labels))}",
         ]
         return "\n".join(_str)
 
@@ -193,12 +189,12 @@ class PostProcessor:
         # Do not include tokens, labels and scores in self.consumed
         label_idx = [
             i
-            for i, label in enumerate(self.token_labels)
+            for i, label in enumerate(self.labels)
             if label in [selected_label, "PUNC"] and i not in self.consumed
         ]
 
         # If idx is empty or all the selected idx are PUNC, return None
-        if not label_idx or all(self.token_labels[i] == "PUNC" for i in label_idx):
+        if not label_idx or all(self.labels[i] == "PUNC" for i in label_idx):
             return None
 
         return self._postprocess_indices(label_idx, selected_label)
@@ -207,7 +203,7 @@ class PostProcessor:
         """Process tokens, labels and scores for the ingredient name(s).
 
         This function handles multiple ingredient names e.g. "butter or olive oil",
-        determined by the name_labels provided for each token.
+        determined by the labels provided for each token.
         Where multiple alternative ingredients names are identified, each one is
         returned in a separate IngredientText object.
 
@@ -217,15 +213,15 @@ class PostProcessor:
         """
         name_idx = [
             i
-            for i, label in enumerate(self.token_labels)
-            if label in ["NAME", "PUNC"] and i not in self.consumed
+            for i, label in enumerate(self.labels)
+            if ("NAME" in label or label in ["SEP", "PUNC"]) and i not in self.consumed
         ]
 
         # If idx is empty or all the selected idx are PUNC, return None
-        if not name_idx or all(self.token_labels[i] == "PUNC" for i in name_idx):
+        if not name_idx or all(self.labels[i] == "PUNC" for i in name_idx):
             return []
 
-        name_labels = [self.name_labels[i] for i in name_idx]
+        name_labels = [self.labels[i] for i in name_idx]
         bio_groups = self._group_BIO_labels(name_labels)
         constructed_names = self._construct_names(bio_groups)
 
@@ -259,20 +255,17 @@ class PostProcessor:
         bio_groups = []
         current_group = []
         for idx, label in enumerate(name_labels):
-            # Skip over O labels
-            if label == "O":
-                continue
-            # Start new group on "N_SPLIT" name label
-            if label == "N_SPLIT":
+            # Start new group on SEP name label
+            if label == "SEP":
                 if current_group:
                     bio_groups.append(current_group)
                 current_group = []
             # Start new group for new "B_*" name label
-            elif label.startswith("B"):
+            elif label.startswith("B_"):
                 if current_group:
                     bio_groups.append(current_group)
                 current_group = [(idx, label)]
-            # Must be an I_* name label, so append to current group
+            # Must be an I_NAME* or PUNC label, so append to current group
             else:
                 current_group.append((idx, label))
 
@@ -287,11 +280,11 @@ class PostProcessor:
     ) -> list[list[int]]:
         """Construct names from BIO groups.
 
-        All PREFIX groups are prepended to the next NAME group.
-        GLOBAL groups are prepended to all subsequent NAME groups or PREFIX+NAME groups.
+        All VAR groups are prepended to the next TOK group.
+        MOD groups are prepended to all subsequent TOK groups or VAR+TOK groups.
 
         To make this easier, iterate through the BIO groups from last to first. This
-        means we can easily keep track of which NAME group to prepend PREFIX and GLOBAL
+        means we can easily keep track of which TOK group to prepend VAR and MOD
         groups.
 
         Parameters
@@ -308,8 +301,8 @@ class PostProcessor:
         """
         constructed_names = []
 
-        # Keep track the last NAME group we come across (moving from last to first).
-        # Also keep track of whether we have used it by prepending a PREFIX or GLOBAL
+        # Keep track the last TOK group we come across (moving from last to first).
+        # Also keep track of whether we have used it by prepending a VAR or MOD
         # group.
         last_encountered_name = None
         last_encountered_name_used = False
@@ -319,8 +312,8 @@ class PostProcessor:
             current_group_idx, labels = zip(*group)
             current_label = labels[0].split("_")[-1]
 
-            if current_label == "NAME":
-                # If we've previously come across a NAME group and haven't used it,
+            if current_label == "TOK":
+                # If we've previously come across a TOK group and haven't used it,
                 # then store it.
                 if last_encountered_name and not last_encountered_name_used:
                     constructed_names.append(last_encountered_name)
@@ -329,12 +322,12 @@ class PostProcessor:
                 last_encountered_name = current_group_idx
                 last_encountered_name_used = False
 
-            elif current_label == "PREFIX":
+            elif current_label == "VAR":
                 # Prepend this group to last encountered NAME group
                 constructed_names.append(current_group_idx + last_encountered_name)
                 last_encountered_name_used = True
 
-            elif current_label == "GLOBAL":
+            elif current_label == "MOD":
                 # If we've previously come across a NAME group and haven't used it,
                 # then store it.
                 if last_encountered_name and not last_encountered_name_used:
@@ -386,7 +379,7 @@ class PostProcessor:
             idx = list(group)
             idx = self._remove_invalid_indices(idx)
 
-            if all(self.token_labels[i] == "PUNC" for i in idx):
+            if all(self.labels[i] == "PUNC" for i in idx):
                 # Skip if the group only contains PUNC
                 continue
 
@@ -470,7 +463,7 @@ class PostProcessor:
         for func in funcs:
             idx = self._unconsumed(list(range(len(self.tokens))))
             tokens = self._unconsumed(self.tokens)
-            labels = self._unconsumed(self.token_labels)
+            labels = self._unconsumed(self.labels)
             scores = self._unconsumed(self.scores)
 
             parsed_amounts = func(idx, tokens, labels, scores)
@@ -673,11 +666,11 @@ class PostProcessor:
         This function also collapses any string ranges into a single range e.g.
         one or two -> 1 or 2 -> 1-2
         """
-        for i, (token, label) in enumerate(zip(self.tokens, self.token_labels)):
+        for i, (token, label) in enumerate(zip(self.tokens, self.labels)):
             if label == "QTY":
                 self.tokens[i] = self._replace_string_numbers(token)
 
-        QTY_idx = [i for i, label in enumerate(self.token_labels) if label == "QTY"]
+        QTY_idx = [i for i, label in enumerate(self.labels) if label == "QTY"]
 
         # Find any cases where a group of consecutive QTY tokens can be collapsed into
         # a single token. Modify the first token and score in the group and mark all
@@ -714,9 +707,9 @@ class PostProcessor:
                 for i, _ in enumerate(self.tokens)
                 if i not in idx_to_remove
             ]
-            self.token_labels = [
-                self.token_labels[i]
-                for i, _ in enumerate(self.token_labels)
+            self.labels = [
+                self.labels[i]
+                for i, _ in enumerate(self.labels)
                 if i not in idx_to_remove
             ]
             self.scores = [

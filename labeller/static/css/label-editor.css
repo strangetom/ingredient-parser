@@ -182,9 +182,6 @@ input[type=checkbox]:checked~label:after {
 .UNIT {
   --background-color: color-mix(in srgb, var(--yellow), #333);
 }
-.NAME {
-  --background-color: color-mix(in srgb, var(--aqua), #333);
-}
 .COMMENT {
   --background-color: color-mix(in srgb, var(--purple), #333);
 }
@@ -200,30 +197,17 @@ input[type=checkbox]:checked~label:after {
 .PURPOSE {
   --background-color: color-mix(in srgb, var(--red), #333);
 }
-
-.B_GLOBAL {
-  --background-color: color-mix(in srgb, var(--yellow-alt), #333);
+.B_TOK,.I_TOK {
+  --background-color: color-mix(in srgb, var(--aqua), #111);
 }
-.I_GLOBAL {
-  --background-color: color-mix(in srgb, var(--yellow), #333);
+.B_VAR,.I_VAR {
+  --background-color: color-mix(in srgb, var(--aqua), #444);
 }
-.B_PREFIX {
-  --background-color: color-mix(in srgb, var(--purple-alt), #333);
+.B_MOD,.I_MOD {
+  --background-color: color-mix(in srgb, var(--aqua), #777);
 }
-.I_PREFIX {
-  --background-color: color-mix(in srgb, var(--purple), #333);
-}
-.B_NAME {
-  --background-color: color-mix(in srgb, var(--orange-alt), #333);
-}
-.I_NAME {
-  --background-color: color-mix(in srgb, var(--orange), #333);
-}
-.N_SPLIT {
-  --background-color: color-mix(in srgb, var(--gray), #333);
-}
-.ING_SPLIT {
-  --background-color: color-mix(in srgb, var(--red), #333);
+.SEP {
+  --background-color: color-mix(in srgb, var(--gray), var(--orange-alt) 15%);
 }
 
 button {
