@@ -899,6 +899,7 @@ class PostProcessor:
             "ptfloz": {
                 "pattern": ["QTY", "UNIT", "QTY", "UNIT", "UNIT"],
                 "conjunction": None,
+                "conj_index": None,
                 "start1": 0,
                 "start2": 2,
                 "join": "",
@@ -907,6 +908,7 @@ class PostProcessor:
             "lboz": {
                 "pattern": ["QTY", "UNIT", "QTY", "UNIT"],
                 "conjunction": None,
+                "conj_index": None,
                 "start1": 0,
                 "start2": 2,
                 "join": "",
@@ -915,30 +917,43 @@ class PostProcessor:
             "plus": {
                 "pattern": ["QTY", "UNIT", "COMMENT", "QTY", "UNIT"],
                 "conjunction": "plus",
+                "conj_index": 2,
                 "start1": 0,
                 "start2": 3,
+                "join": " plus ",
+                "subtractive": False,
+            },
+            "plus_punc": {
+                "pattern": ["QTY", "UNIT", "PUNC", "QTY", "UNIT"],
+                "conjunction": "+",
+                "conj_index": 2,
+                "start1": 0,
+                "start2": 3,
+                "join": " + ",
+                "subtractive": False,
+            },
+            "plus_punc_comment": {
+                "pattern": ["QTY", "UNIT", "PUNC", "COMMENT", "QTY", "UNIT"],
+                "conjunction": "plus",
+                "conj_index": 3,
+                "start1": 0,
+                "start2": 4,
                 "join": " plus ",
                 "subtractive": False,
             },
             "and": {
                 "pattern": ["QTY", "UNIT", "COMMENT", "QTY", "UNIT"],
                 "conjunction": "and",
+                "conj_index": 2,
                 "start1": 0,
                 "start2": 3,
                 "join": " and ",
                 "subtractive": False,
             },
-            "plus_punc": {
-                "pattern": ["QTY", "UNIT", "PUNC", "QTY", "UNIT"],
-                "conjunction": "+",
-                "start1": 0,
-                "start2": 3,
-                "join": " + ",
-                "subtractive": False,
-            },
             "minus": {
                 "pattern": ["QTY", "UNIT", "COMMENT", "QTY", "UNIT"],
                 "conjunction": "minus",
+                "conj_index": 2,
                 "start1": 0,
                 "start2": 3,
                 "join": " minus ",
@@ -947,6 +962,7 @@ class PostProcessor:
             "less": {
                 "pattern": ["QTY", "UNIT", "COMMENT", "QTY", "UNIT"],
                 "conjunction": "less",
+                "conj_index": 2,
                 "start1": 0,
                 "start2": 3,
                 "join": " minus ",
@@ -965,6 +981,7 @@ class PostProcessor:
             start1 = pattern_info["start1"]
             start2 = pattern_info["start2"]
             join = pattern_info["join"]
+            conj_index = pattern_info["conj_index"]
             subtractive = pattern_info["subtractive"]
 
             for match in self._match_pattern(
@@ -982,9 +999,9 @@ class PostProcessor:
                         # ptfloz or lboz patterns, so skip
                         continue
 
-                # For other patterns, check if third token in match matches conjunction
-                # and skip if not.
-                elif tokens[match[2]].lower() != pattern_info["conjunction"]:
+                # For other patterns, check if token at the conj_index in match matches
+                # conjunction and skip if not.
+                elif tokens[match[conj_index]].lower() != pattern_info["conjunction"]:
                     continue
 
                 # First amount
