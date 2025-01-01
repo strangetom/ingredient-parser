@@ -15,8 +15,7 @@ def p():
     """
     sentence = "2 14 ounce cans of coconut milk"
     tokens = ["2", "14", "ounce", "can", "of", "coconut", "milk"]
-    token_labels = ["QTY", "QTY", "UNIT", "UNIT", "COMMENT", "NAME", "NAME"]
-    name_labels = ["O", "O", "O", "O", "O", "B_NAME", "I_NAME"]
+    labels = ["QTY", "QTY", "UNIT", "UNIT", "COMMENT", "B_NAME_TOK", "I_NAME_TOK"]
     scores = [
         0.9995971493946465,
         0.9941502269360797,
@@ -30,8 +29,7 @@ def p():
     return PostProcessor(
         sentence,
         tokens,
-        token_labels,
-        name_labels,
+        labels,
         scores,
         discard_isolated_stop_words=True,
     )
@@ -55,10 +53,10 @@ def p_string_numbers():
         "pound",
         "each",
     ]
-    token_labels = [
+    labels = [
         "QTY",
-        "NAME",
-        "NAME",
+        "B_NAME_TOK",
+        "I_NAME_TOK",
         "PUNC",
         "COMMENT",
         "QTY",
@@ -67,7 +65,6 @@ def p_string_numbers():
         "UNIT",
         "COMMENT",
     ]
-    name_labels = ["O", "B_NAME", "I_NAME", "O", "O", "O", "O", "O", "O", "O"]
     scores = [
         0.9984380824450226,
         0.9978651159111281,
@@ -84,8 +81,7 @@ def p_string_numbers():
     return PostProcessor(
         sentence,
         tokens,
-        token_labels,
-        name_labels,
+        labels,
         scores,
         discard_isolated_stop_words=True,
     )
@@ -109,10 +105,10 @@ def p_string_numbers_range():
         "pounds",
         "each",
     ]
-    token_labels = [
+    labels = [
         "QTY",
-        "NAME",
-        "NAME",
+        "B_NAME_TOK",
+        "I_NAME_TOK",
         "PUNC",
         "COMMENT",
         "QTY",
@@ -121,7 +117,6 @@ def p_string_numbers_range():
         "UNIT",
         "COMMENT",
     ]
-    name_labels = ["O", "B_NAME", "I_NAME", "O", "O", "O", "O", "O", "O", "O"]
     scores = [
         0.9984380824450226,
         0.9978651159111281,
@@ -138,8 +133,7 @@ def p_string_numbers_range():
     return PostProcessor(
         sentence,
         tokens,
-        token_labels,
-        name_labels,
+        labels,
         scores,
         discard_isolated_stop_words=True,
     )
@@ -163,10 +157,10 @@ def p_quantity_fractions():
         "pound",
         "each",
     ]
-    token_labels = [
+    labels = [
         "QTY",
-        "NAME",
-        "NAME",
+        "B_NAME_TOK",
+        "I_NAME_TOK",
         "PUNC",
         "COMMENT",
         "QTY",
@@ -175,7 +169,6 @@ def p_quantity_fractions():
         "UNIT",
         "COMMENT",
     ]
-    name_labels = ["O", "B_NAME", "I_NAME", "O", "O", "O", "O", "O", "O", "O"]
     scores = [
         0.9984380824450226,
         0.9978651159111281,
@@ -189,9 +182,7 @@ def p_quantity_fractions():
         0.9447105511029686,
     ]
 
-    return PostProcessor(
-        sentence, tokens, token_labels, name_labels, scores, quantity_fractions=True
-    )
+    return PostProcessor(sentence, tokens, labels, scores, quantity_fractions=True)
 
 
 @pytest.fixture
@@ -201,8 +192,7 @@ def p_postprep():
     """
     sentence = "1 tbsp chopped pistachios"
     tokens = ["1", "tbsp", "chopped", "pistachios"]
-    token_labels = ["QTY", "UNIT", "PREP", "NAME"]
-    name_labels = ["O", "O", "O", "B_NAME"]
+    labels = ["QTY", "UNIT", "PREP", "B_NAME_TOK"]
     scores = [
         0.9997566777785302,
         0.9975314001146002,
@@ -213,8 +203,7 @@ def p_postprep():
     return PostProcessor(
         sentence,
         tokens,
-        token_labels,
-        name_labels,
+        labels,
         scores,
         discard_isolated_stop_words=False,
     )
@@ -227,8 +216,7 @@ def p_no_discard():
     """
     sentence = "2 14 ounce cans of coconut milk"
     tokens = ["2", "14", "ounce", "can", "of", "coconut", "milk"]
-    token_labels = ["QTY", "QTY", "UNIT", "UNIT", "COMMENT", "NAME", "NAME"]
-    name_labels = ["O", "O", "O", "O", "O", "B_NAME", "I_NAME"]
+    labels = ["QTY", "QTY", "UNIT", "UNIT", "COMMENT", "B_NAME_TOK", "I_NAME_TOK"]
     scores = [
         0.9995971493946465,
         0.9941502269360797,
@@ -242,8 +230,7 @@ def p_no_discard():
     return PostProcessor(
         sentence,
         tokens,
-        token_labels,
-        name_labels,
+        labels,
         scores,
         discard_isolated_stop_words=False,
     )
@@ -271,9 +258,9 @@ def p_fraction_in_prep():
         ")",
         "coins",
     ]
-    token_labels = [
+    labels = [
         "QTY",
-        "NAME",
+        "B_NAME_TOK",
         "PUNC",
         "PREP",
         "PREP",
@@ -286,22 +273,6 @@ def p_fraction_in_prep():
         "PREP",
         "PUNC",
         "PREP",
-    ]
-    name_labels = [
-        "O",
-        "B_NAME",
-        "O",
-        "O",
-        "O",
-        "O",
-        "O",
-        "O",
-        "O",
-        "O",
-        "O",
-        "O",
-        "O",
-        "O",
     ]
     scores = [
         0.9994675946370136,
@@ -320,7 +291,7 @@ def p_fraction_in_prep():
         0.660356736493678,
     ]
 
-    return PostProcessor(sentence, tokens, token_labels, name_labels, scores)
+    return PostProcessor(sentence, tokens, labels, scores)
 
 
 @pytest.fixture
@@ -345,9 +316,9 @@ def p_fraction_range_in_prep():
         ")",
         "coins",
     ]
-    token_labels = [
+    labels = [
         "QTY",
-        "NAME",
+        "B_NAME_TOK",
         "PUNC",
         "PREP",
         "PREP",
@@ -360,22 +331,6 @@ def p_fraction_range_in_prep():
         "PREP",
         "PUNC",
         "PREP",
-    ]
-    name_labels = [
-        "O",
-        "B_NAME",
-        "O",
-        "O",
-        "O",
-        "O",
-        "O",
-        "O",
-        "O",
-        "O",
-        "O",
-        "O",
-        "O",
-        "O",
     ]
     scores = [
         0.9994675946370136,
@@ -394,7 +349,7 @@ def p_fraction_range_in_prep():
         0.660356736493678,
     ]
 
-    return PostProcessor(sentence, tokens, token_labels, name_labels, scores)
+    return PostProcessor(sentence, tokens, labels, scores)
 
 
 class TestPostProcessor__builtins__:
@@ -404,7 +359,7 @@ class TestPostProcessor__builtins__:
         """
         truth = """Post-processed recipe ingredient sentence
 \t[('2', 'QTY'), ('14', 'QTY'), ('ounce', 'UNIT'), ('can', 'UNIT'), ('of', 'COMMENT'), \
-('coconut', 'NAME'), ('milk', 'NAME')]"""
+('coconut', 'B_NAME_TOK'), ('milk', 'I_NAME_TOK')]"""
         assert str(p) == truth
 
     def test__repr__(self, p):

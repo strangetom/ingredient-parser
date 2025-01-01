@@ -11,8 +11,7 @@ def p():
     """
     sentence = "2 14 ounce cans coconut milk"
     tokens = ["2", "14", "ounce", "can", "coconut", "milk"]
-    token_labels = ["QTY", "QTY", "UNIT", "UNIT", "NAME", "NAME"]
-    name_labels = ["O", "O", "O", "O", "B_NAME", "I_NAME"]
+    labels = ["QTY", "QTY", "UNIT", "UNIT", "B_NAME_TOK", "I_NAME_TOK"]
     scores = [
         0.9991370577083561,
         0.9725378063405858,
@@ -22,7 +21,7 @@ def p():
         0.9969237827902526,
     ]
 
-    return PostProcessor(sentence, tokens, token_labels, name_labels, scores)
+    return PostProcessor(sentence, tokens, labels, scores)
 
 
 class TestPostProcessor_distribute_related_flags:
