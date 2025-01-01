@@ -827,23 +827,6 @@ class PreProcessor:
 
         return False
 
-    def _is_example(self, index: int) -> bool:
-        """Return True is the token is part of an example in the sentence.
-
-        Examples are indicated using phrases like "such as", "for example"
-
-        Parameters
-        ----------
-        index : int
-            Index of token to check
-
-        Returns
-        -------
-        bool
-            True if index is part of an example, else False
-        """
-        return False
-
     def _is_ambiguous_unit(self, token: str) -> bool:
         """Return True if token is in AMBIGUOUS_UNITS list.
 
