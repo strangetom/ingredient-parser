@@ -89,7 +89,7 @@ def parse_ingredient_en(
     labels = TAGGER.tag(features)
     scores = [TAGGER.marginal(label, i) for i, label in enumerate(labels)]
 
-    if expect_name_in_output and all(label != "NAME" for label in labels):
+    if expect_name_in_output and all("NAME" not in label for label in labels):
         # No tokens were assigned the NAME label, so guess if there's a name
         labels, scores = guess_ingredient_name(labels, scores)
 
@@ -177,7 +177,7 @@ def inspect_parser_en(
     labels = TAGGER.tag(features)
     scores = [TAGGER.marginal(label, i) for i, label in enumerate(labels)]
 
-    if expect_name_in_output and all(label != "NAME" for label in labels):
+    if expect_name_in_output and all("NAME" not in label for label in labels):
         # No tokens were assigned the NAME label, so guess if there's a name
         labels, scores = guess_ingredient_name(labels, scores)
 
@@ -240,10 +240,26 @@ def guess_ingredient_name(
     list[str], list[float]
         Labels and scores, modified to assign a name if possible.
     """
-    # Calculate confidence of each token being labelled NAME and get indices where that
-    # confidence is greater than min_score.
-    name_scores = [TAGGER.marginal("NAME", i) for i, _ in enumerate(labels)]
-    candidate_indices = [i for i, score in enumerate(name_scores) if score >= min_score]
+    NAME_LABELS = [
+        "B_NAME_TOK",
+        "I_NAME_TOK",
+        "B_NAME_VAR",
+        "I_NAME_VAR",
+        "B_NAME_MOD",
+        "I_NAME_MOD",
+        "NAME_SEP",
+    ]
+
+    # Calculate the most likely *NAME* label get store the indices where the score is
+    # greater than min_score.
+    candidate_indices = []
+    candidate_score_labels = []  # List of (score, label) tuples
+    for i, _ in enumerate(labels):
+        alt_label_scores = [(TAGGER.marginal(label, i), label) for label in NAME_LABELS]
+        max_score = max(alt_label_scores, key=lambda x: x[0])
+        if max_score[0] > min_score:
+            candidate_indices.append(i)
+            candidate_score_labels.append(max_score)
 
     if len(candidate_indices) == 0:
         return labels, scores
@@ -254,7 +270,8 @@ def guess_ingredient_name(
     # Take longest group
     indices = sorted(groups, key=len)[0]
     for i in indices:
-        labels[i] = "NAME"
-        scores[i] = name_scores[i]
+        score, label = candidate_score_labels[i]
+        labels[i] = label
+        scores[i] = score
 
     return labels, scores
