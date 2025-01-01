@@ -214,7 +214,7 @@ class PostProcessor:
         name_idx = [
             i
             for i, label in enumerate(self.labels)
-            if ("NAME" in label or label in ["SEP", "PUNC"]) and i not in self.consumed
+            if ("NAME" in label or label == "PUNC") and i not in self.consumed
         ]
 
         # If idx is empty or all the selected idx are PUNC, return None
@@ -255,8 +255,8 @@ class PostProcessor:
         bio_groups = []
         current_group = []
         for idx, label in enumerate(name_labels):
-            # Start new group on SEP name label
-            if label == "SEP":
+            # Start new group on NAME_SEP name label
+            if label == "NAME_SEP":
                 if current_group:
                     bio_groups.append(current_group)
                 current_group = []
