@@ -33,7 +33,7 @@ def home():
             display=False,
             sentence="",
             discard_isolated_stop_words=True,
-            expect_name_in_output=True,
+            expect_name_in_output=False,
             string_units=False,
             imperial_units=False,
             foundation_foods=True,
@@ -62,7 +62,7 @@ def home():
         foundation_foods=foundation_foods,
         tokens=zip(
             parser_info.PostProcessor.tokens,
-            parser_info.PostProcessor.token_labels,
+            parser_info.PostProcessor.labels,
             marginals,
         ),
         name=parsed.name if parsed.name is not None else IngredientText("", 0, 0),
@@ -95,7 +95,13 @@ def get_all_marginals(parser_info: ParserDebugInfo) -> list[dict[str, float]]:
         Dict of label-score pairs for each token.
     """
     labels = [
-        "NAME",
+        "B_NAME_TOK",
+        "I_NAME_TOK",
+        "B_NAME_VAR",
+        "I_NAME_VAR",
+        "B_NAME_MOD",
+        "I_NAME_MOD",
+        "NAME_SEP",
         "QTY",
         "UNIT",
         "PREP",

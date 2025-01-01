@@ -206,7 +206,7 @@ input[type=checkbox]:checked~label:after {
 .B_MOD,.I_MOD {
   --background-color: color-mix(in srgb, var(--aqua), #777);
 }
-.SEP {
+.NAME_SEP {
   --background-color: color-mix(in srgb, var(--gray), var(--orange-alt) 15%);
 }
 

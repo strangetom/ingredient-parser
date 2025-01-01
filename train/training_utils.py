@@ -188,7 +188,7 @@ def load_datasets(
         uids.append(entry["id"])
 
         if model_type == ModelType.FOUNDATION_FOODS:
-            name_idx = [idx for idx, lab in enumerate(entry["labels"]) if lab == "NAME"]
+            name_idx = [idx for idx, lab in enumerate(entry["labels"]) if "NAME" in lab]
             name_labels = [
                 "FF" if idx in entry["foundation_foods"] else "NF" for idx in name_idx
             ]
