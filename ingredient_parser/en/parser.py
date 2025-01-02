@@ -35,7 +35,7 @@ def load_model_if_not_loaded():
 def parse_ingredient_en(
     sentence: str,
     discard_isolated_stop_words: bool = True,
-    expect_name_in_output: bool = False,
+    expect_name_in_output: bool = True,
     string_units: bool = False,
     imperial_units: bool = False,
     quantity_fractions: bool = False,
@@ -56,7 +56,7 @@ def parse_ingredient_en(
         fallback to selecting the most likely name from all tokens even though the
         model gives it a different label. Note that this does guarantee the output
         contains a name.
-        Default is False.
+        Default is True.
     string_units : bool, optional
         If True, return all IngredientAmount units as strings.
         If False, convert IngredientAmount units to pint.Unit objects where possible.
@@ -122,7 +122,7 @@ def parse_ingredient_en(
 def inspect_parser_en(
     sentence: str,
     discard_isolated_stop_words: bool = True,
-    expect_name_in_output: bool = False,
+    expect_name_in_output: bool = True,
     string_units: bool = False,
     imperial_units: bool = False,
     quantity_fractions: bool = False,
@@ -143,7 +143,7 @@ def inspect_parser_en(
         fallback to selecting the most likely name from all tokens even though the
         model gives it a different label. Note that this does guarantee the output
         contains a name.
-        Default is False.
+        Default is True.
     string_units : bool, optional
         If True, return all IngredientAmount units as strings.
         If False, convert IngredientAmount units to pint.Unit objects where possible.

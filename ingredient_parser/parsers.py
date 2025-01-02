@@ -10,7 +10,7 @@ def parse_ingredient(
     sentence: str,
     lang: str = "en",
     discard_isolated_stop_words: bool = True,
-    expect_name_in_output: bool = False,
+    expect_name_in_output: bool = True,
     string_units: bool = False,
     imperial_units: bool = False,
     quantity_fractions: bool = False,
@@ -34,7 +34,7 @@ def parse_ingredient(
         fallback to selecting the most likely name from all tokens even though the
         model gives it a different label. Note that this does guarantee the output
         contains a name.
-        Default is False.
+        Default is True.
     string_units : bool
         If True, return all IngredientAmount units as strings.
         If False, convert IngredientAmount units to pint.Unit objects where possible.
@@ -81,7 +81,7 @@ def parse_multiple_ingredients(
     sentences: list[str],
     lang: str = "en",
     discard_isolated_stop_words: bool = True,
-    expect_name_in_output: bool = False,
+    expect_name_in_output: bool = True,
     string_units: bool = False,
     imperial_units: bool = False,
     quantity_fractions: bool = False,
@@ -111,7 +111,7 @@ def parse_multiple_ingredients(
         fallback to selecting the most likely name from all tokens even though the
         model gives it a different label. Note that this does guarantee the output
         contains a name.
-        Default is False.
+        Default is True.
     string_units : bool
         If True, return all IngredientAmount units as strings.
         If False, convert IngredientAmount units to pint.Unit objects where possible.
@@ -156,7 +156,7 @@ def inspect_parser(
     sentence: str,
     lang: str = "en",
     discard_isolated_stop_words: bool = True,
-    expect_name_in_output: bool = False,
+    expect_name_in_output: bool = True,
     string_units: bool = False,
     imperial_units: bool = False,
     quantity_fractions: bool = False,
@@ -180,7 +180,7 @@ def inspect_parser(
         fallback to selecting the most likely name from all tokens even though the
         model gives it a different label. Note that this does guarantee the output
         contains a name.
-        Default is False.
+        Default is True.
     string_units : bool
         If True, return all IngredientAmount units as strings.
         If False, convert IngredientAmount units to pint.Unit objects where possible.
