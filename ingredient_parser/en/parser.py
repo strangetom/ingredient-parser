@@ -269,9 +269,9 @@ def guess_ingredient_name(
 
     # Take longest group
     indices = sorted(groups, key=len)[0]
-    for i in indices:
-        score, label = candidate_score_labels[i]
-        labels[i] = label
-        scores[i] = score
+    for list_index, token_index in enumerate(indices):
+        score, label = candidate_score_labels[list_index]
+        labels[token_index] = label
+        scores[token_index] = score
 
     return labels, scores
