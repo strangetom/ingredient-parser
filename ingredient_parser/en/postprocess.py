@@ -324,8 +324,14 @@ class PostProcessor:
 
             elif current_label == "VAR":
                 # Prepend this group to last encountered NAME group
-                constructed_names.append(current_group_idx + last_encountered_name)
-                last_encountered_name_used = True
+                if last_encountered_name:
+                    constructed_names.append(current_group_idx + last_encountered_name)
+                    last_encountered_name_used = True
+                else:
+                    # If we are here, then we've come across a VAR group that does not
+                    # preceed a TOK group, so the model has made an error in it's
+                    # labelling. Add this VAR group anyway.
+                    constructed_names.append(current_group_idx)
 
             elif current_label == "MOD":
                 # If we've previously come across a NAME group and haven't used it,
