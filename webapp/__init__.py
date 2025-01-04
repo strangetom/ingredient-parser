@@ -33,7 +33,7 @@ def home():
             display=False,
             sentence="",
             discard_isolated_stop_words=True,
-            expect_name_in_output=False,
+            expect_name_in_output=True,
             string_units=False,
             imperial_units=False,
             foundation_foods=True,
