@@ -13,6 +13,7 @@ from sklearn.model_selection import train_test_split
 from tabulate import tabulate
 from tqdm import tqdm
 
+from .train_model import ModelType, get_model_type
 from .training_utils import (
     DataVectors,
     evaluate,
@@ -70,7 +71,7 @@ def train_model_feature_search(
     save_model: str,
     seed: int,
     keep_model: bool,
-    foundation_foods: bool,
+    model_type: ModelType,
 ) -> dict:
     """Train model using selected features returning model performance statistics,
     model parameters and elapsed training time.
@@ -90,9 +91,8 @@ def train_model_feature_search(
         testing sets.
     keep_model : bool
         If True, keep model after evaluation, otherwise delete it.
-    foundation_foods : bool
-        If True, foundation foods model is being trained, else the parser model
-        is being trained.
+    model_type : ModelType
+        Type of model gridsearch is being performed on.
 
     Returns
     -------
@@ -157,7 +157,7 @@ def train_model_feature_search(
     tagger = pycrfsuite.Tagger()  # type: ignore
     tagger.open(str(save_model_path))
     labels_pred = [tagger.tag(X) for X in features_test]
-    stats = evaluate(labels_pred, truth_test, seed, foundation_foods)
+    stats = evaluate(labels_pred, truth_test, seed, model_type)
 
     if not keep_model:
         save_model_path.unlink(missing_ok=True)
@@ -180,7 +180,7 @@ def feature_search(args: argparse.Namespace):
         Feature search configuration
     """
     vectors = load_datasets(
-        args.database, args.table, args.datasets, args.model == "foundationfoods"
+        args.database, args.table, args.datasets, get_model_type(args.model)
     )
 
     argument_sets = []
@@ -192,7 +192,7 @@ def feature_search(args: argparse.Namespace):
             args.save_model,
             args.seed,
             args.keep_models,
-            args.model == "foundationfoods",
+            get_model_type(args.model),
         ]
         argument_sets.append(arguments)
 
