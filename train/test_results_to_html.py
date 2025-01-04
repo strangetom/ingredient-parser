@@ -137,7 +137,7 @@ def test_results_to_html(
     incorrect_count = Counter(incorrect)
     src_count_str = "".join(
         [
-            f"{k.upper()}: {v} ({100*v/total_count.get(k):.2f}%), "
+            f"{k.upper()}: {v} ({100*v/total_count[k]:.2f}%), "
             for k, v in incorrect_count.items()
         ]
     )

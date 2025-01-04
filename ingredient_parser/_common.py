@@ -92,7 +92,7 @@ def show_model_card(lang: str = "en") -> None:
         if platform.system() == "Darwin":  # macOS
             subprocess.call(("open", p))
         elif platform.system() == "Windows":  # Windows
-            os.startfile(p)
+            os.startfile(p)  # type: ignore
         else:  # linux variants
             subprocess.call(("xdg-open", p))
 

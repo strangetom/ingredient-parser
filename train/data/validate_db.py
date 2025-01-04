@@ -5,6 +5,7 @@ import sqlite3
 import sys
 from collections import defaultdict
 from pathlib import Path
+from typing import TypedDict
 
 # Ensure the local ingredient_parser package can be found
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
@@ -16,12 +17,22 @@ sqlite3.register_converter("json", json.loads)
 DATABASE = "train/data/training.sqlite3"
 
 
-def load_from_db() -> list[dict[str, str | list[str]]]:
+class DBRow(TypedDict):
+    id: int
+    source: str
+    sentence: str
+    tokens: list[str]
+    labels: list[str]
+    foundation_foods: list[int]
+    snetence_split: list[int]
+
+
+def load_from_db() -> list[DBRow]:
     """Get all training sentences from the database
 
     Returns
     -------
-    list[dict[str, str]]
+    list[DBRow]
         List of database rows as dicts
     """
     rows = []
@@ -30,13 +41,13 @@ def load_from_db() -> list[dict[str, str | list[str]]]:
         c = conn.cursor()
         data = c.execute("SELECT * FROM en")
 
-    rows = [dict(d) for d in data]
+    rows = [DBRow(d) for d in data]
     conn.close()
 
     return rows
 
 
-def validate_tokens(calculated_tokens: list[str], row: list[dict]) -> bool:
+def validate_tokens(calculated_tokens: list[str], row: DBRow) -> bool:
     """Validate that that tokens stored in the database are the same as the tokens
     obtained from the PreProcessor.
 
@@ -44,7 +55,7 @@ def validate_tokens(calculated_tokens: list[str], row: list[dict]) -> bool:
     ----------
     calculated_tokens : list[str]
         Tokens calculated using PreProcessor
-    row : list[dict]
+    row : DBRow
         Database row as dict
 
     Returns
@@ -62,14 +73,14 @@ def validate_tokens(calculated_tokens: list[str], row: list[dict]) -> bool:
     return True
 
 
-def validate_token_label_length(calculated_tokens: list[str], row: list[dict]) -> bool:
+def validate_token_label_length(calculated_tokens: list[str], row: DBRow) -> bool:
     """Validate that that number of tokens and number of labels are the same.
 
     Parameters
     ----------
     calculated_tokens : list[str]
         Tokens calculated using PreProcessor
-    row : list[dict]
+    row : DBRow
         Database row as dict
 
     Returns
@@ -85,12 +96,12 @@ def validate_token_label_length(calculated_tokens: list[str], row: list[dict]) -
     return True
 
 
-def validate_duplicate_sentences(rows: list[dict]) -> int:
+def validate_duplicate_sentences(rows: list[DBRow]) -> int:
     """Validate the duplicate sentences have the same labels.
 
     Parameters
     ----------
-    rows : list[dict]
+    rows : list[DBRow]
         List of database rows
 
     Returns
@@ -123,12 +134,12 @@ def validate_duplicate_sentences(rows: list[dict]) -> int:
     return errors
 
 
-def validate_BIO_labels(row: list[dict]) -> bool:
+def validate_BIO_labels(row: DBRow) -> bool:
     """Validate BIO labels are valid
 
     Parameters
     ----------
-    row : list[dict]
+    row : DBRow
         Database row as dict
 
     Returns

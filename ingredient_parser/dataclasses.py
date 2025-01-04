@@ -157,8 +157,9 @@ class CompositeIngredientAmount:
 
         # Force quantity to float in case it's a Fraction
         return reduce(
-            op, (float(amount.quantity) * amount.unit for amount in self.amounts)
-        )  # type: ignore
+            op,
+            (float(amount.quantity) * amount.unit for amount in self.amounts),  # type: ignore
+        )
 
 
 @dataclass

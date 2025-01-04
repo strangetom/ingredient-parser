@@ -96,7 +96,7 @@ class SentenceStats:
 class Stats:
     """Statistics for token and sentence classification performance."""
 
-    token: TokenStats
+    token: TokenStats | FFTokenStats
     sentence: SentenceStats
     seed: int
 

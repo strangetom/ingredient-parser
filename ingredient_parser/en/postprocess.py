@@ -351,7 +351,7 @@ class PostProcessor:
             constructed_names.append(last_encountered_name)
 
         # Return reversed list, so names are in the order they appear in sentence.
-        return reversed(constructed_names)
+        return list(reversed(constructed_names))
 
     def _postprocess_indices(
         self, label_idx: list[int], selected_label: str
