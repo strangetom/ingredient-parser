@@ -310,7 +310,7 @@ class PostProcessor:
         # Iterate from last to first BIO group
         for group in reversed(bio_groups):
             current_group_idx, labels = zip(*group)
-            current_label = labels[0].split("_")[-1]
+            current_label = self._get_bio_group_label(labels)
 
             if current_label == "TOK":
                 # If we've previously come across a TOK group and haven't used it,
@@ -352,6 +352,27 @@ class PostProcessor:
 
         # Return reversed list, so names are in the order they appear in sentence.
         return list(reversed(constructed_names))
+
+    def _get_bio_group_label(self, labels: list[str]) -> str:
+        """Get the NAME label type for the labels in a BIO group.
+
+        One of TOK, VAR, MOD.
+
+        Parameters
+        ----------
+        labels : list[str]
+            List of labels for BIO group elements.
+
+        Returns
+        -------
+        str
+            Group label
+        """
+        for label in labels:
+            if label != "PUNC":
+                return label.split("_")[-1]
+
+        return label
 
     def _postprocess_indices(
         self, label_idx: list[int], selected_label: str
