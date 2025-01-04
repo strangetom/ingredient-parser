@@ -216,6 +216,10 @@ def apply_filter(params: dict[str, str]):
 
     # Create regex for search query
     escaped = re.escape(params["filter-string"])
+
+    if not escaped:
+        return Response(status=204)
+
     if params.get("whole-word", "") == "on":
         # Strip trailing punctuation to make this work how I want it to, otherwise the
         # trailing punctuation in <escaped> means the trailing <\b> in the regex does
@@ -232,7 +236,7 @@ def apply_filter(params: dict[str, str]):
         query = re.compile(expression, re.UNICODE | re.IGNORECASE)
 
     # 9 possible labels in total
-    if len(labels) == 9:
+    if len(labels) == 16:
         # Search through sentences
         indices = []
         for entry in data:

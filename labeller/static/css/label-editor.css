@@ -129,11 +129,32 @@ table {
   border-collapse: collapse;
 }
 td {
+  position: relative;
   text-align: center;
   font-size: 1.1rem;
   padding: 3px;
   border: 1px solid var(--bg);
   background-color: var(--background-color, --bg-s);
+}
+td[class^="B"]:after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: var(--green-alt);
+  clip-path: polygon(0% 0%, 10% 50%, 0% 100%);
+}
+td[class^="I"]:after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: var(--green-alt);
+  clip-path: polygon(0% 45%, 10% 45%, 10% 55%, 0% 55%);
 }
 td > div {
   display: grid;
