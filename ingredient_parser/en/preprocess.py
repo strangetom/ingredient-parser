@@ -663,10 +663,14 @@ class PreProcessor:
         True
 
         >>> p = PreProcessor("")
+        >>> p._is_unit("--")
+        True
+
+        >>> p = PreProcessor("")
         >>> p._is_unit("beef")
         False
         """
-        return token in string.punctuation
+        return token in string.punctuation or token in {"--"}
 
     def _is_numeric(self, token: str) -> bool:
         """Return True if token is numeric.
