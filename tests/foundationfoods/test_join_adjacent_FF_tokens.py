@@ -1,4 +1,4 @@
-from ingredient_parser.dataclasses import FoudationFood
+from ingredient_parser.dataclasses import FoundationFood
 from ingredient_parser.en._foundationfoods import join_adjacent_FF_tokens
 
 
@@ -12,7 +12,7 @@ class TestFF_join_adjacent_FF_tokens:
         scores = [0] * len(tokens)
 
         assert join_adjacent_FF_tokens(labels, tokens, scores) == [
-            FoudationFood("milk", 0),
+            FoundationFood("milk", 0),
         ]
 
     def test_multiple_FF_token(self):
@@ -24,7 +24,7 @@ class TestFF_join_adjacent_FF_tokens:
         scores = [0] * len(tokens)
 
         assert join_adjacent_FF_tokens(labels, tokens, scores) == [
-            FoudationFood("soy milk", 0),
+            FoundationFood("soy milk", 0),
         ]
 
     def test_split_FF_tokens(self):
@@ -36,8 +36,8 @@ class TestFF_join_adjacent_FF_tokens:
         scores = [0] * len(tokens)
 
         assert join_adjacent_FF_tokens(labels, tokens, scores) == [
-            FoudationFood("milk", 0),
-            FoudationFood("soy milk", 0),
+            FoundationFood("milk", 0),
+            FoundationFood("soy milk", 0),
         ]
 
     def test_no_FF_token(self):

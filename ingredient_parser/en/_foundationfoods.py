@@ -8,7 +8,7 @@ from statistics import mean
 import pycrfsuite
 
 from .._common import group_consecutive_idx
-from ..dataclasses import FoudationFood
+from ..dataclasses import FoundationFood
 
 # Create FF_TAGGER object that can be reused between function calls.
 # We only want to load the model into FF_TAGGER once, but only do it
@@ -33,7 +33,7 @@ def load_ffmodel_if_not_loaded():
 
 def join_adjacent_FF_tokens(
     labels: list[str], tokens: list[str], scores: list[float]
-) -> list[FoudationFood]:
+) -> list[FoundationFood]:
     """Join adjacent tokens labelled as FF into strings.
 
     Parameters
@@ -47,7 +47,7 @@ def join_adjacent_FF_tokens(
 
     Returns
     -------
-    list[FoudationFood]
+    list[FoundationFood]
         List of foundation foods
 
     Examples
@@ -67,25 +67,25 @@ def join_adjacent_FF_tokens(
         score = mean([score for _, _, score in group])
 
         foundation_foods.append(
-            FoudationFood(" ".join([tok for _, tok, _ in group]), round(score, 6))
+            FoundationFood(" ".join([tok for _, tok, _ in group]), round(score, 6))
         )
 
     return foundation_foods
 
 
 def deduplicate_foundation_foods(
-    foundation_foods: list[FoudationFood],
-) -> list[FoudationFood]:
+    foundation_foods: list[FoundationFood],
+) -> list[FoundationFood]:
     """Deduplicate foundation foods by averaging the score of duplicates.
 
     Parameters
     ----------
-    foundation_foods : list[FoudationFood]
+    foundation_foods : list[FoundationFood]
         List of foundation foods found in ingredient name.
 
     Returns
     -------
-    list[FoudationFood]
+    list[FoundationFood]
         Description
     """
 
@@ -94,14 +94,14 @@ def deduplicate_foundation_foods(
         seen_foods[ff.text.lower()].append(ff.confidence)
 
     return [
-        FoudationFood(name, mean(confidences))
+        FoundationFood(name, mean(confidences))
         for name, confidences in seen_foods.items()
     ]
 
 
 def extract_foundation_foods(
     tokens: list[str], labels: list[str], features: list[dict[str, str | bool]]
-) -> list[FoudationFood]:
+) -> list[FoundationFood]:
     """Extract foundation foods from tokens labelled as NAME.
 
     Parameters
@@ -115,7 +115,7 @@ def extract_foundation_foods(
 
     Returns
     -------
-    list[FoudationFood]
+    list[FoundationFood]
         List of foundation foods.
     """
     load_ffmodel_if_not_loaded()
