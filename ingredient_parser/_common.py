@@ -78,7 +78,7 @@ def group_consecutive_idx(idx: list[int]) -> Generator[Iterator[int], None, None
 
 
 def show_model_card(lang: str = "en") -> None:
-    """Open model card for specified langauge in default application.
+    """Open model card for specified language in default application.
 
     Parameters
     ----------
