@@ -8,7 +8,7 @@ from itertools import chain
 import nltk.stem.porter as nsp
 import pint
 
-from .._common import download_nltk_resources, is_float, is_range
+from .._common import consume, download_nltk_resources, is_float, is_range
 from ..dataclasses import IngredientAmount
 from ._constants import FLATTENED_UNITS_LIST, UNIT_SYNONYMS, UNITS
 from ._regex import (
@@ -113,6 +113,9 @@ def tokenize(sentence: str) -> list[str]:
 
     >>> tokenize("2 onions, finely chopped*")
     ["2", "onions", ",", "finely", "chopped", "*"]
+
+    >>> tokenize("2 cups beef and/or chicken stock")
+    ["2", "cups", "beef", "and/or", "chicken", "stock"]
     """
     tokens = [
         PUNCTUATION_TOKENISER.split(tok)
@@ -120,10 +123,50 @@ def tokenize(sentence: str) -> list[str]:
     ]
     flattened = [tok for tok in chain.from_iterable(tokens) if tok]
 
+    # Recombine "and/or" into a single token
+    combined = combine_and_or(flattened)
+
     # Second pass to separate full stops from end of tokens
-    tokens = [FULL_STOP_TOKENISER.split(tok) for tok in flattened]
+    tokens = [FULL_STOP_TOKENISER.split(tok) for tok in combined]
 
     return [tok for tok in chain.from_iterable(tokens) if tok]
+
+
+def combine_and_or(tokens: list[str]) -> list[str]:
+    """Combine ["and", "/", "or"] into a single token.
+
+    Parameters
+    ----------
+    tokens : list[str]
+        Flat list of tokens.
+
+    Returns
+    -------
+    list[str]
+        Input tokens with any instances of and/or combined into a single token.
+
+    Examples
+    --------
+    >>> recombine_and_or(["2", "cups", "beef" "and" "/" "or" "chicken" "stock"])
+    ["2", "cups", "beef", "and/or", "chicken", "stock"]
+
+    >>> recombine_and_or(["1-2", "bananas", ":", "as", "ripe", "as", "possible"])
+    ["1-2", "bananas", ":", "as", "ripe", "as", "possible"]
+    """
+    AND_OR_PATTERN = ["and", "/", "or"]
+
+    combined = []
+    idx = iter(range(len(tokens)))
+    for i in idx:
+        # Short circuit: If tokens[i] is not equal to the first element
+        # of AND_OR_PATTERN, skip to next iteration
+        if tokens[i] == AND_OR_PATTERN[0] and tokens[i : i + 3] == AND_OR_PATTERN:
+            combined.append("and/or")
+            consume(idx, len(AND_OR_PATTERN) - 1)
+        else:
+            combined.append(tokens[i])
+
+    return combined
 
 
 @lru_cache(maxsize=512)
