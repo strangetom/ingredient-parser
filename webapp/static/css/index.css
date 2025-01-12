@@ -46,7 +46,14 @@ label {
 .UNIT {
   --color: var(--yellow);
 }
-.NAME {
+.NAME,
+.B_NAME_TOK,
+.I_NAME_TOK,
+.B_NAME_VAR,
+.I_NAME_VAR,
+.B_NAME_MOD,
+.I_NAME_MOD,
+.NAME_SEP {
   --color: var(--aqua);
 }
 .COMMENT {
@@ -172,13 +179,13 @@ td:first-of-type {
   border-left: 5px solid var(--color);
 }
 
-.amount {
+.item {
   display: inline-block;
   border-right: 1px solid var(--fg-4);
   margin: 0 .5rem 0 0;
   padding-right: .25rem;
 }
-.amount span {
+.item span {
   margin: .25rem;
 }
 

@@ -8,7 +8,7 @@ class TestPostProcessor_is_singular:
         """
         sentence = "4 salmon fillets 2 pounds each"
         tokens = ["4", "salmon", "fillets", "2", "pounds", "each"]
-        labels = ["QTY", "NAME", "NAME", "QTY", "UNIT", "COMMENT"]
+        labels = ["QTY", "B_NAME_TOK", "I_NAME_TOK", "QTY", "UNIT", "COMMENT"]
         idx = [0, 1, 2, 3, 4, 5]
 
         p = PostProcessor(sentence, tokens, labels, [0] * len(tokens))
@@ -23,8 +23,8 @@ class TestPostProcessor_is_singular:
         tokens = ["4", "salmon", "fillets", "2", "pounds", "(", "900", "g", ")", "each"]
         labels = [
             "QTY",
-            "NAME",
-            "NAME",
+            "B_NAME_TOK",
+            "I_NAME_TOK",
             "QTY",
             "UNIT",
             "COMMENT",
@@ -45,7 +45,7 @@ class TestPostProcessor_is_singular:
         """
         sentence = "4 salmon fillets 2 pounds minimum"
         tokens = ["4", "salmon", "fillets", "2", "pounds", "minimum"]
-        labels = ["QTY", "NAME", "NAME", "QTY", "UNIT", "COMMENT"]
+        labels = ["QTY", "B_NAME_TOK", "I_NAME_TOK", "QTY", "UNIT", "COMMENT"]
         idx = [0, 1, 2, 3, 4, 5]
 
         p = PostProcessor(sentence, tokens, labels, [0] * len(tokens))

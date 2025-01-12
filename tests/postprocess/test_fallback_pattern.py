@@ -11,7 +11,7 @@ def p():
     """
     sentence = "2 14 ounce cans coconut milk"
     tokens = ["2", "14", "ounce", "can", "coconut", "milk"]
-    labels = ["QTY", "QTY", "UNIT", "UNIT", "NAME", "NAME"]
+    labels = ["QTY", "QTY", "UNIT", "UNIT", "B_NAME_TOK", "I_NAME_TOK"]
     scores = [
         0.9991370577083561,
         0.9725378063405858,
@@ -32,7 +32,7 @@ class TestPostProcessor_fallback_pattern:
         """
 
         tokens = ["3", "large", "handful", "cherry", "tomatoes"]
-        labels = ["QTY", "UNIT", "UNIT", "NAME", "NAME"]
+        labels = ["QTY", "UNIT", "UNIT", "B_NAME_TOK", "I_NAME_TOK"]
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
 
@@ -55,7 +55,7 @@ class TestPostProcessor_fallback_pattern:
         """
 
         tokens = ["bunch", "of", "basil", "leaves"]
-        labels = ["UNIT", "COMMENT", "NAME", "NAME"]
+        labels = ["UNIT", "COMMENT", "B_NAME_TOK", "I_NAME_TOK"]
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
 
@@ -73,7 +73,7 @@ class TestPostProcessor_fallback_pattern:
         """
         p = PostProcessor("", [], [], [], imperial_units=True)
         tokens = ["About", "2", "cup", "flour"]
-        labels = ["COMMENT", "QTY", "UNIT", "NAME"]
+        labels = ["COMMENT", "QTY", "UNIT", "B_NAME_TOK"]
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
 
@@ -97,7 +97,7 @@ class TestPostProcessor_fallback_pattern:
         """
         p = PostProcessor("", [], [], [], string_units=True)
         tokens = ["About", "2", "cup", "flour"]
-        labels = ["COMMENT", "QTY", "UNIT", "NAME"]
+        labels = ["COMMENT", "QTY", "UNIT", "B_NAME_TOK"]
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
 
@@ -121,7 +121,7 @@ class TestPostProcessor_fallback_pattern:
         is returned
         """
         tokens = ["About", "2", "cup", "flour"]
-        labels = ["COMMENT", "QTY", "UNIT", "NAME"]
+        labels = ["COMMENT", "QTY", "UNIT", "B_NAME_TOK"]
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
 
@@ -144,7 +144,7 @@ class TestPostProcessor_fallback_pattern:
         is returned
         """
         tokens = ["2", "bananas", ",", "4", "ounce", "each"]
-        labels = ["QTY", "NAME", "PUNC", "QTY", "UNIT", "COMMENT"]
+        labels = ["QTY", "B_NAME_TOK", "PUNC", "QTY", "UNIT", "COMMENT"]
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
 
@@ -177,7 +177,7 @@ class TestPostProcessor_fallback_pattern:
         SINGULAR flags set is returned
         """
         tokens = ["2", "bananas", ",", "each", "about", "4", "ounce"]
-        labels = ["QTY", "NAME", "PUNC", "COMMENT", "COMMENT", "QTY", "UNIT"]
+        labels = ["QTY", "B_NAME_TOK", "PUNC", "COMMENT", "COMMENT", "QTY", "UNIT"]
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
 
@@ -208,7 +208,16 @@ class TestPostProcessor_fallback_pattern:
         single IngredientAmount object.
         """
         tokens = ["2", "dozen", "bananas", ",", "each", "about", "4", "ounce"]
-        labels = ["QTY", "QTY", "NAME", "PUNC", "COMMENT", "COMMENT", "QTY", "UNIT"]
+        labels = [
+            "QTY",
+            "QTY",
+            "B_NAME_TOK",
+            "PUNC",
+            "COMMENT",
+            "COMMENT",
+            "QTY",
+            "UNIT",
+        ]
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
 
@@ -239,7 +248,7 @@ class TestPostProcessor_fallback_pattern:
         quantity_max fields in the IngredientAmount object
         """
         tokens = ["1-2", "tablespoons", "local", "honey"]
-        labels = ["QTY", "UNIT", "NAME", "NAME"]
+        labels = ["QTY", "UNIT", "B_NAME_TOK", "I_NAME_TOK"]
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
 
@@ -265,7 +274,7 @@ class TestPostProcessor_fallback_pattern:
         flag, quantity and quantity_max fields in the IngredientAmount object
         """
         tokens = ["1x", "tin", "condensed", "milk"]
-        labels = ["QTY", "UNIT", "NAME", "NAME"]
+        labels = ["QTY", "UNIT", "B_NAME_TOK", "I_NAME_TOK"]
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
 

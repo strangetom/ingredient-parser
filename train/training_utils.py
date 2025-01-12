@@ -4,11 +4,17 @@ import json
 import sqlite3
 import sys
 from dataclasses import dataclass
+from enum import Enum, auto
 from itertools import chain
 from pathlib import Path
 from typing import Any
 
-from sklearn.metrics import ConfusionMatrixDisplay, classification_report
+from matplotlib import pyplot as plt
+from sklearn.metrics import (
+    ConfusionMatrixDisplay,
+    accuracy_score,
+    classification_report,
+)
 
 # Ensure the local ingredient_parser package can be found
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -16,6 +22,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from ingredient_parser import SUPPORTED_LANGUAGES
 
 sqlite3.register_converter("json", json.loads)
+
+
+class ModelType(Enum):
+    PARSER = auto()
+    FOUNDATION_FOODS = auto()
 
 
 @dataclass
@@ -44,7 +55,13 @@ class Metrics:
 class TokenStats:
     """Statistics for token classification performance."""
 
-    NAME: Metrics
+    B_NAME_TOK: Metrics
+    I_NAME_TOK: Metrics
+    B_NAME_VAR: Metrics
+    I_NAME_VAR: Metrics
+    B_NAME_MOD: Metrics
+    I_NAME_MOD: Metrics
+    NAME_SEP: Metrics
     QTY: Metrics
     UNIT: Metrics
     SIZE: Metrics
@@ -79,7 +96,7 @@ class SentenceStats:
 class Stats:
     """Statistics for token and sentence classification performance."""
 
-    token: TokenStats
+    token: TokenStats | FFTokenStats
     sentence: SentenceStats
     seed: int
 
@@ -116,7 +133,7 @@ def load_datasets(
     database: str,
     table: str,
     datasets: list[str],
-    foundation_foods: bool = False,
+    model_type: ModelType = ModelType.PARSER,
     discard_other: bool = True,
 ) -> DataVectors:
     """Load raw data from csv files and transform into format required for training.
@@ -130,9 +147,9 @@ def load_datasets(
     datasets : list[str]
         List of data source to include.
         Valid options are: nyt, cookstr, bbc
-    foundation_foods : bool, optional
-        If True, prepare data for training foundation foods model.
-        If False, load data for training parser model.
+    model_type : ModelType, optional
+        The type of model to prepare data for training.
+        Default is PARSER.
     discard_other : bool, optional
         If True, discard sentences containing tokens with OTHER label
 
@@ -171,8 +188,8 @@ def load_datasets(
         p = PreProcessor(entry["sentence"])
         uids.append(entry["id"])
 
-        if foundation_foods:
-            name_idx = [idx for idx, lab in enumerate(entry["labels"]) if lab == "NAME"]
+        if model_type == ModelType.FOUNDATION_FOODS:
+            name_idx = [idx for idx, lab in enumerate(entry["labels"]) if "NAME" in lab]
             name_labels = [
                 "FF" if idx in entry["foundation_foods"] else "NF" for idx in name_idx
             ]
@@ -214,7 +231,7 @@ def evaluate(
     predictions: list[list[str]],
     truths: list[list[str]],
     seed: int,
-    foundation_foods: bool = False,
+    model_type: ModelType = ModelType.PARSER,
 ) -> Stats:
     """Calculate statistics on the predicted labels for the test data.
 
@@ -226,9 +243,9 @@ def evaluate(
         True labels for each test sentence
     seed : int
         Seed value that produced the results
-    foundation_foods : bool, optional
-        If True, generate stats for foundation foods model.
-        If False, generate stats for parser model.
+    model_type : ModelType, optional
+        The type of model to generate stats for training.
+        Default is PARSER.
 
     Returns
     -------
@@ -257,10 +274,10 @@ def evaluate(
             token_stats[k] = Metrics(
                 v["precision"], v["recall"], v["f1-score"], int(v["support"])
             )
-        else:
-            token_stats[k] = v
 
-    if foundation_foods:
+    token_stats["accuracy"] = accuracy_score(flat_truths, flat_predictions)
+
+    if model_type == ModelType.FOUNDATION_FOODS:
         token_stats = FFTokenStats(**token_stats)
     else:
         token_stats = TokenStats(**token_stats)
@@ -294,10 +311,14 @@ def confusion_matrix(
     flat_predictions = list(chain.from_iterable(predictions))
     flat_truths = list(chain.from_iterable(truths))
     labels = list(set(flat_predictions))
-    display_labels = [lab[:4] for lab in labels]
 
     cm = ConfusionMatrixDisplay.from_predictions(
-        flat_truths, flat_predictions, labels=labels, display_labels=display_labels
+        flat_truths, flat_predictions, labels=labels
     )
-    cm.figure_.savefig(figure_path)
+
+    fig, ax = plt.subplots(figsize=(10, 10))
+    cm.plot(ax=ax, colorbar=False)
+    ax.tick_params(axis="x", labelrotation=45)
+    fig.tight_layout()
+    fig.savefig(figure_path)
     print(f"[INFO] Confusion matrix saved to {figure_path}")

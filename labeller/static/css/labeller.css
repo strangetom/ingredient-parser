@@ -58,6 +58,9 @@ legend {
   display: grid;
   grid-template-columns: 1fr 1fr;
 }
+.ident {
+  margin-left: 1rem;
+}
 .checkbox {
   display: block;
 }

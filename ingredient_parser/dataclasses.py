@@ -157,8 +157,9 @@ class CompositeIngredientAmount:
 
         # Force quantity to float in case it's a Fraction
         return reduce(
-            op, (float(amount.quantity) * amount.unit for amount in self.amounts)
-        )  # type: ignore
+            op,
+            (float(amount.quantity) * amount.unit for amount in self.amounts),  # type: ignore
+        )
 
 
 @dataclass
@@ -208,8 +209,9 @@ class ParsedIngredient:
 
     Attributes
     ----------
-    name : IngredientText | None
+    name : list[IngredientText]
         Ingredient name parsed from input sentence.
+        If multiple alternative ingredients are found, AlternativeIngredients is used.
         If no ingredient name was found, this is None.
     size : IngredientText | None
         Size modifier of ingredients, such as small or large.
@@ -232,7 +234,7 @@ class ParsedIngredient:
         Normalised input sentence
     """
 
-    name: IngredientText | None
+    name: list[IngredientText]
     size: IngredientText | None
     amount: list[IngredientAmount]
     preparation: IngredientText | None
@@ -246,27 +248,35 @@ class ParsedIngredient:
 
         The flag is set if:
          * the amount is before the preparation instructions AND
-         * the preparation instructions are before the name
+         * the preparation instructions are before the name(s)
         e.g. 100 g sifted flour
 
         OR
-         * the preparation instruction is after the name AND
+         * the preparation instruction is after the name(s) AND
          * the amount is after the preparation instruction
         e.g. Onion, thinly sliced (about 1 cup)
 
+
+        Assumes that any preparation text appear entirely before or entirely after all
+        names.
         """
-        if self.name and self.preparation:
-            for amount in self.amount:
-                if (
-                    amount.starting_index
-                    < self.preparation.starting_index
-                    < self.name.starting_index
-                ) or (
-                    self.name.starting_index
-                    < self.preparation.starting_index
-                    < amount.starting_index
-                ):
-                    amount.PREPARED_INGREDIENT = True
+        if not self.name or not self.preparation:
+            return
+
+        first_name_starting_index = min(n.starting_index for n in self.name)
+        last_name_starting_index = max(n.starting_index for n in self.name)
+
+        for amount in self.amount:
+            if (
+                amount.starting_index
+                < self.preparation.starting_index
+                < first_name_starting_index
+            ) or (
+                last_name_starting_index
+                < self.preparation.starting_index
+                < amount.starting_index
+            ):
+                amount.PREPARED_INGREDIENT = True
 
 
 @dataclass

@@ -10,7 +10,7 @@ def p():
     """
     sentence = "2 14 ounce cans coconut milk"
     tokens = ["2", "14", "ounce", "can", "coconut", "milk"]
-    labels = ["QTY", "QTY", "UNIT", "UNIT", "NAME", "NAME"]
+    labels = ["QTY", "QTY", "UNIT", "UNIT", "B_NAME_TOK", "I_NAME_TOK"]
     scores = [
         0.9991370577083561,
         0.9725378063405858,

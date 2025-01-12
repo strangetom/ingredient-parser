@@ -5,6 +5,7 @@ import sqlite3
 import sys
 from collections import defaultdict
 from pathlib import Path
+from typing import TypedDict
 
 # Ensure the local ingredient_parser package can be found
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
@@ -16,12 +17,22 @@ sqlite3.register_converter("json", json.loads)
 DATABASE = "train/data/training.sqlite3"
 
 
-def load_from_db() -> list[dict[str, str | list[str]]]:
+class DBRow(TypedDict):
+    id: int
+    source: str
+    sentence: str
+    tokens: list[str]
+    labels: list[str]
+    foundation_foods: list[int]
+    snetence_split: list[int]
+
+
+def load_from_db() -> list[DBRow]:
     """Get all training sentences from the database
 
     Returns
     -------
-    list[dict[str, str]]
+    list[DBRow]
         List of database rows as dicts
     """
     rows = []
@@ -30,13 +41,13 @@ def load_from_db() -> list[dict[str, str | list[str]]]:
         c = conn.cursor()
         data = c.execute("SELECT * FROM en")
 
-    rows = [dict(d) for d in data]
+    rows = [DBRow(d) for d in data]
     conn.close()
 
     return rows
 
 
-def validate_tokens(calculated_tokens: list[str], stored_tokens: list[str]) -> bool:
+def validate_tokens(calculated_tokens: list[str], row: DBRow) -> bool:
     """Validate that that tokens stored in the database are the same as the tokens
     obtained from the PreProcessor.
 
@@ -44,42 +55,40 @@ def validate_tokens(calculated_tokens: list[str], stored_tokens: list[str]) -> b
     ----------
     calculated_tokens : list[str]
         Tokens calculated using PreProcessor
-    stored_tokens : list[str]
-        Token stored in database
+    row : DBRow
+        Database row as dict
 
     Returns
     -------
     bool
         True if no error, else False.
     """
-    if calculated_tokens != stored_tokens:
+    if calculated_tokens != row["tokens"]:
         print(f"[ERROR] ID: {row['id']} [{row['source']}]")
         print("Database tokens do not match PreProcessor output.")
         print(f"\t{calculated_tokens} (calc)")
-        print(f"\t{stored_tokens} (db)")
+        print(f"\t{row['tokens']} (db)")
         return False
 
     return True
 
 
-def validate_token_label_length(
-    calculated_tokens: list[str], stored_labels: list[str]
-) -> bool:
+def validate_token_label_length(calculated_tokens: list[str], row: DBRow) -> bool:
     """Validate that that number of tokens and number of labels are the same.
 
     Parameters
     ----------
     calculated_tokens : list[str]
         Tokens calculated using PreProcessor
-    stored_labels : list[str]
-        Labels stored in database
+    row : DBRow
+        Database row as dict
 
     Returns
     -------
     bool
         True if no error, else False.
     """
-    if len(calculated_tokens) != len(stored_labels):
+    if len(calculated_tokens) != len(row["tokens"]):
         print(f"[ERROR] ID: {row['id']} [{row['source']}]")
         print("\tNumber of tokens and labels are different.")
         return False
@@ -87,12 +96,12 @@ def validate_token_label_length(
     return True
 
 
-def validate_duplicate_sentences(rows: list[dict]) -> int:
+def validate_duplicate_sentences(rows: list[DBRow]) -> int:
     """Validate the duplicate sentences have the same labels.
 
     Parameters
     ----------
-    rows : list[dict]
+    rows : list[DBRow]
         List of database rows
 
     Returns
@@ -125,18 +134,52 @@ def validate_duplicate_sentences(rows: list[dict]) -> int:
     return errors
 
 
+def validate_BIO_labels(row: DBRow) -> bool:
+    """Validate BIO labels are valid
+
+    Parameters
+    ----------
+    row : DBRow
+        Database row as dict
+
+    Returns
+    -------
+    bool
+        True if no error, else False.
+    """
+    prev_name_label = ""
+    for label in row["labels"]:
+        if not (label.startswith("B_") or label.startswith("I_")):
+            continue
+
+        label_type = label.split("_", 1)[-1]
+        if label.startswith("I_"):
+            # Check I label is preceded by same B or I label of same type.
+            if not (prev_name_label == label or prev_name_label == "B_" + label_type):
+                print(f"[ERROR] ID: {row['id']} [{row['source']}]")
+                print("\tError in BIO labels")
+                return False
+
+        prev_name_label = label
+
+    return True
+
+
 if __name__ == "__main__":
     rows = load_from_db()
 
     token_errors = 0
     token_label_errors = 0
+    bio_errors = 0
 
     for row in rows:
         p = PreProcessor(row["sentence"], defer_pos_tagging=True)
-        if not validate_tokens(p.tokenized_sentence, row["tokens"]):
+        if not validate_tokens(p.tokenized_sentence, row):
             token_errors += 1
-        if not validate_token_label_length(p.tokenized_sentence, row["labels"]):
+        if not validate_token_label_length(p.tokenized_sentence, row):
             token_label_errors += 1
+        if not validate_BIO_labels(row):
+            bio_errors += 1
 
     duplicate_sentence_errors = validate_duplicate_sentences(rows)
 
@@ -148,3 +191,6 @@ if __name__ == "__main__":
 
     if duplicate_sentence_errors > 0:
         print(f"{duplicate_sentence_errors} duplicate sentences with mismatched labels")
+
+    if bio_errors > 0:
+        print(f"{bio_errors} errors in BIO labels")

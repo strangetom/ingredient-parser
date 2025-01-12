@@ -75,14 +75,14 @@ class PostProcessor:
 
     Attributes
     ----------
-    labels : list[str]
-        List of labels for tokens.
-    scores : list[float]
-        Confidence associated with the label for each token.
     sentence : str
         Original ingredient sentence.
     tokens : list[str]
         List of tokens for original ingredient sentence.
+    labels : list[str]
+        List of labels for tokens.
+    scores : list[float]
+        Confidence associated with the label for each token.
     discard_isolated_stop_words : bool
         If True, isolated stop words are discarded from the name, preparation or
         comment fields. Default value is True.
@@ -155,8 +155,8 @@ class PostProcessor:
             Object containing structured data from sentence.
         """
         amounts = self._postprocess_amounts()
+        name = self._postprocess_names()
         size = self._postprocess("SIZE")
-        name = self._postprocess("NAME")
         preparation = self._postprocess("PREP")
         comment = self._postprocess("COMMENT")
         purpose = self._postprocess("PURPOSE")
@@ -197,6 +197,207 @@ class PostProcessor:
         if not label_idx or all(self.labels[i] == "PUNC" for i in label_idx):
             return None
 
+        return self._postprocess_indices(label_idx, selected_label)
+
+    def _postprocess_names(self) -> list[IngredientText]:
+        """Process tokens, labels and scores for the ingredient name(s).
+
+        This function handles multiple ingredient names e.g. "butter or olive oil",
+        determined by the labels provided for each token.
+        Where multiple alternative ingredients names are identified, each one is
+        returned in a separate IngredientText object.
+
+        Returns
+        -------
+        list[IngredientText]
+        """
+        name_idx = [
+            i
+            for i, label in enumerate(self.labels)
+            if ("NAME" in label or label == "PUNC") and i not in self.consumed
+        ]
+
+        # If idx is empty or all the selected idx are PUNC, return None
+        if not name_idx or all(self.labels[i] == "PUNC" for i in name_idx):
+            return []
+
+        name_labels = [self.labels[i] for i in name_idx]
+        bio_groups = self._group_BIO_labels(name_labels)
+        constructed_names = self._construct_names(bio_groups)
+
+        names = []
+        for group in constructed_names:
+            # Convert from name_label indices to token indices
+            token_idx = [name_idx[idx] for idx in group]
+            names.append(self._postprocess_indices(token_idx, "NAME"))
+
+        return names
+
+    def _group_BIO_labels(self, name_labels: list[str]) -> list[list[tuple[int, str]]]:
+        """Group name labels according to BIO groups.
+
+        A B_* label starts a new group, containing all subsequent I_* labels of the same
+        type. O and N_SPLIT labels are also used to split the input list, but are
+        discarded from output.
+
+        Parameters
+        ----------
+        name_labels : list[str]
+            List of name labels.
+
+        Returns
+        -------
+        list[list[tuple[int, str]]]
+            List of BIO groups.
+            Each group is a list of tuples, where each tuple is the (index, label) of
+            the original name_labels list element.
+        """
+        bio_groups = []
+        current_group = []
+        for idx, label in enumerate(name_labels):
+            # Start new group on NAME_SEP name label
+            if label == "NAME_SEP":
+                if current_group:
+                    bio_groups.append(current_group)
+                current_group = []
+            # Start new group for new "B_*" name label
+            elif label.startswith("B_"):
+                if current_group:
+                    bio_groups.append(current_group)
+                current_group = [(idx, label)]
+            # Must be an I_NAME* or PUNC label, so append to current group
+            else:
+                current_group.append((idx, label))
+
+        # Add last group to list if not empty
+        if current_group:
+            bio_groups.append(current_group)
+
+        return bio_groups
+
+    def _construct_names(
+        self, bio_groups: list[list[tuple[int, str]]]
+    ) -> list[list[int]]:
+        """Construct names from BIO groups.
+
+        All VAR groups are prepended to the next TOK group.
+        MOD groups are prepended to all subsequent TOK groups or VAR+TOK groups.
+
+        To make this easier, iterate through the BIO groups from last to first. This
+        means we can easily keep track of which TOK group to prepend VAR and MOD
+        groups.
+
+        Parameters
+        ----------
+        bio_groups : list[list[tuple[int, str]]]
+            List of BIO groups.
+            Each group is a list of tuples, where each tuple if the (index, label) of
+            the original list element.
+
+        Returns
+        -------
+        list[list[int]]
+            List of name_label indices for each name.
+        """
+        constructed_names = []
+
+        # Keep track the last TOK group we come across (moving from last to first).
+        # Also keep track of whether we have used it by prepending a VAR or MOD
+        # group.
+        last_encountered_name = None
+        last_encountered_name_used = False
+
+        # Iterate from last to first BIO group
+        for group in reversed(bio_groups):
+            current_group_idx, labels = zip(*group)
+            current_label = self._get_bio_group_label(labels)
+
+            if current_label == "TOK":
+                # If we've previously come across a TOK group and haven't used it,
+                # then store it.
+                if last_encountered_name and not last_encountered_name_used:
+                    constructed_names.append(last_encountered_name)
+
+                # Set current group to last_encountered_name group.
+                last_encountered_name = current_group_idx
+                last_encountered_name_used = False
+
+            elif current_label == "VAR":
+                # Prepend this group to last encountered NAME group
+                if last_encountered_name:
+                    constructed_names.append(current_group_idx + last_encountered_name)
+                    last_encountered_name_used = True
+                else:
+                    # If we are here, then we've come across a VAR group that does not
+                    # preceed a TOK group, so the model has made an error in it's
+                    # labelling. Add this VAR group anyway.
+                    constructed_names.append(current_group_idx)
+
+            elif current_label == "MOD":
+                # If we've previously come across a NAME group and haven't used it,
+                # then store it.
+                if last_encountered_name and not last_encountered_name_used:
+                    constructed_names.append(last_encountered_name)
+                    last_encountered_name_used = True
+
+                # Prepend this group to all constructed names so far
+                constructed_names = [
+                    current_group_idx + name for name in constructed_names
+                ]
+
+        # If we've iterated through all BIO groups and haven't used
+        # last_encountered_name, add it to constructed_names now.
+        if last_encountered_name and not last_encountered_name_used:
+            constructed_names.append(last_encountered_name)
+
+        # Return reversed list, so names are in the order they appear in sentence.
+        return list(reversed(constructed_names))
+
+    def _get_bio_group_label(self, labels: list[str]) -> str:
+        """Get the NAME label type for the labels in a BIO group.
+
+        One of TOK, VAR, MOD.
+
+        Parameters
+        ----------
+        labels : list[str]
+            List of labels for BIO group elements.
+
+        Returns
+        -------
+        str
+            Group label
+        """
+        for label in labels:
+            if label != "PUNC":
+                return label.split("_")[-1]
+
+        return label
+
+    def _postprocess_indices(
+        self, label_idx: list[int], selected_label: str
+    ) -> IngredientText | None:
+        """Process list of token indices into a single IngredientText object.
+
+        Consecutive tokens are joined together, with non-consecutive groups being joined
+        by a comma (unless selected_label is NAME).
+
+        Indices for tokens that would be ungrammatical are removed prior to joining.
+        Duplicate tokens that are adjacent are also removed.
+
+        Parameters
+        ----------
+        label_idx : list[int]
+            List of indices of tokens to postprocess into IngredientText
+        selected_label : str
+            Label of tokens being post processed.
+
+        Returns
+        -------
+        IngredientText | None
+            IngredientText object for selected tokens.
+            If the post processing results in all tokens being ignored, return None.
+        """
         # Join consecutive tokens together and average their score
         parts = []
         confidence_parts = []
@@ -591,6 +792,7 @@ class PostProcessor:
         end_units = [
             "bag",
             "block",
+            "bottle",
             "box",
             "bucket",
             "can",
@@ -717,6 +919,7 @@ class PostProcessor:
             "ptfloz": {
                 "pattern": ["QTY", "UNIT", "QTY", "UNIT", "UNIT"],
                 "conjunction": None,
+                "conj_index": None,
                 "start1": 0,
                 "start2": 2,
                 "join": "",
@@ -725,6 +928,7 @@ class PostProcessor:
             "lboz": {
                 "pattern": ["QTY", "UNIT", "QTY", "UNIT"],
                 "conjunction": None,
+                "conj_index": None,
                 "start1": 0,
                 "start2": 2,
                 "join": "",
@@ -733,30 +937,43 @@ class PostProcessor:
             "plus": {
                 "pattern": ["QTY", "UNIT", "COMMENT", "QTY", "UNIT"],
                 "conjunction": "plus",
+                "conj_index": 2,
                 "start1": 0,
                 "start2": 3,
+                "join": " plus ",
+                "subtractive": False,
+            },
+            "plus_punc": {
+                "pattern": ["QTY", "UNIT", "PUNC", "QTY", "UNIT"],
+                "conjunction": "+",
+                "conj_index": 2,
+                "start1": 0,
+                "start2": 3,
+                "join": " + ",
+                "subtractive": False,
+            },
+            "plus_punc_comment": {
+                "pattern": ["QTY", "UNIT", "PUNC", "COMMENT", "QTY", "UNIT"],
+                "conjunction": "plus",
+                "conj_index": 3,
+                "start1": 0,
+                "start2": 4,
                 "join": " plus ",
                 "subtractive": False,
             },
             "and": {
                 "pattern": ["QTY", "UNIT", "COMMENT", "QTY", "UNIT"],
                 "conjunction": "and",
+                "conj_index": 2,
                 "start1": 0,
                 "start2": 3,
                 "join": " and ",
                 "subtractive": False,
             },
-            "plus_punc": {
-                "pattern": ["QTY", "UNIT", "PUNC", "QTY", "UNIT"],
-                "conjunction": "+",
-                "start1": 0,
-                "start2": 3,
-                "join": " + ",
-                "subtractive": False,
-            },
             "minus": {
                 "pattern": ["QTY", "UNIT", "COMMENT", "QTY", "UNIT"],
                 "conjunction": "minus",
+                "conj_index": 2,
                 "start1": 0,
                 "start2": 3,
                 "join": " minus ",
@@ -765,6 +982,7 @@ class PostProcessor:
             "less": {
                 "pattern": ["QTY", "UNIT", "COMMENT", "QTY", "UNIT"],
                 "conjunction": "less",
+                "conj_index": 2,
                 "start1": 0,
                 "start2": 3,
                 "join": " minus ",
@@ -783,6 +1001,7 @@ class PostProcessor:
             start1 = pattern_info["start1"]
             start2 = pattern_info["start2"]
             join = pattern_info["join"]
+            conj_index = pattern_info["conj_index"]
             subtractive = pattern_info["subtractive"]
 
             for match in self._match_pattern(
@@ -800,9 +1019,9 @@ class PostProcessor:
                         # ptfloz or lboz patterns, so skip
                         continue
 
-                # For other patterns, check if third token in match matches conjunction
-                # and skip if not.
-                elif tokens[match[2]].lower() != pattern_info["conjunction"]:
+                # For other patterns, check if token at the conj_index in match matches
+                # conjunction and skip if not.
+                elif tokens[match[conj_index]].lower() != pattern_info["conjunction"]:
                     continue
 
                 # First amount

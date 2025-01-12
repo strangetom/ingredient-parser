@@ -76,12 +76,21 @@
                     <tr>
                         <td class="type NAME">Name</td>
                         <td>
-                            {{ name.text }}
-                            {%- if name.confidence > 0 -%}
+                        {%- if name | length == 1 -%}
+                            {{ name[0].text }}
                             <span class="confidence NAME">
-                                {{ "%.2f"|format(100*name.confidence) }}%
+                                {{ "%.2f"|format(100*name[0].confidence) }}%
                             </span>
-                            {%- endif -%}
+                        {%- else -%}
+                        {%- for n in name -%}
+                        <span class="item">
+                            {{ n.text }}
+                            <span class="confidence NAME">
+                                {{ "%.2f"|format(100*n.confidence) }}%
+                            </span>
+                        </span>
+                        {%- endfor -%}
+                        {%- endif -%}
                         </td>
                     </tr>
                     <tr>
@@ -114,7 +123,7 @@
                         </span>
                         {%- else -%}
                         {%- for amount in amounts -%}
-                        <span class="amount">
+                        <span class="item">
                             {{ amount.text }}
                             {%- if amount.APPROXIMATE -%}
                             <span class="flag">~</span>
@@ -170,7 +179,7 @@
                         <td class="type FOUNDATION">Foundation</td>
                         <td>
                             {%- for f in foundation -%}
-                            <span class="amount">
+                            <span class="item">
                                 {{ f.text }}
                                 <span class="confidence FOUNDATION">
                                     {{ "%.2f"|format(100*f.confidence) }}%

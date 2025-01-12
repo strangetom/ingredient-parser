@@ -89,6 +89,10 @@ def parse_ingredient_en(
     labels = TAGGER.tag(features)
     scores = [TAGGER.marginal(label, i) for i, label in enumerate(labels)]
 
+    if expect_name_in_output and all("NAME" not in label for label in labels):
+        # No tokens were assigned the NAME label, so guess if there's a name
+        labels, scores = guess_ingredient_name(labels, scores)
+
     # Re-pluralise tokens that were singularised if the label isn't UNIT
     # For tokens with UNIT label, we'll deal with them below
     for idx in processed_sentence.singularised_indices:
@@ -96,10 +100,6 @@ def parse_ingredient_en(
         label = labels[idx]
         if label != "UNIT":
             tokens[idx] = pluralise_units(token)
-
-    if expect_name_in_output and all(label != "NAME" for label in labels):
-        # No tokens were assigned the NAME label, so guess if there's a name
-        labels, scores = guess_ingredient_name(labels, scores)
 
     postprocessed_sentence = PostProcessor(
         sentence,
@@ -177,6 +177,10 @@ def inspect_parser_en(
     labels = TAGGER.tag(features)
     scores = [TAGGER.marginal(label, i) for i, label in enumerate(labels)]
 
+    if expect_name_in_output and all("NAME" not in label for label in labels):
+        # No tokens were assigned the NAME label, so guess if there's a name
+        labels, scores = guess_ingredient_name(labels, scores)
+
     # Re-plurise tokens that were singularised if the label isn't UNIT
     # For tokens with UNIT label, we'll deal with them below
     for idx in processed_sentence.singularised_indices:
@@ -184,10 +188,6 @@ def inspect_parser_en(
         label = labels[idx]
         if label != "UNIT":
             tokens[idx] = pluralise_units(token)
-
-    if expect_name_in_output and all(label != "NAME" for label in labels):
-        # No tokens were assigned the NAME label, so guess if there's a name
-        labels, scores = guess_ingredient_name(labels, scores)
 
     postprocessed_sentence = PostProcessor(
         sentence,
@@ -229,7 +229,7 @@ def guess_ingredient_name(
     Parameters
     ----------
     labels : list[str]
-        List of labels
+        List of token labels
     scores : list[float]
         List of scores
     min_score : float
@@ -240,10 +240,26 @@ def guess_ingredient_name(
     list[str], list[float]
         Labels and scores, modified to assign a name if possible.
     """
-    # Calculate confidence of each token being labelled NAME and get indices where that
-    # confidence is greater than min_score.
-    name_scores = [TAGGER.marginal("NAME", i) for i, _ in enumerate(labels)]
-    candidate_indices = [i for i, score in enumerate(name_scores) if score >= min_score]
+    NAME_LABELS = [
+        "B_NAME_TOK",
+        "I_NAME_TOK",
+        "B_NAME_VAR",
+        "I_NAME_VAR",
+        "B_NAME_MOD",
+        "I_NAME_MOD",
+        "NAME_SEP",
+    ]
+
+    # Calculate the most likely *NAME* label get store the indices where the score is
+    # greater than min_score.
+    candidate_indices = []
+    candidate_score_labels = []  # List of (score, label) tuples
+    for i, _ in enumerate(labels):
+        alt_label_scores = [(TAGGER.marginal(label, i), label) for label in NAME_LABELS]
+        max_score = max(alt_label_scores, key=lambda x: x[0])
+        if max_score[0] > min_score:
+            candidate_indices.append(i)
+            candidate_score_labels.append(max_score)
 
     if len(candidate_indices) == 0:
         return labels, scores
@@ -253,8 +269,9 @@ def guess_ingredient_name(
 
     # Take longest group
     indices = sorted(groups, key=len)[0]
-    for i in indices:
-        labels[i] = "NAME"
-        scores[i] = name_scores[i]
+    for list_index, token_index in enumerate(indices):
+        score, label = candidate_score_labels[list_index]
+        labels[token_index] = label
+        scores[token_index] = score
 
     return labels, scores

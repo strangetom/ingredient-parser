@@ -55,12 +55,18 @@
                     </tr>
                     <tr>
                         {%- for label in entry.labels -%}
-                        <td class="{{ label }}">
+                        <td class="{{ label.replace("_NAME", "") }}">
                             <select>
                               <option value="OTHER" {{ "selected" if label == "OTHER" }}></option>
                               <option value="QTY" {{ "selected" if label == "QTY" }}>QTY</option>
                               <option value="UNIT" {{ "selected" if label == "UNIT" }}>UNIT</option>
-                              <option value="NAME" {{ "selected" if label == "NAME" }}>NAME</option>
+                              <option value="B_NAME_TOK" {{ "selected" if label == "B_NAME_TOK" }}>B_TOK</option>
+                              <option value="I_NAME_TOK" {{ "selected" if label == "I_NAME_TOK" }}>I_TOK</option>
+                              <option value="B_NAME_VAR" {{ "selected" if label == "B_NAME_VAR" }}>B_VAR</option>
+                              <option value="I_NAME_VAR" {{ "selected" if label == "I_NAME_VAR" }}>I_VAR</option>
+                              <option value="B_NAME_MOD" {{ "selected" if label == "B_NAME_MOD" }}>B_MOD</option>
+                              <option value="I_NAME_MOD" {{ "selected" if label == "I_NAME_MOD" }}>I_MOD</option>
+                              <option value="NAME_SEP" {{ "selected" if label == "NAME_SEP" }}>SEP</option>
                               <option value="SIZE" {{ "selected" if label == "SIZE" }}>SIZE</option>
                               <option value="PREP" {{ "selected" if label == "PREP" }}>PREP</option>
                               <option value="PUNC" {{ "selected" if label == "PUNC" }}>PUNC</option>

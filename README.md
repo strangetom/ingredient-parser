@@ -48,13 +48,13 @@ The model has the following accuracy on a test data set of 20% of the total data
 
 ```
 Sentence-level results:
-	Accuracy: 95.87%
+	Accuracy: 94.43%
 
 Word-level results:
-	Accuracy 98.29%
-	Precision (micro) 98.29%
-	Recall (micro) 98.29%
-	F1 score (micro) 98.29%
+	Accuracy 97.70%
+	Precision (micro) 97.67%
+	Recall (micro) 97.70%
+	F1 score (micro) 97.68%
 ```
 
 ## Development

@@ -120,9 +120,9 @@ def extract_foundation_foods(
     """
     load_ffmodel_if_not_loaded()
 
-    name_idx = [idx for idx, label in enumerate(labels) if label == "NAME"]
-    name_tokens = [tok for tok, label in zip(tokens, labels) if label == "NAME"]
-    name_features = [feat for feat, label in zip(features, labels) if label == "NAME"]
+    name_idx = [idx for idx, label in enumerate(labels) if "NAME" in label]
+    name_tokens = [tok for tok, label in zip(tokens, labels) if "NAME" in label]
+    name_features = [feat for feat, label in zip(features, labels) if "NAME" in label]
 
     # We want to join consecutive foundation food tokens together into a single
     # string, but keep any token seperated by a non-foundation food or another

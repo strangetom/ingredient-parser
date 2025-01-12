@@ -129,11 +129,32 @@ table {
   border-collapse: collapse;
 }
 td {
+  position: relative;
   text-align: center;
   font-size: 1.1rem;
   padding: 3px;
   border: 1px solid var(--bg);
   background-color: var(--background-color, --bg-s);
+}
+td[class^="B"]:after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: var(--green-alt);
+  clip-path: polygon(0% 0%, 10% 50%, 0% 100%);
+}
+td[class^="I"]:after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: var(--green-alt);
+  clip-path: polygon(0% 45%, 10% 45%, 10% 55%, 0% 55%);
 }
 td > div {
   display: grid;
@@ -175,14 +196,12 @@ input[type=checkbox]:checked~label:after {
   color: var(--yellow-alt);
 }
 
+
 .QTY {
   --background-color: color-mix(in srgb, var(--green), #333);
 }
 .UNIT {
   --background-color: color-mix(in srgb, var(--yellow), #333);
-}
-.NAME {
-  --background-color: color-mix(in srgb, var(--aqua), #333);
 }
 .COMMENT {
   --background-color: color-mix(in srgb, var(--purple), #333);
@@ -198,6 +217,18 @@ input[type=checkbox]:checked~label:after {
 }
 .PURPOSE {
   --background-color: color-mix(in srgb, var(--red), #333);
+}
+.B_TOK,.I_TOK {
+  --background-color: color-mix(in srgb, var(--aqua), #111);
+}
+.B_VAR,.I_VAR {
+  --background-color: color-mix(in srgb, var(--aqua), #444);
+}
+.B_MOD,.I_MOD {
+  --background-color: color-mix(in srgb, var(--aqua), #777);
+}
+.NAME_SEP,.SEP {
+  --background-color: color-mix(in srgb, var(--gray), var(--orange-alt) 15%);
 }
 
 button {

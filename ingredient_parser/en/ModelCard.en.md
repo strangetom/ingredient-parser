@@ -37,12 +37,27 @@ The ingredient parser model parses structured information from English language 
 - Label tokens in English language recipe ingredient sentences with one of the following labels:
   - QTY: Quantity of ingredient
   - UNIT: Unit of ingredient
-  - NAME: Name of ingredient
   - SIZE: Size of ingredient
   - PREP: Preparation notes for the ingredient
   - COMMENT: Comment in ingredient sentence
   - PURPOSE: Purpose of the ingredient
   - OTHER: for text that cannot be classified into one of the above labels
+
+    The labels for the ingredient names use a BIO scheme:
+  
+  - B_NAME_TOK: First token of a name
+  
+  - I_NAME_TOK: Other token within name that is not the first token
+  
+  - B_NAME_VAR: First token of a name variation
+  
+  - I_NAME_VAR: Other token of a name variation that is not the first token
+  
+  - B_NAME_MOD: First token of a name modifier
+  
+  - I_NAME_MOD: Other token of a name modifier that is not the first token
+  
+  - NAME_SEP: Token that separates two ingredient names
 
 ### Primary Intended Users
 
@@ -109,7 +124,7 @@ The model has the following performance metrics:
 
 | Word level accuracy | Sentence level accuracy |
 | ------------------- | ----------------------- |
-| 98.29 ± 0.21%       | 95.87 ± 0.48%           |
+| 97.70 ± 0.23%       | 94.43 ± 0.37%           |
 
 These metrics were determined by executing 20 training/evaluation cycles and calculating the mean and standard deviation for the two metrics across all cycles. The uncertainty values provided represent the 99.7% confidence bounds (i.e. 3x standard deviation). The uncertainty is due to the randomisation of the selection of training and evaluation data whenever the model is trained.
 
