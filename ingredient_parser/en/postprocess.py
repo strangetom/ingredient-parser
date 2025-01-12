@@ -1093,7 +1093,7 @@ class PostProcessor:
         Parameters
         ----------
         labels : list[str]
-            List of labels of find pattern
+            List of labels to find pattern within.
         pattern : list[str]
             Pattern to match inside labels.
         ignore_other_labels : bool
@@ -1126,12 +1126,12 @@ class PostProcessor:
         matches = []
         indices = iter(range(len(lbls)))
         for i in indices:
-            # Short circuit: If the lbls[i] is not equal to the first element
-            # of pattern skip to next iteration
+            # Short circuit: If lbls[i] is not equal to the first element
+            # of pattern, skip to next iteration
             if lbls[i] == pattern[0] and lbls[i : i + plen] == pattern:
                 matches.append(idx[i : i + plen])
                 # Advance iterator to prevent overlapping matches
-                consume(indices, plen)
+                consume(indices, plen - 1)
 
         return matches
 
