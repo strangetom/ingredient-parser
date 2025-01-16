@@ -400,6 +400,11 @@ APPROXIMATE_TOKENS = [
 ]
 # Tokens that indicate an amount is singular
 SINGULAR_TOKENS = ["each"]
+# Tokens that indicate an amount refers to the prepared ingredient
+PREPARED_INGREDIENT_TOKENS = [
+    ["to", "yield"],
+    ["to", "make"],
+]
 
 # List of sets, where each set contains the synonyms that represent the same unit.
 UNIT_SYNONYMS = [

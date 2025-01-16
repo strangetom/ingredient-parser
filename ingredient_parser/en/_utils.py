@@ -418,6 +418,7 @@ def ingredient_amount_factory(
     starting_index: int,
     APPROXIMATE: bool = False,
     SINGULAR: bool = False,
+    PREPARED_INGREDIENT: bool = False,
     string_units: bool = False,
     imperial_units: bool = False,
     quantity_fractions: bool = False,
@@ -448,6 +449,10 @@ def ingredient_amount_factory(
         Default is False.
     SINGULAR : bool, optional
         When True, indicates if the amount refers to a singular item of the ingredient.
+        Default is False.
+    PREPARED_INGREDIENT : bool, optional
+        When True, indicates the amount applies to the prepared ingredient.
+        When False, indicates the amount applies to the ingredient before preparation.
         Default is False.
     string_units : bool, optional
         If True, return all IngredientAmount units as strings.
@@ -529,4 +534,5 @@ def ingredient_amount_factory(
         SINGULAR=SINGULAR,
         RANGE=RANGE,
         MULTIPLIER=MULTIPLIER,
+        PREPARED_INGREDIENT=PREPARED_INGREDIENT,
     )

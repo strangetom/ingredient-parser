@@ -17,6 +17,7 @@ from ..dataclasses import (
 )
 from ._constants import (
     APPROXIMATE_TOKENS,
+    PREPARED_INGREDIENT_TOKENS,
     SINGULAR_TOKENS,
     STOP_WORDS,
     STRING_NUMBERS_REGEXES,
@@ -55,6 +56,10 @@ class _PartialIngredientAmount:
     SINGULAR : bool, optional
         When True, indicates if the amount refers to a singular item of the ingredient.
         Default is False.
+    PREPARED_INGREDIENT : bool, optional
+        When True, indicates the amount applies to the prepared ingredient.
+        When False, indicates the amount applies to the ingredient before preparation.
+        Default is False.
     """
 
     quantity: str
@@ -64,6 +69,7 @@ class _PartialIngredientAmount:
     related_to_previous: bool = False
     APPROXIMATE: bool = False
     SINGULAR: bool = False
+    PREPARED_INGREDIENT = False
 
 
 class PostProcessor:
@@ -1181,7 +1187,7 @@ class PostProcessor:
             if label == "QTY":
                 # Whenever we come across a new QTY, create new IngredientAmount,
                 # unless the token is "dozen" and the previous label was QTY, in which
-                # case we combine modify the quantity of the previous amount.
+                # case we modify the quantity of the previous amount.
                 if token == "dozen" and labels[i - 1] == "QTY":
                     amounts[-1].quantity = amounts[-1].quantity + " dozen"
                     amounts[-1].confidence.append(score)
@@ -1224,7 +1230,11 @@ class PostProcessor:
                 amounts[-1].APPROXIMATE = True
                 amounts[-1].SINGULAR = True
 
-        # Set APPROXIMATE and SINGULAR flags to be the same for all related amounts
+            if self._is_prepared(i, tokens, labels, idx):
+                amounts[-1].PREPARED_INGREDIENT = True
+
+        # Set APPROXIMATE, SINGULAR and PREPARED_INGREDIENT flags to be the same for all
+        # related amounts.
         amounts = self._distribute_related_flags(amounts)
 
         # Loop through amounts list to fix unit and confidence
@@ -1246,6 +1256,7 @@ class PostProcessor:
                     starting_index=amount.starting_index,
                     APPROXIMATE=amount.APPROXIMATE,
                     SINGULAR=amount.SINGULAR,
+                    PREPARED_INGREDIENT=amount.PREPARED_INGREDIENT,
                     string_units=self.string_units,
                     imperial_units=self.imperial_units,
                     quantity_fractions=self.quantity_fractions,
@@ -1435,6 +1446,80 @@ class PostProcessor:
 
         return False
 
+    def _is_prepared(
+        self, i: int, tokens: list[str], labels: list[str], idx: list[int]
+    ) -> bool:
+        """Return True is token at current index refers to the prepared ingredient.
+
+        This is determined by the token label being QTY and the previous tokens being in
+        a list of prepared tokens.
+        If the QTY is preceded by a token in APPROXIMATE_TOKENS, then the tokens prior
+        to that are checked for matches against the prepared tokens list.
+
+        If returning True, also add index of tokens from prepared token list to
+        self.consumed list.
+
+        Parameters
+        ----------
+        i : int
+            Index of current token
+        tokens : list[str]
+            List of all tokens
+        labels : list[str]
+            List of all token labels
+        idx : list[int]
+            List of indices of the tokens/labels/scores in the full tokenized sentence
+
+        Returns
+        -------
+        bool
+            True if current token is approximate
+
+        Examples
+        --------
+        >>> p = PostProcessor("", [], [], [])
+        >>> p._is_approximate(
+            2,
+            ["to", "yield", "2", "cups"],
+            ["COMMENT", "COMMENT", "QTY", "UNIT"],
+            [0, 1, 2, 3]
+        )
+        True
+
+        >>> p = PostProcessor("", [], [], [])
+        >>> p._is_approximate(
+            2,
+            ["to", "make", "about", "250", "g"],
+            ["COMMENT", "COMMENT, "COMMENT", "QTY", "UNIT"],
+            [0, 1, 2, 3, 4]
+        )
+        True
+        """
+        # All PREPARED_INGREDIENT_TOKENS have length 2, so cannot be prepared if i < 2.
+        if i < 2:
+            return False
+
+        if labels[i] != "QTY":
+            return False
+
+        for pattern in PREPARED_INGREDIENT_TOKENS:
+            if [t.lower() for t in tokens[i - 2 : i]] == pattern:
+                # Mark i - 1 and i - 2 elements as consumed
+                self.consumed.append(idx[i - 1])
+                self.consumed.append(idx[i - 2])
+                return True
+            elif (
+                i > 2
+                and tokens[i - 1] in APPROXIMATE_TOKENS
+                and [t.lower() for t in tokens[i - 3 : i - 1]] == pattern
+            ):
+                # Mark i - 2 and i - 3 elements as consumed
+                self.consumed.append(idx[i - 2])
+                self.consumed.append(idx[i - 3])
+                return True
+
+        return False
+
     def _distribute_related_flags(
         self, amounts: list[_PartialIngredientAmount]
     ) -> list[_PartialIngredientAmount]:
@@ -1467,6 +1552,10 @@ class PostProcessor:
             if any(am.SINGULAR for am in group):
                 for am in group:
                     am.SINGULAR = True
+
+            if any(am.PREPARED_INGREDIENT for am in group):
+                for am in group:
+                    am.PREPARED_INGREDIENT = True
 
         # Flatten list for return
         return list(chain.from_iterable(grouped))
