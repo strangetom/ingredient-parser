@@ -8,7 +8,7 @@
 
 ### Model Date and Version
 
-Date: October 2024
+Date: January 2025
 
 Version: The model version is the same has the `ingredient_parser_nlp` package version.
 
@@ -124,7 +124,7 @@ The model has the following performance metrics:
 
 | Word level accuracy | Sentence level accuracy |
 | ------------------- | ----------------------- |
-| 97.79 ± 0.23%       | 94.62 ± 0.48%           |
+| 97.81 ± 0.20%       | 94.75 ± 0.49%           |
 
 These metrics were determined by executing 20 training/evaluation cycles and calculating the mean and standard deviation for the two metrics across all cycles. The uncertainty values provided represent the 99.7% confidence bounds (i.e. 3x standard deviation). The uncertainty is due to the randomisation of the selection of training and evaluation data whenever the model is trained.
 
