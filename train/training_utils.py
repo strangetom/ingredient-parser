@@ -199,7 +199,7 @@ def load_datasets(
                 if idx in name_idx
             ]
             name_tokens = [
-                token
+                token.text
                 for idx, token in enumerate(p.tokenized_sentence)
                 if idx in name_idx
             ]
@@ -209,7 +209,7 @@ def load_datasets(
             labels.append(name_labels)
         else:
             features.append(p.sentence_features())
-            tokens.append(p.tokenized_sentence)
+            tokens.append([t.text for t in p.tokenized_sentence])
             labels.append(entry["labels"])
 
         # Ensure length of tokens and length of labels are the same

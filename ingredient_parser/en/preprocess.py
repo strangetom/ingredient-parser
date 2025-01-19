@@ -3,6 +3,7 @@
 import re
 import string
 import unicodedata
+from dataclasses import dataclass
 from html import unescape
 
 from nltk import pos_tag
@@ -38,6 +39,25 @@ from ._utils import (
 )
 
 CONSECUTIVE_SPACES = re.compile(r"\s+")
+
+
+@dataclass
+class TokenFeatures:
+    stem: str
+    shape: str
+    is_capitalised: str
+    is_unit: str
+    is_punc: str
+    is_ambiguous_unit: str
+
+
+@dataclass
+class Token:
+    index: int
+    text: str
+    feat_text: str
+    pos_tag: str
+    features: TokenFeatures
 
 
 class PreProcessor:
@@ -100,27 +120,22 @@ class PreProcessor:
 
     Attributes
     ----------
-    defer_pos_tagging : bool
-        Defer part of speech tagging until feature generation
     show_debug_output : bool
         If True, print out each stage of the sentence normalisation
     input : str
         Input ingredient sentence.
-    pos_tags : list[str]
-        Part of speech tag for each token in the tokenized sentence.
     sentence : str
         Input ingredient sentence, cleaned to standardised form.
     singularised_indices : list[int]
         Indices of tokens in tokenized sentence that have been converted from plural
         to singular
-    tokenized_sentence : list[str]
+    tokenized_sentence : list[Token]
         Tokenised ingredient sentence.
     """
 
     def __init__(
         self,
         input_sentence: str,
-        defer_pos_tagging: bool = False,
         show_debug_output: bool = False,
     ):
         """Initialise.
@@ -139,20 +154,8 @@ class PreProcessor:
         self.input: str = input_sentence
         self.sentence: str = self._normalise(input_sentence)
 
-        _tokenized_sentence = tokenize(self.sentence)
-        (
-            self.tokenized_sentence,
-            self.singularised_indices,
-        ) = self._singlarise_units(_tokenized_sentence)
-
-        self.defer_pos_tagging: bool = defer_pos_tagging
-        if not defer_pos_tagging:
-            self.pos_tags: list[str] = self._tag_partofspeech(self.tokenized_sentence)
-        else:
-            self.pos_tags = []
-
-        # Replace all numeric tokens with "!num" for calculating features
-        self._feature_tokens = self._replace_numeric_tokens(self.tokenized_sentence)
+        self.singularised_indices = []
+        self.tokenized_sentence = self._calculate_tokens(self.sentence)
 
     def __repr__(self) -> str:
         """__repr__ method.
@@ -174,9 +177,9 @@ class PreProcessor:
         """
         _str = [
             "Pre-processed recipe ingredient sentence",
-            f"\t    Input: {self.input}",
-            f"\t  Cleaned: {self.sentence}",
-            f"\tTokenized: {self.tokenized_sentence}",
+            f"\t  Input: {self.input}",
+            f"\tCleaned: {self.sentence}",
+            f"\t Tokens: {[t.text for t in self.tokenized_sentence]}",
         ]
         return "\n".join(_str)
 
@@ -539,84 +542,71 @@ class PreProcessor:
         """
         return EXPANDED_RANGE.sub(r"\1-\2", sentence)
 
-    def _singlarise_units(
-        self, tokenized_sentence: list[str]
-    ) -> tuple[list[str], list[int]]:
-        """Singularise units in tokenized sentence.
+    def _calculate_tokens(self, sentence: str) -> list[Token]:
+        """Tokenize sentence and calculate attributes for each token.
 
-        Returns the tokenized sentence with plural units made singular, and a list of
-        indices of tokens in the tokenized sentence that have been singularised.
+        The attributes calculated for each token are attributes that properties of the
+        individual token, such as things like is_numeric, is_unit.
+        It does not include attributes that depend on the token context.
 
         Parameters
         ----------
-        tokenized_sentence : list[str]
-            Tokenised sentence
+        sentence : str
+            Sentence to tokenize.
 
         Returns
         -------
-        list[str]
-            Tokenised sentence with units singularised
-        list[int]
-            List of indices of tokenized sentence that have been singularised
+        list[Token]
+            List of Tokens for sentence.
         """
-        singularised_indices = []
-        for idx, token in enumerate(tokenized_sentence):
-            singular = UNITS.get(token, None)
+        tokens = []
+
+        # Singularise units
+        text_tokens = []
+        for i, text in enumerate(tokenize(sentence)):
+            singular = UNITS.get(text, None)
             if singular is not None:
-                tokenized_sentence[idx] = singular
-                singularised_indices.append(idx)
-
-        return (tokenized_sentence, singularised_indices)
-
-    def _replace_numeric_tokens(self, tokens: list[str]) -> list[str]:
-        """Replace numeric tokens with single representation "!num".
-
-        This is so the model doesn't need to learn multiple different numeric tokens,
-        just the one.
-
-        Parameters
-        ----------
-        tokens : list[str]
-            List of tokens
-
-        Returns
-        -------
-        list[str]
-            List of tokens with numeric tokens replaced with "!num"
-        """
-        replaced_tokens = []
-        for token in tokens:
-            if self._is_numeric(token):
-                replaced_tokens.append("!num")
+                text_tokens.append(singular)
+                self.singularised_indices.append(i)
             else:
-                replaced_tokens.append(token)
+                text_tokens.append(text)
 
-        return replaced_tokens
+        for i, (text, pos) in enumerate(pos_tag(text_tokens)):
+            # Convert tokens:
+            # * Singularise units, keeping track of indices of singularised tokens
+            # * Replace numeric token with "!num"
+            if self._is_numeric(text):
+                feat_text = "!num"
+            else:
+                feat_text = text
 
-    def _tag_partofspeech(self, tokens: list[str]) -> list[str]:
-        """Tag tokens with part of speech using universal tag set.
-
-        Parameters
-        ----------
-        tokens : list[str]
-            Tokenized ingredient sentence
-
-        Returns
-        -------
-        list[str]
-            List of part of speech tags
-        """
-        tags = []
-        # If we don't make each token lower case, that POS tag maybe different in
-        # ways that are unhelpful. For example, if a sentence starts with a unit.
-        for token, tag in pos_tag([t.lower() for t in tokens]):
-            if self._is_numeric(token):
-                tag = "CD"
-            elif token in ["c", "g"]:
+            # Get part of speech tag, with overrides for certain tokens
+            if self._is_numeric(text):
+                pos = "CD"
+            elif text in ["c", "g"]:
                 # Special cases for c (cup) and g (gram)
-                tag = "NN"
-            tags.append(tag)
-        return tags
+                pos = "NN"
+
+            features = TokenFeatures(
+                stem=stem(feat_text),
+                shape=self._word_shape(feat_text),
+                is_capitalised=self._is_capitalised(feat_text),
+                is_unit=self._is_unit(feat_text),
+                is_punc=self._is_punc(feat_text),
+                is_ambiguous_unit=self._is_ambiguous_unit(feat_text),
+            )
+
+            tokens.append(
+                Token(
+                    index=i,
+                    text=text,
+                    feat_text=feat_text,
+                    pos_tag=pos,
+                    features=features,
+                )
+            )
+
+        return tokens
 
     def _is_unit(self, token: str) -> bool:
         """Return True if token is a unit.
@@ -757,7 +747,7 @@ class PreProcessor:
         bool
             True if token follows comma, else False
         """
-        return "," in self.tokenized_sentence[:index]
+        return "," in [t.feat_text for t in self.tokenized_sentence[:index]]
 
     def _follows_plus(self, index: int) -> bool:
         """Return True if token at index follow "plus" by any amount in sentence.
@@ -774,7 +764,7 @@ class PreProcessor:
         bool
             True if token follows "plus", else False
         """
-        return "plus" in self.tokenized_sentence[:index]
+        return "plus" in [t.feat_text for t in self.tokenized_sentence[:index]]
 
     def _is_capitalised(self, token: str) -> bool:
         """Return True if token starts with a capital letter.
@@ -815,14 +805,14 @@ class PreProcessor:
             True if index is inside parentheses or is parenthesis, else False
         """
         # If it's "(" or ")", return True
-        if self.tokenized_sentence[index] in ["(", ")", "[", "]"]:
+        if self.tokenized_sentence[index].feat_text in ["(", ")", "[", "]"]:
             return True
 
         open_parens, closed_parens = [], []
         for i, token in enumerate(self.tokenized_sentence):
-            if token == "(" or token == "[":
+            if token.feat_text == "(" or token.feat_text == "[":
                 open_parens.append(i)
-            elif token == ")" or token == "]":
+            elif token.feat_text == ")" or token.feat_text == "]":
                 closed_parens.append(i)
 
         for start, end in zip(open_parens, closed_parens):
@@ -920,16 +910,16 @@ class PreProcessor:
         dict[str, str | bool]
             Dict of features for token at given index.
         """
-        token = self._feature_tokens[index]
+        token = self.tokenized_sentence[index]
         return {
-            prefix + "is_capitalised": self._is_capitalised(token),
-            prefix + "is_unit": self._is_unit(token),
-            prefix + "is_punc": self._is_punc(token),
-            prefix + "is_ambiguous": self._is_ambiguous_unit(token),
+            prefix + "is_capitalised": token.features.is_capitalised,
+            prefix + "is_unit": token.features.is_unit,
+            prefix + "is_punc": token.features.is_punc,
+            prefix + "is_ambiguous": token.features.is_ambiguous_unit,
             prefix + "is_in_parens": self._is_inside_parentheses(index),
             prefix + "is_after_comma": self._follows_comma(index),
             prefix + "is_after_plus": self._follows_plus(index),
-            prefix + "word_shape": self._word_shape(token),
+            prefix + "word_shape": token.features.shape,
         }
 
     def _ngram_features(self, token: str, prefix: str) -> dict[str, str]:
@@ -987,88 +977,94 @@ class PreProcessor:
         dict[str, str | bool]
             Dictionary of features for token at index.
         """
-        token = self._feature_tokens[index]
+        token = self.tokenized_sentence[index]
         features: dict[str, str | bool] = {}
 
         features["bias"] = ""
 
         # Features for current token
-        features["pos"] = self.pos_tags[index]
-        features["stem"] = stem(token)
-        if token != stem(token):
-            features["token"] = token
+        features["pos"] = token.pos_tag
+        features["stem"] = token.features.stem
+        if token.feat_text != token.features.stem:
+            features["token"] = token.feat_text
 
         features |= self._common_features(index, "")
-        features |= self._ngram_features(token, "")
+        features |= self._ngram_features(token.feat_text, "")
 
         # Features for previous token
         if index > 0:
-            prev_token = self._feature_tokens[index - 1]
-            features["prev_stem"] = stem(prev_token)
+            prev_token = self.tokenized_sentence[index - 1]
+            features["prev_stem"] = prev_token.features.stem
             features["prev_pos"] = "+".join(
-                (self.pos_tags[index - 1], self.pos_tags[index])
+                (
+                    self.tokenized_sentence[index - 1].pos_tag,
+                    self.tokenized_sentence[index].pos_tag,
+                )
             )
             features |= self._common_features(index - 1, "prev_")
 
         # Features for previous previous token
         if index > 1:
-            prev2_token = self._feature_tokens[index - 2]
-            features["prev2_stem"] = stem(prev2_token)
+            prev2_token = self.tokenized_sentence[index - 2]
+            features["prev2_stem"] = prev2_token.features.stem
             features["prev2_pos"] = "+".join(
                 (
-                    self.pos_tags[index - 2],
-                    self.pos_tags[index - 1],
-                    self.pos_tags[index],
+                    self.tokenized_sentence[index - 2].pos_tag,
+                    self.tokenized_sentence[index - 1].pos_tag,
+                    self.tokenized_sentence[index].pos_tag,
                 )
             )
             features |= self._common_features(index - 2, "prev2_")
 
         # Features for previous previous previous token
         if index > 2:
-            prev3_token = self._feature_tokens[index - 3]
-            features["prev3_stem"] = stem(prev3_token)
+            prev3_token = self.tokenized_sentence[index - 3]
+            features["prev3_stem"] = prev3_token.features.stem
             features["prev3_pos"] = "+".join(
                 (
-                    self.pos_tags[index - 3],
-                    self.pos_tags[index - 2],
-                    self.pos_tags[index - 1],
-                    self.pos_tags[index],
+                    self.tokenized_sentence[index - 3].pos_tag,
+                    self.tokenized_sentence[index - 2].pos_tag,
+                    self.tokenized_sentence[index - 1].pos_tag,
+                    self.tokenized_sentence[index].pos_tag,
                 )
             )
             features |= self._common_features(index - 3, "prev3_")
 
         # Features for next token
-        if index < len(self._feature_tokens) - 1:
-            next_token = self._feature_tokens[index + 1]
-            features["next_stem"] = stem(next_token)
+        if index < len(self.tokenized_sentence) - 1:
+            next_token = self.tokenized_sentence[index + 1]
+            features["next_stem"] = next_token.features.stem
             features["next_pos"] = "+".join(
-                (self.pos_tags[index], self.pos_tags[index + 1])
+                (
+                    self.tokenized_sentence[index].pos_tag,
+                    self.tokenized_sentence[index + 1].pos_tag,
+                )
             )
             features |= self._common_features(index + 1, "next_")
 
         # Features for next next token
-        if index < len(self._feature_tokens) - 2:
-            next2_token = self._feature_tokens[index + 2]
-            features["next2_stem"] = stem(next2_token)
+        if index < len(self.tokenized_sentence) - 2:
+            next2_token = self.tokenized_sentence[index + 2]
+            features["next2_stem"] = next2_token.features.stem
             features["next2_pos"] = "+".join(
                 (
-                    self.pos_tags[index + 2],
-                    self.pos_tags[index + 1],
-                    self.pos_tags[index],
+                    self.tokenized_sentence[index].pos_tag,
+                    self.tokenized_sentence[index + 1].pos_tag,
+                    self.tokenized_sentence[index + 2].pos_tag,
                 )
             )
             features |= self._common_features(index + 2, "next2_")
 
         # Features for next next next token
-        if index < len(self._feature_tokens) - 3:
-            next3_token = self._feature_tokens[index + 3]
-            features["next3_stem"] = stem(next3_token)
+        if index < len(self.tokenized_sentence) - 3:
+            next3_token = self.tokenized_sentence[index + 3]
+            features["next3_stem"] = next3_token.features.stem
             features["next3_pos"] = "+".join(
                 (
-                    self.pos_tags[index + 3],
-                    self.pos_tags[index + 2],
-                    self.pos_tags[index + 1],
-                    self.pos_tags[index],
+                    self.tokenized_sentence[index].pos_tag,
+                    self.tokenized_sentence[index + 1].pos_tag,
+                    self.tokenized_sentence[index + 2].pos_tag,
+                    self.tokenized_sentence[index + 3].pos_tag,
                 )
             )
             features |= self._common_features(index + 3, "next3_")
@@ -1083,10 +1079,6 @@ class PreProcessor:
         list[dict[str, str | bool]]
             List of features for each token in sentence
         """
-        if self.defer_pos_tagging:
-            # If part of speech tagging was deferred, do it now
-            self.pos_tags = self._tag_partofspeech(self.tokenized_sentence)
-
         features = []
         for idx, _ in enumerate(self.tokenized_sentence):
             features.append(self._token_features(idx))

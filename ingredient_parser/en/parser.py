@@ -84,7 +84,7 @@ def parse_ingredient_en(
     load_model_if_not_loaded()
 
     processed_sentence = PreProcessor(sentence)
-    tokens = processed_sentence.tokenized_sentence
+    tokens = [t.text for t in processed_sentence.tokenized_sentence]
     features = processed_sentence.sentence_features()
     labels = TAGGER.tag(features)
     scores = [TAGGER.marginal(label, i) for i, label in enumerate(labels)]
@@ -172,7 +172,7 @@ def inspect_parser_en(
     load_model_if_not_loaded()
 
     processed_sentence = PreProcessor(sentence)
-    tokens = processed_sentence.tokenized_sentence
+    tokens = [t.text for t in processed_sentence.tokenized_sentence]
     features = processed_sentence.sentence_features()
     labels = TAGGER.tag(features)
     scores = [TAGGER.marginal(label, i) for i, label in enumerate(labels)]
