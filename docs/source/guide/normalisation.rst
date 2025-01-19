@@ -188,7 +188,3 @@ This step is actually performed after tokenisation (see :doc:`Extracting the fea
 
 .. literalinclude:: ../../../ingredient_parser/en/_constants.py
     :lines: 6-124
-
-.. literalinclude:: ../../../ingredient_parser/en/preprocess.py
-    :pyobject: PreProcessor._singlarise_units
-    :dedent: 4

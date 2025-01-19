@@ -115,7 +115,6 @@ class PostProcessor:
         discard_isolated_stop_words: bool = True,
         string_units: bool = False,
         imperial_units: bool = False,
-        quantity_fractions: bool = False,
     ):
         self.sentence = sentence
         self.tokens = tokens
@@ -124,7 +123,6 @@ class PostProcessor:
         self.discard_isolated_stop_words = discard_isolated_stop_words
         self.string_units = string_units
         self.imperial_units = imperial_units
-        self.quantity_fractions = quantity_fractions
         self.consumed = []
 
     def __repr__(self) -> str:
@@ -768,8 +766,8 @@ class PostProcessor:
 
         For example, for the sentence: 1 28 ounce can; the correct amounts are:
         [
-            IngredientAmount(quantity="1", unit="can", score=0.x...),
-            IngredientAmount(quantity="28", unit="ounce", score=0.x...),
+            IngredientAmount(quantity=Fraction(1, 1), unit="can", score=0.x...),
+            IngredientAmount(quantity=Fraction(28, 1), unit="ounce", score=0.x...),
         ]
 
         Parameters
@@ -847,7 +845,6 @@ class PostProcessor:
                         APPROXIMATE=self._is_approximate(match[0], tokens, labels, idx),
                         string_units=self.string_units,
                         imperial_units=self.imperial_units,
-                        quantity_fractions=self.quantity_fractions,
                     )
                     amounts.append(first)
                     # Pop the first and last items from the list of matching indices
@@ -874,7 +871,6 @@ class PostProcessor:
                             APPROXIMATE=first.APPROXIMATE,
                             string_units=self.string_units,
                             imperial_units=self.imperial_units,
-                            quantity_fractions=self.quantity_fractions,
                         )
                         amounts.append(amount)
 
@@ -897,8 +893,8 @@ class PostProcessor:
         For example, for the sentence: 1 lb 2 oz ...; the composite amount is:
         CompositeAmount(
             amounts=[
-                IngredientAmount(quantity="1", unit="lb", score=0.x...),
-                IngredientAmount(quantity="2", unit="oz", score=0.x...),
+                IngredientAmount(quantity=Fraction(1, 1), unit="lb", score=0.x...),
+                IngredientAmount(quantity=Fraction(2, 1), unit="oz", score=0.x...),
             ],
             join=""
         )
@@ -1046,7 +1042,6 @@ class PostProcessor:
                     starting_index=idx[match[start1]],
                     string_units=self.string_units,
                     imperial_units=self.imperial_units,
-                    quantity_fractions=self.quantity_fractions,
                 )
 
                 # Second amount
@@ -1063,7 +1058,6 @@ class PostProcessor:
                     starting_index=idx[match[start2]],
                     string_units=self.string_units,
                     imperial_units=self.imperial_units,
-                    quantity_fractions=self.quantity_fractions,
                 )
 
                 composite_amounts.append(
@@ -1261,7 +1255,6 @@ class PostProcessor:
                     PREPARED_INGREDIENT=amount.PREPARED_INGREDIENT,
                     string_units=self.string_units,
                     imperial_units=self.imperial_units,
-                    quantity_fractions=self.quantity_fractions,
                 )
             )
 

@@ -13,7 +13,6 @@ def parse_ingredient(
     expect_name_in_output: bool = True,
     string_units: bool = False,
     imperial_units: bool = False,
-    quantity_fractions: bool = False,
     foundation_foods: bool = False,
 ) -> ParsedIngredient:
     """Parse an ingredient sentence to return structured data.
@@ -44,10 +43,6 @@ def parse_ingredient(
         for the the following units: fluid ounce, cup, pint, quart, gallon.
         Default is False, which results in US customary units being used.
         This has no effect if string_units=True.
-    quantity_fractions: bool, optional
-        If True, IngredientAmount quantities are returned as fractions.Fraction objects.
-        Default is False, where quantities are returned as floats rounded to 3 decimal
-        places.
     foundation_foods : bool, optional
         If True, extract foundation foods from ingredient name. Foundation foods are
         the fundamental foods without any descriptive terms, e.g. 'cucumber' instead
@@ -71,7 +66,6 @@ def parse_ingredient(
                 string_units=string_units,
                 imperial_units=imperial_units,
                 foundation_foods=foundation_foods,
-                quantity_fractions=quantity_fractions,
             )
         case _:
             raise ValueError(f'Unrecognised value "{lang}"')
@@ -84,7 +78,6 @@ def parse_multiple_ingredients(
     expect_name_in_output: bool = True,
     string_units: bool = False,
     imperial_units: bool = False,
-    quantity_fractions: bool = False,
     foundation_foods: bool = False,
 ) -> list[ParsedIngredient]:
     """Parse multiple ingredient sentences in one go.
@@ -121,10 +114,6 @@ def parse_multiple_ingredients(
         for the the following units: fluid ounce, cup, pint, quart, gallon.
         Default is False, which results in US customary units being used.
         This has no effect if string_units=True.
-    quantity_fractions: bool, optional
-        If True, IngredientAmount quantities are returned as fractions.Fraction objects.
-        Default is False, where quantities are returned as floats rounded to 3 decimal
-        places.
     foundation_foods : bool, optional
         If True, extract foundation foods from ingredient name. Foundation foods are
         the fundamental foods without any descriptive terms, e.g. 'cucumber' instead
@@ -146,7 +135,6 @@ def parse_multiple_ingredients(
             string_units=string_units,
             imperial_units=imperial_units,
             foundation_foods=foundation_foods,
-            quantity_fractions=quantity_fractions,
         )
         for sentence in sentences
     ]
@@ -159,7 +147,6 @@ def inspect_parser(
     expect_name_in_output: bool = True,
     string_units: bool = False,
     imperial_units: bool = False,
-    quantity_fractions: bool = False,
     foundation_foods: bool = False,
 ) -> ParserDebugInfo:
     """Return intermediate objects generated during parsing for inspection.
@@ -190,10 +177,6 @@ def inspect_parser(
         for the the following units: fluid ounce, cup, pint, quart, gallon.
         Default is False, which results in US customary units being used.
         This has no effect if string_units=True.
-    quantity_fractions: bool, optional
-        If True, IngredientAmount quantities are returned as fractions.Fraction objects.
-        Default is False, where quantities are returned as floats rounded to 3 decimal
-        places.
     foundation_foods : bool, optional
         If True, extract foundation foods from ingredient name. Foundation foods are
         the fundamental foods without any descriptive terms, e.g. 'cucumber' instead
@@ -218,7 +201,6 @@ def inspect_parser(
                 string_units=string_units,
                 imperial_units=imperial_units,
                 foundation_foods=foundation_foods,
-                quantity_fractions=quantity_fractions,
             )
         case _:
             raise ValueError(f'Unrecognised value "{lang}"')

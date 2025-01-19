@@ -425,7 +425,6 @@ def ingredient_amount_factory(
     PREPARED_INGREDIENT: bool = False,
     string_units: bool = False,
     imperial_units: bool = False,
-    quantity_fractions: bool = False,
 ) -> IngredientAmount:
     """Create ingredient amount object from parts.
 
@@ -467,9 +466,6 @@ def ingredient_amount_factory(
         for the the following units: fluid ounce, cup, pint, quart, gallon.
         Default is False, which results in US customary units being used.
         This has no effect if string_units=True.
-    quantity_fractions: bool, optional
-        If True, return numeric quantities as Fraction objects.
-        Default is False, where numeric quantities are returned as floats.
 
     Returns
     -------
@@ -498,12 +494,6 @@ def ingredient_amount_factory(
         _quantity = quantity
         # Fallback to setting quantity_max to quantity
         quantity_max = _quantity
-
-    if not quantity_fractions:
-        # Convert to floats if not using Fractions
-        if isinstance(_quantity, Fraction) and isinstance(quantity_max, Fraction):
-            _quantity = round(float(_quantity), 3)
-            quantity_max = round(float(quantity_max), 3)
 
     _unit = unit
     # Convert unit to pint.Unit

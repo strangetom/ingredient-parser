@@ -19,10 +19,10 @@ class IngredientAmount:
 
     Attributes
     ----------
-    quantity : float | Fraction | str
+    quantity : Fraction | str
         Parsed ingredient quantity, as a float where possible, otherwise a string.
         If the amount if a range, this is the lower limit of the range.
-    quantity_max : float | Fraction | str
+    quantity_max : Fraction | str
         If the amount is a range, this is the upper limit of the range.
         Otherwise, this is the same as the quantity field.
         This is set automatically depending on the type of quantity.
@@ -55,8 +55,8 @@ class IngredientAmount:
         Default is False.
     """
 
-    quantity: float | Fraction | str
-    quantity_max: float | Fraction | str
+    quantity: Fraction | str
+    quantity_max: Fraction | str
     unit: str | pint.Unit
     text: str
     confidence: float
@@ -143,7 +143,7 @@ class CompositeIngredientAmount:
         # Check amounts are compatible for combination
         for amount in self.amounts:
             if not (
-                isinstance(amount.quantity, (float, Fraction))
+                isinstance(amount.quantity, Fraction)
                 and isinstance(amount.unit, pint.Unit)
             ):
                 q_type = type(amount.quantity).__name__
@@ -160,10 +160,9 @@ class CompositeIngredientAmount:
         else:
             op = operator.add
 
-        # Force quantity to float in case it's a Fraction
         return reduce(
             op,
-            (float(amount.quantity) * amount.unit for amount in self.amounts),  # type: ignore
+            (amount.quantity * amount.unit for amount in self.amounts),  # type: ignore
         )
 
 

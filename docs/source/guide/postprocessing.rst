@@ -55,8 +55,8 @@ For most cases, the amounts are determined by combining a QTY label with the fol
     >>> parsed = PostProcessor(sentence, tokens, labels, scores).parsed()
     >>> amounts = parsed.amount
     [
-        IngredientAmount(quantity=0.75,
-                  quantity_max=0.75,
+        IngredientAmount(quantity=Fraction(3, 4),
+                  quantity_max=Fraction(3, 4),
                   unit=<Unit('cup')>,
                   text='0.75 cups',
                   confidence=0.999881,
@@ -65,8 +65,8 @@ For most cases, the amounts are determined by combining a QTY label with the fol
                   RANGE=False,
                   MULTIPLIER=False,
                   PREPARED_INGREDIENT=False),
-        IngredientAmount(quantity=170.0,
-                  quantity_max=170.0,
+        IngredientAmount(quantity=Fraction(170, 1),
+                  quantity_max=Fraction(170, 1),
                   unit=<Unit('gram')>,
                   text='170 g',
                   confidence=0.995941,
@@ -80,43 +80,15 @@ For most cases, the amounts are determined by combining a QTY label with the fol
 Quantities
 ++++++++++
 
-By default quantities are returned as ``float``, rounded to 3 decimal places. If the ``quantity_fractions`` keyword argument to :func:`parse_ingredient <ingredient_parser.parsers.parse_ingredient>`, then quantities are returned as :class:`fractions.Fraction` objects.
+Quantities are returned as :class:`fractions.Fraction` objects.
 
 .. code:: python
 
-    >>> parsed = parse_ingredient("1/3 cup oil")
-    >>> parsed.amount
-    [
-        IngredientAmount(quantity=0.333,
-                         quantity_max=0.333,
-                         unit=<Unit('cup')>,
-                         text=' 1/3 cups',
-                         confidence=0.999341,
-                         starting_index=0,
-                         APPROXIMATE=False,
-                         SINGULAR=False,
-                         RANGE=False,
-                         MULTIPLIER=False,
-                         PREPARED_INGREDIENT=False)
-    ]
-
     >>> parsed = parse_ingredient("1/3 cup oil", quantity_fractions=True)
-    >>> parsed.amount
-    [
-        IngredientAmount(quantity=Fraction(1, 3),
-                         quantity_max=Fraction(1, 3),
-                         unit=<Unit('cup')>,
-                         text=' 1/3 cups',
-                         confidence=0.999341,
-                         starting_index=0,
-                         APPROXIMATE=False,
-                         SINGULAR=False,
-                         RANGE=False,
-                         MULTIPLIER=False,
-                         PREPARED_INGREDIENT=False)
-    ]
+    >>> parsed.amount.quantity
+    Fraction(1, 3)
 
-
+Conversion to float or integer is the responsibility of the user of this library.
 
 Tokens with the QTY label that are numbers represented in textual form e.g. "one", "two" are replaced with numeric forms.
 The replacements are predefined in a dictionary.
@@ -148,8 +120,8 @@ By default, US customary units are used where a unit has more than one definitio
     ParsedIngredient(
         name=IngredientText(text='heavy cream', confidence=0.997513),
         size=None,
-        amount=[IngredientAmount(quantity=0.75,
-                                 quantity_max=0.75,
+        amount=[IngredientAmount(quantity=Fraction(3, 4),
+                                 quantity_max=Fraction(3, 4),
                                  unit=<Unit('cup')>,
                                  text='0.75 cups',
                                  confidence=0.999926,
@@ -167,8 +139,8 @@ By default, US customary units are used where a unit has more than one definitio
     ParsedIngredient(
         name=IngredientText(text='heavy cream', confidence=0.997513),
         size=None,
-        amount=[IngredientAmount(quantity=0.75,
-                                 quantity_max=0.75,
+        amount=[IngredientAmount(quantity=Fraction(3, 4),
+                                 quantity_max=Fraction(3, 4),
                                  unit=<Unit('imperial_cup')>,
                                  text='0.75 cups',
                                  confidence=0.999926,
@@ -192,11 +164,11 @@ By default, US customary units are used where a unit has more than one definitio
        >>> # Create a pint.Quantity object from the quantity and unit
        >>> q = parsed.amount[0].quantity * parsed.amount[0].unit
        >>> q
-       3.0 <Unit('pound')>
+       <Quantity(3.0, 'pound')>
 
        >>> # Convert to kg
        >>> q.to("kg")
-       1.3607771100000003 <Unit('kilogram')>
+       <Quantity(13607771100000003/10000000000000000, 'kilogram')>
 
 IngredientAmount flags
 ++++++++++++++++++++++
@@ -231,8 +203,8 @@ There are some particular cases where the combination of QTY and UNIT labels tha
 
     >>> parsed = parse_ingredient("2 14 ounce cans coconut milk")
     >>> parsed.amount
-    [IngredientAmount(quantity=2.0,
-                      quantity_max=2.0,
+    [IngredientAmount(quantity=Fraction(2, 1),
+                      quantity_max=Fraction(2, 1),
                       unit='cans',
                       text='2 cans',
                       confidence=0.999897,
@@ -241,8 +213,8 @@ There are some particular cases where the combination of QTY and UNIT labels tha
                       RANGE=False,
                       MULTIPLIER=False,
                       PREPARED_INGREDIENT=False),
-     IngredientAmount(quantity=14.0,
-                      quantity_max=14.0,
+     IngredientAmount(quantity=Fraction(14, 1),
+                      quantity_max=Fraction(14, 1),
                       unit=<Unit('ounce')>,
                       text='14 ounces',
                       confidence=0.998793,
@@ -263,8 +235,8 @@ A second case is where the full amount is made up of more than one quantity-unit
     >>> parsed.amount
     [CompositeIngredientAmount(
         amounts=[
-            IngredientAmount(quantity=1.0,
-                             quantity_max=1.0,
+            IngredientAmount(quantity=Fraction(1, 1),
+                             quantity_max=Fraction(1, 1),
                              unit=<Unit('pound')>,
                              text='1 lb',
                              confidence=0.999923,
@@ -274,8 +246,8 @@ A second case is where the full amount is made up of more than one quantity-unit
                              RANGE=False,
                              MULTIPLIER=False,
                              PREPARED_INGREDIENT=False),
-            IngredientAmount(quantity=2.0,
-                             quantity_max=2.0,
+            IngredientAmount(quantity=Fraction(1, 1),
+                             quantity_max=Fraction(1, 1),
                              unit=<Unit('ounce')>,
                              text='2 oz',
                              confidence=0.998968,
