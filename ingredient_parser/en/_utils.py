@@ -190,6 +190,7 @@ def stem(token: str) -> str:
     return STEMMER.stem(token)
 
 
+@lru_cache(maxsize=512)
 def pluralise_units(sentence: str) -> str:
     """Pluralise units in the sentence.
 
@@ -223,6 +224,7 @@ def pluralise_units(sentence: str) -> str:
     return sentence
 
 
+@lru_cache(maxsize=512)
 def convert_to_pint_unit(unit: str, imperial_units: bool = False) -> str | pint.Unit:
     """Convert a unit to a pint.Unit object, if possible.
 
@@ -283,6 +285,7 @@ def convert_to_pint_unit(unit: str, imperial_units: bool = False) -> str | pint.
     return unit
 
 
+@lru_cache(maxsize=512)
 def is_unit_synonym(unit1: str, unit2: str) -> bool:
     """Check if given units are synonyms.
 
@@ -390,6 +393,7 @@ def replace_string_range(text: str) -> str:
     return STRING_RANGE_PATTERN.sub(r"\1-\5", text)
 
 
+@lru_cache(maxsize=512)
 def to_frac(token: str) -> Fraction:
     """Convert a QTY token into a Fraction object
 
