@@ -6,7 +6,7 @@ class Test_expect_name_in_output:
         """
         Test that the return name is not None
         """
-        sentence = "1 quart 7-Up chilled"
+        sentence = "Sugar as needed"
         parsed = parse_ingredient(sentence, expect_name_in_output=True)
         assert parsed.name != []
 
@@ -14,7 +14,7 @@ class Test_expect_name_in_output:
         """
         Test that the returned name is None
         """
-        sentence = "1 quart 7-Up chilled"
+        sentence = "Sugar as needed"
         parsed = parse_ingredient(sentence, expect_name_in_output=False)
         assert parsed.name == []
 
