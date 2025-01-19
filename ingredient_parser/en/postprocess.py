@@ -235,7 +235,9 @@ class PostProcessor:
         for group in constructed_names:
             # Convert from name_label indices to token indices
             token_idx = [name_idx[idx] for idx in group]
-            names.append(self._postprocess_indices(token_idx, "NAME"))
+            ing_text = self._postprocess_indices(token_idx, "NAME")
+            if ing_text is not None:
+                names.append(ing_text)
 
         return names
 
