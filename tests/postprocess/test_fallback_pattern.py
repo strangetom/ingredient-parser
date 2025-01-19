@@ -202,6 +202,72 @@ class TestPostProcessor_fallback_pattern:
 
         assert p._fallback_pattern(idx, tokens, labels, scores) == expected
 
+    def test_prepared(self, p):
+        """
+        Test that a single IngredientAmount object with the APPROXIMATE and
+        SINGULAR flags set is returned
+        """
+        tokens = [
+            "2",
+            "bananas",
+            ",",
+            "mashed",
+            ",",
+            "to",
+            "yield",
+            "1",
+            "cup",
+            "(",
+            "200",
+            "g",
+            ")",
+        ]
+        labels = [
+            "QTY",
+            "B_NAME_TOK",
+            "PUNC",
+            "PREP",
+            "PUNC",
+            "COMMENT",
+            "COMMENT",
+            "QTY",
+            "UNIT",
+            "PUNC",
+            "QTY",
+            "UNIT",
+            "PUNC",
+        ]
+        scores = [0.0] * len(tokens)
+        idx = list(range(len(tokens)))
+
+        expected = [
+            ingredient_amount_factory(
+                quantity="2",
+                unit="",
+                text="2",
+                confidence=0,
+                starting_index=0,
+            ),
+            ingredient_amount_factory(
+                quantity="1",
+                unit="cup",
+                text="1 cup",
+                confidence=0,
+                starting_index=7,
+                PREPARED_INGREDIENT=True,
+            ),
+            ingredient_amount_factory(
+                quantity="200",
+                unit="g",
+                text="200 g",
+                confidence=0,
+                starting_index=10,
+                PREPARED_INGREDIENT=True,
+            ),
+        ]
+
+        assert p._fallback_pattern(idx, tokens, labels, scores) == expected
+
     def test_dozen(self, p):
         """
         Test that the token "dozen" is combined with the preceding QTY token in a
