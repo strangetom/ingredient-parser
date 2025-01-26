@@ -45,10 +45,10 @@ CONSECUTIVE_SPACES = re.compile(r"\s+")
 class TokenFeatures:
     stem: str
     shape: str
-    is_capitalised: str
-    is_unit: str
-    is_punc: str
-    is_ambiguous_unit: str
+    is_capitalised: bool
+    is_unit: bool
+    is_punc: bool
+    is_ambiguous_unit: bool
 
 
 @dataclass
