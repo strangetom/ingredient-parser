@@ -226,7 +226,7 @@ class PostProcessor:
             return []
 
         name_labels = [self.labels[i] for i in name_idx]
-        bio_groups = self._group_BIO_labels(name_labels)
+        bio_groups = self._group_name_labels(name_labels)
         constructed_names = self._construct_names(bio_groups)
 
         names = []
@@ -239,12 +239,18 @@ class PostProcessor:
 
         return names
 
-    def _group_BIO_labels(self, name_labels: list[str]) -> list[list[tuple[int, str]]]:
-        """Group name labels according to BIO groups.
+    def _group_name_labels(self, name_labels: list[str]) -> list[list[tuple[int, str]]]:
+        """Group name labels according to name label type.
 
-        A B_* label starts a new group, containing all subsequent I_* labels of the same
-        type. O and N_SPLIT labels are also used to split the input list, but are
-        discarded from output.
+        B_NAME_TOK and all following I_NAME_TOK up to the next label that is not
+        I_NAME_TOK or PUNC are grouped.
+
+        B_NAME_VAR and all following I_NAME_VAR up to the next label that is not
+        I_NAME_VAR or PUNC are grouped.
+
+        All consecutive NAME_MOD labels are grouped.
+
+        A NAME_SEP label starts a new group.
 
         Parameters
         ----------
@@ -258,31 +264,43 @@ class PostProcessor:
             Each group is a list of tuples, where each tuple is the (index, label) of
             the original name_labels list element.
         """
-        bio_groups = []
+        name_groups = []
         current_group = []
+        prev_label = None
         for idx, label in enumerate(name_labels):
             # Start new group on NAME_SEP name label
             if label == "NAME_SEP":
                 if current_group:
-                    bio_groups.append(current_group)
+                    name_groups.append(current_group)
                 current_group = []
             # Start new group for new "B_*" name label
             elif label.startswith("B_"):
                 if current_group:
-                    bio_groups.append(current_group)
+                    name_groups.append(current_group)
                 current_group = [(idx, label)]
+            # Start new group if encountering new NAME_MOD, of append to current group
+            # if last label was also NAME_MOD
+            elif label == "NAME_MOD":
+                if prev_label == "NAME_MOD":
+                    current_group.append((idx, label))
+                else:
+                    if current_group:
+                        name_groups.append(current_group)
+                    current_group = [(idx, label)]
             # Must be an I_NAME* or PUNC label, so append to current group
             else:
                 current_group.append((idx, label))
 
+            prev_label = label
+
         # Add last group to list if not empty
         if current_group:
-            bio_groups.append(current_group)
+            name_groups.append(current_group)
 
-        return bio_groups
+        return name_groups
 
     def _construct_names(
-        self, bio_groups: list[list[tuple[int, str]]]
+        self, name_groups: list[list[tuple[int, str]]]
     ) -> list[list[int]]:
         """Construct names from BIO groups.
 
@@ -295,7 +313,7 @@ class PostProcessor:
 
         Parameters
         ----------
-        bio_groups : list[list[tuple[int, str]]]
+        name_groups : list[list[tuple[int, str]]]
             List of BIO groups.
             Each group is a list of tuples, where each tuple if the (index, label) of
             the original list element.
@@ -314,9 +332,9 @@ class PostProcessor:
         last_encountered_name_used = False
 
         # Iterate from last to first BIO group
-        for group in reversed(bio_groups):
+        for group in reversed(name_groups):
             current_group_idx, labels = zip(*group)
-            current_label = self._get_bio_group_label(labels)
+            current_label = self._get_name_group_label(labels)
 
             if current_label == "TOK":
                 # If we've previously come across a TOK group and haven't used it,
@@ -359,15 +377,15 @@ class PostProcessor:
         # Return reversed list, so names are in the order they appear in sentence.
         return list(reversed(constructed_names))
 
-    def _get_bio_group_label(self, labels: list[str]) -> str:
-        """Get the NAME label type for the labels in a BIO group.
+    def _get_name_group_label(self, labels: list[str]) -> str:
+        """Get the NAME label type for the labels in a name group.
 
         One of TOK, VAR, MOD.
 
         Parameters
         ----------
         labels : list[str]
-            List of labels for BIO group elements.
+            List of labels for name group elements.
 
         Returns
         -------
