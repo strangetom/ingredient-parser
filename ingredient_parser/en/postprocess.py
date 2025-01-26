@@ -378,7 +378,7 @@ class PostProcessor:
             if label != "PUNC":
                 return label.split("_")[-1]
 
-        return label
+        return ""
 
     def _postprocess_indices(
         self, label_idx: list[int], selected_label: str
