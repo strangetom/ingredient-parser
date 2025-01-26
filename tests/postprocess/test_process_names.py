@@ -63,7 +63,7 @@ class TestPostProcessor_postprocess_names:
             "QTY",
             "UNIT",
             "COMMENT",
-            "B_NAME_MOD",
+            "NAME_MOD",
             "B_NAME_TOK",
             "NAME_SEP",
             "B_NAME_TOK",
@@ -87,7 +87,7 @@ class TestPostProcessor_postprocess_names:
         labels = [
             "QTY",
             "UNIT",
-            "B_NAME_MOD",
+            "NAME_MOD",
             "B_NAME_VAR",
             "NAME_SEP",
             "B_NAME_VAR",
