@@ -173,10 +173,10 @@ if __name__ == "__main__":
     bio_errors = 0
 
     for row in rows:
-        p = PreProcessor(row["sentence"], defer_pos_tagging=True)
-        if not validate_tokens(p.tokenized_sentence, row):
+        p = PreProcessor(row["sentence"])
+        if not validate_tokens([t.text for t in p.tokenized_sentence], row):
             token_errors += 1
-        if not validate_token_label_length(p.tokenized_sentence, row):
+        if not validate_token_label_length([t.text for t in p.tokenized_sentence], row):
             token_label_errors += 1
         if not validate_BIO_labels(row):
             bio_errors += 1
