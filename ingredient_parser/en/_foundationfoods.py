@@ -100,7 +100,7 @@ def deduplicate_foundation_foods(
 
 
 def extract_foundation_foods(
-    tokens: list[str], labels: list[str], features: list[dict[str, str | bool]]
+    tokens: list[str], labels: list[str], features: list[dict[str, str | bool | int]]
 ) -> list[FoundationFood]:
     """Extract foundation foods from tokens labelled as NAME.
 
@@ -110,7 +110,7 @@ def extract_foundation_foods(
         Sentence tokens
     labels : list[str]
         Labels for sentence tokens
-    features : list[dict[str, str | bool]]
+    features : list[dict[str, str | bool| int]]
         Features for sentence tokens
 
     Returns

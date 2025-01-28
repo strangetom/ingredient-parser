@@ -976,7 +976,7 @@ class PreProcessor:
 
         return ngram_features
 
-    def _token_features(self, token: Token) -> dict[str, str | bool]:
+    def _token_features(self, token: Token) -> dict[str, str | bool | int]:
         """Return the features for the token at the given index in the sentence.
 
         If the token at the given index appears in the corpus parameter, the token is
@@ -990,11 +990,11 @@ class PreProcessor:
 
         Returns
         -------
-        dict[str, str | bool]
+        dict[str, str | bool| int]
             Dictionary of features for token at index.
         """
         index = token.index
-        features: dict[str, str | bool] = {}
+        features: dict[str, str | bool | int] = {}
 
         features["bias"] = ""
         features["sentence_length"] = self._sentence_length_bucket()
@@ -1088,12 +1088,12 @@ class PreProcessor:
 
         return features
 
-    def sentence_features(self) -> list[dict[str, str | bool]]:
+    def sentence_features(self) -> list[dict[str, str | bool | int]]:
         """Return features for all tokens in sentence.
 
         Returns
         -------
-        list[dict[str, str | bool]]
+        list[dict[str, str | bool | int]]
             List of features for each token in sentence
         """
         return [self._token_features(token) for token in self.tokenized_sentence]
