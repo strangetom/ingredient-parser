@@ -231,8 +231,7 @@ def guess_ingredient_name(
     NAME_LABELS = [
         "B_NAME_TOK",
         "I_NAME_TOK",
-        "B_NAME_VAR",
-        "I_NAME_VAR",
+        "NAME_VAR",
         "NAME_MOD",
         "NAME_SEP",
     ]

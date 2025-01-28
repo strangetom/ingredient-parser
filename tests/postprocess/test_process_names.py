@@ -42,7 +42,7 @@ class TestPostProcessor_postprocess_names:
         """
         sentence = "2 cups beef or vegetable stock"
         tokens = ["2", "cup", "beef", "or", "vegetable", "stock"]
-        labels = ["QTY", "UNIT", "B_NAME_VAR", "NAME_SEP", "B_NAME_VAR", "B_NAME_TOK"]
+        labels = ["QTY", "UNIT", "NAME_VAR", "NAME_SEP", "NAME_VAR", "B_NAME_TOK"]
         scores = [0.0] * len(tokens)
 
         expected = [
@@ -88,9 +88,9 @@ class TestPostProcessor_postprocess_names:
             "QTY",
             "UNIT",
             "NAME_MOD",
-            "B_NAME_VAR",
+            "NAME_VAR",
             "NAME_SEP",
-            "B_NAME_VAR",
+            "NAME_VAR",
             "B_NAME_TOK",
         ]
         scores = [0.0] * len(tokens)
