@@ -97,10 +97,8 @@ def get_all_marginals(parser_info: ParserDebugInfo) -> list[dict[str, float]]:
     labels = [
         "B_NAME_TOK",
         "I_NAME_TOK",
-        "B_NAME_VAR",
-        "I_NAME_VAR",
-        "B_NAME_MOD",
-        "I_NAME_MOD",
+        "NAME_VAR",
+        "NAME_MOD",
         "NAME_SEP",
         "QTY",
         "UNIT",
