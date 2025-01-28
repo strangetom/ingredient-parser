@@ -1,5 +1,43 @@
 # Changelog
 
+## 2.0.0 [unreleased]
+
+> [!Caution]
+>
+> This release contains some breaking changes
+
+* `ParsedIngredient.name` returns a list of `IngredientText` objects, or a empty list no name is identified.
+
+* The `quantity_fractions` optional keyword argument has been removed. `IngredientAmount.quantity` and `IngredientAmount.quantity_max` return `fractions.Fraction` objects. Conversion to `float` can be achieved by e.g.:
+
+    ```python
+    # Round to 3 decimal places
+    round(float(quantity), 3)
+    ```
+
+### Processing
+
+* Identify where multiple alternative ingredients are given for the stated amount. For example
+
+```python
+# Simple example
+>>> parse_ingredient("2 tbsp butter or olive oil").name
+[
+  IngredientText(text='butter', confidence=0.983045, starting_index=2),
+  IngredientText(text='olive oil', confidence=0.930385, starting_index=4)
+]
+# Complex example
+>>> parse_ingredient("2 cups chicken or beef stock").name
+[
+  IngredientText(text='chicken stock', confidence=0.776891, starting_index=2),
+  IngredientText(text='beef stock', confidence=0.94334, starting_index=4)
+]
+```
+
+* Set `PREPARED_INGREDIENT` flag on amounts in cases like 
+
+  > ... to yield 2 cups ...
+
 ## 1.3.2
 
 ### Processing
@@ -49,7 +87,6 @@
   )
   ```
 
-  
 
 ### Model
 
@@ -85,7 +122,7 @@ Require NLTK >= 3.8.2 due to change in POS tagger weights format.
   * Word shape (e.g. cheese -> xxxxxx; Cheese -> Xxxxxx)
   * N-gram (n=3, 4, 5) prefixes and suffixes of tokens
 * Add 15,000 new sentences to training data from AllRecipes. This dataset includes lots of branded ingredients, which the existing datasets were quite light on.
-* Tweaks to the model hyperparameters have yielded a model that is ~25% small, but with better performance than the previous model.
+* Tweaks to the model hyperparameters have yielded a model that is ~25% smaller, but with better performance than the previous model.
 
 ### Processing
 
