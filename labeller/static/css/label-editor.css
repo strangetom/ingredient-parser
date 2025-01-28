@@ -221,10 +221,10 @@ input[type=checkbox]:checked~label:after {
 .B_TOK,.I_TOK {
   --background-color: color-mix(in srgb, var(--aqua), #111);
 }
-.B_VAR,.I_VAR {
+.NAME_VAR,.VAR {
   --background-color: color-mix(in srgb, var(--aqua), #444);
 }
-.B_MOD,.I_MOD {
+.NAME_MOD,.MOD {
   --background-color: color-mix(in srgb, var(--aqua), #777);
 }
 .NAME_SEP,.SEP {

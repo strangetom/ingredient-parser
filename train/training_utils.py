@@ -57,8 +57,7 @@ class TokenStats:
 
     B_NAME_TOK: Metrics
     I_NAME_TOK: Metrics
-    B_NAME_VAR: Metrics
-    I_NAME_VAR: Metrics
+    NAME_VAR: Metrics
     NAME_MOD: Metrics
     NAME_SEP: Metrics
     QTY: Metrics

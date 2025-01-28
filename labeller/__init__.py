@@ -236,7 +236,7 @@ def apply_filter(params: dict[str, str]):
         query = re.compile(expression, re.UNICODE | re.IGNORECASE)
 
     # 9 possible labels in total
-    if len(labels) == 16:
+    if len(labels) == 14:
         # Search through sentences
         indices = []
         for entry in data:

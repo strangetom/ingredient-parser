@@ -245,10 +245,8 @@ class PostProcessor:
         B_NAME_TOK and all following I_NAME_TOK up to the next label that is not
         I_NAME_TOK or PUNC are grouped.
 
-        B_NAME_VAR and all following I_NAME_VAR up to the next label that is not
-        I_NAME_VAR or PUNC are grouped.
-
         All consecutive NAME_MOD labels are grouped.
+        All consecutive NAME_VAR labels are grouped.
 
         A NAME_SEP label starts a new group.
 
@@ -278,16 +276,16 @@ class PostProcessor:
                 if current_group:
                     name_groups.append(current_group)
                 current_group = [(idx, label)]
-            # Start new group if encountering new NAME_MOD, of append to current group
-            # if last label was also NAME_MOD
-            elif label == "NAME_MOD":
-                if prev_label == "NAME_MOD":
+            # Start new group if encountering new NAME_MOD or NAME_VAR, or append to
+            # current group if previous label was the same as current label.
+            elif label in ["NAME_MOD", "NAME_VAR"]:
+                if prev_label == label:
                     current_group.append((idx, label))
                 else:
                     if current_group:
                         name_groups.append(current_group)
                     current_group = [(idx, label)]
-            # Must be an I_NAME* or PUNC label, so append to current group
+            # Must be an I_NAME_TOK or PUNC label, so append to current group
             else:
                 current_group.append((idx, label))
 
