@@ -208,8 +208,9 @@ def validate_pa_params(pa_params: dict) -> None:
                 raise ValueError(f"Parameter values for {key} should be {type_str}")
 
         if key == "type":
-            if value not in (0, 1, 2):
-                raise ValueError("Type value must be 0, 1 or 2")
+            for v in value:
+                if v not in (0, 1, 2):
+                    raise ValueError("Type value must be 0, 1 or 2")
 
 
 def validate_arow_params(arow_params: dict) -> None:
