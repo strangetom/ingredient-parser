@@ -559,7 +559,6 @@ class PreProcessor:
         list[Token]
             List of Tokens for sentence.
         """
-        tokens = []
 
         # Singularise units
         text_tokens = []
@@ -571,6 +570,7 @@ class PreProcessor:
             else:
                 text_tokens.append(text)
 
+        tokens = []
         for i, (text, pos) in enumerate(pos_tag(text_tokens)):
             # Convert tokens:
             # * Singularise units, keeping track of indices of singularised tokens
@@ -850,6 +850,24 @@ class PreProcessor:
         """
         return token in AMBIGUOUS_UNITS
 
+    def _sentence_length_bucket(self) -> int:
+        """Return the length of sentence, rounding down to the nearest bucket.
+
+        The buckets are 2, 4, 8, 12, 16, 20, 32, 64
+
+        Returns
+        -------
+        int
+            Length bucket of sentence
+        """
+        length = len(self.tokenized_sentence)
+        bucket = 1
+        for length_bucket in [2, 4, 8, 12, 16, 20, 32, 64]:
+            if length >= length_bucket:
+                bucket = length_bucket
+
+        return bucket
+
     def _word_shape(self, token: str) -> str:
         """Calculate the word shape for token.
 
@@ -958,7 +976,7 @@ class PreProcessor:
 
         return ngram_features
 
-    def _token_features(self, index: int) -> dict[str, str | bool]:
+    def _token_features(self, token: Token) -> dict[str, str | bool]:
         """Return the features for the token at the given index in the sentence.
 
         If the token at the given index appears in the corpus parameter, the token is
@@ -967,20 +985,19 @@ class PreProcessor:
 
         Parameters
         ----------
-        index : int
-            Index of token to get features for.
-        corpus : set[str]
-            Corpus of tokens that appear more than once in the training data.
+        token : Token
+            Token to generate features for
 
         Returns
         -------
         dict[str, str | bool]
             Dictionary of features for token at index.
         """
-        token = self.tokenized_sentence[index]
+        index = token.index
         features: dict[str, str | bool] = {}
 
         features["bias"] = ""
+        features["sentence_length"] = self._sentence_length_bucket()
 
         # Features for current token
         features["pos"] = token.pos_tag
@@ -1079,8 +1096,4 @@ class PreProcessor:
         list[dict[str, str | bool]]
             List of features for each token in sentence
         """
-        features = []
-        for idx, _ in enumerate(self.tokenized_sentence):
-            features.append(self._token_features(idx))
-
-        return features
+        return [self._token_features(token) for token in self.tokenized_sentence]
