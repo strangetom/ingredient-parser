@@ -2,11 +2,9 @@
 
 import json
 import sqlite3
-import sys
 from dataclasses import dataclass
 from enum import Enum, auto
 from itertools import chain
-from pathlib import Path
 from typing import Any
 
 from matplotlib import pyplot as plt
@@ -16,12 +14,15 @@ from sklearn.metrics import (
     classification_report,
 )
 
-# Ensure the local ingredient_parser package can be found
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-
 from ingredient_parser import SUPPORTED_LANGUAGES
 
 sqlite3.register_converter("json", json.loads)
+
+DEFAULT_MODEL_LOCATION = {
+    "parser": "ingredient_parser/en/model.en.crfsuite",
+    "foundationfoods": "ingredient_parser/en/ff_model.en.crfsuite",
+    "embeddings": "ingredient_parser/en/embeddings.bin",
+}
 
 
 class ModelType(Enum):
@@ -144,7 +145,7 @@ def load_datasets(
         Name of database table containing training data
     datasets : list[str]
         List of data source to include.
-        Valid options are: nyt, cookstr, bbc
+        Valid options are: nyt, cookstr, bbc, cookstr, tc
     model_type : ModelType, optional
         The type of model to prepare data for training.
         Default is PARSER.
