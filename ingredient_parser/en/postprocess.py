@@ -375,15 +375,15 @@ class PostProcessor:
         # Return reversed list, so names are in the order they appear in sentence.
         return list(reversed(constructed_names))
 
-    def _get_name_group_label(self, labels: list[str]) -> str:
+    def _get_name_group_label(self, labels: tuple[str]) -> str:
         """Get the NAME label type for the labels in a name group.
 
         One of TOK, VAR, MOD.
 
         Parameters
         ----------
-        labels : list[str]
-            List of labels for name group elements.
+        labels : tuple[str]
+            Tuple of labels for name group elements.
 
         Returns
         -------
