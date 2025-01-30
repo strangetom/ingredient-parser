@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 
 import argparse
+import csv
 import json
 import os
 import sqlite3
 import tempfile
 
-import fasttext
+import floret
+from tqdm import tqdm
 
 from ingredient_parser.en import PreProcessor
 
@@ -38,17 +40,23 @@ def prepare_training_data(
     """
     print("[INFO] Loading and preparing training data.")
 
-    bindings = ",".join(["?"] * len(datasets))
-    with sqlite3.connect(database, detect_types=sqlite3.PARSE_DECLTYPES) as conn:
-        c = conn.cursor()
-        c.execute(
-            f"SELECT sentence FROM {table} WHERE source IN ({bindings})",
-            datasets,
-        )
-        sentences = [sent for (sent,) in c.fetchall()]
+    csvs = [
+        "train/data/allrecipes/allrecipes-ingredients-snapshot-2017.csv",
+        "train/data/bbc/bbc-ingredients-snapshot-2017.csv",
+        "train/data/cookstr/cookstr-ingredients-snapshot-2017.csv",
+        "train/data/nytimes/nyt-ingredients-snapshot-2015.csv",
+        "train/data/tastecooking/tastecooking-ingredients-snapshot-2024.csv",
+    ]
+
+    sentences = []
+    for file in csvs:
+        with open(file, "r") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                sentences.append(row["input"])
 
     with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
-        for sent in sentences:
+        for sent in tqdm(sentences):
             tokens = PreProcessor(sent).tokenized_sentence
             f.write(" ".join(t.feat_text.lower() for t in tokens))
             f.write("\n")
@@ -67,15 +75,19 @@ def train_embeddings(args: argparse.Namespace) -> None:
     training_file = prepare_training_data(args.database, args.table, args.datasets)
 
     print("[INFO] Training embeddings model.")
-    model = fasttext.train_unsupervised(
+    model = floret.train_unsupervised(
         training_file,
+        mode="floret",  #  more size/memory efficient
         model="skipgram",  #  model type, skipgram or cbow
         minn=2,  #  smallest subtoken n-grams to generate
         maxn=5,  #  largest subtoken n-grams to generate
-        minCount=2,  # only include tokens that occur at least this many times
-        dim=30,  # model dimensions
+        minCount=1,  # only include tokens that occur at least this many times
+        dim=10,  # model dimensions
         epoch=50,  # training epochs
-        lr=0.05,  # learning rate, between 0 and 1
+        lr=0.1,  # learning rate, between 0 and 1
+        wordNgrams=2,  # length of word n-grams
+        bucket=50000,
+        hashCount=2,
     )
 
     if args.save_model is None:

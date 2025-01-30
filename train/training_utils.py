@@ -13,6 +13,7 @@ from sklearn.metrics import (
     accuracy_score,
     classification_report,
 )
+from tqdm import tqdm
 
 from ingredient_parser import SUPPORTED_LANGUAGES
 
@@ -21,7 +22,7 @@ sqlite3.register_converter("json", json.loads)
 DEFAULT_MODEL_LOCATION = {
     "parser": "ingredient_parser/en/model.en.crfsuite",
     "foundationfoods": "ingredient_parser/en/ff_model.en.crfsuite",
-    "embeddings": "ingredient_parser/en/embeddings.bin",
+    "embeddings": "ingredient_parser/en/embeddings.floret.bin",
 }
 
 
@@ -177,7 +178,7 @@ def load_datasets(
 
     source, sentences, features, tokens, labels, uids = [], [], [], [], [], []
     discarded = 0
-    for entry in data:
+    for entry in tqdm(data):
         if discard_other and "OTHER" in entry["labels"]:
             discarded += 1
             continue
