@@ -2,9 +2,7 @@
 
 import argparse
 import csv
-import json
 import os
-import sqlite3
 import tempfile
 
 import floret
@@ -13,8 +11,6 @@ from tqdm import tqdm
 from ingredient_parser.en import PreProcessor
 
 from .training_utils import DEFAULT_MODEL_LOCATION
-
-sqlite3.register_converter("json", json.loads)
 
 
 def prepare_training_data(
