@@ -13,6 +13,7 @@ from tqdm import tqdm
 from .test_results_to_detailed_results import test_results_to_detailed_results
 from .test_results_to_html import test_results_to_html
 from .training_utils import (
+    DEFAULT_MODEL_LOCATION,
     DataVectors,
     ModelType,
     Stats,
@@ -20,11 +21,6 @@ from .training_utils import (
     evaluate,
     load_datasets,
 )
-
-DEFAULT_MODEL_LOCATION = {
-    "parser": "ingredient_parser/en/model.en.crfsuite",
-    "foundationfoods": "ingredient_parser/en/ff_model.en.crfsuite",
-}
 
 
 def get_model_type(cmd_arg: str) -> ModelType:
@@ -125,7 +121,7 @@ def train_parser_model(
             "feature.possible_states": True,
             "feature.possible_transitions": True,
             "c1": 0.6,
-            "c2": 0.35,
+            "c2": 0.4,
             "max_linesearch": 5,
             "num_memories": 3,
             "period": 10,

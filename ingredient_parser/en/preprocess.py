@@ -5,7 +5,9 @@ import string
 import unicodedata
 from dataclasses import dataclass
 from html import unescape
+from importlib.resources import as_file, files
 
+import floret
 from nltk import pos_tag
 
 from ._constants import (
@@ -39,6 +41,8 @@ from ._utils import (
 )
 
 CONSECUTIVE_SPACES = re.compile(r"\s+")
+with as_file(files(__package__) / "embeddings.floret.bin") as p:
+    EMBEDDINGS_MODEL = floret.load_model(str(p))
 
 
 @dataclass
@@ -976,7 +980,7 @@ class PreProcessor:
 
         return ngram_features
 
-    def _token_features(self, token: Token) -> dict[str, str | bool | int]:
+    def _token_features(self, token: Token) -> dict[str, str | bool | int | float]:
         """Return the features for the token at the given index in the sentence.
 
         If the token at the given index appears in the corpus parameter, the token is
@@ -990,11 +994,11 @@ class PreProcessor:
 
         Returns
         -------
-        dict[str, str | bool| int]
+        dict[str, str | bool| int | float]
             Dictionary of features for token at index.
         """
         index = token.index
-        features: dict[str, str | bool | int] = {}
+        features: dict[str, str | bool | int | float] = {}
 
         features["bias"] = ""
         features["sentence_length"] = self._sentence_length_bucket()
@@ -1007,6 +1011,10 @@ class PreProcessor:
 
         features |= self._common_features(index, "")
         features |= self._ngram_features(token.feat_text, "")
+
+        embedding = EMBEDDINGS_MODEL[token.feat_text.lower()]
+        for i, value in enumerate(embedding):
+            features[f"v{i}"] = round(float(value), 6)
 
         # Features for previous token
         if index > 0:
@@ -1088,7 +1096,7 @@ class PreProcessor:
 
         return features
 
-    def sentence_features(self) -> list[dict[str, str | bool | int]]:
+    def sentence_features(self) -> list[dict[str, str | bool | int | float]]:
         """Return features for all tokens in sentence.
 
         Returns
