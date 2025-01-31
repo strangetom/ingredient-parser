@@ -89,6 +89,10 @@ class PostProcessor:
         List of labels for tokens.
     scores : list[float]
         Confidence associated with the label for each token.
+    separate_ingredients : bool, optional
+        If True and the sentence contains multiple ingredients, return an IngredientText
+        object for each ingredient, otherwise return a single IngredientText object.
+        Default is True.
     discard_isolated_stop_words : bool
         If True, isolated stop words are discarded from the name, preparation or
         comment fields. Default value is True.
@@ -112,6 +116,7 @@ class PostProcessor:
         tokens: list[str],
         labels: list[str],
         scores: list[float],
+        separate_ingredients: bool = True,
         discard_isolated_stop_words: bool = True,
         string_units: bool = False,
         imperial_units: bool = False,
@@ -120,6 +125,7 @@ class PostProcessor:
         self.tokens = tokens
         self.labels = labels
         self.scores = scores
+        self.separate_ingredients = separate_ingredients
         self.discard_isolated_stop_words = discard_isolated_stop_words
         self.string_units = string_units
         self.imperial_units = imperial_units
@@ -159,7 +165,20 @@ class PostProcessor:
             Object containing structured data from sentence.
         """
         amounts = self._postprocess_amounts()
-        name = self._postprocess_names()
+
+        if self.separate_ingredients:
+            name = self._postprocess_names()
+        else:
+            # Replace all labels containing NAME with "NAME"
+            name_replaced_labels = []
+            for label in self.labels:
+                if "NAME" in label:
+                    name_replaced_labels.append("NAME")
+                else:
+                    name_replaced_labels.append(label)
+            self.labels = name_replaced_labels
+            name = [self._postprocess("NAME")]
+
         size = self._postprocess("SIZE")
         preparation = self._postprocess("PREP")
         comment = self._postprocess("COMMENT")
