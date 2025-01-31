@@ -177,7 +177,12 @@ class PostProcessor:
                 else:
                     name_replaced_labels.append(label)
             self.labels = name_replaced_labels
-            name = [self._postprocess("NAME")]
+
+            # Process NAME labels as any other label, but return a list
+            if processed_name := self._postprocess("NAME"):
+                name = [processed_name]
+            else:
+                name = []
 
         size = self._postprocess("SIZE")
         preparation = self._postprocess("PREP")
