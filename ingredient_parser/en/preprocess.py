@@ -41,6 +41,7 @@ from ._utils import (
 )
 
 CONSECUTIVE_SPACES = re.compile(r"\s+")
+
 with as_file(files(__package__) / "embeddings.floret.bin") as p:
     EMBEDDINGS_MODEL = floret.load_model(str(p))
 
