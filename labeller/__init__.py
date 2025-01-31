@@ -294,26 +294,24 @@ def insert_sentences(params: dict[str, str]):
             ins = inspect_parser(sentence, foundation_foods=True)
             tokens = ins.PostProcessor.tokens
             if guess_labels:
-                labels = ins.PostProcessor.token_labels
+                labels = ins.PostProcessor.labels
 
                 ff_tokens = " ".join(ff.text for ff in ins.foundation_foods)
                 ff = [
                     idx
                     for idx, (token, label) in enumerate(zip(tokens, labels))
-                    if token in ff_tokens and label == "NAME"
+                    if token in ff_tokens and "NAME" in label
                 ]
-                name_labels = ["O"] * len(tokens)
             else:
                 labels = [""] * len(tokens)
                 ff = []
-                name_labels = ["O"] * len(tokens)
 
             c.execute(
                 """
                 INSERT INTO en 
-                (source, sentence, tokens, labels, foundation_foods, foundation_labels)
-                VALUES (?, ?, ?, ?, ?, ?)""",
-                (source, sentence, tokens, labels, ff, name_labels),
+                (source, sentence, tokens, labels, foundation_foods)
+                VALUES (?, ?, ?, ?, ?)""",
+                (source, sentence, tokens, labels, ff),
             )
             indices.append(str(c.lastrowid))
 
