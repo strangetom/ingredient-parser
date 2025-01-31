@@ -121,7 +121,7 @@ def train_parser_model(
             "feature.possible_states": True,
             "feature.possible_transitions": True,
             "c1": 0.6,
-            "c2": 0.35,
+            "c2": 0.4,
             "max_linesearch": 5,
             "num_memories": 3,
             "period": 10,
