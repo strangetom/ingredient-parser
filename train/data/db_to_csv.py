@@ -81,9 +81,14 @@ def create_csv_value(db_row: dict[str, str], label: str) -> str:
     str
         Constructed value to insert into csv
     """
-    tokens = [
-        tok for tok, lab in zip(db_row["tokens"], db_row["labels"]) if lab == label
-    ]
+    if label == "NAME":
+        tokens = [
+            tok for tok, lab in zip(db_row["tokens"], db_row["labels"]) if label in lab
+        ]
+    else:
+        tokens = [
+            tok for tok, lab in zip(db_row["tokens"], db_row["labels"]) if lab == label
+        ]
     return " ".join(tokens)
 
 
