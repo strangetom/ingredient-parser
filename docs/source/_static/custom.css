@@ -83,7 +83,7 @@ html[data-theme=dark] {
     --pst-color-background: #1d2021;
     --pst-color-on-background: #504945;
     --pst-color-surface: #3c3836;
-    --pst-color-on-surface: #7c6f64;
+    --pst-color-on-surface: #bdae93;
     --pst-color-link: var(--pst-color-primary);
     --pst-color-link-hover: var(--pst-color-primary);
     --pst-color-info-bg: #4585884d;
@@ -136,7 +136,7 @@ html[data-theme=light] {
     --pst-color-background: #f9f5d7;
     --pst-color-on-background: #d5c4a1;
     --pst-color-surface: #ebdbb2;
-    --pst-color-on-surface: #a89984;
+    --pst-color-on-surface: #665c54;
     --pst-color-link: var(--pst-color-primary);
     --pst-color-link-hover: var(--pst-color-primary);
     --pst-color-info-bg: #45858880;
