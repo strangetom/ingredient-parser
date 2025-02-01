@@ -34,7 +34,7 @@ def load_model_if_not_loaded():
 
 def parse_ingredient_en(
     sentence: str,
-    separate_ingredients: bool = True,
+    separate_names: bool = True,
     discard_isolated_stop_words: bool = True,
     expect_name_in_output: bool = True,
     string_units: bool = False,
@@ -47,9 +47,10 @@ def parse_ingredient_en(
     ----------
     sentence : str
         Ingredient sentence to parse.
-    separate_ingredients : bool, optional
-        If True and the sentence contains multiple ingredients, return an IngredientText
-        object for each ingredient, otherwise return a single IngredientText object.
+    separate_names : bool, optional
+        If True and the sentence contains multiple alternative ingredients, return an
+        IngredientText object for each ingredient name, otherwise return a single
+        IngredientText object.
         Default is True.
     discard_isolated_stop_words : bool, optional
         If True, any isolated stop words in the name, preparation, or comment fields
@@ -106,7 +107,7 @@ def parse_ingredient_en(
         tokens,
         labels,
         scores,
-        separate_ingredients=separate_ingredients,
+        separate_names=separate_names,
         discard_isolated_stop_words=discard_isolated_stop_words,
         string_units=string_units,
         imperial_units=imperial_units,
@@ -121,7 +122,7 @@ def parse_ingredient_en(
 
 def inspect_parser_en(
     sentence: str,
-    separate_ingredients: bool = True,
+    separate_names: bool = True,
     discard_isolated_stop_words: bool = True,
     expect_name_in_output: bool = True,
     string_units: bool = False,
@@ -134,9 +135,10 @@ def inspect_parser_en(
     ----------
     sentence : str
         Ingredient sentence to parse.
-    separate_ingredients : bool, optional
-        If True and the sentence contains multiple ingredients, return an IngredientText
-        object for each ingredient, otherwise return a single IngredientText object.
+    separate_names : bool, optional
+        If True and the sentence contains multiple alternative ingredients, return an
+        IngredientText object for each ingredient name, otherwise return a single
+        IngredientText object.
         Default is True.
     discard_isolated_stop_words : bool, optional
         If True, any isolated stop words in the name, preparation, or comment fields
@@ -194,7 +196,7 @@ def inspect_parser_en(
         tokens,
         labels,
         scores,
-        separate_ingredients=separate_ingredients,
+        separate_names=separate_names,
         discard_isolated_stop_words=discard_isolated_stop_words,
         string_units=string_units,
         imperial_units=imperial_units,

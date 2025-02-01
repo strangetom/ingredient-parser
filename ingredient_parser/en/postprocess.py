@@ -89,9 +89,10 @@ class PostProcessor:
         List of labels for tokens.
     scores : list[float]
         Confidence associated with the label for each token.
-    separate_ingredients : bool, optional
-        If True and the sentence contains multiple ingredients, return an IngredientText
-        object for each ingredient, otherwise return a single IngredientText object.
+    separate_names : bool, optional
+        If True and the sentence contains multiple alternative ingredients, return an
+        IngredientText object for each ingredient name, otherwise return a single
+        IngredientText object.
         Default is True.
     discard_isolated_stop_words : bool
         If True, isolated stop words are discarded from the name, preparation or
@@ -116,7 +117,7 @@ class PostProcessor:
         tokens: list[str],
         labels: list[str],
         scores: list[float],
-        separate_ingredients: bool = True,
+        separate_names: bool = True,
         discard_isolated_stop_words: bool = True,
         string_units: bool = False,
         imperial_units: bool = False,
@@ -125,7 +126,7 @@ class PostProcessor:
         self.tokens = tokens
         self.labels = labels
         self.scores = scores
-        self.separate_ingredients = separate_ingredients
+        self.separate_names = separate_names
         self.discard_isolated_stop_words = discard_isolated_stop_words
         self.string_units = string_units
         self.imperial_units = imperial_units
@@ -166,7 +167,7 @@ class PostProcessor:
         """
         amounts = self._postprocess_amounts()
 
-        if self.separate_ingredients:
+        if self.separate_names:
             name = self._postprocess_names()
         else:
             # Replace all labels containing NAME with "NAME"
