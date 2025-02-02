@@ -1,5 +1,5 @@
-Extending to other languages
-============================
+Extend to other languages
+=========================
 
 .. note::
 

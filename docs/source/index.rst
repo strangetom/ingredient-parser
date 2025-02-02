@@ -12,16 +12,16 @@ The Ingredient Parser package is a Python package for parsing information from r
 
       :material-regular:`directions_run;2em;sd-color-secondary`
 
-      Getting Started
-      ^^^^^^^^^^^^^^^
-      Quick start guide to installing and using the package.
+      Tutorials
+      ^^^^^^^^^
+      Getting started and basic usage.
       +++
       .. button-ref:: tutorials/index
                   :expand:
                   :color: secondary
                   :click-parent:
 
-                  Getting Started
+                  Tutorials
 
 
    .. grid-item-card::
@@ -31,16 +31,35 @@ The Ingredient Parser package is a Python package for parsing information from r
 
       :material-regular:`import_contacts;2em;sd-color-secondary`
 
-      Model Guide
-      ^^^^^^^^^^^
-      Detailed information about how the model that powers this package.
+      How to
+      ^^^^^^
+      How to achieve specific goals.
       +++
       .. button-ref:: guide/index
                   :expand:
                   :color: secondary
                   :click-parent:
 
-                  Model Guide
+                  How To
+
+
+   .. grid-item-card::
+      :text-align: center
+      :padding: 3 1 2 1
+      :margin: 1 1 0 0
+
+      :material-regular:`folder_shared;2em;sd-color-secondary`
+
+      Explanation
+      ^^^^^^^^^^^
+      The details of how this library works.
+      +++
+      .. button-ref:: resources/index
+                  :expand:
+                  :color: secondary
+                  :click-parent:
+
+                  Explanation
 
 
    .. grid-item-card::
@@ -52,7 +71,7 @@ The Ingredient Parser package is a Python package for parsing information from r
 
       API Reference
       ^^^^^^^^^^^^^
-      Reference documentation for the functions in this package.
+      Reference documentation.
       +++
       .. button-ref:: reference/index
                   :expand:
@@ -61,33 +80,13 @@ The Ingredient Parser package is a Python package for parsing information from r
 
                   API Reference
 
-
-   .. grid-item-card::
-      :text-align: center
-      :padding: 3 1 2 1
-      :margin: 1 1 0 0
-
-      :material-regular:`folder_shared;2em;sd-color-secondary`
-
-      Resources
-      ^^^^^^^^^
-      Links to related information and resources.
-      +++
-      .. button-ref:: resources/index
-                  :expand:
-                  :color: secondary
-                  :click-parent:
-
-                  Resources
-
-
-
 .. toctree::
    :maxdepth: 1
    :hidden:
 
-   Getting Started <tutorials/index>
-   Model Guide <guide/index>
-   API reference <reference/index>
+   Tutorials <tutorials/index>
+   How to guides <how-to/index>
+   Explanation <explanation/index>
+   API references <reference/index>
    Resources <resources/index>
    changelog
