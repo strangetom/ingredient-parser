@@ -1,5 +1,5 @@
-Using the model
-===============
+Model Usage
+===========
 
 With the model trained, it can be used to label the tokens of an ingredient sentence with one of the following labels:
 

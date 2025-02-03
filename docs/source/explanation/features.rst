@@ -1,7 +1,7 @@
 .. currentmodule:: ingredient_parser.en.preprocess
 
-Feature selection
-=================
+Feature Generation
+==================
 
 Feature calculation is done for each token in the sentence, so first the normalised sentence must be tokenised.
 

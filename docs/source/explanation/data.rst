@@ -1,5 +1,5 @@
-Training data
-=============
+Data
+====
 
 Data sources
 ^^^^^^^^^^^^

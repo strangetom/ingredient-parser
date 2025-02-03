@@ -1,5 +1,5 @@
-Training the model
-==================
+Training
+========
 
 The model chosen is a Condition Random Fields (:abbr:`CRF (Conditional Random Fields)`) model. This was selected largely because the New York Times work on this used the same model quite successfully, and :abbr:`CRF (Conditional Random Fields)` models are commonly used in sequence labelling machine learning applications.
 

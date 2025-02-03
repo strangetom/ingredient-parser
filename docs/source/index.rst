@@ -35,7 +35,7 @@ The Ingredient Parser package is a Python package for parsing information from r
       ^^^^^^
       How to achieve specific goals.
       +++
-      .. button-ref:: guide/index
+      .. button-ref:: how-to/index
                   :expand:
                   :color: secondary
                   :click-parent:
@@ -54,7 +54,7 @@ The Ingredient Parser package is a Python package for parsing information from r
       ^^^^^^^^^^^
       The details of how this library works.
       +++
-      .. button-ref:: resources/index
+      .. button-ref:: explanation/index
                   :expand:
                   :color: secondary
                   :click-parent:

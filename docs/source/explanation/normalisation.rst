@@ -1,7 +1,7 @@
 .. currentmodule:: ingredient_parser.en.preprocess
 
-Normalisation
-=============
+Sentence Normalisation
+======================
 
 Normalisation is the process of transforming the sentences to ensure that particular features of the sentence have a standard form. This pre-process step is there to remove as much of the variation in the data that can be reasonably foreseen, so that the model is presented with tidy and consistent data and therefore has an easier time of learning or labelling.
 

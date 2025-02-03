@@ -1,7 +1,7 @@
 .. currentmodule:: ingredient_parser.dataclasses
 
-Post-processing the model output
-================================
+Post-processing
+===============
 
 The output from the model is a list of labels and scores, one for each token in the input sentence. This needs to be turned into a more useful data structure so that the output can be used by the users of this library.
 

@@ -116,6 +116,6 @@ This option has no effect if ``string_units=True``.
 
 Default: **False**
 
-Foundation foods are the core or fundamental part of an ingredient name, without any other words like descriptive adjectives or brand names. If enabled, the foundation foods are extracted from the ingredient name and returned as a list of :class:`FoundationFood <ingredient_parser.dataclasses.FoundationFood>` objects in the ``foundation_foods`` field of the :class:`ParsedIngredient <ingredient_parser.dataclasses.ParsedIngredient>` object. See the :doc:`Foundation foods </guide/foundation>` page for more details.
+Foundation foods are the core or fundamental part of an ingredient name, without any other words like descriptive adjectives or brand names. If enabled, the foundation foods are extracted from the ingredient name and returned as a list of :class:`FoundationFood <ingredient_parser.dataclasses.FoundationFood>` objects in the ``foundation_foods`` field of the :class:`ParsedIngredient <ingredient_parser.dataclasses.ParsedIngredient>` object. See the :doc:`Foundation foods </explanation/foundation>` page for more details.
 
 This is disabled by default and the ``foundation_foods`` field is an empty list.
