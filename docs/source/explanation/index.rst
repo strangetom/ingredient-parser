@@ -7,8 +7,10 @@ Post-processing of the sequence of labels and tokens is then used to populate th
 
 The figure below shows the processing pipelines used for training the model and parsing a sentence.
 
-.. image:: /_static/pipelines.svg
-  :alt: Training and parsing pipelines
+.. figure:: /_static/pipelines.svg
+  :alt: Training and parsing pipelines.
+
+  Training and parsing pipelines.
 
 The **first** step is normalising the input sentence.
 The goal of normalisation is to transform certain aspects of the sentence into a standardised form to make it easier for the model to learn the correct labels, and make subsequent post-processing easier too.
@@ -45,9 +47,9 @@ The :doc:`Post-processing <postprocessing>` page provides more details on this p
    :maxdepth: 1
    :hidden:
 
-   Data <data>
    Sentence Normalisation <normalisation>
    Feature Generation <features>
+   Data <data>
    Training <training>
    Model Usage <usage>
    Post-processing <postprocessing>
