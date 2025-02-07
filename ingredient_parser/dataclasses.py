@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import copy
 import operator
 from dataclasses import dataclass, field
 from fractions import Fraction
@@ -66,6 +67,58 @@ class IngredientAmount:
     RANGE: bool = False
     MULTIPLIER: bool = False
     PREPARED_INGREDIENT: bool = False
+
+    def _copy(self):
+        """Return deepcopy of current object.
+
+        Returns
+        -------
+        Self
+            Deep copy of self
+        """
+        return copy.deepcopy(self)
+
+    def convert_to(self, unit: str):
+        """Convert units of IngredientAmount object to given unit.
+
+        A DimensionalityError is raised if attempting to convert units of different
+        dimensionality e.g. mass and volume.
+
+        Parameters
+        ----------
+        unit : str
+            Unit to convert to.
+
+        Returns
+        -------
+        Self
+            Copy of IngredientAmount object with units converted to given unit.
+
+        Raises
+        ------
+        ValueError
+            Raised if unit, quantity or quantity_max are str
+        DimensionalityError
+            Raised if attemptying to convert between units of different dimensions.
+        """
+        if (
+            isinstance(self.unit, str)
+            or isinstance(self.quantity, str)
+            or isinstance(self.quantity_max, str)
+        ):
+            raise ValueError("Cannot convert with string quantities or units")
+
+        q: pint.Quantity = self.quantity * self.unit
+        q_max: pint.Quantity = self.quantity_max * self.unit
+        q_converted = q.to(unit)  # type: ignore
+        q_max_converted = q_max.to(unit)  # type: ignore
+
+        converted_amount = self._copy()
+        converted_amount.quantity = q_converted.magnitude
+        converted_amount.quantity_max = q_max_converted.magnitude
+        converted_amount.unit = q_converted.units  # type: ignore
+        converted_amount.text = f"{q_converted.magnitude:.2f} {q_converted.units}"
+        return converted_amount
 
 
 @dataclass
