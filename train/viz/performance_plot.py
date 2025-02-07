@@ -36,8 +36,7 @@ def load_data() -> tuple[tuple[str], list[float], list[float]]:
     sentence = [float(s) for s in sentence]
     word = [float(w) for w in word]
 
-    # Only values for 8 most recent releases
-    return releases[-8:], sentence[-8:], word[-8:]
+    return releases, sentence, word
 
 
 def main():
@@ -47,17 +46,17 @@ def main():
     fig, ax = plt.subplots(figsize=(12, 5), layout="constrained")
 
     x = np.arange(0, 2 * len(releases), 2)  # the label locations
-    width = 0.9  # the width of the bars
+    width = 0.95  # the width of the bars
 
     offset = 0
     rects = ax.bar(
         x + offset, sentence, width, label="Sentence accuracy", color="#3e686a"
     )
-    ax.bar_label(rects, padding=2, fontsize=14)
+    ax.bar_label(rects, padding=-40, fontsize=12, rotation=90, fmt="%.2f")
 
     offset = width
     rects = ax.bar(x + offset, word, width, label="Word accuracy", color="#9f4e19")
-    ax.bar_label(rects, padding=2, fontsize=14)
+    ax.bar_label(rects, padding=-40, fontsize=12, rotation=90, fmt="%.2f")
 
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
@@ -67,9 +66,9 @@ def main():
     ax.get_yaxis().set_ticks([])
 
     ax.set_ylabel("Accuracy (%)", fontsize=18)
-    ax.set_xticks(x + width / 2, releases, fontsize=15)
+    ax.set_xticks(x + width / 2, releases, fontsize=12, rotation=45)
     ax.legend(loc="upper left", ncols=1, fontsize=16)
-    ax.set_ylim(90, 102)
+    ax.set_ylim(80, 102)
     ax.set_xlim(-0.7, 2 * len(releases) - 0.3)
     fig.savefig("docs/source/_static/performance-history.svg")
 
