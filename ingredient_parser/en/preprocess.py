@@ -1015,7 +1015,7 @@ class PreProcessor:
 
         embedding = EMBEDDINGS_MODEL[token.feat_text.lower()]
         for i, value in enumerate(embedding):
-            features[f"v{i}"] = round(float(value), 6)
+            features[f"v{i}"] = round(float(value), 12)
 
         # Features for previous token
         if index > 0:
@@ -1028,6 +1028,9 @@ class PreProcessor:
                 )
             )
             features |= self._common_features(index - 1, "prev_")
+            embedding = EMBEDDINGS_MODEL[prev_token.feat_text.lower()]
+            for i, value in enumerate(embedding):
+                features[f"prev_v{i}"] = round(float(value), 12)
 
         # Features for previous previous token
         if index > 1:
@@ -1067,6 +1070,9 @@ class PreProcessor:
                 )
             )
             features |= self._common_features(index + 1, "next_")
+            embedding = EMBEDDINGS_MODEL[next_token.feat_text.lower()]
+            for i, value in enumerate(embedding):
+                features[f"next_v{i}"] = round(float(value), 12)
 
         # Features for next next token
         if index < len(self.tokenized_sentence) - 2:

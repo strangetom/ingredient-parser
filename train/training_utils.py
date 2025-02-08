@@ -315,6 +315,9 @@ def confusion_matrix(
     cm = ConfusionMatrixDisplay.from_predictions(
         flat_truths, flat_predictions, labels=labels
     )
+    # Set the diagonal to -1, to better highlight the mislabels
+    for i in range(cm.confusion_matrix.shape[0]):
+        cm.confusion_matrix[i, i] = -1
 
     fig, ax = plt.subplots(figsize=(10, 10))
     cm.plot(ax=ax, colorbar=False)
