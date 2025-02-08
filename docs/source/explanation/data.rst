@@ -1,132 +1,85 @@
-Data
-====
+Training Data
+=============
 
-Data sources
-^^^^^^^^^^^^
+To train the sequence tagging model that provides the core functionality of this library, we need a set of example sentences for which we have the correct labels.
+The training data needs to be adequately representative of the types of sentences we expect to encounter when using the library.
+Given the wide variation in how ingredient sentences are phrase and structured, this means a lot training data.
 
-There are three sources of data which are used to train the model, each with their own advantages and disadvantages.
+Training data has been sourced from the following places:
 
-New York Times
-~~~~~~~~~~~~~~
++------------+-----------+-----------------------------------------------------------------------------------+
+| Dataset    | Sentences | Source                                                                            |
++============+===========+===================================================================================+
+| allrecipes | 15,000    | https://archive.org/details/recipes-en-201706                                     |
++------------+-----------+-----------------------------------------------------------------------------------+
+| bbc        | 15,000    | https://archive.org/details/recipes-en-201706                                     |
++------------+-----------+-----------------------------------------------------------------------------------+
+| cookstr    | 15,000    | https://archive.org/details/recipes-en-201706                                     |
++------------+-----------+-----------------------------------------------------------------------------------+
+| nyt        | 30,000    | https://github.com/NYTimes/ingredient-phrase-tagger                               |
++------------+-----------+-----------------------------------------------------------------------------------+
+| tc         | 6,318     | https://github.com/strangetom/ingredient-parser/issues/21#issuecomment-2361461401 |
++------------+-----------+-----------------------------------------------------------------------------------+
 
-The New York Times released a dataset of labelled ingredients in their `Ingredient Phrase Tagger <https://github.com/NYTimes/ingredient-phrase-tagger>`_ repository, which had the same goal as this.
+.. note::
 
-* The dataset is has each sentence labelled, but the labelling is inconsistent.
-* The dataset primarily uses imperial/US customary units
-* The dataset is large, roughly 175,000 entries
+    With the exception of the TC dataset, each dataset contains more than the listed number of sentences. The number refers to the number of sentences that have been labelled for training the model.
 
-Cookstr
-~~~~~~~
+The sentences in the different datasets have different characteristics, which should help the model generalise to be able to handle the majority of ingredient sentences.
+Some of the different characteristics that are worth highlighting are
 
-The Cookstr dataset is derived from 7,918 recipes scraped from `<cookstr.com>`_ (no longer available) between 2017-06 and 2017-07. The scraped data can be found at https://archive.org/details/recipes-en-201706.
-
-* The dataset is unlabelled and will need labelling manually.
-* The dataset primarily uses imperial/US customary units, although many ingredients give the quantity in multiple units.
-* The dataset is medium sized, roughly 40,000 entries.
-
-BBC Food
-~~~~~~~~
-
-The BBC dataset is derived from 10,599 recipes scraped from `<bbc.co.uk/food>`_ between 2017-06 and 2017-07. The scraped data can be found at https://archive.org/details/recipes-en-201706.
-
-* The dataset is unlabelled and will need labelling manually.
-* The dataset primarily uses metric units, although many ingredients give the quantity in multiple units.
-* The dataset is medium sized, roughly 63,000 entries.
-
-The three datasets have different advantages and disadvantages, therefore combining the two should yield an improvement over using any on their own.
-
-All Recipes
-~~~~~~~~~~~
-
-The All Recipes dataset is derived from 87,730 recipes scraped from `<https://www.allrecipes.com>`_ between 2017-06 and 2017-07. The scraped data can be found at https://archive.org/details/recipes-en-201706.
-
-* The dataset is unlabelled and will need labelling manually.
-* The dataset primarily uses US customary units.
-* The dataset includes lots of brand names of ingredients.
-* The full dataset is large sized, roughly 178,000 entries.
-
-The four datasets have different advantages and disadvantages, therefore combining them should yield an improvement over using any on their own.
-
-Taste Cooking
-~~~~~~~~~~~~~
-
-The Taste Cooking dataset comprises 6318 ingredients sentences scraped from `<https://tastecooking.com>`_ in 2024-09.
-
-* The dataset is unlabelled and will need labelling manually.
-* The dataset primarily uses US customary units.
-* The dataset uses some unique abbreviation for units and sizes not found in the other datasets.
+* Units system, e.g. metric (bbc) or imperial/US customary
+* Sentence complexity, e.g. sentences from cookstr tend to be long and include multiple ingredients and quantities
+* Use of brand names (allrecipes) or generic names
 
 Labelling the data
 ^^^^^^^^^^^^^^^^^^
 
-.. note::
+Preparing the training sentences is a very manual task that involves labelling each token in each sentence with the correct label.
+One of the biggest challenges is doing this consistently due to the size of the training data and the variation in the sentences.
 
-    This section was written from the perspective of correcting labels for the New York Times dataset, but the details described in this section also apply to how the labelling was performed for all datasets.
+The model uses the following labels:
 
-The New York Times dataset has gone through, and continues to go through, the very manual process of labelling the training data. This process is there to ensure that the labels assigned to each token in each ingredient sentence are correct and consistent across the dataset. In general, the idea is to avoid modifying the input sentence and only correct the labels for each, although entries have been removed where there is too much missing information or the entry is not actually an ingredient sentence (a few recipe instructions have been found mixed into the data).
++------------+-----------------------------------------------------------------------------------------------+
+| Label      | Description                                                                                   |
++============+===============================================================================================+
+| QTY        | Quantity of the ingredient.                                                                   |
++------------+-----------------------------------------------------------------------------------------------+
+| UNIT       | Unit of the quantity for the ingredient.                                                      |
++------------+-----------------------------------------------------------------------------------------------+
+| SIZE       | Physical size of the ingredient (e.g. large, small).                                          |
+|            |                                                                                               |
+|            | This is not used to label the size of the unit.                                               |
++------------+-----------------------------------------------------------------------------------------------+
+| PREP       | Preparation instructions for the ingredient (e.g. finely chopped).                            |
++------------+-----------------------------------------------------------------------------------------------+
+| PURPOSE    | Purpose of the ingredient (e.g. for garnish)                                                  |
++------------+-----------------------------------------------------------------------------------------------+
+| PUNC       | Any punctuation tokens.                                                                       |
++------------+-----------------------------------------------------------------------------------------------+
+| B_NAME_TOK | The first token of an ingredient name.                                                        |
++------------+-----------------------------------------------------------------------------------------------+
+| I_NAME_TOK | A token within an ingredient name that is not the first token.                                |
++------------+-----------------------------------------------------------------------------------------------+
+| NAME_VAR   | A token that indicates a variation of the ingredient name.                                    |
+|            |                                                                                               |
+|            | This is used in cases such as **beef or chicken stock**. **beef** and **chicken** are labelled|
+|            | with NAME_VAR as they indicate variations of the ingredient name **stock**.                   |
++------------+-----------------------------------------------------------------------------------------------+
+| NAME_MOD   | A token that modifies multiple ingredient names in the sentence.                              |
+|            |                                                                                               |
+|            | For example in **dried apples and pears**, **dried** is labelled as NAME_MOD because it       |
+|            | modifies the two ingredient names, **apples** and **pears**.                                  |
++------------+-----------------------------------------------------------------------------------------------+
+| NAME_SEP   | A token that separates different ingredient names and isn't PUNC, typically **or**.           |
++------------+-----------------------------------------------------------------------------------------------+
+| COMMENT    | Additional information in the sentence that does not fall in one of the other labels.         |
++------------+-----------------------------------------------------------------------------------------------+
 
-The model is currently trained using the first 30,000 entries of the New York Times dataset, so the labelling efforts have primarily been focussed on that subset.
+The descriptions in the table above for most of the labels should be sufficient to understand, however the different labels used to label tokens in ingredient names requires further explanation.
 
-.. tip::
 
-    The impact of the consistent labelling can be seen by training the model using the full New York Times dataset, where the majority of the data has not been consistently labelled. The model performance drops significantly.
 
-The following operations were done to clean up the labelling (note that this is not exhaustive, the git history for the dataset will give the full details).
-
-* Convert all numbers in the labels to decimal
-    This includes numbers represented by fractions in the input e.g. 1 1/2 becomes 1.5
-* Convert all ranges to a standard format of X-Y
-    This includes ranges represented textually, e.g. 1 to 2, 3 or 4 become 1-2, 3-4 respectively
-* Entries where the quantities and units were originally consolidated should be unconsolidated
-    There were many examples where the input would say
-
-        1/2 cup, plus 1 tablespoon ...
-
-    with the quantity set as "9" and the unit "tablespoon".
-    The model will not do maths for us, nor will it understand have to convert between units. In this example, the correct labelling is a quantity of "0.5", a unit of "cup", and a comment of "plus 1 tablespoon".
-* Adjectives that are a fundamental part of the ingredient identity should be part of the name
-    This was mostly an inconsistency across the data, for example if the entry contained "red onion", sometimes this was labelled with a name of "red onion" and sometimes with a name of "onion" and a comment of "red".
-
-    Three general rules were applied:
-
-    1. **If the adjective changes the ingredient in a way that the chef cannot, it should be part of the name.**
-    2. **If the adjective changes the item you would purchase in a shop, it should be part of the name.**
-    3. **If the adjective changes the item in a way that the chef would not expect to do as part of the recipe, it should be part of the name.**
-
-    It is recognised that this can be subjective. Universal correctness is not the main goal of this, only consistency.
-
-    Examples of this:
-
-    * red/white/yellow/green/Spanish onion
-    * granulated/brown/confectioners' sugar
-    * soy/coconut/skim/whole milk
-    * ground spices
-    * extra-virgin olive oil
-    * fresh x/y/z
-    * ice water
-    * cooked chicken
-
-* All units should be made singular
-    This is to reduce the amount the model needs to learn. "teaspoon" and "teaspoons" are fundamentally the same unit, but because they are different words, the model could learn different associations.
-
-* Where alternative ingredients are given in the sentence, these should be part of the name if the alternative is in the same quantity, or the comment if it is a different quantity.
-    For example:
-
-    * ``3 tablespoons butter or olive oil, or a mixture`` should have the name as ``butter or olive oil``
-
-    however
-
-    * ``4 shoots spring shallots or 4 shallots, minced`` should have the name as ``spring shallots`` and the comment as ``or 4 shallots, minced`` because there are different quantities of spring shallots to shallots.
-
-.. warning::
-
-    The labelling processing is very manual and as such has not been completed on all of the available data. The labelling has been completed for the following subsets of the datasets:
-
-    * The first 30,000 sentences of the New York Times dataset
-    * The first 15,000 sentences of the Cookstr dataset
-    * The first 15,000 sentences of the BBC Food dataset
-    * The first 15,000 sentences of the All Recipes dataset
-    * All 6,318 sentences of the Taste Cooking dataset.
 
 
 .. _data-storage:
@@ -136,24 +89,22 @@ Data storage
 
 The labelled training data is stored in an sqlite3 database at ``train/data/training.sqlite3``. The database contains a single table, ``en``, with the following fields:
 
-.. list-table::
++------------------+------------------------------------------------------+
+| Field            | Description                                          |
++==================+======================================================+
+| id               | Unique ID for the sentence.                          |
++------------------+------------------------------------------------------+
+| source           | The source dataset the sentence is from.             |
++------------------+------------------------------------------------------+
+| sentence         | The ingredient sentence, not normalised.             |
++------------------+------------------------------------------------------+
+| tokens           | List of tokens for the sentence.                     |
++------------------+------------------------------------------------------+
+| labels           | List of token labels.                                |
++------------------+------------------------------------------------------+
+| foundation_foods | List of indices of tokens that are foundation foods. |
++------------------+------------------------------------------------------+
 
-    * - Field
-      - Description
-    * - **id**
-      - Unique ID for the sentence
-    * - **source**
-      - The source dataset the sentence is from
-    * - **sentence**
-      - The ingredient sentence
-    * - **tokens**
-      - List of tokens from the sentence
-    * - **labels**
-      - List of token labels
-    * - **foundation_foods**
-      - List of indices of tokens that are foundation foods
-
-It is the data in this database that is used to train the models.
 
 :abbr:`CSV (Comma Separated Values)` files of the full datasets are in the ``train/data/<dataset>`` directories. These :abbr:`CSV (Comma Separated Values)` files contain the full set of ingredient sentences, including those not properly labelled. The :abbr:`CSV (Comma Separated Values)` files are kept aligned with the database using the following command.
 

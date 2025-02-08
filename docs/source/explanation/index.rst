@@ -49,8 +49,8 @@ The :doc:`Post-processing <postprocessing>` page provides more details on this p
 
    Sentence Normalisation <normalisation>
    Feature Generation <features>
-   Data <data>
-   Training <training>
+   Training Data <data>
+   Model Training <training>
    Model Usage <usage>
    Post-processing <postprocessing>
    Foundation foods <foundation>
