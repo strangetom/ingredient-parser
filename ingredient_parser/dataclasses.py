@@ -106,7 +106,7 @@ class IngredientAmount:
             or isinstance(self.quantity, str)
             or isinstance(self.quantity_max, str)
         ):
-            raise ValueError("Cannot convert with string quantities or units")
+            raise TypeError("Cannot convert where quantity or unit is a string.")
 
         q: pint.Quantity = self.quantity * self.unit
         q_max: pint.Quantity = self.quantity_max * self.unit
