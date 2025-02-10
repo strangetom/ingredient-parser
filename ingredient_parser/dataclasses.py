@@ -117,7 +117,7 @@ class IngredientAmount:
         converted_amount.quantity = q_converted.magnitude
         converted_amount.quantity_max = q_max_converted.magnitude
         converted_amount.unit = q_converted.units  # type: ignore
-        converted_amount.text = f"{q_converted.magnitude:.2f} {q_converted.units}"
+        converted_amount.text = f"{q_converted:gP}"
         return converted_amount
 
 
