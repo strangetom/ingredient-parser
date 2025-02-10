@@ -117,7 +117,13 @@ class IngredientAmount:
         converted_amount.quantity = q_converted.magnitude
         converted_amount.quantity_max = q_max_converted.magnitude
         converted_amount.unit = q_converted.units  # type: ignore
-        converted_amount.text = f"{q_converted:gP}"
+
+        # Fraction object don't support float-style formatting until Python 3.12, so we
+        # can't just use f"{q_converted:P}"
+        converted_amount.text = (
+            f"{float(q_converted.magnitude):g} " + f"{q_converted.units:P}"
+        )
+
         return converted_amount
 
 
