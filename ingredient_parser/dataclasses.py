@@ -83,8 +83,12 @@ class IngredientAmount:
     def convert_to(self, unit: str, density: pint.Quantity = 1000 * UREG("kg/m^3")):
         """Convert units of IngredientAmount object to given unit.
 
-        A DimensionalityError is raised if attempting to convert units of different
-        dimensionality e.g. mass and volume.
+        Conversion is only possible if none of the quantity, quantity_max and unit are
+        strings.
+
+        Conversion between mass and volume is supported using the density parameter, but
+        otherwise a DimensionalityError is raised if attempting to convert units of
+        different dimensionality.
 
         .. warning::
 
