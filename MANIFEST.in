@@ -1,3 +1,4 @@
+include ingredient_parser/density_context.txt
 include ingredient_parser/en/model.en.crfsuite
 include ingredient_parser/en/ModelCard.en.md
 include ingredient_parser/en/ff_model.en.crfsuite

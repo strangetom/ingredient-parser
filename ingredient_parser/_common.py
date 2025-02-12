@@ -11,6 +11,12 @@ from operator import itemgetter
 from typing import Generator, Iterator
 
 import nltk
+import pint
+
+UREG = pint.UnitRegistry()
+with as_file(files(__package__) / "density_context.txt") as p:
+    # Load pint context that defines transformations between mass and volume
+    UREG.load_definitions(p)
 
 SUPPORTED_LANGUAGES = ["en"]
 

@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 
+import concurrent.futures as cf
 import json
 import sqlite3
 from dataclasses import dataclass
 from enum import Enum, auto
-from itertools import chain
-from typing import Any
+from functools import partial
+from itertools import chain, islice
+from typing import Any, Callable, Iterable
 
 from matplotlib import pyplot as plt
 from sklearn.metrics import (
@@ -13,7 +15,6 @@ from sklearn.metrics import (
     accuracy_score,
     classification_report,
 )
-from tqdm import tqdm
 
 from ingredient_parser import SUPPORTED_LANGUAGES
 
@@ -41,6 +42,7 @@ class DataVectors:
     labels: list[list[str]]
     source: list[str]
     uids: list[int]
+    discarded: int
 
 
 @dataclass
@@ -99,6 +101,38 @@ class Stats:
     token: TokenStats | FFTokenStats
     sentence: SentenceStats
     seed: int
+
+
+def chunked(iterable: Iterable, n: int) -> Iterable:
+    """Break *iterable* into lists of length *n*:
+
+        >>> list(chunked([1, 2, 3, 4, 5, 6], 3))
+        [[1, 2, 3], [4, 5, 6]]
+
+    By the default, the last yielded list will have fewer than *n* elements
+    if the length of *iterable* is not divisible by *n*:
+
+        >>> list(chunked([1, 2, 3, 4, 5, 6, 7, 8], 3))
+        [[1, 2, 3], [4, 5, 6], [7, 8]]
+
+    Parameters
+    ----------
+    iterable : Iterable
+        Iterable to chunk.
+    n : int
+        Size of each chunk.
+
+    Returns
+    -------
+    Iterable
+        Chunks of iterable with size n (or less for the last chunk).
+    """
+
+    def take(n, iterable):
+        "Return first n items of the iterable as a list."
+        return list(islice(iterable, n))
+
+    return iter(partial(take, n, iter(iterable)), [])
 
 
 def select_preprocessor(lang: str) -> Any:
@@ -162,6 +196,8 @@ def load_datasets(
             labels for sentences
             source dataset of sentences
     """
+    PreProcessor = select_preprocessor(table)
+
     print("[INFO] Loading and transforming training data.")
 
     with sqlite3.connect(database, detect_types=sqlite3.PARSE_DECLTYPES) as conn:
@@ -171,14 +207,78 @@ def load_datasets(
             f"SELECT * FROM {table} WHERE source IN ({','.join(['?']*len(datasets))})",
             datasets,
         )
-        data = c.fetchall()
+        data = [dict(row) for row in c.fetchall()]
     conn.close()
 
-    PreProcessor = select_preprocessor(table)
+    # Chunk data into 4 groups to process in parallel.
+    n_chunks = 4
+    # Define chunk size so all groups have about the same number of elements, except the
+    # last group which will be slightly smaller.
+    chunk_size = int((len(data) + n_chunks) / n_chunks)
+    chunks = chunked(data, chunk_size)
 
+    vectors = []
+    with cf.ProcessPoolExecutor(max_workers=4) as executor:
+        for vec in executor.map(
+            process_sentences,
+            chunks,
+            [model_type] * n_chunks,
+            [PreProcessor] * n_chunks,
+            [discard_other] * n_chunks,
+        ):
+            vectors.append(vec)
+
+    all_vectors = DataVectors(
+        sentences=list(chain.from_iterable(v.sentences for v in vectors)),
+        features=list(chain.from_iterable(v.features for v in vectors)),
+        tokens=list(chain.from_iterable(v.tokens for v in vectors)),
+        labels=list(chain.from_iterable(v.labels for v in vectors)),
+        source=list(chain.from_iterable(v.source for v in vectors)),
+        uids=list(chain.from_iterable(v.uids for v in vectors)),
+        discarded=sum(v.discarded for v in vectors),
+    )
+
+    print(f"[INFO] {len(all_vectors.sentences):,} usable vectors.")
+    print(f"[INFO] {all_vectors.discarded:,} discarded due to OTHER labels.")
+    return all_vectors
+
+
+def process_sentences(
+    data: list[dict], model_type: ModelType, PreProcessor: Callable, discard_other: bool
+) -> DataVectors:
+    """Process training sentences from database into format needed for training and
+    evaluation.
+
+    Parameters
+    ----------
+    data : list[dict]
+        List of dicts, where each dict is the database row.
+    model_type : ModelType
+        Type of model being training: PARSER or FOUNDATION_FOODS
+    PreProcessor : Callable
+        PreProcessor class to preprocess sentences.
+    discard_other : bool
+        If True, discard sentences with OTHER label
+
+    Returns
+    -------
+    DataVectors
+        Dataclass holding:
+            raw input sentences,
+            features extracted from sentences,
+            labels for sentences,
+            source dataset of sentences,
+            uids for each sentence,
+            number of discarded sentences
+
+    Raises
+    ------
+    ValueError
+        Raised if number of calculated token does not match number of labels.
+    """
     source, sentences, features, tokens, labels, uids = [], [], [], [], [], []
     discarded = 0
-    for entry in tqdm(data):
+    for entry in data:
         if discard_other and "OTHER" in entry["labels"]:
             discarded += 1
             continue
@@ -222,9 +322,7 @@ def load_datasets(
                 )
             )
 
-    print(f"[INFO] {len(sentences):,} usable vectors.")
-    print(f"[INFO] {discarded:,} discarded due to OTHER labels.")
-    return DataVectors(sentences, features, tokens, labels, source, uids)
+    return DataVectors(sentences, features, tokens, labels, source, uids, discarded)
 
 
 def evaluate(
