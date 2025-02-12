@@ -84,7 +84,7 @@ You can run ``python train.py --help`` to view all the available options for twe
 
     It takes about an hour to train the model using the all the available training data on a laptop with an Intel Core 15-10300H and 64 GB of RAM.
 
-    You do not need 64 GB of RAM to train the model, 8 GB should be more than sufficient.
+    You will not need 64 GB of RAM to train the model, 8 GB should be more than sufficient and less will probably work too.
 
     No GPU is required.
 

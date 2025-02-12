@@ -21,7 +21,7 @@ class IngredientAmount:
     Attributes
     ----------
     quantity : Fraction | str
-        Parsed ingredient quantity, as a float where possible, otherwise a string.
+        Parsed ingredient quantity, as a Fraction where possible, otherwise a string.
         If the amount if a range, this is the lower limit of the range.
     quantity_max : Fraction | str
         If the amount is a range, this is the upper limit of the range.
@@ -32,7 +32,7 @@ class IngredientAmount:
         If the quantity is recognised in the pint unit registry, a pint.Unit
         object is used.
     text : str
-        String describing the amount e.g. "1 cup"
+        String describing the amount e.g. "1 cup", "8 oz"
     confidence : float
         Confidence of parsed ingredient amount, between 0 and 1.
         This is the average confidence of all tokens that contribute to this object.
