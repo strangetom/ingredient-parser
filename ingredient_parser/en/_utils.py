@@ -8,7 +8,7 @@ from itertools import chain
 import nltk.stem.porter as nsp
 import pint
 
-from .._common import consume, download_nltk_resources, is_float, is_range
+from .._common import UREG, consume, download_nltk_resources, is_float, is_range
 from ..dataclasses import IngredientAmount
 from ._constants import FLATTENED_UNITS_LIST, UNIT_SYNONYMS, UNITS
 from ._regex import (
@@ -16,8 +16,6 @@ from ._regex import (
     FRACTION_TOKEN_PATTERN,
     STRING_RANGE_PATTERN,
 )
-
-UREG = pint.UnitRegistry()
 
 # Dict mapping certain units to their imperial version in pint
 IMPERIAL_UNITS = {

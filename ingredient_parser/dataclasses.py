@@ -11,6 +11,8 @@ from typing import Any
 import pint
 import pycrfsuite
 
+from ._common import UREG
+
 
 @dataclass
 class IngredientAmount:
@@ -78,16 +80,24 @@ class IngredientAmount:
         """
         return copy.deepcopy(self)
 
-    def convert_to(self, unit: str):
+    def convert_to(self, unit: str, density: pint.Quantity = 1000 * UREG("kg/m^3")):
         """Convert units of IngredientAmount object to given unit.
 
         A DimensionalityError is raised if attempting to convert units of different
         dimensionality e.g. mass and volume.
 
+        .. warning::
+
+            When a conversion between mass <-> volume is performed, the quantities will
+            be converted to floats.
+
         Parameters
         ----------
         unit : str
             Unit to convert to.
+        density : pint.Quantity, optional
+            Density used for conversion between volume and mass.
+            Default is the density of water.
 
         Returns
         -------
@@ -96,10 +106,8 @@ class IngredientAmount:
 
         Raises
         ------
-        ValueError
+        TypeError
             Raised if unit, quantity or quantity_max are str
-        DimensionalityError
-            Raised if attemptying to convert between units of different dimensions.
         """
         if (
             isinstance(self.unit, str)
@@ -108,10 +116,14 @@ class IngredientAmount:
         ):
             raise TypeError("Cannot convert where quantity or unit is a string.")
 
-        q: pint.Quantity = self.quantity * self.unit
-        q_max: pint.Quantity = self.quantity_max * self.unit
-        q_converted = q.to(unit)  # type: ignore
-        q_max_converted = q_max.to(unit)  # type: ignore
+        q: pint.Quantity = self.quantity * self.unit  # type: ignore
+        q_max: pint.Quantity = self.quantity_max * self.unit  # type: ignore
+
+        # Apply density context for conversion.
+        # This is only relevant if converting between mass <-> volume.
+        with UREG.context("density", p=density):
+            q_converted = q.to(unit)  # type: ignore
+            q_max_converted = q_max.to(unit)  # type: ignore
 
         converted_amount = self._copy()
         converted_amount.quantity = q_converted.magnitude
