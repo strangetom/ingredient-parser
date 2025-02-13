@@ -289,15 +289,16 @@ class ParsedIngredient:
     Attributes
     ----------
     name : list[IngredientText]
-        Ingredient name parsed from input sentence.
-        If multiple alternative ingredients are found, AlternativeIngredients is used.
-        If no ingredient name was found, this is None.
+        List of IngredientText objects, each representing an ingreident name parsed from
+        input sentence.
+        If no ingredient names are found, this is an empty list.
     size : IngredientText | None
         Size modifier of ingredients, such as small or large.
         If no size modifier, this is None.
     amount : List[IngredientAmount]
         List of IngredientAmount objects, each representing a matching quantity and
         unit pair parsed from the sentence.
+        If no ingredient amounts are found, this is an empty list.
     preparation : IngredientText | None
         Ingredient preparation instructions parsed from sentence.
         If no ingredient preparation instruction was found, this is None.
