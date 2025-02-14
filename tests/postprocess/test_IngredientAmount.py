@@ -2,6 +2,7 @@ from fractions import Fraction
 
 import pytest
 
+from ingredient_parser.dataclasses import CompositeIngredientAmount
 from ingredient_parser.en._utils import UREG, ingredient_amount_factory
 
 
@@ -169,3 +170,18 @@ class Test_IngredientAmount_convert_to:
 
         with pytest.raises(TypeError):
             _ = amount.convert_to("ml")
+
+    def test_composite_ingredient_amount(self):
+        am1 = ingredient_amount_factory("2", "lbs", "1 lb", 0, 0)
+        am2 = ingredient_amount_factory("2", "oz", "1 oz", 0, 0)
+
+        amount = CompositeIngredientAmount(
+            amounts=[am1, am2], join="", subtractive=False
+        )
+
+        converted = amount.convert_to("kg")
+
+        assert converted.magnitude == Fraction(
+            481941893125000110785923700000001, 500000000000000000000000000000000
+        )
+        assert converted.units == UREG("kg").units
