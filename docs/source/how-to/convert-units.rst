@@ -1,14 +1,14 @@
 Convert between units
 =====================
 
-Where possible, :class:`IngredientAmount <ingredient_parser.dataclass.IngredientAmount>` units are returned as a :class:`pint.Unit`.
+Where possible, :class:`IngredientAmount <ingredient_parser.dataclasses.IngredientAmount>` units are returned as a :class:`pint.Unit`.
 This allows easy programmatic conversion between different units.
 
 .. admonition:: Prerequisites
 
     Programmatic conversion of units is only possible if none of the quantity, quantity_max and unit are ``str``.
 
-The ``convert_to`` function of :class:`IngredientAmount <ingredient_parser.dataclass.IngredientAmount>` accepts the units to convert to and, optionally, a density if the conversion is between mass and volume.
+The ``convert_to`` function of :class:`IngredientAmount <ingredient_parser.dataclasses.IngredientAmount>` accepts the units to convert to and, optionally, a density if the conversion is between mass and volume.
 
 .. code:: python
 
@@ -28,6 +28,23 @@ The ``convert_to`` function of :class:`IngredientAmount <ingredient_parser.datac
     )
 
 The ``unit`` parameter of ``convert_to`` must a unit recognised by Pint.
+
+:class:`CompositeIngredientAmount <ingredient_parser.dataclasses.CompositeIngredientAmount>` also supports unit conversion.
+In this case, the ``convert_to`` function return a :class:`pint.Quantity` object which is the combined quantity converted to the given units.
+
+.. code:: python
+
+    >>> amount = parse_ingredient("1lb 2 oz lamb shank").amount[0]
+    >>> amount.convert_to("kg")
+    <Quantity(255145708125000060785923700000001/500000000000000000000000000000000, 'kilogram')>
+
+The ``convert_to`` function of :class:`CompositeIngredientAmount <ingredient_parser.dataclasses.CompositeIngredientAmount>` is the same as doing
+
+.. code:: python
+
+    >>> CompositeIngredientAmount.combined().to(unit)
+
+however it also support conversion between mass and volume as described below.
 
 Converting between mass and volume
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

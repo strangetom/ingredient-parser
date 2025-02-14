@@ -235,6 +235,40 @@ class CompositeIngredientAmount:
             (amount.quantity * amount.unit for amount in self.amounts),  # type: ignore
         )
 
+    def convert_to(self, unit: str, density: pint.Quantity = 1000 * UREG("kg/m^3")):
+        """Convert units of the combined CompositeIngredientAmount object to given unit.
+
+        Conversion is only possible if none of the quantity, quantity_max and unit are
+        strings.
+
+        Conversion between mass and volume is supported using the density parameter, but
+        otherwise a DimensionalityError is raised if attempting to convert units of
+        different dimensionality.
+
+        .. warning::
+
+            When a conversion between mass <-> volume is performed, the quantities will
+            be converted to floats.
+
+        Parameters
+        ----------
+        unit : str
+            Unit to convert to.
+        density : pint.Quantity, optional
+            Density used for conversion between volume and mass.
+            Default is the density of water.
+
+        Returns
+        -------
+        pint.Quantity
+            Combined amount converted to given units
+
+        """
+        # Apply density context for conversion.
+        # This is only relevant if converting between mass <-> volume.
+        with UREG.context("density", p=density):
+            return self.combined().to(unit)
+
 
 @dataclass
 class IngredientText:
