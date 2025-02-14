@@ -168,10 +168,6 @@ class CompositeIngredientAmount:
         This is the average confidence of all tokens that contribute to this object.
     starting_index : int
         Index of token in sentence that starts this amount.
-    PREPARED_INGREDIENT : bool, optional
-        When True, indicates the amount applies to the prepared ingredient.
-        When False, indicates the amount applies to the ingredient before preparation.
-        Default is False.
     """
 
     amounts: list[IngredientAmount]
@@ -180,7 +176,6 @@ class CompositeIngredientAmount:
     text: str = field(init=False)
     confidence: float = field(init=False)
     starting_index: int = field(init=False)
-    PREPARED_INGREDIENT: bool = field(init=False)
 
     def __post_init__(self):
         """On dataclass instantiation, generate the text field."""
@@ -295,7 +290,7 @@ class ParsedIngredient:
     size : IngredientText | None
         Size modifier of ingredients, such as small or large.
         If no size modifier, this is None.
-    amount : List[IngredientAmount]
+    amount : List[IngredientAmount | CompositeIngredientAmount]
         List of IngredientAmount objects, each representing a matching quantity and
         unit pair parsed from the sentence.
         If no ingredient amounts are found, this is an empty list.
@@ -316,7 +311,7 @@ class ParsedIngredient:
 
     name: list[IngredientText]
     size: IngredientText | None
-    amount: list[IngredientAmount]
+    amount: list[IngredientAmount | CompositeIngredientAmount]
     preparation: IngredientText | None
     comment: IngredientText | None
     purpose: IngredientText | None
@@ -356,11 +351,11 @@ class ParsedIngredient:
                 < self.preparation.starting_index
                 < amount.starting_index
             ):
-                amount.PREPARED_INGREDIENT = True
-
                 if isinstance(amount, CompositeIngredientAmount):
                     for composite_amount in amount.amounts:
                         composite_amount.PREPARED_INGREDIENT = True
+                else:
+                    amount.PREPARED_INGREDIENT = True
 
 
 @dataclass
