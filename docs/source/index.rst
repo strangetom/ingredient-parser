@@ -12,8 +12,8 @@ The Ingredient Parser package is a Python package for parsing information from r
 
       :material-regular:`directions_run;2em;sd-color-secondary`
 
-      Tutorials
-      ^^^^^^^^^
+      Getting Started
+      ^^^^^^^^^^^^^^^
       Getting started and basic usage.
       +++
       .. button-ref:: tutorials/index
@@ -21,7 +21,7 @@ The Ingredient Parser package is a Python package for parsing information from r
                   :color: secondary
                   :click-parent:
 
-                  Tutorials
+                  Getting Started
 
 
    .. grid-item-card::
@@ -31,7 +31,7 @@ The Ingredient Parser package is a Python package for parsing information from r
 
       :material-regular:`import_contacts;2em;sd-color-secondary`
 
-      How to
+      How To
       ^^^^^^
       How to achieve specific goals.
       +++
@@ -48,7 +48,7 @@ The Ingredient Parser package is a Python package for parsing information from r
       :padding: 3 1 2 1
       :margin: 1 1 0 0
 
-      :material-regular:`folder_shared;2em;sd-color-secondary`
+      :material-regular:`school;2em;sd-color-secondary`
 
       Explanation
       ^^^^^^^^^^^
@@ -67,7 +67,7 @@ The Ingredient Parser package is a Python package for parsing information from r
       :padding: 3 1 2 1
       :margin: 1 1 0 0
 
-      :material-regular:`data_array;2em;sd-color-secondary`
+      :material-regular:`code;2em;sd-color-secondary`
 
       API Reference
       ^^^^^^^^^^^^^
@@ -84,9 +84,9 @@ The Ingredient Parser package is a Python package for parsing information from r
    :maxdepth: 1
    :hidden:
 
-   Tutorials <tutorials/index>
-   How to guides <how-to/index>
+   Getting Started <tutorials/index>
+   How To Guides <how-to/index>
    Explanation <explanation/index>
-   API references <reference/index>
+   API Reference <reference/index>
    Resources <resources/index>
    changelog

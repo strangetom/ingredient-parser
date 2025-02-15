@@ -6,7 +6,7 @@ This allows easy programmatic conversion between different units.
 
 .. admonition:: Prerequisites
 
-    Programmatic conversion of units is only possible if none of the quantity, quantity_max and unit are ``str``.
+    Programmatic conversion of units is only possible if none of the ``quantity``, ``quantity_max`` and ``unit`` fields are ``str``.
 
 The ``convert_to`` function of :class:`IngredientAmount <ingredient_parser.dataclasses.IngredientAmount>` accepts the units to convert to and, optionally, a density if the conversion is between mass and volume.
 
