@@ -20,7 +20,7 @@ If the ingredient sentence includes multiple alternative ingredient names, retur
             IngredientText(text='butter', confidence=0.998547, starting_index=5)
         ]
 
-If disabled, the ``name`` field will contain a single :class:`IngredientText <ingredient_parser.dataclasses.IngredientText>` object
+If disabled, the ``name`` field will be a list containing a single :class:`IngredientText <ingredient_parser.dataclasses.IngredientText>` object.
 
 .. topic:: Example
 
@@ -42,7 +42,6 @@ Discard stop words that appear in isolation within the name, preparation, size, 
 
     .. code:: python
 
-        >>> from ingredient_parser import parse_ingredient
         >>> parse_ingredient("2 tbsp of olive oil").comment
         None
 
@@ -60,7 +59,8 @@ If disabled, then all words from the input sentence are retained in the parsed o
 
 Default: **True**
 
-Sometimes a name isn't identified in the ingredient sentence, often due to the sentence structure being unusual or the sentence contains an ingredient name that is ambiguous. For these cases, attempt to find the most likely name even if the words making that name are considered more likely to belong to a different field of the :class:`ParsedIngredient <ingredient_parser.dataclasses.ParsedIngredient>` object.
+Sometimes a name isn't identified in the ingredient sentence, often due to the sentence structure being unusual or the sentence contains an ingredient name that is ambiguous.
+For these cases, attempt to find the most likely name even if the words making that name are considered more likely to belong to a different field of the :class:`ParsedIngredient <ingredient_parser.dataclasses.ParsedIngredient>` object.
 
 A minimum confidence threshold applies, meaning this does not guarantee a name is identified.
 
@@ -94,9 +94,9 @@ If set to **True**, the :class:`IngredientAmount <ingredient_parser.dataclasses.
 
 Default: **False**
 
-Some units have metric and imperial (US customary) versions with the same name but representing different quantities, such as fluid ounces, cups, pints, quarts or gallons.
+Some units have have multiple definitions versions with the same name but representing different quantities, such as fluid ounces, cups, pints, quarts or gallons.
 
-:class:`pint.Unit` objects are assumed to the metric version of the unit unless this is set to **True**.
+:class:`pint.Unit` objects are assumed to be the US customary version of the unit unless this is set to **True**.
 
 .. topic:: Example
 
@@ -110,12 +110,13 @@ Some units have metric and imperial (US customary) versions with the same name b
 
 This option has no effect if ``string_units=True``.
 
-
 ``foundation_foods``
 ^^^^^^^^^^^^^^^^^^^^
 
 Default: **False**
 
-Foundation foods are the core or fundamental part of an ingredient name, without any other words like descriptive adjectives or brand names. If enabled, the foundation foods are extracted from the ingredient name and returned as a list of :class:`FoundationFood <ingredient_parser.dataclasses.FoundationFood>` objects in the ``foundation_foods`` field of the :class:`ParsedIngredient <ingredient_parser.dataclasses.ParsedIngredient>` object. See the :doc:`Foundation foods </explanation/foundation>` page for more details.
+Foundation foods are the core or fundamental part of an ingredient name, without any other words like descriptive adjectives or brand names.
+If enabled, the foundation foods are extracted from the ingredient name and returned as a list of :class:`FoundationFood <ingredient_parser.dataclasses.FoundationFood>` objects in the ``foundation_foods`` field of the :class:`ParsedIngredient <ingredient_parser.dataclasses.ParsedIngredient>` object.
+See the :doc:`Foundation Foods </explanation/foundation>` page for more details.
 
 This is disabled by default and the ``foundation_foods`` field is an empty list.

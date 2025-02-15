@@ -1,7 +1,7 @@
 Feature Generation
 ==================
 
-To be able to identify the different parts of the ingredient sentence, like the ingredient name, quantity, unit etc, the sentence is split into individual tokens.
+To be able to identify the different parts of the ingredient sentence, like the ingredient name, quantity, unit etc., the sentence is split into individual tokens.
 From each token, a set of features are generated and it is these features that are used by the sequence tagging model to assign a label to each token.
 
 Tokenization

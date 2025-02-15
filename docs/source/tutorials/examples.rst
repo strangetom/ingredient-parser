@@ -41,7 +41,7 @@ A basic example to show the full output from :func:`parse_ingredient`.
 Multiple amounts
 ~~~~~~~~~~~~~~~~
 
-A common pattern used in ingredient sentences is to specifiy amounts in terms of a fixed size item, e.g. 2 28 ounce cans.
+A common pattern used in ingredient sentences is to specifiy amounts in terms of a fixed size item, e.g. **2 28 ounce cans**.
 In these cases, the outer amount (2 cans) and inner amount (28 ounce) are separated.
 The inner amount has the ``SINGULAR`` flag set to True to indicate that it applies to a singular item of the outer amount.
 

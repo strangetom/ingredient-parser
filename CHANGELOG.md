@@ -36,13 +36,13 @@
     ]
     ```
 
-    This is enabled by default, but can be disabled by setting `separate_ingredients=False` in `parse_ingredient`. If disabled, the `ParsedIngredient.name` field will only contain a single `IngredientText` object.
+    This is enabled by default, but can be disabled by setting `separate_ingredients=False` in `parse_ingredient`. If disabled, the `ParsedIngredient.name` field will be listing containing a single `IngredientText` object.
 
 * Set `PREPARED_INGREDIENT` flag on amounts in cases like 
 
   > ... to yield 2 cups ...
   
-* Add `convert_to(...)` function to `IngredientAmount` dataclass. This returns the `IngredientAmount` object  converted to the given units.
+* Add `convert_to(...)` function to `IngredientAmount`  and `CompositeIngredientAmount` dataclasses to convert the amount to the given units. Conversion between mass and volume is also supported using a default density (density of water) that can be changed.
 
   ```python
   >>> p = parse_ingredient("1 8 ounce can chopped tomatoes")

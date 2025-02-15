@@ -25,6 +25,7 @@ The following parts of an ingredient sentence can be extracted:
 | **purpose**          | The purpose of the ingredient, such as for garnish.                                                                                                                  |
 +----------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | **foundation foods** | The core or fundamental item of an ingredient sentence, without any other words like descriptive adjectives or brand names.                                          |
+|                      | See :doc:`Foundation Foods </explanation/foundation>` for more details.                                                                                              |
 |                      |                                                                                                                                                                      |
 |                      | Note that this is not extracted by default, but can be enabled using the ``foundation_foods`` keyword argument.                                                      |
 +----------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------+

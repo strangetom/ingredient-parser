@@ -59,9 +59,9 @@ Each of the normalisation steps is described below.
    All remaining fractions are modified so that they survive tokenisation as a single token.
    This is necessary so that we can convert them to :class:`fractions.Fraction` objects later.
 
-   For fractions less than 1, the foward slash is replaced by ``$`` and a ``#`` is prepended e.g. **1/2** becomes **#1$2**.
+   For fractions less than 1, the forward slash is replaced by ``$`` and a ``#`` is prepended e.g. **1/2** becomes **#1$2**.
 
-   For fractions greater than 1, the foward slash is replaced by ``$`` and a ``#`` is inserted between the integer and the fraction e.g. **2 3/4** becomes **2#3$4**.
+   For fractions greater than 1, the forward slash is replaced by ``$`` and a ``#`` is inserted between the integer and the fraction e.g. **2 3/4** becomes **2#3$4**.
 
 #. ``_split_quantity_and_units``
 
