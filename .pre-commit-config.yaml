@@ -2,7 +2,7 @@
 # See https://pre-commit.com/hooks.html for info on hooks
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0
+    rev: v5.0.0
     hooks:
       - id: check-added-large-files
         stages: [pre-commit]
@@ -15,7 +15,7 @@ repos:
       - id: debug-statements
         stages: [pre-commit]
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.4.5
+    rev: v0.9.6
     hooks:
       - id: ruff
         args: ["--fix"]
@@ -23,7 +23,7 @@ repos:
       - id: ruff-format
         stages: [pre-commit]
   - repo: https://github.com/sphinx-contrib/sphinx-lint
-    rev: v0.9.1
+    rev: v1.0.0
     hooks:
       - id: sphinx-lint
         stages: [pre-commit]

@@ -145,7 +145,7 @@ def combine_and_or(tokens: list[str]) -> list[str]:
 
     Examples
     --------
-    >>> recombine_and_or(["2", "cups", "beef" "and" "/" "or" "chicken" "stock"])
+    >>> recombine_and_or(["2", "cups", "beef", "and/or", "chicken", "stock"])
     ["2", "cups", "beef", "and/or", "chicken", "stock"]
 
     >>> recombine_and_or(["1-2", "bananas", ":", "as", "ripe", "as", "possible"])

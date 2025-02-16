@@ -200,11 +200,12 @@ def load_datasets(
 
     print("[INFO] Loading and transforming training data.")
 
+    n = len(datasets)
     with sqlite3.connect(database, detect_types=sqlite3.PARSE_DECLTYPES) as conn:
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
         c.execute(
-            f"SELECT * FROM {table} WHERE source IN ({','.join(['?']*len(datasets))})",
+            f"SELECT * FROM {table} WHERE source IN ({','.join(['?'] * n)})",
             datasets,
         )
         data = [dict(row) for row in c.fetchall()]
@@ -316,7 +317,7 @@ def process_sentences(
         if len(p.tokenized_sentence) != len(entry["labels"]):
             raise ValueError(
                 (
-                    f"\"{entry['sentence']}\" (ID: {entry['id']}) has "
+                    f'"{entry["sentence"]}" (ID: {entry["id"]}) has '
                     f"{len(p.tokenized_sentence)} tokens "
                     f"but {len(entry['labels'])} labels."
                 )

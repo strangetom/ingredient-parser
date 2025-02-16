@@ -242,7 +242,7 @@ In this case there are two amounts: **2 cans** and **14 ounce**, where the latte
                       PREPARED_INGREDIENT=False)]
 
 
-Identifying and handling this pattern of QTY and UNIT labels is done by the :func:`PostProcessor._sizable_unit_pattern()` function.
+Identifying and handling this pattern of QTY and UNIT labels is done by the :func:`PostProcessor._sizable_unit_pattern` function.
 
 A second case is where the full amount is made up of more than one adjacent quantity-unit pair.
 This is particularly common with US customary units such as pounds and ounces, or pints and fluid ounces.

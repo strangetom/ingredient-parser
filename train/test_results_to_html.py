@@ -137,7 +137,7 @@ def test_results_to_html(
     incorrect_count = Counter(incorrect)
     src_count_str = "".join(
         [
-            f"{k.upper()}: {v} ({100*v/total_count[k]:.2f}%), "
+            f"{k.upper()}: {v} ({100 * v / total_count[k]:.2f}%), "
             for k, v in incorrect_count.items()
         ]
     )
@@ -258,7 +258,7 @@ def create_html_table(
             prediction_td.attrib = {"class": "mismatch"}
 
         score_td = ET.Element("td")
-        score_td.text = f"{100*score:.1f}%"
+        score_td.text = f"{100 * score:.1f}%"
         if score <= 0.6:
             score_td.attrib = {"class": "low-score"}
 

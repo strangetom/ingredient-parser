@@ -95,7 +95,7 @@ def sentences_by_id():
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
         c.execute(
-            f"SELECT * FROM en WHERE id IN ({','.join(['?']*len(indices))});",
+            f"SELECT * FROM en WHERE id IN ({','.join(['?'] * len(indices))});",
             indices,
         )
         data = [dict(row) for row in c.fetchall()]
@@ -201,7 +201,7 @@ def apply_filter(params: dict[str, str]):
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
         c.execute(
-            f"SELECT * FROM en WHERE source IN ({','.join(['?']*len(datasets))})",
+            f"SELECT * FROM en WHERE source IN ({','.join(['?'] * len(datasets))})",
             (datasets),
         )
         data = [dict(row) for row in c.fetchall()]

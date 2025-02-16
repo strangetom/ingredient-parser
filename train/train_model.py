@@ -331,14 +331,14 @@ def train_single(args: argparse.Namespace) -> None:
     )
 
     print("Sentence-level results:")
-    print(f"\tAccuracy: {100*stats.sentence.accuracy:.2f}%")
+    print(f"\tAccuracy: {100 * stats.sentence.accuracy:.2f}%")
 
     print()
     print("Word-level results:")
-    print(f"\tAccuracy {100*stats.token.accuracy:.2f}%")
-    print(f"\tPrecision (micro) {100*stats.token.weighted_avg.precision:.2f}%")
-    print(f"\tRecall (micro) {100*stats.token.weighted_avg.recall:.2f}%")
-    print(f"\tF1 score (micro) {100*stats.token.weighted_avg.f1_score:.2f}%")
+    print(f"\tAccuracy {100 * stats.token.accuracy:.2f}%")
+    print(f"\tPrecision (micro) {100 * stats.token.weighted_avg.precision:.2f}%")
+    print(f"\tRecall (micro) {100 * stats.token.weighted_avg.recall:.2f}%")
+    print(f"\tF1 score (micro) {100 * stats.token.weighted_avg.f1_score:.2f}%")
 
 
 def train_multiple(args: argparse.Namespace) -> None:

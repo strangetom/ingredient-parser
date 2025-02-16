@@ -182,7 +182,7 @@ class CompositeIngredientAmount:
         if self.join == "":
             self.text = " ".join([amount.text for amount in self.amounts])
         else:
-            self.text = f"{ self.join }".join([amount.text for amount in self.amounts])
+            self.text = f"{self.join}".join([amount.text for amount in self.amounts])
 
         # Set starting_index for composite amount to minimum starting_index for
         # amounts that make up the composite amount.
