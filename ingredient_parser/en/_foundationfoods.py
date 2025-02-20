@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from collections import defaultdict
+from functools import lru_cache
 from importlib.resources import as_file, files
 from itertools import groupby
 from statistics import mean
@@ -10,25 +11,23 @@ import pycrfsuite
 from .._common import group_consecutive_idx
 from ..dataclasses import FoundationFood
 
-# Create FF_TAGGER object that can be reused between function calls.
-# We only want to load the model into FF_TAGGER once, but only do it
-# when we need to (from parse_ingredient() or inspect_parser()) and
-# not whenever anything from ingredient_parser is imported.
-FF_TAGGER = pycrfsuite.Tagger()  # type: ignore
 
+@lru_cache
+def load_foundation_foods_model() -> pycrfsuite.Tagger:  # type: ignore
+    """Load foundation foods model.
 
-def load_ffmodel_if_not_loaded():
-    """Load foundation foods model into FF_TAGGER variable if not loaded.
+    This function is cached so that when the model has been loaded once, it does not
+    need to be loaded again, the cached model is returned.
 
-    There isn't a simple way to check if the model if loaded or not, so
-    we try to call FF_TAGGER.labels() which will raise a ValueError if the
-    model is not loaded yet.
+    Returns
+    -------
+    pycrfsuite.Tagger
+        Foundation foods model loaded into Tagger object.
     """
-    try:
-        FF_TAGGER.labels()
-    except ValueError:
-        with as_file(files(__package__) / "ff_model.en.crfsuite") as p:
-            FF_TAGGER.open(str(p))
+    ff_tagger = pycrfsuite.Tagger()  # type: ignore
+    with as_file(files(__package__) / "ff_model.en.crfsuite") as p:
+        ff_tagger.open(str(p))
+        return ff_tagger
 
 
 def join_adjacent_FF_tokens(
@@ -120,7 +119,7 @@ def extract_foundation_foods(
     list[FoundationFood]
         List of foundation foods.
     """
-    load_ffmodel_if_not_loaded()
+    FF_TAGGER = load_foundation_foods_model()
 
     name_idx = [idx for idx, label in enumerate(labels) if "NAME" in label]
     name_tokens = [tok for tok, label in zip(tokens, labels) if "NAME" in label]
