@@ -508,7 +508,9 @@ class PostProcessor:
             starting_index=starting_index,
         )
 
-    def _postprocess_amounts(self) -> list[IngredientAmount]:
+    def _postprocess_amounts(
+        self,
+    ) -> list[IngredientAmount | CompositeIngredientAmount]:
         """Process tokens, labels and scores into IngredientAmount.
 
         This is done by combining QTY labels with any following UNIT labels,
@@ -522,8 +524,8 @@ class PostProcessor:
 
         Returns
         -------
-        list[IngredientAmount]
-            List of IngredientAmount objects
+        list[IngredientAmount | CompositeIngredientAmount]
+            List of IngredientAmount and  CompositeIngredientAmount objects.
         """
         self._convert_string_number_qty()
 
