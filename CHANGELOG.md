@@ -1,12 +1,12 @@
 # Changelog
 
-## 2.0.0 [unreleased]
+## 2.0.0
 
 > [!Caution]
 >
 > This release contains some breaking changes
 
-1. `ParsedIngredient.name` returns a list of `IngredientText` objects, or an empty list no name is identified.
+1. `ParsedIngredient.name` is now a list of `IngredientText` objects, or an empty list no name is identified.
 
 2. The `quantity_fractions` optional keyword argument has been removed. `IngredientAmount.quantity` and `IngredientAmount.quantity_max` return `fractions.Fraction` objects. Conversion to `float` can be achieved by e.g.:
 
