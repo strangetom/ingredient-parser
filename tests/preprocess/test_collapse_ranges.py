@@ -8,7 +8,7 @@ def p():
     """Define an empty PreProcessor object to use for testing the PreProcessor
     class methods.
     """
-    return PreProcessor("", defer_pos_tagging=True)
+    return PreProcessor(".")
 
 
 class TestPreProcessor_collapse_ranges:

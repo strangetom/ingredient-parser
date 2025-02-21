@@ -8,17 +8,7 @@ def p():
     """Define an empty PreProcessor object to use for testing the PreProcessor
     class methods.
     """
-    return PreProcessor("", defer_pos_tagging=True)
-
-
-class TestPreProcessor_tag_partofspeech:
-    """Test overrides for part of speech tagging"""
-
-    def test_range(self, p):
-        """
-        The token is tagged as "CD"
-        """
-        assert p._tag_partofspeech(["3-4"]) == ["CD"]
+    return PreProcessor(".")
 
 
 class TestPreProcessor_is_unit:

@@ -9,11 +9,11 @@ from .dataclasses import ParsedIngredient, ParserDebugInfo
 def parse_ingredient(
     sentence: str,
     lang: str = "en",
+    separate_names: bool = True,
     discard_isolated_stop_words: bool = True,
     expect_name_in_output: bool = True,
     string_units: bool = False,
     imperial_units: bool = False,
-    quantity_fractions: bool = False,
     foundation_foods: bool = False,
 ) -> ParsedIngredient:
     """Parse an ingredient sentence to return structured data.
@@ -21,10 +21,15 @@ def parse_ingredient(
     Parameters
     ----------
     sentence : str
-        Ingredient sentence to parse
+        Ingredient sentence to parse.
     lang : str
         Language of sentence.
         Currently supported options are: en
+    separate_names : bool, optional
+        If True and the sentence contains multiple alternative ingredients, return an
+        IngredientText object for each ingredient name, otherwise return a single
+        IngredientText object.
+        Default is True.
     discard_isolated_stop_words : bool, optional
         If True, any isolated stop words in the name, preparation, or comment fields
         are discarded.
@@ -44,10 +49,6 @@ def parse_ingredient(
         for the the following units: fluid ounce, cup, pint, quart, gallon.
         Default is False, which results in US customary units being used.
         This has no effect if string_units=True.
-    quantity_fractions: bool, optional
-        If True, IngredientAmount quantities are returned as fractions.Fraction objects.
-        Default is False, where quantities are returned as floats rounded to 3 decimal
-        places.
     foundation_foods : bool, optional
         If True, extract foundation foods from ingredient name. Foundation foods are
         the fundamental foods without any descriptive terms, e.g. 'cucumber' instead
@@ -66,12 +67,12 @@ def parse_ingredient(
         case "en":
             return parse_ingredient_en(
                 sentence,
+                separate_names=separate_names,
                 discard_isolated_stop_words=discard_isolated_stop_words,
                 expect_name_in_output=expect_name_in_output,
                 string_units=string_units,
                 imperial_units=imperial_units,
                 foundation_foods=foundation_foods,
-                quantity_fractions=quantity_fractions,
             )
         case _:
             raise ValueError(f'Unrecognised value "{lang}"')
@@ -80,11 +81,11 @@ def parse_ingredient(
 def parse_multiple_ingredients(
     sentences: list[str],
     lang: str = "en",
+    separate_names: bool = True,
     discard_isolated_stop_words: bool = True,
     expect_name_in_output: bool = True,
     string_units: bool = False,
     imperial_units: bool = False,
-    quantity_fractions: bool = False,
     foundation_foods: bool = False,
 ) -> list[ParsedIngredient]:
     """Parse multiple ingredient sentences in one go.
@@ -98,10 +99,15 @@ def parse_multiple_ingredients(
     Parameters
     ----------
     sentences : list[str]
-        List of sentences to parse
+        List of sentences to parse.
     lang : str
         Language of sentence.
         Currently supported options are: en
+    separate_names : bool, optional
+        If True and the sentence contains multiple alternative ingredients, return an
+        IngredientText object for each ingredient name, otherwise return a single
+        IngredientText object.
+        Default is True.
     discard_isolated_stop_words : bool, optional
         If True, any isolated stop words in the name, preparation, or comment fields
         are discarded.
@@ -121,10 +127,6 @@ def parse_multiple_ingredients(
         for the the following units: fluid ounce, cup, pint, quart, gallon.
         Default is False, which results in US customary units being used.
         This has no effect if string_units=True.
-    quantity_fractions: bool, optional
-        If True, IngredientAmount quantities are returned as fractions.Fraction objects.
-        Default is False, where quantities are returned as floats rounded to 3 decimal
-        places.
     foundation_foods : bool, optional
         If True, extract foundation foods from ingredient name. Foundation foods are
         the fundamental foods without any descriptive terms, e.g. 'cucumber' instead
@@ -141,12 +143,12 @@ def parse_multiple_ingredients(
         parse_ingredient(
             sentence,
             lang=lang,
+            separate_names=separate_names,
             discard_isolated_stop_words=discard_isolated_stop_words,
             expect_name_in_output=expect_name_in_output,
             string_units=string_units,
             imperial_units=imperial_units,
             foundation_foods=foundation_foods,
-            quantity_fractions=quantity_fractions,
         )
         for sentence in sentences
     ]
@@ -155,11 +157,11 @@ def parse_multiple_ingredients(
 def inspect_parser(
     sentence: str,
     lang: str = "en",
+    separate_names: bool = True,
     discard_isolated_stop_words: bool = True,
     expect_name_in_output: bool = True,
     string_units: bool = False,
     imperial_units: bool = False,
-    quantity_fractions: bool = False,
     foundation_foods: bool = False,
 ) -> ParserDebugInfo:
     """Return intermediate objects generated during parsing for inspection.
@@ -167,10 +169,15 @@ def inspect_parser(
     Parameters
     ----------
     sentence : str
-        Ingredient sentence to parse
+        Ingredient sentence to parse.
     lang : str
         Language of sentence.
         Currently supported options are: en
+    separate_names : bool, optional
+        If True and the sentence contains multiple alternative ingredients, return an
+        IngredientText object for each ingredient name, otherwise return a single
+        IngredientText object.
+        Default is True.
     discard_isolated_stop_words : bool, optional
         If True, any isolated stop words in the name, preparation, or comment fields
         are discarded.
@@ -190,10 +197,6 @@ def inspect_parser(
         for the the following units: fluid ounce, cup, pint, quart, gallon.
         Default is False, which results in US customary units being used.
         This has no effect if string_units=True.
-    quantity_fractions: bool, optional
-        If True, IngredientAmount quantities are returned as fractions.Fraction objects.
-        Default is False, where quantities are returned as floats rounded to 3 decimal
-        places.
     foundation_foods : bool, optional
         If True, extract foundation foods from ingredient name. Foundation foods are
         the fundamental foods without any descriptive terms, e.g. 'cucumber' instead
@@ -213,12 +216,12 @@ def inspect_parser(
         case "en":
             return inspect_parser_en(
                 sentence,
+                separate_names=separate_names,
                 discard_isolated_stop_words=discard_isolated_stop_words,
                 expect_name_in_output=expect_name_in_output,
                 string_units=string_units,
                 imperial_units=imperial_units,
                 foundation_foods=foundation_foods,
-                quantity_fractions=quantity_fractions,
             )
         case _:
             raise ValueError(f'Unrecognised value "{lang}"')

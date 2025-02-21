@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import copy
 import operator
 from dataclasses import dataclass, field
 from fractions import Fraction
@@ -10,6 +11,8 @@ from typing import Any
 import pint
 import pycrfsuite
 
+from ._common import UREG
+
 
 @dataclass
 class IngredientAmount:
@@ -19,10 +22,10 @@ class IngredientAmount:
 
     Attributes
     ----------
-    quantity : float | Fraction | str
-        Parsed ingredient quantity, as a float where possible, otherwise a string.
+    quantity : Fraction | str
+        Parsed ingredient quantity, as a Fraction where possible, otherwise a string.
         If the amount if a range, this is the lower limit of the range.
-    quantity_max : float | Fraction | str
+    quantity_max : Fraction | str
         If the amount is a range, this is the upper limit of the range.
         Otherwise, this is the same as the quantity field.
         This is set automatically depending on the type of quantity.
@@ -31,7 +34,7 @@ class IngredientAmount:
         If the quantity is recognised in the pint unit registry, a pint.Unit
         object is used.
     text : str
-        String describing the amount e.g. "1 cup"
+        String describing the amount e.g. "1 cup", "8 oz"
     confidence : float
         Confidence of parsed ingredient amount, between 0 and 1.
         This is the average confidence of all tokens that contribute to this object.
@@ -55,8 +58,8 @@ class IngredientAmount:
         Default is False.
     """
 
-    quantity: float | Fraction | str
-    quantity_max: float | Fraction | str
+    quantity: Fraction | str
+    quantity_max: Fraction | str
     unit: str | pint.Unit
     text: str
     confidence: float
@@ -66,6 +69,78 @@ class IngredientAmount:
     RANGE: bool = False
     MULTIPLIER: bool = False
     PREPARED_INGREDIENT: bool = False
+
+    def _copy(self):
+        """Return deepcopy of current object.
+
+        Returns
+        -------
+        Self
+            Deep copy of self
+        """
+        return copy.deepcopy(self)
+
+    def convert_to(self, unit: str, density: pint.Quantity = 1000 * UREG("kg/m^3")):
+        """Convert units of IngredientAmount object to given unit.
+
+        Conversion is only possible if none of the quantity, quantity_max and unit are
+        strings.
+
+        Conversion between mass and volume is supported using the density parameter, but
+        otherwise a DimensionalityError is raised if attempting to convert units of
+        different dimensionality.
+
+        .. warning::
+
+            When a conversion between mass <-> volume is performed, the quantities will
+            be converted to floats.
+
+        Parameters
+        ----------
+        unit : str
+            Unit to convert to.
+        density : pint.Quantity, optional
+            Density used for conversion between volume and mass.
+            Default is the density of water.
+
+        Returns
+        -------
+        Self
+            Copy of IngredientAmount object with units converted to given unit.
+
+        Raises
+        ------
+        TypeError
+            Raised if unit, quantity or quantity_max are str
+        """
+        if (
+            isinstance(self.unit, str)
+            or isinstance(self.quantity, str)
+            or isinstance(self.quantity_max, str)
+        ):
+            raise TypeError("Cannot convert where quantity or unit is a string.")
+
+        q: pint.Quantity = self.quantity * self.unit  # type: ignore
+        q_max: pint.Quantity = self.quantity_max * self.unit  # type: ignore
+
+        # Apply density context for conversion.
+        # This is only relevant if converting between mass <-> volume.
+        with UREG.context("density", p=density):
+            q_converted = q.to(unit)  # type: ignore
+            q_max_converted = q_max.to(unit)  # type: ignore
+
+        converted_amount = self._copy()
+        converted_amount.quantity = q_converted.magnitude
+        converted_amount.quantity_max = q_max_converted.magnitude
+        converted_amount.unit = q_converted.units  # type: ignore
+
+        # Fraction object don't support float-style formatting until Python 3.12, so we
+        # can't just use f"{q_converted:P}"
+        converted_amount.text = (
+            f"{float(q_converted.magnitude):g} " + f"{q_converted.units:P}"
+        )
+
+        return converted_amount
 
 
 @dataclass
@@ -92,7 +167,7 @@ class CompositeIngredientAmount:
         Confidence of parsed ingredient amount, between 0 and 1.
         This is the average confidence of all tokens that contribute to this object.
     starting_index : int
-        Index of token in sentence that starts this amount
+        Index of token in sentence that starts this amount.
     """
 
     amounts: list[IngredientAmount]
@@ -107,7 +182,7 @@ class CompositeIngredientAmount:
         if self.join == "":
             self.text = " ".join([amount.text for amount in self.amounts])
         else:
-            self.text = f"{ self.join }".join([amount.text for amount in self.amounts])
+            self.text = f"{self.join}".join([amount.text for amount in self.amounts])
 
         # Set starting_index for composite amount to minimum starting_index for
         # amounts that make up the composite amount.
@@ -138,7 +213,7 @@ class CompositeIngredientAmount:
         # Check amounts are compatible for combination
         for amount in self.amounts:
             if not (
-                isinstance(amount.quantity, (float, Fraction))
+                isinstance(amount.quantity, Fraction)
                 and isinstance(amount.unit, pint.Unit)
             ):
                 q_type = type(amount.quantity).__name__
@@ -155,10 +230,44 @@ class CompositeIngredientAmount:
         else:
             op = operator.add
 
-        # Force quantity to float in case it's a Fraction
         return reduce(
-            op, (float(amount.quantity) * amount.unit for amount in self.amounts)
-        )  # type: ignore
+            op,
+            (amount.quantity * amount.unit for amount in self.amounts),  # type: ignore
+        )
+
+    def convert_to(self, unit: str, density: pint.Quantity = 1000 * UREG("kg/m^3")):
+        """Convert units of the combined CompositeIngredientAmount object to given unit.
+
+        Conversion is only possible if none of the quantity, quantity_max and unit are
+        strings.
+
+        Conversion between mass and volume is supported using the density parameter, but
+        otherwise a DimensionalityError is raised if attempting to convert units of
+        different dimensionality.
+
+        .. warning::
+
+            When a conversion between mass <-> volume is performed, the quantities will
+            be converted to floats.
+
+        Parameters
+        ----------
+        unit : str
+            Unit to convert to.
+        density : pint.Quantity, optional
+            Density used for conversion between volume and mass.
+            Default is the density of water.
+
+        Returns
+        -------
+        pint.Quantity
+            Combined amount converted to given units
+
+        """
+        # Apply density context for conversion.
+        # This is only relevant if converting between mass <-> volume.
+        with UREG.context("density", p=density):
+            return self.combined().to(unit)
 
 
 @dataclass
@@ -208,15 +317,17 @@ class ParsedIngredient:
 
     Attributes
     ----------
-    name : IngredientText | None
-        Ingredient name parsed from input sentence.
-        If no ingredient name was found, this is None.
+    name : list[IngredientText]
+        List of IngredientText objects, each representing an ingreident name parsed from
+        input sentence.
+        If no ingredient names are found, this is an empty list.
     size : IngredientText | None
         Size modifier of ingredients, such as small or large.
         If no size modifier, this is None.
-    amount : List[IngredientAmount]
+    amount : List[IngredientAmount | CompositeIngredientAmount]
         List of IngredientAmount objects, each representing a matching quantity and
         unit pair parsed from the sentence.
+        If no ingredient amounts are found, this is an empty list.
     preparation : IngredientText | None
         Ingredient preparation instructions parsed from sentence.
         If no ingredient preparation instruction was found, this is None.
@@ -232,9 +343,9 @@ class ParsedIngredient:
         Normalised input sentence
     """
 
-    name: IngredientText | None
+    name: list[IngredientText]
     size: IngredientText | None
-    amount: list[IngredientAmount]
+    amount: list[IngredientAmount | CompositeIngredientAmount]
     preparation: IngredientText | None
     comment: IngredientText | None
     purpose: IngredientText | None
@@ -246,26 +357,38 @@ class ParsedIngredient:
 
         The flag is set if:
          * the amount is before the preparation instructions AND
-         * the preparation instructions are before the name
+         * the preparation instructions are before the name(s)
         e.g. 100 g sifted flour
 
         OR
-         * the preparation instruction is after the name AND
+         * the preparation instruction is after the name(s) AND
          * the amount is after the preparation instruction
         e.g. Onion, thinly sliced (about 1 cup)
 
+
+        Assumes that any preparation text appear entirely before or entirely after all
+        names.
         """
-        if self.name and self.preparation:
-            for amount in self.amount:
-                if (
-                    amount.starting_index
-                    < self.preparation.starting_index
-                    < self.name.starting_index
-                ) or (
-                    self.name.starting_index
-                    < self.preparation.starting_index
-                    < amount.starting_index
-                ):
+        if not self.name or not self.preparation:
+            return
+
+        first_name_starting_index = min(n.starting_index for n in self.name)
+        last_name_starting_index = max(n.starting_index for n in self.name)
+
+        for amount in self.amount:
+            if (
+                amount.starting_index
+                < self.preparation.starting_index
+                < first_name_starting_index
+            ) or (
+                last_name_starting_index
+                < self.preparation.starting_index
+                < amount.starting_index
+            ):
+                if isinstance(amount, CompositeIngredientAmount):
+                    for composite_amount in amount.amounts:
+                        composite_amount.PREPARED_INGREDIENT = True
+                else:
                     amount.PREPARED_INGREDIENT = True
 
 

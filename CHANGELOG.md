@@ -1,5 +1,76 @@
 # Changelog
 
+## 2.0.0
+
+> [!Caution]
+>
+> This release contains some breaking changes
+
+1. `ParsedIngredient.name` is now a list of `IngredientText` objects, or an empty list no name is identified.
+
+2. The `quantity_fractions` optional keyword argument has been removed. `IngredientAmount.quantity` and `IngredientAmount.quantity_max` return `fractions.Fraction` objects. Conversion to `float` can be achieved by e.g.:
+
+    ```python
+    # Round to 3 decimal places
+    round(float(quantity), 3)
+    ```
+
+3. New dependency: [floret](https://github.com/explosion/floret).
+
+### Processing
+
+* Identify where multiple alternative ingredients are given for the stated amount. For example
+
+    ```python
+    # Simple example
+    >>> parse_ingredient("2 tbsp butter or olive oil").name
+    [
+      IngredientText(text='butter', confidence=0.983045, starting_index=2),
+      IngredientText(text='olive oil', confidence=0.930385, starting_index=4)
+    ]
+    # Complex example
+    >>> parse_ingredient("2 cups chicken or beef stock").name
+    [
+      IngredientText(text='chicken stock', confidence=0.776891, starting_index=2),
+      IngredientText(text='beef stock', confidence=0.94334, starting_index=4)
+    ]
+    ```
+
+    This is enabled by default, but can be disabled by setting `separate_ingredients=False` in `parse_ingredient`. If disabled, the `ParsedIngredient.name` field will be listing containing a single `IngredientText` object.
+
+* Set `PREPARED_INGREDIENT` flag on amounts in cases like 
+
+  > ... to yield 2 cups ...
+  
+* Add `convert_to(...)` function to `IngredientAmount`  and `CompositeIngredientAmount` dataclasses to convert the amount to the given units. Conversion between mass and volume is also supported using a default density (density of water) that can be changed.
+
+  ```python
+  >>> p = parse_ingredient("1 8 ounce can chopped tomatoes")
+  >>> # Convert "8 ounce" to grams
+  >>> p.amount[1].convert_to("g")
+  IngredientAmount(quantity=Fraction(5669904625000001, 25000000000000),
+                   quantity_max=Fraction(5669904625000001, 25000000000000),
+                   unit=<Unit('gram')>,
+                   text='226.80 gram',
+                   confidence=0.999051,
+                   starting_index=1,
+                   APPROXIMATE=False,
+                   SINGULAR=True,
+                   RANGE=False,
+                   MULTIPLIER=False,
+                   PREPARED_INGREDIENT=False)
+  
+  >>> # Cannot convert where the quantity or unit is a string
+  >>> p.amount[0].convert_to("g")
+  TypeError: Cannot convert with string quantities or units.
+  ```
+
+  
+
+### Model
+
+* Include custom word embeddings as features used by the model. This requires a new dependency of the [floret](https://github.com/explosion/floret) library.
+
 ## 1.3.2
 
 ### Processing
@@ -49,7 +120,6 @@
   )
   ```
 
-  
 
 ### Model
 
@@ -85,7 +155,7 @@ Require NLTK >= 3.8.2 due to change in POS tagger weights format.
   * Word shape (e.g. cheese -> xxxxxx; Cheese -> Xxxxxx)
   * N-gram (n=3, 4, 5) prefixes and suffixes of tokens
 * Add 15,000 new sentences to training data from AllRecipes. This dataset includes lots of branded ingredients, which the existing datasets were quite light on.
-* Tweaks to the model hyperparameters have yielded a model that is ~25% small, but with better performance than the previous model.
+* Tweaks to the model hyperparameters have yielded a model that is ~25% smaller, but with better performance than the previous model.
 
 ### Processing
 

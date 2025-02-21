@@ -149,13 +149,16 @@ AMBIGUOUS_UNITS = [
     "slabs",
     "wedges",
     "ribs",
+    "gram",  # e.g. gram (chickpea) flour
 ]
 # Extend list automatically to include singular and capitalized forms
 _ambiguous_units_alt_forms = []
 for amb_unit in AMBIGUOUS_UNITS:
     _ambiguous_units_alt_forms.append(amb_unit.capitalize())
-    _ambiguous_units_alt_forms.append(UNITS[amb_unit])
-    _ambiguous_units_alt_forms.append(UNITS[amb_unit.capitalize()])
+    if singular := UNITS.get(amb_unit):
+        _ambiguous_units_alt_forms.append(singular)
+    if singular_capitalised := UNITS.get(amb_unit.capitalize()):
+        _ambiguous_units_alt_forms.append(singular_capitalised)
 
 AMBIGUOUS_UNITS.extend(_ambiguous_units_alt_forms)
 
@@ -400,6 +403,11 @@ APPROXIMATE_TOKENS = [
 ]
 # Tokens that indicate an amount is singular
 SINGULAR_TOKENS = ["each"]
+# Tokens that indicate an amount refers to the prepared ingredient
+PREPARED_INGREDIENT_TOKENS = [
+    ["to", "yield"],
+    ["to", "make"],
+]
 
 # List of sets, where each set contains the synonyms that represent the same unit.
 UNIT_SYNONYMS = [

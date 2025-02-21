@@ -3,6 +3,7 @@
 import json
 import re
 import sqlite3
+import string
 from collections import Counter
 
 from flask import Flask, Response, redirect, render_template, request, url_for
@@ -94,7 +95,7 @@ def sentences_by_id():
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
         c.execute(
-            f"SELECT * FROM en WHERE id IN ({','.join(['?']*len(indices))});",
+            f"SELECT * FROM en WHERE id IN ({','.join(['?'] * len(indices))});",
             indices,
         )
         data = [dict(row) for row in c.fetchall()]
@@ -200,7 +201,7 @@ def apply_filter(params: dict[str, str]):
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
         c.execute(
-            f"SELECT * FROM en WHERE source IN ({','.join(['?']*len(datasets))})",
+            f"SELECT * FROM en WHERE source IN ({','.join(['?'] * len(datasets))})",
             (datasets),
         )
         data = [dict(row) for row in c.fetchall()]
@@ -215,7 +216,16 @@ def apply_filter(params: dict[str, str]):
 
     # Create regex for search query
     escaped = re.escape(params["filter-string"])
+
+    if not escaped:
+        return Response(status=204)
+
     if params.get("whole-word", "") == "on":
+        # Strip trailing punctuation to make this work how I want it to, otherwise the
+        # trailing punctuation in <escaped> means the trailing <\b> in the regex does
+        # not match anything.
+        while escaped[-1] in string.punctuation:
+            escaped = escaped[:-1]
         expression = rf"\b{escaped}\b"
     else:
         expression = escaped
@@ -226,7 +236,7 @@ def apply_filter(params: dict[str, str]):
         query = re.compile(expression, re.UNICODE | re.IGNORECASE)
 
     # 9 possible labels in total
-    if len(labels) == 9:
+    if len(labels) == 14:
         # Search through sentences
         indices = []
         for entry in data:
@@ -290,7 +300,7 @@ def insert_sentences(params: dict[str, str]):
                 ff = [
                     idx
                     for idx, (token, label) in enumerate(zip(tokens, labels))
-                    if token in ff_tokens and label == "NAME"
+                    if token in ff_tokens and "NAME" in label
                 ]
             else:
                 labels = [""] * len(tokens)
@@ -298,7 +308,8 @@ def insert_sentences(params: dict[str, str]):
 
             c.execute(
                 """
-                INSERT INTO en (source, sentence, tokens, labels, foundation_foods) 
+                INSERT INTO en 
+                (source, sentence, tokens, labels, foundation_foods)
                 VALUES (?, ?, ?, ?, ?)""",
                 (source, sentence, tokens, labels, ff),
             )

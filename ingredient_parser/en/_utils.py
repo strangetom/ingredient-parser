@@ -8,7 +8,7 @@ from itertools import chain
 import nltk.stem.porter as nsp
 import pint
 
-from .._common import download_nltk_resources, is_float, is_range
+from .._common import UREG, consume, download_nltk_resources, is_float, is_range
 from ..dataclasses import IngredientAmount
 from ._constants import FLATTENED_UNITS_LIST, UNIT_SYNONYMS, UNITS
 from ._regex import (
@@ -16,8 +16,6 @@ from ._regex import (
     FRACTION_TOKEN_PATTERN,
     STRING_RANGE_PATTERN,
 )
-
-UREG = pint.UnitRegistry()
 
 # Dict mapping certain units to their imperial version in pint
 IMPERIAL_UNITS = {
@@ -113,6 +111,9 @@ def tokenize(sentence: str) -> list[str]:
 
     >>> tokenize("2 onions, finely chopped*")
     ["2", "onions", ",", "finely", "chopped", "*"]
+
+    >>> tokenize("2 cups beef and/or chicken stock")
+    ["2", "cups", "beef", "and/or", "chicken", "stock"]
     """
     tokens = [
         PUNCTUATION_TOKENISER.split(tok)
@@ -120,10 +121,50 @@ def tokenize(sentence: str) -> list[str]:
     ]
     flattened = [tok for tok in chain.from_iterable(tokens) if tok]
 
+    # Recombine "and/or" into a single token
+    combined = combine_and_or(flattened)
+
     # Second pass to separate full stops from end of tokens
-    tokens = [FULL_STOP_TOKENISER.split(tok) for tok in flattened]
+    tokens = [FULL_STOP_TOKENISER.split(tok) for tok in combined]
 
     return [tok for tok in chain.from_iterable(tokens) if tok]
+
+
+def combine_and_or(tokens: list[str]) -> list[str]:
+    """Combine ["and", "/", "or"] into a single token.
+
+    Parameters
+    ----------
+    tokens : list[str]
+        Flat list of tokens.
+
+    Returns
+    -------
+    list[str]
+        Input tokens with any instances of and/or combined into a single token.
+
+    Examples
+    --------
+    >>> recombine_and_or(["2", "cups", "beef", "and/or", "chicken", "stock"])
+    ["2", "cups", "beef", "and/or", "chicken", "stock"]
+
+    >>> recombine_and_or(["1-2", "bananas", ":", "as", "ripe", "as", "possible"])
+    ["1-2", "bananas", ":", "as", "ripe", "as", "possible"]
+    """
+    AND_OR_PATTERN = ["and", "/", "or"]
+
+    combined = []
+    idx = iter(range(len(tokens)))
+    for i in idx:
+        # Short circuit: If tokens[i] is not equal to the first element
+        # of AND_OR_PATTERN, skip to next iteration
+        if tokens[i] == AND_OR_PATTERN[0] and tokens[i : i + 3] == AND_OR_PATTERN:
+            combined.append("and/or")
+            consume(idx, len(AND_OR_PATTERN) - 1)
+        else:
+            combined.append(tokens[i])
+
+    return combined
 
 
 @lru_cache(maxsize=512)
@@ -147,6 +188,7 @@ def stem(token: str) -> str:
     return STEMMER.stem(token)
 
 
+@lru_cache(maxsize=512)
 def pluralise_units(sentence: str) -> str:
     """Pluralise units in the sentence.
 
@@ -180,6 +222,7 @@ def pluralise_units(sentence: str) -> str:
     return sentence
 
 
+@lru_cache(maxsize=512)
 def convert_to_pint_unit(unit: str, imperial_units: bool = False) -> str | pint.Unit:
     """Convert a unit to a pint.Unit object, if possible.
 
@@ -240,6 +283,7 @@ def convert_to_pint_unit(unit: str, imperial_units: bool = False) -> str | pint.
     return unit
 
 
+@lru_cache(maxsize=512)
 def is_unit_synonym(unit1: str, unit2: str) -> bool:
     """Check if given units are synonyms.
 
@@ -347,6 +391,7 @@ def replace_string_range(text: str) -> str:
     return STRING_RANGE_PATTERN.sub(r"\1-\5", text)
 
 
+@lru_cache(maxsize=512)
 def to_frac(token: str) -> Fraction:
     """Convert a QTY token into a Fraction object
 
@@ -375,9 +420,9 @@ def ingredient_amount_factory(
     starting_index: int,
     APPROXIMATE: bool = False,
     SINGULAR: bool = False,
+    PREPARED_INGREDIENT: bool = False,
     string_units: bool = False,
     imperial_units: bool = False,
-    quantity_fractions: bool = False,
 ) -> IngredientAmount:
     """Create ingredient amount object from parts.
 
@@ -406,6 +451,10 @@ def ingredient_amount_factory(
     SINGULAR : bool, optional
         When True, indicates if the amount refers to a singular item of the ingredient.
         Default is False.
+    PREPARED_INGREDIENT : bool, optional
+        When True, indicates the amount applies to the prepared ingredient.
+        When False, indicates the amount applies to the ingredient before preparation.
+        Default is False.
     string_units : bool, optional
         If True, return all IngredientAmount units as strings.
         If False, convert IngredientAmount units to pint.Unit objects where possible.
@@ -415,9 +464,6 @@ def ingredient_amount_factory(
         for the the following units: fluid ounce, cup, pint, quart, gallon.
         Default is False, which results in US customary units being used.
         This has no effect if string_units=True.
-    quantity_fractions: bool, optional
-        If True, return numeric quantities as Fraction objects.
-        Default is False, where numeric quantities are returned as floats.
 
     Returns
     -------
@@ -425,17 +471,17 @@ def ingredient_amount_factory(
     """
     RANGE = False
     MULTIPLIER = False
-    if is_float(quantity) or FRACTION_TOKEN_PATTERN.match(quantity):
-        # If float or fraction, set quantity_max = quantity
-        _quantity = to_frac(quantity)
-        quantity_max = _quantity
-    elif is_range(quantity):
+    if is_range(quantity):
         # If range, set quantity to min of range, set quantity_max to max
         # of range, set RANGE flag to True
         range_parts = [to_frac(x) for x in quantity.split("-")]
         _quantity = min(range_parts)
         quantity_max = max(range_parts)
         RANGE = True
+    elif is_float(quantity) or FRACTION_TOKEN_PATTERN.match(quantity):
+        # If float or fraction, set quantity_max = quantity
+        _quantity = to_frac(quantity)
+        quantity_max = _quantity
     elif quantity.endswith("x"):
         # If multiplier, set quantity and quantity_max to value without 'x', and
         # set MULTIPLER flag.
@@ -446,12 +492,6 @@ def ingredient_amount_factory(
         _quantity = quantity
         # Fallback to setting quantity_max to quantity
         quantity_max = _quantity
-
-    if not quantity_fractions:
-        # Convert to floats if not using Fractions
-        if isinstance(_quantity, Fraction) and isinstance(quantity_max, Fraction):
-            _quantity = round(float(_quantity), 3)
-            quantity_max = round(float(quantity_max), 3)
 
     _unit = unit
     # Convert unit to pint.Unit
@@ -468,15 +508,23 @@ def ingredient_amount_factory(
         if isinstance(_unit, str):
             _unit = pluralise_units(_unit)
 
+    # Fix up text:
+    # 1. Replace intermediate fractions with text fraction
+    # 2. Remove additional leading and trailing spaces
+    # 3. Remove additional spaces in fraction ranges
+    text = text.replace("#", " ").replace("$", "/").strip()
+    text = text.replace("- ", "-")
+
     return IngredientAmount(
         quantity=_quantity,
         quantity_max=quantity_max,
         unit=_unit,
-        text=text.replace("#", " ").replace("$", "/"),
+        text=text,
         confidence=round(confidence, 6),
         starting_index=starting_index,
         APPROXIMATE=APPROXIMATE,
         SINGULAR=SINGULAR,
         RANGE=RANGE,
         MULTIPLIER=MULTIPLIER,
+        PREPARED_INGREDIENT=PREPARED_INGREDIENT,
     )

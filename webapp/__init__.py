@@ -95,7 +95,11 @@ def get_all_marginals(parser_info: ParserDebugInfo) -> list[dict[str, float]]:
         Dict of label-score pairs for each token.
     """
     labels = [
-        "NAME",
+        "B_NAME_TOK",
+        "I_NAME_TOK",
+        "NAME_VAR",
+        "NAME_MOD",
+        "NAME_SEP",
         "QTY",
         "UNIT",
         "PREP",

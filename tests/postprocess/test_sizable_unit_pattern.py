@@ -35,7 +35,7 @@ class TestPostProcessor_sizable_unit_pattern:
             "UNIT",
             "COMMENT",
             "UNIT",
-            "NAME",
+            "B_NAME_TOK",
         ]
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))

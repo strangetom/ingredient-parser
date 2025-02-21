@@ -11,6 +11,12 @@ from operator import itemgetter
 from typing import Generator, Iterator
 
 import nltk
+import pint
+
+UREG = pint.UnitRegistry()
+with as_file(files(__package__) / "density_context.txt") as p:
+    # Load pint context that defines transformations between mass and volume
+    UREG.load_definitions(p)
 
 SUPPORTED_LANGUAGES = ["en"]
 
@@ -78,7 +84,7 @@ def group_consecutive_idx(idx: list[int]) -> Generator[Iterator[int], None, None
 
 
 def show_model_card(lang: str = "en") -> None:
-    """Open model card for specified langauge in default application.
+    """Open model card for specified language in default application.
 
     Parameters
     ----------
@@ -92,7 +98,7 @@ def show_model_card(lang: str = "en") -> None:
         if platform.system() == "Darwin":  # macOS
             subprocess.call(("open", p))
         elif platform.system() == "Windows":  # Windows
-            os.startfile(p)
+            os.startfile(p)  # type: ignore
         else:  # linux variants
             subprocess.call(("xdg-open", p))
 

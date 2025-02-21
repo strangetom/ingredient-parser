@@ -8,7 +8,7 @@ class TestPostProcessor_is_approximate:
         """
         sentence = "about 5 cups orange juice"
         tokens = ["about", "5", "cups", "orange", "juice"]
-        labels = ["COMMENT", "QTY", "UNIT", "NAME", "NAME"]
+        labels = ["COMMENT", "QTY", "UNIT", "B_NAME_TOK", "I_NAME_TOK"]
         idx = [0, 1, 2, 3, 4]
 
         p = PostProcessor(sentence, tokens, labels, [0] * len(tokens))
@@ -21,7 +21,7 @@ class TestPostProcessor_is_approximate:
         """
         sentence = "approx. 5 cups orange juice"
         tokens = ["approx", ".", "5", "cups", "orange", "juice"]
-        labels = ["COMMENT", "PUNC", "QTY", "UNIT", "NAME", "NAME"]
+        labels = ["COMMENT", "PUNC", "QTY", "UNIT", "B_NAME_TOK", "I_NAME_TOK"]
         idx = [0, 1, 2, 3, 4, 5]
 
         p = PostProcessor(sentence, tokens, labels, [0] * len(tokens))
@@ -34,7 +34,7 @@ class TestPostProcessor_is_approximate:
         """
         sentence = "approx 5 cups orange juice"
         tokens = ["approx", "5", "cups", "orange", "juice"]
-        labels = ["COMMENT", "QTY", "UNIT", "NAME", "NAME"]
+        labels = ["COMMENT", "QTY", "UNIT", "B_NAME_TOK", "I_NAME_TOK"]
         idx = [0, 1, 2, 3, 4]
 
         p = PostProcessor(sentence, tokens, labels, [0] * len(tokens))
@@ -47,7 +47,7 @@ class TestPostProcessor_is_approximate:
         """
         sentence = "approximately 5 cups orange juice"
         tokens = ["approximately", "5", "cups", "orange", "juice"]
-        labels = ["COMMENT", "QTY", "UNIT", "NAME", "NAME"]
+        labels = ["COMMENT", "QTY", "UNIT", "B_NAME_TOK", "I_NAME_TOK"]
         idx = [0, 1, 2, 3, 4]
 
         p = PostProcessor(sentence, tokens, labels, [0] * len(tokens))
@@ -60,7 +60,7 @@ class TestPostProcessor_is_approximate:
         """
         sentence = "nearly 5 cups orange juice"
         tokens = ["nearly", "5", "cups", "orange", "juice"]
-        labels = ["COMMENT", "QTY", "UNIT", "NAME", "NAME"]
+        labels = ["COMMENT", "QTY", "UNIT", "B_NAME_TOK", "I_NAME_TOK"]
         idx = [0, 1, 2, 3, 4]
 
         p = PostProcessor(sentence, tokens, labels, [0] * len(tokens))
@@ -73,7 +73,7 @@ class TestPostProcessor_is_approximate:
         """
         sentence = "maximum 5 cups orange juice"
         tokens = ["maximum", "5", "cups", "orange", "juice"]
-        labels = ["COMMENT", "QTY", "UNIT", "NAME", "NAME"]
+        labels = ["COMMENT", "QTY", "UNIT", "B_NAME_TOK", "I_NAME_TOK"]
         idx = [0, 1, 2, 3, 4]
 
         p = PostProcessor(sentence, tokens, labels, [0] * len(tokens))

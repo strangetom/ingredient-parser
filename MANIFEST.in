@@ -1,6 +1,8 @@
+include ingredient_parser/density_context.txt
 include ingredient_parser/en/model.en.crfsuite
 include ingredient_parser/en/ModelCard.en.md
 include ingredient_parser/en/ff_model.en.crfsuite
 include ingredient_parser/en/FF_ModelCard.en.md
+include ingredient_parser/en/embeddings.floret.bin
 global-exclude test*
 prune */__pycache__

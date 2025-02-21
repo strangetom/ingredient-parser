@@ -17,6 +17,7 @@ from ..dataclasses import (
 )
 from ._constants import (
     APPROXIMATE_TOKENS,
+    PREPARED_INGREDIENT_TOKENS,
     SINGULAR_TOKENS,
     STOP_WORDS,
     STRING_NUMBERS_REGEXES,
@@ -55,6 +56,10 @@ class _PartialIngredientAmount:
     SINGULAR : bool, optional
         When True, indicates if the amount refers to a singular item of the ingredient.
         Default is False.
+    PREPARED_INGREDIENT : bool, optional
+        When True, indicates the amount applies to the prepared ingredient.
+        When False, indicates the amount applies to the ingredient before preparation.
+        Default is False.
     """
 
     quantity: str
@@ -64,6 +69,7 @@ class _PartialIngredientAmount:
     related_to_previous: bool = False
     APPROXIMATE: bool = False
     SINGULAR: bool = False
+    PREPARED_INGREDIENT = False
 
 
 class PostProcessor:
@@ -75,14 +81,19 @@ class PostProcessor:
 
     Attributes
     ----------
-    labels : list[str]
-        List of labels for tokens.
-    scores : list[float]
-        Confidence associated with the label for each token.
     sentence : str
         Original ingredient sentence.
     tokens : list[str]
         List of tokens for original ingredient sentence.
+    labels : list[str]
+        List of labels for tokens.
+    scores : list[float]
+        Confidence associated with the label for each token.
+    separate_names : bool, optional
+        If True and the sentence contains multiple alternative ingredients, return an
+        IngredientText object for each ingredient name, otherwise return a single
+        IngredientText object.
+        Default is True.
     discard_isolated_stop_words : bool
         If True, isolated stop words are discarded from the name, preparation or
         comment fields. Default value is True.
@@ -106,19 +117,19 @@ class PostProcessor:
         tokens: list[str],
         labels: list[str],
         scores: list[float],
+        separate_names: bool = True,
         discard_isolated_stop_words: bool = True,
         string_units: bool = False,
         imperial_units: bool = False,
-        quantity_fractions: bool = False,
     ):
         self.sentence = sentence
         self.tokens = tokens
         self.labels = labels
         self.scores = scores
+        self.separate_names = separate_names
         self.discard_isolated_stop_words = discard_isolated_stop_words
         self.string_units = string_units
         self.imperial_units = imperial_units
-        self.quantity_fractions = quantity_fractions
         self.consumed = []
 
     def __repr__(self) -> str:
@@ -155,8 +166,26 @@ class PostProcessor:
             Object containing structured data from sentence.
         """
         amounts = self._postprocess_amounts()
+
+        if self.separate_names:
+            name = self._postprocess_names()
+        else:
+            # Replace all labels containing NAME with "NAME"
+            name_replaced_labels = []
+            for label in self.labels:
+                if "NAME" in label:
+                    name_replaced_labels.append("NAME")
+                else:
+                    name_replaced_labels.append(label)
+            self.labels = name_replaced_labels
+
+            # Process NAME labels as any other label, but return a list
+            if processed_name := self._postprocess("NAME"):
+                name = [processed_name]
+            else:
+                name = []
+
         size = self._postprocess("SIZE")
-        name = self._postprocess("NAME")
         preparation = self._postprocess("PREP")
         comment = self._postprocess("COMMENT")
         purpose = self._postprocess("PURPOSE")
@@ -197,6 +226,225 @@ class PostProcessor:
         if not label_idx or all(self.labels[i] == "PUNC" for i in label_idx):
             return None
 
+        return self._postprocess_indices(label_idx, selected_label)
+
+    def _postprocess_names(self) -> list[IngredientText]:
+        """Process tokens, labels and scores for the ingredient name(s).
+
+        This function handles multiple ingredient names e.g. "butter or olive oil",
+        determined by the labels provided for each token.
+        Where multiple alternative ingredients names are identified, each one is
+        returned in a separate IngredientText object.
+
+        Returns
+        -------
+        list[IngredientText]
+        """
+        name_idx = [
+            i
+            for i, label in enumerate(self.labels)
+            if ("NAME" in label or label == "PUNC") and i not in self.consumed
+        ]
+
+        # If idx is empty or all the selected idx are PUNC, return None
+        if not name_idx or all(self.labels[i] == "PUNC" for i in name_idx):
+            return []
+
+        name_labels = [self.labels[i] for i in name_idx]
+        bio_groups = self._group_name_labels(name_labels)
+        constructed_names = self._construct_names(bio_groups)
+
+        names = []
+        for group in constructed_names:
+            # Convert from name_label indices to token indices
+            token_idx = [name_idx[idx] for idx in group]
+            ing_text = self._postprocess_indices(token_idx, "NAME")
+            if ing_text is not None:
+                names.append(ing_text)
+
+        return names
+
+    def _group_name_labels(self, name_labels: list[str]) -> list[list[tuple[int, str]]]:
+        """Group name labels according to name label type.
+
+        B_NAME_TOK and all following I_NAME_TOK up to the next label that is not
+        I_NAME_TOK or PUNC are grouped.
+
+        All consecutive NAME_MOD labels are grouped.
+        All consecutive NAME_VAR labels are grouped.
+
+        A NAME_SEP label starts a new group.
+
+        Parameters
+        ----------
+        name_labels : list[str]
+            List of name labels.
+
+        Returns
+        -------
+        list[list[tuple[int, str]]]
+            List of BIO groups.
+            Each group is a list of tuples, where each tuple is the (index, label) of
+            the original name_labels list element.
+        """
+        name_groups = []
+        current_group = []
+        prev_label = None
+        for idx, label in enumerate(name_labels):
+            # Start new group on NAME_SEP name label
+            if label == "NAME_SEP":
+                if current_group:
+                    name_groups.append(current_group)
+                current_group = []
+            # Start new group for new "B_*" name label
+            elif label.startswith("B_"):
+                if current_group:
+                    name_groups.append(current_group)
+                current_group = [(idx, label)]
+            # Start new group if encountering new NAME_MOD or NAME_VAR, or append to
+            # current group if previous label was the same as current label.
+            elif label in ["NAME_MOD", "NAME_VAR"]:
+                if prev_label == label:
+                    current_group.append((idx, label))
+                else:
+                    if current_group:
+                        name_groups.append(current_group)
+                    current_group = [(idx, label)]
+            # Must be an I_NAME_TOK or PUNC label, so append to current group
+            else:
+                current_group.append((idx, label))
+
+            prev_label = label
+
+        # Add last group to list if not empty
+        if current_group:
+            name_groups.append(current_group)
+
+        return name_groups
+
+    def _construct_names(
+        self, name_groups: list[list[tuple[int, str]]]
+    ) -> list[list[int]]:
+        """Construct names from BIO groups.
+
+        All VAR groups are prepended to the next TOK group.
+        MOD groups are prepended to all subsequent TOK groups or VAR+TOK groups.
+
+        To make this easier, iterate through the BIO groups from last to first. This
+        means we can easily keep track of which TOK group to prepend VAR and MOD
+        groups.
+
+        Parameters
+        ----------
+        name_groups : list[list[tuple[int, str]]]
+            List of BIO groups.
+            Each group is a list of tuples, where each tuple if the (index, label) of
+            the original list element.
+
+        Returns
+        -------
+        list[list[int]]
+            List of name_label indices for each name.
+        """
+        constructed_names = []
+
+        # Keep track the last TOK group we come across (moving from last to first).
+        # Also keep track of whether we have used it by prepending a VAR or MOD
+        # group.
+        last_encountered_name = None
+        last_encountered_name_used = False
+
+        # Iterate from last to first BIO group
+        for group in reversed(name_groups):
+            current_group_idx, labels = zip(*group)
+            current_label = self._get_name_group_label(labels)
+
+            if current_label == "TOK":
+                # If we've previously come across a TOK group and haven't used it,
+                # then store it.
+                if last_encountered_name and not last_encountered_name_used:
+                    constructed_names.append(last_encountered_name)
+
+                # Set current group to last_encountered_name group.
+                last_encountered_name = current_group_idx
+                last_encountered_name_used = False
+
+            elif current_label == "VAR":
+                # Prepend this group to last encountered NAME group
+                if last_encountered_name:
+                    constructed_names.append(current_group_idx + last_encountered_name)
+                    last_encountered_name_used = True
+                else:
+                    # If we are here, then we've come across a VAR group that does not
+                    # preceed a TOK group, so the model has made an error in it's
+                    # labelling. Add this VAR group anyway.
+                    constructed_names.append(current_group_idx)
+
+            elif current_label == "MOD":
+                # If we've previously come across a NAME group and haven't used it,
+                # then store it.
+                if last_encountered_name and not last_encountered_name_used:
+                    constructed_names.append(last_encountered_name)
+                    last_encountered_name_used = True
+
+                # Prepend this group to all constructed names so far
+                constructed_names = [
+                    current_group_idx + name for name in constructed_names
+                ]
+
+        # If we've iterated through all BIO groups and haven't used
+        # last_encountered_name, add it to constructed_names now.
+        if last_encountered_name and not last_encountered_name_used:
+            constructed_names.append(last_encountered_name)
+
+        # Return reversed list, so names are in the order they appear in sentence.
+        return list(reversed(constructed_names))
+
+    def _get_name_group_label(self, labels: tuple[str]) -> str:
+        """Get the NAME label type for the labels in a name group.
+
+        One of TOK, VAR, MOD.
+
+        Parameters
+        ----------
+        labels : tuple[str]
+            Tuple of labels for name group elements.
+
+        Returns
+        -------
+        str
+            Group label
+        """
+        for label in labels:
+            if label != "PUNC":
+                return label.split("_")[-1]
+
+        return ""
+
+    def _postprocess_indices(
+        self, label_idx: list[int], selected_label: str
+    ) -> IngredientText | None:
+        """Process list of token indices into a single IngredientText object.
+
+        Consecutive tokens are joined together, with non-consecutive groups being joined
+        by a comma (unless selected_label is NAME).
+
+        Indices for tokens that would be ungrammatical are removed prior to joining.
+        Duplicate tokens that are adjacent are also removed.
+
+        Parameters
+        ----------
+        label_idx : list[int]
+            List of indices of tokens to postprocess into IngredientText
+        selected_label : str
+            Label of tokens being post processed.
+
+        Returns
+        -------
+        IngredientText | None
+            IngredientText object for selected tokens.
+            If the post processing results in all tokens being ignored, return None.
+        """
         # Join consecutive tokens together and average their score
         parts = []
         confidence_parts = []
@@ -213,9 +461,13 @@ class PostProcessor:
             group_tokens = []
             for i in idx:
                 if FRACTION_TOKEN_PATTERN.match(self.tokens[i]):
-                    group_tokens.append(
+                    text_fraction = (
                         self.tokens[i].replace("#", " ").replace("$", "/").strip()
                     )
+                    # If fraction range, remove space that will follow hyphen caused by
+                    # replacing # with space.
+                    text_fraction = text_fraction.replace("- ", "-")
+                    group_tokens.append(text_fraction)
                 else:
                     group_tokens.append(self.tokens[i])
 
@@ -256,7 +508,9 @@ class PostProcessor:
             starting_index=starting_index,
         )
 
-    def _postprocess_amounts(self) -> list[IngredientAmount]:
+    def _postprocess_amounts(
+        self,
+    ) -> list[IngredientAmount | CompositeIngredientAmount]:
         """Process tokens, labels and scores into IngredientAmount.
 
         This is done by combining QTY labels with any following UNIT labels,
@@ -270,8 +524,8 @@ class PostProcessor:
 
         Returns
         -------
-        list[IngredientAmount]
-            List of IngredientAmount objects
+        list[IngredientAmount | CompositeIngredientAmount]
+            List of IngredientAmount and  CompositeIngredientAmount objects.
         """
         self._convert_string_number_qty()
 
@@ -555,8 +809,8 @@ class PostProcessor:
 
         For example, for the sentence: 1 28 ounce can; the correct amounts are:
         [
-            IngredientAmount(quantity="1", unit="can", score=0.x...),
-            IngredientAmount(quantity="28", unit="ounce", score=0.x...),
+            IngredientAmount(quantity=Fraction(1, 1), unit="can", score=0.x...),
+            IngredientAmount(quantity=Fraction(28, 1), unit="ounce", score=0.x...),
         ]
 
         Parameters
@@ -587,6 +841,7 @@ class PostProcessor:
         end_units = [
             "bag",
             "block",
+            "bottle",
             "box",
             "bucket",
             "can",
@@ -633,7 +888,6 @@ class PostProcessor:
                         APPROXIMATE=self._is_approximate(match[0], tokens, labels, idx),
                         string_units=self.string_units,
                         imperial_units=self.imperial_units,
-                        quantity_fractions=self.quantity_fractions,
                     )
                     amounts.append(first)
                     # Pop the first and last items from the list of matching indices
@@ -660,7 +914,6 @@ class PostProcessor:
                             APPROXIMATE=first.APPROXIMATE,
                             string_units=self.string_units,
                             imperial_units=self.imperial_units,
-                            quantity_fractions=self.quantity_fractions,
                         )
                         amounts.append(amount)
 
@@ -683,8 +936,8 @@ class PostProcessor:
         For example, for the sentence: 1 lb 2 oz ...; the composite amount is:
         CompositeAmount(
             amounts=[
-                IngredientAmount(quantity="1", unit="lb", score=0.x...),
-                IngredientAmount(quantity="2", unit="oz", score=0.x...),
+                IngredientAmount(quantity=Fraction(1, 1), unit="lb", score=0.x...),
+                IngredientAmount(quantity=Fraction(2, 1), unit="oz", score=0.x...),
             ],
             join=""
         )
@@ -713,6 +966,7 @@ class PostProcessor:
             "ptfloz": {
                 "pattern": ["QTY", "UNIT", "QTY", "UNIT", "UNIT"],
                 "conjunction": None,
+                "conj_index": None,
                 "start1": 0,
                 "start2": 2,
                 "join": "",
@@ -721,6 +975,7 @@ class PostProcessor:
             "lboz": {
                 "pattern": ["QTY", "UNIT", "QTY", "UNIT"],
                 "conjunction": None,
+                "conj_index": None,
                 "start1": 0,
                 "start2": 2,
                 "join": "",
@@ -729,30 +984,43 @@ class PostProcessor:
             "plus": {
                 "pattern": ["QTY", "UNIT", "COMMENT", "QTY", "UNIT"],
                 "conjunction": "plus",
+                "conj_index": 2,
                 "start1": 0,
                 "start2": 3,
+                "join": " plus ",
+                "subtractive": False,
+            },
+            "plus_punc": {
+                "pattern": ["QTY", "UNIT", "PUNC", "QTY", "UNIT"],
+                "conjunction": "+",
+                "conj_index": 2,
+                "start1": 0,
+                "start2": 3,
+                "join": " + ",
+                "subtractive": False,
+            },
+            "plus_punc_comment": {
+                "pattern": ["QTY", "UNIT", "PUNC", "COMMENT", "QTY", "UNIT"],
+                "conjunction": "plus",
+                "conj_index": 3,
+                "start1": 0,
+                "start2": 4,
                 "join": " plus ",
                 "subtractive": False,
             },
             "and": {
                 "pattern": ["QTY", "UNIT", "COMMENT", "QTY", "UNIT"],
                 "conjunction": "and",
+                "conj_index": 2,
                 "start1": 0,
                 "start2": 3,
                 "join": " and ",
                 "subtractive": False,
             },
-            "plus_punc": {
-                "pattern": ["QTY", "UNIT", "PUNC", "QTY", "UNIT"],
-                "conjunction": "+",
-                "start1": 0,
-                "start2": 3,
-                "join": " + ",
-                "subtractive": False,
-            },
             "minus": {
                 "pattern": ["QTY", "UNIT", "COMMENT", "QTY", "UNIT"],
                 "conjunction": "minus",
+                "conj_index": 2,
                 "start1": 0,
                 "start2": 3,
                 "join": " minus ",
@@ -761,6 +1029,7 @@ class PostProcessor:
             "less": {
                 "pattern": ["QTY", "UNIT", "COMMENT", "QTY", "UNIT"],
                 "conjunction": "less",
+                "conj_index": 2,
                 "start1": 0,
                 "start2": 3,
                 "join": " minus ",
@@ -779,6 +1048,7 @@ class PostProcessor:
             start1 = pattern_info["start1"]
             start2 = pattern_info["start2"]
             join = pattern_info["join"]
+            conj_index = pattern_info["conj_index"]
             subtractive = pattern_info["subtractive"]
 
             for match in self._match_pattern(
@@ -796,9 +1066,9 @@ class PostProcessor:
                         # ptfloz or lboz patterns, so skip
                         continue
 
-                # For other patterns, check if third token in match matches conjunction
-                # and skip if not.
-                elif tokens[match[2]].lower() != pattern_info["conjunction"]:
+                # For other patterns, check if token at the conj_index in match matches
+                # conjunction and skip if not.
+                elif tokens[match[conj_index]].lower() != pattern_info["conjunction"]:
                     continue
 
                 # First amount
@@ -815,7 +1085,6 @@ class PostProcessor:
                     starting_index=idx[match[start1]],
                     string_units=self.string_units,
                     imperial_units=self.imperial_units,
-                    quantity_fractions=self.quantity_fractions,
                 )
 
                 # Second amount
@@ -832,7 +1101,6 @@ class PostProcessor:
                     starting_index=idx[match[start2]],
                     string_units=self.string_units,
                     imperial_units=self.imperial_units,
-                    quantity_fractions=self.quantity_fractions,
                 )
 
                 composite_amounts.append(
@@ -870,7 +1138,7 @@ class PostProcessor:
         Parameters
         ----------
         labels : list[str]
-            List of labels of find pattern
+            List of labels to find pattern within.
         pattern : list[str]
             Pattern to match inside labels.
         ignore_other_labels : bool
@@ -903,12 +1171,12 @@ class PostProcessor:
         matches = []
         indices = iter(range(len(lbls)))
         for i in indices:
-            # Short circuit: If the lbls[i] is not equal to the first element
-            # of pattern skip to next iteration
+            # Short circuit: If lbls[i] is not equal to the first element
+            # of pattern, skip to next iteration
             if lbls[i] == pattern[0] and lbls[i : i + plen] == pattern:
                 matches.append(idx[i : i + plen])
                 # Advance iterator to prevent overlapping matches
-                consume(indices, plen)
+                consume(indices, plen - 1)
 
         return matches
 
@@ -958,7 +1226,7 @@ class PostProcessor:
             if label == "QTY":
                 # Whenever we come across a new QTY, create new IngredientAmount,
                 # unless the token is "dozen" and the previous label was QTY, in which
-                # case we combine modify the quantity of the previous amount.
+                # case we modify the quantity of the previous amount.
                 if token == "dozen" and labels[i - 1] == "QTY":
                     amounts[-1].quantity = amounts[-1].quantity + " dozen"
                     amounts[-1].confidence.append(score)
@@ -1001,7 +1269,11 @@ class PostProcessor:
                 amounts[-1].APPROXIMATE = True
                 amounts[-1].SINGULAR = True
 
-        # Set APPROXIMATE and SINGULAR flags to be the same for all related amounts
+            if self._is_prepared(i, tokens, labels, idx):
+                amounts[-1].PREPARED_INGREDIENT = True
+
+        # Set APPROXIMATE, SINGULAR and PREPARED_INGREDIENT flags to be the same for all
+        # related amounts.
         amounts = self._distribute_related_flags(amounts)
 
         # Loop through amounts list to fix unit and confidence
@@ -1023,9 +1295,9 @@ class PostProcessor:
                     starting_index=amount.starting_index,
                     APPROXIMATE=amount.APPROXIMATE,
                     SINGULAR=amount.SINGULAR,
+                    PREPARED_INGREDIENT=amount.PREPARED_INGREDIENT,
                     string_units=self.string_units,
                     imperial_units=self.imperial_units,
-                    quantity_fractions=self.quantity_fractions,
                 )
             )
 
@@ -1212,6 +1484,80 @@ class PostProcessor:
 
         return False
 
+    def _is_prepared(
+        self, i: int, tokens: list[str], labels: list[str], idx: list[int]
+    ) -> bool:
+        """Return True is token at current index refers to the prepared ingredient.
+
+        This is determined by the token label being QTY and the previous tokens being in
+        a list of prepared tokens.
+        If the QTY is preceded by a token in APPROXIMATE_TOKENS, then the tokens prior
+        to that are checked for matches against the prepared tokens list.
+
+        If returning True, also add index of tokens from prepared token list to
+        self.consumed list.
+
+        Parameters
+        ----------
+        i : int
+            Index of current token
+        tokens : list[str]
+            List of all tokens
+        labels : list[str]
+            List of all token labels
+        idx : list[int]
+            List of indices of the tokens/labels/scores in the full tokenized sentence
+
+        Returns
+        -------
+        bool
+            True if current token is approximate
+
+        Examples
+        --------
+        >>> p = PostProcessor("", [], [], [])
+        >>> p._is_approximate(
+            2,
+            ["to", "yield", "2", "cups"],
+            ["COMMENT", "COMMENT", "QTY", "UNIT"],
+            [0, 1, 2, 3]
+        )
+        True
+
+        >>> p = PostProcessor("", [], [], [])
+        >>> p._is_approximate(
+            2,
+            ["to", "make", "about", "250", "g"],
+            ["COMMENT", "COMMENT, "COMMENT", "QTY", "UNIT"],
+            [0, 1, 2, 3, 4]
+        )
+        True
+        """
+        # All PREPARED_INGREDIENT_TOKENS have length 2, so cannot be prepared if i < 2.
+        if i < 2:
+            return False
+
+        if labels[i] != "QTY":
+            return False
+
+        for pattern in PREPARED_INGREDIENT_TOKENS:
+            if [t.lower() for t in tokens[i - 2 : i]] == pattern:
+                # Mark i - 1 and i - 2 elements as consumed
+                self.consumed.append(idx[i - 1])
+                self.consumed.append(idx[i - 2])
+                return True
+            elif (
+                i > 2
+                and tokens[i - 1] in APPROXIMATE_TOKENS
+                and [t.lower() for t in tokens[i - 3 : i - 1]] == pattern
+            ):
+                # Mark i - 2 and i - 3 elements as consumed
+                self.consumed.append(idx[i - 2])
+                self.consumed.append(idx[i - 3])
+                return True
+
+        return False
+
     def _distribute_related_flags(
         self, amounts: list[_PartialIngredientAmount]
     ) -> list[_PartialIngredientAmount]:
@@ -1244,6 +1590,10 @@ class PostProcessor:
             if any(am.SINGULAR for am in group):
                 for am in group:
                     am.SINGULAR = True
+
+            if any(am.PREPARED_INGREDIENT for am in group):
+                for am in group:
+                    am.PREPARED_INGREDIENT = True
 
         # Flatten list for return
         return list(chain.from_iterable(grouped))

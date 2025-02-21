@@ -15,7 +15,7 @@ def p():
     """
     sentence = "2 14 ounce cans of coconut milk"
     tokens = ["2", "14", "ounce", "can", "of", "coconut", "milk"]
-    labels = ["QTY", "QTY", "UNIT", "UNIT", "COMMENT", "NAME", "NAME"]
+    labels = ["QTY", "QTY", "UNIT", "UNIT", "COMMENT", "B_NAME_TOK", "I_NAME_TOK"]
     scores = [
         0.9995971493946465,
         0.9941502269360797,
@@ -27,7 +27,11 @@ def p():
     ]
 
     return PostProcessor(
-        sentence, tokens, labels, scores, discard_isolated_stop_words=True
+        sentence,
+        tokens,
+        labels,
+        scores,
+        discard_isolated_stop_words=True,
     )
 
 
@@ -51,8 +55,8 @@ def p_string_numbers():
     ]
     labels = [
         "QTY",
-        "NAME",
-        "NAME",
+        "B_NAME_TOK",
+        "I_NAME_TOK",
         "PUNC",
         "COMMENT",
         "QTY",
@@ -75,7 +79,11 @@ def p_string_numbers():
     ]
 
     return PostProcessor(
-        sentence, tokens, labels, scores, discard_isolated_stop_words=True
+        sentence,
+        tokens,
+        labels,
+        scores,
+        discard_isolated_stop_words=True,
     )
 
 
@@ -99,8 +107,8 @@ def p_string_numbers_range():
     ]
     labels = [
         "QTY",
-        "NAME",
-        "NAME",
+        "B_NAME_TOK",
+        "I_NAME_TOK",
         "PUNC",
         "COMMENT",
         "QTY",
@@ -123,54 +131,12 @@ def p_string_numbers_range():
     ]
 
     return PostProcessor(
-        sentence, tokens, labels, scores, discard_isolated_stop_words=True
+        sentence,
+        tokens,
+        labels,
+        scores,
+        discard_isolated_stop_words=True,
     )
-
-
-@pytest.fixture
-def p_quantity_fractions():
-    """Define a PostProcessor object with quantity_fractions set to True
-    to use for testing the PostProcessor class methods.
-    """
-    sentence = "2 butternut squash, about one and one-half pounds each"
-    tokens = [
-        "2",
-        "butternut",
-        "squash",
-        ",",
-        "about",
-        "one",
-        "and",
-        "one-half",
-        "pound",
-        "each",
-    ]
-    labels = [
-        "QTY",
-        "NAME",
-        "NAME",
-        "PUNC",
-        "COMMENT",
-        "QTY",
-        "QTY",
-        "QTY",
-        "UNIT",
-        "COMMENT",
-    ]
-    scores = [
-        0.9984380824450226,
-        0.9978651159111281,
-        0.9994189046396519,
-        0.9999962272946663,
-        0.9922077606027025,
-        0.8444345718042952,
-        0.711112570789477,
-        0.7123166610204924,
-        0.7810746702425934,
-        0.9447105511029686,
-    ]
-
-    return PostProcessor(sentence, tokens, labels, scores, quantity_fractions=True)
 
 
 @pytest.fixture
@@ -180,7 +146,7 @@ def p_postprep():
     """
     sentence = "1 tbsp chopped pistachios"
     tokens = ["1", "tbsp", "chopped", "pistachios"]
-    labels = ["QTY", "UNIT", "PREP", "NAME"]
+    labels = ["QTY", "UNIT", "PREP", "B_NAME_TOK"]
     scores = [
         0.9997566777785302,
         0.9975314001146002,
@@ -189,7 +155,11 @@ def p_postprep():
     ]
 
     return PostProcessor(
-        sentence, tokens, labels, scores, discard_isolated_stop_words=False
+        sentence,
+        tokens,
+        labels,
+        scores,
+        discard_isolated_stop_words=False,
     )
 
 
@@ -200,7 +170,7 @@ def p_no_discard():
     """
     sentence = "2 14 ounce cans of coconut milk"
     tokens = ["2", "14", "ounce", "can", "of", "coconut", "milk"]
-    labels = ["QTY", "QTY", "UNIT", "UNIT", "COMMENT", "NAME", "NAME"]
+    labels = ["QTY", "QTY", "UNIT", "UNIT", "COMMENT", "B_NAME_TOK", "I_NAME_TOK"]
     scores = [
         0.9995971493946465,
         0.9941502269360797,
@@ -212,7 +182,11 @@ def p_no_discard():
     ]
 
     return PostProcessor(
-        sentence, tokens, labels, scores, discard_isolated_stop_words=False
+        sentence,
+        tokens,
+        labels,
+        scores,
+        discard_isolated_stop_words=False,
     )
 
 
@@ -240,7 +214,65 @@ def p_fraction_in_prep():
     ]
     labels = [
         "QTY",
-        "NAME",
+        "B_NAME_TOK",
+        "PUNC",
+        "PREP",
+        "PREP",
+        "PREP",
+        "PREP",
+        "PREP",
+        "PREP",
+        "PUNC",
+        "PREP",
+        "PREP",
+        "PUNC",
+        "PREP",
+    ]
+    scores = [
+        0.9994675946370136,
+        0.9982121821692039,
+        0.9999986664162547,
+        0.9999349193863984,
+        0.999720763986239,
+        0.9999682855629554,
+        0.9999116643460678,
+        0.9998989415285744,
+        0.9994126452404396,
+        0.999365113705119,
+        0.649315853101702,
+        0.651598144547812,
+        0.9992304409607873,
+        0.660356736493678,
+    ]
+
+    return PostProcessor(sentence, tokens, labels, scores)
+
+
+@pytest.fixture
+def p_fraction_range_in_prep():
+    """Define a PostProcessor object for sentence with a fraction range in prep
+    to use for testing the PostProcessor class methods.
+    """
+    sentence = "3 carrots, peeled and sliced into 5-10mm (¼-½in) coins"
+    tokens = [
+        "3",
+        "carrots",
+        ",",
+        "peeled",
+        "and",
+        "sliced",
+        "into",
+        "5-10",
+        "mm",
+        "(",
+        "#1$4-#1$2",
+        "in",
+        ")",
+        "coins",
+    ]
+    labels = [
+        "QTY",
+        "B_NAME_TOK",
         "PUNC",
         "PREP",
         "PREP",
@@ -281,7 +313,7 @@ class TestPostProcessor__builtins__:
         """
         truth = """Post-processed recipe ingredient sentence
 \t[('2', 'QTY'), ('14', 'QTY'), ('ounce', 'UNIT'), ('can', 'UNIT'), ('of', 'COMMENT'), \
-('coconut', 'NAME'), ('milk', 'NAME')]"""
+('coconut', 'B_NAME_TOK'), ('milk', 'I_NAME_TOK')]"""
         assert str(p) == truth
 
     def test__repr__(self, p):
@@ -298,9 +330,11 @@ class TestPostProcessor_parsed:
         discarded due to discard_isolated_stop_words being set to True.
         """
         expected = ParsedIngredient(
-            name=IngredientText(
-                text="coconut milk", confidence=0.993106, starting_index=5
-            ),
+            name=[
+                IngredientText(
+                    text="coconut milk", confidence=0.993106, starting_index=5
+                )
+            ],
             size=None,
             amount=[
                 ingredient_amount_factory(
@@ -337,9 +371,11 @@ class TestPostProcessor_parsed:
         numbers replaced with numeric range.
         """
         expected = ParsedIngredient(
-            name=IngredientText(
-                text="butternut squash", confidence=0.998642, starting_index=1
-            ),
+            name=[
+                IngredientText(
+                    text="butternut squash", confidence=0.998642, starting_index=1
+                )
+            ],
             size=None,
             amount=[
                 ingredient_amount_factory(
@@ -376,9 +412,11 @@ class TestPostProcessor_parsed:
         numbers replaced with numeric range.
         """
         expected = ParsedIngredient(
-            name=IngredientText(
-                text="butternut squash", confidence=0.998642, starting_index=1
-            ),
+            name=[
+                IngredientText(
+                    text="butternut squash", confidence=0.998642, starting_index=1
+                )
+            ],
             size=None,
             amount=[
                 ingredient_amount_factory(
@@ -409,53 +447,12 @@ class TestPostProcessor_parsed:
 
         assert p_string_numbers_range.parsed == expected
 
-    def test_quantity_fractions(self, p_quantity_fractions):
-        """
-        Test fixture returns expected ParsedIngredient object, with the string
-        numbers replaced with numeric range.
-        """
-        expected = ParsedIngredient(
-            name=IngredientText(
-                text="butternut squash", confidence=0.998642, starting_index=1
-            ),
-            size=None,
-            amount=[
-                ingredient_amount_factory(
-                    quantity="2",
-                    unit="",
-                    text="2",
-                    confidence=0.998438,
-                    starting_index=0,
-                    APPROXIMATE=False,
-                    SINGULAR=False,
-                    quantity_fractions=True,
-                ),
-                ingredient_amount_factory(
-                    quantity="1.5",
-                    unit="pound",
-                    text="1 1/2 pounds",
-                    confidence=0.768515,
-                    starting_index=5,
-                    APPROXIMATE=True,
-                    SINGULAR=True,
-                    quantity_fractions=True,
-                ),
-            ],
-            preparation=None,
-            comment=None,
-            purpose=None,
-            foundation_foods=[],
-            sentence="2 butternut squash, about one and one-half pounds each",
-        )
-
-        assert p_quantity_fractions.parsed == expected
-
     def test_postprep_amounts(self, p_postprep):
         """ """
         expected = ParsedIngredient(
-            name=IngredientText(
-                text="pistachios", confidence=0.998841, starting_index=3
-            ),
+            name=[
+                IngredientText(text="pistachios", confidence=0.998841, starting_index=3)
+            ],
             size=None,
             amount=[
                 ingredient_amount_factory(
@@ -483,9 +480,11 @@ class TestPostProcessor_parsed:
         kept due to discard_isolated_stop_words being set to False.
         """
         expected = ParsedIngredient(
-            name=IngredientText(
-                text="coconut milk", confidence=0.993106, starting_index=5
-            ),
+            name=[
+                IngredientText(
+                    text="coconut milk", confidence=0.993106, starting_index=5
+                )
+            ],
             size=None,
             amount=[
                 ingredient_amount_factory(
@@ -518,7 +517,9 @@ class TestPostProcessor_parsed:
 
     def test_fraction_in_prep(self, p_fraction_in_prep):
         expected = ParsedIngredient(
-            name=IngredientText(text="carrots", confidence=0.998212, starting_index=1),
+            name=[
+                IngredientText(text="carrots", confidence=0.998212, starting_index=1)
+            ],
             size=None,
             amount=[
                 ingredient_amount_factory(
@@ -541,3 +542,31 @@ class TestPostProcessor_parsed:
         )
 
         assert p_fraction_in_prep.parsed == expected
+
+    def test_fraction_range_in_prep(self, p_fraction_range_in_prep):
+        expected = ParsedIngredient(
+            name=[
+                IngredientText(text="carrots", confidence=0.998212, starting_index=1)
+            ],
+            size=None,
+            amount=[
+                ingredient_amount_factory(
+                    quantity="3",
+                    unit="",
+                    text="3",
+                    confidence=0.999468,
+                    starting_index=0,
+                )
+            ],
+            preparation=IngredientText(
+                text="peeled and sliced into 5-10 mm (1/4-1/2 in) coins",
+                confidence=0.905338,
+                starting_index=3,
+            ),
+            comment=None,
+            purpose=None,
+            foundation_foods=[],
+            sentence="3 carrots, peeled and sliced into 5-10mm (¼-½in) coins",
+        )
+
+        assert p_fraction_range_in_prep.parsed == expected

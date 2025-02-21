@@ -14,6 +14,7 @@ from sklearn.model_selection import train_test_split
 from tabulate import tabulate
 from tqdm import tqdm
 
+from .train_model import DEFAULT_MODEL_LOCATION, ModelType, get_model_type
 from .training_utils import (
     DataVectors,
     evaluate,
@@ -207,8 +208,9 @@ def validate_pa_params(pa_params: dict) -> None:
                 raise ValueError(f"Parameter values for {key} should be {type_str}")
 
         if key == "type":
-            if value not in (0, 1, 2):
-                raise ValueError("Type value must be 0, 1 or 2")
+            for v in value:
+                if v not in (0, 1, 2):
+                    raise ValueError("Type value must be 0, 1 or 2")
 
 
 def validate_arow_params(arow_params: dict) -> None:
@@ -317,7 +319,7 @@ def generate_argument_sets(args: argparse.Namespace) -> list[list]:
         one of the combinations of algorithms and parameters
     """
     vectors = load_datasets(
-        args.database, args.table, args.datasets, args.model == "foundationfoods"
+        args.database, args.table, args.datasets, get_model_type(args.model)
     )
 
     # Generate list of arguments for all combinations parameters for each algorithm
@@ -342,6 +344,11 @@ def generate_argument_sets(args: argparse.Namespace) -> list[list]:
         else:
             params = params | args.global_params
 
+        if args.save_model is None:
+            save_model = DEFAULT_MODEL_LOCATION[args.model]
+        else:
+            save_model = args.save_model
+
         # Generate all combinations of parameters
         for parameter_set in param_combos(params):
             arguments = [
@@ -349,10 +356,10 @@ def generate_argument_sets(args: argparse.Namespace) -> list[list]:
                 parameter_set,
                 vectors,
                 args.split,
-                args.save_model,
+                save_model,
                 args.seed,
                 args.keep_models,
-                args.model == "foundationfoods",
+                get_model_type(args.model),
             ]
             argument_sets.append(arguments)
 
@@ -367,7 +374,7 @@ def train_model_grid_search(
     save_model: str,
     seed: int,
     keep_model: bool,
-    foundation_foods: bool,
+    model_type: ModelType,
 ) -> dict:
     """Train model using given training algorithm and parameters,
     returning model performance statistics, model parameters and elapsed training time.
@@ -389,9 +396,8 @@ def train_model_grid_search(
         testing sets.
     keep_model : bool
         If True, keep model after evaluation, otherwise delete it.
-    foundation_foods : bool
-        If True, foundation foods model is being trained, else the parser model
-        is being trained.
+    model_type : ModelType
+        Type of model gridsearch is being performed on.
 
     Returns
     -------
@@ -440,7 +446,7 @@ def train_model_grid_search(
     tagger = pycrfsuite.Tagger()  # type: ignore
     tagger.open(str(save_model_path))
     labels_pred = [tagger.tag(X) for X in features_test]
-    stats = evaluate(labels_pred, truth_test, seed, foundation_foods)
+    stats = evaluate(labels_pred, truth_test, seed, model_type)
 
     if not keep_model:
         save_model_path.unlink(missing_ok=True)
