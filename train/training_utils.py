@@ -424,3 +424,4 @@ def confusion_matrix(
     fig.tight_layout()
     fig.savefig(figure_path)
     print(f"[INFO] Confusion matrix saved to {figure_path}")
+    plt.close(fig)
