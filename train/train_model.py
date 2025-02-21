@@ -244,11 +244,11 @@ def train_ff_model(
     trainer = pycrfsuite.Trainer(verbose=False)  # type: ignore
     trainer.set_params(
         {
-            "feature.minfreq": 1,
+            "feature.minfreq": 0,
             "feature.possible_states": True,
             "feature.possible_transitions": True,
-            "c1": 0.3,
-            "c2": 0.1,
+            "c1": 0.4,
+            "c2": 0,
             "max_linesearch": 5,
             "num_memories": 3,
             "period": 10,

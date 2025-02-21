@@ -101,9 +101,11 @@ The model has the following performance metrics:
 
 | Word level accuracy | Sentence level accuracy |
 | ------------------- | ----------------------- |
-| 98.31 ± 0.23%       | 96.92 ± 0.38%           |
+| 98.23 ± 0.23%       | 96.78 ± 0.38%           |
 
 These metrics were determined by executing 20 training/evaluation cycles and calculating the mean and standard deviation for the two metrics across all cycles. The uncertainty values provided represent the 99.7% confidence bounds (i.e. 3x standard deviation). The uncertainty is due to the randomisation of the selection of training and evaluation data whenever the model is trained.
+
+The random seed used for the train/test split for this model was 777483857.
 
 ## Ethical Considerations
 
