@@ -7,7 +7,6 @@ import pycrfsuite
 
 from .._common import group_consecutive_idx
 from ..dataclasses import ParsedIngredient, ParserDebugInfo
-from ._foundationfoods import extract_foundation_foods
 from ._utils import pluralise_units
 from .postprocess import PostProcessor
 from .preprocess import PreProcessor
@@ -85,6 +84,7 @@ def parse_ingredient_en(
 
     processed_sentence = PreProcessor(sentence)
     tokens = [t.text for t in processed_sentence.tokenized_sentence]
+    pos_tags = [t.pos_tag for t in processed_sentence.tokenized_sentence]
     features = processed_sentence.sentence_features()
     labels = TAGGER.tag(features)
     scores = [TAGGER.marginal(label, i) for i, label in enumerate(labels)]
@@ -104,17 +104,16 @@ def parse_ingredient_en(
     postprocessed_sentence = PostProcessor(
         sentence,
         tokens,
+        pos_tags,
         labels,
         scores,
         separate_names=separate_names,
         discard_isolated_stop_words=discard_isolated_stop_words,
         string_units=string_units,
         imperial_units=imperial_units,
+        foundation_foods=foundation_foods,
     )
     parsed = postprocessed_sentence.parsed
-
-    if foundation_foods and parsed.name:
-        parsed.foundation_foods = extract_foundation_foods(tokens, labels, features)
 
     return parsed
 
@@ -174,6 +173,7 @@ def inspect_parser_en(
 
     processed_sentence = PreProcessor(sentence)
     tokens = [t.text for t in processed_sentence.tokenized_sentence]
+    pos_tags = [t.pos_tag for t in processed_sentence.tokenized_sentence]
     features = processed_sentence.sentence_features()
     labels = TAGGER.tag(features)
     scores = [TAGGER.marginal(label, i) for i, label in enumerate(labels)]
@@ -193,25 +193,20 @@ def inspect_parser_en(
     postprocessed_sentence = PostProcessor(
         sentence,
         tokens,
+        pos_tags,
         labels,
         scores,
         separate_names=separate_names,
         discard_isolated_stop_words=discard_isolated_stop_words,
         string_units=string_units,
         imperial_units=imperial_units,
+        foundation_foods=foundation_foods,
     )
-
-    parsed = postprocessed_sentence.parsed
-    if foundation_foods and parsed.name:
-        foundation = extract_foundation_foods(tokens, labels, features)
-    else:
-        foundation = []
 
     return ParserDebugInfo(
         sentence=sentence,
         PreProcessor=processed_sentence,
         PostProcessor=postprocessed_sentence,
-        foundation_foods=foundation,
         tagger=TAGGER,
     )
 

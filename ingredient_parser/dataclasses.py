@@ -301,14 +301,23 @@ class FoundationFood:
     Attributes
     ----------
     text : str
-        Foundation food identified from ingredient name.
+        Foundation food description.
     confidence : float
         Confidence of the identification of the foundation food, between 0 and 1.
-        This is the average confidence of all tokens that contribute to this object.
+    fdc_id : int
+        FDC ID of foundation food.
+    category: str
+        Category of foundation food
+    data_type : str
+        Data set of the foundation food.
+        One of foundation_food, survey_fndds_food
     """
 
     text: str
     confidence: float
+    fdc_id: int
+    category: str
+    data_type: str
 
 
 @dataclass
@@ -405,8 +414,6 @@ class ParserDebugInfo:
     PostProcessor : PostProcessor
         PostProcessor object created using tokens, labels and scores from
         input sentence.
-    foundation_foods : list[FoundationFood]
-        List of foundation foods extracted from parsed ingredient name, or None.
     Tagger : pycrfsuite.Tagger
         CRF model tagger object.
     """
@@ -414,5 +421,4 @@ class ParserDebugInfo:
     sentence: str
     PreProcessor: Any
     PostProcessor: Any
-    foundation_foods: list[FoundationFood]
     tagger: pycrfsuite.Tagger  # type: ignore

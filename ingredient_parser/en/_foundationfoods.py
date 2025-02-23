@@ -1,108 +1,188 @@
 #!/usr/bin/env python3
 
-from collections import defaultdict
+import copy
+import csv
+import gzip
+import re
+import string
+from collections import namedtuple
+from dataclasses import dataclass
 from functools import lru_cache
 from importlib.resources import as_file, files
-from itertools import groupby
-from statistics import mean
+from itertools import chain
 
-import pycrfsuite
+from nltk.metrics.distance import edit_distance
 
-from .._common import group_consecutive_idx
 from ..dataclasses import FoundationFood
 
-
-@lru_cache
-def load_foundation_foods_model() -> pycrfsuite.Tagger:  # type: ignore
-    """Load foundation foods model.
-
-    This function is cached so that when the model has been loaded once, it does not
-    need to be loaded again, the cached model is returned.
-
-    Returns
-    -------
-    pycrfsuite.Tagger
-        Foundation foods model loaded into Tagger object.
-    """
-    ff_tagger = pycrfsuite.Tagger()  # type: ignore
-    with as_file(files(__package__) / "ff_model.en.crfsuite") as p:
-        ff_tagger.open(str(p))
-        return ff_tagger
+# NamedTuple for holding the resultant score of the match between an ingredient name and
+# an FDC ingredient. A NamedTuple is used here instead of a dataclass to enable `sorted`
+# to consider each part of the score in the correct order.
+MatchScore = namedtuple(
+    "MatchScore", ["full_match", "partial_match", "data_type", "fraction_match"]
+)
 
 
-def join_adjacent_FF_tokens(
-    labels: list[str], tokens: list[str], scores: list[float]
-) -> list[FoundationFood]:
-    """Join adjacent tokens labelled as FF into strings.
+@dataclass
+class FDCIngredient:
+    """Dataclass for details of an ingredient from the FoodDataCentral database."""
+
+    fdc_id: int
+    data_type: str
+    description: str
+    category: str
+    description_tokens: set[str]
+
+
+# Order in which the FoodDataCentral data sources are preferred.
+# The higher number indicates higher preference.
+PREFERRED_DATA_SOURCES = {
+    "foundation_food": 2,
+    "survey_fndds_food": 1,
+}
+
+WHITESPACE_TOKENISER = re.compile(r"\S+")
+PUNCTUATION_TOKENISER = re.compile(rf"([{string.punctuation}])")
+
+
+def tokenize_fdc_description(description: str) -> set[str]:
+    """Tokenize FDC ingredient description into individual words, ignoring all
+    punctuation.
+
+    This function is similar to the tokeniser for ingredient sentences, but we return a
+    Set of strings and discard punctuation.
 
     Parameters
     ----------
-    labels : list[str]
-        List of token labels: FF (foundation food) of NF (not foundation food)
-    tokens : list[str]
-        List of NAME tokens
-    scores : list[float]
-        List of confidence scores for labels
+    description : str
+        FDC ingredient description
 
     Returns
     -------
-    list[FoundationFood]
-        List of foundation foods
+    set[str]
+        Set of tokens
 
     Examples
     --------
-    >>> join_adjacent_FF_tokens(
-    ...     ["FF", "NF", "NF", "FF", "FF"], ["milk", "or", "fortified", "soy", "milk"]
-    ... )
-    ["milk", "soy milk"]
+    >>> tokenize_fdc_description("Pepper, bell, red, raw")
+    {"pepper", "bell", "red", raw"}
     """
-    foundation_foods = []
-    # Group into groups of adjacent FF tags, ignoring any NF tags.
-    for label, group in groupby(zip(labels, tokens, scores), key=lambda x: x[0]):
-        if label == "NF":
-            continue
-
-        group = list(group)
-        score = mean([score for _, _, score in group])
-
-        foundation_foods.append(
-            FoundationFood(" ".join([tok for _, tok, _ in group]), round(score, 6))
-        )
-
-    return foundation_foods
+    tokens = [
+        PUNCTUATION_TOKENISER.split(tok)
+        for tok in WHITESPACE_TOKENISER.findall(description)
+    ]
+    return {
+        tok.lower()
+        for tok in chain.from_iterable(tokens)
+        if tok not in string.punctuation
+    }
 
 
-def deduplicate_foundation_foods(
-    foundation_foods: list[FoundationFood],
-) -> list[FoundationFood]:
-    """Deduplicate foundation foods by averaging the score of duplicates.
+@lru_cache
+def load_foundation_foods_data() -> list[FDCIngredient]:
+    """Load foundation foods CSV.
 
-    Parameters
-    ----------
-    foundation_foods : list[FoundationFood]
-        List of foundation foods found in ingredient name.
+    This function is cached so that when the data has been loaded once, it does not
+    need to be loaded again, the cached data is returned.
 
     Returns
     -------
-    list[FoundationFood]
-        Description
+    list[FDCIngredient]
+        List of FDCIngredient objects.
     """
+    ingredients = []
+    with as_file(files(__package__) / "fdc_ingredients.csv.gz") as p:
+        with gzip.open(str(p), "rt") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                tokens = tokenize_fdc_description(row["description"])
+                ingredients.append(
+                    FDCIngredient(
+                        fdc_id=int(row["fdc_id"]),
+                        data_type=row["data_type"],
+                        description=row["description"],
+                        category=row["category"],
+                        description_tokens=tokens,
+                    )
+                )
 
-    seen_foods = defaultdict(list)
-    for ff in foundation_foods:
-        seen_foods[ff.text.lower()].append(ff.confidence)
-
-    return [
-        FoundationFood(name, mean(confidences))
-        for name, confidences in seen_foods.items()
-    ]
+    return ingredients
 
 
-def extract_foundation_foods(
+def score_fdc_ingredient(
+    ingredient_name: set[tuple[str, str]], fdc_ingredient: FDCIngredient
+) -> MatchScore:
+    """Score match between tokens of ingredient_name and FDC ingredient description.
+
+    A hierarchical score is returned, comprised of the following in order of importance.
+      1. Full matches, tokens in ingredient name that appear exactly in FDC description
+      2. Partial matches, tokens in ingredient name that are have an edit distance of no
+         more than 2 from a token in FDC description
+      3. Preferred data source (foundation_foods > survery_fndds_foods)
+      4. The fraction of tokens in FDC description that have been matched
+
+    Parameters
+    ----------
+    ingredient_name : set[tuple[str, str]]
+        Ingredient name (token, part of speech) pairs
+    fdc_ingredient : FDCIngredient
+        FDC ingredient
+
+    Returns
+    -------
+    MatchScore
+        MatchScore for FDC ingredient
+    """
+    full_matches, partial_matches = 0, 0
+    consumed_ingredient_tokens = set()
+
+    fdc_tokens = copy.deepcopy(fdc_ingredient.description_tokens)
+    fdc_tokens_len = len(fdc_tokens)
+
+    # First, calculate number of exact matches
+    # If the ingredient name token is a noun, check the plural or singular version if
+    # no exact match and treat this match as an exact match also.
+
+    # Can replace this with an intersection and diff?
+    for tok, _ in ingredient_name:
+        if tok in fdc_tokens:
+            full_matches += 1
+            fdc_tokens.remove(tok)
+            consumed_ingredient_tokens.add(tok)
+        else:
+            # check plural/singular
+            ...
+
+    # Second, calculate partial matches that have an edit (Levenstein) distance of 2 or
+    # less.
+
+    for tok, _ in ingredient_name:
+        if tok in consumed_ingredient_tokens:
+            continue
+
+        # This needs to calculate the edit distance for all remaining fdc_ing tokens
+        # and then select the token lowest non-zero score.
+        for fdc_tok in fdc_tokens:
+            distance = edit_distance(tok, fdc_tok)
+            if distance <= 2:
+                partial_matches += 1
+                fdc_tokens.remove(fdc_tok)
+                consumed_ingredient_tokens.add(tok)
+                break
+
+    return MatchScore(
+        full_matches,
+        partial_matches,
+        PREFERRED_DATA_SOURCES[fdc_ingredient.data_type],
+        (full_matches + partial_matches) / fdc_tokens_len,
+    )
+
+
+def match_foundation_foods(
     tokens: list[str],
     labels: list[str],
-    features: list[dict[str, str | bool | int | float]],
-) -> list[FoundationFood]:
+    pos: list[str],
+) -> FoundationFood:
     """Extract foundation foods from tokens labelled as NAME.
 
     Parameters
@@ -111,38 +191,37 @@ def extract_foundation_foods(
         Sentence tokens
     labels : list[str]
         Labels for sentence tokens
-    features : list[dict[str, str | bool| int]]
-        Features for sentence tokens
+    pos : list[str]
+        Part of speech tags for tokens
 
     Returns
     -------
     list[FoundationFood]
         List of foundation foods.
     """
-    FF_TAGGER = load_foundation_foods_model()
+    fdc_ingredients = load_foundation_foods_data()
 
-    name_idx = [idx for idx, label in enumerate(labels) if "NAME" in label]
-    name_tokens = [tok for tok, label in zip(tokens, labels) if "NAME" in label]
-    name_features = [feat for feat, label in zip(features, labels) if "NAME" in label]
+    token_pos = {
+        (tok, pos) for tok, pos, label in zip(tokens, pos, labels) if label != "PUNC"
+    }
 
-    # We want to join consecutive foundation food tokens together into a single
-    # string, but keep any token seperated by a non-foundation food or another
-    # non-NAME label separate.
-    # First we iterate through groups of consecutive NAME labelled tokens and select
-    # any tagged as foundation food. Then we join adjacent foundation food tokens
-    # together and append to list.
-    foundation_foods = []
-    for group in group_consecutive_idx(name_idx):
-        group = list(group)
-        name_tokens = [tok for idx, tok in enumerate(tokens) if idx in group]
-        name_features = [feat for idx, feat in enumerate(features) if idx in group]
-        ff_labels = FF_TAGGER.tag(name_features)
-        name_scores = [
-            FF_TAGGER.marginal(label, i) for i, label in enumerate(ff_labels)
-        ]
+    scores: list[tuple[FDCIngredient, MatchScore]] = []
+    for fdc_ingredient in fdc_ingredients:
+        score = score_fdc_ingredient(token_pos, fdc_ingredient)
+        scores.append((fdc_ingredient, score))
 
-        foundation_foods.extend(
-            join_adjacent_FF_tokens(ff_labels, name_tokens, name_scores)
-        )
+        if score[0] == len(fdc_ingredient.description_tokens):
+            # If the first element of score (i.e. the full matches) is the same as the
+            # length of FDC Ingredient description tokens, then we don't need to
+            # continue because that will be a perfect match.
+            break
 
-    return deduplicate_foundation_foods(foundation_foods)
+    # Sort to find best score
+    best_fdc_match, best_score = sorted(scores, key=lambda x: x[1], reverse=True)[0]
+    return FoundationFood(
+        text=best_fdc_match.description,
+        confidence=best_score.fraction_match,
+        fdc_id=best_fdc_match.fdc_id,
+        category=best_fdc_match.category,
+        data_type=best_fdc_match.data_type,
+    )
