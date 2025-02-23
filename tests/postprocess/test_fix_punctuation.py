@@ -10,6 +10,7 @@ def p():
     """
     sentence = "2 14 ounce cans coconut milk"
     tokens = ["2", "14", "ounce", "can", "coconut", "milk"]
+    pos_tags = ["CD", "CD", "NN", "MD", "VB", "NN"]
     labels = ["QTY", "QTY", "UNIT", "UNIT", "B_NAME_TOK", "I_NAME_TOK"]
     scores = [
         0.9991370577083561,
@@ -20,7 +21,7 @@ def p():
         0.9969237827902526,
     ]
 
-    return PostProcessor(sentence, tokens, labels, scores)
+    return PostProcessor(sentence, tokens, pos_tags, labels, scores)
 
 
 class TestPostProcessor_fix_punctuation:

@@ -29,6 +29,24 @@ class TestPostProcessor_composite_amounts_pattern:
             "alternative",
             ")",
         ]
+        pos_tags = [
+            "CD",
+            "JJ",
+            "$",
+            "CD",
+            "JJ",
+            "CD",
+            "NN",
+            "NN",
+            "NN",
+            "NN",
+            "(",
+            "CC",
+            "DT",
+            "JJ",
+            "NN",
+            ")",
+        ]
         labels = [
             "QTY",
             "UNIT",
@@ -49,7 +67,7 @@ class TestPostProcessor_composite_amounts_pattern:
         ]
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
-        p = PostProcessor(sentence, tokens, labels, scores)
+        p = PostProcessor(sentence, tokens, pos_tags, labels, scores)
 
         expected = [
             CompositeIngredientAmount(
@@ -90,6 +108,7 @@ class TestPostProcessor_composite_amounts_pattern:
         """
         sentence = "1.5 litres/2 pints 12¾fl oz water"
         tokens = ["1.5", "litre", "/", "2", "pint", "12.75", "fl", "oz", "water"]
+        pos_tags = ["CD", "JJ", "$", "CD", "NN", "CD", "NN", "NN", "NN"]
         labels = [
             "QTY",
             "UNIT",
@@ -103,7 +122,7 @@ class TestPostProcessor_composite_amounts_pattern:
         ]
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
-        p = PostProcessor(sentence, tokens, labels, scores)
+        p = PostProcessor(sentence, tokens, pos_tags, labels, scores)
 
         expected = [
             CompositeIngredientAmount(
@@ -145,6 +164,7 @@ class TestPostProcessor_composite_amounts_pattern:
         """
         sentence = "1.5 litres/2 pints 12¾fl oz water"
         tokens = ["1.5", "litre", "/", "2", "pint", "12.75", "fl", "oz", "water"]
+        pos_tags = ["CD", "JJ", "$", "CD", "NN", "CD", "NN", "NN", "NN"]
         labels = [
             "QTY",
             "UNIT",
@@ -158,7 +178,9 @@ class TestPostProcessor_composite_amounts_pattern:
         ]
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
-        p = PostProcessor(sentence, tokens, labels, scores, imperial_units=True)
+        p = PostProcessor(
+            sentence, tokens, pos_tags, labels, scores, imperial_units=True
+        )
 
         expected = [
             CompositeIngredientAmount(
@@ -201,6 +223,7 @@ class TestPostProcessor_composite_amounts_pattern:
         """
         sentence = "1.5 litres/2 pints 12¾fl oz water"
         tokens = ["1.5", "litre", "/", "2", "pint", "12.75", "fl", "oz", "water"]
+        pos_tags = ["CD", "JJ", "$", "CD", "NN", "CD", "NN", "NN", "NN"]
         labels = [
             "QTY",
             "UNIT",
@@ -214,7 +237,7 @@ class TestPostProcessor_composite_amounts_pattern:
         ]
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
-        p = PostProcessor(sentence, tokens, labels, scores, string_units=True)
+        p = PostProcessor(sentence, tokens, pos_tags, labels, scores, string_units=True)
 
         expected = [
             CompositeIngredientAmount(
@@ -272,6 +295,20 @@ class TestPostProcessor_composite_amounts_pattern:
             "all-purpose",
             "flour",
         ]
+        pos_tags = [
+            "CD",
+            "NN",
+            "CC",
+            "CD",
+            "NN",
+            "(",
+            "IN",
+            "CD",
+            "NN",
+            ")",
+            "JJ",
+            "NN",
+        ]
         labels = [
             "QTY",
             "UNIT",
@@ -288,7 +325,7 @@ class TestPostProcessor_composite_amounts_pattern:
         ]
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
-        p = PostProcessor(sentence, tokens, labels, scores)
+        p = PostProcessor(sentence, tokens, pos_tags, labels, scores)
 
         expected = [
             CompositeIngredientAmount(
@@ -342,6 +379,20 @@ class TestPostProcessor_composite_amounts_pattern:
             "all-purpose",
             "flour",
         ]
+        pos_tags = [
+            "CD",
+            "NN",
+            "VBD",
+            "CD",
+            "NN",
+            "(",
+            "IN",
+            "CD",
+            "NN",
+            ")",
+            "JJ",
+            "NN",
+        ]
         labels = [
             "QTY",
             "UNIT",
@@ -358,7 +409,7 @@ class TestPostProcessor_composite_amounts_pattern:
         ]
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
-        p = PostProcessor(sentence, tokens, labels, scores)
+        p = PostProcessor(sentence, tokens, pos_tags, labels, scores)
 
         expected = [
             CompositeIngredientAmount(
@@ -412,6 +463,20 @@ class TestPostProcessor_composite_amounts_pattern:
             "all-purpose",
             "flour",
         ]
+        pos_tags = [
+            "CD",
+            "NN",
+            "CC",
+            "CD",
+            "NN",
+            "(",
+            "IN",
+            "CD",
+            "NN",
+            ")",
+            "JJ",
+            "NN",
+        ]
         labels = [
             "QTY",
             "UNIT",
@@ -428,7 +493,7 @@ class TestPostProcessor_composite_amounts_pattern:
         ]
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
-        p = PostProcessor(sentence, tokens, labels, scores)
+        p = PostProcessor(sentence, tokens, pos_tags, labels, scores)
 
         expected = [
             CompositeIngredientAmount(
@@ -482,6 +547,20 @@ class TestPostProcessor_composite_amounts_pattern:
             "all-purpose",
             "flour",
         ]
+        pos_tags = [
+            "CD",
+            "NN",
+            "CC",
+            "CD",
+            "NN",
+            "(",
+            "IN",
+            "CD",
+            "NN",
+            ")",
+            "JJ",
+            "NN",
+        ]
         labels = [
             "QTY",
             "UNIT",
@@ -498,7 +577,7 @@ class TestPostProcessor_composite_amounts_pattern:
         ]
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
-        p = PostProcessor(sentence, tokens, labels, scores)
+        p = PostProcessor(sentence, tokens, pos_tags, labels, scores)
 
         expected = [
             CompositeIngredientAmount(
@@ -539,6 +618,7 @@ class TestPostProcessor_composite_amounts_pattern:
         """
         sentence = "2 pints or  40 fl oz water"
         tokens = ["2", "pint", "or", "40", "fl", "oz", "water"]
+        pos_tags = ["CD", "NN", "CC", "CD", "JJ", "JJ", "NN"]
         labels = [
             "QTY",
             "UNIT",
@@ -550,7 +630,7 @@ class TestPostProcessor_composite_amounts_pattern:
         ]
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
-        p = PostProcessor(sentence, tokens, labels, scores)
+        p = PostProcessor(sentence, tokens, pos_tags, labels, scores)
 
         # Don't check scores
         output = p._composite_amounts_pattern(idx, tokens, labels, scores)
@@ -576,6 +656,21 @@ class TestPostProcessor_composite_amounts_pattern:
             "all-purpose",
             "flour",
         ]
+        pos_tags = [
+            "CD",
+            "NN",
+            ",",
+            "CC",
+            "CD",
+            "NN",
+            "(",
+            "IN",
+            "CD",
+            "NN",
+            ")",
+            "JJ",
+            "NN",
+        ]
         labels = [
             "QTY",
             "UNIT",
@@ -593,7 +688,7 @@ class TestPostProcessor_composite_amounts_pattern:
         ]
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
-        p = PostProcessor(sentence, tokens, labels, scores)
+        p = PostProcessor(sentence, tokens, pos_tags, labels, scores)
 
         expected = [
             CompositeIngredientAmount(
