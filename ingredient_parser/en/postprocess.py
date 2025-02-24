@@ -281,7 +281,8 @@ class PostProcessor:
                     labels = [self.labels[i] for i in token_idx]
                     pos = [self.poos_tags[i] for i in token_idx]
                     ff = match_foundation_foods(tokens, labels, pos)
-                    foundation_foods.append(ff)
+                    if ff:
+                        foundation_foods.append(ff)
 
         return names, foundation_foods
 

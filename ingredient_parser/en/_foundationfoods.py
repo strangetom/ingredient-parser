@@ -11,15 +11,20 @@ from functools import lru_cache
 from importlib.resources import as_file, files
 from itertools import chain
 
-from nltk.metrics.distance import edit_distance
-
+# from nltk.metrics.distance import edit_distance
 from ..dataclasses import FoundationFood
 
 # NamedTuple for holding the resultant score of the match between an ingredient name and
 # an FDC ingredient. A NamedTuple is used here instead of a dataclass to enable `sorted`
 # to consider each part of the score in the correct order.
 MatchScore = namedtuple(
-    "MatchScore", ["full_match", "partial_match", "data_type", "fraction_match"]
+    "MatchScore",
+    [
+        "noun_match_fraction",
+        "other_match_fraction",
+        "data_type",
+        "total_match_fraction",
+    ],
 )
 
 
@@ -92,7 +97,7 @@ def load_foundation_foods_data() -> list[FDCIngredient]:
     """
     ingredients = []
     with as_file(files(__package__) / "fdc_ingredients.csv.gz") as p:
-        with gzip.open(str(p), "rt") as f:
+        with gzip.open(p, "rt") as f:
             reader = csv.DictReader(f)
             for row in reader:
                 tokens = tokenize_fdc_description(row["description"])
@@ -109,17 +114,71 @@ def load_foundation_foods_data() -> list[FDCIngredient]:
     return ingredients
 
 
+# Key = singular word ending, value = characters to append to make plural
+# https://www.bbc.co.uk/bitesize/articles/zfqh92p#ztmhtrd
+PLURALISATION_RULES = {
+    re.compile(r"(j|s|ss|sh|ch|x|z)$", re.I): r"\1es",
+    re.compile(r"(?<=[bcdfghjklmpqrstvwxyz])(o)$", re.I): "\1es",
+    re.compile(r"(?<=[bcdfghjklmpqrstvwxyz])(y)$", re.I): "ies",
+    re.compile(r"(?<=qu)(y)$", re.I): "ies",
+    re.compile(r"(fe?)$", re.I): "ves",
+    re.compile(r"(us)$", re.I): "i",
+    re.compile(r"(is)$", re.I): "es",
+    re.compile(r"(ix)$", re.I): "ices",
+    re.compile(r"(\'s)$", re.I): "s's",
+}
+
+
+def get_plural_singular_noun(noun: str, pos_tag: str) -> str:
+    """For the given noun, if plural return the singular form and vice versa.
+
+    Parameters
+    ----------
+    noun : str
+        Noun to return plural or singular form of.
+    pos_tag : str
+        Part of speech for noun.
+
+    Returns
+    -------
+    str
+        If given noun is plural, return singular form.
+        If given noun is singular, return plural form.
+
+    Raises
+    ------
+    ValueError
+        Raised if pos_tag is not for a noun.
+        i.e. not one of NN, NNP, NNS, NNPS
+    """
+    if pos_tag not in {"NN", "NNP", "NNS", "NNPS"}:
+        raise ValueError(f"Part of speech ({pos_tag}) indicates {noun} is not a noun.")
+
+    if pos_tag.endswith("S"):
+        # Plural, so make singular
+        return noun
+    else:
+        # Singular, so make plural
+        for pattern, sub in PLURALISATION_RULES.items():
+            if pattern.search(noun):
+                return pattern.sub(sub, noun)
+
+        return noun + "s"
+
+
 def score_fdc_ingredient(
     ingredient_name: set[tuple[str, str]], fdc_ingredient: FDCIngredient
 ) -> MatchScore:
     """Score match between tokens of ingredient_name and FDC ingredient description.
 
     A hierarchical score is returned, comprised of the following in order of importance.
-      1. Full matches, tokens in ingredient name that appear exactly in FDC description
-      2. Partial matches, tokens in ingredient name that are have an edit distance of no
-         more than 2 from a token in FDC description
-      3. Preferred data source (foundation_foods > survery_fndds_foods)
-      4. The fraction of tokens in FDC description that have been matched
+    1. Fraction of noun tokens in ingredient name matching token in FDC decription.
+    2. Fraction of non-noun tokens in ingredient name matching token in FDC description.
+    3. Preferred data source (foundation_foods > survery_fndds_foods)
+    4. The fraction of tokens in FDC description that have been matched
+
+    The first step also considers the plural and singular form of the noun and counts a
+    match for either as a match for the token.
 
     Parameters
     ----------
@@ -133,48 +192,38 @@ def score_fdc_ingredient(
     MatchScore
         MatchScore for FDC ingredient
     """
-    full_matches, partial_matches = 0, 0
+    noun_matches, other_matches = 0, 0
+    total_nouns = len([pos for _, pos in ingredient_name if pos.startswith("NN")])
+    total_others = len([pos for _, pos in ingredient_name if not pos.startswith("NN")])
     consumed_ingredient_tokens = set()
 
     fdc_tokens = copy.deepcopy(fdc_ingredient.description_tokens)
     fdc_tokens_len = len(fdc_tokens)
 
-    # First, calculate number of exact matches
+    # Calculate matches
     # If the ingredient name token is a noun, check the plural or singular version if
     # no exact match and treat this match as an exact match also.
-
-    # Can replace this with an intersection and diff?
-    for tok, _ in ingredient_name:
+    for tok, pos in ingredient_name:
         if tok in fdc_tokens:
-            full_matches += 1
+            if pos.startswith("NN"):
+                noun_matches += 1
+            else:
+                other_matches += 1
             fdc_tokens.remove(tok)
             consumed_ingredient_tokens.add(tok)
-        else:
-            # check plural/singular
-            ...
-
-    # Second, calculate partial matches that have an edit (Levenstein) distance of 2 or
-    # less.
-
-    for tok, _ in ingredient_name:
-        if tok in consumed_ingredient_tokens:
-            continue
-
-        # This needs to calculate the edit distance for all remaining fdc_ing tokens
-        # and then select the token lowest non-zero score.
-        for fdc_tok in fdc_tokens:
-            distance = edit_distance(tok, fdc_tok)
-            if distance <= 2:
-                partial_matches += 1
-                fdc_tokens.remove(fdc_tok)
+        elif pos.startswith("NN"):
+            # Not an exact match, but still a noun
+            ps_tok = get_plural_singular_noun(tok, pos)
+            if ps_tok in fdc_tokens:
+                noun_matches += 1
+                fdc_tokens.remove(ps_tok)
                 consumed_ingredient_tokens.add(tok)
-                break
 
     return MatchScore(
-        full_matches,
-        partial_matches,
+        noun_matches / total_nouns,
+        other_matches / total_others,
         PREFERRED_DATA_SOURCES[fdc_ingredient.data_type],
-        (full_matches + partial_matches) / fdc_tokens_len,
+        (noun_matches + other_matches) / fdc_tokens_len,
     )
 
 
@@ -182,8 +231,8 @@ def match_foundation_foods(
     tokens: list[str],
     labels: list[str],
     pos: list[str],
-) -> FoundationFood:
-    """Extract foundation foods from tokens labelled as NAME.
+) -> FoundationFood | None:
+    """Match ingredient name to foundation foods from FDC Ingredient.
 
     Parameters
     ----------
@@ -196,8 +245,8 @@ def match_foundation_foods(
 
     Returns
     -------
-    list[FoundationFood]
-        List of foundation foods.
+    FoundationFood | None
+        Matching foundation food, or None if no match can be found.
     """
     fdc_ingredients = load_foundation_foods_data()
 
@@ -218,9 +267,14 @@ def match_foundation_foods(
 
     # Sort to find best score
     best_fdc_match, best_score = sorted(scores, key=lambda x: x[1], reverse=True)[0]
+
+    # If the match isn't very good, return None
+    if best_score.noun_match_fraction <= 0.5 and best_score.total_match_fraction <= 0.5:
+        return None
+
     return FoundationFood(
         text=best_fdc_match.description,
-        confidence=best_score.fraction_match,
+        confidence=best_score.total_match_fraction,
         fdc_id=best_fdc_match.fdc_id,
         category=best_fdc_match.category,
         data_type=best_fdc_match.data_type,
