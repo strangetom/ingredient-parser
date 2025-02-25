@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import copy
 import csv
 import gzip
 import re
@@ -115,10 +114,10 @@ def load_foundation_foods_data() -> list[FDCIngredient]:
 
 
 # Key = singular word ending, value = characters to append to make plural
-# https://www.bbc.co.uk/bitesize/articles/zfqh92p#ztmhtrd
+# https://github.com/weixu365/pluralizer-py/blob/master/pluralizer/pluralizer_rules.py
 PLURALISATION_RULES = {
     re.compile(r"(j|s|ss|sh|ch|x|z)$", re.I): r"\1es",
-    re.compile(r"(?<=[bcdfghjklmpqrstvwxyz])(o)$", re.I): "\1es",
+    re.compile(r"(?<=[bcdfghjklmpqrstvwxyz])(o)$", re.I): r"\1es",
     re.compile(r"(?<=[bcdfghjklmpqrstvwxyz])(y)$", re.I): "ies",
     re.compile(r"(?<=qu)(y)$", re.I): "ies",
     re.compile(r"(fe?)$", re.I): "ves",
@@ -128,7 +127,20 @@ PLURALISATION_RULES = {
     re.compile(r"(\'s)$", re.I): "s's",
 }
 
+SINGULARISATION_RULES = {
+    re.compile(r"(j|s|ss|sh|ch|x|z)es$", re.I): r"\1",
+    re.compile(r"(?<=[bcdfghjklmpqrstvwxyz])(o)es$", re.I): r"\1",
+    re.compile(r"(?<=[bcdfghjklmpqrstvwxyz])(ies)$", re.I): "y",
+    re.compile(r"(?<=qu)(ies)$", re.I): "y",
+    # re.compile(r"(fe?)$", re.I): "ves",
+    # re.compile(r"(us)$", re.I): "i",
+    # re.compile(r"(is)$", re.I): "es",
+    # re.compile(r"(ix)$", re.I): "ices",
+    # re.compile(r"(\'s)$", re.I): "s's",
+}
 
+
+@lru_cache(maxsize=512)
 def get_plural_singular_noun(noun: str, pos_tag: str) -> str:
     """For the given noun, if plural return the singular form and vice versa.
 
@@ -156,6 +168,13 @@ def get_plural_singular_noun(noun: str, pos_tag: str) -> str:
 
     if pos_tag.endswith("S"):
         # Plural, so make singular
+        for pattern, sub in SINGULARISATION_RULES.items():
+            if pattern.search(noun):
+                return pattern.sub(sub, noun)
+
+        if noun.endswith("s"):
+            return noun[:-1]
+
         return noun
     else:
         # Singular, so make plural
@@ -195,9 +214,11 @@ def score_fdc_ingredient(
     noun_matches, other_matches = 0, 0
     total_nouns = len([pos for _, pos in ingredient_name if pos.startswith("NN")])
     total_others = len([pos for _, pos in ingredient_name if not pos.startswith("NN")])
-    consumed_ingredient_tokens = set()
 
-    fdc_tokens = copy.deepcopy(fdc_ingredient.description_tokens)
+    consumed_ingredient_tokens = set()
+    consumed_fdc_tokens = set()
+
+    fdc_tokens = fdc_ingredient.description_tokens
     fdc_tokens_len = len(fdc_tokens)
 
     # Calculate matches
@@ -205,23 +226,26 @@ def score_fdc_ingredient(
     # no exact match and treat this match as an exact match also.
     for tok, pos in ingredient_name:
         if tok in fdc_tokens:
+            if tok in consumed_fdc_tokens:
+                continue
+
             if pos.startswith("NN"):
                 noun_matches += 1
             else:
                 other_matches += 1
-            fdc_tokens.remove(tok)
+            consumed_fdc_tokens.add(tok)
             consumed_ingredient_tokens.add(tok)
         elif pos.startswith("NN"):
             # Not an exact match, but still a noun
             ps_tok = get_plural_singular_noun(tok, pos)
             if ps_tok in fdc_tokens:
                 noun_matches += 1
-                fdc_tokens.remove(ps_tok)
+                consumed_fdc_tokens.add(ps_tok)
                 consumed_ingredient_tokens.add(tok)
 
     return MatchScore(
-        noun_matches / total_nouns,
-        other_matches / total_others,
+        noun_matches / total_nouns if total_nouns > 0 else 0,
+        other_matches / total_others if total_others > 0 else 0,
         PREFERRED_DATA_SOURCES[fdc_ingredient.data_type],
         (noun_matches + other_matches) / fdc_tokens_len,
     )
