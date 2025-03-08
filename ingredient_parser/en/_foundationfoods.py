@@ -10,7 +10,6 @@ from functools import lru_cache
 from importlib.resources import as_file, files
 from itertools import chain
 
-# from nltk.metrics.distance import edit_distance
 from ..dataclasses import FoundationFood
 
 # NamedTuple for holding the resultant score of the match between an ingredient name and
@@ -35,14 +34,16 @@ class FDCIngredient:
     data_type: str
     description: str
     category: str
+    common_name: str
     description_tokens: set[str]
 
 
 # Order in which the FoodDataCentral data sources are preferred.
 # The higher number indicates higher preference.
 PREFERRED_DATA_SOURCES = {
-    "foundation_food": 2,
-    "survey_fndds_food": 1,
+    "foundation_food": 3,
+    "sr_legacy_food": 2,
+    #    "survey_fndds_food": 1,
 }
 
 WHITESPACE_TOKENISER = re.compile(r"\S+")
@@ -106,6 +107,7 @@ def load_foundation_foods_data() -> list[FDCIngredient]:
                         data_type=row["data_type"],
                         description=row["description"],
                         category=row["category"],
+                        common_name=row["common_name"],
                         description_tokens=tokens,
                     )
                 )
@@ -215,7 +217,6 @@ def score_fdc_ingredient(
     total_nouns = len([pos for _, pos in ingredient_name if pos.startswith("NN")])
     total_others = len([pos for _, pos in ingredient_name if not pos.startswith("NN")])
 
-    consumed_ingredient_tokens = set()
     consumed_fdc_tokens = set()
 
     fdc_tokens = fdc_ingredient.description_tokens
@@ -234,14 +235,12 @@ def score_fdc_ingredient(
             else:
                 other_matches += 1
             consumed_fdc_tokens.add(tok)
-            consumed_ingredient_tokens.add(tok)
         elif pos.startswith("NN"):
             # Not an exact match, but still a noun
             ps_tok = get_plural_singular_noun(tok, pos)
             if ps_tok in fdc_tokens:
                 noun_matches += 1
                 consumed_fdc_tokens.add(ps_tok)
-                consumed_ingredient_tokens.add(tok)
 
     return MatchScore(
         noun_matches / total_nouns if total_nouns > 0 else 0,
@@ -297,9 +296,10 @@ def match_foundation_foods(
         return None
 
     return FoundationFood(
-        text=best_fdc_match.description,
+        text=best_fdc_match.common_name,
         confidence=best_score.total_match_fraction,
         fdc_id=best_fdc_match.fdc_id,
         category=best_fdc_match.category,
+        description=best_fdc_match.description,
         data_type=best_fdc_match.data_type,
     )

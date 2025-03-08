@@ -76,7 +76,7 @@ def select_preferred_entry(
 
     # If different data_type, return preferred
     else:
-        for data_type in ["foundation_food", "survey_fndds_food"]:
+        for data_type in ["foundation_food"]:
             if new.data_type == data_type:
                 return new
             elif existing.data_type == data_type:
@@ -123,8 +123,15 @@ if __name__ == "__main__":
         for row in reader:
             if row["data_type"] not in [
                 "foundation_food",
-                "survey_fndds_food",
+                # "sr_legacy_food",
+                # "survey_fndds_food",
             ]:
+                continue
+
+            if (
+                "Includes foods for USDA's Food Distribution Program"
+                in row["description"]
+            ):
                 continue
 
             fdc = FDCIngredient(

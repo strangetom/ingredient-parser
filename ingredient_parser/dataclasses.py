@@ -301,7 +301,7 @@ class FoundationFood:
     Attributes
     ----------
     text : str
-        Foundation food description.
+        Foundation food name.
     confidence : float
         Confidence of the identification of the foundation food, between 0 and 1.
     fdc_id : int
@@ -311,6 +311,8 @@ class FoundationFood:
     data_type : str
         Data set of the foundation food.
         One of foundation_food, survey_fndds_food
+    description : str
+        FDC description of foundation food.
     """
 
     text: str
@@ -318,6 +320,7 @@ class FoundationFood:
     fdc_id: int
     category: str
     data_type: str
+    description: str
 
 
 @dataclass
