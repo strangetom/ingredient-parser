@@ -692,7 +692,7 @@ class PostProcessor:
         """
 
         idx_to_keep = []
-        for i, (first, second) in enumerate(pairwise(parts + [""])):
+        for i, (first, second) in enumerate(pairwise([*parts, ""])):
             if first != second:
                 idx_to_keep.append(i)
 

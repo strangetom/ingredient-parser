@@ -368,7 +368,7 @@ def evaluate(
     token_stats = {}
     for k, v in report.items():  # type: ignore
         # Convert dict to Metrics
-        if k in labels + ["macro avg", "weighted avg"]:
+        if k in [*labels, "macro avg", "weighted avg"]:
             k = k.replace(" ", "_")
             token_stats[k] = Metrics(
                 v["precision"], v["recall"], v["f1-score"], int(v["support"])
