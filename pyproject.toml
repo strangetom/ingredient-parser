@@ -72,7 +72,11 @@ line-length = 88
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "PT", "RUF"]
-ignore = ["E402", "RUF001", "RUF002"]
+ignore = [
+    "E402",   # To enable path to be modified in doc conf.py before import
+    "RUF001", # Ambiguous unicode characters are handled explicitly in functions
+    "RUF002"  # Ambiguous unicode characters are handled explicitly in functions
+]
 
 [tool.ruff.format]
 docstring-code-format = true
