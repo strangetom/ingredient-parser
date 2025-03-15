@@ -268,7 +268,7 @@ class PostProcessor:
         constructed_names = self._construct_names(bio_groups)
 
         names = []
-        foundation_foods = []
+        foundation_foods = set()  # Use a set to avoid duplicates
         for group in constructed_names:
             # Convert from name_label indices to token indices
             token_idx = [name_idx[idx] for idx in group]
@@ -282,9 +282,9 @@ class PostProcessor:
                     pos = [self.poos_tags[i] for i in token_idx]
                     ff = match_foundation_foods(tokens, labels, pos)
                     if ff:
-                        foundation_foods.append(ff)
+                        foundation_foods.add(ff)
 
-        return names, foundation_foods
+        return names, list(foundation_foods)
 
     def _group_name_labels(self, name_labels: list[str]) -> list[list[tuple[int, str]]]:
         """Group name labels according to name label type.

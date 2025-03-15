@@ -322,6 +322,9 @@ class FoundationFood:
     data_type: str
     description: str
 
+    def __hash__(self):
+        return hash(self.fdc_id)
+
 
 @dataclass
 class ParsedIngredient:
