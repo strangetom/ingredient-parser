@@ -22,8 +22,8 @@ class FDCIngredient:
     description: str
     category: str
     common_name: str
-    tokens: list[str]
-    pos_tags: list[str]
+    tokens: tuple[str, ...]
+    pos_tags: tuple[str, ...]
 
 
 @lru_cache
@@ -43,8 +43,8 @@ def load_foundation_foods_data() -> list[FDCIngredient]:
         with gzip.open(p, "rt") as f:
             reader = csv.DictReader(f)
             for row in reader:
-                tokens = tokenize(row["description"])
-                pos_tags = [pos for _, pos in pos_tag(tokens)]
+                tokens = tuple(tokenize(row["description"]))
+                pos_tags = tuple(pos for _, pos in pos_tag(tokens))
                 ingredients.append(
                     FDCIngredient(
                         fdc_id=int(row["fdc_id"]),

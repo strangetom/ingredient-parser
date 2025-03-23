@@ -34,7 +34,8 @@ FOUNDATION_FOOD_OVERRIDES: dict[tuple[str, ...], FoundationFood] = {
 }
 
 
-def prepare_tokens(tokens: list[str], pos_tags: list[str]) -> list[str]:
+@lru_cache(maxsize=512)
+def prepare_tokens(tokens: tuple[str, ...], pos_tags: tuple[str, ...]) -> list[str]:
     """Prepare tokens for use with embeddings model.
 
     This involves obtaning the stem for the token and discarding tokens whose POS tag is
@@ -43,10 +44,10 @@ def prepare_tokens(tokens: list[str], pos_tags: list[str]) -> list[str]:
 
     Parameters
     ----------
-    tokens : list[str]
-        List of tokens
-    pos_tags : list[str]
-        List of POS tags for tokens
+    tokens : tuple[str, ...]
+        Tuple of tokens
+    pos_tags : tuple[str, ...]
+        Tuple of POS tags for tokens
 
     Returns
     -------
@@ -67,7 +68,28 @@ def prepare_tokens(tokens: list[str], pos_tags: list[str]) -> list[str]:
     ]
 
 
-def token_similarity(token1: str, token2: str, model) -> float:
+@lru_cache
+def get_vector(token: str) -> np.ndarray:
+    """Get embedding vector for token.
+
+    This function exists solely so this operation can be LRU cached.
+
+    Parameters
+    ----------
+    token : str
+        Token to return embedding vector for.
+
+    Returns
+    -------
+    np.ndarray
+        Embedding vector
+    """
+    model = load_embeddings_model()
+    return model[token]
+
+
+@lru_cache(maxsize=512)
+def token_similarity(token1: str, token2: str) -> float:
     """Calculate similarity between two word embeddings.
 
     This uses the reciprocal euclidean distance transformed by a sigmoid function to
@@ -81,15 +103,13 @@ def token_similarity(token1: str, token2: str, model) -> float:
         First token.
     token2 : str
         Second token.
-    model : floret
-        Embeddings model.
 
     Returns
     -------
     float
         Value between 0 and 1.
     """
-    euclidean_dist = np.linalg.norm(model[token1] - model[token2])
+    euclidean_dist = np.linalg.norm(get_vector(token1) - get_vector(token2))
 
     if euclidean_dist == 0:
         return 1
@@ -101,7 +121,7 @@ def token_similarity(token1: str, token2: str, model) -> float:
 
 
 @lru_cache(maxsize=512)
-def max_token_similarity(token: str, fdc_ingredient: tuple[str, ...], model) -> float:
+def max_token_similarity(token: str, fdc_ingredient: tuple[str, ...]) -> float:
     """Calculate the maximum similarity of token to FDC Ingredient description tokens.
 
     Similarlity score is calculated from the euclidean distance between token and
@@ -116,15 +136,13 @@ def max_token_similarity(token: str, fdc_ingredient: tuple[str, ...], model) -> 
         Token to calculate similarity of.
     fdc_ingredient : tuple[str, ...]
         FDC Ingredient description tokens to calculate maximum token similarity to.
-    model : floret
-        Embeddings model.
 
     Returns
     -------
     float
         Membership score between 0 and 1, where 1 indicates exact match.
     """
-    return max(token_similarity(token, t, model) for t in fdc_ingredient)
+    return max(token_similarity(token, t) for t in fdc_ingredient)
 
 
 @lru_cache(maxsize=512)
@@ -168,10 +186,10 @@ def fuzzy_document_distance(
     tokens = set(ingredient_name) | set(fdc_ingredient)
     for token in tokens:
         union_membership += max_token_similarity(
-            token, ingredient_name, model
-        ) * max_token_similarity(token, fdc_ingredient, model)
-        cj1_membership += max_token_similarity(token, ingredient_name, model)
-        cj2_membership += max_token_similarity(token, fdc_ingredient, model)
+            token, ingredient_name
+        ) * max_token_similarity(token, fdc_ingredient)
+        cj1_membership += max_token_similarity(token, ingredient_name)
+        cj2_membership += max_token_similarity(token, fdc_ingredient)
 
     res = union_membership / (cj1_membership + cj2_membership - union_membership)
     return 1 - res
@@ -200,7 +218,7 @@ def match_foundation_foods(
 
     fdc_ingredients = load_foundation_foods_data()
 
-    ingredient_name_tokens = prepare_tokens(tokens, pos)
+    ingredient_name_tokens = prepare_tokens(tuple(tokens), tuple(pos))
 
     scores: list[tuple[float, FDCIngredient]] = []
     for fdc_ingredient in fdc_ingredients:
