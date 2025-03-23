@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import string
+from functools import lru_cache
 
 import numpy as np
 
@@ -9,26 +10,26 @@ from ._constants import EMBEDDING_POS_TAGS, STOP_WORDS
 from ._loaders import FDCIngredient, load_embeddings_model, load_foundation_foods_data
 from ._utils import stem
 
-# Order in which the FoodDataCentral data sources are preferred.
-# The higher number indicates higher preference.
-PREFERRED_DATA_SOURCES = {
-    "foundation_food": 3,
-    "sr_legacy_food": 2,
-    #    "survey_fndds_food": 1,
-}
-
 # Dict of ingredient name tokens that bypass the usual foundation food matching process.
+# We do this because the embedding distance approach sometime gives poor results when
+# the name we're trying to match only has one token.
 FOUNDATION_FOOD_OVERRIDES: dict[tuple[str, ...], FoundationFood] = {
     ("salt",): FoundationFood(
-        "salt", 1, 746775, "Spices and Herbs", "foundation_food", "Salt, table, iodized"
+        "Salt, table, iodized", 1, 746775, "Spices and Herbs", "foundation_food"
     ),
     ("egg",): FoundationFood(
-        "eggs",
+        "Eggs, Grade A, Large, egg whole",
         1,
         748967,
         "748967",
         "foundation_food",
+    ),
+    ("eggs",): FoundationFood(
         "Eggs, Grade A, Large, egg whole",
+        1,
+        748967,
+        "748967",
+        "foundation_food",
     ),
 }
 
@@ -99,7 +100,8 @@ def token_similarity(token1: str, token2: str, model) -> float:
         return float(sigmoid)
 
 
-def max_token_similarity(token: str, fdc_ingredient: list[str], model) -> float:
+@lru_cache(maxsize=512)
+def max_token_similarity(token: str, fdc_ingredient: tuple[str, ...], model) -> float:
     """Calculate the maximum similarity of token to FDC Ingredient description tokens.
 
     Similarlity score is calculated from the euclidean distance between token and
@@ -112,8 +114,8 @@ def max_token_similarity(token: str, fdc_ingredient: list[str], model) -> float:
     ----------
     token : str
         Token to calculate similarity of.
-    fdc_ingredient : str
-        FDC Ingredient description to calculate maximum token similarity to.
+    fdc_ingredient : tuple[str, ...]
+        FDC Ingredient description tokens to calculate maximum token similarity to.
     model : floret
         Embeddings model.
 
@@ -125,18 +127,21 @@ def max_token_similarity(token: str, fdc_ingredient: list[str], model) -> float:
     return max(token_similarity(token, t, model) for t in fdc_ingredient)
 
 
+@lru_cache(maxsize=512)
 def fuzzy_document_distance(
-    ingredient_name: list[str], fdc_ingredient: list[str]
+    ingredient_name: tuple[str, ...], fdc_ingredient: tuple[str, ...]
 ) -> float:
     """Calculate fuzzy document distance between ingredient name and FDC ingredient.
 
     Implementation of https://doi.org/10.1109/ACCESS.2021.3058559.
 
+    Tuples are used here to allow for LRU caching.
+
     Parameters
     ----------
-    ingredient_name : list[str]
+    ingredient_name : tuple[str, ...]
         Tokens for ingredient name.
-    fdc_ingredient : list[str]
+    fdc_ingredient : tuple[str, ...]
         Tokens for FDC Ingredient description.
 
     Returns
@@ -148,8 +153,8 @@ def fuzzy_document_distance(
     model = load_embeddings_model()
 
     # Remove out of vocabularly words
-    ingredient_name = [token for token in ingredient_name if token in model]
-    fdc_ingredient = [token for token in fdc_ingredient if token in model]
+    ingredient_name = tuple(token for token in ingredient_name if token in model)
+    fdc_ingredient = tuple(token for token in fdc_ingredient if token in model)
 
     # If either document only contains out of vocab words, return infinite distance
     if not ingredient_name or not fdc_ingredient:
@@ -190,8 +195,8 @@ def match_foundation_foods(
     FoundationFood | None
         Matching foundation food, or None if no match can be found.
     """
-    if tuple(tokens) in FOUNDATION_FOOD_OVERRIDES:
-        return FOUNDATION_FOOD_OVERRIDES[tuple(tokens)]
+    if tuple(t.lower() for t in tokens) in FOUNDATION_FOOD_OVERRIDES:
+        return FOUNDATION_FOOD_OVERRIDES[tuple(t.lower() for t in tokens)]
 
     fdc_ingredients = load_foundation_foods_data()
 
@@ -202,17 +207,21 @@ def match_foundation_foods(
         fdc_ingredient_tokens = prepare_tokens(
             fdc_ingredient.tokens, fdc_ingredient.pos_tags
         )
-        score = fuzzy_document_distance(ingredient_name_tokens, fdc_ingredient_tokens)
+        score = fuzzy_document_distance(
+            tuple(ingredient_name_tokens), tuple(fdc_ingredient_tokens)
+        )
         scores.append((score, fdc_ingredient))
 
     # Sort to find best score
     best_score, best_fdc_match = sorted(scores, key=lambda x: x[0])[0]
 
-    return FoundationFood(
-        text=best_fdc_match.common_name,
-        confidence=round(1 - best_score, 6),
-        fdc_id=best_fdc_match.fdc_id,
-        category=best_fdc_match.category,
-        description=best_fdc_match.description,
-        data_type=best_fdc_match.data_type,
-    )
+    if best_score <= 0.35:
+        return FoundationFood(
+            text=best_fdc_match.description,
+            confidence=round(1 - best_score, 6),
+            fdc_id=best_fdc_match.fdc_id,
+            category=best_fdc_match.category,
+            data_type=best_fdc_match.data_type,
+        )
+    else:
+        return None
