@@ -134,7 +134,7 @@ class PostProcessor:
     ):
         self.sentence = sentence
         self.tokens = tokens
-        self.poos_tags = pos_tags
+        self.pos_tags = pos_tags
         self.labels = labels
         self.scores = scores
         self.separate_names = separate_names
@@ -278,9 +278,8 @@ class PostProcessor:
 
                 if self.foundation_foods:
                     tokens = [self.tokens[i] for i in token_idx]
-                    labels = [self.labels[i] for i in token_idx]
-                    pos = [self.poos_tags[i] for i in token_idx]
-                    ff = match_foundation_foods(tokens, labels, pos)
+                    pos = [self.pos_tags[i] for i in token_idx]
+                    ff = match_foundation_foods(tokens, pos)
                     if ff:
                         foundation_foods.add(ff)
 

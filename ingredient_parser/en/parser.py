@@ -1,33 +1,11 @@
 #!/usr/bin/env python3
 
-from functools import lru_cache
-from importlib.resources import as_file, files
-
-import pycrfsuite
-
 from .._common import group_consecutive_idx
 from ..dataclasses import ParsedIngredient, ParserDebugInfo
+from ._loaders import load_parser_model
 from ._utils import pluralise_units
 from .postprocess import PostProcessor
 from .preprocess import PreProcessor
-
-
-@lru_cache
-def load_parser_model() -> pycrfsuite.Tagger:  # type: ignore
-    """Load parser model.
-
-    This function is cached so that when the model has been loaded once, it does not
-    need to be loaded again, the cached model is returned.
-
-    Returns
-    -------
-    pycrfsuite.Tagger
-        Parser model loaded into Tagger object.
-    """
-    tagger = pycrfsuite.Tagger()  # type: ignore
-    with as_file(files(__package__) / "model.en.crfsuite") as p:
-        tagger.open(str(p))
-        return tagger
 
 
 def parse_ingredient_en(
