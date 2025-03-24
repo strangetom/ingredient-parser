@@ -437,4 +437,5 @@ EMBEDDING_POS_TAGS = {
     "VBN",
     "VBP",
     "VBZ",
+    "FW",
 }
