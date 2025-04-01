@@ -33,6 +33,14 @@ FOUNDATION_FOOD_OVERRIDES: dict[tuple[str, ...], FoundationFood] = {
     ),
 }
 
+# List of preferred FDC data types.
+# Increasing value indicates decreasing preference.
+PREFERRED_DATATYPES = {
+    "foundation_food": 0,  #  Most preferred
+    "sr_legacy_food": 1,
+    "survey_fndds_food": 2,
+}
+
 
 @lru_cache(maxsize=512)
 def prepare_tokens(tokens: tuple[str, ...], pos_tags: tuple[str, ...]) -> list[str]:
@@ -153,7 +161,7 @@ def fuzzy_document_distance(
 
     Implementation of https://doi.org/10.1109/ACCESS.2021.3058559.
 
-    Tuples are used here to allow for LRU caching.
+    Tuples are used for inputs to allow for LRU caching.
 
     Parameters
     ----------
@@ -178,21 +186,61 @@ def fuzzy_document_distance(
     if not ingredient_name or not fdc_ingredient:
         return float("inf")
 
-    # Calculate fuzzy intersection
+    # Calculate fuzzy intersection from the tokens that are similar in both the
+    # ingredient and FDC ingredient name, to the tokens that are similar to only
+    # one of the ingredient or FDC name.
     union_membership = 0.0
-    cj1_membership = 0.0
-    cj2_membership = 0.0
+    ingred_membership = 0.0
+    fdc_membership = 0.0
 
     tokens = set(ingredient_name) | set(fdc_ingredient)
     for token in tokens:
-        union_membership += max_token_similarity(
-            token, ingredient_name
-        ) * max_token_similarity(token, fdc_ingredient)
-        cj1_membership += max_token_similarity(token, ingredient_name)
-        cj2_membership += max_token_similarity(token, fdc_ingredient)
+        token_ingred_score = max_token_similarity(token, ingredient_name)
+        token_fdc_score = max_token_similarity(token, fdc_ingredient)
 
-    res = union_membership / (cj1_membership + cj2_membership - union_membership)
+        union_membership += token_ingred_score * token_fdc_score
+        ingred_membership += token_ingred_score
+        fdc_membership += token_fdc_score
+
+    res = union_membership / (ingred_membership + fdc_membership - union_membership)
     return 1 - res
+
+
+def rescore_considering_preferred_dataset(
+    sorted_scores: list[tuple[float, FDCIngredient]],
+) -> tuple[float, FDCIngredient]:
+    """Rescore FDC ingredient considering data type preferences.
+
+    If there are other FDC Ingredients with scores within 2.5% of the best, select the
+    FDC Ingredient from the most preferred datatype. If there are multiple from the same
+    datatype, select the one with the lowest score.
+
+    Parameters
+    ----------
+    sorted_scores : list[tuple[float, FDCIngredient]]
+        Tuple of (score, FDCIngredient), sorted in order of increasing score.
+
+    Returns
+    -------
+    tuple[float, FDCIngredient]
+        Tuple of (best score, FDC Ingredient)
+    """
+    best_score = sorted_scores[0][0]
+
+    alternatives = [
+        (score, fdc)
+        for (score, fdc) in sorted_scores
+        if (score - best_score) / best_score <= 0.025
+    ]
+    if len(alternatives) == 1:
+        # If nothing else within 2.5% of best, return best
+        return alternatives[0]
+
+    # Sort alternatives, first by preferred dataset, then by score
+    sorted_alternatives = sorted(
+        alternatives, key=lambda x: (PREFERRED_DATATYPES[x[1].data_type], x[0])
+    )
+    return sorted_alternatives[0]
 
 
 def match_foundation_foods(
@@ -231,7 +279,8 @@ def match_foundation_foods(
         scores.append((score, fdc_ingredient))
 
     # Sort to find best score
-    best_score, best_fdc_match = sorted(scores, key=lambda x: x[0])[0]
+    sorted_scores = sorted(scores, key=lambda x: x[0])
+    best_score, best_fdc_match = rescore_considering_preferred_dataset(sorted_scores)
 
     if best_score <= 0.35:
         return FoundationFood(

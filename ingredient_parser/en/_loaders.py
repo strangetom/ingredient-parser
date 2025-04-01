@@ -21,7 +21,6 @@ class FDCIngredient:
     data_type: str
     description: str
     category: str
-    common_name: str
     tokens: tuple[str, ...]
     pos_tags: tuple[str, ...]
 
@@ -51,7 +50,6 @@ def load_foundation_foods_data() -> list[FDCIngredient]:
                         data_type=row["data_type"],
                         description=row["description"],
                         category=row["category"],
-                        common_name=row["common_name"],
                         tokens=tokens,
                         pos_tags=pos_tags,
                     )

@@ -47,7 +47,7 @@ def get_category_map(food_category_csv: str, wweia_food_category_csv: str) -> di
 
 
 def select_preferred_entry(
-    new: FDCIngredient, existing: FDCIngredient
+    new: FDCIngredient, existing: FDCIngredient, allowed_datasets: list[str]
 ) -> FDCIngredient:
     """Given two FDCIngredient objects, return the preferred one.
 
@@ -61,6 +61,8 @@ def select_preferred_entry(
         New object to check
     existing : FDCIngredient
         Existing object to check
+    allowed_datasets : list[str]
+        List of allowed datasets to select ingredients from
 
     Returns
     -------
@@ -76,7 +78,7 @@ def select_preferred_entry(
 
     # If different data_type, return preferred
     else:
-        for data_type in ["foundation_food"]:
+        for data_type in allowed_datasets:
             if new.data_type == data_type:
                 return new
             elif existing.data_type == data_type:
@@ -108,6 +110,18 @@ if __name__ == "__main__":
         required=True,
     )
     parser.add_argument(
+        "--datasets",
+        help="Datasets to include in CSV, in order of preference.",
+        choices=[
+            "foundation_food",
+            "sr_legacy_food",
+            "survey_fndds_food",
+            "branded_food",
+        ],
+        nargs="*",
+        default=["foundation_food"],
+    )
+    parser.add_argument(
         "--output",
         help="Path to save gzipped csv file to.",
         type=str,
@@ -121,11 +135,7 @@ if __name__ == "__main__":
     with open(args.food, "r") as f:
         reader = csv.DictReader(f)
         for row in reader:
-            if row["data_type"] not in [
-                "foundation_food",
-                # "sr_legacy_food",
-                # "survey_fndds_food",
-            ]:
+            if row["data_type"] not in args.datasets:
                 continue
 
             if (
@@ -144,7 +154,9 @@ if __name__ == "__main__":
 
             # If there are duplicate descriptions, only keep the preferred one
             if fdc.description in food:
-                preferred = select_preferred_entry(fdc, food[fdc.description])
+                preferred = select_preferred_entry(
+                    fdc, food[fdc.description], args.datasets
+                )
                 food[fdc.description] = preferred
             else:
                 food[fdc.description] = fdc
