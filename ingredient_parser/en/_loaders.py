@@ -10,7 +10,7 @@ import floret
 import pycrfsuite
 from nltk import pos_tag
 
-from ._utils import tokenize
+from ._utils import prepare_embeddings_tokens, tokenize
 
 
 @dataclass
@@ -37,6 +37,8 @@ def load_foundation_foods_data() -> list[FDCIngredient]:
     list[FDCIngredient]
         List of FDCIngredient objects.
     """
+    model = load_embeddings_model()
+
     ingredients = []
     with as_file(files(__package__) / "fdc_ingredients.csv.gz") as p:
         with gzip.open(p, "rt") as f:
@@ -44,14 +46,22 @@ def load_foundation_foods_data() -> list[FDCIngredient]:
             for row in reader:
                 tokens = tuple(tokenize(row["description"]))
                 pos_tags = tuple(pos for _, pos in pos_tag(tokens))
+
+                tokens_in_vocab = [
+                    (token, pos)
+                    for token, pos in prepare_embeddings_tokens(tokens, pos_tags)
+                    if token in model
+                ]
+                tokens, pos_tags = zip(*tokens_in_vocab)
+
                 ingredients.append(
                     FDCIngredient(
                         fdc_id=int(row["fdc_id"]),
                         data_type=row["data_type"],
                         description=row["description"],
                         category=row["category"],
-                        tokens=tokens,
-                        pos_tags=pos_tags,
+                        tokens=tuple(tokens),
+                        pos_tags=tuple(pos_tags),
                     )
                 )
 

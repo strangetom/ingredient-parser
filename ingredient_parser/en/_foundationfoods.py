@@ -1,14 +1,12 @@
 #!/usr/bin/env python3
 
-import string
 from functools import lru_cache
 
 import numpy as np
 
 from ..dataclasses import FoundationFood
-from ._constants import EMBEDDING_POS_TAGS, STOP_WORDS
 from ._loaders import FDCIngredient, load_embeddings_model, load_foundation_foods_data
-from ._utils import stem
+from ._utils import prepare_embeddings_tokens
 
 # Dict of ingredient name tokens that bypass the usual foundation food matching process.
 # We do this because the embedding distance approach sometime gives poor results when
@@ -40,40 +38,6 @@ PREFERRED_DATATYPES = {
     "sr_legacy_food": 1,
     "survey_fndds_food": 2,
 }
-
-
-@lru_cache(maxsize=512)
-def prepare_tokens(tokens: tuple[str, ...], pos_tags: tuple[str, ...]) -> list[str]:
-    """Prepare tokens for use with embeddings model.
-
-    This involves obtaning the stem for the token and discarding tokens whose POS tag is
-    not in EMBEDDING_POS_TAGS, which are numeric, which are punctuation, or which are
-    in STOP_WORDS.
-
-    Parameters
-    ----------
-    tokens : tuple[str, ...]
-        Tuple of tokens
-    pos_tags : tuple[str, ...]
-        Tuple of POS tags for tokens
-
-    Returns
-    -------
-    list[str]
-        Prepared tokens.
-    """
-    return [
-        stem(token.lower())
-        for token, pos in zip(tokens, pos_tags)
-        if pos in EMBEDDING_POS_TAGS
-        and not token.isnumeric()
-        and not token.isdigit()
-        and not token.isdecimal()
-        and not token.isspace()
-        and token not in string.punctuation
-        and token not in STOP_WORDS
-        and len(token) > 1
-    ]
 
 
 @lru_cache
@@ -176,12 +140,6 @@ def fuzzy_document_distance(
         Fuzzy document distance.
         Smaller values mean closer match.
     """
-    model = load_embeddings_model()
-
-    # Remove out of vocabularly words
-    ingredient_name = tuple(token for token in ingredient_name if token in model)
-    fdc_ingredient = tuple(token for token in fdc_ingredient if token in model)
-
     # If either document only contains out of vocab words, return infinite distance
     if not ingredient_name or not fdc_ingredient:
         return float("inf")
@@ -206,7 +164,7 @@ def fuzzy_document_distance(
     return 1 - res
 
 
-def rescore_considering_preferred_dataset(
+def rescore_considering_preferred_datatype(
     sorted_scores: list[tuple[float, FDCIngredient]],
 ) -> tuple[float, FDCIngredient]:
     """Rescore FDC ingredient considering data type preferences.
@@ -227,10 +185,15 @@ def rescore_considering_preferred_dataset(
     """
     best_score = sorted_scores[0][0]
 
+    # If the best score, return that item.
+    # The FDC data does not contain duplicates, so this is an exact match.
+    if best_score == 0:
+        return sorted_scores[0]
+
     alternatives = [
         (score, fdc)
         for (score, fdc) in sorted_scores
-        if (score - best_score) / best_score <= 0.025
+        if score != float("inf") and (score - best_score) / best_score <= 0.025
     ]
     if len(alternatives) == 1:
         # If nothing else within 2.5% of best, return best
@@ -264,24 +227,30 @@ def match_foundation_foods(
     if tuple(t.lower() for t in tokens) in FOUNDATION_FOOD_OVERRIDES:
         return FOUNDATION_FOOD_OVERRIDES[tuple(t.lower() for t in tokens)]
 
-    fdc_ingredients = load_foundation_foods_data()
+    # Prepare ingredient name tokens and remove out of vocabulary tokens
+    model = load_embeddings_model()
+    ingredient_name_tokens = tuple(
+        token
+        for token, _ in prepare_embeddings_tokens(tuple(tokens), tuple(pos))
+        if token in model
+    )
 
-    ingredient_name_tokens = prepare_tokens(tuple(tokens), tuple(pos))
-
+    # Score matches between ingredient name and FDC ingredient description tokens
+    # Note that load_foundation_foods_data is a cached function
     scores: list[tuple[float, FDCIngredient]] = []
-    for fdc_ingredient in fdc_ingredients:
-        fdc_ingredient_tokens = prepare_tokens(
-            fdc_ingredient.tokens, fdc_ingredient.pos_tags
-        )
-        score = fuzzy_document_distance(
-            tuple(ingredient_name_tokens), tuple(fdc_ingredient_tokens)
-        )
+    for fdc_ingredient in load_foundation_foods_data():
+        score = fuzzy_document_distance(ingredient_name_tokens, fdc_ingredient.tokens)
         scores.append((score, fdc_ingredient))
 
     # Sort to find best score
     sorted_scores = sorted(scores, key=lambda x: x[0])
-    best_score, best_fdc_match = rescore_considering_preferred_dataset(sorted_scores)
 
+    # If the best score is inf, return None
+    if sorted_scores[0][0] == float("inf"):
+        return None
+
+    # Reorder results to account for data type preferences
+    best_score, best_fdc_match = rescore_considering_preferred_datatype(sorted_scores)
     if best_score <= 0.35:
         return FoundationFood(
             text=best_fdc_match.description,
