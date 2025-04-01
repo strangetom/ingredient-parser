@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import string
 from functools import lru_cache
 
 import numpy as np
@@ -19,14 +20,14 @@ FOUNDATION_FOOD_OVERRIDES: dict[tuple[str, ...], FoundationFood] = {
         "Eggs, Grade A, Large, egg whole",
         1,
         748967,
-        "748967",
+        "Dairy and Egg Products",
         "foundation_food",
     ),
     ("eggs",): FoundationFood(
         "Eggs, Grade A, Large, egg whole",
         1,
         748967,
-        "748967",
+        "Dairy and Egg Products",
         "foundation_food",
     ),
 }
@@ -224,8 +225,9 @@ def match_foundation_foods(
     FoundationFood | None
         Matching foundation food, or None if no match can be found.
     """
-    if tuple(t.lower() for t in tokens) in FOUNDATION_FOOD_OVERRIDES:
-        return FOUNDATION_FOOD_OVERRIDES[tuple(t.lower() for t in tokens)]
+    override_name = tuple(t.lower() for t in tokens if t not in string.punctuation)
+    if override_name in FOUNDATION_FOOD_OVERRIDES:
+        return FOUNDATION_FOOD_OVERRIDES[override_name]
 
     # Prepare ingredient name tokens and remove out of vocabulary tokens
     model = load_embeddings_model()
