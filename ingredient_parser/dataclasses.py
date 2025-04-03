@@ -319,6 +319,9 @@ class FoundationFood:
     category: str
     data_type: str
 
+    def __eq__(self, other):
+        return isinstance(other, FoundationFood) and self.fdc_id == other.fdc_id
+
     def __hash__(self):
         return hash(self.fdc_id)
 
