@@ -6,11 +6,11 @@ import unicodedata
 from dataclasses import dataclass
 from html import unescape
 
+import numpy as np
 from nltk import pos_tag
 
 from ._constants import (
     AMBIGUOUS_UNITS,
-    EMBEDDING_POS_TAGS,
     FLATTENED_UNITS_LIST,
     STRING_NUMBERS,
     UNICODE_FRACTIONS,
@@ -35,6 +35,7 @@ from ._regex import (
 from ._utils import (
     combine_quantities_split_by_and,
     is_unit_synonym,
+    prepare_embeddings_tokens,
     replace_string_range,
     stem,
     tokenize,
@@ -972,6 +973,29 @@ class PreProcessor:
 
         return ngram_features
 
+    def _get_embedding_vector(self, token: Token) -> np.ndarray:
+        """Return embedding vector for given token.
+
+        Parameters
+        ----------
+        token : Token
+            Token to return embedding vector for.
+
+        Returns
+        -------
+        np.ndarray
+            Embedding vector or empty array.
+        """
+        # This is cached
+        EMBEDDINGS_MODEL = load_embeddings_model()
+
+        prepared = prepare_embeddings_tokens((token.feat_text,), (token.pos_tag,))
+        if not prepared:
+            return np.array([])
+
+        text, _ = prepared[0]
+        return EMBEDDINGS_MODEL[text]
+
     def _token_features(self, token: Token) -> dict[str, str | bool | int | float]:
         """Return the features for the token at the given index in the sentence.
 
@@ -989,7 +1013,6 @@ class PreProcessor:
         dict[str, str | bool| int | float]
             Dictionary of features for token at index.
         """
-        EMBEDDINGS_MODEL = load_embeddings_model()
 
         index = token.index
         features: dict[str, str | bool | int | float] = {}
@@ -1006,10 +1029,8 @@ class PreProcessor:
         features |= self._common_features(index, "")
         features |= self._ngram_features(token.feat_text, "")
 
-        if token.pos_tag in EMBEDDING_POS_TAGS:
-            embedding = EMBEDDINGS_MODEL[token.features.stem.lower()]
-            for i, value in enumerate(embedding):
-                features[f"v{i}"] = round(float(value), 12)
+        for i, value in enumerate(self._get_embedding_vector(token)):
+            features[f"v{i}"] = float(value)
 
         # Features for previous token
         if index > 0:
@@ -1022,10 +1043,8 @@ class PreProcessor:
                 )
             )
             features |= self._common_features(index - 1, "prev_")
-            if prev_token.pos_tag in EMBEDDING_POS_TAGS:
-                embedding = EMBEDDINGS_MODEL[prev_token.features.stem.lower()]
-                for i, value in enumerate(embedding):
-                    features[f"prev_v{i}"] = round(float(value), 12)
+            for i, value in enumerate(self._get_embedding_vector(prev_token)):
+                features[f"prev_v{i}"] = float(value)
 
         # Features for previous previous token
         if index > 1:
@@ -1065,10 +1084,8 @@ class PreProcessor:
                 )
             )
             features |= self._common_features(index + 1, "next_")
-            if next_token.pos_tag in EMBEDDING_POS_TAGS:
-                embedding = EMBEDDINGS_MODEL[next_token.features.stem.lower()]
-                for i, value in enumerate(embedding):
-                    features[f"next_v{i}"] = round(float(value), 12)
+            for i, value in enumerate(self._get_embedding_vector(next_token)):
+                features[f"next_v{i}"] = float(value)
 
         # Features for next next token
         if index < len(self.tokenized_sentence) - 2:
