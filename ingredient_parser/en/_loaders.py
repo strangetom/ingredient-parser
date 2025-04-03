@@ -37,8 +37,6 @@ def load_foundation_foods_data() -> list[FDCIngredient]:
     list[FDCIngredient]
         List of FDCIngredient objects.
     """
-    model = load_embeddings_model()
-
     ingredients = []
     with as_file(files(__package__) / "fdc_ingredients.csv.gz") as p:
         with gzip.open(p, "rt") as f:
@@ -50,10 +48,9 @@ def load_foundation_foods_data() -> list[FDCIngredient]:
                 tokens_in_vocab = [
                     (token, pos)
                     for token, pos in prepare_embeddings_tokens(tokens, pos_tags)
-                    if token in model
                 ]
-                tokens, pos_tags = zip(*tokens_in_vocab)
 
+                tokens, pos_tags = zip(*tokens_in_vocab)
                 ingredients.append(
                     FDCIngredient(
                         fdc_id=int(row["fdc_id"]),

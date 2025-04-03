@@ -229,16 +229,13 @@ def match_foundation_foods(
     if override_name in FOUNDATION_FOOD_OVERRIDES:
         return FOUNDATION_FOOD_OVERRIDES[override_name]
 
-    # Prepare ingredient name tokens and remove out of vocabulary tokens
-    model = load_embeddings_model()
+    # Prepare ingredient name tokens
+    # We don't require tokens be in the model vocabulary because fasttext/floret models
+    # should be able to handle out of vocabulary words.
     ingredient_name_tokens = tuple(
-        token
-        for token, _ in prepare_embeddings_tokens(tuple(tokens), tuple(pos))
-        if token in model
+        token for token, _ in prepare_embeddings_tokens(tuple(tokens), tuple(pos))
     )
 
-    # Score matches between ingredient name and FDC ingredient description tokens
-    # Note that load_foundation_foods_data is a cached function
     scores: list[tuple[float, FDCIngredient]] = []
     for fdc_ingredient in load_foundation_foods_data():
         score = fuzzy_document_distance(ingredient_name_tokens, fdc_ingredient.tokens)
