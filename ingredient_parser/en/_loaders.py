@@ -98,5 +98,5 @@ def load_embeddings_model() -> floret.floret._floret:  # type: ignore
     floret.floret._floret
         Embeddigns model.
     """
-    with as_file(files(__package__) / "embeddings.floret.bin") as p:
+    with as_file(files(__package__) / "ingredient_embeddings.5d.floret.bin") as p:
         return floret.load_model(str(p))
