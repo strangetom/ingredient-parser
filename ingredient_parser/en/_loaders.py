@@ -2,6 +2,7 @@
 
 import csv
 import gzip
+from collections import defaultdict
 from dataclasses import dataclass
 from functools import lru_cache
 from importlib.resources import as_file, files
@@ -26,7 +27,7 @@ class FDCIngredient:
 
 
 @lru_cache
-def load_foundation_foods_data() -> list[FDCIngredient]:
+def load_foundation_foods_data() -> dict[str, list[FDCIngredient]]:
     """Load foundation foods CSV.
 
     This function is cached so that when the data has been loaded once, it does not
@@ -34,14 +35,15 @@ def load_foundation_foods_data() -> list[FDCIngredient]:
 
     Returns
     -------
-    list[FDCIngredient]
-        List of FDCIngredient objects.
+    dict[str, list[FDCIngredient]]
+        List of FDCIngredient objects, grouped by data type.
     """
-    ingredients = []
+    foundation_foods = defaultdict(list)
     with as_file(files(__package__) / "fdc_ingredients.csv.gz") as p:
         with gzip.open(p, "rt") as f:
             reader = csv.DictReader(f)
             for row in reader:
+                data_type = row["data_type"]
                 tokens = tuple(tokenize(row["description"]))
                 pos_tags = tuple(pos for _, pos in pos_tag(tokens))
 
@@ -51,10 +53,10 @@ def load_foundation_foods_data() -> list[FDCIngredient]:
                 ]
 
                 tokens, pos_tags = zip(*tokens_in_vocab)
-                ingredients.append(
+                foundation_foods[data_type].append(
                     FDCIngredient(
                         fdc_id=int(row["fdc_id"]),
-                        data_type=row["data_type"],
+                        data_type=data_type,
                         description=row["description"],
                         category=row["category"],
                         tokens=tuple(tokens),
@@ -62,7 +64,7 @@ def load_foundation_foods_data() -> list[FDCIngredient]:
                     )
                 )
 
-    return ingredients
+    return foundation_foods
 
 
 @lru_cache

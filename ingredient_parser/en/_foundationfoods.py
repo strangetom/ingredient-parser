@@ -30,6 +30,20 @@ FOUNDATION_FOOD_OVERRIDES: dict[tuple[str, ...], FoundationFood] = {
         "Dairy and Egg Products",
         "foundation_food",
     ),
+    ("butter",): FoundationFood(
+        "Butter, stick, unsalted",
+        1,
+        789828,
+        "Dairy and Egg Products",
+        "foundation_food",
+    ),
+    ("cucumber",): FoundationFood(
+        "Cucumber, with peel, raw",
+        1,
+        2346406,
+        "Vegetables and Vegetable Products",
+        "foundation_food",
+    ),
 }
 
 # List of preferred FDC data types.
@@ -213,12 +227,25 @@ def match_foundation_foods(
 ) -> FoundationFood | None:
     """Match ingredient name to foundation foods from FDC Ingredient.
 
+    The matching process follows these steps:
+    1. Check if the input tokens match one of the overrides and if they do, return that.
+    2. Prepare the ingredient tokens for scoring using the embedding model.
+    3. Iterate through each of the FDC data types in order of preference
+       i.   Score the match between the input ingredient and each FDC ingredient
+       ii.  Sort the scores smallest to largest (smaller is better)
+       iii. If the best (smallest) score is <= 0.2, return that ingredient
+       iv.  If the best score is not <= 0.2, store it for fallback checking
+    4. If we haven't found a suitable match after iterating through all data types, take
+       the best match from each data type and select the best of those. If the score is
+       <= 0.35 return that match.
+    5. Return None, if not suitable match is found.
+
     Parameters
     ----------
     tokens : list[str]
-        Ingredient name tokens
+        Ingredient name tokens.
     pos : list[str]
-        Part of speech tags for tokens
+        Part of speech tags for ingredient name tokens.
 
     Returns
     -------
@@ -236,27 +263,48 @@ def match_foundation_foods(
         token for token, _ in prepare_embeddings_tokens(tuple(tokens), tuple(pos))
     )
 
-    scores: list[tuple[float, FDCIngredient]] = []
-    for fdc_ingredient in load_foundation_foods_data():
-        score = fuzzy_document_distance(ingredient_name_tokens, fdc_ingredient.tokens)
-        scores.append((score, fdc_ingredient))
+    foundation_foods = load_foundation_foods_data()
+    fallback_scores: list[tuple[float, FDCIngredient]] = []
+    for data_type in PREFERRED_DATATYPES:
+        scores: list[tuple[float, FDCIngredient]] = []
+        for fdc_ingredient in foundation_foods[data_type]:
+            score = fuzzy_document_distance(
+                ingredient_name_tokens, fdc_ingredient.tokens
+            )
+            scores.append((score, fdc_ingredient))
 
-    # Sort to find best score
-    sorted_scores = sorted(scores, key=lambda x: x[0])
+        if not scores:
+            continue
 
-    # If the best score is inf, return None
-    if sorted_scores[0][0] == float("inf"):
-        return None
+        # Sort to find best score
+        sorted_scores = sorted(scores, key=lambda x: x[0])
+        best_score, best_fdc_match = sorted_scores[0]
 
-    # Reorder results to account for data type preferences
-    best_score, best_fdc_match = rescore_considering_preferred_datatype(sorted_scores)
-    if best_score <= 0.35:
+        # If the best score is inf, return None
+        if best_score == float("inf"):
+            continue
+
+        if best_score <= 0.25:
+            return FoundationFood(
+                text=best_fdc_match.description,
+                confidence=round(1 - best_score, 6),
+                fdc_id=best_fdc_match.fdc_id,
+                category=best_fdc_match.category,
+                data_type=best_fdc_match.data_type,
+            )
+        else:
+            fallback_scores.append((best_score, best_fdc_match))
+
+    # Sort fallback matches to find best score
+    sorted_fallback_scores = sorted(fallback_scores, key=lambda x: x[0])
+    best_fallback_score, best_fallback_fdc_match = sorted_fallback_scores[0]
+    if best_fallback_score <= 0.4:
         return FoundationFood(
-            text=best_fdc_match.description,
-            confidence=round(1 - best_score, 6),
-            fdc_id=best_fdc_match.fdc_id,
-            category=best_fdc_match.category,
-            data_type=best_fdc_match.data_type,
+            text=best_fallback_fdc_match.description,
+            confidence=round(1 - best_fallback_score, 6),
+            fdc_id=best_fallback_fdc_match.fdc_id,
+            category=best_fallback_fdc_match.category,
+            data_type=best_fallback_fdc_match.data_type,
         )
-    else:
-        return None
+
+    return None
