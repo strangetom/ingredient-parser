@@ -309,8 +309,7 @@ class FoundationFood:
     category: str
         Category of foundation food
     data_type : str
-        Data set of the foundation food.
-        One of foundation_food, survey_fndds_food
+        Food Data Central data set the matching item belongs to.
     """
 
     text: str
