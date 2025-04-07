@@ -421,24 +421,3 @@ UNIT_SYNONYMS = [
     {"tablespoon", "tbsp", "tbs", "tb"},
     {"teaspoon", "tsp"},
 ]
-
-# Token POS tags applicable for use embeddings model
-EMBEDDING_POS_TAGS = {
-    "NN",
-    "NNS",
-    "NNP",
-    "NNPS",
-    "JJ",
-    "JJR",
-    "JJS",
-    "RB",
-    "RBR",
-    "RBS",
-    "VB",
-    "VBD",
-    "VBG",
-    "VBN",
-    "VBP",
-    "VBZ",
-    "FW",
-}

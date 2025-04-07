@@ -12,7 +12,6 @@ import pint
 from .._common import UREG, consume, download_nltk_resources, is_float, is_range
 from ..dataclasses import IngredientAmount
 from ._constants import (
-    EMBEDDING_POS_TAGS,
     FLATTENED_UNITS_LIST,
     STOP_WORDS,
     UNIT_SYNONYMS,
@@ -543,9 +542,8 @@ def prepare_embeddings_tokens(
 ) -> list[tuple[str, str]]:
     """Prepare tokens for use with embeddings model.
 
-    This involves obtaning the stem for the token and discarding tokens whose POS tag is
-    not in EMBEDDING_POS_TAGS, which are numeric, which are punctuation, or which are
-    in STOP_WORDS.
+    This involves obtaning the stem for the token and discarding tokens which are
+    numeric, which are punctuation, or which are in STOP_WORDS.
 
     Parameters
     ----------
@@ -562,8 +560,7 @@ def prepare_embeddings_tokens(
     return [
         (stem(token.lower()), pos)
         for token, pos in zip(tokens, pos_tags)
-        if pos in EMBEDDING_POS_TAGS
-        and not token.isnumeric()
+        if not token.isnumeric()
         and not token.isdigit()
         and not token.isdecimal()
         and not token.isspace()
