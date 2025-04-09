@@ -53,9 +53,9 @@ FOUNDATION_FOOD_OVERRIDES: dict[tuple[str, ...], FoundationFood] = {
     ),
 }
 
-SPELLING_CORRECTIONS = [
-    ("yoghurt", "yogurt"),
-]
+SPELLING_CORRECTIONS = {
+    "yoghurt": "yogurt",
+}
 
 # List of preferred FDC data types.
 # Increasing value indicates decreasing preference.
@@ -274,8 +274,8 @@ def match_foundation_foods(
     3. Iterate through each of the FDC data types in order of preference
        i.   Score the match between the input ingredient and each FDC ingredient
        ii.  Sort the scores smallest to largest (smaller is better)
-       iii. If the best (smallest) score is <= 0.2, return that ingredient
-       iv.  If the best score is not <= 0.2, store it for fallback checking
+       iii. If the best (smallest) score is <= 0.25, return that ingredient
+       iv.  If the best score is not <= 0.25, store it for fallback checking
     4. If we haven't found a suitable match after iterating through all data types, take
        the best match from each data type and select the best of those. If the score is
        <= 0.4 return that match.
@@ -302,11 +302,15 @@ def match_foundation_foods(
     # Prepare ingredient name tokens
     # We don't require tokens be in the model vocabulary because fasttext/floret models
     # should be able to handle out of vocabulary words.
-    prepared_tokens = [
-        (token, pos)
-        for token, pos in prepare_embeddings_tokens(tuple(tokens), tuple(pos))
-    ]
-    ingredient_name_tokens, ingredient_token_pos = zip(*prepared_tokens)
+    # Prepareation also include making some spelling modifications.
+    ingredient_name_tokens = []
+    ingredient_token_pos = []
+    for name_token, name_pos in prepare_embeddings_tokens(tuple(tokens), tuple(pos)):
+        ingredient_token_pos.append(name_pos)
+        if name_token in SPELLING_CORRECTIONS:
+            ingredient_name_tokens.append(SPELLING_CORRECTIONS[name_token])
+        else:
+            ingredient_name_tokens.append(name_token)
 
     fallback_scores: list[tuple[FuzzyScore, FDCIngredient]] = []
     # Iterate through preferred data types in order. If we find a good enough match,
