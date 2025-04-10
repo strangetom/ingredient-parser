@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import re
+import string
 from fractions import Fraction
 from functools import lru_cache
 from itertools import chain
@@ -10,7 +11,12 @@ import pint
 
 from .._common import UREG, consume, download_nltk_resources, is_float, is_range
 from ..dataclasses import IngredientAmount
-from ._constants import FLATTENED_UNITS_LIST, UNIT_SYNONYMS, UNITS
+from ._constants import (
+    FLATTENED_UNITS_LIST,
+    STOP_WORDS,
+    UNIT_SYNONYMS,
+    UNITS,
+)
 from ._regex import (
     FRACTION_SPLIT_AND_PATTERN,
     FRACTION_TOKEN_PATTERN,
@@ -528,3 +534,37 @@ def ingredient_amount_factory(
         MULTIPLIER=MULTIPLIER,
         PREPARED_INGREDIENT=PREPARED_INGREDIENT,
     )
+
+
+@lru_cache(maxsize=512)
+def prepare_embeddings_tokens(
+    tokens: tuple[str, ...], pos_tags: tuple[str, ...]
+) -> list[tuple[str, str]]:
+    """Prepare tokens for use with embeddings model.
+
+    This involves obtaning the stem for the token and discarding tokens which are
+    numeric, which are punctuation, or which are in STOP_WORDS.
+
+    Parameters
+    ----------
+    tokens : tuple[str, ...]
+        Tuple of tokens
+    pos_tags : tuple[str, ...]
+        Tuple of POS tags for tokens
+
+    Returns
+    -------
+    list[tuple[str, str]]
+        Prepared tokens and POS tags.
+    """
+    return [
+        (stem(token.lower()), pos)
+        for token, pos in zip(tokens, pos_tags)
+        if not token.isnumeric()
+        and not token.isdigit()
+        and not token.isdecimal()
+        and not token.isspace()
+        and token not in string.punctuation
+        and token not in STOP_WORDS
+        and len(token) > 1
+    ]
