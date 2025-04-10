@@ -71,7 +71,7 @@ These vectors are used to compute a fuzzy distance score between the ingredient 
 
 The full process is as follows:
 
-#. Load the :abbr:`FDC (Food Data Central)` data. Tokenize the description for each entry and remove tokens that don't provide useful semantic information*.
+#. Load the :abbr:`FDC (Food Data Central)` data. Tokenize the description for each entry and remove tokens that don't provide useful semantic information\*.
 
 #. Prepare the ingredient name tokens in the same way.
 
@@ -82,15 +82,15 @@ The full process is as follows:
 
    #. Compute the fuzzy distance score between each :abbr:`FDC (Food Data Central)` entry and the ingredient name tokens.
 
-   #. Sort the :abbr:`FDC (Food Data Central)` by their score.
+   #. Sort the :abbr:`FDC (Food Data Central)` entries by the fuzzy distance score.
 
-   #. If there is a match with a score below the threshold, return the best match.
+   #. If the lowest (best) score is below the threshold, return the :class:`FoundationFood <ingredient_parser.dataclasses.FoundationFood>` object for the corresponding :abbr:`FDC (Food Data Central)` entry.
 
-   #. If there are not any matches with a good enough score, store the best match for fallback matching.
+   #. If best score is not below the threshold, store the best entry and it's score for fallback matching.
 
 #. If none of the :abbr:`FDC (Food Data Central)` datasets contained a good enough match, attempt fallback matching.
 
-   #. Sort the best match from each :abbr:`FDC (Food Data Central)` data set.
+   #. Sort the best matches from each :abbr:`FDC (Food Data Central)` data set.
 
    #. If the score for the best of these matches is below a threshold, return this match.
 
@@ -98,10 +98,15 @@ The full process is as follows:
 
 .. note::
 
-    Tokens that do not provide useful semantic information are as follows: numbers, white space, punctuation, stop words, single character words.
-
-
-
+    \*Tokens that do not provide useful semantic information are as follows: numbers, white space, punctuation, stop words, single character words.
 
 Limitations
 ^^^^^^^^^^^
+
+The current implementation has a some limitations.
+
+#. The fuzzy distance scoring will sometimes result in returning an :abbr:`FDC (Food Data Central)` entry that has a good score but is not a good match.
+   Work is ongoing to improve this, and suggestions and contributions are welcome.
+
+#. This functionality can be very slow.
+   The more datasets that need to be checked to find a good match, the slower it will be.
