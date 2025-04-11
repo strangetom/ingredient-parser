@@ -537,9 +537,7 @@ def ingredient_amount_factory(
 
 
 @lru_cache(maxsize=512)
-def prepare_embeddings_tokens(
-    tokens: tuple[str, ...], pos_tags: tuple[str, ...]
-) -> list[tuple[str, str]]:
+def prepare_embeddings_tokens(tokens: tuple[str, ...]) -> list[str]:
     """Prepare tokens for use with embeddings model.
 
     This involves obtaning the stem for the token and discarding tokens which are
@@ -549,17 +547,15 @@ def prepare_embeddings_tokens(
     ----------
     tokens : tuple[str, ...]
         Tuple of tokens
-    pos_tags : tuple[str, ...]
-        Tuple of POS tags for tokens
 
     Returns
     -------
-    list[tuple[str, str]]
-        Prepared tokens and POS tags.
+    list[str]
+        Prepared tokens.
     """
     return [
-        (stem(token.lower()), pos)
-        for token, pos in zip(tokens, pos_tags)
+        stem(token.lower())
+        for token in tokens
         if not token.isnumeric()
         and not token.isdigit()
         and not token.isdecimal()

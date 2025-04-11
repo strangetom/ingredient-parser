@@ -278,8 +278,7 @@ class PostProcessor:
 
                 if self.foundation_foods:
                     tokens = [self.tokens[i] for i in token_idx]
-                    pos = [self.pos_tags[i] for i in token_idx]
-                    ff = match_foundation_foods(tokens, pos)
+                    ff = match_foundation_foods(tokens)
                     if ff:
                         foundation_foods.add(ff)
 
