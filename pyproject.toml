@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools", "wheel"]
+requires = ["setuptools >= 77.0.3"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -8,7 +8,8 @@ name = "ingredient_parser_nlp"
 dynamic = ["version"]
 description = "A Python package to parse structured information from recipe ingredient sentences"
 readme = "README.md"
-license = { file="LICENSE"}
+license = "MIT"
+license-files = ["LICENSE"]
 requires-python = ">=3.10, <3.14"
 keywords = ["recipe", "ingredient", "ingredients", "nlp", "parsing" ]
 authors = [
@@ -16,7 +17,6 @@ authors = [
 ]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
-    "License :: OSI Approved :: MIT License",
     "Natural Language :: English",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3 :: Only",
