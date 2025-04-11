@@ -329,7 +329,7 @@ class uSIF:
 @lru_cache
 def get_usif_matcher() -> uSIF:
     """Cached function for returning instantiated uSIF object.
-    
+
     Returns
     -------
     uSIF
