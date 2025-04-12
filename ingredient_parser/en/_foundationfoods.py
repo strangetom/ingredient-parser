@@ -2,7 +2,6 @@
 
 import csv
 import gzip
-import string
 from collections import defaultdict
 from dataclasses import dataclass
 from functools import lru_cache
@@ -28,13 +27,6 @@ FOUNDATION_FOOD_OVERRIDES: dict[tuple[str, ...], FoundationFood] = {
         "Dairy and Egg Products",
         "foundation_food",
     ),
-    ("eggs",): FoundationFood(
-        "Eggs, Grade A, Large, egg whole",
-        1,
-        748967,
-        "Dairy and Egg Products",
-        "foundation_food",
-    ),
     ("butter",): FoundationFood(
         "Butter, stick, unsalted",
         1,
@@ -46,6 +38,13 @@ FOUNDATION_FOOD_OVERRIDES: dict[tuple[str, ...], FoundationFood] = {
         "Cucumber, with peel, raw",
         1,
         2346406,
+        "Vegetables and Vegetable Products",
+        "foundation_food",
+    ),
+    ("garlic",): FoundationFood(
+        "Garlic, raw",
+        1,
+        1104647,
         "Vegetables and Vegetable Products",
         "foundation_food",
     ),
@@ -299,15 +298,14 @@ class uSIF:
         Parameters
         ----------
         tokens : list[str]
-            List of tokens.
+            List of tokens, prepared for use with embeddings.
 
         Returns
         -------
         list[FDCIngredientMatch]
             List of best matching FDC ingredient for each data type.
         """
-        prepared_tokens = prepare_embeddings_tokens(tuple(tokens))
-        input_token_vector = self._embed(prepared_tokens)
+        input_token_vector = self._embed(tokens)
 
         best_scores = []
         for data_type in PREFERRED_DATATYPES:
@@ -518,18 +516,13 @@ class FuzzyEmbeddingMatcher:
         Parameters
         ----------
         ingredient_name_tokens : list[str]
-            Token for ingredient name.
+            Tokens for ingredient name, prepared for use with embeddings.
         fdc_ingredients : list[FDCIngredient]
             List of candidate FDC ingredients.
         """
-        prepared_ingredient_name_tokens = prepare_embeddings_tokens(
-            tuple(ingredient_name_tokens)
-        )
         scored: list[FDCIngredientMatch] = []
         for fdc in fdc_ingredients:
-            score = self._fuzzy_document_distance(
-                prepared_ingredient_name_tokens, fdc.tokens
-            )
+            score = self._fuzzy_document_distance(ingredient_name_tokens, fdc.tokens)
             scored.append(FDCIngredientMatch(fdc=fdc, score=score))
 
         sorted_matches = sorted(scored, key=lambda x: x.score)
@@ -573,6 +566,10 @@ def match_foundation_foods(tokens: list[str]) -> FoundationFood | None:
     The second stage selects the best of these candidates using a fuzzy embedding
     document metric.
 
+    The need for two stages is that the ingredient embeddings do not seem to be as
+    accurate as off the shelf pre-trained general embeddings are for general tasks.
+    Improving the quality of the embeddings might remove the need for the second stage.
+
     Parameters
     ----------
     tokens : list[str]
@@ -583,15 +580,18 @@ def match_foundation_foods(tokens: list[str]) -> FoundationFood | None:
     FoundationFood | None
         Matching foundation food, or None if no match can be found.
     """
-    override_name = tuple(t.lower() for t in tokens if t not in string.punctuation)
-    if override_name in FOUNDATION_FOOD_OVERRIDES:
-        return FOUNDATION_FOOD_OVERRIDES[override_name]
+    prepared_tokens = prepare_embeddings_tokens(tuple(tokens))
+
+    if tuple(prepared_tokens) in FOUNDATION_FOOD_OVERRIDES:
+        return FOUNDATION_FOOD_OVERRIDES[tuple(prepared_tokens)]
 
     u = get_usif_matcher()
-    candidate_matches = u.find_candidate_matches(tokens)
+    candidate_matches = u.find_candidate_matches(prepared_tokens)
 
     fuzzy = get_fuzzy_matcher()
-    best_match = fuzzy.find_best_match(tokens, [m.fdc for m in candidate_matches])
+    best_match = fuzzy.find_best_match(
+        prepared_tokens, [m.fdc for m in candidate_matches]
+    )
 
     if best_match.score <= 0.35:
         return FoundationFood(
