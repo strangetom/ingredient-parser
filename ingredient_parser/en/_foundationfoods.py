@@ -34,13 +34,6 @@ FOUNDATION_FOOD_OVERRIDES: dict[tuple[str, ...], FoundationFood] = {
         "Dairy and Egg Products",
         "foundation_food",
     ),
-    ("cucumber",): FoundationFood(
-        "Cucumber, with peel, raw",
-        1,
-        2346406,
-        "Vegetables and Vegetable Products",
-        "foundation_food",
-    ),
     ("garlic",): FoundationFood(
         "Garlic, raw",
         1,
@@ -510,7 +503,7 @@ class FuzzyEmbeddingMatcher:
 
         # Find other matches with score within 10% of best
         alternatives = [
-            match for match in matches if (match.score - best_score) / best_score <= 0.1
+            match for match in matches if (match.score - best_score) / best_score <= 0.2
         ]
         for data_type in PREFERRED_DATATYPES:
             # Note that these will be sorted in order of best score first because the
