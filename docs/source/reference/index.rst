@@ -11,3 +11,4 @@ API Reference
    postprocessor
    common
    dataclasses
+   foundationfoods

@@ -989,11 +989,11 @@ class PreProcessor:
         # This is cached
         EMBEDDINGS_MODEL = load_embeddings_model()
 
-        prepared = prepare_embeddings_tokens((token.feat_text,), (token.pos_tag,))
+        prepared = prepare_embeddings_tokens((token.feat_text,))
         if not prepared:
             return np.array([])
 
-        text, _ = prepared[0]
+        text = prepared[0]
         return EMBEDDINGS_MODEL[text]
 
     def _token_features(self, token: Token) -> dict[str, str | bool | int | float]:
