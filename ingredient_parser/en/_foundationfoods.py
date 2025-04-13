@@ -80,7 +80,7 @@ class FDCIngredientMatch:
 
 @lru_cache
 def load_fdc_ingredients() -> dict[str, list[FDCIngredient]]:
-    """Load FDC ingredients from CSV.
+    """Cached function for loading FDC ingredients from CSV.
 
     Returns
     -------
@@ -112,13 +112,15 @@ class uSIF:
     """Modified implementation of Unsupervised Smooth Inverse Frequency weighting scheme
     for calculation of sentence embedding vectors.
 
-    Based on Kawin Ethayarajh. 2018. Unsupervised Random Walk Sentence Embeddings: A
-    Strong but Simple Baseline. In Proceedings of the Third Workshop on Representation
-    Learning for NLP, pages 91–100, Melbourne, Australia. Association for Computational
-    Linguistics.
+    This implementation is modified from the reference to not implement the piecewise
+    common component removal, primarily to avoid introducing a new dependency.
 
-    This implementation is modified to not implement the piecewise common component
-    removal.
+    References
+    ----------
+    Kawin Ethayarajh. 2018. Unsupervised Random Walk Sentence Embeddings: A Strong but
+    Simple Baseline. In Proceedings of the Third Workshop on Representation Learning for
+    NLP, pages 91–100, Melbourne, Australia. Association for Computational
+    Linguistics. https://aclanthology.org/W18-3012/
 
     Attributes
     ----------
@@ -135,7 +137,7 @@ class uSIF:
     min_prob : float
         Minimum token probability.
     token_prob : dict[str, float]
-        Token probability.
+        Dictionary of token probabilities.
     """
 
     def __init__(self, embeddings, fdc_ingredients: dict[str, list[FDCIngredient]]):
@@ -292,42 +294,11 @@ class uSIF:
             np.dot(vec1, vec2) / (np.linalg.norm(vec1) * np.linalg.norm(vec2))
         )
 
-    def find_best_match(self, tokens: list[str]) -> list[FDCIngredientMatch]:
-        """Find best match between input token and FDC ingredients.
-
-        Parameters
-        ----------
-        tokens : list[str]
-            List of tokens, prepared for use with embeddings.
-
-        Returns
-        -------
-        list[FDCIngredientMatch]
-            List of best matching FDC ingredient for each data type.
-        """
-        input_token_vector = self._embed(tokens)
-
-        best_scores = []
-        for data_type in PREFERRED_DATATYPES:
-            scores = [
-                (self._cosine_similarity(input_token_vector, vec), idx)
-                for idx, vec in enumerate(self.fdc_vectors[data_type])
-            ]
-            sorted_scores = sorted(scores, key=lambda x: x[0])
-            best_score, best_match_idx = sorted_scores[0]
-            best_scores.append(
-                FDCIngredientMatch(
-                    fdc=self.fdc_ingredients[data_type][best_match_idx],
-                    score=best_score,
-                )
-            )
-
-        return best_scores
-
     def find_candidate_matches(
-        self, tokens: list[str], cutoff: float = 0.25
+        self, tokens: list[str], cutoff: float = 0.3
     ) -> list[FDCIngredientMatch]:
-        """Find best n candidate matches between input token and FDC ingredients.
+        """Find best candidate matches between input token and FDC ingredients with a
+        cosine similarity of no more than cutoff.
 
         Parameters
         ----------
@@ -363,7 +334,9 @@ class FuzzyEmbeddingMatcher:
     """Implementation of fuzzy document distance metric used to determine the most
     similar FDC ingredient to a given ingredient name.
 
-    Based on Morales-Garzón, A., Gómez-Romero, J., Martin-Bautista, M.J. (2020). A Word
+    References
+    ----------
+    Morales-Garzón, A., Gómez-Romero, J., Martin-Bautista, M.J. (2020). A Word
     Embedding Model for Mapping Food Composition Databases Using Fuzzy Logic. In: Lesot,
     MJ., et al. Information Processing and Management of Uncertainty in Knowledge-Based
     Systems. IPMU 2020. Communications in Computer and Information Science, vol 1238.
@@ -507,6 +480,49 @@ class FuzzyEmbeddingMatcher:
 
         return 1 - res
 
+    def _select_best_match(
+        self, matches: list[FDCIngredientMatch]
+    ) -> FDCIngredientMatch:
+        """Select the best match from the list of sorted candidate matches, accounting
+        for data type preferences.
+
+        Select all matches with scores within 10% of the best score, then iterate
+        through the data types in order of preference and select the best match from
+        the most preferred data type where there is a match.
+
+        Parameters
+        ----------
+        matches : list[FDCIngredientMatch]
+            Sorted list of candidate FDC matches.
+
+        Returns
+        -------
+        FDCIngredientMatch
+            Selected FDC ingredient.
+        """
+        if len(matches) == 1:
+            return matches[0]
+
+        best_score = matches[0].score
+        if best_score == 0:
+            # Exact match
+            return matches[0]
+
+        # Find other matches with score within 10% of best
+        alternatives = [
+            match for match in matches if (match.score - best_score) / best_score <= 0.1
+        ]
+        for data_type in PREFERRED_DATATYPES:
+            # Note that these will be sorted in order of best score first because the
+            # alternatives list is sorted.
+            data_type_matches = [
+                m for m in alternatives if m.fdc.data_type == data_type
+            ]
+            if data_type_matches:
+                return data_type_matches[0]
+
+        return matches[0]
+
     def find_best_match(
         self, ingredient_name_tokens: list[str], fdc_ingredients: list[FDCIngredient]
     ) -> FDCIngredientMatch:
@@ -519,6 +535,11 @@ class FuzzyEmbeddingMatcher:
             Tokens for ingredient name, prepared for use with embeddings.
         fdc_ingredients : list[FDCIngredient]
             List of candidate FDC ingredients.
+
+        Returns
+        -------
+        FDCIngredientMatch
+            Best matching FDC ingredient.
         """
         scored: list[FDCIngredientMatch] = []
         for fdc in fdc_ingredients:
@@ -526,7 +547,8 @@ class FuzzyEmbeddingMatcher:
             scored.append(FDCIngredientMatch(fdc=fdc, score=score))
 
         sorted_matches = sorted(scored, key=lambda x: x.score)
-        return sorted_matches[0]
+        return self._select_best_match(sorted_matches)
+        # return sorted_matches[0]
 
 
 @lru_cache
@@ -587,13 +609,15 @@ def match_foundation_foods(tokens: list[str]) -> FoundationFood | None:
 
     u = get_usif_matcher()
     candidate_matches = u.find_candidate_matches(prepared_tokens)
+    if not candidate_matches:
+        return None
 
     fuzzy = get_fuzzy_matcher()
     best_match = fuzzy.find_best_match(
         prepared_tokens, [m.fdc for m in candidate_matches]
     )
 
-    if best_match.score <= 0.35:
+    if best_match.score <= 0.4:
         return FoundationFood(
             text=best_match.fdc.description,
             confidence=round(1 - best_match.score, 6),
