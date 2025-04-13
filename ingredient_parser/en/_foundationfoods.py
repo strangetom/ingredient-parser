@@ -511,7 +511,7 @@ class FuzzyEmbeddingMatcher:
             data_type_matches = [
                 m for m in alternatives if m.fdc.data_type == data_type
             ]
-            if data_type_matches:
+            if data_type_matches and data_type_matches[0].score <= 0.4:
                 return data_type_matches[0]
 
         return matches[0]
