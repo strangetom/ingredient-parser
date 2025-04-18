@@ -5,7 +5,7 @@ from importlib.resources import as_file, files
 
 import pycrfsuite
 
-from ._embeddings import GloveVectors
+from ._embeddings import GloVeModel
 
 
 @lru_cache
@@ -27,7 +27,7 @@ def load_parser_model() -> pycrfsuite.Tagger:  # type: ignore
 
 
 @lru_cache
-def load_embeddings_model() -> GloveVectors:  # type: ignore
+def load_embeddings_model() -> GloVeModel:  # type: ignore
     """Load embeddings model.
 
     This function is cached so that when the model has been loaded once, it does not
@@ -35,7 +35,7 @@ def load_embeddings_model() -> GloveVectors:  # type: ignore
 
     Returns
     -------
-    GloveVectors
+    GloVeModel
         Embeddings model.
     """
-    return GloveVectors("ingredient_embeddings.25d.glove.txt.gz")
+    return GloVeModel("ingredient_embeddings.25d.glove.txt.gz")

@@ -10,6 +10,7 @@ from importlib.resources import as_file, files
 import numpy as np
 
 from ..dataclasses import FoundationFood
+from ._embeddings import GloVeModel
 from ._loaders import load_embeddings_model
 from ._utils import prepare_embeddings_tokens, tokenize
 
@@ -118,8 +119,8 @@ class uSIF:
     ----------
     a : float
         'a' parameter.
-    embeddings : floret.floret._floret
-        Floret embeddings model.
+    embeddings : GloVeModel
+        GloVe embeddings model.
     embeddings_dimension : int
         Dimension of embeddings model.
     fdc_ingredients : dict[str, list[FDCIngredient]]
@@ -132,7 +133,7 @@ class uSIF:
         Dictionary of token probabilities.
     """
 
-    def __init__(self, embeddings, fdc_ingredients: list[FDCIngredient]):
+    def __init__(self, embeddings: GloVeModel, fdc_ingredients: list[FDCIngredient]):
         self.embeddings = embeddings
         self.embeddings_dimension: int = embeddings.dimension
 
@@ -332,11 +333,11 @@ class FuzzyEmbeddingMatcher:
 
     Attributes
     ----------
-    embeddings : floret.floret._floret
+    embeddings : GloVeModel
         Floret embeddings model.
     """
 
-    def __init__(self, embeddings):
+    def __init__(self, embeddings: GloVeModel):
         self.embeddings = embeddings
 
     @lru_cache

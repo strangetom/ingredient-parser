@@ -7,18 +7,16 @@ from typing import Any
 import numpy as np
 
 
-class GloveVectors:
+class GloVeModel:
     def __init__(self, vec_file: str):
         self.vec_file = vec_file
         self._load_vectors_from_file(vec_file)
 
     def __repr__(self) -> str:
-        return f"GloveVectors(vec_file={self.vec_file})"
+        return f"GloVeModel(vec_file={self.vec_file})"
 
     def __str__(self) -> str:
-        return (
-            f"GloveVectors(vocab_size={self.vocab_size}, dimensions={self.dimension})"
-        )
+        return f"GloVeModel(vocab_size={self.vocab_size}, dimensions={self.dimension})"
 
     def __len__(self) -> int:
         return self.vocab_size
