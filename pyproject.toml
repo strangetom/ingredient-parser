@@ -30,7 +30,7 @@ dependencies = [
     "nltk>=3.9.1",
     "python-crfsuite",
     "pint>=0.24.4",
-    "floret",
+    "numpy",
 ]
 
 [project.urls]
