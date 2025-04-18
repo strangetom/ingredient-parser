@@ -48,7 +48,6 @@ def home():
         foundation_foods=foundation_foods,
     )
     parsed = parser_info.PostProcessor.parsed
-    parsed.foundation_foods = parser_info.foundation_foods
     marginals = get_all_marginals(parser_info)
 
     return render_template(

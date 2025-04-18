@@ -186,6 +186,9 @@ td:first-of-type {
 .item span {
   margin: .25rem;
 }
+  .item a {
+    color: var(--fg-1);
+  }
 
 table .flag {
   display: inline-block;
