@@ -134,7 +134,7 @@ class uSIF:
 
     def __init__(self, embeddings, fdc_ingredients: list[FDCIngredient]):
         self.embeddings = embeddings
-        self.embeddings_dimension: int = embeddings.get_dimension()
+        self.embeddings_dimension: int = embeddings.dimension
 
         self.fdc_ingredients: list[FDCIngredient] = fdc_ingredients
         self.token_prob: dict[str, float] = self._estimate_token_probability(
