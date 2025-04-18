@@ -72,26 +72,25 @@ class FDCIngredientMatch:
 
 
 @lru_cache
-def load_fdc_ingredients() -> dict[str, list[FDCIngredient]]:
+def load_fdc_ingredients() -> list[FDCIngredient]:
     """Cached function for loading FDC ingredients from CSV.
 
     Returns
     -------
-    dict[str, list[FDCIngredient]]
-        List of FDC ingredients, grouped by data type.
+    list[FDCIngredient]
+        List of FDC ingredients.
     """
-    foundation_foods = defaultdict(list)
+    foundation_foods = []
     with as_file(files(__package__) / "fdc_ingredients.csv.gz") as p:
         with gzip.open(p, "rt") as f:
             reader = csv.DictReader(f)
             for row in reader:
-                data_type = row["data_type"]
                 tokens = tuple(tokenize(row["description"]))
                 prepared_tokens = prepare_embeddings_tokens(tokens)
-                foundation_foods[data_type].append(
+                foundation_foods.append(
                     FDCIngredient(
                         fdc_id=int(row["fdc_id"]),
-                        data_type=data_type,
+                        data_type=row["data_type"],
                         description=row["description"],
                         category=row["category"],
                         tokens=prepared_tokens,
@@ -133,11 +132,11 @@ class uSIF:
         Dictionary of token probabilities.
     """
 
-    def __init__(self, embeddings, fdc_ingredients: dict[str, list[FDCIngredient]]):
+    def __init__(self, embeddings, fdc_ingredients: list[FDCIngredient]):
         self.embeddings = embeddings
         self.embeddings_dimension: int = embeddings.get_dimension()
 
-        self.fdc_ingredients: dict[str, list[FDCIngredient]] = fdc_ingredients
+        self.fdc_ingredients: list[FDCIngredient] = fdc_ingredients
         self.token_prob: dict[str, float] = self._estimate_token_probability(
             self.fdc_ingredients
         )
@@ -147,14 +146,14 @@ class uSIF:
         self.fdc_vectors = self._embed_fdc_ingredients()
 
     def _estimate_token_probability(
-        self, fdc_ingredients: dict[str, list[FDCIngredient]]
+        self, fdc_ingredients: list[FDCIngredient]
     ) -> dict[str, float]:
         """Estimate word probability from the frequency of occurrence of token in FDC
         ingredient descriptions.
 
         Parameters
         ----------
-        fdc_ingredients : dict[str, list[FDCIngredient]]
+        fdc_ingredients : list[FDCIngredient]
             List of FDC ingredient objects.
 
         Returns
@@ -163,10 +162,9 @@ class uSIF:
             Dict of token: probability.
         """
         token_counts = defaultdict(int)
-        for data_type in PREFERRED_DATATYPES:
-            for ingredient in fdc_ingredients[data_type]:
-                for token in ingredient.tokens:
-                    token_counts[token] += 1
+        for ingredient in fdc_ingredients:
+            for token in ingredient.tokens:
+                token_counts[token] += 1
 
         total = sum(token_counts.values())
         return {token: count / total for token, count in token_counts.items()}
@@ -181,10 +179,9 @@ class uSIF:
         """
         token_count = 0
         sentence_count = 0
-        for data_type in PREFERRED_DATATYPES:
-            for fdc in self.fdc_ingredients[data_type]:
-                token_count += len(fdc.tokens)
-                sentence_count += 1
+        for fdc in self.fdc_ingredients:
+            token_count += len(fdc.tokens)
+            sentence_count += 1
 
         return int(token_count / sentence_count)
 
@@ -222,7 +219,7 @@ class uSIF:
         """
         return self.a / (0.5 * self.a + self.token_prob.get(token, self.min_prob))
 
-    def _embed_fdc_ingredients(self) -> dict[str, list[np.ndarray]]:
+    def _embed_fdc_ingredients(self) -> list[np.ndarray]:
         """Calculate embedding vectors for all FDC ingredients.
 
         Returnstoken_prob
@@ -230,10 +227,9 @@ class uSIF:
         dict[str, list[np.ndarray]]
             Dict of embedding vectors for FDC ingredients, grouped by data type.
         """
-        vectors = defaultdict(list)
-        for data_type in PREFERRED_DATATYPES:
-            for fdc in self.fdc_ingredients[data_type]:
-                vectors[data_type].append(self._embed(fdc.tokens))
+        vectors = []
+        for fdc in self.fdc_ingredients:
+            vectors.append(self._embed(fdc.tokens))
 
         return vectors
 
@@ -309,16 +305,15 @@ class uSIF:
         input_token_vector = self._embed(prepared_tokens)
 
         candidates = []
-        for data_type in PREFERRED_DATATYPES:
-            for idx, vec in enumerate(self.fdc_vectors[data_type]):
-                score = self._cosine_similarity(input_token_vector, vec)
-                if score <= cutoff:
-                    candidates.append(
-                        FDCIngredientMatch(
-                            fdc=self.fdc_ingredients[data_type][idx],
-                            score=score,
-                        )
+        for idx, vec in enumerate(self.fdc_vectors):
+            score = self._cosine_similarity(input_token_vector, vec)
+            if score <= cutoff:
+                candidates.append(
+                    FDCIngredientMatch(
+                        fdc=self.fdc_ingredients[idx],
+                        score=score,
                     )
+                )
 
         return candidates
 
