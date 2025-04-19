@@ -9,7 +9,6 @@ from train import (
     check_label_consistency,
     feature_search,
     grid_search,
-    train_embeddings,
     train_multiple,
     train_single,
 )
@@ -370,8 +369,6 @@ if __name__ == "__main__":
 
     if args.command == "train":
         train_single(args)
-    elif args.command == "embeddings":
-        train_embeddings(args)
     elif args.command == "multiple":
         train_multiple(args)
     elif args.command == "gridsearch":
