@@ -48,7 +48,7 @@ The model has the following accuracy on a test data set of 20% of the total data
 
 ```
 Sentence-level results:
-	Accuracy: 94.59%
+	Accuracy: 94.56%
 
 Word-level results:
 	Accuracy 97.77%
