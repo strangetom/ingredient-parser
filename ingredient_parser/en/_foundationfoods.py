@@ -591,6 +591,8 @@ def match_foundation_foods(tokens: list[str]) -> FoundationFood | None:
         Matching foundation food, or None if no match can be found.
     """
     prepared_tokens = prepare_embeddings_tokens(tuple(tokens))
+    if not prepared_tokens:
+        return None
 
     if tuple(prepared_tokens) in FOUNDATION_FOOD_OVERRIDES:
         return FOUNDATION_FOOD_OVERRIDES[tuple(prepared_tokens)]
