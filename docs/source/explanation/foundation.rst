@@ -44,15 +44,17 @@ the :func:`parse_ingredient <ingredient_parser.parsers.parse_ingredient>` functi
         comment=None,
         purpose=None,
         foundation_foods=[FoundationFood(text='Basil, fresh',
-                                         confidence=0.837206,
+                                         confidence=0.862222,
                                          fdc_id=172232,
                                          category='Spices and Herbs',
-                                         data_type='sr_legacy_food'),
-                          FoundationFood(text='Spices, basil, dried',
-                                         confidence=0.836425,
-                                         fdc_id=171317,
-                                         category='Spices and Herbs',
-                                         data_type='sr_legacy_food')],
+                                         data_type='sr_legacy_food',
+                                         url='https://fdc.nal.usda.gov/food-details/172232/nutrients'),
+                           FoundationFood(text='Spices, basil, dried',
+                                          confidence=0.856791,
+                                          fdc_id=171317,
+                                          category='Spices and Herbs',
+                                          data_type='sr_legacy_food',
+                                          url='https://fdc.nal.usda.gov/food-details/171317/nutrients')],
         sentence='24 fresh basil leaves or dried basil'
     )
 
@@ -69,7 +71,8 @@ In these cases, we still want to select the correct entry.
 
 The approach taken attempts to match ingredient names to :abbr:`FDC (Food Data Central)` entries based on semantic similarity, that is, selecting the entry that is closest in meaning to the ingredient name even where the words used are not the identical.
 Two semantic matching techniques are used, based on [Ethayarajh]_ and [Morales-Garzón]_.
-Both techniques make use of the word embeddings model that is also used to provide semantic features for the parser model.
+Both techniques make use of a word embeddings model.
+A `GloVe <https://nlp.stanford.edu/projects/glove/>`_ embeddings model trained on text from a large corpus of recipes and is used to provide the information for the semantic similarity techniques.
 
 Unsupervised Smooth Inverse Frequency
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -82,13 +85,8 @@ This approach is applied to the descriptions for each of the :abbr:`FDC (Food Da
 The best match is selected using the cosine similarity metric.
 
 In practice, this technique is generally pretty good at finding a reasonable matching :abbr:`FDC (Food Data Central)` entry.
-However, in some cases the best matching entry is not an appropriate match.
-There may be two causes for this:
-
-1. The quality of the embeddings is good enough for this technique to be more robust.
-
-2. Not removing the common component between vectors is causing worse performance than if it was removed.
-
+However, in some cases the match with the best score is not an appropriate match.
+The reason for this is likely due to limitations in the quality of the embeddings used.
 
 Fuzzy Document Distance
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -104,7 +102,7 @@ Combined
 
 The two techniques are combined to perform the matching of an ingredient name to an :abbr:`FDC (Food Data Central)` entry.
 
-First, :abbr:`uSIF (Unsupervised Smooth Inverse Frequency)` is used to down select a list of candidate matches from the full set of :abbr:`FDC (Food Data Central)` entries
+First, :abbr:`uSIF (Unsupervised Smooth Inverse Frequency)` is used to down select a list of *n* candidate matches from the full set of :abbr:`FDC (Food Data Central)` entries
 
 Second, the fuzzy document distance is calculated for the down selected candidate matches.
 
@@ -120,7 +118,7 @@ The current implementation has a some limitations.
    Work is ongoing to improve this, and suggestions and contributions are welcome.
 
 #. Enabling this functionality is much slower than when not enabled.
-   The foundation foods functionality is roughly 80x slower.
+   When enabled, parsing a sentence is roughly 75x slower than if disabled .
 
 References
 ^^^^^^^^^^

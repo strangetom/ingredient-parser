@@ -295,12 +295,12 @@ class uSIF:
         tokens : list[str]
             List of tokens.
         n : int
-            Number of matches to return, sorted by score.
+            Number of matches to return, sorted by best score.
 
         Returns
         -------
         list[FDCIngredientMatch]
-            List of candidate matching FDC ingredients.
+            List of best n candidate matching FDC ingredients.
         """
         prepared_tokens = prepare_embeddings_tokens(tuple(tokens))
         input_token_vector = self._embed(prepared_tokens)
