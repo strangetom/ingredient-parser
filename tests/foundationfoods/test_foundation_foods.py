@@ -33,8 +33,8 @@ MULTIPLE_EXAMPLES = [
 ]
 
 NO_MATCH_EXAMPLES = [
-    "1/2 teaspoon citric acid powder",
-    "1 cup waxgourd",
+    "2 courgettes, sliced",  # no good match
+    "1 cup waxgourd",  # out of vocab
 ]
 
 
