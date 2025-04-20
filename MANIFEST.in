@@ -1,7 +1,7 @@
 include ingredient_parser/density_context.txt
 include ingredient_parser/en/model.en.crfsuite
 include ingredient_parser/en/ModelCard.en.md
-include ingredient_parser/en/ingredient_embeddings.25d.floret.bin
+include ingredient_parser/en/ingredient_embeddings.25d.glove.txt.gz
 include ingredient_parser/en/fdc_ingredients.csv.gz
 global-exclude test*
 prune */__pycache__
