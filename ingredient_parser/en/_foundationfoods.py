@@ -48,8 +48,8 @@ FOUNDATION_FOOD_OVERRIDES: dict[tuple[str, ...], FoundationFood] = {
 # Increasing value indicates decreasing preference.
 PREFERRED_DATATYPES = {
     "foundation_food": 0,  #  Most preferred
-    "sr_legacy_food": 1,
-    "survey_fndds_food": 2,
+    "survey_fndds_food": 1,
+    "sr_legacy_food": 2,
 }
 
 
@@ -537,7 +537,6 @@ class FuzzyEmbeddingMatcher:
 
         sorted_matches = sorted(scored, key=lambda x: x.score)
         return self._select_best_match(sorted_matches)
-        # return sorted_matches[0]
 
 
 @lru_cache
