@@ -285,7 +285,7 @@ class uSIF:
         )
 
     def find_candidate_matches(
-        self, tokens: list[str], cutoff: float = 0.3
+        self, tokens: list[str], n: int
     ) -> list[FDCIngredientMatch]:
         """Find best candidate matches between input token and FDC ingredients with a
         cosine similarity of no more than cutoff.
@@ -294,13 +294,13 @@ class uSIF:
         ----------
         tokens : list[str]
             List of tokens.
-        cutoff : float
-            Maximum allowable score of returned matches.
+        n : int
+            Number of matches to return, sorted by score.
 
         Returns
         -------
         list[FDCIngredientMatch]
-            List of candidate matching FDC ingredient.
+            List of candidate matching FDC ingredients.
         """
         prepared_tokens = prepare_embeddings_tokens(tuple(tokens))
         input_token_vector = self._embed(prepared_tokens)
@@ -308,15 +308,15 @@ class uSIF:
         candidates = []
         for idx, vec in enumerate(self.fdc_vectors):
             score = self._cosine_similarity(input_token_vector, vec)
-            if score <= cutoff:
-                candidates.append(
-                    FDCIngredientMatch(
-                        fdc=self.fdc_ingredients[idx],
-                        score=score,
-                    )
+            candidates.append(
+                FDCIngredientMatch(
+                    fdc=self.fdc_ingredients[idx],
+                    score=score,
                 )
+            )
 
-        return candidates
+        sorted_candidates = sorted(candidates, key=lambda x: x.score)
+        return sorted_candidates[:n]
 
 
 class FuzzyEmbeddingMatcher:
@@ -597,7 +597,7 @@ def match_foundation_foods(tokens: list[str]) -> FoundationFood | None:
         return FOUNDATION_FOOD_OVERRIDES[tuple(prepared_tokens)]
 
     u = get_usif_matcher()
-    candidate_matches = u.find_candidate_matches(prepared_tokens)
+    candidate_matches = u.find_candidate_matches(prepared_tokens, n=50)
     if not candidate_matches:
         return None
 
