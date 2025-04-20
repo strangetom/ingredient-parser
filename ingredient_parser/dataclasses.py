@@ -280,7 +280,7 @@ class IngredientText:
         Parsed text from ingredient.
         This is comprised of all tokens with the same label.
     confidence : float
-        Confidence of parsed ingredient amount, between 0 and 1.
+        Confidence of parsed ingredient text, between 0 and 1.
         This is the average confidence of all tokens that contribute to this object.
     starting_index : int
         Index of token in sentence that starts this text
@@ -293,23 +293,23 @@ class IngredientText:
 
 @dataclass
 class FoundationFood:
-    """Dataclass for holding a foundation food string.
-
-    This is separate to the IngredientText dataclass so that it can be expanded on
-    in the future.
+    """Dataclass for the attributes of an entry in the Food Data Central database that
+    matches an ingredient name from an ingredient sentence.
 
     Attributes
     ----------
     text : str
-        FDC description of foundation food.
+        Description FDC database entry.
     confidence : float
-        Confidence of the identification of the foundation food, between 0 and 1.
+        Confidence of the match, between 0 and 1.
     fdc_id : int
-        FDC ID of foundation food.
+        ID of the FDC database entry.
     category: str
-        Category of foundation food
+        Category of FDC database entry.
     data_type : str
-        Food Data Central data set the matching item belongs to.
+        Food Data Central data set the entry belongs to.
+    url : str
+        URL for FDC database entry.
     """
 
     text: str
@@ -317,6 +317,10 @@ class FoundationFood:
     fdc_id: int
     category: str
     data_type: str
+    url: str = field(init=False)
+
+    def __post_init__(self):
+        self.url = f"https://fdc.nal.usda.gov/food-details/{self.fdc_id}/nutrients"
 
     def __eq__(self, other):
         return isinstance(other, FoundationFood) and self.fdc_id == other.fdc_id
