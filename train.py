@@ -9,7 +9,6 @@ from train import (
     check_label_consistency,
     feature_search,
     grid_search,
-    train_embeddings,
     train_multiple,
     train_single,
 )
@@ -91,35 +90,6 @@ if __name__ == "__main__":
         choices=["parser", "foundationfoods"],
         required=True,
         help="Specify which model to train.",
-    )
-
-    embeddings_parser_help = "Train embeddings model."
-    embeddings_parser = subparsers.add_parser("embeddings", help=embeddings_parser_help)
-    embeddings_parser.add_argument(
-        "--database",
-        help="Path to database of training data",
-        type=str,
-        dest="database",
-        required=True,
-    )
-    embeddings_parser.add_argument(
-        "--database-table",
-        help="Name of table in database containing training data",
-        type=str,
-        dest="table",
-        default="en",
-    )
-    embeddings_parser.add_argument(
-        "--datasets",
-        help="Datasets to use in training and evaluating the model",
-        dest="datasets",
-        nargs="*",
-        default=["bbc", "cookstr", "nyt", "allrecipes", "tc"],
-    )
-    embeddings_parser.add_argument(
-        "--save-model",
-        default=None,
-        help="Path to save model to",
     )
 
     multiple_parser_help = "Average CRF performance across multiple training cycles."
@@ -399,8 +369,6 @@ if __name__ == "__main__":
 
     if args.command == "train":
         train_single(args)
-    elif args.command == "embeddings":
-        train_embeddings(args)
     elif args.command == "multiple":
         train_multiple(args)
     elif args.command == "gridsearch":

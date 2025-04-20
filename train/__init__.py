@@ -1,7 +1,6 @@
 from .clean__check_label_consistency import check_label_consistency
 from .featuresearch import feature_search
 from .gridsearch import grid_search
-from .train_embeddings import train_embeddings
 from .train_model import train_multiple, train_single
 
 __all__ = [

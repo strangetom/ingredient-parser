@@ -9,6 +9,8 @@ from itertools import chain
 import nltk.stem.porter as nsp
 import pint
 
+from ingredient_parser.en._loaders import load_embeddings_model
+
 from .._common import UREG, consume, download_nltk_resources, is_float, is_range
 from ..dataclasses import IngredientAmount
 from ._constants import (
@@ -553,10 +555,13 @@ def prepare_embeddings_tokens(tokens: tuple[str, ...]) -> list[str]:
     list[str]
         Prepared tokens.
     """
+    embeddings = load_embeddings_model()
+
     return [
         stem(token.lower())
         for token in tokens
-        if not token.isnumeric()
+        if stem(token.lower()) in embeddings
+        and not token.isnumeric()
         and not token.isdigit()
         and not token.isdecimal()
         and not token.isspace()

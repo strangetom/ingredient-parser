@@ -10,6 +10,7 @@ from importlib.resources import as_file, files
 import numpy as np
 
 from ..dataclasses import FoundationFood
+from ._embeddings import GloVeModel
 from ._loaders import load_embeddings_model
 from ._utils import prepare_embeddings_tokens, tokenize
 
@@ -47,8 +48,8 @@ FOUNDATION_FOOD_OVERRIDES: dict[tuple[str, ...], FoundationFood] = {
 # Increasing value indicates decreasing preference.
 PREFERRED_DATATYPES = {
     "foundation_food": 0,  #  Most preferred
-    "sr_legacy_food": 1,
-    "survey_fndds_food": 2,
+    "survey_fndds_food": 1,
+    "sr_legacy_food": 2,
 }
 
 
@@ -118,8 +119,8 @@ class uSIF:
     ----------
     a : float
         'a' parameter.
-    embeddings : floret.floret._floret
-        Floret embeddings model.
+    embeddings : GloVeModel
+        GloVe embeddings model.
     embeddings_dimension : int
         Dimension of embeddings model.
     fdc_ingredients : dict[str, list[FDCIngredient]]
@@ -132,9 +133,9 @@ class uSIF:
         Dictionary of token probabilities.
     """
 
-    def __init__(self, embeddings, fdc_ingredients: list[FDCIngredient]):
+    def __init__(self, embeddings: GloVeModel, fdc_ingredients: list[FDCIngredient]):
         self.embeddings = embeddings
-        self.embeddings_dimension: int = embeddings.get_dimension()
+        self.embeddings_dimension: int = embeddings.dimension
 
         self.fdc_ingredients: list[FDCIngredient] = fdc_ingredients
         self.token_prob: dict[str, float] = self._estimate_token_probability(
@@ -284,7 +285,7 @@ class uSIF:
         )
 
     def find_candidate_matches(
-        self, tokens: list[str], cutoff: float = 0.3
+        self, tokens: list[str], n: int
     ) -> list[FDCIngredientMatch]:
         """Find best candidate matches between input token and FDC ingredients with a
         cosine similarity of no more than cutoff.
@@ -293,13 +294,13 @@ class uSIF:
         ----------
         tokens : list[str]
             List of tokens.
-        cutoff : float
-            Maximum allowable score of returned matches.
+        n : int
+            Number of matches to return, sorted by score.
 
         Returns
         -------
         list[FDCIngredientMatch]
-            List of candidate matching FDC ingredient.
+            List of candidate matching FDC ingredients.
         """
         prepared_tokens = prepare_embeddings_tokens(tuple(tokens))
         input_token_vector = self._embed(prepared_tokens)
@@ -307,15 +308,15 @@ class uSIF:
         candidates = []
         for idx, vec in enumerate(self.fdc_vectors):
             score = self._cosine_similarity(input_token_vector, vec)
-            if score <= cutoff:
-                candidates.append(
-                    FDCIngredientMatch(
-                        fdc=self.fdc_ingredients[idx],
-                        score=score,
-                    )
+            candidates.append(
+                FDCIngredientMatch(
+                    fdc=self.fdc_ingredients[idx],
+                    score=score,
                 )
+            )
 
-        return candidates
+        sorted_candidates = sorted(candidates, key=lambda x: x.score)
+        return sorted_candidates[:n]
 
 
 class FuzzyEmbeddingMatcher:
@@ -332,11 +333,11 @@ class FuzzyEmbeddingMatcher:
 
     Attributes
     ----------
-    embeddings : floret.floret._floret
+    embeddings : GloVeModel
         Floret embeddings model.
     """
 
-    def __init__(self, embeddings):
+    def __init__(self, embeddings: GloVeModel):
         self.embeddings = embeddings
 
     @lru_cache
@@ -536,7 +537,6 @@ class FuzzyEmbeddingMatcher:
 
         sorted_matches = sorted(scored, key=lambda x: x.score)
         return self._select_best_match(sorted_matches)
-        # return sorted_matches[0]
 
 
 @lru_cache
@@ -591,12 +591,14 @@ def match_foundation_foods(tokens: list[str]) -> FoundationFood | None:
         Matching foundation food, or None if no match can be found.
     """
     prepared_tokens = prepare_embeddings_tokens(tuple(tokens))
+    if not prepared_tokens:
+        return None
 
     if tuple(prepared_tokens) in FOUNDATION_FOOD_OVERRIDES:
         return FOUNDATION_FOOD_OVERRIDES[tuple(prepared_tokens)]
 
     u = get_usif_matcher()
-    candidate_matches = u.find_candidate_matches(prepared_tokens)
+    candidate_matches = u.find_candidate_matches(prepared_tokens, n=50)
     if not candidate_matches:
         return None
 

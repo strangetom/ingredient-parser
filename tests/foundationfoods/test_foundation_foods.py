@@ -21,7 +21,7 @@ SIMPLE_EXAMPLES = [
     ("2 large red onions, sliced", 790577),
     ("3 skinless, boneless chicken breasts, chopped into 2 cm cubes", 2646170),
     ("200 g canned chopped tomatoes", 2685581),
-    ("4 tbsp sour cream", 173443),
+    ("4 tbsp sour cream", 2705614),
     ("small handful fresh parsley, leaves picked and chopped", 170416),
 ]
 
@@ -33,8 +33,8 @@ MULTIPLE_EXAMPLES = [
 ]
 
 NO_MATCH_EXAMPLES = [
-    "1/2 teaspoon citric acid powder",
-    "1 cup waxgourd",
+    "2 courgettes, sliced",  # no good match
+    "1 cup waxgourd",  # out of vocab
 ]
 
 
