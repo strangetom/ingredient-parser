@@ -21,9 +21,6 @@ The training data is stored in an sqlite3 database. The ``en`` table contains th
 +------------------+------------------------------------------------------+
 | labels           | List of token labels.                                |
 +------------------+------------------------------------------------------+
-| foundation_foods | List of indices of tokens that are foundation foods. |
-+------------------+------------------------------------------------------+
-
 
 This method of storing the training data means that we can load the data straight from the database in the format required for training the model.
 The utility function :func:`load_datasets` in ``train/training_utils.py`` loads the data from the specified datasets, with an option (default true) to discard any sentence that contain OTHER labels.

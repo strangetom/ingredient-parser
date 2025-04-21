@@ -1,5 +1,27 @@
 # Changelog
 
+## 2.10
+
+> [!WARNING]
+>
+> This version replaces the floret dependency with numpy.
+> 
+> Numpy was already a dependency of floret, so if you are upgrading from v2.0.0 there should be little impact.
+
+* This release overhauls the foundation foods functionality so that ingredient names are matched to entries in the [FoodData Central](https://fdc.nal.usda.gov/) (FDC) database.
+
+  * This update does not change the API. It adds additional fields to `FoundationFood` objects for FDC ID, category and data type. The `text` field now returns the description for the matching FDC entry.
+
+  * Beware that enabling this functionality causes the `parse_ingredient` function to be much slower than when disabled (default).
+
+    |                      | foundation_foods=False (default) | foundation_foods=True |
+    | -------------------- | -------------------------------- | --------------------- |
+    | Sentences per second | ~1500                            | ~20                   |
+
+  * This functionality works entirely offline.
+  
+  * See the [foundation foods](https://ingredient-parser.readthedocs.io/en/latest/explanation/foundation.html) page of the docs for specifics.
+
 ## 2.0.0
 
 > [!Caution]

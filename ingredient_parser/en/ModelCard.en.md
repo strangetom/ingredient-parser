@@ -8,7 +8,7 @@
 
 ### Model Date and Version
 
-Date: March 2025
+Date: April 2025
 
 Version: The model version is the same has the `ingredient_parser_nlp` package version.
 
