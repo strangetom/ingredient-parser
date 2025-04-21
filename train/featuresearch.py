@@ -13,7 +13,6 @@ from sklearn.model_selection import train_test_split
 from tabulate import tabulate
 from tqdm import tqdm
 
-from .train_model import ModelType, get_model_type
 from .training_utils import (
     DataVectors,
     evaluate,
@@ -71,7 +70,6 @@ def train_model_feature_search(
     save_model: str,
     seed: int,
     keep_model: bool,
-    model_type: ModelType,
 ) -> dict:
     """Train model using selected features returning model performance statistics,
     model parameters and elapsed training time.
@@ -91,8 +89,6 @@ def train_model_feature_search(
         testing sets.
     keep_model : bool
         If True, keep model after evaluation, otherwise delete it.
-    model_type : ModelType
-        Type of model gridsearch is being performed on.
 
     Returns
     -------
@@ -157,7 +153,7 @@ def train_model_feature_search(
     tagger = pycrfsuite.Tagger()  # type: ignore
     tagger.open(str(save_model_path))
     labels_pred = [tagger.tag(X) for X in features_test]
-    stats = evaluate(labels_pred, truth_test, seed, model_type)
+    stats = evaluate(labels_pred, truth_test, seed)
 
     if not keep_model:
         save_model_path.unlink(missing_ok=True)
@@ -179,9 +175,7 @@ def feature_search(args: argparse.Namespace):
     args : argparse.Namespace
         Feature search configuration
     """
-    vectors = load_datasets(
-        args.database, args.table, args.datasets, get_model_type(args.model)
-    )
+    vectors = load_datasets(args.database, args.table, args.datasets)
 
     argument_sets = []
     for feature_set in DISCARDED_FEATURES.keys():
@@ -192,7 +186,6 @@ def feature_search(args: argparse.Namespace):
             args.save_model,
             args.seed,
             args.keep_models,
-            get_model_type(args.model),
         ]
         argument_sets.append(arguments)
 
