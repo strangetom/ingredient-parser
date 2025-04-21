@@ -146,8 +146,7 @@ def save():
                 SET 
                 sentence = :sentence, 
                 tokens = :tokens, 
-                labels = :labels, 
-                foundation_foods = :foundation_foods
+                labels = :labels
                 WHERE id = :id;""",
                 update["entries"],
             )
@@ -291,27 +290,19 @@ def insert_sentences(params: dict[str, str]):
             if not sentence:
                 continue
 
-            ins = inspect_parser(sentence, foundation_foods=True)
+            ins = inspect_parser(sentence)
             tokens = ins.PostProcessor.tokens
             if guess_labels:
                 labels = ins.PostProcessor.labels
-
-                ff_tokens = " ".join(ff.text for ff in ins.foundation_foods)
-                ff = [
-                    idx
-                    for idx, (token, label) in enumerate(zip(tokens, labels))
-                    if token in ff_tokens and "NAME" in label
-                ]
             else:
                 labels = [""] * len(tokens)
-                ff = []
 
             c.execute(
                 """
                 INSERT INTO en 
-                (source, sentence, tokens, labels, foundation_foods)
-                VALUES (?, ?, ?, ?, ?)""",
-                (source, sentence, tokens, labels, ff),
+                (source, sentence, tokens, labels)
+                VALUES (?, ?, ?, ?)""",
+                (source, sentence, tokens, labels),
             )
             indices.append(str(c.lastrowid))
 
