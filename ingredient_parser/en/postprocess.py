@@ -8,9 +8,12 @@ from itertools import chain, pairwise
 from statistics import mean
 from typing import Any
 
+from ingredient_parser.en._foundationfoods import match_foundation_foods
+
 from .._common import consume, group_consecutive_idx
 from ..dataclasses import (
     CompositeIngredientAmount,
+    FoundationFood,
     IngredientAmount,
     IngredientText,
     ParsedIngredient,
@@ -85,6 +88,8 @@ class PostProcessor:
         Original ingredient sentence.
     tokens : list[str]
         List of tokens for original ingredient sentence.
+    pos_tags : list[str]
+        List of part of speech tags for tokens.
     labels : list[str]
         List of labels for tokens.
     scores : list[float]
@@ -94,18 +99,21 @@ class PostProcessor:
         IngredientText object for each ingredient name, otherwise return a single
         IngredientText object.
         Default is True.
-    discard_isolated_stop_words : bool
+    discard_isolated_stop_words : bool, optional
         If True, isolated stop words are discarded from the name, preparation or
         comment fields. Default value is True.
-    string_units : bool
+    string_units : bool, optional
         If True, return all IngredientAmount units as strings.
         If False, convert IngredientAmount units to pint.Unit objects where possible.
         Default is False.
-    imperial_units : bool
+    imperial_units : bool, optional
         If True, use imperial units instead of US customary units for pint.Unit objects
         for the the following units: fluid ounce, cup, pint, quart, gallon.
         Default is False, which results in US customary units being used.
         This has no effect if string_units=True.
+    foundation_foods : bool, optional
+        If True, populate the foundation_foods field of ParsedIngredient.
+        Default is False, in which case the foundation_foods field is an empty list.
     consumed : list[int]
         List of indices of tokens consumed as part of setting the APPROXIMATE and
         SINGULAR flags. These tokens should not end up in the parsed output.
@@ -115,21 +123,25 @@ class PostProcessor:
         self,
         sentence: str,
         tokens: list[str],
+        pos_tags: list[str],
         labels: list[str],
         scores: list[float],
         separate_names: bool = True,
         discard_isolated_stop_words: bool = True,
         string_units: bool = False,
         imperial_units: bool = False,
+        foundation_foods: bool = False,
     ):
         self.sentence = sentence
         self.tokens = tokens
+        self.pos_tags = pos_tags
         self.labels = labels
         self.scores = scores
         self.separate_names = separate_names
         self.discard_isolated_stop_words = discard_isolated_stop_words
         self.string_units = string_units
         self.imperial_units = imperial_units
+        self.foundation_foods = foundation_foods
         self.consumed = []
 
     def __repr__(self) -> str:
@@ -167,8 +179,9 @@ class PostProcessor:
         """
         amounts = self._postprocess_amounts()
 
+        foundationfoods = []
         if self.separate_names:
-            name = self._postprocess_names()
+            name, foundationfoods = self._postprocess_names()
         else:
             # Replace all labels containing NAME with "NAME"
             name_replaced_labels = []
@@ -197,7 +210,7 @@ class PostProcessor:
             preparation=preparation,
             comment=comment,
             purpose=purpose,
-            foundation_foods=[],
+            foundation_foods=foundationfoods,
             sentence=self.sentence,
         )
 
@@ -228,7 +241,7 @@ class PostProcessor:
 
         return self._postprocess_indices(label_idx, selected_label)
 
-    def _postprocess_names(self) -> list[IngredientText]:
+    def _postprocess_names(self) -> tuple[list[IngredientText], list[FoundationFood]]:
         """Process tokens, labels and scores for the ingredient name(s).
 
         This function handles multiple ingredient names e.g. "butter or olive oil",
@@ -238,7 +251,7 @@ class PostProcessor:
 
         Returns
         -------
-        list[IngredientText]
+        list[IngredientText], list[FoundationFoods]
         """
         name_idx = [
             i
@@ -248,13 +261,14 @@ class PostProcessor:
 
         # If idx is empty or all the selected idx are PUNC, return None
         if not name_idx or all(self.labels[i] == "PUNC" for i in name_idx):
-            return []
+            return [], []
 
         name_labels = [self.labels[i] for i in name_idx]
         bio_groups = self._group_name_labels(name_labels)
         constructed_names = self._construct_names(bio_groups)
 
         names = []
+        foundation_foods = set()  # Use a set to avoid duplicates
         for group in constructed_names:
             # Convert from name_label indices to token indices
             token_idx = [name_idx[idx] for idx in group]
@@ -262,7 +276,13 @@ class PostProcessor:
             if ing_text is not None:
                 names.append(ing_text)
 
-        return names
+                if self.foundation_foods:
+                    tokens = [self.tokens[i] for i in token_idx]
+                    ff = match_foundation_foods(tokens)
+                    if ff:
+                        foundation_foods.add(ff)
+
+        return names, list(foundation_foods)
 
     def _group_name_labels(self, name_labels: list[str]) -> list[list[tuple[int, str]]]:
         """Group name labels according to name label type.
@@ -692,7 +712,7 @@ class PostProcessor:
         """
 
         idx_to_keep = []
-        for i, (first, second) in enumerate(pairwise(parts + [""])):
+        for i, (first, second) in enumerate(pairwise([*parts, ""])):
             if first != second:
                 idx_to_keep.append(i)
 

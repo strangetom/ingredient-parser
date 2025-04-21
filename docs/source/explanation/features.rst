@@ -107,11 +107,7 @@ Semantic features
 Semantic features are determined from the meaning of the token
 In practice this means making use of word embeddings, which are a method to encode a word as a numeric vector in such a way that the vectors for words with similar meanings are clustered close together.
 
-An embeddings model has been trained using `floret <https://github.com/explosion/floret>`_ from the same data used to train the sequence tagging model.
-This model encodes words as 10-dimensional vectors (chosen to reduce the size of the model).
-For each token, the corresponding 10-dimensional vector can be calculated and used as a feature.
-
-Due to limitations of the `python-crfsuite <https://github.com/scrapinghub/python-crfsuite>`_, which cannot make use of features that are lists, each dimension of the vector is turned into a separate feature.
+Currently semantic features are not used as features for the parser model, but this is being investigated.
 
 Example
 ^^^^^^^
@@ -136,16 +132,6 @@ Below is an example of the features generated for one of the tokens in an ingred
       'is_after_comma': False,
       'is_after_plus': False,
       'word_shape': 'xxx',
-      'v0': -0.139836490154,
-      'v1': 0.335813522339,
-      'v2': 0.772642672062,
-      'v3': -0.165960505605,
-      'v4': 0.16534408927,
-      'v5': -0.356404691935,
-      'v6': 0.335878640413,
-      'v7': -0.614531040192,
-      'v8': 0.474092006683,
-      'v9': -0.137665584683,
       'prev_stem': '!num',
       'prev_pos': 'CD+NN',
       'prev_is_capitalised': False,
@@ -156,16 +142,6 @@ Below is an example of the features generated for one of the tokens in an ingred
       'prev_is_after_comma': False,
       'prev_is_after_plus': False,
       'prev_word_shape': '!xxx',
-      'prev_v0': -0.228524670005,
-      'prev_v1': 0.118124544621,
-      'prev_v2': 0.474654018879,
-      'prev_v3': 0.006919545121,
-      'prev_v4': 0.293126374483,
-      'prev_v5': -0.280303806067,
-      'prev_v6': 0.479749411345,
-      'prev_v7': -0.370705068111,
-      'prev_v8': -0.055196929723,
-      'prev_v9': -0.28187289834,
       'next_stem': 'orang',
       'next_pos': 'NN+NN',
       'next_is_capitalised': False,
@@ -176,16 +152,6 @@ Below is an example of the features generated for one of the tokens in an ingred
       'next_is_after_comma': False,
       'next_is_after_plus': False,
       'next_word_shape': 'xxxxxx',
-      'next_v0': -0.988151550293,
-      'next_v1': 1.244541049004,
-      'next_v2': -0.004523974378,
-      'next_v3': 0.618911862373,
-      'next_v4': 0.682275772095,
-      'next_v5': 0.035868640989,
-      'next_v6': -0.350227534771,
-      'next_v7': -1.441177010536,
-      'next_v8': -1.112710833549,
-      'next_v9': 0.280764371157,
       'next2_stem': 'juic',
       'next2_pos': 'NN+NN+NN',
       'next2_is_capitalised': False,

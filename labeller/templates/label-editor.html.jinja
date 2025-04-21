@@ -45,12 +45,7 @@
                 <table>
                     <tr>
                         {%- for token in entry.tokens -%}
-                        <td>
-                            <div>
-                                <input id="{{ entry.id }}-{{ loop.index0 }}" name="{{ entry.id }}-{{ loop.index0 }}" type="checkbox" {{ "checked" if loop.index0 in entry.foundation_foods }} />
-                                <label for="{{ entry.id }}-{{ loop.index0 }}">{{ token }}</label>
-                            </div>
-                        </td>
+                        <td>{{ token }}</td>
                         {%- endfor -%}
                     </tr>
                     <tr>

@@ -28,6 +28,7 @@ extensions = [
 
 # autodoc_typehints = "none"
 napoleon_numpy_docstring = True
+napoleon_use_admonition_for_references = True
 napoleon_use_param = False
 napoleon_use_rtype = False
 napoleon_use_keyword = False

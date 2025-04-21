@@ -5,6 +5,7 @@ repos:
     rev: v5.0.0
     hooks:
       - id: check-added-large-files
+        args: ['--maxkb=5000']
         stages: [pre-commit]
       - id: check-ast
         stages: [pre-commit]
@@ -15,7 +16,7 @@ repos:
       - id: debug-statements
         stages: [pre-commit]
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.9.6
+    rev: v0.11.6
     hooks:
       - id: ruff
         args: ["--fix"]

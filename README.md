@@ -42,19 +42,19 @@ Refer to the documentation [here](https://ingredient-parser.readthedocs.io/en/la
 
 ## Model
 
-The core of the library is a sequence labelling model that is used to label each token in the sentence with the part of the sentence it belongs to. A data set of 75,000 example sentences is used to train and evaluate the model. See the [Model Guide](https://ingredient-parser.readthedocs.io/en/latest/guide/index.html) in the documentation for mode details.
+The core of the library is a sequence labelling model that is used to label each token in the sentence with the part of the sentence it belongs to. A data set of 81,000 example sentences is used to train and evaluate the model. See the [Model Guide](https://ingredient-parser.readthedocs.io/en/latest/guide/index.html) in the documentation for mode details.
 
 The model has the following accuracy on a test data set of 20% of the total data used:
 
 ```
 Sentence-level results:
-	Accuracy: 94.72%
+	Accuracy: 94.66%
 
 Word-level results:
 	Accuracy 97.82%
-	Precision (micro) 97.80%
+	Precision (micro) 97.81%
 	Recall (micro) 97.82%
-	F1 score (micro) 97.80%
+	F1 score (micro) 97.81%
 ```
 
 ## Development

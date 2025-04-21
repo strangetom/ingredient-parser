@@ -5,9 +5,7 @@ import string
 import unicodedata
 from dataclasses import dataclass
 from html import unescape
-from importlib.resources import as_file, files
 
-import floret
 from nltk import pos_tag
 
 from ._constants import (
@@ -41,9 +39,6 @@ from ._utils import (
 )
 
 CONSECUTIVE_SPACES = re.compile(r"\s+")
-
-with as_file(files(__package__) / "embeddings.floret.bin") as p:
-    EMBEDDINGS_MODEL = floret.load_model(str(p))
 
 
 @dataclass
@@ -116,10 +111,6 @@ class PreProcessor:
     ----------
     input_sentence : str
         Input ingredient sentence.
-    defer_pos_tagging : bool
-        Defer part of speech tagging until feature generation.
-        Part of speech tagging is an expensive operation and it's not always needed when
-        using this class.
     show_debug_output : bool, optional
         If True, print out each stage of the sentence normalisation
 
@@ -149,8 +140,6 @@ class PreProcessor:
         ----------
         input_sentence : str
             Input ingredient sentence
-        defer_pos_tagging : bool, optional
-            Defer part of speech tagging until feature generation
         show_debug_output : bool, optional
             If True, print out each stage of the sentence normalisation
 
@@ -998,6 +987,7 @@ class PreProcessor:
         dict[str, str | bool| int | float]
             Dictionary of features for token at index.
         """
+
         index = token.index
         features: dict[str, str | bool | int | float] = {}
 
@@ -1013,10 +1003,6 @@ class PreProcessor:
         features |= self._common_features(index, "")
         features |= self._ngram_features(token.feat_text, "")
 
-        embedding = EMBEDDINGS_MODEL[token.feat_text.lower()]
-        for i, value in enumerate(embedding):
-            features[f"v{i}"] = round(float(value), 12)
-
         # Features for previous token
         if index > 0:
             prev_token = self.tokenized_sentence[index - 1]
@@ -1028,9 +1014,6 @@ class PreProcessor:
                 )
             )
             features |= self._common_features(index - 1, "prev_")
-            embedding = EMBEDDINGS_MODEL[prev_token.feat_text.lower()]
-            for i, value in enumerate(embedding):
-                features[f"prev_v{i}"] = round(float(value), 12)
 
         # Features for previous previous token
         if index > 1:
@@ -1070,9 +1053,6 @@ class PreProcessor:
                 )
             )
             features |= self._common_features(index + 1, "next_")
-            embedding = EMBEDDINGS_MODEL[next_token.feat_text.lower()]
-            for i, value in enumerate(embedding):
-                features[f"next_v{i}"] = round(float(value), 12)
 
         # Features for next next token
         if index < len(self.tokenized_sentence) - 2:

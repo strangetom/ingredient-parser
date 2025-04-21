@@ -173,28 +173,6 @@ select {
   width: 13ch;
   word-break: break-word;
 }
-input[type="checkbox"] {
-  appearance: none;
-  background: none;
-  border: none;
-  block-size: 100%;
-  inline-size: 100%;
-  margin: 0;
-}
-label {
-  position: relative;
-  cursor: pointer;
-}
-input[type=checkbox]:checked~label {
-  background-color: color-mix(in srgb, var(--bg-2) 85%, var(--aqua-alt));
-}
-input[type=checkbox]:checked~label:after {
-  content: "*";
-  position: absolute;
-  top: -4px;
-  right: 0;
-  color: var(--yellow-alt);
-}
 
 
 .QTY {

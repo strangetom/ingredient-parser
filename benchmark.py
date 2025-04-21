@@ -53,4 +53,4 @@ if __name__ == "__main__":
     duration = time.time() - start
     print(f"Elapsed time: {duration:.2f} s")
     print(f"{1e6 * duration / total_sentences:.2f} us/sentence")
-    print(f"{int(total_sentences / duration)} sentences/second")
+    print(f"{total_sentences / duration:.2f} sentences/second")

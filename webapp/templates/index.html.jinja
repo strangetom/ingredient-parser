@@ -180,7 +180,7 @@
                         <td>
                             {%- for f in foundation -%}
                             <span class="item">
-                                {{ f.text }}
+                                <a href="https://fdc.nal.usda.gov/food-details/{{ f.fdc_id }}/nutrients" target="_blank">{{ f.text }}</a>
                                 <span class="confidence FOUNDATION">
                                     {{ "%.2f"|format(100*f.confidence) }}%
                                 </span>

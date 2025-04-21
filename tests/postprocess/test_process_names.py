@@ -9,6 +9,7 @@ class TestPostProcessor_postprocess_names:
         """
         sentence = "2 14 ounce cans of coconut milk"
         tokens = ["2", "14", "ounce", "can", "of", "coconut", "milk"]
+        pos_tags = ["CD", "CD", "NN", "MD", "IN", "NN", "NN"]
         labels = ["QTY", "QTY", "UNIT", "UNIT", "COMMENT", "B_NAME_TOK", "I_NAME_TOK"]
         scores = [0.0] * len(tokens)
 
@@ -16,8 +17,9 @@ class TestPostProcessor_postprocess_names:
             IngredientText(text="coconut milk", confidence=0, starting_index=5),
         ]
 
-        p = PostProcessor(sentence, tokens, labels, scores)
-        assert p._postprocess_names() == expected
+        p = PostProcessor(sentence, tokens, pos_tags, labels, scores)
+        names, _ = p._postprocess_names()
+        assert names == expected
 
     def test_multiple_independent_names(self):
         """
@@ -25,6 +27,7 @@ class TestPostProcessor_postprocess_names:
         """
         sentence = "2 tbsp butter or olive oil"
         tokens = ["2", "tbsp", "butter", "or", "olive", "oil"]
+        pos_tags = ["CD", "JJ", "NN", "CC", "JJ", "NN"]
         labels = ["QTY", "UNIT", "B_NAME_TOK", "NAME_SEP", "B_NAME_TOK", "I_NAME_TOK"]
         scores = [0.0] * len(tokens)
 
@@ -33,8 +36,9 @@ class TestPostProcessor_postprocess_names:
             IngredientText(text="olive oil", confidence=0, starting_index=4),
         ]
 
-        p = PostProcessor(sentence, tokens, labels, scores)
-        assert p._postprocess_names() == expected
+        p = PostProcessor(sentence, tokens, pos_tags, labels, scores)
+        names, _ = p._postprocess_names()
+        assert names == expected
 
     def test_multiple_variant_names(self):
         """
@@ -42,6 +46,7 @@ class TestPostProcessor_postprocess_names:
         """
         sentence = "2 cups beef or vegetable stock"
         tokens = ["2", "cup", "beef", "or", "vegetable", "stock"]
+        pos_tags = ["CD", "NN", "NN", "CC", "JJ", "NN"]
         labels = ["QTY", "UNIT", "NAME_VAR", "NAME_SEP", "NAME_VAR", "B_NAME_TOK"]
         scores = [0.0] * len(tokens)
 
@@ -50,8 +55,9 @@ class TestPostProcessor_postprocess_names:
             IngredientText(text="vegetable stock", confidence=0, starting_index=4),
         ]
 
-        p = PostProcessor(sentence, tokens, labels, scores)
-        assert p._postprocess_names() == expected
+        p = PostProcessor(sentence, tokens, pos_tags, labels, scores)
+        names, _ = p._postprocess_names()
+        assert names == expected
 
     def test_multiple_modified_names(self):
         """
@@ -59,6 +65,7 @@ class TestPostProcessor_postprocess_names:
         """
         sentence = "1 handful of fresh basil or coriander"
         tokens = ["1", "handful", "of", "fresh", "basil", "or", "coriander"]
+        pos_tags = ["CD", "NN", "IN", "JJ", "NN", "CC", "NN"]
         labels = [
             "QTY",
             "UNIT",
@@ -75,8 +82,9 @@ class TestPostProcessor_postprocess_names:
             IngredientText(text="fresh coriander", confidence=0, starting_index=3),
         ]
 
-        p = PostProcessor(sentence, tokens, labels, scores)
-        assert p._postprocess_names() == expected
+        p = PostProcessor(sentence, tokens, pos_tags, labels, scores)
+        names, _ = p._postprocess_names()
+        assert names == expected
 
     def test_multiple_modified_variant_names(self):
         """
@@ -84,6 +92,7 @@ class TestPostProcessor_postprocess_names:
         """
         sentence = "2 cups hot beef or vegetable stock"
         tokens = ["2", "cup", "hot", "beef", "or", "vegetable", "stock"]
+        pos_tags = ["CD", "NN", "JJ", "NN", "CC", "JJ", "NN"]
         labels = [
             "QTY",
             "UNIT",
@@ -100,5 +109,6 @@ class TestPostProcessor_postprocess_names:
             IngredientText(text="hot vegetable stock", confidence=0, starting_index=2),
         ]
 
-        p = PostProcessor(sentence, tokens, labels, scores)
-        assert p._postprocess_names() == expected
+        p = PostProcessor(sentence, tokens, pos_tags, labels, scores)
+        names, _ = p._postprocess_names()
+        assert names == expected
