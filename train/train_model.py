@@ -197,7 +197,7 @@ def train_multiple(args: argparse.Namespace) -> None:
     vectors = load_datasets(args.database, args.table, args.datasets)
 
     if args.save_model is None:
-        save_model = DEFAULT_MODEL_LOCATION[args.model]
+        save_model = DEFAULT_MODEL_LOCATION
     else:
         save_model = args.save_model
 
