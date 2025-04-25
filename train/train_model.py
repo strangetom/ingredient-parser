@@ -3,8 +3,10 @@
 import argparse
 import concurrent.futures as cf
 import contextlib
+from pathlib import Path
 from random import randint
 from statistics import mean, stdev
+from uuid import uuid4
 
 import pycrfsuite
 from sklearn.model_selection import train_test_split
@@ -25,11 +27,12 @@ from .training_utils import (
 def train_parser_model(
     vectors: DataVectors,
     split: float,
-    save_model: str,
+    save_model: Path,
     seed: int | None,
     html: bool,
     detailed_results: bool,
     plot_confusion_matrix: bool,
+    keep_model: bool = True,
 ) -> Stats:
     """Train model using vectors, splitting the vectors into a train and evaluation
     set based on <split>. The trained model is saved to <save_model>.
@@ -40,7 +43,7 @@ def train_parser_model(
         Vectors loaded from training csv files
     split : float
         Fraction of vectors to use for evaluation.
-    save_model : str
+    save_model : Path
         Path to save trained model to.
     seed : int | None
         Integer used as seed for splitting the vectors between the training and
@@ -53,6 +56,9 @@ def train_parser_model(
         the test set.
     plot_confusion_matrix : bool
         If True, plot a confusion matrix of the token labels.
+    kee[_model : bool, optional
+        If False, delete model from disk after evaluating it's performance.
+        Default is True.
 
     Returns
     -------
@@ -109,11 +115,11 @@ def train_parser_model(
     )
     for X, y in zip(features_train, truth_train):
         trainer.append(X, y)
-    trainer.train(save_model)
+    trainer.train(str(save_model))
 
     print("[INFO] Evaluating model with test data.")
     tagger = pycrfsuite.Tagger()  # type: ignore
-    tagger.open(save_model)
+    tagger.open(str(save_model))
 
     labels_pred, scores_pred = [], []
     for X in features_test:
@@ -146,6 +152,10 @@ def train_parser_model(
         confusion_matrix(labels_pred, truth_test)
 
     stats = evaluate(labels_pred, truth_test, seed)
+
+    if not keep_model:
+        save_model.unlink(missing_ok=True)
+
     return stats
 
 
@@ -167,11 +177,12 @@ def train_single(args: argparse.Namespace) -> None:
     stats = train_parser_model(
         vectors,
         args.split,
-        save_model,
+        Path(save_model),
         args.seed,
         args.html,
         args.detailed,
         args.confusion,
+        keep_model=True,
     )
 
     print("Sentence-level results:")
@@ -201,19 +212,22 @@ def train_multiple(args: argparse.Namespace) -> None:
     else:
         save_model = args.save_model
 
-    # The first None argument is for the seed. This is set to None so each
-    # iteration of the training function uses a different random seed.
-    arguments = [
-        (
-            vectors,
-            args.split,
-            save_model,
-            None,
-            args.html,
-            args.detailed,
-            args.confusion,
+    arguments = []
+    for _ in range(args.runs):
+        # The first None argument is for the seed. This is set to None so each
+        # iteration of the training function uses a different random seed.
+        arguments.append(
+            (
+                vectors,
+                args.split,
+                Path(save_model).with_stem("model-" + str(uuid4())),
+                None,  # Seed
+                args.html,
+                args.detailed,
+                args.confusion,
+                False,  # keep_model
+            )
         )
-    ] * args.runs
 
     eval_results = []
     with contextlib.redirect_stdout(None):  # Suppress print output
