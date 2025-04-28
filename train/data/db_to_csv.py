@@ -10,6 +10,7 @@ BBC_CSV = "train/data/bbc/bbc-ingredients-snapshot-2017.csv"
 COOKSTR_CSV = "train/data/cookstr/cookstr-ingredients-snapshot-2017.csv"
 NYT_CSV = "train/data/nytimes/nyt-ingredients-snapshot-2015.csv"
 ALLRECIPES_CSV = "train/data/allrecipes/allrecipes-ingredients-snapshot-2017.csv"
+TC_CSV = "train/data/tastecooking/tastecooking-ingredients-snapshot-2024.csv"
 
 DATABASE = "train/data/training.sqlite3"
 
@@ -80,9 +81,14 @@ def create_csv_value(db_row: dict[str, str], label: str) -> str:
     str
         Constructed value to insert into csv
     """
-    tokens = [
-        tok for tok, lab in zip(db_row["tokens"], db_row["labels"]) if lab == label
-    ]
+    if label == "NAME":
+        tokens = [
+            tok for tok, lab in zip(db_row["tokens"], db_row["labels"]) if label in lab
+        ]
+    else:
+        tokens = [
+            tok for tok, lab in zip(db_row["tokens"], db_row["labels"]) if lab == label
+        ]
     return " ".join(tokens)
 
 
@@ -119,6 +125,7 @@ if __name__ == "__main__":
         "cookstr": COOKSTR_CSV,
         "nyt": NYT_CSV,
         "allrecipes": ALLRECIPES_CSV,
+        "tc": TC_CSV,
     }
 
     for source, csv_file in source_csv.items():

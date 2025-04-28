@@ -77,6 +77,7 @@ def test_results_to_html(
     }
     label {
       margin-right: 1rem;
+      text-transform: uppercase;
     }
     .copy {
       margin-left: 1rem;
@@ -132,8 +133,14 @@ def test_results_to_html(
 
                 incorrect.append(src)
 
-    src_count = Counter(incorrect)
-    src_count_str = "".join([f"{k.upper()}: {v}, " for k, v in src_count.items()])
+    total_count = Counter(sentence_sources)
+    incorrect_count = Counter(incorrect)
+    src_count_str = "".join(
+        [
+            f"{k.upper()}: {v} ({100 * v / total_count[k]:.2f}%), "
+            for k, v in incorrect_count.items()
+        ]
+    )
 
     body.insert(1, create_filter_elements(mismatch_counts, set(sentence_sources)))
 
@@ -251,7 +258,7 @@ def create_html_table(
             prediction_td.attrib = {"class": "mismatch"}
 
         score_td = ET.Element("td")
-        score_td.text = f"{100*score:.1f}%"
+        score_td.text = f"{100 * score:.1f}%"
         if score <= 0.6:
             score_td.attrib = {"class": "low-score"}
 

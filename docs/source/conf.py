@@ -1,6 +1,5 @@
 import os
 import sys
-from datetime import date
 
 # Configuration file for the Sphinx documentation builder.
 #
@@ -11,7 +10,7 @@ from datetime import date
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = "Ingredient Parser"
-copyright = f"{date.today().year}, Tom Strange"
+copyright = "2021, Tom Strange"
 author = "Tom Strange"
 
 # -- General configuration ---------------------------------------------------
@@ -29,6 +28,7 @@ extensions = [
 
 # autodoc_typehints = "none"
 napoleon_numpy_docstring = True
+napoleon_use_admonition_for_references = True
 napoleon_use_param = False
 napoleon_use_rtype = False
 napoleon_use_keyword = False

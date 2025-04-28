@@ -14,9 +14,9 @@ The Ingredient Parser package is a Python package for parsing information from r
 
       Getting Started
       ^^^^^^^^^^^^^^^
-      Quick start guide to installing and using the package.
+      Getting started and basic usage.
       +++
-      .. button-ref:: start/index
+      .. button-ref:: tutorials/index
                   :expand:
                   :color: secondary
                   :click-parent:
@@ -31,16 +31,16 @@ The Ingredient Parser package is a Python package for parsing information from r
 
       :material-regular:`import_contacts;2em;sd-color-secondary`
 
-      Model Guide
-      ^^^^^^^^^^^
-      Detailed information about how the model that powers this package.
+      How To
+      ^^^^^^
+      How to achieve specific goals.
       +++
-      .. button-ref:: guide/index
+      .. button-ref:: how-to/index
                   :expand:
                   :color: secondary
                   :click-parent:
 
-                  Model Guide
+                  How To
 
 
    .. grid-item-card::
@@ -48,11 +48,30 @@ The Ingredient Parser package is a Python package for parsing information from r
       :padding: 3 1 2 1
       :margin: 1 1 0 0
 
-      :material-regular:`data_array;2em;sd-color-secondary`
+      :material-regular:`school;2em;sd-color-secondary`
+
+      Explanation
+      ^^^^^^^^^^^
+      The details of how this library works.
+      +++
+      .. button-ref:: explanation/index
+                  :expand:
+                  :color: secondary
+                  :click-parent:
+
+                  Explanation
+
+
+   .. grid-item-card::
+      :text-align: center
+      :padding: 3 1 2 1
+      :margin: 1 1 0 0
+
+      :material-regular:`code;2em;sd-color-secondary`
 
       API Reference
       ^^^^^^^^^^^^^
-      Reference documentation for the functions in this package.
+      Reference documentation.
       +++
       .. button-ref:: reference/index
                   :expand:
@@ -61,33 +80,13 @@ The Ingredient Parser package is a Python package for parsing information from r
 
                   API Reference
 
-
-   .. grid-item-card::
-      :text-align: center
-      :padding: 3 1 2 1
-      :margin: 1 1 0 0
-
-      :material-regular:`folder_shared;2em;sd-color-secondary`
-
-      Resources
-      ^^^^^^^^^
-      Links to related information and resources.
-      +++
-      .. button-ref:: resources/index
-                  :expand:
-                  :color: secondary
-                  :click-parent:
-
-                  Resources
-
-
-
 .. toctree::
    :maxdepth: 1
    :hidden:
 
-   Getting Started <start/index>
-   Model Guide <guide/index>
-   API reference <reference/index>
+   Getting Started <tutorials/index>
+   How To Guides <how-to/index>
+   Explanation <explanation/index>
+   API Reference <reference/index>
    Resources <resources/index>
    changelog

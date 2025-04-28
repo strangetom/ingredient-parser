@@ -22,7 +22,7 @@ Import the ```parse_ingredient``` function and pass it an ingredient sentence.
 >>> from ingredient_parser import parse_ingredient
 >>> parse_ingredient("3 pounds pork shoulder, cut into 2-inch chunks")
 ParsedIngredient(
-    name=IngredientText(text='pork shoulder', confidence=0.999193),
+    name=[IngredientText(text='pork shoulder', confidence=0.999193)],
     size=None,
     amount=[IngredientAmount(quantity='3',
                              unit=<Unit('pound')>,
@@ -33,6 +33,7 @@ ParsedIngredient(
     preparation=IngredientText(text='cut into 2 inch chunks', confidence=0.999193),
     comment=None,
     purpose=None,
+    foundation_foods=[],
     sentence='3 pounds pork shoulder, cut into 2-inch chunks'
 )
 ```
@@ -41,19 +42,19 @@ Refer to the documentation [here](https://ingredient-parser.readthedocs.io/en/la
 
 ## Model
 
-The core of the library is a sequence labelling model that is used to label each token in the sentence with the part of the sentence it belongs to. A data set of 75,000 example sentences is used to train and evaluate the model. See the [Model Guide](https://ingredient-parser.readthedocs.io/en/latest/guide/index.html) in the documentation for mode details.
+The core of the library is a sequence labelling model that is used to label each token in the sentence with the part of the sentence it belongs to. A data set of 81,000 example sentences is used to train and evaluate the model. See the [Model Guide](https://ingredient-parser.readthedocs.io/en/latest/guide/index.html) in the documentation for mode details.
 
 The model has the following accuracy on a test data set of 20% of the total data used:
 
 ```
 Sentence-level results:
-	Accuracy: 95.86%
+	Accuracy: 94.66%
 
 Word-level results:
-	Accuracy 98.41%
-	Precision (micro) 98.41%
-	Recall (micro) 98.41%
-	F1 score (micro) 98.41%
+	Accuracy 97.82%
+	Precision (micro) 97.81%
+	Recall (micro) 97.82%
+	F1 score (micro) 97.81%
 ```
 
 ## Development

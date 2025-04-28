@@ -24,14 +24,29 @@ def p():
         "chilled",
         ")",
     ]
+    pos_tags = [
+        "CD",
+        ",",
+        "CD",
+        "NN",
+        "MD",
+        "VB",
+        "NN",
+        ":",
+        "VBN",
+        "(",
+        "RB",
+        "VBN",
+        ")",
+    ]
     labels = [
         "QTY",
         "PUNC",
         "QTY",
         "UNIT",
         "UNIT",
-        "NAME",
-        "NAME",
+        "B_NAME_TOK",
+        "I_NAME_TOK",
         "PUNC",
         "PREP",
         "PUNC",
@@ -41,7 +56,7 @@ def p():
     ]
     scores = [0.0] * len(labels)
 
-    return PostProcessor(sentence, tokens, labels, scores)
+    return PostProcessor(sentence, tokens, pos_tags, labels, scores)
 
 
 class TestPostProcessor_fix_punctuation:

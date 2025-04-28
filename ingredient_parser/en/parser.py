@@ -1,39 +1,16 @@
 #!/usr/bin/env python3
 
-from importlib.resources import as_file, files
-
-import pycrfsuite
-
 from .._common import group_consecutive_idx
 from ..dataclasses import ParsedIngredient, ParserDebugInfo
-from ._foundationfoods import extract_foundation_foods
+from ._loaders import load_parser_model
 from ._utils import pluralise_units
 from .postprocess import PostProcessor
 from .preprocess import PreProcessor
 
-# Create TAGGER object that can be reused between function calls.
-# We only want to load the model into TAGGER once, but only do it
-# when we need to (from parse_ingredient() or inspect_parser()) and
-# not whenever anything from ingredient_parser is imported.
-TAGGER = pycrfsuite.Tagger()  # type: ignore
-
-
-def load_model_if_not_loaded():
-    """Load model into TAGGER variable if not loaded.
-
-    There isn't a simple way to check if the model if loaded or not, so
-    we try to call TAGGER.labels() which will raise a ValueError if the
-    model is not loaded yet.
-    """
-    try:
-        TAGGER.labels()
-    except ValueError:
-        with as_file(files(__package__) / "model.en.crfsuite") as p:
-            TAGGER.open(str(p))
-
 
 def parse_ingredient_en(
     sentence: str,
+    separate_names: bool = True,
     discard_isolated_stop_words: bool = True,
     expect_name_in_output: bool = True,
     string_units: bool = False,
@@ -45,7 +22,12 @@ def parse_ingredient_en(
     Parameters
     ----------
     sentence : str
-        Ingredient sentence to parse
+        Ingredient sentence to parse.
+    separate_names : bool, optional
+        If True and the sentence contains multiple alternative ingredients, return an
+        IngredientText object for each ingredient name, otherwise return a single
+        IngredientText object.
+        Default is True.
     discard_isolated_stop_words : bool, optional
         If True, any isolated stop words in the name, preparation, or comment fields
         are discarded.
@@ -76,13 +58,18 @@ def parse_ingredient_en(
     ParsedIngredient
         ParsedIngredient object of structured data parsed from input string
     """
-    load_model_if_not_loaded()
+    TAGGER = load_parser_model()
 
     processed_sentence = PreProcessor(sentence)
-    tokens = processed_sentence.tokenized_sentence
+    tokens = [t.text for t in processed_sentence.tokenized_sentence]
+    pos_tags = [t.pos_tag for t in processed_sentence.tokenized_sentence]
     features = processed_sentence.sentence_features()
     labels = TAGGER.tag(features)
     scores = [TAGGER.marginal(label, i) for i, label in enumerate(labels)]
+
+    if expect_name_in_output and all("NAME" not in label for label in labels):
+        # No tokens were assigned the NAME label, so guess if there's a name
+        labels, scores = guess_ingredient_name(TAGGER, labels, scores)
 
     # Re-pluralise tokens that were singularised if the label isn't UNIT
     # For tokens with UNIT label, we'll deal with them below
@@ -92,29 +79,26 @@ def parse_ingredient_en(
         if label != "UNIT":
             tokens[idx] = pluralise_units(token)
 
-    if expect_name_in_output and all(label != "NAME" for label in labels):
-        # No tokens were assigned the NAME label, so guess if there's a name
-        labels, scores = guess_ingredient_name(labels, scores)
-
     postprocessed_sentence = PostProcessor(
         sentence,
         tokens,
+        pos_tags,
         labels,
         scores,
+        separate_names=separate_names,
         discard_isolated_stop_words=discard_isolated_stop_words,
         string_units=string_units,
         imperial_units=imperial_units,
+        foundation_foods=foundation_foods,
     )
     parsed = postprocessed_sentence.parsed
-
-    if foundation_foods and parsed.name:
-        parsed.foundation_foods = extract_foundation_foods(tokens, labels, features)
 
     return parsed
 
 
 def inspect_parser_en(
     sentence: str,
+    separate_names: bool = True,
     discard_isolated_stop_words: bool = True,
     expect_name_in_output: bool = True,
     string_units: bool = False,
@@ -126,7 +110,12 @@ def inspect_parser_en(
     Parameters
     ----------
     sentence : str
-        Ingredient sentence to parse
+        Ingredient sentence to parse.
+    separate_names : bool, optional
+        If True and the sentence contains multiple alternative ingredients, return an
+        IngredientText object for each ingredient name, otherwise return a single
+        IngredientText object.
+        Default is True.
     discard_isolated_stop_words : bool, optional
         If True, any isolated stop words in the name, preparation, or comment fields
         are discarded.
@@ -158,13 +147,18 @@ def inspect_parser_en(
         ParserDebugInfo object containing the PreProcessor object, PostProcessor
         object and Tagger.
     """
-    load_model_if_not_loaded()
+    TAGGER = load_parser_model()
 
     processed_sentence = PreProcessor(sentence)
-    tokens = processed_sentence.tokenized_sentence
+    tokens = [t.text for t in processed_sentence.tokenized_sentence]
+    pos_tags = [t.pos_tag for t in processed_sentence.tokenized_sentence]
     features = processed_sentence.sentence_features()
     labels = TAGGER.tag(features)
     scores = [TAGGER.marginal(label, i) for i, label in enumerate(labels)]
+
+    if expect_name_in_output and all("NAME" not in label for label in labels):
+        # No tokens were assigned the NAME label, so guess if there's a name
+        labels, scores = guess_ingredient_name(TAGGER, labels, scores)
 
     # Re-plurise tokens that were singularised if the label isn't UNIT
     # For tokens with UNIT label, we'll deal with them below
@@ -174,37 +168,29 @@ def inspect_parser_en(
         if label != "UNIT":
             tokens[idx] = pluralise_units(token)
 
-    if expect_name_in_output and all(label != "NAME" for label in labels):
-        # No tokens were assigned the NAME label, so guess if there's a name
-        labels, scores = guess_ingredient_name(labels, scores)
-
     postprocessed_sentence = PostProcessor(
         sentence,
         tokens,
+        pos_tags,
         labels,
         scores,
+        separate_names=separate_names,
         discard_isolated_stop_words=discard_isolated_stop_words,
         string_units=string_units,
         imperial_units=imperial_units,
+        foundation_foods=foundation_foods,
     )
-
-    parsed = postprocessed_sentence.parsed
-    if foundation_foods and parsed.name:
-        foundation = extract_foundation_foods(tokens, labels, features)
-    else:
-        foundation = []
 
     return ParserDebugInfo(
         sentence=sentence,
         PreProcessor=processed_sentence,
         PostProcessor=postprocessed_sentence,
-        foundation_foods=foundation,
         tagger=TAGGER,
     )
 
 
 def guess_ingredient_name(
-    labels: list[str], scores: list[float], min_score: float = 0.2
+    TAGGER, labels: list[str], scores: list[float], min_score: float = 0.2
 ) -> tuple[list[str], list[float]]:
     """Guess ingredient name from list of labels and scores.
 
@@ -216,22 +202,38 @@ def guess_ingredient_name(
 
     Parameters
     ----------
+    TAGGER : pycrfsuite.Tagger
+        Tagger object for parser model.
     labels : list[str]
-        List of labels
+        List of token labels.
     scores : list[float]
-        List of scores
+        List of scores.
     min_score : float
-        Minimum score to consider as candidate name
+        Minimum score to consider as candidate name.
 
     Returns
     -------
     list[str], list[float]
         Labels and scores, modified to assign a name if possible.
     """
-    # Calculate confidence of each token being labelled NAME and get indices where that
-    # confidence is greater than min_score.
-    name_scores = [TAGGER.marginal("NAME", i) for i, _ in enumerate(labels)]
-    candidate_indices = [i for i, score in enumerate(name_scores) if score >= min_score]
+    NAME_LABELS = [
+        "B_NAME_TOK",
+        "I_NAME_TOK",
+        "NAME_VAR",
+        "NAME_MOD",
+        "NAME_SEP",
+    ]
+
+    # Calculate the most likely *NAME* label get store the indices where the score is
+    # greater than min_score.
+    candidate_indices = []
+    candidate_score_labels = []  # List of (score, label) tuples
+    for i, _ in enumerate(labels):
+        alt_label_scores = [(TAGGER.marginal(label, i), label) for label in NAME_LABELS]
+        max_score = max(alt_label_scores, key=lambda x: x[0])
+        if max_score[0] > min_score:
+            candidate_indices.append(i)
+            candidate_score_labels.append(max_score)
 
     if len(candidate_indices) == 0:
         return labels, scores
@@ -241,8 +243,9 @@ def guess_ingredient_name(
 
     # Take longest group
     indices = sorted(groups, key=len)[0]
-    for i in indices:
-        labels[i] = "NAME"
-        scores[i] = name_scores[i]
+    for list_index, token_index in enumerate(indices):
+        score, label = candidate_score_labels[list_index]
+        labels[token_index] = label
+        scores[token_index] = score
 
     return labels, scores

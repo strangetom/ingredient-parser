@@ -1,21 +1,35 @@
 #!/usr/bin/env python3
 
+import concurrent.futures as cf
 import json
 import sqlite3
-import sys
 from dataclasses import dataclass
-from itertools import chain
-from pathlib import Path
-from typing import Any
+from enum import Enum, auto
+from functools import partial
+from itertools import chain, islice
+from typing import Any, Callable, Iterable
 
-from sklearn.metrics import ConfusionMatrixDisplay, classification_report
-
-# Ensure the local ingredient_parser package can be found
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from matplotlib import pyplot as plt
+from sklearn.metrics import (
+    ConfusionMatrixDisplay,
+    accuracy_score,
+    classification_report,
+)
 
 from ingredient_parser import SUPPORTED_LANGUAGES
 
 sqlite3.register_converter("json", json.loads)
+
+DEFAULT_MODEL_LOCATION = {
+    "parser": "ingredient_parser/en/model.en.crfsuite",
+    "foundationfoods": "ingredient_parser/en/ff_model.en.crfsuite",
+    "embeddings": "ingredient_parser/en/embeddings.floret.bin",
+}
+
+
+class ModelType(Enum):
+    PARSER = auto()
+    FOUNDATION_FOODS = auto()
 
 
 @dataclass
@@ -28,6 +42,7 @@ class DataVectors:
     labels: list[list[str]]
     source: list[str]
     uids: list[int]
+    discarded: int
 
 
 @dataclass
@@ -44,7 +59,11 @@ class Metrics:
 class TokenStats:
     """Statistics for token classification performance."""
 
-    NAME: Metrics
+    B_NAME_TOK: Metrics
+    I_NAME_TOK: Metrics
+    NAME_VAR: Metrics
+    NAME_MOD: Metrics
+    NAME_SEP: Metrics
     QTY: Metrics
     UNIT: Metrics
     SIZE: Metrics
@@ -79,9 +98,41 @@ class SentenceStats:
 class Stats:
     """Statistics for token and sentence classification performance."""
 
-    token: TokenStats
+    token: TokenStats | FFTokenStats
     sentence: SentenceStats
     seed: int
+
+
+def chunked(iterable: Iterable, n: int) -> Iterable:
+    """Break *iterable* into lists of length *n*:
+
+        >>> list(chunked([1, 2, 3, 4, 5, 6], 3))
+        [[1, 2, 3], [4, 5, 6]]
+
+    By the default, the last yielded list will have fewer than *n* elements
+    if the length of *iterable* is not divisible by *n*:
+
+        >>> list(chunked([1, 2, 3, 4, 5, 6, 7, 8], 3))
+        [[1, 2, 3], [4, 5, 6], [7, 8]]
+
+    Parameters
+    ----------
+    iterable : Iterable
+        Iterable to chunk.
+    n : int
+        Size of each chunk.
+
+    Returns
+    -------
+    Iterable
+        Chunks of iterable with size n (or less for the last chunk).
+    """
+
+    def take(n, iterable):
+        "Return first n items of the iterable as a list."
+        return list(islice(iterable, n))
+
+    return iter(partial(take, n, iter(iterable)), [])
 
 
 def select_preprocessor(lang: str) -> Any:
@@ -116,7 +167,7 @@ def load_datasets(
     database: str,
     table: str,
     datasets: list[str],
-    foundation_foods: bool = False,
+    model_type: ModelType = ModelType.PARSER,
     discard_other: bool = True,
 ) -> DataVectors:
     """Load raw data from csv files and transform into format required for training.
@@ -129,10 +180,10 @@ def load_datasets(
         Name of database table containing training data
     datasets : list[str]
         List of data source to include.
-        Valid options are: nyt, cookstr, bbc
-    foundation_foods : bool, optional
-        If True, prepare data for training foundation foods model.
-        If False, load data for training parser model.
+        Valid options are: nyt, cookstr, bbc, cookstr, tc
+    model_type : ModelType, optional
+        The type of model to prepare data for training.
+        Default is PARSER.
     discard_other : bool, optional
         If True, discard sentences containing tokens with OTHER label
 
@@ -145,20 +196,87 @@ def load_datasets(
             labels for sentences
             source dataset of sentences
     """
+    PreProcessor = select_preprocessor(table)
+
     print("[INFO] Loading and transforming training data.")
 
+    n = len(datasets)
     with sqlite3.connect(database, detect_types=sqlite3.PARSE_DECLTYPES) as conn:
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
         c.execute(
-            f"SELECT * FROM {table} WHERE source IN ({','.join(['?']*len(datasets))})",
+            f"SELECT * FROM {table} WHERE source IN ({','.join(['?'] * n)})",
             datasets,
         )
-        data = c.fetchall()
+        data = [dict(row) for row in c.fetchall()]
     conn.close()
 
-    PreProcessor = select_preprocessor(table)
+    # Chunk data into 4 groups to process in parallel.
+    n_chunks = 4
+    # Define chunk size so all groups have about the same number of elements, except the
+    # last group which will be slightly smaller.
+    chunk_size = int((len(data) + n_chunks) / n_chunks)
+    chunks = chunked(data, chunk_size)
 
+    vectors = []
+    with cf.ProcessPoolExecutor(max_workers=4) as executor:
+        for vec in executor.map(
+            process_sentences,
+            chunks,
+            [model_type] * n_chunks,
+            [PreProcessor] * n_chunks,
+            [discard_other] * n_chunks,
+        ):
+            vectors.append(vec)
+
+    all_vectors = DataVectors(
+        sentences=list(chain.from_iterable(v.sentences for v in vectors)),
+        features=list(chain.from_iterable(v.features for v in vectors)),
+        tokens=list(chain.from_iterable(v.tokens for v in vectors)),
+        labels=list(chain.from_iterable(v.labels for v in vectors)),
+        source=list(chain.from_iterable(v.source for v in vectors)),
+        uids=list(chain.from_iterable(v.uids for v in vectors)),
+        discarded=sum(v.discarded for v in vectors),
+    )
+
+    print(f"[INFO] {len(all_vectors.sentences):,} usable vectors.")
+    print(f"[INFO] {all_vectors.discarded:,} discarded due to OTHER labels.")
+    return all_vectors
+
+
+def process_sentences(
+    data: list[dict], model_type: ModelType, PreProcessor: Callable, discard_other: bool
+) -> DataVectors:
+    """Process training sentences from database into format needed for training and
+    evaluation.
+
+    Parameters
+    ----------
+    data : list[dict]
+        List of dicts, where each dict is the database row.
+    model_type : ModelType
+        Type of model being training: PARSER or FOUNDATION_FOODS
+    PreProcessor : Callable
+        PreProcessor class to preprocess sentences.
+    discard_other : bool
+        If True, discard sentences with OTHER label
+
+    Returns
+    -------
+    DataVectors
+        Dataclass holding:
+            raw input sentences,
+            features extracted from sentences,
+            labels for sentences,
+            source dataset of sentences,
+            uids for each sentence,
+            number of discarded sentences
+
+    Raises
+    ------
+    ValueError
+        Raised if number of calculated token does not match number of labels.
+    """
     source, sentences, features, tokens, labels, uids = [], [], [], [], [], []
     discarded = 0
     for entry in data:
@@ -171,8 +289,8 @@ def load_datasets(
         p = PreProcessor(entry["sentence"])
         uids.append(entry["id"])
 
-        if foundation_foods:
-            name_idx = [idx for idx, lab in enumerate(entry["labels"]) if lab == "NAME"]
+        if model_type == ModelType.FOUNDATION_FOODS:
+            name_idx = [idx for idx, lab in enumerate(entry["labels"]) if "NAME" in lab]
             name_labels = [
                 "FF" if idx in entry["foundation_foods"] else "NF" for idx in name_idx
             ]
@@ -182,7 +300,7 @@ def load_datasets(
                 if idx in name_idx
             ]
             name_tokens = [
-                token
+                token.text
                 for idx, token in enumerate(p.tokenized_sentence)
                 if idx in name_idx
             ]
@@ -192,29 +310,27 @@ def load_datasets(
             labels.append(name_labels)
         else:
             features.append(p.sentence_features())
-            tokens.append(p.tokenized_sentence)
+            tokens.append([t.text for t in p.tokenized_sentence])
             labels.append(entry["labels"])
 
         # Ensure length of tokens and length of labels are the same
         if len(p.tokenized_sentence) != len(entry["labels"]):
             raise ValueError(
                 (
-                    f"\"{entry['sentence']}\" (ID: {entry['id']}) has "
+                    f'"{entry["sentence"]}" (ID: {entry["id"]}) has '
                     f"{len(p.tokenized_sentence)} tokens "
                     f"but {len(entry['labels'])} labels."
                 )
             )
 
-    print(f"[INFO] {len(sentences):,} usable vectors.")
-    print(f"[INFO] {discarded:,} discarded due to OTHER labels.")
-    return DataVectors(sentences, features, tokens, labels, source, uids)
+    return DataVectors(sentences, features, tokens, labels, source, uids, discarded)
 
 
 def evaluate(
     predictions: list[list[str]],
     truths: list[list[str]],
     seed: int,
-    foundation_foods: bool = False,
+    model_type: ModelType = ModelType.PARSER,
 ) -> Stats:
     """Calculate statistics on the predicted labels for the test data.
 
@@ -226,9 +342,9 @@ def evaluate(
         True labels for each test sentence
     seed : int
         Seed value that produced the results
-    foundation_foods : bool, optional
-        If True, generate stats for foundation foods model.
-        If False, generate stats for parser model.
+    model_type : ModelType, optional
+        The type of model to generate stats for training.
+        Default is PARSER.
 
     Returns
     -------
@@ -252,15 +368,15 @@ def evaluate(
     token_stats = {}
     for k, v in report.items():  # type: ignore
         # Convert dict to Metrics
-        if k in labels + ["macro avg", "weighted avg"]:
+        if k in [*labels, "macro avg", "weighted avg"]:
             k = k.replace(" ", "_")
             token_stats[k] = Metrics(
                 v["precision"], v["recall"], v["f1-score"], int(v["support"])
             )
-        else:
-            token_stats[k] = v
 
-    if foundation_foods:
+    token_stats["accuracy"] = accuracy_score(flat_truths, flat_predictions)
+
+    if model_type == ModelType.FOUNDATION_FOODS:
         token_stats = FFTokenStats(**token_stats)
     else:
         token_stats = TokenStats(**token_stats)
@@ -294,10 +410,18 @@ def confusion_matrix(
     flat_predictions = list(chain.from_iterable(predictions))
     flat_truths = list(chain.from_iterable(truths))
     labels = list(set(flat_predictions))
-    display_labels = [lab[:4] for lab in labels]
 
     cm = ConfusionMatrixDisplay.from_predictions(
-        flat_truths, flat_predictions, labels=labels, display_labels=display_labels
+        flat_truths, flat_predictions, labels=labels
     )
-    cm.figure_.savefig(figure_path)
+    # Set the diagonal to -1, to better highlight the mislabels
+    for i in range(cm.confusion_matrix.shape[0]):
+        cm.confusion_matrix[i, i] = -1
+
+    fig, ax = plt.subplots(figsize=(10, 10))
+    cm.plot(ax=ax, colorbar=False)
+    ax.tick_params(axis="x", labelrotation=45)
+    fig.tight_layout()
+    fig.savefig(figure_path)
     print(f"[INFO] Confusion matrix saved to {figure_path}")
+    plt.close(fig)

@@ -1,5 +1,152 @@
 # Changelog
 
+## 2.10
+
+> [!WARNING]
+>
+> This version replaces the floret dependency with numpy.
+> 
+> Numpy was already a dependency of floret, so if you are upgrading from v2.0.0 there should be little impact.
+
+* This release overhauls the foundation foods functionality so that ingredient names are matched to entries in the [FoodData Central](https://fdc.nal.usda.gov/) (FDC) database.
+
+  * This update does not change the API. It adds additional fields to `FoundationFood` objects for FDC ID, category and data type. The `text` field now returns the description for the matching FDC entry.
+
+  * Beware that enabling this functionality causes the `parse_ingredient` function to be much slower than when disabled (default).
+
+    |                      | foundation_foods=False (default) | foundation_foods=True |
+    | -------------------- | -------------------------------- | --------------------- |
+    | Sentences per second | ~1500                            | ~20                   |
+
+  * This functionality works entirely offline.
+  
+  * See the [foundation foods](https://ingredient-parser.readthedocs.io/en/latest/explanation/foundation.html) page of the docs for specifics.
+
+## 2.0.0
+
+> [!Caution]
+>
+> This release contains some breaking changes
+
+1. `ParsedIngredient.name` is now a list of `IngredientText` objects, or an empty list no name is identified.
+
+2. The `quantity_fractions` optional keyword argument has been removed. `IngredientAmount.quantity` and `IngredientAmount.quantity_max` return `fractions.Fraction` objects. Conversion to `float` can be achieved by e.g.:
+
+    ```python
+    # Round to 3 decimal places
+    round(float(quantity), 3)
+    ```
+
+3. New dependency: [floret](https://github.com/explosion/floret).
+
+### Processing
+
+* Identify where multiple alternative ingredients are given for the stated amount. For example
+
+    ```python
+    # Simple example
+    >>> parse_ingredient("2 tbsp butter or olive oil").name
+    [
+      IngredientText(text='butter', confidence=0.983045, starting_index=2),
+      IngredientText(text='olive oil', confidence=0.930385, starting_index=4)
+    ]
+    # Complex example
+    >>> parse_ingredient("2 cups chicken or beef stock").name
+    [
+      IngredientText(text='chicken stock', confidence=0.776891, starting_index=2),
+      IngredientText(text='beef stock', confidence=0.94334, starting_index=4)
+    ]
+    ```
+
+    This is enabled by default, but can be disabled by setting `separate_ingredients=False` in `parse_ingredient`. If disabled, the `ParsedIngredient.name` field will be listing containing a single `IngredientText` object.
+
+* Set `PREPARED_INGREDIENT` flag on amounts in cases like 
+
+  > ... to yield 2 cups ...
+  
+* Add `convert_to(...)` function to `IngredientAmount`  and `CompositeIngredientAmount` dataclasses to convert the amount to the given units. Conversion between mass and volume is also supported using a default density (density of water) that can be changed.
+
+  ```python
+  >>> p = parse_ingredient("1 8 ounce can chopped tomatoes")
+  >>> # Convert "8 ounce" to grams
+  >>> p.amount[1].convert_to("g")
+  IngredientAmount(quantity=Fraction(5669904625000001, 25000000000000),
+                   quantity_max=Fraction(5669904625000001, 25000000000000),
+                   unit=<Unit('gram')>,
+                   text='226.80 gram',
+                   confidence=0.999051,
+                   starting_index=1,
+                   APPROXIMATE=False,
+                   SINGULAR=True,
+                   RANGE=False,
+                   MULTIPLIER=False,
+                   PREPARED_INGREDIENT=False)
+  
+  >>> # Cannot convert where the quantity or unit is a string
+  >>> p.amount[0].convert_to("g")
+  TypeError: Cannot convert with string quantities or units.
+  ```
+
+  
+
+### Model
+
+* Include custom word embeddings as features used by the model. This requires a new dependency of the [floret](https://github.com/explosion/floret) library.
+
+## 1.3.2
+
+### Processing
+
+* Fix bug that allowed fractions in the intermediate form (i.e. #1$2) to appear in the name, prep, comment, size, purpose fields of the `ParsedIngredient` output.
+
+## 1.3.1
+
+> [!WARNING]
+>
+> This version requires pint >=0.24.4
+
+### General
+
+* Support Python 3.13. Requires pint >= 0.24.4.
+
+## 1.3
+
+### Processing
+
+* Various minor improvements to feature generation.
+
+* Add PREPARED_INGREDIENT flag to IngredientAmount objects. This is used to indicate if the amount refers to the prepared ingredient (`PREPARED_INGREDIENT=True`) or the unpreprared ingredient (`PREPARED_INGREDIENT=False`).
+
+* Add `starting_index` attribute to IngredientText objects, indicating the index of the token that starts the IngredientText. 
+
+* Improve detection of composite amounts in sentences.
+
+* Add `quantity_fractions` keyword argument to `parse_ingredient`. When True, the `quantity` and `quantity_max` fields of `IngredientAmount` objects will be `fractions.Fraction` objects instead of floats. This allows fractions such as 1/3 to be represented exactly. The default behaviour is when `quantity_fractions=False`, where quantities are floats as previously. For Example
+
+  ```python
+  >>> parse_ingredient("1 1/3 cups flour").amount[0]
+  IngredientAmount(
+      quantity=1.333,
+      quantity_max=1.333,
+      unit=<Unit('cup')>, 
+      text='1 1/3 cups', 
+      ...
+  )
+  >>> parse_ingredient("1 1/3 cups flour", quantity_fractions=True).amount[0]
+  IngredientAmount(
+      quantity=Fraction(4, 3),
+      quantity_max=Fraction(4, 3),
+      unit=<Unit('cup')>,
+      text='1 1/3 cups',
+      ...
+  )
+  ```
+
+
+### Model
+
+* Addition of new dataset: tastecooking. This is a relatively small dataset, but includes a number of unique abbreviations for units and sizes.
+
 ## 1.2
 
 ### General
@@ -30,7 +177,7 @@ Require NLTK >= 3.8.2 due to change in POS tagger weights format.
   * Word shape (e.g. cheese -> xxxxxx; Cheese -> Xxxxxx)
   * N-gram (n=3, 4, 5) prefixes and suffixes of tokens
 * Add 15,000 new sentences to training data from AllRecipes. This dataset includes lots of branded ingredients, which the existing datasets were quite light on.
-* Tweaks to the model hyperparameters have yielded a model that is ~25% small, but with better performance than the previous model.
+* Tweaks to the model hyperparameters have yielded a model that is ~25% smaller, but with better performance than the previous model.
 
 ### Processing
 

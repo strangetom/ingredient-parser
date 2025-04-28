@@ -10,9 +10,9 @@ class TestPreProcessor__builtins__:
         """
         p = PreProcessor("1/2 cup chicken broth")
         truth = """Pre-processed recipe ingredient sentence
-\t    Input: 1/2 cup chicken broth
-\t  Cleaned: 0.5 cup chicken broth
-\tTokenized: ['0.5', 'cup', 'chicken', 'broth']"""
+\t  Input: 1/2 cup chicken broth
+\tCleaned: #1$2 cup chicken broth
+\t Tokens: ['#1$2', 'cup', 'chicken', 'broth']"""
         assert str(p) == truth
 
     def test__repr__(self):
@@ -34,13 +34,13 @@ class TestPreProcessor__builtins__:
 _replace_html_fractions: 1/2 cup chicken broth
 _replace_unicode_fractions: 1/2 cup chicken broth
 combine_quantities_split_by_and: 1/2 cup chicken broth
-_replace_fake_fractions: 0.5 cup chicken broth
-_split_quantity_and_units: 0.5 cup chicken broth
-_remove_unit_trailing_period: 0.5 cup chicken broth
-replace_string_range: 0.5 cup chicken broth
-_replace_dupe_units_ranges: 0.5 cup chicken broth
-_merge_quantity_x: 0.5 cup chicken broth
-_collapse_ranges: 0.5 cup chicken broth
+_identify_fractions: #1$2 cup chicken broth
+_split_quantity_and_units: #1$2 cup chicken broth
+_remove_unit_trailing_period: #1$2 cup chicken broth
+replace_string_range: #1$2 cup chicken broth
+_replace_dupe_units_ranges: #1$2 cup chicken broth
+_merge_quantity_x: #1$2 cup chicken broth
+_collapse_ranges: #1$2 cup chicken broth
 """
         )
 
@@ -52,8 +52,8 @@ def normalise_test_cases() -> list[tuple[str, ...]]:
     PreProcessor functions.
     """
     return [
-        ("&frac12; cup warm water (105°F)", "0.5 cup warm water (105°F)"),
-        ("3 1/2 chilis anchos", "3.5 chilis anchos"),
+        ("&frac12; cup warm water (105°F)", "#1$2 cup warm water (105°F)"),
+        ("3 1/2 chilis anchos", "3#1$2 chilis anchos"),
         ("six eggs", "six eggs"),
         ("thumbnail-size piece ginger", "thumbnail-size piece ginger"),
         (
@@ -63,14 +63,14 @@ def normalise_test_cases() -> list[tuple[str, ...]]:
         ("3–4 sirloin steaks", "3-4 sirloin steaks"),
         ("three large onions", "three large onions"),
         ("twelve bonbons", "twelve bonbons"),
-        ("1&frac34; cups tomato ketchup", "1.75 cups tomato ketchup"),
-        ("1/2 cup icing sugar", "0.5 cup icing sugar"),
-        ("2 3/4 pound chickpeas", "2.75 pound chickpeas"),
-        ("1 and 1/2 tsp fine grain sea salt", "1.5 tsp fine grain sea salt"),
-        ("1 and 1/4 cups dark chocolate morsels", "1.25 cups dark chocolate morsels"),
-        ("½ cup icing sugar", "0.5 cup icing sugar"),
-        ("3⅓ cups warm water", "3.333 cups warm water"),
-        ("¼-½ teaspoon", "0.25-0.5 teaspoon"),
+        ("1&frac34; cups tomato ketchup", "1#3$4 cups tomato ketchup"),
+        ("1/2 cup icing sugar", "#1$2 cup icing sugar"),
+        ("2 3/4 pound chickpeas", "2#3$4 pound chickpeas"),
+        ("1 and 1/2 tsp fine grain sea salt", "1#1$2 tsp fine grain sea salt"),
+        ("1 and 1/4 cups dark chocolate morsels", "1#1$4 cups dark chocolate morsels"),
+        ("½ cup icing sugar", "#1$2 cup icing sugar"),
+        ("3⅓ cups warm water", "3#1$3 cups warm water"),
+        ("¼-½ teaspoon", "#1$4-#1$2 teaspoon"),
         ("100g green beans", "100 g green beans"),
         ("2-pound red peppers, sliced", "2 pound red peppers, sliced"),
         ("2lb1oz cherry tomatoes", "2 lb 1 oz cherry tomatoes"),
@@ -85,7 +85,7 @@ def normalise_test_cases() -> list[tuple[str, ...]]:
         ("4 x 100 g wild salmon fillet", "4x 100 g wild salmon fillet"),
         (
             "½ - ¾ cup heavy cream, plus extra for brushing the tops of the scones",
-            "0.5-0.75 cup heavy cream, plus extra for brushing the tops of the scones",
+            "#1$2-#3$4 cup heavy cream, plus extra for brushing the tops of the scones",
         ),
     ]
 
@@ -97,7 +97,7 @@ class TestPreProcessor_normalise:
         Test that each example sentence is normalised correctly
         """
         input_sentence, normalised = testcase
-        p = PreProcessor(input_sentence, defer_pos_tagging=True)
+        p = PreProcessor(input_sentence)
         assert p.sentence == normalised
 
 
@@ -107,6 +107,7 @@ class TestPreProcessor_sentence_features:
         expected = [
             {
                 "bias": "",
+                "sentence_length": 4,
                 "pos": "CD",
                 "stem": "!num",
                 "is_capitalised": False,
@@ -128,7 +129,7 @@ class TestPreProcessor_sentence_features:
                 "next_is_after_plus": False,
                 "next_word_shape": "xxx",
                 "next2_stem": "chicken",
-                "next2_pos": "NN+NN+CD",
+                "next2_pos": "CD+NN+NN",
                 "next2_is_capitalised": False,
                 "next2_is_unit": False,
                 "next2_is_punc": False,
@@ -137,9 +138,20 @@ class TestPreProcessor_sentence_features:
                 "next2_is_after_comma": False,
                 "next2_is_after_plus": False,
                 "next2_word_shape": "xxxxxxx",
+                "next3_stem": "broth",
+                "next3_pos": "CD+NN+NN+NN",
+                "next3_is_capitalised": False,
+                "next3_is_unit": False,
+                "next3_is_punc": False,
+                "next3_is_ambiguous": False,
+                "next3_is_in_parens": False,
+                "next3_is_after_comma": False,
+                "next3_is_after_plus": False,
+                "next3_word_shape": "xxxxx",
             },
             {
                 "bias": "",
+                "sentence_length": 4,
                 "pos": "NN",
                 "stem": "cup",
                 "is_capitalised": False,
@@ -183,6 +195,7 @@ class TestPreProcessor_sentence_features:
             },
             {
                 "bias": "",
+                "sentence_length": 4,
                 "pos": "NN",
                 "stem": "chicken",
                 "is_capitalised": False,
@@ -232,6 +245,7 @@ class TestPreProcessor_sentence_features:
             },
             {
                 "bias": "",
+                "sentence_length": 4,
                 "pos": "NN",
                 "stem": "broth",
                 "is_capitalised": False,
@@ -266,174 +280,16 @@ class TestPreProcessor_sentence_features:
                 "prev2_is_after_comma": False,
                 "prev2_is_after_plus": False,
                 "prev2_word_shape": "xxx",
-            },
-        ]
-
-        assert p.sentence_features() == expected
-
-    def test_defer_pos_tagging(self):
-        p = PreProcessor("100g green beans", defer_pos_tagging=True)
-        expected = [
-            {
-                "bias": "",
-                "pos": "CD",
-                "stem": "!num",
-                "is_capitalised": False,
-                "is_unit": False,
-                "is_punc": False,
-                "is_ambiguous": False,
-                "is_in_parens": False,
-                "is_after_comma": False,
-                "is_after_plus": False,
-                "word_shape": "!xxx",
-                "next_stem": "g",
-                "next_pos": "CD+NN",
-                "next_is_capitalised": False,
-                "next_is_unit": True,
-                "next_is_punc": False,
-                "next_is_ambiguous": False,
-                "next_is_in_parens": False,
-                "next_is_after_comma": False,
-                "next_is_after_plus": False,
-                "next_word_shape": "x",
-                "next2_stem": "green",
-                "next2_pos": "JJ+NN+CD",
-                "next2_is_capitalised": False,
-                "next2_is_unit": False,
-                "next2_is_punc": False,
-                "next2_is_ambiguous": False,
-                "next2_is_in_parens": False,
-                "next2_is_after_comma": False,
-                "next2_is_after_plus": False,
-                "next2_word_shape": "xxxxx",
-            },
-            {
-                "bias": "",
-                "pos": "NN",
-                "stem": "g",
-                "is_capitalised": False,
-                "is_unit": True,
-                "is_punc": False,
-                "is_ambiguous": False,
-                "is_in_parens": False,
-                "is_after_comma": False,
-                "is_after_plus": False,
-                "word_shape": "x",
-                "prev_stem": "!num",
-                "prev_pos": "CD+NN",
-                "prev_is_capitalised": False,
-                "prev_is_unit": False,
-                "prev_is_punc": False,
-                "prev_is_ambiguous": False,
-                "prev_is_in_parens": False,
-                "prev_is_after_comma": False,
-                "prev_is_after_plus": False,
-                "prev_word_shape": "!xxx",
-                "next_stem": "green",
-                "next_pos": "NN+JJ",
-                "next_is_capitalised": False,
-                "next_is_unit": False,
-                "next_is_punc": False,
-                "next_is_ambiguous": False,
-                "next_is_in_parens": False,
-                "next_is_after_comma": False,
-                "next_is_after_plus": False,
-                "next_word_shape": "xxxxx",
-                "next2_stem": "bean",
-                "next2_pos": "NNS+JJ+NN",
-                "next2_is_capitalised": False,
-                "next2_is_unit": False,
-                "next2_is_punc": False,
-                "next2_is_ambiguous": False,
-                "next2_is_in_parens": False,
-                "next2_is_after_comma": False,
-                "next2_is_after_plus": False,
-                "next2_word_shape": "xxxxx",
-            },
-            {
-                "bias": "",
-                "pos": "JJ",
-                "stem": "green",
-                "is_capitalised": False,
-                "is_unit": False,
-                "is_punc": False,
-                "is_ambiguous": False,
-                "is_in_parens": False,
-                "is_after_comma": False,
-                "is_after_plus": False,
-                "word_shape": "xxxxx",
-                "prefix_3": "gre",
-                "suffix_3": "een",
-                "prefix_4": "gree",
-                "suffix_4": "reen",
-                "prev_stem": "g",
-                "prev_pos": "NN+JJ",
-                "prev_is_capitalised": False,
-                "prev_is_unit": True,
-                "prev_is_punc": False,
-                "prev_is_ambiguous": False,
-                "prev_is_in_parens": False,
-                "prev_is_after_comma": False,
-                "prev_is_after_plus": False,
-                "prev_word_shape": "x",
-                "prev2_stem": "!num",
-                "prev2_pos": "CD+NN+JJ",
-                "prev2_is_capitalised": False,
-                "prev2_is_unit": False,
-                "prev2_is_punc": False,
-                "prev2_is_ambiguous": False,
-                "prev2_is_in_parens": False,
-                "prev2_is_after_comma": False,
-                "prev2_is_after_plus": False,
-                "prev2_word_shape": "!xxx",
-                "next_stem": "bean",
-                "next_pos": "JJ+NNS",
-                "next_is_capitalised": False,
-                "next_is_unit": False,
-                "next_is_punc": False,
-                "next_is_ambiguous": False,
-                "next_is_in_parens": False,
-                "next_is_after_comma": False,
-                "next_is_after_plus": False,
-                "next_word_shape": "xxxxx",
-            },
-            {
-                "bias": "",
-                "pos": "NNS",
-                "stem": "bean",
-                "token": "beans",
-                "is_capitalised": False,
-                "is_unit": False,
-                "is_punc": False,
-                "is_ambiguous": False,
-                "is_in_parens": False,
-                "is_after_comma": False,
-                "is_after_plus": False,
-                "word_shape": "xxxxx",
-                "prefix_3": "bea",
-                "suffix_3": "ans",
-                "prefix_4": "bean",
-                "suffix_4": "eans",
-                "prev_stem": "green",
-                "prev_pos": "JJ+NNS",
-                "prev_is_capitalised": False,
-                "prev_is_unit": False,
-                "prev_is_punc": False,
-                "prev_is_ambiguous": False,
-                "prev_is_in_parens": False,
-                "prev_is_after_comma": False,
-                "prev_is_after_plus": False,
-                "prev_word_shape": "xxxxx",
-                "prev2_stem": "g",
-                "prev2_pos": "NN+JJ+NNS",
-                "prev2_is_capitalised": False,
-                "prev2_is_unit": True,
-                "prev2_is_punc": False,
-                "prev2_is_ambiguous": False,
-                "prev2_is_in_parens": False,
-                "prev2_is_after_comma": False,
-                "prev2_is_after_plus": False,
-                "prev2_word_shape": "x",
+                "prev3_stem": "!num",
+                "prev3_pos": "CD+NN+NN+NN",
+                "prev3_is_capitalised": False,
+                "prev3_is_unit": False,
+                "prev3_is_punc": False,
+                "prev3_is_ambiguous": False,
+                "prev3_is_in_parens": False,
+                "prev3_is_after_comma": False,
+                "prev3_is_after_plus": False,
+                "prev3_word_shape": "!xxx",
             },
         ]
 

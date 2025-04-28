@@ -145,3 +145,24 @@ class TestTokenize:
         """
         sentence = "2 onions, finely chopped*"
         assert tokenize(sentence) == ["2", "onions", ",", "finely", "chopped", "*"]
+
+    def test_fake_fraction(self):
+        """
+        Test fake fraction is no separated.
+        """
+        sentence = "#1$2 cups milk"
+        assert tokenize(sentence) == ["#1$2", "cups", "milk"]
+
+    def test_and_or_with_space(self):
+        """
+        Test "and / or" is output as a single token.
+        """
+        sentence = "2 cups beef and / or chicken stock"
+        assert tokenize(sentence) == ["2", "cups", "beef", "and/or", "chicken", "stock"]
+
+    def test_and_or_without_space(self):
+        """
+        Test "and/or" is output as a single token.
+        """
+        sentence = "2 cups beef and/or chicken stock"
+        assert tokenize(sentence) == ["2", "cups", "beef", "and/or", "chicken", "stock"]

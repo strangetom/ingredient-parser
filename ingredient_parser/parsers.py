@@ -9,6 +9,7 @@ from .dataclasses import ParsedIngredient, ParserDebugInfo
 def parse_ingredient(
     sentence: str,
     lang: str = "en",
+    separate_names: bool = True,
     discard_isolated_stop_words: bool = True,
     expect_name_in_output: bool = True,
     string_units: bool = False,
@@ -20,10 +21,15 @@ def parse_ingredient(
     Parameters
     ----------
     sentence : str
-        Ingredient sentence to parse
+        Ingredient sentence to parse.
     lang : str
         Language of sentence.
         Currently supported options are: en
+    separate_names : bool, optional
+        If True and the sentence contains multiple alternative ingredients, return an
+        IngredientText object for each ingredient name, otherwise return a single
+        IngredientText object.
+        Default is True.
     discard_isolated_stop_words : bool, optional
         If True, any isolated stop words in the name, preparation, or comment fields
         are discarded.
@@ -61,6 +67,7 @@ def parse_ingredient(
         case "en":
             return parse_ingredient_en(
                 sentence,
+                separate_names=separate_names,
                 discard_isolated_stop_words=discard_isolated_stop_words,
                 expect_name_in_output=expect_name_in_output,
                 string_units=string_units,
@@ -74,6 +81,7 @@ def parse_ingredient(
 def parse_multiple_ingredients(
     sentences: list[str],
     lang: str = "en",
+    separate_names: bool = True,
     discard_isolated_stop_words: bool = True,
     expect_name_in_output: bool = True,
     string_units: bool = False,
@@ -91,10 +99,15 @@ def parse_multiple_ingredients(
     Parameters
     ----------
     sentences : list[str]
-        List of sentences to parse
+        List of sentences to parse.
     lang : str
         Language of sentence.
         Currently supported options are: en
+    separate_names : bool, optional
+        If True and the sentence contains multiple alternative ingredients, return an
+        IngredientText object for each ingredient name, otherwise return a single
+        IngredientText object.
+        Default is True.
     discard_isolated_stop_words : bool, optional
         If True, any isolated stop words in the name, preparation, or comment fields
         are discarded.
@@ -130,6 +143,7 @@ def parse_multiple_ingredients(
         parse_ingredient(
             sentence,
             lang=lang,
+            separate_names=separate_names,
             discard_isolated_stop_words=discard_isolated_stop_words,
             expect_name_in_output=expect_name_in_output,
             string_units=string_units,
@@ -143,6 +157,7 @@ def parse_multiple_ingredients(
 def inspect_parser(
     sentence: str,
     lang: str = "en",
+    separate_names: bool = True,
     discard_isolated_stop_words: bool = True,
     expect_name_in_output: bool = True,
     string_units: bool = False,
@@ -154,10 +169,15 @@ def inspect_parser(
     Parameters
     ----------
     sentence : str
-        Ingredient sentence to parse
+        Ingredient sentence to parse.
     lang : str
         Language of sentence.
         Currently supported options are: en
+    separate_names : bool, optional
+        If True and the sentence contains multiple alternative ingredients, return an
+        IngredientText object for each ingredient name, otherwise return a single
+        IngredientText object.
+        Default is True.
     discard_isolated_stop_words : bool, optional
         If True, any isolated stop words in the name, preparation, or comment fields
         are discarded.
@@ -196,6 +216,7 @@ def inspect_parser(
         case "en":
             return inspect_parser_en(
                 sentence,
+                separate_names=separate_names,
                 discard_isolated_stop_words=discard_isolated_stop_words,
                 expect_name_in_output=expect_name_in_output,
                 string_units=string_units,

@@ -8,19 +8,24 @@ from itertools import chain, pairwise
 from statistics import mean
 from typing import Any
 
+from ingredient_parser.en._foundationfoods import match_foundation_foods
+
 from .._common import consume, group_consecutive_idx
 from ..dataclasses import (
     CompositeIngredientAmount,
+    FoundationFood,
     IngredientAmount,
     IngredientText,
     ParsedIngredient,
 )
 from ._constants import (
     APPROXIMATE_TOKENS,
+    PREPARED_INGREDIENT_TOKENS,
     SINGULAR_TOKENS,
     STOP_WORDS,
     STRING_NUMBERS_REGEXES,
 )
+from ._regex import FRACTION_TOKEN_PATTERN
 from ._utils import (
     combine_quantities_split_by_and,
     ingredient_amount_factory,
@@ -54,6 +59,10 @@ class _PartialIngredientAmount:
     SINGULAR : bool, optional
         When True, indicates if the amount refers to a singular item of the ingredient.
         Default is False.
+    PREPARED_INGREDIENT : bool, optional
+        When True, indicates the amount applies to the prepared ingredient.
+        When False, indicates the amount applies to the ingredient before preparation.
+        Default is False.
     """
 
     quantity: str
@@ -63,6 +72,7 @@ class _PartialIngredientAmount:
     related_to_previous: bool = False
     APPROXIMATE: bool = False
     SINGULAR: bool = False
+    PREPARED_INGREDIENT = False
 
 
 class PostProcessor:
@@ -74,26 +84,36 @@ class PostProcessor:
 
     Attributes
     ----------
-    labels : list[str]
-        List of labels for tokens.
-    scores : list[float]
-        Confidence associated with the label for each token.
     sentence : str
         Original ingredient sentence.
     tokens : list[str]
         List of tokens for original ingredient sentence.
-    discard_isolated_stop_words : bool
+    pos_tags : list[str]
+        List of part of speech tags for tokens.
+    labels : list[str]
+        List of labels for tokens.
+    scores : list[float]
+        Confidence associated with the label for each token.
+    separate_names : bool, optional
+        If True and the sentence contains multiple alternative ingredients, return an
+        IngredientText object for each ingredient name, otherwise return a single
+        IngredientText object.
+        Default is True.
+    discard_isolated_stop_words : bool, optional
         If True, isolated stop words are discarded from the name, preparation or
         comment fields. Default value is True.
-    string_units : bool
+    string_units : bool, optional
         If True, return all IngredientAmount units as strings.
         If False, convert IngredientAmount units to pint.Unit objects where possible.
-        Dfault is False.
-    imperial_units : bool
+        Default is False.
+    imperial_units : bool, optional
         If True, use imperial units instead of US customary units for pint.Unit objects
         for the the following units: fluid ounce, cup, pint, quart, gallon.
         Default is False, which results in US customary units being used.
         This has no effect if string_units=True.
+    foundation_foods : bool, optional
+        If True, populate the foundation_foods field of ParsedIngredient.
+        Default is False, in which case the foundation_foods field is an empty list.
     consumed : list[int]
         List of indices of tokens consumed as part of setting the APPROXIMATE and
         SINGULAR flags. These tokens should not end up in the parsed output.
@@ -103,19 +123,25 @@ class PostProcessor:
         self,
         sentence: str,
         tokens: list[str],
+        pos_tags: list[str],
         labels: list[str],
         scores: list[float],
+        separate_names: bool = True,
         discard_isolated_stop_words: bool = True,
         string_units: bool = False,
         imperial_units: bool = False,
+        foundation_foods: bool = False,
     ):
         self.sentence = sentence
         self.tokens = tokens
+        self.pos_tags = pos_tags
         self.labels = labels
         self.scores = scores
+        self.separate_names = separate_names
         self.discard_isolated_stop_words = discard_isolated_stop_words
         self.string_units = string_units
         self.imperial_units = imperial_units
+        self.foundation_foods = foundation_foods
         self.consumed = []
 
     def __repr__(self) -> str:
@@ -152,8 +178,27 @@ class PostProcessor:
             Object containing structured data from sentence.
         """
         amounts = self._postprocess_amounts()
+
+        foundationfoods = []
+        if self.separate_names:
+            name, foundationfoods = self._postprocess_names()
+        else:
+            # Replace all labels containing NAME with "NAME"
+            name_replaced_labels = []
+            for label in self.labels:
+                if "NAME" in label:
+                    name_replaced_labels.append("NAME")
+                else:
+                    name_replaced_labels.append(label)
+            self.labels = name_replaced_labels
+
+            # Process NAME labels as any other label, but return a list
+            if processed_name := self._postprocess("NAME"):
+                name = [processed_name]
+            else:
+                name = []
+
         size = self._postprocess("SIZE")
-        name = self._postprocess("NAME")
         preparation = self._postprocess("PREP")
         comment = self._postprocess("COMMENT")
         purpose = self._postprocess("PURPOSE")
@@ -165,7 +210,7 @@ class PostProcessor:
             preparation=preparation,
             comment=comment,
             purpose=purpose,
-            foundation_foods=[],
+            foundation_foods=foundationfoods,
             sentence=self.sentence,
         )
 
@@ -184,20 +229,247 @@ class PostProcessor:
         """
         # Select indices of tokens, labels and scores for selected_label
         # Do not include tokens, labels and scores in self.consumed
-        idx = [
+        label_idx = [
             i
             for i, label in enumerate(self.labels)
             if label in [selected_label, "PUNC"] and i not in self.consumed
         ]
 
         # If idx is empty or all the selected idx are PUNC, return None
-        if not idx or all(self.labels[i] == "PUNC" for i in idx):
+        if not label_idx or all(self.labels[i] == "PUNC" for i in label_idx):
             return None
 
+        return self._postprocess_indices(label_idx, selected_label)
+
+    def _postprocess_names(self) -> tuple[list[IngredientText], list[FoundationFood]]:
+        """Process tokens, labels and scores for the ingredient name(s).
+
+        This function handles multiple ingredient names e.g. "butter or olive oil",
+        determined by the labels provided for each token.
+        Where multiple alternative ingredients names are identified, each one is
+        returned in a separate IngredientText object.
+
+        Returns
+        -------
+        list[IngredientText], list[FoundationFoods]
+        """
+        name_idx = [
+            i
+            for i, label in enumerate(self.labels)
+            if ("NAME" in label or label == "PUNC") and i not in self.consumed
+        ]
+
+        # If idx is empty or all the selected idx are PUNC, return None
+        if not name_idx or all(self.labels[i] == "PUNC" for i in name_idx):
+            return [], []
+
+        name_labels = [self.labels[i] for i in name_idx]
+        bio_groups = self._group_name_labels(name_labels)
+        constructed_names = self._construct_names(bio_groups)
+
+        names = []
+        foundation_foods = set()  # Use a set to avoid duplicates
+        for group in constructed_names:
+            # Convert from name_label indices to token indices
+            token_idx = [name_idx[idx] for idx in group]
+            ing_text = self._postprocess_indices(token_idx, "NAME")
+            if ing_text is not None:
+                names.append(ing_text)
+
+                if self.foundation_foods:
+                    tokens = [self.tokens[i] for i in token_idx]
+                    ff = match_foundation_foods(tokens)
+                    if ff:
+                        foundation_foods.add(ff)
+
+        return names, list(foundation_foods)
+
+    def _group_name_labels(self, name_labels: list[str]) -> list[list[tuple[int, str]]]:
+        """Group name labels according to name label type.
+
+        B_NAME_TOK and all following I_NAME_TOK up to the next label that is not
+        I_NAME_TOK or PUNC are grouped.
+
+        All consecutive NAME_MOD labels are grouped.
+        All consecutive NAME_VAR labels are grouped.
+
+        A NAME_SEP label starts a new group.
+
+        Parameters
+        ----------
+        name_labels : list[str]
+            List of name labels.
+
+        Returns
+        -------
+        list[list[tuple[int, str]]]
+            List of BIO groups.
+            Each group is a list of tuples, where each tuple is the (index, label) of
+            the original name_labels list element.
+        """
+        name_groups = []
+        current_group = []
+        prev_label = None
+        for idx, label in enumerate(name_labels):
+            # Start new group on NAME_SEP name label
+            if label == "NAME_SEP":
+                if current_group:
+                    name_groups.append(current_group)
+                current_group = []
+            # Start new group for new "B_*" name label
+            elif label.startswith("B_"):
+                if current_group:
+                    name_groups.append(current_group)
+                current_group = [(idx, label)]
+            # Start new group if encountering new NAME_MOD or NAME_VAR, or append to
+            # current group if previous label was the same as current label.
+            elif label in ["NAME_MOD", "NAME_VAR"]:
+                if prev_label == label:
+                    current_group.append((idx, label))
+                else:
+                    if current_group:
+                        name_groups.append(current_group)
+                    current_group = [(idx, label)]
+            # Must be an I_NAME_TOK or PUNC label, so append to current group
+            else:
+                current_group.append((idx, label))
+
+            prev_label = label
+
+        # Add last group to list if not empty
+        if current_group:
+            name_groups.append(current_group)
+
+        return name_groups
+
+    def _construct_names(
+        self, name_groups: list[list[tuple[int, str]]]
+    ) -> list[list[int]]:
+        """Construct names from BIO groups.
+
+        All VAR groups are prepended to the next TOK group.
+        MOD groups are prepended to all subsequent TOK groups or VAR+TOK groups.
+
+        To make this easier, iterate through the BIO groups from last to first. This
+        means we can easily keep track of which TOK group to prepend VAR and MOD
+        groups.
+
+        Parameters
+        ----------
+        name_groups : list[list[tuple[int, str]]]
+            List of BIO groups.
+            Each group is a list of tuples, where each tuple if the (index, label) of
+            the original list element.
+
+        Returns
+        -------
+        list[list[int]]
+            List of name_label indices for each name.
+        """
+        constructed_names = []
+
+        # Keep track the last TOK group we come across (moving from last to first).
+        # Also keep track of whether we have used it by prepending a VAR or MOD
+        # group.
+        last_encountered_name = None
+        last_encountered_name_used = False
+
+        # Iterate from last to first BIO group
+        for group in reversed(name_groups):
+            current_group_idx, labels = zip(*group)
+            current_label = self._get_name_group_label(labels)
+
+            if current_label == "TOK":
+                # If we've previously come across a TOK group and haven't used it,
+                # then store it.
+                if last_encountered_name and not last_encountered_name_used:
+                    constructed_names.append(last_encountered_name)
+
+                # Set current group to last_encountered_name group.
+                last_encountered_name = current_group_idx
+                last_encountered_name_used = False
+
+            elif current_label == "VAR":
+                # Prepend this group to last encountered NAME group
+                if last_encountered_name:
+                    constructed_names.append(current_group_idx + last_encountered_name)
+                    last_encountered_name_used = True
+                else:
+                    # If we are here, then we've come across a VAR group that does not
+                    # preceed a TOK group, so the model has made an error in it's
+                    # labelling. Add this VAR group anyway.
+                    constructed_names.append(current_group_idx)
+
+            elif current_label == "MOD":
+                # If we've previously come across a NAME group and haven't used it,
+                # then store it.
+                if last_encountered_name and not last_encountered_name_used:
+                    constructed_names.append(last_encountered_name)
+                    last_encountered_name_used = True
+
+                # Prepend this group to all constructed names so far
+                constructed_names = [
+                    current_group_idx + name for name in constructed_names
+                ]
+
+        # If we've iterated through all BIO groups and haven't used
+        # last_encountered_name, add it to constructed_names now.
+        if last_encountered_name and not last_encountered_name_used:
+            constructed_names.append(last_encountered_name)
+
+        # Return reversed list, so names are in the order they appear in sentence.
+        return list(reversed(constructed_names))
+
+    def _get_name_group_label(self, labels: tuple[str]) -> str:
+        """Get the NAME label type for the labels in a name group.
+
+        One of TOK, VAR, MOD.
+
+        Parameters
+        ----------
+        labels : tuple[str]
+            Tuple of labels for name group elements.
+
+        Returns
+        -------
+        str
+            Group label
+        """
+        for label in labels:
+            if label != "PUNC":
+                return label.split("_")[-1]
+
+        return ""
+
+    def _postprocess_indices(
+        self, label_idx: list[int], selected_label: str
+    ) -> IngredientText | None:
+        """Process list of token indices into a single IngredientText object.
+
+        Consecutive tokens are joined together, with non-consecutive groups being joined
+        by a comma (unless selected_label is NAME).
+
+        Indices for tokens that would be ungrammatical are removed prior to joining.
+        Duplicate tokens that are adjacent are also removed.
+
+        Parameters
+        ----------
+        label_idx : list[int]
+            List of indices of tokens to postprocess into IngredientText
+        selected_label : str
+            Label of tokens being post processed.
+
+        Returns
+        -------
+        IngredientText | None
+            IngredientText object for selected tokens.
+            If the post processing results in all tokens being ignored, return None.
+        """
         # Join consecutive tokens together and average their score
         parts = []
         confidence_parts = []
-        for group in group_consecutive_idx(idx):
+        starting_index = label_idx[-1]
+        for group in group_consecutive_idx(label_idx):
             idx = list(group)
             idx = self._remove_invalid_indices(idx)
 
@@ -205,16 +477,31 @@ class PostProcessor:
                 # Skip if the group only contains PUNC
                 continue
 
-            joined = " ".join([self.tokens[i] for i in idx])
+            # Convert any fractions in intermediate form (i.e. #1$2) into text
+            group_tokens = []
+            for i in idx:
+                if FRACTION_TOKEN_PATTERN.match(self.tokens[i]):
+                    text_fraction = (
+                        self.tokens[i].replace("#", " ").replace("$", "/").strip()
+                    )
+                    # If fraction range, remove space that will follow hyphen caused by
+                    # replacing # with space.
+                    text_fraction = text_fraction.replace("- ", "-")
+                    group_tokens.append(text_fraction)
+                else:
+                    group_tokens.append(self.tokens[i])
+
+            joined = " ".join(group_tokens)
             confidence = mean([self.scores[i] for i in idx])
 
-            if self.discard_isolated_stop_words and joined in STOP_WORDS:
+            if self.discard_isolated_stop_words and joined.lower() in STOP_WORDS:
                 # Skip part if it's a stop word
                 continue
 
             self.consumed.extend(idx)
             parts.append(joined)
             confidence_parts.append(confidence)
+            starting_index = min(starting_index, idx[0])
 
         # Find the indices of the joined tokens list where the element
         # is the same as the previous element in the list.
@@ -238,9 +525,12 @@ class PostProcessor:
         return IngredientText(
             text=text,
             confidence=round(mean(confidence_parts), 6),
+            starting_index=starting_index,
         )
 
-    def _postprocess_amounts(self) -> list[IngredientAmount]:
+    def _postprocess_amounts(
+        self,
+    ) -> list[IngredientAmount | CompositeIngredientAmount]:
         """Process tokens, labels and scores into IngredientAmount.
 
         This is done by combining QTY labels with any following UNIT labels,
@@ -254,8 +544,8 @@ class PostProcessor:
 
         Returns
         -------
-        list[IngredientAmount]
-            List of IngredientAmount objects
+        list[IngredientAmount | CompositeIngredientAmount]
+            List of IngredientAmount and  CompositeIngredientAmount objects.
         """
         self._convert_string_number_qty()
 
@@ -422,7 +712,7 @@ class PostProcessor:
         """
 
         idx_to_keep = []
-        for i, (first, second) in enumerate(pairwise(parts + [""])):
+        for i, (first, second) in enumerate(pairwise([*parts, ""])):
             if first != second:
                 idx_to_keep.append(i)
 
@@ -478,7 +768,7 @@ class PostProcessor:
 
         QTY_idx = [i for i, label in enumerate(self.labels) if label == "QTY"]
 
-        # Find any cases where a group of consecutuve QTY tokens can be collapsed into
+        # Find any cases where a group of consecutive QTY tokens can be collapsed into
         # a single token. Modify the first token and score in the group and mark all
         # others in group for deletion.
         idx_to_remove = []
@@ -539,14 +829,14 @@ class PostProcessor:
 
         For example, for the sentence: 1 28 ounce can; the correct amounts are:
         [
-            IngredientAmount(quantity="1", unit="can", score=0.x...),
-            IngredientAmount(quantity="28", unit="ounce", score=0.x...),
+            IngredientAmount(quantity=Fraction(1, 1), unit="can", score=0.x...),
+            IngredientAmount(quantity=Fraction(28, 1), unit="ounce", score=0.x...),
         ]
 
         Parameters
         ----------
         idx : list[int]
-            List of indices of the tokens/labels/scores in the full tokenizsed sentence
+            List of indices of the tokens/labels/scores in the full tokenized sentence
         tokens : list[str]
             Tokens for input sentence
         labels : list[str]
@@ -571,7 +861,9 @@ class PostProcessor:
         end_units = [
             "bag",
             "block",
+            "bottle",
             "box",
+            "bucket",
             "can",
             "container",
             "envelope",
@@ -659,13 +951,13 @@ class PostProcessor:
         * 1 pint 2 fl oz
         * 2 cups plus 1 tablespoon
 
-        Return a compositive amount object made from the adjacent amounts.
+        Return a composite amount object made from the adjacent amounts.
 
         For example, for the sentence: 1 lb 2 oz ...; the composite amount is:
         CompositeAmount(
             amounts=[
-                IngredientAmount(quantity="1", unit="lb", score=0.x...),
-                IngredientAmount(quantity="2", unit="oz", score=0.x...),
+                IngredientAmount(quantity=Fraction(1, 1), unit="lb", score=0.x...),
+                IngredientAmount(quantity=Fraction(2, 1), unit="oz", score=0.x...),
             ],
             join=""
         )
@@ -673,7 +965,7 @@ class PostProcessor:
         Parameters
         ----------
         idx : list[int]
-            List of indices of the tokens/labels/scores in the full tokenizsed sentence
+            List of indices of the tokens/labels/scores in the full tokenized sentence
         tokens : list[str]
             Tokens for input sentence
         labels : list[str]
@@ -693,6 +985,8 @@ class PostProcessor:
         patterns = {
             "ptfloz": {
                 "pattern": ["QTY", "UNIT", "QTY", "UNIT", "UNIT"],
+                "conjunction": None,
+                "conj_index": None,
                 "start1": 0,
                 "start2": 2,
                 "join": "",
@@ -700,6 +994,8 @@ class PostProcessor:
             },
             "lboz": {
                 "pattern": ["QTY", "UNIT", "QTY", "UNIT"],
+                "conjunction": None,
+                "conj_index": None,
                 "start1": 0,
                 "start2": 2,
                 "join": "",
@@ -707,13 +1003,44 @@ class PostProcessor:
             },
             "plus": {
                 "pattern": ["QTY", "UNIT", "COMMENT", "QTY", "UNIT"],
+                "conjunction": "plus",
+                "conj_index": 2,
                 "start1": 0,
                 "start2": 3,
                 "join": " plus ",
                 "subtractive": False,
             },
+            "plus_punc": {
+                "pattern": ["QTY", "UNIT", "PUNC", "QTY", "UNIT"],
+                "conjunction": "+",
+                "conj_index": 2,
+                "start1": 0,
+                "start2": 3,
+                "join": " + ",
+                "subtractive": False,
+            },
+            "plus_punc_comment": {
+                "pattern": ["QTY", "UNIT", "PUNC", "COMMENT", "QTY", "UNIT"],
+                "conjunction": "plus",
+                "conj_index": 3,
+                "start1": 0,
+                "start2": 4,
+                "join": " plus ",
+                "subtractive": False,
+            },
+            "and": {
+                "pattern": ["QTY", "UNIT", "COMMENT", "QTY", "UNIT"],
+                "conjunction": "and",
+                "conj_index": 2,
+                "start1": 0,
+                "start2": 3,
+                "join": " and ",
+                "subtractive": False,
+            },
             "minus": {
                 "pattern": ["QTY", "UNIT", "COMMENT", "QTY", "UNIT"],
+                "conjunction": "minus",
+                "conj_index": 2,
                 "start1": 0,
                 "start2": 3,
                 "join": " minus ",
@@ -721,6 +1048,8 @@ class PostProcessor:
             },
             "less": {
                 "pattern": ["QTY", "UNIT", "COMMENT", "QTY", "UNIT"],
+                "conjunction": "less",
+                "conj_index": 2,
                 "start1": 0,
                 "start2": 3,
                 "join": " minus ",
@@ -739,13 +1068,14 @@ class PostProcessor:
             start1 = pattern_info["start1"]
             start2 = pattern_info["start2"]
             join = pattern_info["join"]
+            conj_index = pattern_info["conj_index"]
             subtractive = pattern_info["subtractive"]
 
             for match in self._match_pattern(
                 labels, pattern, ignore_other_labels=False
             ):
                 # Check if match fits with "ptfloz" or "lboz" pattern constraints
-                if pattern_name in ["pltfloz", "lboz"]:
+                if pattern_name in ["ptfloz", "lboz"]:
                     first_unit = tokens[match[start1 + 1]]
                     last_unit = tokens[match[-1]]
                     if (
@@ -756,12 +1086,10 @@ class PostProcessor:
                         # ptfloz or lboz patterns, so skip
                         continue
 
-                # Check if match fits with plus/minus/less pattern constraints
-                if pattern_name in ["plus", "minus", "less"]:
-                    if tokens[match[2]].lower() != pattern_name:
-                        # Middle token with COMMENT label is not same as name of pattern
-                        # so skip.
-                        continue
+                # For other patterns, check if token at the conj_index in match matches
+                # conjunction and skip if not.
+                elif tokens[match[conj_index]].lower() != pattern_info["conjunction"]:
+                    continue
 
                 # First amount
                 quantity_1 = tokens[match[start1]]
@@ -830,7 +1158,7 @@ class PostProcessor:
         Parameters
         ----------
         labels : list[str]
-            List of labels of find pattern
+            List of labels to find pattern within.
         pattern : list[str]
             Pattern to match inside labels.
         ignore_other_labels : bool
@@ -863,12 +1191,12 @@ class PostProcessor:
         matches = []
         indices = iter(range(len(lbls)))
         for i in indices:
-            # Short circuit: If the lbls[i] is not equal to the first element
-            # of pattern skip to next iteration
+            # Short circuit: If lbls[i] is not equal to the first element
+            # of pattern, skip to next iteration
             if lbls[i] == pattern[0] and lbls[i : i + plen] == pattern:
                 matches.append(idx[i : i + plen])
                 # Advance iterator to prevent overlapping matches
-                consume(indices, plen)
+                consume(indices, plen - 1)
 
         return matches
 
@@ -891,7 +1219,7 @@ class PostProcessor:
         Parameters
         ----------
         idx : list[int]
-            List of indices of the tokens/labels/scores in the full tokenizsed sentence
+            List of indices of the tokens/labels/scores in the full tokenized sentence
         tokens : list[str]
             Tokens for input sentence
         labels : list[str]
@@ -918,7 +1246,7 @@ class PostProcessor:
             if label == "QTY":
                 # Whenever we come across a new QTY, create new IngredientAmount,
                 # unless the token is "dozen" and the previous label was QTY, in which
-                # case we combine modify the quantity of the previous amount.
+                # case we modify the quantity of the previous amount.
                 if token == "dozen" and labels[i - 1] == "QTY":
                     amounts[-1].quantity = amounts[-1].quantity + " dozen"
                     amounts[-1].confidence.append(score)
@@ -961,7 +1289,11 @@ class PostProcessor:
                 amounts[-1].APPROXIMATE = True
                 amounts[-1].SINGULAR = True
 
-        # Set APPROXIMATE and SINGULAR flags to be the same for all related amounts
+            if self._is_prepared(i, tokens, labels, idx):
+                amounts[-1].PREPARED_INGREDIENT = True
+
+        # Set APPROXIMATE, SINGULAR and PREPARED_INGREDIENT flags to be the same for all
+        # related amounts.
         amounts = self._distribute_related_flags(amounts)
 
         # Loop through amounts list to fix unit and confidence
@@ -983,6 +1315,7 @@ class PostProcessor:
                     starting_index=amount.starting_index,
                     APPROXIMATE=amount.APPROXIMATE,
                     SINGULAR=amount.SINGULAR,
+                    PREPARED_INGREDIENT=amount.PREPARED_INGREDIENT,
                     string_units=self.string_units,
                     imperial_units=self.imperial_units,
                 )
@@ -1009,7 +1342,7 @@ class PostProcessor:
         labels : list[str]
             List of all token labels
         idx : list[int]
-            List of indices of the tokens/labels/scores in the full tokenizsed sentence
+            List of indices of the tokens/labels/scores in the full tokenized sentence
 
         Returns
         -------
@@ -1075,7 +1408,7 @@ class PostProcessor:
         labels : list[str]
             List of all token labels
         idx : list[int]
-            List of indices of the tokens/labels/scores in the full tokenizsed sentence
+            List of indices of the tokens/labels/scores in the full tokenized sentence
 
         Returns
         -------
@@ -1104,7 +1437,7 @@ class PostProcessor:
         if i == len(tokens) - 2:
             return False
 
-        # Case where the amonut is in brackets
+        # Case where the amount is in brackets
         if (
             labels[i] == "UNIT"
             and tokens[i + 1] in [")", "]"]
@@ -1138,7 +1471,7 @@ class PostProcessor:
         labels : list[str]
             List of all token labels
         idx : list[int]
-            List of indices of the tokens/labels/scores in the full tokenizsed sentence
+            List of indices of the tokens/labels/scores in the full tokenized sentence
 
         Returns
         -------
@@ -1168,6 +1501,80 @@ class PostProcessor:
             self.consumed.append(idx[i - 1])
             self.consumed.append(idx[i - 2])
             return True
+
+        return False
+
+    def _is_prepared(
+        self, i: int, tokens: list[str], labels: list[str], idx: list[int]
+    ) -> bool:
+        """Return True is token at current index refers to the prepared ingredient.
+
+        This is determined by the token label being QTY and the previous tokens being in
+        a list of prepared tokens.
+        If the QTY is preceded by a token in APPROXIMATE_TOKENS, then the tokens prior
+        to that are checked for matches against the prepared tokens list.
+
+        If returning True, also add index of tokens from prepared token list to
+        self.consumed list.
+
+        Parameters
+        ----------
+        i : int
+            Index of current token
+        tokens : list[str]
+            List of all tokens
+        labels : list[str]
+            List of all token labels
+        idx : list[int]
+            List of indices of the tokens/labels/scores in the full tokenized sentence
+
+        Returns
+        -------
+        bool
+            True if current token is approximate
+
+        Examples
+        --------
+        >>> p = PostProcessor("", [], [], [])
+        >>> p._is_approximate(
+            2,
+            ["to", "yield", "2", "cups"],
+            ["COMMENT", "COMMENT", "QTY", "UNIT"],
+            [0, 1, 2, 3]
+        )
+        True
+
+        >>> p = PostProcessor("", [], [], [])
+        >>> p._is_approximate(
+            2,
+            ["to", "make", "about", "250", "g"],
+            ["COMMENT", "COMMENT, "COMMENT", "QTY", "UNIT"],
+            [0, 1, 2, 3, 4]
+        )
+        True
+        """
+        # All PREPARED_INGREDIENT_TOKENS have length 2, so cannot be prepared if i < 2.
+        if i < 2:
+            return False
+
+        if labels[i] != "QTY":
+            return False
+
+        for pattern in PREPARED_INGREDIENT_TOKENS:
+            if [t.lower() for t in tokens[i - 2 : i]] == pattern:
+                # Mark i - 1 and i - 2 elements as consumed
+                self.consumed.append(idx[i - 1])
+                self.consumed.append(idx[i - 2])
+                return True
+            elif (
+                i > 2
+                and tokens[i - 1] in APPROXIMATE_TOKENS
+                and [t.lower() for t in tokens[i - 3 : i - 1]] == pattern
+            ):
+                # Mark i - 2 and i - 3 elements as consumed
+                self.consumed.append(idx[i - 2])
+                self.consumed.append(idx[i - 3])
+                return True
 
         return False
 
@@ -1203,6 +1610,10 @@ class PostProcessor:
             if any(am.SINGULAR for am in group):
                 for am in group:
                     am.SINGULAR = True
+
+            if any(am.PREPARED_INGREDIENT for am in group):
+                for am in group:
+                    am.PREPARED_INGREDIENT = True
 
         # Flatten list for return
         return list(chain.from_iterable(grouped))

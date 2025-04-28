@@ -8,7 +8,7 @@ def p():
     """Define an empty PreProcessor object to use for testing the PreProcessor
     class methods.
     """
-    return PreProcessor("", defer_pos_tagging=True)
+    return PreProcessor(".")
 
 
 class TestPreProcessor_collapse_ranges:
@@ -39,3 +39,10 @@ class TestPreProcessor_collapse_ranges:
         """
         input_sentence = "100 -  200 g grated cheese"
         assert p._collapse_ranges(input_sentence) == "100-200 g grated cheese"
+
+    def test_fake_fraction(self, p):
+        """
+        Spaces before and after hyphen are removed
+        """
+        input_sentence = "#1$2 - #3$4 cups grated cheese"
+        assert p._collapse_ranges(input_sentence) == "#1$2-#3$4 cups grated cheese"

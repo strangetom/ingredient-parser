@@ -29,6 +29,24 @@ class TestPostProcessor_composite_amounts_pattern:
             "alternative",
             ")",
         ]
+        pos_tags = [
+            "CD",
+            "JJ",
+            "$",
+            "CD",
+            "JJ",
+            "CD",
+            "NN",
+            "NN",
+            "NN",
+            "NN",
+            "(",
+            "CC",
+            "DT",
+            "JJ",
+            "NN",
+            ")",
+        ]
         labels = [
             "QTY",
             "UNIT",
@@ -37,9 +55,9 @@ class TestPostProcessor_composite_amounts_pattern:
             "UNIT",
             "QTY",
             "UNIT",
-            "NAME",
-            "NAME",
-            "NAME",
+            "B_NAME_TOK",
+            "I_NAME_TOK",
+            "I_NAME_TOK",
             "COMMENT",
             "COMMENT",
             "COMMENT",
@@ -49,7 +67,7 @@ class TestPostProcessor_composite_amounts_pattern:
         ]
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
-        p = PostProcessor(sentence, tokens, labels, scores)
+        p = PostProcessor(sentence, tokens, pos_tags, labels, scores)
 
         expected = [
             CompositeIngredientAmount(
@@ -90,6 +108,7 @@ class TestPostProcessor_composite_amounts_pattern:
         """
         sentence = "1.5 litres/2 pints 12¾fl oz water"
         tokens = ["1.5", "litre", "/", "2", "pint", "12.75", "fl", "oz", "water"]
+        pos_tags = ["CD", "JJ", "$", "CD", "NN", "CD", "NN", "NN", "NN"]
         labels = [
             "QTY",
             "UNIT",
@@ -99,11 +118,11 @@ class TestPostProcessor_composite_amounts_pattern:
             "QTY",
             "UNIT",
             "UNIT",
-            "NAME",
+            "B_NAME_TOK",
         ]
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
-        p = PostProcessor(sentence, tokens, labels, scores)
+        p = PostProcessor(sentence, tokens, pos_tags, labels, scores)
 
         expected = [
             CompositeIngredientAmount(
@@ -145,6 +164,7 @@ class TestPostProcessor_composite_amounts_pattern:
         """
         sentence = "1.5 litres/2 pints 12¾fl oz water"
         tokens = ["1.5", "litre", "/", "2", "pint", "12.75", "fl", "oz", "water"]
+        pos_tags = ["CD", "JJ", "$", "CD", "NN", "CD", "NN", "NN", "NN"]
         labels = [
             "QTY",
             "UNIT",
@@ -154,11 +174,13 @@ class TestPostProcessor_composite_amounts_pattern:
             "QTY",
             "UNIT",
             "UNIT",
-            "NAME",
+            "B_NAME_TOK",
         ]
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
-        p = PostProcessor(sentence, tokens, labels, scores, imperial_units=True)
+        p = PostProcessor(
+            sentence, tokens, pos_tags, labels, scores, imperial_units=True
+        )
 
         expected = [
             CompositeIngredientAmount(
@@ -201,6 +223,7 @@ class TestPostProcessor_composite_amounts_pattern:
         """
         sentence = "1.5 litres/2 pints 12¾fl oz water"
         tokens = ["1.5", "litre", "/", "2", "pint", "12.75", "fl", "oz", "water"]
+        pos_tags = ["CD", "JJ", "$", "CD", "NN", "CD", "NN", "NN", "NN"]
         labels = [
             "QTY",
             "UNIT",
@@ -210,11 +233,11 @@ class TestPostProcessor_composite_amounts_pattern:
             "QTY",
             "UNIT",
             "UNIT",
-            "NAME",
+            "B_NAME_TOK",
         ]
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
-        p = PostProcessor(sentence, tokens, labels, scores, string_units=True)
+        p = PostProcessor(sentence, tokens, pos_tags, labels, scores, string_units=True)
 
         expected = [
             CompositeIngredientAmount(
@@ -272,7 +295,20 @@ class TestPostProcessor_composite_amounts_pattern:
             "all-purpose",
             "flour",
         ]
-
+        pos_tags = [
+            "CD",
+            "NN",
+            "CC",
+            "CD",
+            "NN",
+            "(",
+            "IN",
+            "CD",
+            "NN",
+            ")",
+            "JJ",
+            "NN",
+        ]
         labels = [
             "QTY",
             "UNIT",
@@ -284,12 +320,12 @@ class TestPostProcessor_composite_amounts_pattern:
             "QTY",
             "UNIT",
             "PUNC",
-            "NAME",
-            "NAME",
+            "B_NAME_TOK",
+            "I_NAME_TOK",
         ]
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
-        p = PostProcessor(sentence, tokens, labels, scores)
+        p = PostProcessor(sentence, tokens, pos_tags, labels, scores)
 
         expected = [
             CompositeIngredientAmount(
@@ -324,6 +360,174 @@ class TestPostProcessor_composite_amounts_pattern:
             assert out.starting_index == expected.starting_index
             assert out.combined() == expected.combined()
 
+    def test_plus_punc_pattern(self):
+        """
+        Test that the amounts either side of "+" are returned as a composite amounts
+        """
+        sentence = "1 cup + 2 tablespoons (about 5 ounces) all-purpose flour"
+        tokens = [
+            "1",
+            "cup",
+            "+",
+            "2",
+            "tablespoon",
+            "(",
+            "about",
+            "5",
+            "ounce",
+            ")",
+            "all-purpose",
+            "flour",
+        ]
+        pos_tags = [
+            "CD",
+            "NN",
+            "VBD",
+            "CD",
+            "NN",
+            "(",
+            "IN",
+            "CD",
+            "NN",
+            ")",
+            "JJ",
+            "NN",
+        ]
+        labels = [
+            "QTY",
+            "UNIT",
+            "PUNC",
+            "QTY",
+            "UNIT",
+            "PUNC",
+            "COMMENT",
+            "QTY",
+            "UNIT",
+            "PUNC",
+            "B_NAME_TOK",
+            "I_NAME_TOK",
+        ]
+        scores = [0.0] * len(tokens)
+        idx = list(range(len(tokens)))
+        p = PostProcessor(sentence, tokens, pos_tags, labels, scores)
+
+        expected = [
+            CompositeIngredientAmount(
+                amounts=[
+                    ingredient_amount_factory(
+                        quantity="1",
+                        unit="cup",
+                        text="1 cup",
+                        confidence=0,
+                        starting_index=0,
+                    ),
+                    ingredient_amount_factory(
+                        quantity="2",
+                        unit="tablespoon",
+                        text="2 tablespoons",
+                        confidence=0,
+                        starting_index=3,
+                    ),
+                ],
+                join=" + ",
+                subtractive=False,
+            )
+        ]
+
+        # Don't check scores
+        output = p._composite_amounts_pattern(idx, tokens, labels, scores)
+        assert len(output) == len(expected)
+        for out, expected in zip(output, expected):
+            assert out.amounts == expected.amounts
+            assert out.join == expected.join
+            assert out.confidence == expected.confidence
+            assert out.starting_index == expected.starting_index
+            assert out.combined() == expected.combined()
+
+    def test_and_pattern(self):
+        """
+        Test that the amounts either side of "and" are returned as a composite amounts
+        """
+        sentence = "1 cup and 2 tablespoons (about 5 ounces) all-purpose flour"
+        tokens = [
+            "1",
+            "cup",
+            "and",
+            "2",
+            "tablespoon",
+            "(",
+            "about",
+            "5",
+            "ounce",
+            ")",
+            "all-purpose",
+            "flour",
+        ]
+        pos_tags = [
+            "CD",
+            "NN",
+            "CC",
+            "CD",
+            "NN",
+            "(",
+            "IN",
+            "CD",
+            "NN",
+            ")",
+            "JJ",
+            "NN",
+        ]
+        labels = [
+            "QTY",
+            "UNIT",
+            "COMMENT",
+            "QTY",
+            "UNIT",
+            "PUNC",
+            "COMMENT",
+            "QTY",
+            "UNIT",
+            "PUNC",
+            "B_NAME_TOK",
+            "I_NAME_TOK",
+        ]
+        scores = [0.0] * len(tokens)
+        idx = list(range(len(tokens)))
+        p = PostProcessor(sentence, tokens, pos_tags, labels, scores)
+
+        expected = [
+            CompositeIngredientAmount(
+                amounts=[
+                    ingredient_amount_factory(
+                        quantity="1",
+                        unit="cup",
+                        text="1 cup",
+                        confidence=0,
+                        starting_index=0,
+                    ),
+                    ingredient_amount_factory(
+                        quantity="2",
+                        unit="tablespoon",
+                        text="2 tablespoons",
+                        confidence=0,
+                        starting_index=3,
+                    ),
+                ],
+                join=" and ",
+                subtractive=False,
+            )
+        ]
+
+        # Don't check scores
+        output = p._composite_amounts_pattern(idx, tokens, labels, scores)
+        assert len(output) == len(expected)
+        for out, expected in zip(output, expected):
+            assert out.amounts == expected.amounts
+            assert out.join == expected.join
+            assert out.confidence == expected.confidence
+            assert out.starting_index == expected.starting_index
+            assert out.combined() == expected.combined()
+
     def test_minus_pattern(self):
         """
         Test that the amounts either side of "minus" are returned as a composite amounts
@@ -343,7 +547,20 @@ class TestPostProcessor_composite_amounts_pattern:
             "all-purpose",
             "flour",
         ]
-
+        pos_tags = [
+            "CD",
+            "NN",
+            "CC",
+            "CD",
+            "NN",
+            "(",
+            "IN",
+            "CD",
+            "NN",
+            ")",
+            "JJ",
+            "NN",
+        ]
         labels = [
             "QTY",
             "UNIT",
@@ -355,12 +572,12 @@ class TestPostProcessor_composite_amounts_pattern:
             "QTY",
             "UNIT",
             "PUNC",
-            "NAME",
-            "NAME",
+            "B_NAME_TOK",
+            "I_NAME_TOK",
         ]
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
-        p = PostProcessor(sentence, tokens, labels, scores)
+        p = PostProcessor(sentence, tokens, pos_tags, labels, scores)
 
         expected = [
             CompositeIngredientAmount(
@@ -401,18 +618,106 @@ class TestPostProcessor_composite_amounts_pattern:
         """
         sentence = "2 pints or  40 fl oz water"
         tokens = ["2", "pint", "or", "40", "fl", "oz", "water"]
+        pos_tags = ["CD", "NN", "CC", "CD", "JJ", "JJ", "NN"]
         labels = [
             "QTY",
-            "UNIT" "COMMENT",
+            "UNIT",
+            "COMMENT",
             "QTY",
             "UNIT",
             "UNIT",
-            "NAME",
+            "B_NAME_TOK",
         ]
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
-        p = PostProcessor(sentence, tokens, labels, scores)
+        p = PostProcessor(sentence, tokens, pos_tags, labels, scores)
 
         # Don't check scores
         output = p._composite_amounts_pattern(idx, tokens, labels, scores)
         assert output == []
+
+    def test_plus_punc_comment_pattern(self):
+        """
+        Test that the amounts either side of "plus" are returned as a composite amounts
+        """
+        sentence = "1 cup, plus 2 tablespoons (about 5 ounces) all-purpose flour"
+        tokens = [
+            "1",
+            "cup",
+            ",",
+            "plus",
+            "2",
+            "tablespoon",
+            "(",
+            "about",
+            "5",
+            "ounce",
+            ")",
+            "all-purpose",
+            "flour",
+        ]
+        pos_tags = [
+            "CD",
+            "NN",
+            ",",
+            "CC",
+            "CD",
+            "NN",
+            "(",
+            "IN",
+            "CD",
+            "NN",
+            ")",
+            "JJ",
+            "NN",
+        ]
+        labels = [
+            "QTY",
+            "UNIT",
+            "PUNC",
+            "COMMENT",
+            "QTY",
+            "UNIT",
+            "PUNC",
+            "COMMENT",
+            "QTY",
+            "UNIT",
+            "PUNC",
+            "B_NAME_TOK",
+            "I_NAME_TOK",
+        ]
+        scores = [0.0] * len(tokens)
+        idx = list(range(len(tokens)))
+        p = PostProcessor(sentence, tokens, pos_tags, labels, scores)
+
+        expected = [
+            CompositeIngredientAmount(
+                amounts=[
+                    ingredient_amount_factory(
+                        quantity="1",
+                        unit="cup",
+                        text="1 cup",
+                        confidence=0,
+                        starting_index=0,
+                    ),
+                    ingredient_amount_factory(
+                        quantity="2",
+                        unit="tablespoon",
+                        text="2 tablespoons",
+                        confidence=0,
+                        starting_index=4,
+                    ),
+                ],
+                join=" plus ",
+                subtractive=False,
+            )
+        ]
+        # Don't check scores
+        output = p._composite_amounts_pattern(idx, tokens, labels, scores)
+        assert len(output) == len(expected)
+        for out, expected in zip(output, expected):
+            assert out.amounts == expected.amounts
+            assert out.join == expected.join
+            assert out.confidence == expected.confidence
+            assert out.starting_index == expected.starting_index
+            assert out.combined() == expected.combined()
