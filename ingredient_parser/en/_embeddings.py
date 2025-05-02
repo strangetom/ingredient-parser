@@ -8,9 +8,22 @@ import numpy as np
 
 
 class GloVeModel:
+    """Class to interact with GloVe embeddings.
+
+    Attributes
+    ----------
+    binarized_vectors : dict[str, list[str]]
+        Dict of word: binarized_vector pairs.
+    vec_file : str
+        Path to GloVe embeddings file.
+    vectors : dict[str, np.ndarray]
+        Dict of word: vector pairs.
+    """
+
     def __init__(self, vec_file: str):
         self.vec_file = vec_file
         self._load_vectors_from_file(vec_file)
+        self._binarize_vectors()
 
     def __repr__(self) -> str:
         return f"GloVeModel(vec_file={self.vec_file})"
@@ -51,7 +64,7 @@ class GloVeModel:
         """Load vectors from gzipped txt file in word2vec format.
 
         The first line of the file contains the header which is the vocabulary size
-        (i.e. number of vectors) and the dimenisions of the vectors.
+        (i.e. number of vectors) and the dimensions of the vectors.
 
         All remaining rows contain the token followed by the numeric elements of the
         vector, separated by a space
@@ -61,7 +74,7 @@ class GloVeModel:
         vec_file : str
             File to load vectors from.
         """
-        vectors = {}
+        self.vectors = {}
         with as_file(files(__package__) / vec_file) as p:
             with gzip.open(p, "rt") as f:
                 # Read first line as header
@@ -73,6 +86,41 @@ class GloVeModel:
                     parts = line.rstrip().split()
                     token = parts[0]
                     vector = np.array([float(v) for v in parts[1:]], dtype=np.float32)
-                    vectors[token] = vector
+                    self.vectors[token] = vector
 
-        self.vectors = vectors
+    def _binarize_vectors(self):
+        """Binarize word vectors by converting continuous values into discrete values.
+
+        For each word vector, calculate the average value of the positive elements and
+        the negative elements. Replace each element of each word vector according to:
+        if value < negative_average:
+            "NEG"
+        elif value > positive_average
+            "POS"
+        else
+            "0"
+
+        The resulting word vectors are stored in the binarized_vectors attribute.
+
+        References
+        ----------
+        J. Guo, W. Che, H. Wang, and T. Liu, ‘Revisiting Embedding Features for Simple
+        Semi-supervised Learning’, in Proceedings of the 2014 Conference on Empirical
+        Methods in Natural Language Processing (EMNLP), Doha, Qatar: Association for
+        Computational Linguistics, 2014, pp. 110–120. doi: 10.3115/v1/D14-1012.
+        """
+        self.binarized_vectors = {}
+        for word, vec in self.vectors.items():
+            positive_avg = np.mean(vec[vec > 0])
+            negative_avg = np.mean(vec[vec < 0])
+
+            binarised_vec = []
+            for value in vec:
+                if value < negative_avg:
+                    binarised_vec.append("VNEG")
+                elif value > positive_avg:
+                    binarised_vec.append("VPOS")
+                else:
+                    binarised_vec.append("V0")
+
+            self.binarized_vectors[word] = binarised_vec
