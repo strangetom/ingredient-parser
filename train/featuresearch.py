@@ -13,6 +13,7 @@ from sklearn.model_selection import train_test_split
 from tabulate import tabulate
 from tqdm import tqdm
 
+from .train_model import DEFAULT_MODEL_LOCATION
 from .training_utils import (
     DataVectors,
     evaluate,
@@ -136,8 +137,8 @@ def train_model_feature_search(
             "feature.minfreq": 0,
             "feature.possible_states": True,
             "feature.possible_transitions": True,
-            "c1": 0.25,
-            "c2": 0.75,
+            "c1": 0.6,
+            "c2": 0.5,
             "max_linesearch": 5,
             "num_memories": 3,
             "period": 10,
@@ -177,13 +178,18 @@ def feature_search(args: argparse.Namespace):
     """
     vectors = load_datasets(args.database, args.table, args.datasets)
 
+    if args.save_model is None:
+        save_model = DEFAULT_MODEL_LOCATION
+    else:
+        save_model = args.save_model
+
     argument_sets = []
     for feature_set in DISCARDED_FEATURES.keys():
         arguments = [
             feature_set,
             vectors,
             args.split,
-            args.save_model,
+            save_model,
             args.seed,
             args.keep_models,
         ]
