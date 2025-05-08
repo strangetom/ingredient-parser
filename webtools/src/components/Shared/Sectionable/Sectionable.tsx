@@ -5,7 +5,26 @@ import cx from 'clsx';
 // {{{STYLES}}}
 import { default as classes } from "./Sectionable.module.css"
 
-export interface SectionableProps extends BoxProps {
+
+export function Sectionable({
+  children,
+  ...others
+}: {
+  children?: React.ReactNode
+} & BoxProps) {
+
+  return (
+    <Box
+      className={classes.root}
+      {...others}
+    >
+      {children}
+    </Box>
+  )
+}
+
+export interface SectionableSectionProps extends BoxProps {
+  mounted?: boolean;
   children: React.ReactNode;
   grow?: boolean;
   padded?: boolean;
@@ -14,24 +33,23 @@ export interface SectionableProps extends BoxProps {
   border?: "top" | "bottom" | "left" | "right"
 }
 
-export function Sectionable(props: SectionableProps) {
-
-  const {
-    grow = false,
-    padded = false,
-    bordered = false,
-    full = false,
-    border,
-    children,
-    ...others
-  } = props
+export function SectionableSection({
+  mounted = true,
+  grow = false,
+  padded = false,
+  bordered = false,
+  full = false,
+  border,
+  children,
+  ...others
+}: SectionableSectionProps) {
 
   const wrappable = padded ? (
     <Box
       className={cx(
-        classes.padded,
+        classes.sectionPadded,
         {
-          [classes.full]: full,
+          [classes.sectionFull]: full,
         }
       )}
     >
@@ -39,20 +57,76 @@ export function Sectionable(props: SectionableProps) {
     </Box>
   ) : children
 
-  return (
+  return mounted ? (
     <Box
-      {...others}
       className={cx(
-        classes.root,
+        classes.section,
         {
-          [classes.grow]: grow,
-          [classes.bordered]: bordered,
-          [classes.full]: full,
+          [classes.sectionGrow]: grow,
+          [classes.sectionBordered]: bordered,
+          [classes.sectionFull]: full,
         }
       )}
       data-bordered={(bordered && border) || undefined }
+      {...others}
     >
       {wrappable}
     </Box>
-  )
+  ) : null
 }
+
+Sectionable.Section = SectionableSection
+
+interface SectionableActionBarProps  {
+  mounted?: boolean;
+  position?: "top" | "bottom";
+  children?: React.ReactNode;
+  grow?: boolean
+}
+
+function SectionableActionBar({
+  mounted = true,
+  position = "top",
+  children,
+  grow = false,
+  ...others
+}: SectionableActionBarProps) {
+
+   return mounted ? (
+     <Box
+       className={cx(
+         classes.bar,
+         { [classes.barGrow]: grow }
+       )}
+       data-position={position}
+       {...others}
+     >
+        <Box className={classes.barGroupings}>
+          {children}
+       </Box>
+     </Box>
+   ) : null
+ }
+
+interface ActionBarSubGroupingProps  {
+  children?: React.ReactNode;
+}
+
+Sectionable.ActionBar = SectionableActionBar;
+
+function SectionableActionBarSubGrouping({
+  children,
+  ...others
+}: ActionBarSubGroupingProps) {
+
+  return (
+    <Box
+      className={classes.barSubGroupings}
+      {...others}
+    >
+      {children}
+    </Box>
+  );
+}
+
+Sectionable.ActionBarSubGrouping = SectionableActionBarSubGrouping;

@@ -22,6 +22,26 @@
       background: var(--aqua-alt);
       color: var(--bg);
     }
+    &[data-variant=B_NAME_TOK] {
+        background: var(--aqua-alt);
+        color: var(--bg);
+    }
+    &[data-variant=I_NAME_TOK] {
+        background: var(--aqua-alt);
+        color: var(--bg);
+    }
+    &[data-variant=NAME_VAR] {
+        background: var(--aqua-alt);
+        color: var(--bg);
+    }
+    &[data-variant=NAME_MOD] {
+        background: var(--aqua-alt);
+        color: var(--bg);
+    }
+    &[data-variant=NAME_SEP] {
+        background: var(--aqua-alt);
+        color: var(--bg);
+    }
     &[data-variant=COMMENT] {
       background: var(--purple-alt);
       color: var(--bg);
@@ -46,5 +66,16 @@
       background: var(--orange);
       color: var(--bg);
     }
-
+    &[data-variant=UNIT] {
+      color: var(--bg);
+      background: var(--mantine-color-white);
+    }
+    &[data-variant=OTHER] {
+      color: var(--bg);
+      background: var(--mantine-color-white);
+    }
+    &[data-variant=FOUNDATION_FOODS] {
+      color: var(--bg);
+      background: var(--mantine-color-white);
+    }
 }

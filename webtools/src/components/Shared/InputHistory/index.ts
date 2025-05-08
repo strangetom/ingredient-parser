@@ -1,3 +1,0 @@
-export {
-  InputHistory
-} from "./InputHistory"

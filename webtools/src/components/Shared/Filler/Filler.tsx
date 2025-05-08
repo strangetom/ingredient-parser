@@ -21,10 +21,12 @@ export type SVGIllustration = typeof svgIllustrations[number];
 
 export function Filler({
   text,
-  illustration
+  illustration,
+  children
 }: {
   text: string,
-  illustration: SVGIllustration
+  illustration: SVGIllustration,
+  children?: React.ReactNode
 }) {
 
     const Illo = svgIllutrationsMapped.find(illo => illo.id === illustration)!.component
@@ -32,7 +34,8 @@ export function Filler({
    return (
      <Center className={classes.root}>
         <Illo className={classes.illustration} />
-        <Text variant="light">{text}</Text>
+        <Text className={classes.text}>{text}</Text>
+        {children}
     </Center>
    )
  }

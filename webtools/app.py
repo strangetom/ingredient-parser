@@ -1,33 +1,50 @@
 #!/usr/bin/env python3
 
-import traceback, json, sqlite3, time, subprocess, json, random, logging, re
+# {{DEFAULT}}
+import argparse, traceback, json, sqlite3, time, sys, random, re, io, contextlib
 from importlib.metadata import distribution, PackageNotFoundError
+from threading import Event, Thread
 from pathlib import Path
-from flask import Flask, Response, jsonify, request
+# {{LIBRARIES}}
+from flask import Flask, jsonify, request
 from flask_cors import CORS, cross_origin
-from flask_sock import Sock
+from threading import Lock
+from flask_socketio import SocketIO, emit
+# {{INTERNAL}}
+sys.path.append("..") # force use of local, not system wide ingredient parser installed
+from train import train_single
 from ingredient_parser import inspect_parser
-from ingredient_parser.dataclasses import IngredientText, ParserDebugInfo
+from ingredient_parser.dataclasses import FoundationFood, IngredientAmount, IngredientText, ParserDebugInfo
 
+# globals
 parent_dir = Path(__file__).parent.parent
-
 NPM_BUILD_DIRECTORY = 'build'
 SQL3_DATABASE = parent_dir / 'train/data/training.sqlite3'
 MODEL_REQUIREMENTS = parent_dir / 'requirements-dev.txt'
 
+# sqlite
 sqlite3.register_adapter(list, json.dumps)
 sqlite3.register_converter("json", json.loads)
 
+# flask
 app = Flask(__name__, static_folder=NPM_BUILD_DIRECTORY, static_url_path="/")
 cors = CORS(app)
-sock = Sock(app)
 
-logging.basicConfig(level=logging.INFO)
+# flask socket-io
+#
+# Set async_mode to "threading", "eventlet" or "gevent" to test the
+# different async modes, or leave it set to None for the application to choose
+# the best option based on installed packages.
+async_mode = None
+
+app.config['SECRET_KEY'] = 'secret!'
+socketio = SocketIO(app, async_mode=async_mode, async_handlers=True, cors_allowed_origins="*") # path='/trainer', logger=True, engineio_logger=True
+thread = None
+thread_lock = Lock()
+thread_event = Event()
 
 def error_response(status: int, message: str = ""):
-    """
-    Boilerplate for errors
-    """
+    """Boilerplate for errors"""
     if status == 400:
         return jsonify({
             "status": 400,
@@ -59,7 +76,11 @@ def get_all_marginals(parser_info: ParserDebugInfo) -> list[dict[str, float]]:
     """
 
     labels = [
-        "NAME",
+        "B_NAME_TOK",
+        "I_NAME_TOK",
+        "NAME_VAR",
+        "NAME_MOD",
+        "NAME_SEP",
         "QTY",
         "UNIT",
         "PREP",
@@ -85,9 +106,8 @@ def get_all_marginals(parser_info: ParserDebugInfo) -> list[dict[str, float]]:
 @app.route("/parser", methods=["POST"])
 @cross_origin()
 def parser():
-    """
-    Endpoint for testing and seeing results for the parser from a sentence
-    """
+    """Endpoint for testing and seeing results for the parser from a sentence"""
+
     if request.method == "POST":
         data = request.json
 
@@ -111,7 +131,6 @@ def parser():
                 foundation_foods=foundation_foods
             )
             parsed = parser_info.PostProcessor.parsed
-            parsed.foundation_foods = parser_info.foundation_foods
             marginals = get_all_marginals(parser_info)
 
             return jsonify({
@@ -120,13 +139,17 @@ def parser():
                     parser_info.PostProcessor.labels,
                     marginals,
                 )),
-                "name": parsed.name if parsed.name is not None else IngredientText("", 0),
-                "size": parsed.size if parsed.size is not None else IngredientText("", 0),
-                "amounts": [IngredientText(text=amount.text, confidence=amount.confidence) for amount in parsed.amount] if parsed.amount is not None else [],
-                "preparation": parsed.preparation if parsed.preparation is not None else IngredientText("", 0),
-                "comment": parsed.comment if parsed.comment is not None else IngredientText("", 0),
-                "purpose": parsed.purpose if parsed.purpose is not None else IngredientText("", 0),
-                "foundation_foods": [IngredientText(text=food.text, confidence=food.confidence) for food in parsed.foundation_foods] if parsed.foundation_foods is not None else [],
+                "name": parsed.name if parsed.name is not None else [IngredientText("", 0,0)],
+                "size": parsed.size if parsed.size is not None else IngredientText("", 0,0),
+                "amounts": [
+                    IngredientAmount(quantity=str(amount.quantity), quantity_max=str(amount.quantity_max), text=amount.text, confidence=amount.confidence, starting_index=amount.starting_index, unit=str(amount.unit), APPROXIMATE=amount.APPROXIMATE, SINGULAR=amount.SINGULAR, RANGE=amount.RANGE, MULTIPLIER=amount.MULTIPLIER, PREPARED_INGREDIENT=amount.PREPARED_INGREDIENT) for amount in parsed.amount
+                ] if parsed.amount is not None else [],
+                "preparation": parsed.preparation if parsed.preparation is not None else IngredientText("", 0,0),
+                "comment": parsed.comment if parsed.comment is not None else IngredientText("", 0,0),
+                "purpose": parsed.purpose if parsed.purpose is not None else IngredientText("", 0,0),
+                "foundation_foods": [
+                    FoundationFood(text=food.text, confidence=food.confidence, fdc_id=food.fdc_id,category=food.category, data_type=food.data_type) for food in parsed.foundation_foods
+                ] if parsed.foundation_foods is not None else [],
             })
 
         except Exception as ex:
@@ -139,9 +162,7 @@ def parser():
 @app.route("/labeller/preupload", methods=["POST"])
 @cross_origin()
 def preupload():
-    """
-    Endpoint for getting parsed sentences in prep for uploading new entries
-    """
+    """Endpoint for getting parsed sentences in prep for uploading new entries"""
     if request.method == "POST":
         data = request.json
 
@@ -155,7 +176,7 @@ def preupload():
             for sentence in sentences:
                 parser_info = inspect_parser(sentence=sentence)
                 collector.append({
-                    "id": ''.join(random.choice('0123456789ABCDEF') for _ in range(4)),
+                    "id": ''.join(random.choice('0123456789ABCDEF') for _ in range(6)),
                     "sentence": sentence,
                     "tokens": list(zip(
                         parser_info.PostProcessor.tokens,
@@ -172,65 +193,146 @@ def preupload():
     else:
         return error_response(status=404)
 
+@app.route("/labeller/available-sources", methods=["GET"])
+@cross_origin()
+def available_sources():
+    if request.method == "GET":
+
+        available_sources = []
+
+        try:
+            with sqlite3.connect(SQL3_DATABASE, detect_types=sqlite3.PARSE_DECLTYPES) as conn:
+
+                conn.row_factory = sqlite3.Row
+                cursor = conn.cursor()
+
+                cursor.execute(
+                    """SELECT DISTINCT source FROM en"""
+                )
+                rows = cursor.fetchall()
+                available_sources = [source[0] for source in rows]
+
+            conn.close()
+
+            return jsonify(available_sources)
+
+        except Exception as ex:
+            traced = ''.join(traceback.TracebackException.from_exception(ex).format())
+            return error_response(status=500, message=traced)
+
+    else:
+        return error_response(status=404)
+
 @app.route("/labeller/save", methods=["POST"])
+@cross_origin()
 def labeller_save():
-    """
-    Endpoint for saving sentences to database
-    """
+    """Endpoint for saving sentences to database"""
+
     if request.method == "POST":
         data = request.json
 
         if data is None:
             return error_response(status=404)
 
-        edited = []
-        for item in data["edited"]:
-            tkn, lbl = list(zip(*item["tokens"]))
-            tkn = list(tkn)
-            lbl = list(lbl)
-            edited.append({**item, "tokens": tkn, "labels": lbl})
+        try:
+            edited = []
 
-        removals = []
-        for item in data["removed"]:
-            removals.append(item["id"])
+            for item in data["edited"]:
+                tkn, lbl = list(zip(*item["tokens"]))
+                tkn = list(tkn)
+                lbl = list(lbl)
+                edited.append({**item, "tokens": tkn, "labels": lbl})
 
-        with sqlite3.connect(SQL3_DATABASE, detect_types=sqlite3.PARSE_DECLTYPES) as conn:
-            cursor = conn.cursor()
+            removals = []
 
-            if edited:
-                cursor.executemany(
-                    """UPDATE en
-                    SET
-                    sentence = :sentence,
-                    tokens = :tokens,
-                    labels = :labels,
-                    foundation_foods = :foundation_foods
-                    WHERE id = :id;""",
-                    edited,
-                )
+            for item in data["removed"]:
+                removals.append(item["id"])
 
-            if removals:
-                cursor.execute(
-                    f"""
-                    DELETE FROM en
-                    WHERE id IN ({','.join(['?']*len(removals))})
+            with sqlite3.connect(SQL3_DATABASE, detect_types=sqlite3.PARSE_DECLTYPES) as conn:
+                cursor = conn.cursor()
+
+                if edited and len(edited) != 0:
+                    cursor.executemany("""
+                        UPDATE en
+                        SET
+                            sentence = :sentence,
+                            tokens = :tokens,
+                            labels = :labels
+                        WHERE id = :id;
                     """,
-                    (removals),
-                )
-        conn.close()
+                        edited,
+                    )
 
-        return jsonify({ "test": 1 })
+                if removals and len(removals) != 0:
+                    cursor.execute(f"""
+                        DELETE FROM en
+                        WHERE id IN ({','.join(['?']*len(removals))})
+                    """,
+                        tuple(removals),
+                    )
+
+                conn.commit()
+
+            conn.close()
+
+            return jsonify({ "success": True })
+
+        except Exception as ex:
+            traced = ''.join(traceback.TracebackException.from_exception(ex).format())
+            print(traced)
+            return error_response(status=500, message=traced)
+
+    else:
+        return error_response(status=404)
+
+@app.route("/labeller/bulk-upload", methods=["POST"])
+@cross_origin()
+def labeller_bulk_upload():
+    """Endpoint for saving entirely new sentences in bulk to database"""
+
+    if request.method == "POST":
+        data = request.json
+
+        if data is None:
+            return error_response(status=404)
+
+        try:
+            bulk = []
+
+            for item in data:
+                tkn, lbl = list(zip(*item["tokens"]))
+                tkn = list(tkn)
+                lbl = list(lbl)
+                item.pop("id")
+                bulk.append({**item, "tokens": tkn, "labels": lbl, "sentence_split": [] })
+
+
+            with sqlite3.connect(SQL3_DATABASE, detect_types=sqlite3.PARSE_DECLTYPES) as conn:
+                cursor = conn.cursor()
+
+                cursor.executemany(
+                    """INSERT
+                    INTO en (source, sentence, tokens, labels, sentence_split)
+                    VALUES (:source, :sentence, :tokens, :labels, :sentence_split);""",
+                    bulk,
+                )
+                conn.commit()
+
+            conn.close()
+
+            return jsonify({ "success": True })
+
+        except Exception as ex:
+            traced = ''.join(traceback.TracebackException.from_exception(ex).format())
+            return error_response(status=500, message=traced)
 
     else:
         return error_response(status=404)
 
 @app.route("/labeller/search", methods=["POST"])
+@cross_origin()
 def labeller_search():
-    """
-    Endpoint for applying selected filter to database and returning editable sentences that match the filter.
-
-    TODO: Some skilled SQLite queries should be used for better readibility and performance
-    """
+    """Endpoint for applying selected filter to database and returning editable sentences that match the filter. TODO: Some skilled SQLite queries should be used for better readibility and performance"""
 
     if request.method == "POST":
         data = request.json
@@ -238,112 +340,120 @@ def labeller_search():
         if data is None:
             return error_response(status=404)
 
-        with sqlite3.connect(SQL3_DATABASE, detect_types=sqlite3.PARSE_DECLTYPES) as conn:
-            conn.row_factory = sqlite3.Row
-            cursor = conn.cursor()
+        try:
 
-            offset = data.get("offset", 0)
-            sources = data.get("sources", [])
-            labels = data.get("labels", [])
-            sentence = data.get("sentence", "")
-            whole_word = data.get("wholeWord", False)
-            case_sensitive = data.get("caseSensitive",False)
+            with sqlite3.connect(SQL3_DATABASE, detect_types=sqlite3.PARSE_DECLTYPES) as conn:
+                conn.row_factory = sqlite3.Row
+                cursor = conn.cursor()
 
-            escaped = re.escape(sentence)
+                offset = data.get("offset", 0)
+                sources = data.get("sources", [])
+                labels = data.get("labels", [])
+                sentence = data.get("sentence", "")
+                whole_word = data.get("wholeWord", False)
+                case_sensitive = data.get("caseSensitive",False)
 
-            if whole_word:
-                expression = rf"\b{escaped}\b"
-            else:
-                expression = escaped
+                # reserve ** or ~~ for wildcard, treat as empty string
+                sentence = " " if re.search(r"\*\*|~~", sentence) else sentence
 
-            if case_sensitive:
-                query = re.compile(expression, re.UNICODE)
-            else:
-                query = re.compile(expression, re.UNICODE | re.IGNORECASE)
+                escaped = re.escape(sentence)
 
-            cursor.execute(
-                f"""
-                SELECT *
-                FROM en
-                WHERE source IN ({','.join(['?']*len(sources))})
-                """,
-                (sources),
-            )
-            rows = cursor.fetchall()
-
-            indices = []
-
-            for row in rows:
-
-                if len(labels) == 9:
-                    if query.search(row["sentence"]):
-                        indices.append(row["id"])
+                if whole_word:
+                    expression = rf"\b{escaped}\b"
                 else:
-                    partial_sentence = " ".join(
-                        [
-                            tok
-                            for tok, label in list(zip(row["tokens"], row["labels"]))
-                            if label in labels
-                        ]
-                    )
-                    if query.search(partial_sentence):
-                        indices.append(row["id"])
+                    expression = escaped
 
-            batch_size = 250 # SQLite has a default limit of 999 parameters
-            rows = []
-            for i in range(0, len(indices), batch_size):
-                batch = indices[i:i + batch_size]
+                if case_sensitive:
+                    query = re.compile(expression, re.UNICODE)
+                else:
+                    query = re.compile(expression, re.UNICODE | re.IGNORECASE)
+
                 cursor.execute(
                     f"""
                     SELECT *
                     FROM en
-                    WHERE id IN ({','.join(['?']*len(batch))})
+                    WHERE source IN ({','.join(['?']*len(sources))})
                     """,
-                    (batch),
+                    (sources),
                 )
-                rows += cursor.fetchall()
+                rows = cursor.fetchall()
 
-            data = []
-            for row in rows:
-                data.append({
-                    **row,
-                    "tokens": list(zip(row["tokens"], row["labels"]))
+                indices = []
+
+                for row in rows:
+
+                    if len(labels) == 9:
+                        if query.search(row["sentence"]):
+                            indices.append(row["id"])
+                    else:
+                        partial_sentence = " ".join(
+                            [
+                                tok
+                                for tok, label in list(zip(row["tokens"], row["labels"]))
+                                if label in labels
+                            ]
+                        )
+                        if query.search(partial_sentence):
+                            indices.append(row["id"])
+
+                batch_size = 250 # SQLite has a default limit of 999 parameters
+                rows = []
+                for i in range(0, len(indices), batch_size):
+                    batch = indices[i:i + batch_size]
+                    cursor.execute(
+                        f"""
+                        SELECT *
+                        FROM en
+                        WHERE id IN ({','.join(['?']*len(batch))})
+                        """,
+                        (batch),
+                    )
+                    rows += cursor.fetchall()
+
+                data = []
+                for row in rows:
+                    data.append({
+                        **row,
+                        "tokens": list(zip(row["tokens"], row["labels"]))
+                    })
+
+                batch_size = 999 # SQLite has a default limit of 999 parameters
+                count = []
+                for i in range(0, len(indices), batch_size):
+                    batch = indices[i:i + batch_size]
+                    cursor.execute(
+                        f"""
+                        SELECT COUNT(*)
+                        FROM en
+                        WHERE id IN ({','.join(['?']*len(batch))})
+                        """,
+                        (batch),
+                    )
+                    count += [cursor.fetchone()[0]]
+
+                final = dict({
+                    "data": data[offset:offset+250],
+                    "total": sum(count),
+                    "offset": offset
                 })
 
-            batch_size = 999 # SQLite has a default limit of 999 parameters
-            count = []
-            for i in range(0, len(indices), batch_size):
-                batch = indices[i:i + batch_size]
-                cursor.execute(
-                    f"""
-                    SELECT COUNT(*)
-                    FROM en
-                    WHERE id IN ({','.join(['?']*len(batch))})
-                    """,
-                    (batch),
-                )
-                count += [cursor.fetchone()[0]]
 
-            final = dict({
-                "data": data[offset:offset+250],
-                "total": sum(count),
-                "offset": offset
-            })
+            conn.close()
 
+            return jsonify(final)
 
-        conn.close()
-
-        return jsonify(final)
+        except Exception as ex:
+            traced = ''.join(traceback.TracebackException.from_exception(ex).format())
+            return error_response(status=500, message=traced)
 
     else:
         return error_response(status=404)
 
 
 @app.route('/train/precheck')
+@cross_origin()
 def pre_check():
-    """
-    Endpoint for a precheck to determine if the 'train model' feature should be available on the web tool; looks at requirements.txt files
-    """
+    """Endpoint for a precheck to determine if the 'train model' feature should be available on the web tool; looks at requirements.txt files"""
 
     checks = { "passed": [], "failed": [] }
     satisfied = True
@@ -377,61 +487,100 @@ def pre_check():
 
     return jsonify({ "checks": checks, "passed": satisfied })
 
-@sock.route('/echo')
-def echo(ws):
-    """
-    Endpoint for testing basic websockets with comms between webtool and server to trigger and monitor processed
+def background_thread(thread_event):
+    """Background thread for training behind web sockets"""
 
-    TODO: Needs a little TLC and engineering perspective before deciding best approach
-    """
+    global thread
 
-    while True:
+    try:
 
-        data = ws.receive()
-        msg = data.strip()
+            args = {
+                'database': SQL3_DATABASE,
+                'table': 'en',
+                'datasets': ["bbc", "cookstr", "nyt", "allrecipes", "tc"],
+                'model': 'parser',
+                'save_model': None,
+                'split': 0.20,
+                'seed': None,
+                'html': None,
+                'detailed': None,
+                'confusion': None
+            }
 
-        if msg == 'connection':
-            ws.send(json.dumps({"status":"successfully connected", "output": None }))
-
-        elif msg == 'train':
-
-            proc = subprocess.Popen(
-                #["python3.12", "train.py", "train", "--model", "parser", "--database", "train/data/training.sqlite3"],
-                ['bash', '-c', 'for i in {1..5}; do echo "Current time: $(date)"; sleep 1; done'],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                shell=False
-            )
-
-            while proc.poll() is None:
-
-                data = ws.receive()
-                msg = data.strip()
-
-                if msg == 'check' or msg == 'train':
-                    ws.send(json.dumps({"status":"training in progress", "output": None }))
-
-                elif msg == 'interrupt':
-                    subprocess.call(['kill', str(proc.pid)])
-                    ws.send(json.dumps({"status":"interrupted", "output": None }))
+            def monitor_stdout(output_buffer, interval=0.1):
+                """Monitors the output buffer for new content and calls my_function."""
+                last_position = 0
+                while True:
+                    time.sleep(interval)
+                    current_output = str(output_buffer.getvalue())
+                    if len(current_output) > last_position:
+                        new_output = current_output[last_position:]
+                        if thread_event.is_set():
+                            socketio.emit('trainer', {'data': [ln.strip() for ln in new_output.splitlines()], 'indicator': 'Logging', 'message': '' })
+                        last_position = len(current_output)
 
 
-            stdout, stderr = proc.communicate()
+            captured_output = io.StringIO()
 
-            if stderr.decode('utf-8') == '':
-                ws.send(json.dumps({
-                    "status": "done",
-                    "output": stdout.decode('utf-8').splitlines()
-                }))
-            else:
-                ws.send(json.dumps({
-                    "status": "done",
-                    "output": stderr.decode('utf-8').splitlines()
-                }))
+            # Start the monitoring thread
+            monitor_thread = Thread(target=monitor_stdout, args=(captured_output,),)
+            monitor_thread.daemon = True  # Allow the main thread to exit even if this is running
+            monitor_thread.start()
 
+            with contextlib.redirect_stdout(captured_output):
+                train_single(argparse.Namespace(**args))
+
+            socketio.emit('status', {'data': [], 'indicator': 'Completed', 'message': ''})
+
+    except Exception as e:
+        traced = ''.join(traceback.TracebackException.from_exception(e).format())
+        socketio.emit('status', {'data': [], 'indicator': 'Error', 'message': traced})
+
+    finally:
+        thread_event.clear()
+        thread = None
+
+@socketio.on('train')
+def train_start(data):
+    """Web socket receives request to start the training"""
+    global thread
+    global thread_native_id
+    with thread_lock:
+        if thread is None:
+            thread_event.set()
+            thread = socketio.start_background_task(background_thread, thread_event)
+            thread_native_id = thread.native_id
+            emit('status', {'data': [], 'indicator': 'Training', 'message': 'Thread ID is {}'.format(thread_native_id) })
+
+@socketio.on('interrupt')
+def train_interrupted(data):
+    """Web socket receives request to cancel — killing Python threading is discouraged, see https://docs.python.org/3/library/threading.html"""
+    global thread
+    global thread_native_id
+    thread_event.clear()
+    with thread_lock:
+        if thread is not None:
+            emit('status', {'data': [], 'indicator': 'Interrupted', 'message': 'Be aware that interupting the training will not terminate the process due to how threading works (thread ID ={})'.format(thread_native_id) })
+            thread.join()
+            thread = None
+            thread_native_id = None
+
+@socketio.on('connect')
+def connect():
+    """Web socket sends comms to connect"""
+    emit('status', {'data': [], 'indicator': 'Connected', 'message': '' })
+
+@socketio.on('disconnect')
+def disconnect():
+    """Web socket sends comms to disconnect"""
+    emit('status', {'data': [], 'indicator': 'Disconnected', 'message': ''})
 
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 @cross_origin()
+
 def catch_all(path):
     return app.send_static_file("index.html")
+
+if __name__ == '__main__':
+    socketio.run(app, debug=True, port=5000)

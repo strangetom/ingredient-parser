@@ -1,25 +1,30 @@
 {
   "name": "Ingredient Parser Web Tool",
   "version": "0.1.1",
-  "description": "Web tool for www.github.com/strangetom/ingredient-parser",
+  "description": "Web tool for Ingredient Parser from @strangetom",
   "main": "index.tsx",
   "private": true,
   "dependencies": {
-    "@mantine/core": "^7.12.2",
-    "@mantine/hooks": "^7.12.2",
-    "@mantine/notifications": "^7.12.2",
+    "@mantine/core": "^7.17.5",
+    "@mantine/dropzone": "^7.17.5",
+    "@mantine/hooks": "^7.17.5",
+    "@mantine/notifications": "^7.17.5",
     "@tabler/icons-react": "^3.5.0",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.3.0",
-    "react-virtualized": "^9.22.5"
+    "react-use-websocket": "^4.0.0",
+    "react-virtualized": "^9.22.5",
+    "socket.io-client": "^4.8.1",
+    "zustand": "^5.0.3"
   },
   "scripts": {
-    "start": "vite",
-    "build": "vite build",
-    "preview": "vite preview",
+    "dev": "vite",
+    "watch": "vite build --watch",
+    "flask": "python3_path=$(which python3) && \"$python3_path\" app.py",
+    "flask-sockets": "python3_path=$(which python3) && \"$python3_path\" app.sockets.py",
     "lint": "eslint ."
   },
   "overrides": {

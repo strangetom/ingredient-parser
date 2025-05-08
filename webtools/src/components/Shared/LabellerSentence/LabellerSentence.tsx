@@ -1,77 +1,84 @@
 // {{{EXTERNAL}}}
 import React, { useCallback, useState } from "react"
-import { ActionIcon, Badge, Box, Checkbox, CopyButton, ScrollArea, ScrollAreaProps, Tooltip, TooltipProps, ActionIconProps, BoxProps } from "@mantine/core"
+import { Box, CopyButton, BoxProps, Text } from "@mantine/core"
 import { UseListStateHandlers} from "@mantine/hooks"
 import cx from 'clsx';
 // {{{INTERNAL}}}
-import { Labeller, LabellerProps, Token, ActionIconTooltipped } from "../";
+import { Labeller, LabellerProps, ActionIconTooltipped } from "../";
+import { ParsedSentenceEditable, Token } from "../../../domain/types";
 // {{{STYLES}}}
 import { default as classes } from "./LabellerSentence.module.css"
-import { Icon, IconCheck, IconCopy, IconCopyCheck, IconDots, IconProps, IconTrash, IconTrashFilled, IconTrashXFilled } from "@tabler/icons-react";
+// {{{ASSETS}}}
+import { IconCopy, IconCopyCheck, IconEye, IconEyeX, IconTrash, IconTrashXFilled } from "@tabler/icons-react";
 
-export const tsk = ["copy", "remove"] as const;
+export const tsk = ["copy", "remove", "plain"] as const;
 export type Task = typeof tsk[number];
 
 export interface LabellerSentenceProps extends BoxProps {
-  identifier?: number | string;
+  sentence?: ParsedSentenceEditable,
   tasks?: Task[];
   listable?: boolean;
   labellerProps?: LabellerProps;
-  tokens: Token[];
-  handler?: UseListStateHandlers<any>,
-  sentence: string;
+  handler?: Omit<UseListStateHandlers<ParsedSentenceEditable>, 'setState'> & { set: (items: ParsedSentenceEditable[]) => void},
   index?: number;
 }
 
 export function LabellerSentence({
-  identifier,
+  sentence,
   tasks = [],
   listable,
-  tokens = [],
-  sentence,
   handler,
   labellerProps,
   ...others
 }: LabellerSentenceProps) {
 
-  const [selected, setSelected] = useState(false)
+  if(!sentence) return null
+
+  const [deletion, setDeletion] = useState(sentence?.removed || false)
+  const [edited, setEdited] = useState(sentence?.edited || false)
+  const [plain, setPlain] = useState(false)
 
   const onSetForRemovalHandler = useCallback(()=>{
-    setSelected(o=>!o)
+    setDeletion(o => !o)
     if(handler) {
       handler.applyWhere(
-        (item) => item.id === identifier,
+        (item) => item.id === sentence.id,
         (item) => ({ ...item, removed: true  })
       );
     }
-  },[handler, identifier])
+  }, [handler, sentence.id])
 
   const onRevertRemovalHandler = useCallback(()=>{
-    setSelected(o=>!o)
+    setDeletion(o => !o)
     if(handler) {
       handler.applyWhere(
-        (item) => item.id === identifier,
+        (item) => item.id === sentence.id,
         (item) => {
           const { removed, ...others } = item
           return ({ ...others })
         }
       );
     }
-  },[handler])
+  }, [handler, sentence.id])
 
-  const labellers = tokens.map((tkn, i) =>
-    <Labeller {...labellerProps} key={"token-" + i} token={tkn} handler={handler} identifier={identifier}/>
+  const labellers = sentence.tokens.map((tkn, i) =>
+    <Labeller
+      key={"token-" + i}
+      position={i % 2 === 0 ? "top" : "bottom"}
+      token={tkn}
+      handler={handler}
+      identifier={sentence.id}
+      {...labellerProps}
+    />
   )
 
-  const scrollable = (
-    <Box
-      className={classes.sentence}
-    >
-      {labellers}
-    </Box>
+  const words = (
+    <Text variant="light" fz="1.25em" p="0 calc(var(--small-spacing) / 2)">
+      {sentence.sentence}
+    </Text>
   )
 
-  const wrapper = (tasks) ? (
+  const wrapper = tasks ? (
     <Box
       {...others}
       className={cx({
@@ -80,45 +87,67 @@ export function LabellerSentence({
       }
     >
       <Box
-        data-selected={selected || undefined}
-        className={cx(
-          classes.root,
-          {
-            [classes.spacerLeft]: tasks.length !== 0,
-            [classes.spacerRight]: tasks.length !== 0
-          })
-        }
+        data-deletion={deletion || undefined}
+        data-edited={edited || undefined}
+        className={classes.root}
       >
-        <Box className={classes.identifable}>
-          {identifier}
+        {
+          sentence.id &&
+          <Box className={classes.identifable}>
+            {sentence.id}
+          </Box>
+        }
+        <Box
+          className={classes.sentence}
+        >
+          {plain ? words : labellers}
         </Box>
-        {scrollable}
-        <Box className={classes.editable}>
-          {
-            tasks.includes('copy') &&
-            <CopyButton value={sentence}>
-              {({ copied, copy }) => (
-                copied ? (
-                  <ActionIconTooltipped iconography={IconCopyCheck} text="copied" />
-                ): (
-                  <ActionIconTooltipped iconography={IconCopy} text="copy sentence" onClick={copy} />
+        {
+          tasks.length !== 0 &&
+          <Box className={classes.editable}>
+            {
+              tasks.includes('plain') && (
+                plain ? (
+                  <ActionIconTooltipped iconography={IconEyeX} onClick={() => setPlain(false)} text="View tokens" />
+                ) : (
+                  <ActionIconTooltipped iconography={IconEye} onClick={() => setPlain(true)} text="View plain" />
                 )
-              )}
-            </CopyButton>
-          }
-          {
-            tasks.includes('remove') && (
-              selected ? (
-                <ActionIconTooltipped iconography={IconTrashXFilled} onClick={onRevertRemovalHandler} text="undo removal" actionIconProps={{ color: "red"}} />
-              ) : (
-                <ActionIconTooltipped iconography={IconTrash} onClick={onSetForRemovalHandler} text="mark for removal" actionIconProps={{ color: "red"}} />
               )
-            )
-          }
-        </Box>
+            }
+            {
+              tasks.includes('copy') &&
+              <CopyButton value={sentence.sentence}>
+                {({ copied, copy }) => (
+                  copied ? (
+                    <ActionIconTooltipped iconography={IconCopyCheck} text="Copied" />
+                  ) : (
+                    <ActionIconTooltipped iconography={IconCopy} text="Copy" onClick={copy} />
+                  )
+                )}
+              </CopyButton>
+            }
+            {
+              tasks.includes('remove') && (
+                deletion ? (
+                  <ActionIconTooltipped iconography={IconTrashXFilled} onClick={onRevertRemovalHandler} text="Undo removal" actionIconProps={{ color: "red" }} />
+                ) : (
+                  <ActionIconTooltipped iconography={IconTrash} onClick={onSetForRemovalHandler} text="Mark for removal" actionIconProps={{ color: "red" }} />
+                )
+              )
+            }
+          </Box>
+        }
       </Box>
     </Box>
-  ) : scrollable
+  ) : (
+    <Box {...others}>
+      <Box
+        className={classes.sentence}
+      >
+        {plain ? words : labellers}
+      </Box>
+    </Box>
+  )
 
   return (
     wrapper

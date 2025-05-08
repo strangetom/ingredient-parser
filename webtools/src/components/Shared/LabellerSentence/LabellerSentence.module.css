@@ -1,7 +1,11 @@
 .root {
     position: relative;
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
 
-    &[data-selected] {
+    &[data-deletion] {
         .sentence{
             opacity: 0.11;
         }
@@ -13,11 +17,11 @@
 
 .sentence {
     position: relative;
+    flex-basis: 100%;
     white-space: nowrap;
     overflow-x: auto;
-    overflow-y: hidden;
     margin: 0;
-    padding-top: 18px;
+    padding: 18px 0;
 }
 
 .listable {
@@ -33,9 +37,30 @@
 }
 
 .editable {
+    padding: 0 var(--small-spacing);
+    flex-basis: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: row;
+    gap: var(--small-spacing);
+}
+
+.identifable {
+    padding: 0 var(--small-spacing);
+    flex-basis: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    gap: var(--small-spacing);
+    font-size: .75rem;
+}
+
+
+.editable2 {
     position: absolute;
     right: 0;
-    width: 60px;
     transform: translateY(-50%);
     top: 50%;
     z-index: 1;
@@ -46,7 +71,7 @@
     gap: var(--small-spacing);
 }
 
-.identifable {
+.identifable2 {
     position: absolute;
     left: 0;
     width: 60px;

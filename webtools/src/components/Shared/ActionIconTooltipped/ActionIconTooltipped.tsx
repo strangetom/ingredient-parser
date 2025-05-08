@@ -14,24 +14,31 @@ interface ActionIconTooltippedProps  {
 }
 
 export function ActionIconTooltipped({
-  tooltipProps = {
-    withArrow: false,
-    position: "left",
-    style: { padding: "var(--xxsmall-spacing) var(--xsmall-spacing)", fontSize: ".75rem" }
-  },
-  actionIconProps = {
-    variant: "dark"
-  },
+  tooltipProps,
+  actionIconProps,
   onClick,
   text,
   iconography
-}: ActionIconTooltippedProps){
+}: ActionIconTooltippedProps) {
+
+  const defaultTooltipProps = {
+    withArrow: false,
+    withinPortal: false,
+    position: "left",
+    style: { padding: "var(--xxsmall-spacing) var(--xsmall-spacing)", fontSize: ".75rem" },
+    ...tooltipProps
+  } as Partial<TooltipProps>
+
+  const defaultActionIconProps = {
+    variant: "dark",
+    ...actionIconProps
+  }
 
   const Iconography = iconography
 
   return (
-    <Tooltip {...tooltipProps} label={text}>
-      <ActionIcon {...actionIconProps} onClick={onClick} title={text}>
+    <Tooltip label={text} {...defaultTooltipProps}>
+      <ActionIcon {...defaultActionIconProps} onClick={onClick} title={text}>
         <Iconography size={16} />
       </ActionIcon>
     </Tooltip>

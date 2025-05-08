@@ -1,24 +1,32 @@
 .root {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.section {
     display: flex;
     flex-direction: column;
     flex-grow: 0;
     position: relative;
 }
 
-.grow {
+.sectionGrow {
     flex-grow: 1 !important;
 }
 
-.full {
+.sectionFull {
     height: 100%;
     width: 100%;
 }
 
-.padded {
+.sectionPadded {
     padding: var(--small-spacing) var(--small-spacing);
 }
 
-.bordered {
+.sectionBordered {
 
     &[data-bordered=right] {
         border-right: 1px solid color-mix(in srgb,var(--fg),transparent 66%);
@@ -32,4 +40,44 @@
     &[data-bordered=top] {
         border-top: 1px solid color-mix(in srgb,var(--fg),transparent 66%);
     }
+}
+
+.bar {
+    display: flex;
+    flex-grow: 0;
+    position: relative;
+
+    &[data-position=top]{
+        border-bottom: 1px solid color-mix(in srgb,var(--fg),transparent 66%);
+    }
+    &[data-position=bottom]{
+        border-top: 1px solid color-mix(in srgb,var(--fg),transparent 66%);
+    }
+}
+
+.barGrow {
+    flex-grow: 1 !important;
+}
+
+.barGroupings {
+    width: 100%;
+    height: 100%;
+    padding: var(--small-spacing);
+    gap: var(--small-spacing);
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+
+    & > * {
+        flex-basis: auto;
+    }
+}
+
+.barSubGroupings {
+    gap: var(--small-spacing);
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
 }

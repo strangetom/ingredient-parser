@@ -1,30 +1,53 @@
 // {{{EXTERNAL}}}
-import React, { useCallback, useRef} from "react"
-import { UseListStateHandlers } from "@mantine/hooks";
+import React, { useCallback} from "react"
+import { Box } from "@mantine/core";
 import { List as ListVirtual, AutoSizer } from 'react-virtualized';
+import { useShallow } from "zustand/react/shallow";
 // {{{INTERNAL}}}
-import { LabellerSentence, LabellerSentenceProps, Scrollable, ScrollableProps } from "../"
-import { Box, MantineStyleProp } from "@mantine/core";
-// {{{STYLES}}}
+import { LabellerProps, LabellerSentence, LabellerSentenceProps, ScrollableProps } from "../"
+import { useTabLabellerStore, ParsedSentenceEditable } from "../../../domain";
 
 export interface ScrollableVirtualizedProps extends ScrollableProps {
-  items: any[];
-  handler?: UseListStateHandlers<any>,
-  labellerSentenceProps?: Omit<LabellerSentenceProps, 'tokens' | 'sentence'>
+  parsedSentencesProvided?: ParsedSentenceEditable[];
+  parsedSentencesProvidedHandler?: any;
+  labellerSentenceProps?: Omit<LabellerSentenceProps, 'tokens' | 'sentence'>,
+  labellerProps?: LabellerProps
 }
 
 export function ScrollableVirtualized({
-  items,
-  handler,
-  labellerSentenceProps = {
-    labellerProps: {
-      editMode: true
-    },
-    listable: true,
-    tasks: ["remove", "copy"]
-  },
+  parsedSentencesProvided,
+  parsedSentencesProvidedHandler,
+  labellerSentenceProps,
+  labellerProps,
   ...others
 }: ScrollableVirtualizedProps) {
+
+  // Default to labeller store for sentences
+  const {
+    parsedSentences,
+    parsedSentencesHandler
+  } = useTabLabellerStore(
+    useShallow((state) => ({
+      parsedSentences: state.parsedSentences,
+      parsedSentencesHandler: state.parsedSentencesHandler
+    })),
+  )
+
+  const handler = (parsedSentencesProvided && parsedSentencesProvidedHandler) || parsedSentencesHandler
+  const items = (parsedSentencesProvidedHandler && parsedSentencesProvided) || parsedSentences
+
+  const defaultLabellerSentenceProps = {
+    listable: true,
+    tasks: ["remove", "copy"],
+    handler: handler,
+    ...labellerSentenceProps
+  } as Omit<LabellerSentenceProps, 'tokens' | 'sentence'>
+
+  const defaultLabellerProps = {
+    editMode: false,
+    handler: handler,
+    ...labellerProps
+  } as LabellerProps
 
   const sentenceListRenderer = useCallback(function({
     index,
@@ -35,31 +58,30 @@ export function ScrollableVirtualized({
   }) {
     return (
       <LabellerSentence
-        {...labellerSentenceProps}
-        style={style}
         key={"labeller-sentence-" + index}
-        identifier={items![index].id}
-        tokens={items![index].tokens}
-        sentence={items![index].sentence}
-        handler={handler}
-        w="100%"
+        style={style}
+        sentence={items[index]}
+        labellerProps={defaultLabellerProps}
+        {...defaultLabellerSentenceProps}
       />
     );
-  }, [items])
+  }, [parsedSentences])
 
   return (
     <Box {...others}>
+
       <AutoSizer>
       {({ width, height }) => (
         <ListVirtual
           width={width}
           height={height}
           rowCount={items.length}
-          rowHeight={72}
+          rowHeight={92}
           rowRenderer={sentenceListRenderer}
         />
       )}
       </AutoSizer>
+
     </Box>
   )
 }

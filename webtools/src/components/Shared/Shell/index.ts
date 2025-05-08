@@ -1,6 +1,5 @@
 export {
-  Shell,
-  ShellContext
+  Shell
 } from "./Shell"
 
 export type {

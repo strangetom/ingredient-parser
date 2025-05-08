@@ -8,6 +8,7 @@ pytest
 coverage
 tqdm
 Flask
+Flask-SocketIO
 tabulate
 matplotlib
 -e .

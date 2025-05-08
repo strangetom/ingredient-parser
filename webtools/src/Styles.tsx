@@ -1,6 +1,6 @@
 // {{{EXTERNAL}}}
 import React from "react";
-import { Input, MantineProvider, createTheme, Checkbox, Radio, Anchor, Switch, List, Avatar, SimpleGrid, Paper, Stack, Group, Flex, Text, AppShell, Title, Overlay, Progress, Dialog, ModalRoot, Modal, Center, Button, Grid, Menu, Tooltip, Badge, Kbd, Select, SegmentedControl, MantineThemeComponents, Accordion, Affix, Image, Combobox, RadioIndicator, MultiSelect, Pill, Divider, Container, Loader, Slider, ActionIcon, Indicator, Spoiler, Drawer, Code, UnstyledButton, Skeleton, ScrollArea, Notification, Pagination } from "@mantine/core";
+import { Input, MantineProvider, createTheme, Checkbox, Radio, Anchor, Switch, List, Avatar, SimpleGrid, Paper, Stack, Group, Flex, Text, AppShell, Title, Overlay, Progress, Dialog, ModalRoot, Modal, Center, Button, Grid, Menu, Tooltip, Badge, Kbd, Select, SegmentedControl, MantineThemeComponents, Accordion, Affix, Image, Combobox, RadioIndicator, MultiSelect, Pill, Divider, Container, Loader, Slider, ActionIcon, Indicator, Spoiler, Drawer, Code, UnstyledButton, Skeleton, ScrollArea, Notification, Pagination, Popover, Table } from "@mantine/core";
 import { Notifications } from '@mantine/notifications';
 // {{{ INTERNAL }}}
 import { default as unstyledButtonClasses } from './styles/mantine/UnstyledButton.module.css';
@@ -42,6 +42,9 @@ import { default as paginationClasses } from './styles/mantine/Pagination.module
 import { default as notificationsClasses } from './styles/mantine/Notifications.module.css';
 import { default as codeClasses } from './styles/mantine/Code.module.css';
 import { default as pillClasses } from './styles/mantine/Pill.module.css';
+import { default as popoverClasses } from './styles/mantine/Popover.module.css';
+import { default as tableClasses } from './styles/mantine/Table.module.css';
+
 
 export function GlobalStyles({
   children
@@ -56,6 +59,12 @@ export function GlobalStyles({
     }),
     Pill: Pill.extend({
       classNames: pillClasses
+    }),
+    Table: Table.extend({
+      classNames: tableClasses
+    }),
+    Popover: Popover.extend({
+      classNames: popoverClasses
     }),
     Drawer: Drawer.extend({
       classNames: drawerClasses
@@ -231,7 +240,7 @@ export function GlobalStyles({
     scale: 1,
     components: components,
     fontFamily: '"Work Sans", sans-serif',
-    headings: { fontFamily: '"Londrina Solid", sans-serif' },
+    headings: { fontFamily: '"Work Sans", sans-serif' },
   })
 
   return (

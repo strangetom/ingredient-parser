@@ -32,27 +32,3 @@ h1, h2, h3, h4, h5, h6 {
 main {
   margin: 0 auto;
 }
-
-table {
-  margin: 0 auto;
-  width: 95%;
-  font-size: 1.2rem;
-  border: 3px solid var(--fg-3);
-  border-radius: var(--medium-radius);
-  border-collapse: collapse;
-}
-tr:nth-of-type(odd) {
-  background-color: var(--bg-2);
-}
-tr:nth-of-type(even) {
- background-color: var(--bg-1);
-}
-
-td {
-  position: relative;
-  padding: 0 .5rem;
-  border: 1px solid var(--fg-3);
-}
-td:first-of-type {
-  width: 15ch;
-}

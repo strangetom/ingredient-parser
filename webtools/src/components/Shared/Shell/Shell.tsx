@@ -1,246 +1,153 @@
 // {{{EXTERNAL}}}
-import React, { createContext, useEffect, useMemo, useRef, useState } from 'react';
-import { Anchor, AppShell, Badge, Burger, Divider, Flex, Group, List, Loader, Title, Tooltip } from '@mantine/core';
-import { useDisclosure } from '@mantine/hooks';
-// {{{ASSETS}}}
-import { ReactComponent as Logo } from "../../../assets/logo.svg"
-import { Icon, IconAbc, IconHelp, IconProps, IconQuestionMark, IconSparkles, IconTags } from "@tabler/icons-react"
+import React, { useMemo } from 'react';
+import { ActionIcon, Anchor, AppShell, Flex, Group, Loader, Stack, Text, TooltipProps } from '@mantine/core';
+import { useShallow } from 'zustand/react/shallow';
+import cx from "clsx"
+// {{INTERNAL}}
+import { useAppShellStore, useTabTrainerStore } from '../../../domain';
+import { TooltipExtended } from '../../MantineExtensions';
+import { ShellWebSocketListener } from '../ShellWebSocketListener';
+import { TabTitleListener } from '../TabTitleListener';
 // {{{STYLES}}}
 import { default as classes } from './Shell.module.css';
-import { notifications } from '@mantine/notifications';
-
-const linkIdentifiers = [
-  "parser",
-  "labeller",
-  "train"
-] as const;
-
-export type LinkIdentifier = typeof linkIdentifiers[number];
-
-export interface Link {
-  link: string;
-  label: string;
-  id: LinkIdentifier;
-  icon: React.ForwardRefExoticComponent<IconProps & React.RefAttributes<Icon>>,
-  loading?: boolean;
-  disabled: boolean;
-}
-
-export const links: Link[] = [
-  { link: '', label: 'Try Parser', id: "parser", icon: IconAbc, disabled: false },
-  { link: '', label: 'Adjust Labeller', id: "labeller", icon: IconTags, disabled: false },
-  { link: '', label: 'Train Model', id: "train", icon: IconSparkles, disabled: false }
-];
-
-interface ShellContextProps {
-  links: Link[],
-  active: LinkIdentifier,
-  setActive: React.Dispatch<React.SetStateAction<LinkIdentifier>>,
-  precheckPassed: boolean,
-  setPrecheckPassed: React.Dispatch<React.SetStateAction<boolean>>
-}
-
-export const ShellContext = createContext<ShellContextProps>({
-  links: links,
-  active: 'parser',
-  setActive: () => undefined,
-  precheckPassed: false,
-  setPrecheckPassed: () => undefined
-});
-
-export type Tab = {
-  id: LinkIdentifier,
-  component: React.ReactNode
-}
-
-type RunModelStatus = {
-  loading: boolean,
-  precheck: boolean;
-  error: boolean;
-  success: boolean;
-}
-
-export interface RunModelContextProps {
-  status: RunModelStatus,
-  setStatus: React.Dispatch<React.SetStateAction<RunModelStatus>>,
-  socket: React.MutableRefObject<WebSocket> | null,
-  poller: React.MutableRefObject<ReturnType<typeof setInterval> | undefined> | null
-}
-
-export const defaultRunModelProps = {
-  loading: false,
-  precheck: false,
-  error: false,
-  success: false
-}
-
-export const RunModelContext = createContext<RunModelContextProps>({
-  status: defaultRunModelProps,
-  setStatus: () => undefined,
-  socket: null,
-  poller: null
-});
+// {{{ASSETS}}}
+import { IconArrowBarLeft, IconArrowBarRight, IconExternalLink } from "@tabler/icons-react"
+import { ReactComponent as Logo } from "../../../assets/logo.svg"
+import { TabCloseListener } from '../TabCloseListener';
 
 
-export function Shell({
-  tabs
-}: {
-  tabs: Tab[]
-}) {
+export function Shell() {
 
-  const socket = useRef<WebSocket>(null)
-  const poller = useRef<ReturnType<typeof setInterval> | undefined>(null)
+  const {
+    tabs,
+    links,
+    currentTab,
+    setCurrentTab,
+    openedNav,
+    toggleNav
+  } = useAppShellStore(
+    useShallow((state) => ({
+      tabs: state.tabs,
+      links: state.links,
+      currentTab: state.currentTab,
+      setCurrentTab: state.setCurrentTab,
+      openedNav: state.openedNav,
+      toggleNav: state.toggleNav
+    })),
+  )
 
-  useEffect(() => {
+  const {
+    training
+  } = useTabTrainerStore(
+    useShallow((state) => ({
+      training: state.training
+    })),
+  )
 
-    const conn = new WebSocket("ws://" + location.host + "/echo")
+  const linkables = links.map((item) => {
 
-    conn.addEventListener("open", (event) => {
-      conn.send("connection")
-    })
+    const Wrapper = openedNav ? React.Fragment : TooltipExtended
+    const wrapperProps = openedNav ? {} : { label: item.label, position: "right" } as TooltipProps
 
-    conn.addEventListener("message", (event) => {
-      const msg = JSON.parse(event.data)
-      if(msg.status === 'done') {
-        notifications.show({
-          autoClose: false,
-          title: 'Process finished',
-          message: null,
-          position: 'top-right'
-        })
-
-        setStatus(status => ({ ...status, loading: false}))
-        clearInterval(poller.current)
-      }
-    })
-
-    socket.current = conn
-
-    return () => socket.current!.close()
-  }, [])
-
-  const [status, setStatus] = useState(defaultRunModelProps)
-  const [active, setActive] = useState<LinkIdentifier>('parser');
-  const [navs, setNavs] = useState<Link[]>(links)
-  const [checks, setChecks] = useState<string[]>([])
-  const [precheckPassed, setPrecheckPassed] = useState<boolean>(false);
-  const [mobileOpened, { toggle: toggleMobile }] = useDisclosure();
-  const [desktopOpened, { toggle: toggleDesktop }] = useDisclosure(true);
-
-  useEffect(() => {
-    const precheck = async () => {
-      await fetch(
-        'http://localhost:5000/train/precheck', {
-        method: 'GET'
-      })
-        .then(response => {
-          if (response.ok) return response.json()
-          throw new Error(`Server response status @ ${response.status}. Check your browser network tab for traceback.`);
-        })
-        .then(json => {
-          if (!json.passed) {
-            setNavs(curr =>
-              curr.map(lk => {
-                if(lk.id == 'train') return ({ ...lk, disabled: true})
-                else return lk
-              })
-            )
-            setChecks(json.checks.failed)
-            return;
-          }
-          setPrecheckPassed(true)
-        })
-        .catch(error => {
-          notifications.show({
-            title: 'Encountered some errors',
-            message: error.message,
-          })
-        })
-      }
-
-      precheck()
-  }, [])
-
-  const notice = checks ? (
-    <Tooltip
-      multiline
-      position="right"
-      className={classes.notice}
-      label={<>
-        <div className={classes.noticeSection}>Check your <b>requirements-dev.txt</b> to run models. You need to install the following packages:</div>
-        <Divider />
-        <div className={classes.noticeSection}>
-          <List style={{ padding: 0}}>{checks.map(ck => <List.Item>{ck}</List.Item>)}</List>
-        </div>
-      </>}
-    >
-      <Badge className={classes.badge} rightSection={<IconHelp size={12} />}>
-        disabled
-      </Badge>
-    </Tooltip>
-  ) : null
-
-  const running = status.loading ? (
-    <Loader color="var(--bg-3)" size="sm" ml={10}/>
-  ) : null
-
-  const linkables = navs.map((item) => (
-    <Anchor
+    return (
+      <Wrapper {...wrapperProps}>
+      <Anchor
       component='button'
-      className={classes.link}
-      data-active={item.id === active || undefined}
+      className={cx(
+        classes.link,
+        { [classes.linkCollapsed]: !openedNav }
+      )}
+      data-active={item.id === currentTab.id || undefined}
       key={item.label}
       disabled={item.disabled}
       onClick={(event) => {
         event.preventDefault();
-        setActive(item.id);
+        const match = tabs.find(tab => item.id === tab.id)
+        if (!match) return;
+        setCurrentTab(match);
       }}
     >
-      <Flex justify="flex-start">
-        <item.icon className={classes.linkIcon} stroke={1.5} />
-        <span>{item.label}</span>
-      </Flex>
-      <Flex>
-        {item.disabled && notice}
-        {item.id === 'train' && status.loading && running}
+      <Flex justify={openedNav ? "flex-start" : "center"}>
+        {training && item.id === 'train' ?  (
+          <Loader
+            size={25}
+            color="var(--fg-3)"
+            className={cx(
+              classes.trainingIcon,
+              { [classes.linkIconCollapsed]: !openedNav }
+            )}
+          />
+        ): (
+          <item.icon
+            className={cx(
+              classes.linkIcon,
+              { [classes.linkIconCollapsed]: !openedNav }
+            )}
+            stroke={1.5}
+          />
+        )}
+        {openedNav && <span>{item.label}</span>}
       </Flex>
     </Anchor>
-  ));
+      </Wrapper>
+    )
+  });
 
   const componentize = useMemo(() =>
-    tabs.find(comp => comp.id === active)!.component || null
-  , [active])
+    tabs.find(comp => comp.id === currentTab.id)!.component || null
+  , [currentTab])
 
    return (
-     <RunModelContext.Provider value={{ status, setStatus, poller, socket}}>
-     <ShellContext.Provider value={{ links, active, setActive, precheckPassed, setPrecheckPassed}}>
-      <AppShell
-        header={{ height: 60 }}
-        navbar={{
-          width: 300,
-          breakpoint: 'sm',
-          collapsed: { mobile: !mobileOpened, desktop: !desktopOpened },
-        }}
-        padding={0}
-      >
-        <AppShell.Header className={classes.appShellHeader}>
-          <Group h="100%" px="md">
-            <Burger opened={mobileOpened} onClick={toggleMobile} hiddenFrom="sm" size="sm" color="var(--fg)" />
-            <Burger opened={desktopOpened} onClick={toggleDesktop} visibleFrom="sm" size="sm" color="var(--fg)" />
-            <Group>
-              <Logo className={classes.appShellLogo} />
-              <Title order={2}>Ingredient Parser</Title>
-            </Group>
-          </Group>
-        </AppShell.Header>
-        <AppShell.Navbar p="md" className={classes.appShellNavBar}>
-          {linkables}
-        </AppShell.Navbar>
-        <AppShell.Main>
-          {componentize}
-        </AppShell.Main>
-      </AppShell>
-      </ShellContext.Provider>
-      </RunModelContext.Provider>
+     <>
+
+       <ShellWebSocketListener />
+       <TabTitleListener />
+       <TabCloseListener />
+
+        <AppShell
+          navbar={{
+            width: openedNav ? 300 : 60,
+            breakpoint: 0
+          }}
+          padding={0}
+        >
+          <AppShell.Navbar className={classes.appShellNavBar}>
+            {
+              openedNav ? (
+                <Group justify="space-between">
+                  <Group mb="md" wrap="nowrap">
+                    <Logo style={{ width: 50, height: 50 }} />
+                    <Stack>
+                      <Text variant="light" lh={1}>Ingredient Parser</Text>
+                      <Anchor td="none" variant="light" size="xs" mt="calc(-1*var(--xsmall-spacing))" lh={1} target='_blank' href="https://ingredient-parser.readthedocs.io">
+                        <Group gap={3}>
+                          <span>View the docs</span>
+                          <IconExternalLink size={12} />
+                        </Group>
+                      </Anchor>
+                    </Stack>
+                  </Group>
+                  <Flex mb="md">
+                    <ActionIcon  variant="transparent-light" size={24} onClick={toggleNav}>
+                      <IconArrowBarLeft size={24} />
+                    </ActionIcon>
+                  </Flex>
+                </Group>
+              ) : (
+                <Flex mb="md" style={{ height: 50 }}>
+                  <ActionIcon  variant="transparent-light" size={24} onClick={toggleNav}>
+                    <IconArrowBarRight size={24} />
+                  </ActionIcon>
+                </Flex>
+              )
+            }
+            {linkables}
+          </AppShell.Navbar>
+          <AppShell.Main>
+            {componentize}
+          </AppShell.Main>
+        </AppShell>
+
+     </>
    )
  }

@@ -1,52 +1,14 @@
 // {{{EXTERNAL}}}
 import React, { useCallback, useState } from "react"
 import { Badge, Box, BoxProps, Flex, Menu, Tooltip, TooltipProps } from "@mantine/core"
+import { UseListStateHandlers } from "@mantine/hooks";
 import cx from 'clsx';
+// {{{INTERNAL}}}
+import { LabellerCategory, ParsedSentenceEditable,Token, labellers } from "../../../domain/types";
 // {{{ASSETS}}}
 import { IconSelector } from "@tabler/icons-react"
 // {{{STYLES}}}
 import { default as classes } from "./Labeller.module.css"
-import { UseListStateHandlers } from "@mantine/hooks";
-
-export const labellers = [
-  "COMMENT",
-  "NAME",
-  "PREP",
-  "PUNC",
-  "PURPOSE",
-  "QTY",
-  "SIZE",
-  "UNIT",
-  "OTHER"
-] as const;
-
-export type LabellerCategory = typeof labellers[number];
-
-export interface Amount {
-  APPROXIMATE: boolean
-  MULTIPLIER: boolean
-  RANGE: boolean
-  SINGULAR: boolean
-  confidence: number
-  quantity: number
-  quantity_max: number
-  starting_index: number
-  text: string
-  unit: string
-}
-
-export type Confidence = {
-  confidence: number
-  text: string
-}
-
-export type Marginals = Record<LabellerCategory, number>
-
-export type Token = [
-  string,
-  LabellerCategory,
-  Marginals | null
-]
 
 export interface LabellerProps extends BoxProps {
   identifier?: number | string;
@@ -55,7 +17,8 @@ export interface LabellerProps extends BoxProps {
   tooltipProps?: TooltipProps | {};
   token?: Token;
   size?: "small" | "medium" | "large",
-  handler?: UseListStateHandlers<any>,
+  handler?: Omit<UseListStateHandlers<ParsedSentenceEditable>, 'setState'> & { set: (items: ParsedSentenceEditable[]) => void},
+  position?: "top" | "bottom"
 }
 
 export function Labeller({
@@ -65,6 +28,7 @@ export function Labeller({
   tooltipProps = {},
   token,
   size = "medium",
+  position = "top",
   handler,
   ...others
 }: LabellerProps) {
@@ -83,7 +47,7 @@ export function Labeller({
           ...item,
           edited: true,
           tokens: item.tokens.map((tkn: Token) => {
-            if(tkn[0] === txt) return [txt, labellerCat]
+            if(tkn[0] === txt) return [txt, labellerCat, null]
             else return tkn
           })
         })
@@ -107,14 +71,15 @@ export function Labeller({
     )
 
     return (
-      <Menu position="bottom-start" keepMounted={false}>
+      <Menu position="bottom-start" keepMounted={false} >
         <Menu.Target>
           <Box
-            {...others}
             component="button"
             className={cx(classes.labeller, classes.editable)}
             data-labeller={editable}
             data-size={size}
+            data-position={position}
+            {...others}
           >
             <span>{txt}</span>
             <IconSelector size={16} />
@@ -136,13 +101,14 @@ export function Labeller({
       </Flex>
     ))
     return (
-      <Tooltip {...tooltipProps} label={marginalRows}>
+      <Tooltip label={marginalRows} {...tooltipProps}>
         <Box
           {...others}
           component="span"
           className={cx(classes.labeller, classes.marginable)}
           data-labeller={lbl}
           data-size={size}
+          data-position={position}
         >
           {txt}
         </Box>
@@ -157,6 +123,7 @@ export function Labeller({
       className={cx(classes.labeller)}
       data-labeller={lbl}
       data-size={size}
+      data-position={position}
     >
       {txt}
     </Box>

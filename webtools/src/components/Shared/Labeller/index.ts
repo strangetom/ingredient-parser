@@ -1,13 +1,7 @@
 export {
   Labeller,
-  labellers
-} from './Labeller';
+} from "./Labeller"
 
 export type {
-  Token,
-  Amount,
-  Confidence,
-  Marginals,
-  LabellerProps,
-  LabellerCategory
+  LabellerProps
 } from "./Labeller"

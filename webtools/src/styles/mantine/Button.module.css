@@ -12,6 +12,16 @@
         }
     }
 
+    &[data-variant=transparent-dark] {
+        border: none;
+        background-color: transparent;
+        color: var(--bg-3);
+
+        &:not(:disabled):hover {
+            color: var(--bg-4);
+        }
+    }
+
     &[data-variant=light] {
         border: 1px solid color-mix(in srgb,var(--fg),transparent 66%);
         background-color: var(--fg);
@@ -21,6 +31,17 @@
             background-color: var(--fg);
         }
     }
+
+    &[data-variant=transparent-light] {
+        border: none;
+        background-color: transparent;
+        color: var(--fg);
+
+        &:not(:disabled):hover {
+            color: var(--fg-3);
+        }
+    }
+
 
     &:focus,
     &:focus-within,

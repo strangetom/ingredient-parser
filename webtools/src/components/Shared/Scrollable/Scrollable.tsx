@@ -1,5 +1,5 @@
 // {{{EXTERNAL}}}
-import React, { useRef} from "react"
+import React from "react"
 import { Box, ScrollArea, ScrollAreaProps } from "@mantine/core";
 import cx from 'clsx';
 // {{{STYLES}}}

@@ -8,10 +8,16 @@
      bottom: 0;
      display: flex;
      flex-direction: column;
-     gap: 20px;
+     gap: var(--xxsmall-spacing);
 }
 
 .illustration {
     width: 250px;
     fill: var(--fg);
+}
+
+.text {
+    max-width: 250px;
+    text-align: center;
+    color: var(--fg);
 }

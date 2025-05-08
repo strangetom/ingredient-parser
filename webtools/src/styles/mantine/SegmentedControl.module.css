@@ -1,1 +1,17 @@
+.root {
+    background-color: var(--bg-1);
+}
 
+.indicator {
+    background-color: var(--bg-2);
+}
+
+.label {
+    color: var(--fg);
+
+    &:where(:not([data-disabled], [data-active], [data-read-only])) {
+      @mixin hover {
+          color: var(--fg-4);
+      }
+    }
+}

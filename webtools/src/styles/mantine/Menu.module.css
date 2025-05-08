@@ -7,7 +7,7 @@
 
 .label {
     font-size: var(--mantine-font-size-sm);
-    color: var(--bg-3);
+    color: var(--fg-4);
 }
 
 .divider {

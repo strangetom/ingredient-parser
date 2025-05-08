@@ -1,0 +1,3 @@
+export {
+  TableParsedResults
+} from "./TableParsedResults"
