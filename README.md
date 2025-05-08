@@ -59,7 +59,9 @@ Word-level results:
 
 ## Development
 
-The development dependencies are in the ```requirements-dev.txt``` file. Details on the training process can be found in the [Model Guide](https://ingredient-parser.readthedocs.io/en/latest/guide/index.html) documentation.
+**Basic**
+
+The development dependencies are in the `requirements-dev.txt` file. Details on the training process can be found in the [Model Guide](https://ingredient-parser.readthedocs.io/en/latest/guide/index.html) documentation.
 
 Before committing anything, install [pre-commit](https://pre-commit.com/) and run
 ```
@@ -68,14 +70,24 @@ pre-commit install
 
 to install the pre-commit hooks.
 
-There is a simple web app for testing the parser with ingredient sentences and showing the parsed output. To run the web app, run the command
+**Web app**
+
+There is a simple web app for testing the parser, browsing the database, labelling entries, and running the basic model.
+
+To run the web app, follow the prior steps on `requirements-dev.txt`, and separately install Node.js. Run each of the commands below as separate instances.
 
 ```bash
-$ flask --app webapp run
+$ npm run flask
+$ npm run flask-sockets
+$ npm run watch
 ```
 
-![Screen shot of web app](docs/source/_static/app-screenshot.png)
+*tl;dr — `flask` runs the base server, `flask-sockets` runs the web sockets server, and `watch` runs vite build for the react/typescripe bundle. Separate flask instances are required to accommodate better web socket behavior*
 
-This requires the development dependencies to be installed.
+![Screen shot of web parser](docs/source/_static/app.parser.screenshot.png)
+![Screen shot of web labeller](docs/source/_static/app.labeller.screenshot.png)
+![Screen shot of web trainer](docs/source/_static/app.trainer.screenshot.png)
 
-The dependencies for building the documentation are in the ```requirements-doc.txt``` file.
+**Documentation**
+
+The dependencies for building the documentation are in the `requirements-doc.txt` file.
