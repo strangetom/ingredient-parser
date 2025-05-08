@@ -74,7 +74,13 @@ to install the pre-commit hooks.
 
 There is a simple web app for testing the parser, browsing the database, labelling entries, and running the basic model.
 
-To run the web app, follow the prior steps on `requirements-dev.txt`, and separately install Node.js. Run each of the commands below as separate instances.
+To run the web app, follow the prior steps on `requirements-dev.txt`, and separately install [Node](https://nodejs.org/en/download), the JS runtime. Once globally installed on your machine, download your packages in the webtools directory with:
+
+```bash
+$ npm install
+```
+
+Run each of the commands below as separate instances.
 
 ```bash
 $ npm run flask
