@@ -7,8 +7,9 @@ pre-commit
 pytest
 coverage
 tqdm
-Flask
-Flask-SocketIO
+flask
+flask-CORS
+flask-socketIO
 tabulate
 matplotlib
 -e .

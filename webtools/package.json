@@ -15,17 +15,15 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.3.0",
-    "react-use-websocket": "^4.0.0",
     "react-virtualized": "^9.22.5",
     "socket.io-client": "^4.8.1",
     "zustand": "^5.0.3"
   },
   "scripts": {
-    "dev": "vite",
+    "dev": "npm run watch & P1=$! & npm run flask & P2=$! & npm run sockets & P3=$! wait $P1 $P2 $P3 2>&1",
     "watch": "vite build --watch",
     "flask": "python3_path=$(which python3) && \"$python3_path\" app.py",
-    "flask-sockets": "python3_path=$(which python3) && \"$python3_path\" app.sockets.py",
-    "lint": "eslint ."
+    "sockets": "python3_path=$(which python3) && \"$python3_path\" app.sockets.py"
   },
   "overrides": {
     "vite": {

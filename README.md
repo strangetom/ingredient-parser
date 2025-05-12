@@ -80,15 +80,13 @@ To run the web app, follow the prior steps on `requirements-dev.txt`, and separa
 $ npm install
 ```
 
-Run each of the commands below as separate instances.
+After package installs, run dev to start.
 
 ```bash
-$ npm run flask
-$ npm run flask-sockets
-$ npm run watch
+$ npm run dev
 ```
 
-*tl;dr — `flask` runs the base server, `flask-sockets` runs the web sockets server, and `watch` runs vite build for the react/typescripe bundle. Separate flask instances are required to accommodate better web socket behavior*
+*tl;dr — inside package.json, `flask` runs the base server, `sockets` runs the web sockets server, and `watch` runs vite build for the react/typescripe bundle — separate flask instances are required to accommodate better web socket behavior*
 
 ![Screen shot of web parser](docs/source/_static/app.parser.screenshot.png)
 ![Screen shot of web labeller](docs/source/_static/app.labeller.screenshot.png)
