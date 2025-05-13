@@ -1,6 +1,6 @@
 // {{{EXTERNAL}}}
 import React from "react"
-import { Box, Button, Code, Stack, Text } from "@mantine/core"
+import { Button } from "@mantine/core"
 import { useTabLabellerStore } from "../../../domain"
 import { useShallow } from "zustand/react/shallow"
 // {{{ASSETS}}}
@@ -9,13 +9,11 @@ export function ActionBarEditable() {
 
   const {
     editing,
-    editLabellerItemsApi,
-    parsedSentencesHandler
+    editLabellerItemsApi
   } = useTabLabellerStore(
     useShallow((state) => ({
       editing: state.editing,
-      editLabellerItemsApi: state.editLabellerItemsApi,
-      parsedSentencesHandler: state.parsedSentencesHandler
+      editLabellerItemsApi: state.editLabellerItemsApi
     })),
   )
 

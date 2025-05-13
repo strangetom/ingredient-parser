@@ -1,23 +1,25 @@
 // {{{EXTERNAL}}}
 import React, { useCallback } from "react"
-import { Box, Button, Drawer, DrawerOverlayProps, DrawerProps, Group, Modal, Switch, Text } from "@mantine/core"
+import { Box, Button, Group, Modal, Switch } from "@mantine/core"
 import { useDisclosure } from "@mantine/hooks";
 import { useShallow } from "zustand/react/shallow";
 // {{{INTERNAL}}}
 import { useTabLabellerStore } from "../../../domain";
-// {{{STYLES}}}
-import classes from "./ButtonEdit.module.css"
 
 
 export function SwitchEditMode() {
 
   const {
+    loading,
+    editing,
     editModeEnabled,
     parsed,
     setEditModeEnabled,
     parsedSentences
   } = useTabLabellerStore(
     useShallow((state) => ({
+      loading: state.loading,
+      editing: state.editing,
       editModeEnabled: state.editModeEnabled,
       parsed: state.parsed,
       setEditModeEnabled: state.setEditModeEnabled,
@@ -65,6 +67,7 @@ export function SwitchEditMode() {
         label="Enable editing"
         checked={editModeEnabled}
         onChange={onChangeHandler}
+        disabled={loading || editing}
       />
 
     </>
