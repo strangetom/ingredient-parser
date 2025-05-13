@@ -1,3 +1,0 @@
-export {
-  ButtonEdit
-} from "./ButtonEdit"

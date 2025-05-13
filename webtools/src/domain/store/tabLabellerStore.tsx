@@ -22,11 +22,14 @@ interface TabLabellerState {
   success: boolean;
   activePage: number;
   setActivePage: (page: number) => void;
+  editModeEnabled: boolean;
+  setEditModeEnabled: (enabled: boolean) => void;
   input: InputTabLabeller;
   updateInput: (partial: Partial<InputTabLabeller>) => void;
   updateInputSettings: (partial: Partial<InputSettings>) => void;
   parsed: ParsedTabLabller | null;
   setParsed: (data: ParsedTabLabller | null) => void;
+  parsedSentencesOriginal: ParsedSentenceEditable[];
   parsedSentences: ParsedSentenceEditable[];
   parsedSentencesHandler: Omit<UseListStateHandlers<ParsedSentenceEditable>, 'setState'> & { set: (items: ParsedSentenceEditable[]) => void};
   getLabellerSearchApi: (opts?: TabLabellerInputProvided) => void;
@@ -34,7 +37,31 @@ interface TabLabellerState {
   parseNewLabellerItemsForUploadApi: (value: string) => Promise<ParsedSentenceEditable[] | null>;
   availablePublisherSources: string[];
   fetchingAvailablePublisherSources: boolean;
-  fetchAvailableSourcesApi: () => void;
+  fetchAvailableSourcesApi: () => Promise<string[]>;
+}
+
+export const defaultInputLabeller = {
+  sentence: "",
+  settings: {
+    caseSensitive: false,
+    wholeWord: false,
+    sources: ["nyt","cookstr", "allrecipes", "bbc", "tc", "saveur"],
+    labels: [
+      "COMMENT",
+      "B_NAME_TOK",
+      "I_NAME_TOK",
+      "NAME_VAR",
+      "NAME_MOD",
+      "NAME_SEP" ,
+      "PREP",
+      "PUNC",
+      "PURPOSE",
+      "QTY",
+      "SIZE",
+      "UNIT",
+      "OTHER"
+    ] as LabellerCategory[]
+  }
 }
 
 export const useTabLabellerStore =
@@ -49,29 +76,9 @@ export const useTabLabellerStore =
           success: false,
           activePage: 0,
           setActivePage: (page: number) => set({ activePage: page }),
-          input: {
-            sentence: "",
-            settings: {
-              caseSensitive: false,
-              wholeWord: false,
-              sources: ["nyt","cookstr", "allrecipes", "bbc", "tc", "saveur"],
-              labels: [
-                "COMMENT",
-                "B_NAME_TOK",
-                "I_NAME_TOK",
-                "NAME_VAR",
-                "NAME_MOD",
-                "NAME_SEP" ,
-                "PREP",
-                "PUNC",
-                "PURPOSE",
-                "QTY",
-                "SIZE",
-                "UNIT",
-                "OTHER"
-              ] as LabellerCategory[]
-            }
-          },
+          editModeEnabled: false,
+          setEditModeEnabled: (enabled: boolean) => set({ editModeEnabled: enabled }),
+          input: defaultInputLabeller,
           updateInput: (partial: Partial<InputTabLabeller>) =>
             set(
               ({ input }) =>({ input: { ...input, ...partial } })
@@ -84,6 +91,7 @@ export const useTabLabellerStore =
           ,
           parsed: null,
           setParsed: (data: ParsedTabLabller | null) => set({ parsed: data}),
+          parsedSentencesOriginal: [],
           parsedSentences: [],
           parsedSentencesHandler: {
             set: (items: ParsedSentenceEditable[]) => set({ parsedSentences: items }),
@@ -194,7 +202,9 @@ export const useTabLabellerStore =
                 })
                 .then(json => {
                   set({ loading: false, parsed: json })
-                  get().parsedSentencesHandler.set(json.data)
+                  const parsedSentencesHandler = get().parsedSentencesHandler
+                  parsedSentencesHandler.set(json.data) // for edited state of sentences
+                  set({ parsedSentencesOriginal: json.data }) // for original state of sentences
                 })
                 .catch(error => {
                   set({ loading: false, error: true })
@@ -229,7 +239,7 @@ export const useTabLabellerStore =
                 throw new Error(`Server response status @ ${response.status}. Check your browser network tab for traceback.`);
               })
               .then((_) => {
-                set({ editing: false })
+                set({ editing: false, editModeEnabled: false })
                 getLabellerSearchApi()
                 fetchAvailableSourcesApi()
                 const availablePublisherSources = get().availablePublisherSources
@@ -291,7 +301,7 @@ export const useTabLabellerStore =
 
             set({ fetchingAvailablePublisherSources: true })
 
-            await fetch(
+            return await fetch(
               constructEndpoint({ path: "labellerAvailableSources" }), {
               method: 'GET',
               headers: { 'Content-Type': 'application/json' }
@@ -302,6 +312,7 @@ export const useTabLabellerStore =
               })
               .then(json => {
                 set({ availablePublisherSources: json, fetchingAvailablePublisherSources: false })
+                return json
               })
               .catch(error => {
                 set({ availablePublisherSources: [], fetchingAvailablePublisherSources: false })
@@ -310,6 +321,7 @@ export const useTabLabellerStore =
                   message: error.message,
                   position: 'top-right'
                 })
+                return []
               })
 
           },

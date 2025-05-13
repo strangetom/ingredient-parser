@@ -3,11 +3,12 @@ import { FileWithPath } from "@mantine/dropzone";
 import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
 // {{{INTERNAL}}}
-import { useTabLabellerStore } from "./tabLabellerStore";
+import { defaultInputLabeller, useTabLabellerStore } from "./tabLabellerStore";
 import { ParsedSentence, ParsedSentenceEditable } from "../types/tabLabellerTypes";
 import { UseListStateHandlers } from "@mantine/hooks";
 import { constructEndpoint } from "../api";
 import { notifications } from "@mantine/notifications";
+import { LabellerCategory } from "../types";
 
 type AsyncPromiseFn<T> = (...args: any[]) => Promise<T>;
 type AccessibleUploadNewLabellersState = Pick<
@@ -200,6 +201,7 @@ export const useUploadNewLabellersStore =
             const getLabellerSearchApi = useTabLabellerStore.getState().getLabellerSearchApi
             const inputSettings = useTabLabellerStore.getState().input.settings
             const updateInput = useTabLabellerStore.getState().updateInput
+            const setParsed = useTabLabellerStore.getState().setParsed
             const sentencesAmended = sentences.map(sentence => ({...sentence, "source": source }))
 
             const result = await fetch(
@@ -212,12 +214,34 @@ export const useUploadNewLabellersStore =
                 if (response.ok) return response.json()
                 throw new Error(`Server response status @ ${response.status}. Check your browser network tab for traceback.`);
               })
-              .then(() => {
+              .then(async () => {
+
+                const availablePublisherSources = await fetchAvailableSourcesApi()
+
+                if (source && availablePublisherSources.includes(source)) {
+                  const newInput = {
+                    input: {
+                      sentence: "~~",
+                      settings: { ...inputSettings, sources: [source] }
+                    },
+                    offsetPage: 0
+                  }
+                  getLabellerSearchApi(newInput)
+                  updateInput(newInput.input)
+                }
+                else {
+                  setParsed(null)
+                  updateInput(defaultInputLabeller)
+                }
+
                 set({ uploadingBulk: false })
-                const newInput ={ input: { sentence: "~~", settings: { ...inputSettings, sources: [source] } },  offsetPage: 0}
-                getLabellerSearchApi(newInput)
-                fetchAvailableSourcesApi()
-                updateInput(newInput)
+
+                notifications.show({
+                  title: 'Upload successful',
+                  message: `Total of ${sentencesAmended.length} sentences added`,
+                  position: 'top-right'
+                })
+
                 return true
               })
               .catch(error => {

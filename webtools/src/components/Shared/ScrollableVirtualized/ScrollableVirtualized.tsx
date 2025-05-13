@@ -8,8 +8,8 @@ import { LabellerProps, LabellerSentence, LabellerSentenceProps, ScrollableProps
 import { useTabLabellerStore, ParsedSentenceEditable } from "../../../domain";
 
 export interface ScrollableVirtualizedProps extends ScrollableProps {
-  parsedSentencesProvided?: ParsedSentenceEditable[];
-  parsedSentencesProvidedHandler?: any;
+  parsedSentencesProvided: ParsedSentenceEditable[];
+  parsedSentencesProvidedHandler: any;
   labellerSentenceProps?: Omit<LabellerSentenceProps, 'tokens' | 'sentence'>,
   labellerProps?: LabellerProps
 }
@@ -22,30 +22,17 @@ export function ScrollableVirtualized({
   ...others
 }: ScrollableVirtualizedProps) {
 
-  // Default to labeller store for sentences
-  const {
-    parsedSentences,
-    parsedSentencesHandler
-  } = useTabLabellerStore(
-    useShallow((state) => ({
-      parsedSentences: state.parsedSentences,
-      parsedSentencesHandler: state.parsedSentencesHandler
-    })),
-  )
-
-  const handler = (parsedSentencesProvided && parsedSentencesProvidedHandler) || parsedSentencesHandler
-  const items = (parsedSentencesProvidedHandler && parsedSentencesProvided) || parsedSentences
 
   const defaultLabellerSentenceProps = {
     listable: true,
     tasks: ["remove", "copy"],
-    handler: handler,
+    handler: parsedSentencesProvidedHandler,
     ...labellerSentenceProps
   } as Omit<LabellerSentenceProps, 'tokens' | 'sentence'>
 
   const defaultLabellerProps = {
     editMode: false,
-    handler: handler,
+    handler: parsedSentencesProvidedHandler,
     ...labellerProps
   } as LabellerProps
 
@@ -60,12 +47,12 @@ export function ScrollableVirtualized({
       <LabellerSentence
         key={"labeller-sentence-" + index}
         style={style}
-        sentence={items[index]}
+        sentence={parsedSentencesProvided[index]}
         labellerProps={defaultLabellerProps}
         {...defaultLabellerSentenceProps}
       />
     );
-  }, [parsedSentences])
+  }, [parsedSentencesProvided])
 
   return (
     <Box {...others}>
@@ -75,7 +62,7 @@ export function ScrollableVirtualized({
         <ListVirtual
           width={width}
           height={height}
-          rowCount={items.length}
+          rowCount={parsedSentencesProvided.length}
           rowHeight={92}
           rowRenderer={sentenceListRenderer}
         />

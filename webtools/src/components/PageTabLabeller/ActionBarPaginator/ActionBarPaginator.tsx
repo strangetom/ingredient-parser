@@ -3,9 +3,8 @@ import React, {  } from "react"
 import { Pagination } from "@mantine/core"
 import { useShallow } from "zustand/react/shallow";
 // {{{INTERNAL}}}
-import { Sectionable } from "../../Shared";
 import { useTabLabellerStore } from "../../../domain";
-import { ButtonEdit } from "../ButtonEdit";
+import { SwitchEditMode } from "../SwitchEditMode";
 
 const OFFSET_MULTIPLIER = 250;
 
@@ -35,7 +34,7 @@ export function ActionBarPaginator(){
   }
   return parsed && parsedSentences.length !== 0 ? (
       <>
-        <ButtonEdit />
+        <SwitchEditMode />
         <Pagination total={Math.ceil(parsed.total / 250)} value={activePage} onChange={onChangePaginatorHandler} disabled={loading}/>
       </>
     ) : null

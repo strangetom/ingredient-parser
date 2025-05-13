@@ -5,16 +5,19 @@ import { useShallow } from "zustand/react/shallow";
 import { Sectionable } from "./Shared";
 import { ButtonSearch, ActionBarPaginator, ButtonUpload, TextInputSubmit, ListParsedSentences, FetchAvailableSouceListener } from "./PageTabLabeller";
 import { useTabLabellerStore } from "../domain";
+import { ActionBarEditable } from "./PageTabLabeller/ActionBarEditable";
 
 export function MainLabeller() {
 
   const {
     parsed,
-    parsedSentences
+    parsedSentences,
+    editModeEnabled
   } = useTabLabellerStore(
     useShallow((state) => ({
       parsed: state.parsed,
-      parsedSentences: state.parsedSentences
+      parsedSentences: state.parsedSentences,
+      editModeEnabled: state.editModeEnabled
     })),
   )
 
@@ -30,13 +33,17 @@ export function MainLabeller() {
         </Sectionable.ActionBarSubGrouping>
       </Sectionable.ActionBar>
 
-      <Sectionable.ActionBar mounted={Boolean(parsed) && parsedSentences.length !== 0}>
+      <Sectionable.ActionBar mounted={Boolean(parsed) && parsedSentences.length !== 0} >
         <ActionBarPaginator />
       </Sectionable.ActionBar>
 
       <Sectionable.Section grow>
         <ListParsedSentences />
       </Sectionable.Section>
+
+      <Sectionable.ActionBar mounted={Boolean(parsed) && editModeEnabled} position="bottom">
+        <ActionBarEditable />
+      </Sectionable.ActionBar>
 
     </Sectionable>
   )
