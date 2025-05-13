@@ -1,7 +1,7 @@
 // {{{EXTERNAL}}}
 import React, { useState } from "react"
 import { ActionIcon, ActionIconGroup, ActionIconProps, Checkbox, Flex, Group, Loader, Menu, Text, MultiSelect, Popover, TextInput, TextInputProps, Transition, Kbd } from "@mantine/core"
-import { getHotkeyHandler } from "@mantine/hooks";
+import { getHotkeyHandler, useDisclosure } from "@mantine/hooks";
 import { useShallow } from "zustand/react/shallow";
 // {{{INTERNAL}}}
 import { useTabLabellerStore } from "../../../domain";
@@ -11,20 +11,28 @@ import { IconFilter, IconFilterFilled, IconQuestionMark, IconX } from "@tabler/i
 
 function ActionIconQuestion(props: ActionIconProps){
 
+  const [opened, { close, open }] = useDisclosure(false);
+
   return (
+    <Popover
+      opened={opened}
+      shadow="md"
+      keepMounted={false}
+      position="bottom-end"
+      width={180}
+      offset={8}
+    >
+      <Popover.Target>
+        <ActionIcon onMouseEnter={open} onMouseLeave={close} variant="dark" style={{ cursor: "help", width: 36, height: 36 }} {...props}>
+          <IconQuestionMark strokeWidth={1} />
+        </ActionIcon>
+      </Popover.Target>
 
-  <Popover shadow="md" keepMounted={false} position="bottom-end" width={180} offset={8}>
-    <Popover.Target>
-      <ActionIcon variant="dark" style={{ width: 36, height: 36 }} {...props}>
-        <IconQuestionMark strokeWidth={1} />
-      </ActionIcon>
-    </Popover.Target>
+      <Popover.Dropdown>
+        <Text variant="light" size="sm">Use double tilde <Kbd>~~</Kbd> or double asterick <Kbd>**</Kbd> to search all records against your filters</Text>
+      </Popover.Dropdown>
 
-    <Popover.Dropdown>
-      <Text variant="light" size="sm">Use double tilde <Kbd>~~</Kbd> or double asterick <Kbd>**</Kbd> to search all records against your filters</Text>
-    </Popover.Dropdown>
-
-  </Popover>
+    </Popover>
   )
 }
 
