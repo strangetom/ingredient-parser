@@ -1,0 +1,10 @@
+.group {
+    gap: var(--xxsmall-spacing);
+    flex-wrap: nowrap;
+}
+
+.logo {
+    height: 36px !important;
+    width: 36px !important;
+    border-radius: var(--xxsmall-spacing);
+}
