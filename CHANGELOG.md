@@ -1,6 +1,6 @@
 # Changelog
 
-## 2.10
+## 2.1.0
 
 > [!WARNING]
 >
