@@ -4,7 +4,6 @@ import concurrent.futures as cf
 import json
 import sqlite3
 from dataclasses import dataclass
-from enum import Enum, auto
 from functools import partial
 from itertools import chain, islice
 from typing import Any, Callable, Iterable
@@ -20,16 +19,7 @@ from ingredient_parser import SUPPORTED_LANGUAGES
 
 sqlite3.register_converter("json", json.loads)
 
-DEFAULT_MODEL_LOCATION = {
-    "parser": "ingredient_parser/en/model.en.crfsuite",
-    "foundationfoods": "ingredient_parser/en/ff_model.en.crfsuite",
-    "embeddings": "ingredient_parser/en/embeddings.floret.bin",
-}
-
-
-class ModelType(Enum):
-    PARSER = auto()
-    FOUNDATION_FOODS = auto()
+DEFAULT_MODEL_LOCATION = "ingredient_parser/en/model.en.crfsuite"
 
 
 @dataclass
@@ -167,7 +157,6 @@ def load_datasets(
     database: str,
     table: str,
     datasets: list[str],
-    model_type: ModelType = ModelType.PARSER,
     discard_other: bool = True,
 ) -> DataVectors:
     """Load raw data from csv files and transform into format required for training.
@@ -181,8 +170,6 @@ def load_datasets(
     datasets : list[str]
         List of data source to include.
         Valid options are: nyt, cookstr, bbc, cookstr, tc
-    model_type : ModelType, optional
-        The type of model to prepare data for training.
         Default is PARSER.
     discard_other : bool, optional
         If True, discard sentences containing tokens with OTHER label
@@ -223,7 +210,6 @@ def load_datasets(
         for vec in executor.map(
             process_sentences,
             chunks,
-            [model_type] * n_chunks,
             [PreProcessor] * n_chunks,
             [discard_other] * n_chunks,
         ):
@@ -245,7 +231,7 @@ def load_datasets(
 
 
 def process_sentences(
-    data: list[dict], model_type: ModelType, PreProcessor: Callable, discard_other: bool
+    data: list[dict], PreProcessor: Callable, discard_other: bool
 ) -> DataVectors:
     """Process training sentences from database into format needed for training and
     evaluation.
@@ -254,8 +240,6 @@ def process_sentences(
     ----------
     data : list[dict]
         List of dicts, where each dict is the database row.
-    model_type : ModelType
-        Type of model being training: PARSER or FOUNDATION_FOODS
     PreProcessor : Callable
         PreProcessor class to preprocess sentences.
     discard_other : bool
@@ -288,30 +272,9 @@ def process_sentences(
         sentences.append(entry["sentence"])
         p = PreProcessor(entry["sentence"])
         uids.append(entry["id"])
-
-        if model_type == ModelType.FOUNDATION_FOODS:
-            name_idx = [idx for idx, lab in enumerate(entry["labels"]) if "NAME" in lab]
-            name_labels = [
-                "FF" if idx in entry["foundation_foods"] else "NF" for idx in name_idx
-            ]
-            name_features = [
-                feat
-                for idx, feat in enumerate(p.sentence_features())
-                if idx in name_idx
-            ]
-            name_tokens = [
-                token.text
-                for idx, token in enumerate(p.tokenized_sentence)
-                if idx in name_idx
-            ]
-
-            features.append(name_features)
-            tokens.append(name_tokens)
-            labels.append(name_labels)
-        else:
-            features.append(p.sentence_features())
-            tokens.append([t.text for t in p.tokenized_sentence])
-            labels.append(entry["labels"])
+        features.append(p.sentence_features())
+        tokens.append([t.text for t in p.tokenized_sentence])
+        labels.append(entry["labels"])
 
         # Ensure length of tokens and length of labels are the same
         if len(p.tokenized_sentence) != len(entry["labels"]):
@@ -330,7 +293,6 @@ def evaluate(
     predictions: list[list[str]],
     truths: list[list[str]],
     seed: int,
-    model_type: ModelType = ModelType.PARSER,
 ) -> Stats:
     """Calculate statistics on the predicted labels for the test data.
 
@@ -342,9 +304,6 @@ def evaluate(
         True labels for each test sentence
     seed : int
         Seed value that produced the results
-    model_type : ModelType, optional
-        The type of model to generate stats for training.
-        Default is PARSER.
 
     Returns
     -------
@@ -375,11 +334,7 @@ def evaluate(
             )
 
     token_stats["accuracy"] = accuracy_score(flat_truths, flat_predictions)
-
-    if model_type == ModelType.FOUNDATION_FOODS:
-        token_stats = FFTokenStats(**token_stats)
-    else:
-        token_stats = TokenStats(**token_stats)
+    token_stats = TokenStats(**token_stats)
 
     # Generate sentence statistics
     # The only statistics that makes sense here is accuracy because there are only

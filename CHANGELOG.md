@@ -1,6 +1,10 @@
 # Changelog
 
-## 2.10
+## 2.1.1
+
+* Pin Pint version to 0.24.4, as future versions intend to drop support for Python 3.10.
+
+## 2.1.0
 
 > [!WARNING]
 >
