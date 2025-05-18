@@ -1,0 +1,13 @@
+.label {
+    color: var(--bg-3);
+    font-weight: 500;
+    line-height: var(--text-lh, var(--mantine-line-height-md))
+}
+
+.chevron {
+    color: var(--bg-3);
+}
+
+.content {
+    line-height: var(--text-lh, var(--mantine-line-height-md))
+}
