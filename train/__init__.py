@@ -7,7 +7,6 @@ __all__ = [
     "check_label_consistency",
     "feature_search",
     "grid_search",
-    "train_embeddings",
     "train_multiple",
     "train_single",
 ]

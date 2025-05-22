@@ -2,6 +2,7 @@
 
 import argparse
 import concurrent.futures as cf
+import logging
 import os
 import time
 from datetime import timedelta
@@ -20,6 +21,8 @@ from .training_utils import (
     evaluate,
     load_datasets,
 )
+
+logger = logging.getLogger(__name__)
 
 # Valid parameter options for LBFGS training algorithm and expected types
 VALID_LBFGS_PARAMS = {
@@ -483,8 +486,8 @@ def grid_search(args: argparse.Namespace):
 
     arguments = generate_argument_sets(args)
 
-    print(f"[INFO] Grid search over {len(arguments)} hyperparameters combinations.")
-    print(f"[INFO] {args.seed} is the random seed used for the train/test split.")
+    logger.info(f"Grid search over {len(arguments)} hyperparameters combinations.")
+    logger.info(f"{args.seed} is the random seed used for the train/test split.")
 
     eval_results = []
     with cf.ProcessPoolExecutor(max_workers=args.processes) as executor:

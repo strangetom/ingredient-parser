@@ -1083,7 +1083,7 @@ class PreProcessor:
 
         return features
 
-    def sentence_features(self) -> list[dict[str, str | bool | int | float]]:
+    def sentence_features(self) -> list[dict[str, str | bool]]:
         """Return features for all tokens in sentence.
 
         Returns

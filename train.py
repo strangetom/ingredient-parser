@@ -2,7 +2,9 @@
 
 import argparse
 import json
+import logging
 import os
+import sys
 from random import randint
 
 from train import (
@@ -22,6 +24,12 @@ class ParseJsonArg(argparse.Action):
 
     def __call__(self, parser, namespace, values, option_strings):
         setattr(namespace, self.dest, json.loads(values))
+
+
+LOGGING_LEVEL = {
+    0: logging.INFO,
+    1: logging.DEBUG,
+}
 
 
 if __name__ == "__main__":
@@ -84,6 +92,13 @@ if __name__ == "__main__":
         "--confusion",
         action="store_true",
         help="Plot confusion matrix of token labels.",
+    )
+    train_parser.add_argument(
+        "-v",
+        help="Enable verbose output.",
+        action="count",
+        default=0,
+        dest="verbose",
     )
 
     multiple_parser_help = "Average CRF performance across multiple training cycles."
@@ -148,6 +163,13 @@ if __name__ == "__main__":
         default=os.cpu_count() - 1,
         type=int,
         help="Number of processes to spawn. Default to number of cpu cores.",
+    )
+    multiple_parser.add_argument(
+        "-v",
+        help="Enable verbose output.",
+        action="count",
+        default=0,
+        dest="verbose",
     )
 
     gridsearch_parser_help = (
@@ -255,6 +277,13 @@ if __name__ == "__main__":
         action=ParseJsonArg,
         default=dict(),
     )
+    gridsearch_parser.add_argument(
+        "-v",
+        help="Enable verbose output.",
+        action="count",
+        default=0,
+        dest="verbose",
+    )
 
     featuresearch_parser_help = "Grid search over all sets of model features."
     featuresearch_parser = subparsers.add_parser(
@@ -311,6 +340,13 @@ if __name__ == "__main__":
         type=int,
         help="Seed value used for train/test split.",
     )
+    featuresearch_parser.add_argument(
+        "-v",
+        help="Enable verbose output.",
+        action="count",
+        default=0,
+        dest="verbose",
+    )
 
     utility_help = "Utilities to aid cleaning training data."
     utility_parser = subparsers.add_parser("utility", help=utility_help)
@@ -342,6 +378,12 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
+
+    logging.basicConfig(
+        stream=sys.stdout,
+        level=LOGGING_LEVEL[args.verbose],
+        format="[%(levelname)s] (%(module)s) %(message)s",
+    )
 
     if args.command == "train":
         train_single(args)

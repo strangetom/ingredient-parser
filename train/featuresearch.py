@@ -2,6 +2,7 @@
 
 import argparse
 import concurrent.futures as cf
+import logging
 import os
 import time
 from datetime import timedelta
@@ -19,6 +20,8 @@ from .training_utils import (
     evaluate,
     load_datasets,
 )
+
+logger = logging.getLogger(__name__)
 
 DISCARDED_FEATURES = {
     0: [],
@@ -195,8 +198,8 @@ def feature_search(args: argparse.Namespace):
         ]
         argument_sets.append(arguments)
 
-    print(f"[INFO] Grid search over {len(argument_sets)} feature sets.")
-    print(f"[INFO] {args.seed} is the random seed used for the train/test split.")
+    logger.info(f"Grid search over {len(argument_sets)} feature sets.")
+    logger.info(f"{args.seed} is the random seed used for the train/test split.")
 
     eval_results = []
     with cf.ProcessPoolExecutor(max_workers=args.processes) as executor:
