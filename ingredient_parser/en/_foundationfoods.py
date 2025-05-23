@@ -52,6 +52,66 @@ PREFERRED_DATATYPES = {
     "sr_legacy_food": 2,
 }
 
+# Verb stems, the presence of which indicates the food is not raw and therefore should
+# not be biased towards a raw food.
+NON_RAW_FOOD_VERB_STEMS = {
+    "age",
+    "bake",
+    "black",
+    "blanch",
+    "boil",
+    "brais",
+    "brew",
+    "broil",
+    "butter",
+    "can",
+    "cook",
+    "crisp",
+    "cultur",
+    "cure",
+    "decaffein",
+    "dehydr",
+    "devil",
+    "distil",
+    "dri",
+    "ferment",
+    "flavor",
+    "fortifi",
+    "fresh",
+    "fri",
+    "grill",
+    "ground",
+    "heat",
+    "hull",
+    "microwav",
+    "parboil",
+    "pasteur",
+    "pickl",
+    "poach",
+    "precook",
+    "prepar",
+    "preserv",
+    "powder",
+    "reconstitut",
+    "refin",
+    "refri",
+    "reheat",
+    "rehydr",
+    "render",
+    "roast",
+    "simmer",
+    "smoke",
+    "soak",
+    "spice",
+    "steam",
+    "stew",
+    "toast",
+    "unbak",
+    "unsalt",
+}
+# Also include "raw" so we don't add if again if already present
+NON_RAW_FOOD_VERB_STEMS.add("raw")
+
 
 @dataclass
 class FDCIngredient:
@@ -502,7 +562,7 @@ class FuzzyEmbeddingMatcher:
             match for match in matches if (match.score - best_score) / best_score <= 0.2
         ]
         for data_type in PREFERRED_DATATYPES:
-            # Note that these will be sorted in order of best score first because the
+            # Note that these are sorted in order of best score first because the
             # alternatives list is sorted.
             data_type_matches = [
                 m for m in alternatives if m.fdc.data_type == data_type
@@ -516,7 +576,11 @@ class FuzzyEmbeddingMatcher:
         self, ingredient_name_tokens: list[str], fdc_ingredients: list[FDCIngredient]
     ) -> FDCIngredientMatch:
         """Find the FDC ingredient that best matches the ingredient name tokens from the
-        list of FDC ingredients
+        list of FDC ingredients.
+
+        If the ingredient name tokens do not contain a verb indicating that the
+        ingredient name is not raw (e.g. cooked), then the token "raw" is added as an
+        additional token to bias the results towards a "raw" FDC ingredient.
 
         Parameters
         ----------
@@ -530,6 +594,12 @@ class FuzzyEmbeddingMatcher:
         FDCIngredientMatch
             Best matching FDC ingredient.
         """
+        # Bias the results towards selecting the raw version of a FDC ingredient, but
+        # only if the ingredient name tokens don't already include a verb that indicates
+        # the food is not raw (e.g. cooked)
+        if len(set(ingredient_name_tokens) & NON_RAW_FOOD_VERB_STEMS) == 0:
+            ingredient_name_tokens.append("raw")
+
         scored: list[FDCIngredientMatch] = []
         for fdc in fdc_ingredients:
             score = self._fuzzy_document_distance(ingredient_name_tokens, fdc.tokens)

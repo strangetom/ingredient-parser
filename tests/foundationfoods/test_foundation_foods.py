@@ -25,15 +25,20 @@ SIMPLE_EXAMPLES = [
     ("small handful fresh parsley, leaves picked and chopped", 170416),
 ]
 
+BIAS_EXAMPLES = [
+    ("2 red or green peppers", (2258588, 2258590)),
+    ("2 cooked red or green peppers", (2709976, 2709977)),
+]
+
 MULTIPLE_EXAMPLES = [
     ("salt and black pepper", (170931, 746775)),
     ("24 fresh basil leaves or dried basil", (172232, 171317)),
-    ("2 red or green peppers", (2709976, 2709977)),
+    ("2 red or green peppers", (2258588, 2258590)),
     ("250 ml hot beef or chicken stock", (172883, 172884)),
 ]
 
 NO_MATCH_EXAMPLES = [
-    "2 courgettes, sliced",  # no good match
+    "twelve bonbons",  # no good match
     "1 cup waxgourd",  # out of vocab
 ]
 
@@ -74,6 +79,16 @@ class TestPostProcessor_match_foundation_foods:
 
     @pytest.mark.parametrize(("sentence", "fdc_ids"), MULTIPLE_EXAMPLES)
     def test_match_foundation_foods_multiple(self, sentence, fdc_ids):
+        """
+        Test that each example sentence returns the correct foundation foods.
+        """
+        p = parse_ingredient(sentence, foundation_foods=True)
+        assert len(p.foundation_foods) > 1
+        for ff in p.foundation_foods:
+            assert ff.fdc_id in fdc_ids
+
+    @pytest.mark.parametrize(("sentence", "fdc_ids"), BIAS_EXAMPLES)
+    def test_match_foundation_foods_bias(self, sentence, fdc_ids):
         """
         Test that each example sentence returns the correct foundation foods.
         """
