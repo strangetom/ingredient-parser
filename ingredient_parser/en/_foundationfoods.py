@@ -9,6 +9,8 @@ from importlib.resources import as_file, files
 
 import numpy as np
 
+from ingredient_parser._common import consume
+
 from ..dataclasses import FoundationFood
 from ._embeddings import GloVeModel
 from ._loaders import load_embeddings_model
@@ -636,14 +638,82 @@ def get_fuzzy_matcher() -> FuzzyEmbeddingMatcher:
     return FuzzyEmbeddingMatcher(embeddings)
 
 
+# These are stemmed
+FDC_PHRASE_SUBSTITUTIONS = {
+    ("doubl", "cream"): ["heavi", "cream"],
+    ("glac", "cherri"): ["maraschino", "cherri"],
+    ("ice", "sugar"): ["powder", "sugar"],
+    ("mang", "tout"): ["snow", "pea"],
+    ("plain", "flour"): ["all-purpos", "flour"],
+    ("singl", "cream"): ["light", "cream"],
+}
+FDC_TOKEN_SUBSTITUTIONS = {
+    "aubergin": "eggplant",
+    "beetroot": "beet",
+    "capsicum": "bell",
+    "chile": "chili",
+    "chilli": "chili",
+    "coriand": "cilantro",
+    "cornflour": "cornstarch",
+    "courgett": "zucchini",
+    "gherkin": "pickl",
+    "mangetout": "snowpea",
+    "prawns": "shrimp",
+    "rocket": "arugula",
+    "swede": "rutabaga",
+    "yoghurt": "yogurt",
+}
+
+
+def normalise_spelling(tokens: list[str]) -> list[str]:
+    """Normalise spelling in tokens to standard spellings used in FDC ingredient
+    descriptions.
+
+    This also include subtitution of certain ingredients to use the FDC version e.g.
+    courgette -> zucchini; coriander -> cilantro.
+
+    Parameters
+    ----------
+    tokens : list[str]
+        List of stemmed tokens.
+
+    Returns
+    -------
+    list[str]
+        List of tokens with spelling normalised.
+    """
+    itokens = iter(tokens)
+
+    normalised_tokens = []
+    for i, token in enumerate(itokens):
+        token = token.lower()
+        if i < len(tokens) - 1:
+            next_token = tokens[i + 1].lower()
+        else:
+            next_token = ""
+
+        if (token, next_token) in FDC_PHRASE_SUBSTITUTIONS:
+            normalised_tokens.extend(FDC_PHRASE_SUBSTITUTIONS[(token, next_token)])
+            # Jump forward to avoid processing next_token again.
+            consume(itokens, 1)
+        elif token in FDC_TOKEN_SUBSTITUTIONS:
+            normalised_tokens.append(FDC_TOKEN_SUBSTITUTIONS[token])
+        else:
+            normalised_tokens.append(token)
+
+    return normalised_tokens
+
+
 def match_foundation_foods(tokens: list[str]) -> FoundationFood | None:
     """Match ingredient name to foundation foods from FDC ingredient.
 
-    This is done in two stages.
-    The first stage uses an Unsupervised Smooth Inverse Frequency calculation to down
+    This is done in three stages.
+    The first stage prepares and normalises the tokens.
+
+    The second stage uses an Unsupervised Smooth Inverse Frequency calculation to down
     select the possible candidate matching FDC ingredients.
 
-    The second stage selects the best of these candidates using a fuzzy embedding
+    The third stage selects the best of these candidates using a fuzzy embedding
     document metric.
 
     The need for two stages is that the ingredient embeddings do not seem to be as
@@ -664,17 +734,19 @@ def match_foundation_foods(tokens: list[str]) -> FoundationFood | None:
     if not prepared_tokens:
         return None
 
-    if tuple(prepared_tokens) in FOUNDATION_FOOD_OVERRIDES:
-        return FOUNDATION_FOOD_OVERRIDES[tuple(prepared_tokens)]
+    normalised_tokens = normalise_spelling(prepared_tokens)
+
+    if tuple(normalised_tokens) in FOUNDATION_FOOD_OVERRIDES:
+        return FOUNDATION_FOOD_OVERRIDES[tuple(normalised_tokens)]
 
     u = get_usif_matcher()
-    candidate_matches = u.find_candidate_matches(prepared_tokens, n=50)
+    candidate_matches = u.find_candidate_matches(normalised_tokens, n=50)
     if not candidate_matches:
         return None
 
     fuzzy = get_fuzzy_matcher()
     best_match = fuzzy.find_best_match(
-        prepared_tokens, [m.fdc for m in candidate_matches]
+        normalised_tokens, [m.fdc for m in candidate_matches]
     )
 
     if best_match.score <= 0.4:

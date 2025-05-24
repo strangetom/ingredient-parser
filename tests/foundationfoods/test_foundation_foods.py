@@ -1,5 +1,3 @@
-import csv
-
 import pytest
 
 from ingredient_parser import parse_ingredient
@@ -41,20 +39,6 @@ NO_MATCH_EXAMPLES = [
     "twelve bonbons",  # no good match
     "1 cup waxgourd",  # out of vocab
 ]
-
-
-def foundation_foods_test_cases() -> list[tuple[str, tuple[int, ...]]]:
-    """
-    Return a list of tuples of input sentences and their matching FDC ID.
-    """
-    test_cases = []
-    with open("tests/foundationfoods/foundation_foods_tests.csv", "r") as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            fdc_ids = tuple(int(id_) for id_ in row["fdc_id"].split(","))
-            test_cases.append((row["sentence"], fdc_ids))
-
-    return test_cases
 
 
 class TestPostProcessor_match_foundation_foods:

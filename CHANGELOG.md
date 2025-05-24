@@ -1,5 +1,11 @@
 # Changelog
 
+## develop
+
+* Foundation food improvements:
+  * Bias matching to prefer "raw" FDC ingredients if the ingredient name does not include verbs that indicate the ingredient is not raw.
+  * Normalise spelling of tokens in ingredient names to align with spelling used in FDC ingredient descriptions.
+
 ## 2.1.1
 
 * Pin Pint version to 0.24.4, as future versions intend to drop support for Python 3.10.
