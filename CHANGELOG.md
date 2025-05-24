@@ -3,7 +3,7 @@
 ## develop
 
 * Foundation food improvements:
-  * Bias matching to prefer "raw" FDC ingredients if the ingredient name does not include verbs that indicate the ingredient is not raw.
+  * Bias foundation food matching to prefer "raw" FDC ingredients, but only if the ingredient name does not include any verbs that indicate the ingredient is not raw (e.g. "cooked").
   * Normalise spelling of tokens in ingredient names to align with spelling used in FDC ingredient descriptions.
 
 ## 2.1.1
