@@ -19,8 +19,15 @@ from ._utils import prepare_embeddings_tokens, tokenize
 # Dict of ingredient name tokens that bypass the usual foundation food matching process.
 # We do this because the embedding distance approach sometime gives poor results when
 # the name we're trying to match only has one token.
+# The tokens in the dict keys are stemmed.
 FOUNDATION_FOOD_OVERRIDES: dict[tuple[str, ...], FoundationFood] = {
     ("salt",): FoundationFood(
+        "Salt, table, iodized", 1, 746775, "Spices and Herbs", "foundation_food"
+    ),
+    (
+        "sea",
+        "salt",
+    ): FoundationFood(
         "Salt, table, iodized", 1, 746775, "Spices and Herbs", "foundation_food"
     ),
     ("egg",): FoundationFood(
@@ -43,6 +50,13 @@ FOUNDATION_FOOD_OVERRIDES: dict[tuple[str, ...], FoundationFood] = {
         1104647,
         "Vegetables and Vegetable Products",
         "foundation_food",
+    ),
+    ("mayonnais",): FoundationFood(
+        "Mayonnaise, regular",
+        1,
+        2710204,
+        "Mayonnaise",
+        "survey_fndds_food",
     ),
 }
 
@@ -638,8 +652,10 @@ def get_fuzzy_matcher() -> FuzzyEmbeddingMatcher:
     return FuzzyEmbeddingMatcher(embeddings)
 
 
-# These are stemmed
-FDC_PHRASE_SUBSTITUTIONS = {
+# Phrase and token substitutions to normalise spelling of ingredient name tokens to the
+# spellings used in the FDC ingredient descriptions.
+# All tokens in these dicts are stemmed.
+FDC_PHRASE_SUBSTITUTIONS: dict[tuple[str, ...], list[str]] = {
     ("doubl", "cream"): ["heavi", "cream"],
     ("glac", "cherri"): ["maraschino", "cherri"],
     ("ice", "sugar"): ["powder", "sugar"],
@@ -647,7 +663,7 @@ FDC_PHRASE_SUBSTITUTIONS = {
     ("plain", "flour"): ["all-purpos", "flour"],
     ("singl", "cream"): ["light", "cream"],
 }
-FDC_TOKEN_SUBSTITUTIONS = {
+FDC_TOKEN_SUBSTITUTIONS: dict[str, str] = {
     "aubergin": "eggplant",
     "beetroot": "beet",
     "capsicum": "bell",
@@ -658,7 +674,7 @@ FDC_TOKEN_SUBSTITUTIONS = {
     "courgett": "zucchini",
     "gherkin": "pickl",
     "mangetout": "snowpea",
-    "prawns": "shrimp",
+    "prawn": "shrimp",
     "rocket": "arugula",
     "swede": "rutabaga",
     "yoghurt": "yogurt",
