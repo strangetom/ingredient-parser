@@ -58,6 +58,20 @@ FOUNDATION_FOOD_OVERRIDES: dict[tuple[str, ...], FoundationFood] = {
         "Mayonnaise",
         "survey_fndds_food",
     ),
+    ("all-purpos", "flour"): FoundationFood(
+        "Mayonnaise, regular",
+        1,
+        2710204,
+        "Mayonnaise",
+        "survey_fndds_food",
+    ),
+    ("all", "purpos", "flour"): FoundationFood(
+        "Flour, wheat, all-purpose, unenriched, unbleached",
+        1,
+        790018,
+        "Cereal Grains and Pasta",
+        "foundation_food",
+    ),
 }
 
 # List of preferred FDC data types.
@@ -660,7 +674,7 @@ FDC_PHRASE_SUBSTITUTIONS: dict[tuple[str, ...], list[str]] = {
     ("glac", "cherri"): ["maraschino", "cherri"],
     ("ice", "sugar"): ["powder", "sugar"],
     ("mang", "tout"): ["snow", "pea"],
-    ("plain", "flour"): ["all-purpos", "flour"],
+    ("plain", "flour"): ["all", "purpos", "flour"],
     ("singl", "cream"): ["light", "cream"],
 }
 FDC_TOKEN_SUBSTITUTIONS: dict[str, str] = {
