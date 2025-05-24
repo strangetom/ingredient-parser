@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
+import argparse
 import time
 
 from ingredient_parser import parse_ingredient
-
-ITERATIONS = 500
 
 if __name__ == "__main__":
     sentences = [
@@ -44,12 +43,23 @@ if __name__ == "__main__":
         ),
     ]
 
-    start = time.time()
-    for i in range(ITERATIONS):
-        for sent, _ in sentences:
-            parse_ingredient(sent, expect_name_in_output=True)
+    parser = argparse.ArgumentParser(description="Ingredient Parser benchmark")
+    parser.add_argument(
+        "--iterations", "-i", type=int, help="Number of iterations to run.", default=500
+    )
+    parser.add_argument(
+        "--foundationfoods", "-ff", action="store_true", help="Enable foundation foods."
+    )
+    args = parser.parse_args()
 
-    total_sentences = ITERATIONS * len(sentences)
+    start = time.time()
+    for i in range(args.iterations):
+        for sent, _ in sentences:
+            parse_ingredient(
+                sent, expect_name_in_output=True, foundation_foods=args.foundationfoods
+            )
+
+    total_sentences = args.iterations * len(sentences)
     duration = time.time() - start
     print(f"Elapsed time: {duration:.2f} s")
     print(f"{1e6 * duration / total_sentences:.2f} us/sentence")
