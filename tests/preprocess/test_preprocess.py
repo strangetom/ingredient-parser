@@ -107,7 +107,7 @@ class TestPreProcessor_sentence_features:
         expected = [
             {
                 "bias": "",
-                "sentence_length": 4,
+                "sentence_length": "4",
                 "pos": "CD",
                 "stem": "!num",
                 "is_capitalised": False,
@@ -151,7 +151,7 @@ class TestPreProcessor_sentence_features:
             },
             {
                 "bias": "",
-                "sentence_length": 4,
+                "sentence_length": "4",
                 "pos": "NN",
                 "stem": "cup",
                 "is_capitalised": False,
@@ -195,7 +195,7 @@ class TestPreProcessor_sentence_features:
             },
             {
                 "bias": "",
-                "sentence_length": 4,
+                "sentence_length": "4",
                 "pos": "NN",
                 "stem": "chicken",
                 "is_capitalised": False,
@@ -245,7 +245,7 @@ class TestPreProcessor_sentence_features:
             },
             {
                 "bias": "",
-                "sentence_length": 4,
+                "sentence_length": "4",
                 "pos": "NN",
                 "stem": "broth",
                 "is_capitalised": False,
