@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
 
+import logging
+
 from .._common import group_consecutive_idx
 from ..dataclasses import ParsedIngredient, ParserDebugInfo
 from ._loaders import load_parser_model
 from ._utils import pluralise_units
 from .postprocess import PostProcessor
 from .preprocess import PreProcessor
+
+logger = logging.getLogger("ingredient-parser")
 
 
 def parse_ingredient_en(
@@ -58,6 +62,7 @@ def parse_ingredient_en(
     ParsedIngredient
         ParsedIngredient object of structured data parsed from input string
     """
+    logger.debug(f'Parsing sentence "{sentence}" using "en" parser.')
     TAGGER = load_parser_model()
 
     processed_sentence = PreProcessor(sentence)
@@ -66,9 +71,11 @@ def parse_ingredient_en(
     features = processed_sentence.sentence_features()
     labels = TAGGER.tag(features)
     scores = [TAGGER.marginal(label, i) for i, label in enumerate(labels)]
+    logger.debug(f"Sentence token labels: {labels}.")
 
     if expect_name_in_output and all("NAME" not in label for label in labels):
         # No tokens were assigned the NAME label, so guess if there's a name
+        logger.debug("No tokens found where name is most probable label.")
         labels, scores = guess_ingredient_name(TAGGER, labels, scores)
 
     # Re-pluralise tokens that were singularised if the label isn't UNIT
@@ -147,6 +154,7 @@ def inspect_parser_en(
         ParserDebugInfo object containing the PreProcessor object, PostProcessor
         object and Tagger.
     """
+    logger.debug(f'Parsing sentence "{sentence}" using "en" parser.')
     TAGGER = load_parser_model()
 
     processed_sentence = PreProcessor(sentence)
@@ -158,6 +166,7 @@ def inspect_parser_en(
 
     if expect_name_in_output and all("NAME" not in label for label in labels):
         # No tokens were assigned the NAME label, so guess if there's a name
+        logger.debug("No tokens found where name is most likely label.")
         labels, scores = guess_ingredient_name(TAGGER, labels, scores)
 
     # Re-plurise tokens that were singularised if the label isn't UNIT
@@ -216,6 +225,9 @@ def guess_ingredient_name(
     list[str], list[float]
         Labels and scores, modified to assign a name if possible.
     """
+    logger.debug(
+        "Attempting to guess name from tokens where name label is not most probable."
+    )
     NAME_LABELS = [
         "B_NAME_TOK",
         "I_NAME_TOK",
@@ -236,6 +248,7 @@ def guess_ingredient_name(
             candidate_score_labels.append(max_score)
 
     if len(candidate_indices) == 0:
+        logger.debug("No viable name tokens identified.")
         return labels, scores
 
     # Group candidate indices into groups of consecutive indices and order by longest
@@ -248,4 +261,5 @@ def guess_ingredient_name(
         labels[token_index] = label
         scores[token_index] = score
 
+    logger.debug(f"Found alternative name at token indices: {indices}")
     return labels, scores

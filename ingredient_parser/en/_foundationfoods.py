@@ -2,6 +2,7 @@
 
 import csv
 import gzip
+import logging
 from collections import defaultdict
 from dataclasses import dataclass
 from functools import lru_cache
@@ -15,6 +16,8 @@ from ..dataclasses import FoundationFood
 from ._embeddings import GloVeModel
 from ._loaders import load_embeddings_model
 from ._utils import prepare_embeddings_tokens, tokenize
+
+logger = logging.getLogger("ingredient-parser.foundation-foods")
 
 # Dict of ingredient name tokens that bypass the usual foundation food matching process.
 # We do this because the embedding distance approach sometime gives poor results when
@@ -188,6 +191,7 @@ def load_fdc_ingredients() -> list[FDCIngredient]:
                     )
                 )
 
+    logger.debug(f"Loaded {len(foundation_foods)} FDC ingredients.")
     return foundation_foods
 
 
@@ -591,6 +595,9 @@ class FuzzyEmbeddingMatcher:
         alternatives = [
             match for match in matches if (match.score - best_score) / best_score <= 0.2
         ]
+        logger.debug(
+            f"{len(alternatives) - 1} alternative matches found with similar scores."
+        )
         for data_type in PREFERRED_DATATYPES:
             # Note that these are sorted in order of best score first because the
             # alternatives list is sorted.
@@ -731,6 +738,9 @@ def normalise_spelling(tokens: list[str]) -> list[str]:
         else:
             normalised_tokens.append(token)
 
+    if normalised_tokens != tokens:
+        logger.debug(f"Normalised tokens: {normalised_tokens}.")
+
     return normalised_tokens
 
 
@@ -760,18 +770,23 @@ def match_foundation_foods(tokens: list[str]) -> FoundationFood | None:
     FoundationFood | None
         Matching foundation food, or None if no match can be found.
     """
+    logger.debug(f"Matching FDC ingredient for ingredient name tokens: {tokens}")
     prepared_tokens = prepare_embeddings_tokens(tuple(tokens))
+    logger.debug(f"Prepared tokens: {prepared_tokens}.")
     if not prepared_tokens:
+        logger.debug("Ingredient name has no tokens in embedding vocabulary.")
         return None
 
     normalised_tokens = normalise_spelling(prepared_tokens)
 
     if tuple(normalised_tokens) in FOUNDATION_FOOD_OVERRIDES:
+        logger.debug("Returning FDC ingredient from override list.")
         return FOUNDATION_FOOD_OVERRIDES[tuple(normalised_tokens)]
 
     u = get_usif_matcher()
     candidate_matches = u.find_candidate_matches(normalised_tokens, n=50)
     if not candidate_matches:
+        logger.debug("No matching FDC ingredients found with uSIF matcher.")
         return None
 
     fuzzy = get_fuzzy_matcher()
@@ -788,4 +803,5 @@ def match_foundation_foods(tokens: list[str]) -> FoundationFood | None:
             data_type=best_match.fdc.data_type,
         )
 
+    logger.debug("No FDC ingredients found with good enough match.")
     return None

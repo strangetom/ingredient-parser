@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import logging
 import re
 import string
 import unicodedata
@@ -37,6 +38,8 @@ from ._utils import (
     stem,
     tokenize,
 )
+
+logger = logging.getLogger("ingredient-parser")
 
 CONSECUTIVE_SPACES = re.compile(r"\s+")
 
@@ -147,6 +150,7 @@ class PreProcessor:
         self.show_debug_output = show_debug_output
         self.input: str = input_sentence
         self.sentence: str = self._normalise(input_sentence)
+        logger.debug(f'Normalised sentence: "{self.sentence}".')
 
         self.singularised_indices = []
         self.tokenized_sentence = self._calculate_tokens(self.sentence)
@@ -564,6 +568,9 @@ class PreProcessor:
             else:
                 text_tokens.append(text)
 
+        logger.debug(f"Tokenized sentence: {text_tokens}.")
+        logger.debug(f"Singularised tokens at indices: {self.singularised_indices}.")
+
         tokens = []
         for i, (text, pos) in enumerate(pos_tag(text_tokens)):
             # Convert tokens:
@@ -970,7 +977,7 @@ class PreProcessor:
 
         return ngram_features
 
-    def _token_features(self, token: Token) -> dict[str, str | bool | int | float]:
+    def _token_features(self, token: Token) -> dict[str, str | bool]:
         """Return the features for the token at the given index in the sentence.
 
         If the token at the given index appears in the corpus parameter, the token is
@@ -989,10 +996,10 @@ class PreProcessor:
         """
 
         index = token.index
-        features: dict[str, str | bool | int | float] = {}
+        features: dict[str, str | bool] = {}
 
         features["bias"] = ""
-        features["sentence_length"] = self._sentence_length_bucket()
+        features["sentence_length"] = str(self._sentence_length_bucket())
 
         # Features for current token
         features["pos"] = token.pos_tag
@@ -1088,7 +1095,8 @@ class PreProcessor:
 
         Returns
         -------
-        list[dict[str, str | bool | int]]
-            List of features for each token in sentence
+        list[dict[str, str | bool]]
+            List of feature dicts for each token in sentence
         """
+        logger.debug("Generating features for tokens.")
         return [self._token_features(token) for token in self.tokenized_sentence]
