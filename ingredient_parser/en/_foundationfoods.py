@@ -595,9 +595,10 @@ class FuzzyEmbeddingMatcher:
         alternatives = [
             match for match in matches if (match.score - best_score) / best_score <= 0.2
         ]
-        logger.debug(
-            f"{len(alternatives) - 1} alternative matches found with similar scores."
-        )
+        if alternatives:
+            logger.debug(
+                f"Selecting best match from {len(alternatives)} candidates based on preferred FDC datatype."  # noqa
+            )
         for data_type in PREFERRED_DATATYPES:
             # Note that these are sorted in order of best score first because the
             # alternatives list is sorted.
