@@ -2,6 +2,7 @@
 
 import csv
 import gzip
+import logging
 from collections import defaultdict
 from dataclasses import dataclass
 from functools import lru_cache
@@ -9,16 +10,27 @@ from importlib.resources import as_file, files
 
 import numpy as np
 
+from ingredient_parser._common import consume
+
 from ..dataclasses import FoundationFood
 from ._embeddings import GloVeModel
 from ._loaders import load_embeddings_model
 from ._utils import prepare_embeddings_tokens, tokenize
 
+logger = logging.getLogger("ingredient-parser.foundation-foods")
+
 # Dict of ingredient name tokens that bypass the usual foundation food matching process.
 # We do this because the embedding distance approach sometime gives poor results when
 # the name we're trying to match only has one token.
+# The tokens in the dict keys are stemmed.
 FOUNDATION_FOOD_OVERRIDES: dict[tuple[str, ...], FoundationFood] = {
     ("salt",): FoundationFood(
+        "Salt, table, iodized", 1, 746775, "Spices and Herbs", "foundation_food"
+    ),
+    (
+        "sea",
+        "salt",
+    ): FoundationFood(
         "Salt, table, iodized", 1, 746775, "Spices and Herbs", "foundation_food"
     ),
     ("egg",): FoundationFood(
@@ -42,6 +54,27 @@ FOUNDATION_FOOD_OVERRIDES: dict[tuple[str, ...], FoundationFood] = {
         "Vegetables and Vegetable Products",
         "foundation_food",
     ),
+    ("mayonnais",): FoundationFood(
+        "Mayonnaise, regular",
+        1,
+        2710204,
+        "Mayonnaise",
+        "survey_fndds_food",
+    ),
+    ("all-purpos", "flour"): FoundationFood(
+        "Mayonnaise, regular",
+        1,
+        2710204,
+        "Mayonnaise",
+        "survey_fndds_food",
+    ),
+    ("all", "purpos", "flour"): FoundationFood(
+        "Flour, wheat, all-purpose, unenriched, unbleached",
+        1,
+        790018,
+        "Cereal Grains and Pasta",
+        "foundation_food",
+    ),
 }
 
 # List of preferred FDC data types.
@@ -51,6 +84,66 @@ PREFERRED_DATATYPES = {
     "survey_fndds_food": 1,
     "sr_legacy_food": 2,
 }
+
+# Verb stems, the presence of which indicates the food is not raw and therefore should
+# not be biased towards a raw food.
+NON_RAW_FOOD_VERB_STEMS = {
+    "age",
+    "bake",
+    "black",
+    "blanch",
+    "boil",
+    "brais",
+    "brew",
+    "broil",
+    "butter",
+    "can",
+    "cook",
+    "crisp",
+    "cultur",
+    "cure",
+    "decaffein",
+    "dehydr",
+    "devil",
+    "distil",
+    "dri",
+    "ferment",
+    "flavor",
+    "fortifi",
+    "fresh",
+    "fri",
+    "grill",
+    "ground",
+    "heat",
+    "hull",
+    "microwav",
+    "parboil",
+    "pasteur",
+    "pickl",
+    "poach",
+    "precook",
+    "prepar",
+    "preserv",
+    "powder",
+    "reconstitut",
+    "refin",
+    "refri",
+    "reheat",
+    "rehydr",
+    "render",
+    "roast",
+    "simmer",
+    "smoke",
+    "soak",
+    "spice",
+    "steam",
+    "stew",
+    "toast",
+    "unbak",
+    "unsalt",
+}
+# Also include "raw" so we don't add if again if already present
+NON_RAW_FOOD_VERB_STEMS.add("raw")
 
 
 @dataclass
@@ -98,6 +191,7 @@ def load_fdc_ingredients() -> list[FDCIngredient]:
                     )
                 )
 
+    logger.debug(f"Loaded {len(foundation_foods)} FDC ingredients.")
     return foundation_foods
 
 
@@ -501,8 +595,12 @@ class FuzzyEmbeddingMatcher:
         alternatives = [
             match for match in matches if (match.score - best_score) / best_score <= 0.2
         ]
+        if alternatives:
+            logger.debug(
+                f"Selecting best match from {len(alternatives)} candidates based on preferred FDC datatype."  # noqa
+            )
         for data_type in PREFERRED_DATATYPES:
-            # Note that these will be sorted in order of best score first because the
+            # Note that these are sorted in order of best score first because the
             # alternatives list is sorted.
             data_type_matches = [
                 m for m in alternatives if m.fdc.data_type == data_type
@@ -516,7 +614,11 @@ class FuzzyEmbeddingMatcher:
         self, ingredient_name_tokens: list[str], fdc_ingredients: list[FDCIngredient]
     ) -> FDCIngredientMatch:
         """Find the FDC ingredient that best matches the ingredient name tokens from the
-        list of FDC ingredients
+        list of FDC ingredients.
+
+        If the ingredient name tokens do not contain a verb indicating that the
+        ingredient name is not raw (e.g. cooked), then the token "raw" is added as an
+        additional token to bias the results towards a "raw" FDC ingredient.
 
         Parameters
         ----------
@@ -530,6 +632,12 @@ class FuzzyEmbeddingMatcher:
         FDCIngredientMatch
             Best matching FDC ingredient.
         """
+        # Bias the results towards selecting the raw version of a FDC ingredient, but
+        # only if the ingredient name tokens don't already include a verb that indicates
+        # the food is not raw (e.g. cooked)
+        if len(set(ingredient_name_tokens) & NON_RAW_FOOD_VERB_STEMS) == 0:
+            ingredient_name_tokens.append("raw")
+
         scored: list[FDCIngredientMatch] = []
         for fdc in fdc_ingredients:
             score = self._fuzzy_document_distance(ingredient_name_tokens, fdc.tokens)
@@ -566,14 +674,87 @@ def get_fuzzy_matcher() -> FuzzyEmbeddingMatcher:
     return FuzzyEmbeddingMatcher(embeddings)
 
 
+# Phrase and token substitutions to normalise spelling of ingredient name tokens to the
+# spellings used in the FDC ingredient descriptions.
+# All tokens in these dicts are stemmed.
+FDC_PHRASE_SUBSTITUTIONS: dict[tuple[str, ...], list[str]] = {
+    ("doubl", "cream"): ["heavi", "cream"],
+    ("glac", "cherri"): ["maraschino", "cherri"],
+    ("ice", "sugar"): ["powder", "sugar"],
+    ("mang", "tout"): ["snow", "pea"],
+    ("plain", "flour"): ["all", "purpos", "flour"],
+    ("singl", "cream"): ["light", "cream"],
+}
+FDC_TOKEN_SUBSTITUTIONS: dict[str, str] = {
+    "aubergin": "eggplant",
+    "beetroot": "beet",
+    "capsicum": "bell",
+    "chile": "chili",
+    "chilli": "chili",
+    "coriand": "cilantro",
+    "cornflour": "cornstarch",
+    "courgett": "zucchini",
+    "gherkin": "pickl",
+    "mangetout": "snowpea",
+    "prawn": "shrimp",
+    "rocket": "arugula",
+    "swede": "rutabaga",
+    "yoghurt": "yogurt",
+}
+
+
+def normalise_spelling(tokens: list[str]) -> list[str]:
+    """Normalise spelling in tokens to standard spellings used in FDC ingredient
+    descriptions.
+
+    This also include subtitution of certain ingredients to use the FDC version e.g.
+    courgette -> zucchini; coriander -> cilantro.
+
+    Parameters
+    ----------
+    tokens : list[str]
+        List of stemmed tokens.
+
+    Returns
+    -------
+    list[str]
+        List of tokens with spelling normalised.
+    """
+    itokens = iter(tokens)
+
+    normalised_tokens = []
+    for i, token in enumerate(itokens):
+        token = token.lower()
+        if i < len(tokens) - 1:
+            next_token = tokens[i + 1].lower()
+        else:
+            next_token = ""
+
+        if (token, next_token) in FDC_PHRASE_SUBSTITUTIONS:
+            normalised_tokens.extend(FDC_PHRASE_SUBSTITUTIONS[(token, next_token)])
+            # Jump forward to avoid processing next_token again.
+            consume(itokens, 1)
+        elif token in FDC_TOKEN_SUBSTITUTIONS:
+            normalised_tokens.append(FDC_TOKEN_SUBSTITUTIONS[token])
+        else:
+            normalised_tokens.append(token)
+
+    if normalised_tokens != tokens:
+        logger.debug(f"Normalised tokens: {normalised_tokens}.")
+
+    return normalised_tokens
+
+
 def match_foundation_foods(tokens: list[str]) -> FoundationFood | None:
     """Match ingredient name to foundation foods from FDC ingredient.
 
-    This is done in two stages.
-    The first stage uses an Unsupervised Smooth Inverse Frequency calculation to down
+    This is done in three stages.
+    The first stage prepares and normalises the tokens.
+
+    The second stage uses an Unsupervised Smooth Inverse Frequency calculation to down
     select the possible candidate matching FDC ingredients.
 
-    The second stage selects the best of these candidates using a fuzzy embedding
+    The third stage selects the best of these candidates using a fuzzy embedding
     document metric.
 
     The need for two stages is that the ingredient embeddings do not seem to be as
@@ -590,21 +771,28 @@ def match_foundation_foods(tokens: list[str]) -> FoundationFood | None:
     FoundationFood | None
         Matching foundation food, or None if no match can be found.
     """
+    logger.debug(f"Matching FDC ingredient for ingredient name tokens: {tokens}")
     prepared_tokens = prepare_embeddings_tokens(tuple(tokens))
+    logger.debug(f"Prepared tokens: {prepared_tokens}.")
     if not prepared_tokens:
+        logger.debug("Ingredient name has no tokens in embedding vocabulary.")
         return None
 
-    if tuple(prepared_tokens) in FOUNDATION_FOOD_OVERRIDES:
-        return FOUNDATION_FOOD_OVERRIDES[tuple(prepared_tokens)]
+    normalised_tokens = normalise_spelling(prepared_tokens)
+
+    if tuple(normalised_tokens) in FOUNDATION_FOOD_OVERRIDES:
+        logger.debug("Returning FDC ingredient from override list.")
+        return FOUNDATION_FOOD_OVERRIDES[tuple(normalised_tokens)]
 
     u = get_usif_matcher()
-    candidate_matches = u.find_candidate_matches(prepared_tokens, n=50)
+    candidate_matches = u.find_candidate_matches(normalised_tokens, n=50)
     if not candidate_matches:
+        logger.debug("No matching FDC ingredients found with uSIF matcher.")
         return None
 
     fuzzy = get_fuzzy_matcher()
     best_match = fuzzy.find_best_match(
-        prepared_tokens, [m.fdc for m in candidate_matches]
+        normalised_tokens, [m.fdc for m in candidate_matches]
     )
 
     if best_match.score <= 0.4:
@@ -616,4 +804,5 @@ def match_foundation_foods(tokens: list[str]) -> FoundationFood | None:
             data_type=best_match.fdc.data_type,
         )
 
+    logger.debug("No FDC ingredients found with good enough match.")
     return None

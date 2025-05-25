@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import logging
 import re
 import string
 import unicodedata
@@ -38,6 +39,8 @@ from ._utils import (
     stem,
     tokenize,
 )
+
+logger = logging.getLogger("ingredient-parser")
 
 CONSECUTIVE_SPACES = re.compile(r"\s+")
 
@@ -129,6 +132,7 @@ class PreProcessor:
         self.show_debug_output = show_debug_output
         self.input: str = input_sentence
         self.sentence: str = self._normalise(input_sentence)
+        logger.debug(f'Normalised sentence: "{self.sentence}".')
 
         self.singularised_indices = []
         self.tokenized_sentence = self._calculate_tokens(self.sentence)
@@ -546,6 +550,9 @@ class PreProcessor:
                 self.singularised_indices.append(i)
             else:
                 text_tokens.append(text)
+
+        logger.debug(f"Tokenized sentence: {text_tokens}.")
+        logger.debug(f"Singularised tokens at indices: {self.singularised_indices}.")
 
         tokens = []
         for i, (text, pos) in enumerate(pos_tag(text_tokens)):
@@ -1073,12 +1080,13 @@ class PreProcessor:
 
         return features
 
-    def sentence_features(self) -> list[dict[str, str | bool | int | float]]:
+    def sentence_features(self) -> list[dict[str, str | bool]]:
         """Return features for all tokens in sentence.
 
         Returns
         -------
-        list[dict[str, str | bool | int]]
-            List of features for each token in sentence
+        list[dict[str, str | bool]]
+            List of feature dicts for each token in sentence
         """
+        logger.debug("Generating features for tokens.")
         return [self._token_features(token) for token in self.tokenized_sentence]

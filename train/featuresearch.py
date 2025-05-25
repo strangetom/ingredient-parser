@@ -2,6 +2,7 @@
 
 import argparse
 import concurrent.futures as cf
+import logging
 import os
 import time
 from datetime import timedelta
@@ -13,11 +14,14 @@ from sklearn.model_selection import train_test_split
 from tabulate import tabulate
 from tqdm import tqdm
 
+from .train_model import DEFAULT_MODEL_LOCATION
 from .training_utils import (
     DataVectors,
     evaluate,
     load_datasets,
 )
+
+logger = logging.getLogger(__name__)
 
 DISCARDED_FEATURES = {
     0: [],
@@ -136,8 +140,8 @@ def train_model_feature_search(
             "feature.minfreq": 0,
             "feature.possible_states": True,
             "feature.possible_transitions": True,
-            "c1": 0.25,
-            "c2": 0.75,
+            "c1": 0.6,
+            "c2": 0.5,
             "max_linesearch": 5,
             "num_memories": 3,
             "period": 10,
@@ -177,20 +181,25 @@ def feature_search(args: argparse.Namespace):
     """
     vectors = load_datasets(args.database, args.table, args.datasets)
 
+    if args.save_model is None:
+        save_model = DEFAULT_MODEL_LOCATION
+    else:
+        save_model = args.save_model
+
     argument_sets = []
     for feature_set in DISCARDED_FEATURES.keys():
         arguments = [
             feature_set,
             vectors,
             args.split,
-            args.save_model,
+            save_model,
             args.seed,
             args.keep_models,
         ]
         argument_sets.append(arguments)
 
-    print(f"[INFO] Grid search over {len(argument_sets)} feature sets.")
-    print(f"[INFO] {args.seed} is the random seed used for the train/test split.")
+    logger.info(f"Grid search over {len(argument_sets)} feature sets.")
+    logger.info(f"{args.seed} is the random seed used for the train/test split.")
 
     eval_results = []
     with cf.ProcessPoolExecutor(max_workers=args.processes) as executor:

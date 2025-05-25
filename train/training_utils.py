@@ -2,6 +2,7 @@
 
 import concurrent.futures as cf
 import json
+import logging
 import sqlite3
 from dataclasses import dataclass
 from functools import partial
@@ -16,6 +17,8 @@ from sklearn.metrics import (
 )
 
 from ingredient_parser import SUPPORTED_LANGUAGES
+
+logger = logging.getLogger(__name__)
 
 sqlite3.register_converter("json", json.loads)
 
@@ -185,7 +188,7 @@ def load_datasets(
     """
     PreProcessor = select_preprocessor(table)
 
-    print("[INFO] Loading and transforming training data.")
+    logger.info("Loading and transforming training data.")
 
     n = len(datasets)
     with sqlite3.connect(database, detect_types=sqlite3.PARSE_DECLTYPES) as conn:
@@ -225,8 +228,8 @@ def load_datasets(
         discarded=sum(v.discarded for v in vectors),
     )
 
-    print(f"[INFO] {len(all_vectors.sentences):,} usable vectors.")
-    print(f"[INFO] {all_vectors.discarded:,} discarded due to OTHER labels.")
+    logger.info(f"{len(all_vectors.sentences):,} usable vectors.")
+    logger.info(f"{all_vectors.discarded:,} discarded due to OTHER labels.")
     return all_vectors
 
 
@@ -378,5 +381,5 @@ def confusion_matrix(
     ax.tick_params(axis="x", labelrotation=45)
     fig.tight_layout()
     fig.savefig(figure_path)
-    print(f"[INFO] Confusion matrix saved to {figure_path}")
+    logger.info(f"Confusion matrix saved to {figure_path}.")
     plt.close(fig)

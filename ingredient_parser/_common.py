@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import collections
+import logging
 import os
 import platform
 import re
@@ -19,6 +20,10 @@ with as_file(files(__package__) / "density_context.txt") as p:
     UREG.load_definitions(p)
 
 SUPPORTED_LANGUAGES = ["en"]
+
+# Logging
+logger = logging.getLogger("ingredient-parser")
+logger.addHandler(logging.NullHandler())
 
 # Regex pattern for matching a numeric range e.g. 1-2, 2-3, #1$2-1#3$4.
 RANGE_PATTERN = re.compile(r"^[\d\#\$]+\s*[\-][\d\#\$]+$")

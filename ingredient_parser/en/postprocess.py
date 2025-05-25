@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import logging
 import re
 from collections import defaultdict
 from dataclasses import dataclass
@@ -31,6 +32,8 @@ from ._utils import (
     ingredient_amount_factory,
     replace_string_range,
 )
+
+logger = logging.getLogger("ingredient-parser")
 
 WORD_CHAR = re.compile(r"\w")
 
@@ -191,8 +194,11 @@ class PostProcessor:
                 else:
                     name_replaced_labels.append(label)
             self.labels = name_replaced_labels
+            logger.debug(
+                f"Relabeled tokens to {self.labels} because seperate_name=False."
+            )
 
-            # Process NAME labels as any other label, but return a list
+            # Process NAME labels as any other label, but return as a list
             if processed_name := self._postprocess("NAME"):
                 name = [processed_name]
             else:

@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 
+import logging
 from functools import lru_cache
 from importlib.resources import as_file, files
 
 import pycrfsuite
 
 from ._embeddings import GloVeModel
+
+logger = logging.getLogger("ingredient-parser")
 
 
 @lru_cache
@@ -20,6 +23,7 @@ def load_parser_model() -> pycrfsuite.Tagger:  # type: ignore
     pycrfsuite.Tagger
         Parser model loaded into Tagger object.
     """
+    logger.debug("Loading parser model: model.en.crfsuite")
     tagger = pycrfsuite.Tagger()  # type: ignore
     with as_file(files(__package__) / "model.en.crfsuite") as p:
         tagger.open(str(p))
@@ -38,4 +42,5 @@ def load_embeddings_model() -> GloVeModel:  # type: ignore
     GloVeModel
         Embeddings model.
     """
+    logger.debug("Loading embeddings model: ingredient_embeddings.25d.glove.txt.gz")
     return GloVeModel("ingredient_embeddings.25d.glove.txt.gz")

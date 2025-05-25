@@ -3,6 +3,7 @@
 import argparse
 import concurrent.futures as cf
 import contextlib
+import logging
 from pathlib import Path
 from random import randint
 from statistics import mean, stdev
@@ -22,6 +23,8 @@ from .training_utils import (
     evaluate,
     load_datasets,
 )
+
+logger = logging.getLogger(__name__)
 
 
 def train_parser_model(
@@ -69,7 +72,7 @@ def train_parser_model(
     if seed is None:
         seed = randint(0, 1_000_000_000)
 
-    print(f"[INFO] {seed} is the random seed used for the train/test split.")
+    logger.info(f"{seed} is the random seed used for the train/test split.")
 
     # Split data into train and test sets
     # The stratify argument means that each dataset is represented proprtionally
@@ -96,10 +99,10 @@ def train_parser_model(
         stratify=vectors.source,
         random_state=seed,
     )
-    print(f"[INFO] {len(features_train):,} training vectors.")
-    print(f"[INFO] {len(features_test):,} testing vectors.")
+    logger.info(f"{len(features_train):,} training vectors.")
+    logger.info(f"{len(features_test):,} testing vectors.")
 
-    print("[INFO] Training model with training data.")
+    logger.info("Training model with training data.")
     trainer = pycrfsuite.Trainer(verbose=False)  # type: ignore
     trainer.set_params(
         {
@@ -117,7 +120,7 @@ def train_parser_model(
         trainer.append(X, y)
     trainer.train(str(save_model))
 
-    print("[INFO] Evaluating model with test data.")
+    logger.info("Evaluating model with test data.")
     tagger = pycrfsuite.Tagger()  # type: ignore
     tagger.open(str(save_model))
 
