@@ -195,7 +195,7 @@ def load_datasets(
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
         c.execute(
-            f"SELECT * FROM {table} WHERE source IN ({','.join(['?'] * n)}) LIMIT 5000",
+            f"SELECT * FROM {table} WHERE source IN ({','.join(['?'] * n)})",
             datasets,
         )
         data = [dict(row) for row in c.fetchall()]
