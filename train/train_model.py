@@ -215,29 +215,29 @@ def train_multiple(args: argparse.Namespace) -> None:
     else:
         save_model = args.save_model
 
-    arguments = []
-    for _ in range(args.runs):
-        # The first None argument is for the seed. This is set to None so each
-        # iteration of the training function uses a different random seed.
-        arguments.append(
-            (
-                vectors,
-                args.split,
-                Path(save_model).with_stem("model-" + str(uuid4())),
-                None,  # Seed
-                args.html,
-                args.detailed,
-                args.confusion,
-                False,  # keep_model
-            )
+    # The first None argument is for the seed. This is set to None so each
+    # iteration of the training function uses a different random seed.
+    arguments = [
+        (
+            vectors,
+            args.split,
+            Path(save_model).with_stem("model-" + str(uuid4())),
+            None,  # Seed
+            args.html,
+            args.detailed,
+            args.confusion,
+            False,  # keep_model
         )
+        for _ in range(args.runs)
+    ]
 
-    eval_results = []
     with contextlib.redirect_stdout(None):  # Suppress print output
         with cf.ProcessPoolExecutor(max_workers=args.processes) as executor:
             futures = [executor.submit(train_parser_model, *a) for a in arguments]
-            for future in tqdm(cf.as_completed(futures), total=len(futures)):
-                eval_results.append(future.result())
+            eval_results = [
+                future.result()
+                for future in tqdm(cf.as_completed(futures), total=len(futures))
+            ]
 
     word_accuracies, sentence_accuracies, seeds = [], [], []
     for result in eval_results:

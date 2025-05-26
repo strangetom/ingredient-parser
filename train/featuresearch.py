@@ -201,13 +201,14 @@ def feature_search(args: argparse.Namespace):
     logger.info(f"Grid search over {len(argument_sets)} feature sets.")
     logger.info(f"{args.seed} is the random seed used for the train/test split.")
 
-    eval_results = []
     with cf.ProcessPoolExecutor(max_workers=args.processes) as executor:
         futures = [
             executor.submit(train_model_feature_search, *a) for a in argument_sets
         ]
-        for future in tqdm(cf.as_completed(futures), total=len(futures)):
-            eval_results.append(future.result())
+        eval_results = [
+            future.result()
+            for future in tqdm(cf.as_completed(futures), total=len(futures))
+        ]
 
     # Sort with highest sentence accuracy first
     eval_results = sorted(

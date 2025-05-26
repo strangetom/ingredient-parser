@@ -319,14 +319,10 @@ class uSIF:
 
         Returnstoken_prob
         -------
-        dict[str, list[np.ndarray]]
-            Dict of embedding vectors for FDC ingredients, grouped by data type.
+        list[np.ndarray]
+            List of embedding vectors for FDC ingredients.
         """
-        vectors = []
-        for fdc in self.fdc_ingredients:
-            vectors.append(self._embed(fdc.tokens))
-
-        return vectors
+        return [self._embed(fdc.tokens) for fdc in self.fdc_ingredients]
 
     def _embed(self, tokens: list[str]) -> np.ndarray:
         """Return single embedding vector for input tokens calculated from the weighted

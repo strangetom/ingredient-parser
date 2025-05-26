@@ -66,12 +66,13 @@ omit = [
 exclude = [
     "**/__pycache__",
     ".git",
-    "venv"
+    "venv",
+    "notebooks"
 ]
 line-length = 88
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "PT", "RUF"]
+select = ["E", "F", "I", "PERF", "PT", "RUF"]
 ignore = [
     "E402",   # To enable path to be modified in doc conf.py before import
     "RUF001", # Ambiguous unicode characters are handled explicitly in functions
