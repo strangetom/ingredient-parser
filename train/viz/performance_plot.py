@@ -25,12 +25,10 @@ def load_data() -> tuple[tuple[str], list[float], list[float]]:
         sentence is a list of floats
         word is a list of floats
     """
-    data = []
     with open("train/performance_history.csv", "r") as f:
         reader = csv.reader(f)
-        next(reader)
-        for row in reader:
-            data.append(row)
+        # Skip first row because it contains column headings
+        data = list(reader)[1:]
 
     releases, sentence, word = zip(*data)
     sentence = [float(s) for s in sentence]

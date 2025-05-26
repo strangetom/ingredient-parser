@@ -195,7 +195,7 @@ def load_datasets(
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
         c.execute(
-            f"SELECT * FROM {table} WHERE source IN ({','.join(['?'] * n)})",
+            f"SELECT * FROM {table} WHERE source IN ({','.join(['?'] * n)}) LIMIT 5000",
             datasets,
         )
         data = [dict(row) for row in c.fetchall()]
@@ -208,15 +208,16 @@ def load_datasets(
     chunk_size = int((len(data) + n_chunks) / n_chunks)
     chunks = chunked(data, chunk_size)
 
-    vectors = []
     with cf.ProcessPoolExecutor(max_workers=4) as executor:
-        for vec in executor.map(
-            process_sentences,
-            chunks,
-            [PreProcessor] * n_chunks,
-            [discard_other] * n_chunks,
-        ):
-            vectors.append(vec)
+        vectors = [
+            vec
+            for vec in executor.map(
+                process_sentences,
+                chunks,
+                [PreProcessor] * n_chunks,
+                [discard_other] * n_chunks,
+            )
+        ]
 
     all_vectors = DataVectors(
         sentences=list(chain.from_iterable(v.sentences for v in vectors)),
