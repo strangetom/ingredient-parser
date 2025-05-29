@@ -119,6 +119,7 @@ class MIP:
 
             # If first item in list is a known unit, remove it.
             first_idx = indices[0]
+            # TODO: also exclude sizes e.g. large, small. Needs a list of them.
             if self.tokenized_sentence[first_idx].text.lower() in FLATTENED_UNITS_LIST:
                 indices = indices[1:]
                 # If first index is now a conjunction, skip.
@@ -167,7 +168,8 @@ class MIP:
             #    features[prefix + "mip_end"] = True
 
             if self._candidate_name_mod(phrase, index):
-                features["name_mod_candidate"] = True
+                # Token is first element of first subsection of phrase.
+                features[prefix + "name_mod_candidate"] = True
 
         return features
 
