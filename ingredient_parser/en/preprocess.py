@@ -4,11 +4,11 @@ import logging
 import re
 import string
 import unicodedata
-from dataclasses import dataclass
 from html import unescape
 
 from nltk import pos_tag
 
+from ..dataclasses import Token, TokenFeatures
 from ._constants import (
     AMBIGUOUS_UNITS,
     FLATTENED_UNITS_LIST,
@@ -16,6 +16,7 @@ from ._constants import (
     UNICODE_FRACTIONS,
     UNITS,
 )
+from ._phrases import MIP
 from ._regex import (
     CAPITALISED_PATTERN,
     DIGIT_PATTERN,
@@ -42,25 +43,6 @@ from ._utils import (
 logger = logging.getLogger("ingredient-parser")
 
 CONSECUTIVE_SPACES = re.compile(r"\s+")
-
-
-@dataclass
-class TokenFeatures:
-    stem: str
-    shape: str
-    is_capitalised: bool
-    is_unit: bool
-    is_punc: bool
-    is_ambiguous_unit: bool
-
-
-@dataclass
-class Token:
-    index: int
-    text: str
-    feat_text: str
-    pos_tag: str
-    features: TokenFeatures
 
 
 class PreProcessor:
@@ -154,6 +136,7 @@ class PreProcessor:
 
         self.singularised_indices = []
         self.tokenized_sentence = self._calculate_tokens(self.sentence)
+        self.mip = MIP(self.tokenized_sentence)
 
     def __repr__(self) -> str:
         """__repr__ method.
@@ -991,7 +974,7 @@ class PreProcessor:
 
         Returns
         -------
-        dict[str, str | bool| int | float]
+        dict[str, str | bool]
             Dictionary of features for token at index.
         """
 
@@ -1009,6 +992,7 @@ class PreProcessor:
 
         features |= self._common_features(index, "")
         features |= self._ngram_features(token.feat_text, "")
+        features |= self.mip.token_features(index, "")
 
         # Features for previous token
         if index > 0:
@@ -1021,6 +1005,7 @@ class PreProcessor:
                 )
             )
             features |= self._common_features(index - 1, "prev_")
+            features |= self.mip.token_features(index - 1, "prev_")
 
         # Features for previous previous token
         if index > 1:
@@ -1034,6 +1019,7 @@ class PreProcessor:
                 )
             )
             features |= self._common_features(index - 2, "prev2_")
+            features |= self.mip.token_features(index - 2, "prev2_")
 
         # Features for previous previous previous token
         if index > 2:
@@ -1048,6 +1034,7 @@ class PreProcessor:
                 )
             )
             features |= self._common_features(index - 3, "prev3_")
+            features |= self.mip.token_features(index - 3, "prev3_")
 
         # Features for next token
         if index < len(self.tokenized_sentence) - 1:
@@ -1060,6 +1047,7 @@ class PreProcessor:
                 )
             )
             features |= self._common_features(index + 1, "next_")
+            features |= self.mip.token_features(index + 1, "next_")
 
         # Features for next next token
         if index < len(self.tokenized_sentence) - 2:
@@ -1073,6 +1061,7 @@ class PreProcessor:
                 )
             )
             features |= self._common_features(index + 2, "next2_")
+            features |= self.mip.token_features(index + 2, "next2_")
 
         # Features for next next next token
         if index < len(self.tokenized_sentence) - 3:
@@ -1087,6 +1076,7 @@ class PreProcessor:
                 )
             )
             features |= self._common_features(index + 3, "next3_")
+            features |= self.mip.token_features(index + 3, "next3_")
 
         return features
 

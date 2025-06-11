@@ -15,6 +15,25 @@ from ._common import UREG
 
 
 @dataclass
+class TokenFeatures:
+    stem: str
+    shape: str
+    is_capitalised: bool
+    is_unit: bool
+    is_punc: bool
+    is_ambiguous_unit: bool
+
+
+@dataclass
+class Token:
+    index: int
+    text: str
+    feat_text: str
+    pos_tag: str
+    features: TokenFeatures
+
+
+@dataclass
 class IngredientAmount:
     """Dataclass for holding a parsed ingredient amount.
 

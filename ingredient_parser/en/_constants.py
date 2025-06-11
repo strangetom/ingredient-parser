@@ -123,24 +123,6 @@ UNITS = UNITS | _capitalized_units
 # since we need this in a few places
 FLATTENED_UNITS_LIST = set(chain.from_iterable(UNITS.items()))
 
-# Words that can modify a unit
-UNIT_MODIFIERS = [
-    "big",
-    "fat",
-    "generous",
-    "healthy",
-    "heaped",
-    "heaping",
-    "large",
-    "medium",
-    "medium-size",
-    "medium-sized",
-    "scant",
-    "small",
-    "thick",
-    "thin",
-]
-
 # Units that can be part of the name
 # e.g. 1 teaspoon ground cloves, or 5 bay leaves
 AMBIGUOUS_UNITS = [
@@ -162,6 +144,36 @@ for amb_unit in AMBIGUOUS_UNITS:
         _ambiguous_units_alt_forms.append(singular_capitalised)
 
 AMBIGUOUS_UNITS.extend(_ambiguous_units_alt_forms)
+
+# Words that indicate ingredient size
+SIZES = [
+    "big",
+    "bite-size",
+    "bite-sized",
+    "extra-large",
+    "jumbo",
+    "large",
+    "lg",
+    "little",
+    "md",
+    "medium",
+    "medium-large",
+    "medium-size",
+    "medium-sized",
+    "medium-small",
+    "medium-to-large",
+    "miniature",
+    "regular",
+    "slim",
+    "sm",
+    "small",
+    "small-to-medium",
+    "smaller",
+    "smallest",
+    "thick",
+    "thin",
+    "tiny",
+]
 
 
 # Strings and their numeric representation
