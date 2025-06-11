@@ -3,7 +3,7 @@
 import nltk
 
 from ..dataclasses import Token
-from ._constants import FLATTENED_UNITS_LIST
+from ._constants import FLATTENED_UNITS_LIST, SIZES
 
 
 class MIP:
@@ -117,14 +117,20 @@ class MIP:
             if self._cc_is_not_or(text_pos, indices):
                 continue
 
-            # If first item in list is a known unit, remove it.
+            # Remove any units or sizes from the beginning of the phrase
             first_idx = indices[0]
-            # TODO: also exclude sizes e.g. large, small. Needs a list of them.
-            if self.tokenized_sentence[first_idx].text.lower() in FLATTENED_UNITS_LIST:
+            tokens_to_discard = [*FLATTENED_UNITS_LIST, *SIZES]
+            while self.tokenized_sentence[first_idx].text.lower() in tokens_to_discard:
                 indices = indices[1:]
-                # If first index is now a conjunction, skip.
-                if self.tokenized_sentence[indices[0]].pos_tag == "CC":
-                    continue
+                first_idx = indices[0]
+
+            # If phrase is empty, skip.
+            if not indices:
+                continue
+
+            # If first index is now a conjunction, skip.
+            if self.tokenized_sentence[indices[0]].pos_tag == "CC" or not indices:
+                continue
 
             phrases.append(indices)
 
@@ -134,8 +140,6 @@ class MIP:
         """Return dict of features for token at index.
 
         Features:
-        "mip": True if index in phrase.
-        "cc_distance": Distance between index and conjunction in phrase.
         "mip_start": True if index at start of multi-ingredient phrase.
         "mip_end": True if index at end of multi-ingredient phrase.
 
@@ -157,43 +161,31 @@ class MIP:
             if index not in phrase:
                 continue
 
-            # features[prefix + "mip"] = True
-            # features[prefix + "cc_distance"] = str(
-            #    self._get_distance_from_cc(phrase, index)
-            # )
+            if index == phrase[0]:
+                features[prefix + "mip_start"] = True
 
-            # if index == phrase[0]:
-            #    features[prefix + "mip_start"] = True
-            # if index == phrase[-1]:
-            #    features[prefix + "mip_end"] = True
-
-            if self._candidate_name_mod(phrase, index):
-                # Token is first element of first subsection of phrase.
-                features[prefix + "name_mod_candidate"] = True
+            if index == phrase[-1]:
+                features[prefix + "mip_end"] = True
 
         return features
 
-    def _get_distance_from_cc(self, phrase: list[int], index: int) -> int:
-        """Calculate distance of index from index of conjunction ("CC") in phrase.
+    def _candidate_name_mod(self, phrase: list[int], index: int) -> bool:
+        """Return True if token at index in phrase is candidate for NAME_MOD label.
+
+        A token is a candidate for NAME_MOD if it is the first element of the phrase.
 
         Parameters
         ----------
         phrase : list[int]
-            Indices of phrase tokens.
+            List of token indices for phrase.
         index : int
-            Index to calculate distance for.
+            Index of token to consider.
 
         Returns
         -------
-        int
-            Distance from conjunction.
-            If index occurs before conjunction, this value is negative.
+        bool
+            True, if token is first in phrase.
         """
-        phrase_pos_tags = [self.tokenized_sentence[i].pos_tag for i in phrase]
-        cc_index = phrase_pos_tags.index("CC") + phrase[0]
-        return index - cc_index
-
-    def _candidate_name_mod(self, phrase: list[int], index: int) -> bool:
         split_phrase_tokens = list(self._split_phrase(self.tokenized_sentence, phrase))
         if len(split_phrase_tokens[0]) > 1:
             return split_phrase_tokens[0][0].index == index
