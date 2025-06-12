@@ -6,20 +6,24 @@ from ..dataclasses import Token
 from ._constants import FLATTENED_UNITS_LIST, SIZES
 
 
-class MIP:
+class SentenceStrucureFeatures:
     """
-    Multi-ingredient Phrases.
+    Sentence structure features.
 
-    This class handles the detection of multi-ingredient phrases in an ingredient
-    sentence, and the generation of features for tokens within the multi-ingredient
-    phrase.
+    This class handles the detection and feature generation related to the structure of
+    the ingredient sentence.
+    * Multi-ingredient phrases
+      A multi-ingredient phrase is a phrase within an ingredient sentence that states
+      a list of alternative ingredients for a give amount. For example
+        * 2 tbsp butter or olive oil
+                 ^^^^^^^^^^^^^^^^^^^
+        * 1 cup vegetable, olive or sunflower oil
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-    A multi-ingredient phrase is a phrase within an ingredient sentence that states a
-    list of alternative ingredients for a give amount. For example
-    * 2 tbsp butter or olive oil
-             ^^^^^^^^^^^^^^^^^^^
-    * 1 cup vegetable, olive or sunflower oil
-            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    * Compound sentences containing multiple ingredients of different amounts
+      A compound sentence is a sentence that includes more than one subject. For example
+        * 1 tablespoon chopped fresh sage or 1 teaspoon dried sage
+                                          ^^^^^^^^^^^^^^^^^^^^^^^^
     """
 
     mip_parser = nltk.RegexpParser(
@@ -27,13 +31,19 @@ class MIP:
         # Extended multi-ingredient phrase containing of 3 ingredients
         EMIP: {<NN.*|JJ.*>+<,><NN.*|JJ.*>+<CC><NN.*|JJ.*>*<NN.*>}
         # Multi-ingredient phrase containing of 2 ingredients
-        MIP: {<NN.*|JJ.*>+<CC><NN.*|JJ.*>*<NN.*>}     
+        MIP: {<NN.*|JJ.*>+<CC><NN.*|JJ.*>*<NN.*>}
         """
     )
 
+    # RegexpParser to detect the start of the subject phrase.
+    # UNIT and SIZE are custom tags, based on the FLATTENED_UNITS_LIST and SIZES
+    # constants.
+    compound_parser = nltk.RegexpParser(r"CS: {<CC><CD>+<NN.*|UNIT|SIZE>}")
+
     def __init__(self, tokenized_sentence: list[Token]):
         self.tokenized_sentence = tokenized_sentence
-        self.phrases: list[list[int]] = self.detect_phrases(tokenized_sentence)
+        self.phrases = self.detect_phrases(tokenized_sentence)
+        self.sentence_splits = self.detect_sentences_splits(tokenized_sentence)
 
     def _get_subtree_indices(
         self, parent_tree: nltk.Tree, subtree: nltk.Tree
@@ -136,7 +146,43 @@ class MIP:
 
         return phrases
 
-    def token_features(self, index: int, prefix: str) -> dict[str, str | bool]:
+    def detect_sentences_splits(self, tokenized_sentence: list[Token]) -> list[int]:
+        """Return indices of tokens that mark a split in sentence subject.
+
+        Parameters
+        ----------
+        tokenized_sentence : list[Token]
+            Tokenized sentence to detect phrases within.
+
+        Returns
+        -------
+        list[int]
+            List of indices.
+        """
+        split_indices = []
+
+        text_pos = []
+        for t in tokenized_sentence:
+            if t.text.lower() in FLATTENED_UNITS_LIST:
+                pos = "UNIT"
+            elif t.text.lower() in SIZES:
+                pos = "SIZE"
+            else:
+                pos = t.pos_tag
+
+            text_pos.append((t.feat_text, pos))
+        parsed = self.compound_parser.parse(text_pos)
+        for subtree in parsed.subtrees(filter=lambda t: t.label() == "CS"):
+            indices = self._get_subtree_indices(parsed, subtree)
+            # If the conjunction is not "or", skip
+            if self._cc_is_not_or(text_pos, indices):
+                continue
+
+            split_indices.append(indices[0])
+
+        return split_indices
+
+    def token_features(self, index: int, prefix: str) -> dict[str, bool]:
         """Return dict of features for token at index.
 
         Features:
@@ -152,11 +198,14 @@ class MIP:
 
         Returns
         -------
-        dict[str, str | bool]
+        dict[str, bool]
             Dict of features.
-            If index is not in phrase, return empty dict.
         """
-        features = {}
+        features = {
+            prefix + "mip_start": False,
+            prefix + "mip_end": False,
+            prefix + "within_new_sentence": False,
+        }
         for phrase in self.phrases:
             if index not in phrase:
                 continue
@@ -167,63 +216,8 @@ class MIP:
             if index == phrase[-1]:
                 features[prefix + "mip_end"] = True
 
+        for split_index in self.sentence_splits:
+            if index >= split_index:
+                features[prefix + "within_new_sentence"] = True
+
         return features
-
-    def _candidate_name_mod(self, phrase: list[int], index: int) -> bool:
-        """Return True if token at index in phrase is candidate for NAME_MOD label.
-
-        A token is a candidate for NAME_MOD if it is the first element of the phrase.
-
-        Parameters
-        ----------
-        phrase : list[int]
-            List of token indices for phrase.
-        index : int
-            Index of token to consider.
-
-        Returns
-        -------
-        bool
-            True, if token is first in phrase.
-        """
-        split_phrase_tokens = list(self._split_phrase(self.tokenized_sentence, phrase))
-        if len(split_phrase_tokens[0]) > 1:
-            return split_phrase_tokens[0][0].index == index
-
-        return False
-
-    def _split_phrase(self, tokenized_sentence: list[Token], phrase: list[int]):
-        """Yield lists of items from *iterable*, where each list is delimited by
-        an item where callable *pred* returns ``True``.
-
-            >>> list(split_at("abcdcba", lambda x: x == "b"))
-            [['a'], ['c', 'd', 'c'], ['a']]
-
-            >>> list(split_at(range(10), lambda n: n % 2 == 1))
-            [[0], [2], [4], [6], [8], []]
-
-        At most *maxsplit* splits are done. If *maxsplit* is not specified or -1,
-        then there is no limit on the number of splits:
-
-            >>> list(split_at(range(10), lambda n: n % 2 == 1, maxsplit=2))
-            [[0], [2], [4, 5, 6, 7, 8, 9]]
-
-        By default, the delimiting items are not included in the output.
-        To include them, set *keep_separator* to ``True``.
-
-            >>> list(split_at("abcdcba", lambda x: x == "b", keep_separator=True))
-            [['a'], ['b'], ['c', 'd', 'c'], ['b'], ['a']]
-
-        """
-        phrase_tokens = [tokenized_sentence[i] for i in phrase]
-
-        buf = []
-        # it = iter(tokenized_sentence)
-        for token in phrase_tokens:
-            if token.text == "," or token.pos_tag == "CC":
-                yield buf
-                yield [token]
-                buf = []
-            else:
-                buf.append(token)
-        yield buf

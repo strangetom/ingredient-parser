@@ -16,7 +16,6 @@ from ._constants import (
     UNICODE_FRACTIONS,
     UNITS,
 )
-from ._phrases import MIP
 from ._regex import (
     CAPITALISED_PATTERN,
     DIGIT_PATTERN,
@@ -32,6 +31,7 @@ from ._regex import (
     UNITS_QUANTITY_PATTERN,
     UPPERCASE_PATTERN,
 )
+from ._structure_features import SentenceStrucureFeatures
 from ._utils import (
     combine_quantities_split_by_and,
     is_unit_synonym,
@@ -136,7 +136,7 @@ class PreProcessor:
 
         self.singularised_indices = []
         self.tokenized_sentence = self._calculate_tokens(self.sentence)
-        self.mip = MIP(self.tokenized_sentence)
+        self.sentence_structure = SentenceStrucureFeatures(self.tokenized_sentence)
 
     def __repr__(self) -> str:
         """__repr__ method.
@@ -992,7 +992,7 @@ class PreProcessor:
 
         features |= self._common_features(index, "")
         features |= self._ngram_features(token.feat_text, "")
-        features |= self.mip.token_features(index, "")
+        features |= self.sentence_structure.token_features(index, "")
 
         # Features for previous token
         if index > 0:
@@ -1005,7 +1005,7 @@ class PreProcessor:
                 )
             )
             features |= self._common_features(index - 1, "prev_")
-            features |= self.mip.token_features(index - 1, "prev_")
+            features |= self.sentence_structure.token_features(index - 1, "prev_")
 
         # Features for previous previous token
         if index > 1:
@@ -1019,7 +1019,7 @@ class PreProcessor:
                 )
             )
             features |= self._common_features(index - 2, "prev2_")
-            features |= self.mip.token_features(index - 2, "prev2_")
+            features |= self.sentence_structure.token_features(index - 2, "prev2_")
 
         # Features for previous previous previous token
         if index > 2:
@@ -1034,7 +1034,7 @@ class PreProcessor:
                 )
             )
             features |= self._common_features(index - 3, "prev3_")
-            features |= self.mip.token_features(index - 3, "prev3_")
+            features |= self.sentence_structure.token_features(index - 3, "prev3_")
 
         # Features for next token
         if index < len(self.tokenized_sentence) - 1:
@@ -1047,7 +1047,7 @@ class PreProcessor:
                 )
             )
             features |= self._common_features(index + 1, "next_")
-            features |= self.mip.token_features(index + 1, "next_")
+            features |= self.sentence_structure.token_features(index + 1, "next_")
 
         # Features for next next token
         if index < len(self.tokenized_sentence) - 2:
@@ -1061,7 +1061,7 @@ class PreProcessor:
                 )
             )
             features |= self._common_features(index + 2, "next2_")
-            features |= self.mip.token_features(index + 2, "next2_")
+            features |= self.sentence_structure.token_features(index + 2, "next2_")
 
         # Features for next next next token
         if index < len(self.tokenized_sentence) - 3:
@@ -1076,7 +1076,7 @@ class PreProcessor:
                 )
             )
             features |= self._common_features(index + 3, "next3_")
-            features |= self.mip.token_features(index + 3, "next3_")
+            features |= self.sentence_structure.token_features(index + 3, "next3_")
 
         return features
 
