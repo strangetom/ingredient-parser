@@ -204,7 +204,7 @@ class SentenceStrucureFeatures:
         features = {
             prefix + "mip_start": False,
             prefix + "mip_end": False,
-            prefix + "within_new_sentence": False,
+            prefix + "after_sentence_split": False,
         }
         for phrase in self.phrases:
             if index not in phrase:
@@ -218,6 +218,6 @@ class SentenceStrucureFeatures:
 
         for split_index in self.sentence_splits:
             if index >= split_index:
-                features[prefix + "within_new_sentence"] = True
+                features[prefix + "after_sentence_split"] = True
 
         return features
