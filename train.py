@@ -376,6 +376,13 @@ if __name__ == "__main__":
         nargs="*",
         default=["bbc", "cookstr", "nyt", "allrecipes", "tc"],
     )
+    utility_parser.add_argument(
+        "-v",
+        help="Enable verbose output.",
+        action="count",
+        default=0,
+        dest="verbose",
+    )
 
     args = parser.parse_args()
 
