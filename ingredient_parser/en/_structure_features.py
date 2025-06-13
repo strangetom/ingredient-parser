@@ -38,7 +38,7 @@ class SentenceStrucureFeatures:
     # RegexpParser to detect the start of the subject phrase.
     # UNIT and SIZE are custom tags, based on the FLATTENED_UNITS_LIST and SIZES
     # constants.
-    compound_parser = nltk.RegexpParser(r"CS: {<CC><CD>+<NN.*|UNIT|SIZE>}")
+    compound_parser = nltk.RegexpParser(r"CS: {<CC><CD>+<NN.*|JJ.*|UNIT|SIZE>}")
 
     def __init__(self, tokenized_sentence: list[Token]):
         self.tokenized_sentence = tokenized_sentence
