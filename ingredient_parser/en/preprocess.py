@@ -96,13 +96,9 @@ class PreProcessor:
     ----------
     input_sentence : str
         Input ingredient sentence.
-    show_debug_output : bool, optional
-        If True, print out each stage of the sentence normalisation
 
     Attributes
     ----------
-    show_debug_output : bool
-        If True, print out each stage of the sentence normalisation
     input : str
         Input ingredient sentence.
     sentence : str
@@ -114,22 +110,15 @@ class PreProcessor:
         Tokenised ingredient sentence.
     """
 
-    def __init__(
-        self,
-        input_sentence: str,
-        show_debug_output: bool = False,
-    ):
+    def __init__(self, input_sentence: str):
         """Initialise.
 
         Parameters
         ----------
         input_sentence : str
             Input ingredient sentence
-        show_debug_output : bool, optional
-            If True, print out each stage of the sentence normalisation
 
         """
-        self.show_debug_output = show_debug_output
         self.input: str = input_sentence
         self.sentence: str = self._normalise(input_sentence)
         logger.debug(f'Normalised sentence: "{self.sentence}".')
@@ -195,9 +184,7 @@ class PreProcessor:
 
         for func in funcs:
             sentence = func(sentence)
-
-            if self.show_debug_output:
-                print(f"{func.__name__}: {sentence}")
+            logger.debug(f"{func.__name__}: {sentence}")
 
         return sentence.strip()
 
