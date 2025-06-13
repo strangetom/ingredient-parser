@@ -30,7 +30,7 @@ RANGE_PATTERN = re.compile(r"^[\d\#\$]+\s*[\-][\d\#\$]+$")
 
 
 def consume(iterator: Iterator, n: int | None) -> None:
-    """Advance the iterator n-steps ahead. If n is none, consume entirely.
+    """Advance the `iterator` n-steps ahead. If `n` is none, consume entirely.
 
     See consume from https://docs.python.org/3/library/itertools.html#itertools-recipes
 
@@ -126,7 +126,7 @@ def download_nltk_resources() -> None:
 
 
 def is_float(value: str) -> bool:
-    """Check if the value can be converted to a float.
+    """Check if `value` can be converted to a float.
 
     Parameters
     ----------
@@ -157,7 +157,7 @@ def is_float(value: str) -> bool:
 
 
 def is_range(value: str) -> bool:
-    """Check if the value is a range e.g. 100-200.
+    """Check if `value` is a range e.g. 100-200.
 
     Parameters
     ----------

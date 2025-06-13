@@ -1068,7 +1068,7 @@ class PreProcessor:
         return features
 
     def sentence_features(self) -> list[dict[str, str | bool]]:
-        """Return features for all tokens in sentence.
+        """Return dict of features for each token in sentence.
 
         Returns
         -------

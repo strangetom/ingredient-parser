@@ -121,8 +121,8 @@ class SentenceStrucureFeatures:
 
         text_pos = [(token.text, token.pos_tag) for token in self.tokenized_sentence]
         parsed = self.mip_parser.parse(text_pos)
-        for subtree in parsed.subtrees(filter=lambda t: t.label() in ["EMIP", "MIP"]):
-            indices = self._get_subtree_indices(parsed, subtree)
+        for subtree in parsed.subtrees(filter=lambda t: t.label() in ["EMIP", "MIP"]):  #  type: ignore
+            indices = self._get_subtree_indices(parsed, subtree)  #  type: ignore
             # If the conjunction is not "or", skip
             if self._cc_is_not_or(text_pos, indices):
                 continue
@@ -172,8 +172,8 @@ class SentenceStrucureFeatures:
 
             text_pos.append((t.feat_text, pos))
         parsed = self.compound_parser.parse(text_pos)
-        for subtree in parsed.subtrees(filter=lambda t: t.label() == "CS"):
-            indices = self._get_subtree_indices(parsed, subtree)
+        for subtree in parsed.subtrees(filter=lambda t: t.label() == "CS"):  #  type: ignore
+            indices = self._get_subtree_indices(parsed, subtree)  #  type: ignore
             # If the conjunction is not "or", skip
             if self._cc_is_not_or(text_pos, indices):
                 continue

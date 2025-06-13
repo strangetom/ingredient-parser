@@ -323,7 +323,7 @@ class FoundationFood:
         Confidence of the match, between 0 and 1.
     fdc_id : int
         ID of the FDC database entry.
-    category: str
+    category : str
         Category of FDC database entry.
     data_type : str
         Food Data Central data set the entry belongs to.

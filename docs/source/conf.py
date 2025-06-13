@@ -26,6 +26,9 @@ extensions = [
     "myst_parser",
 ]
 
+numpydoc_xref_param_type = True
+numpydoc_class_members_toctree = False
+
 templates_path = ["_templates"]
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 

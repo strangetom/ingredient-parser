@@ -701,7 +701,7 @@ FDC_TOKEN_SUBSTITUTIONS: dict[str, str] = {
 
 
 def normalise_spelling(tokens: list[str]) -> list[str]:
-    """Normalise spelling in tokens to standard spellings used in FDC ingredient
+    """Normalise spelling in `tokens` to standard spellings used in FDC ingredient
     descriptions.
 
     This also include subtitution of certain ingredients to use the FDC version e.g.
