@@ -102,3 +102,16 @@ class Test_compound_sentence_features:
             "2 medium-ripe tomatoes or 4 plum tomatoes or 8 to 10 cherry tomatoes"
         )
         assert p.sentence_structure.sentence_splits == [3, 7]
+
+    def test_after_sentence_split_feature(self):
+        """
+        Test that the or-number-size sequence is identified as split point.
+        """
+        p = PreProcessor("2 small carrots or 1 large carrot")
+
+        # Assert that only the tokens after 3 have after_sentence_split feature.
+        for i, token_features in enumerate(p.sentence_features()):
+            if i >= 3:
+                assert token_features.get("after_sentence_split", False)
+            else:
+                assert not token_features.get("after_sentence_split", False)
