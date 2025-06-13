@@ -196,18 +196,18 @@ def load_fdc_ingredients() -> list[FDCIngredient]:
 
 
 class uSIF:
-    """Modified implementation of Unsupervised Smooth Inverse Frequency weighting scheme
-    for calculation of sentence embedding vectors.
+    """Modified implementation of Unsupervised Smooth Inverse Frequency [1]_ weighting
+    scheme for calculation of sentence embedding vectors.
 
     This implementation is modified from the reference to not implement the piecewise
     common component removal, primarily to avoid introducing a new dependency.
 
     References
     ----------
-    Kawin Ethayarajh. 2018. Unsupervised Random Walk Sentence Embeddings: A Strong but
-    Simple Baseline. In Proceedings of the Third Workshop on Representation Learning for
-    NLP, pages 91–100, Melbourne, Australia. Association for Computational
-    Linguistics. https://aclanthology.org/W18-3012/
+    .. [1] Kawin Ethayarajh. 2018. Unsupervised Random Walk Sentence Embeddings: A
+       Strong but Simple Baseline. In Proceedings of the Third Workshop on
+       Representation Learning for NLP, pages 91–100, Melbourne, Australia. Association
+       for Computational Linguistics. https://aclanthology.org/W18-3012/
 
     Attributes
     ----------
@@ -410,16 +410,17 @@ class uSIF:
 
 
 class FuzzyEmbeddingMatcher:
-    """Implementation of fuzzy document distance metric used to determine the most
+    """Implementation of fuzzy document distance metric [1]_ used to determine the most
     similar FDC ingredient to a given ingredient name.
 
     References
     ----------
-    Morales-Garzón, A., Gómez-Romero, J., Martin-Bautista, M.J. (2020). A Word
-    Embedding Model for Mapping Food Composition Databases Using Fuzzy Logic. In: Lesot,
-    MJ., et al. Information Processing and Management of Uncertainty in Knowledge-Based
-    Systems. IPMU 2020. Communications in Computer and Information Science, vol 1238.
-    Springer, Cham. https://doi.org/10.1007/978-3-030-50143-3_50
+    .. [1] Morales-Garzón, A., Gómez-Romero, J., Martin-Bautista, M.J. (2020). A Word
+           Embedding Model for Mapping Food Composition Databases Using Fuzzy Logic. In:
+           Lesot, MJ., et al. Information Processing and Management of Uncertainty in
+           Knowledge-Based Systems. IPMU 2020. Communications in Computer and
+           Information Science, vol 1238. Springer, Cham.
+           https://doi.org/10.1007/978-3-030-50143-3_50
 
     Attributes
     ----------

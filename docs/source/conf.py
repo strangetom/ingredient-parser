@@ -18,20 +18,13 @@ author = "Tom Strange"
 
 extensions = [
     "sphinx.ext.autodoc",
-    "sphinx.ext.napoleon",
+    "numpydoc",
     "sphinx.ext.viewcode",
     "sphinx.ext.intersphinx",
     "sphinx_copybutton",
     "sphinx_design",
     "myst_parser",
 ]
-
-# autodoc_typehints = "none"
-napoleon_numpy_docstring = True
-napoleon_use_admonition_for_references = True
-napoleon_use_param = False
-napoleon_use_rtype = False
-napoleon_use_keyword = False
 
 templates_path = ["_templates"]
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
