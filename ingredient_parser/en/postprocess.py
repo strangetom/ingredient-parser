@@ -288,7 +288,40 @@ class PostProcessor:
                     if ff:
                         foundation_foods.add(ff)
 
-        return names, list(foundation_foods)
+        return self._deduplicate_names(names), list(foundation_foods)
+
+    def _deduplicate_names(self, names: list[IngredientText]) -> list[IngredientText]:
+        """Deduplicate list of names.
+
+        Where the same name text appears in multiple IngredientText objects, the
+        confidence values are averaged, and the minimum starting_index is kept for the
+        dedeuplicated names.
+
+        Parameters
+        ----------
+        names : list[IngredientText]
+            List of names.
+
+        Returns
+        -------
+        list[IngredientText]
+            Deduplicaed list of names.
+        """
+        name_dict = defaultdict(list)
+        for name in names:
+            name_dict[name.text].append(name)
+
+        deduped_names = []
+        for text, name_objs in name_dict.items():
+            deduped_names.append(
+                IngredientText(
+                    text=text,
+                    confidence=mean([n.confidence for n in name_objs]),
+                    starting_index=min([n.starting_index for n in name_objs]),
+                )
+            )
+
+        return deduped_names
 
     def _group_name_labels(self, name_labels: list[str]) -> list[list[tuple[int, str]]]:
         """Group name labels according to name label type.
