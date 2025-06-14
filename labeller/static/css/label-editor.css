@@ -38,12 +38,6 @@ header h1 .data-length {
   font-weight: normal;
   color: var(--fg-2);
 }
-header h2 {
-  font-weight: normal;
-  font-size: .8rem;
-  padding: 0;
-  margin: 0;
-}
 header p {
   margin: 0;
   font-size: .9rem;
