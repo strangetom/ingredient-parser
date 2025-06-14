@@ -23,6 +23,13 @@ class Test_multi_ingredient_phrase_features:
         p = PreProcessor("2 tbsp olive, vegetable or sunflower oil")
         assert p.sentence_structure.phrases == [[2, 3, 4, 5, 6, 7]]
 
+    def test_extended_multi_ingredient_phrase_detection_comma(self):
+        """
+        Test that extended multi ingredient phrase is correctly identified.
+        """
+        p = PreProcessor("2 tbsp olive, vegetable, or sunflower oil")
+        assert p.sentence_structure.phrases == [[2, 3, 4, 5, 6, 7, 8]]
+
     def test_mip_start_feature_unit(self):
         """
         Test that the start of the multi ingredient phrase is correctly identified by

@@ -29,7 +29,7 @@ class SentenceStrucureFeatures:
     mip_parser = nltk.RegexpParser(
         r"""
         # Extended multi-ingredient phrase containing of 3 ingredients
-        EMIP: {<NN.*|JJ.*>+<,><NN.*|JJ.*>+<CC><NN.*|JJ.*>*<NN.*>}
+        EMIP: {<NN.*|JJ.*>+<,><NN.*|JJ.*>+<,>?<CC><NN.*|JJ.*>*<NN.*>}
         # Multi-ingredient phrase containing of 2 ingredients
         MIP: {<NN.*|JJ.*>+<CC><NN.*|JJ.*>*<NN.*>}
         """
