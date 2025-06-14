@@ -558,6 +558,10 @@ class PreProcessor:
                 # Special cases for c (cup) and g (gram)
                 pos = "NN"
 
+            # Force 'and/or' tag to conjunction
+            if text == "and/or":
+                pos = "CC"
+
             features = TokenFeatures(
                 stem=stem(feat_text),
                 shape=self._word_shape(feat_text),
