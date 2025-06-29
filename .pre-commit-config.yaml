@@ -28,12 +28,3 @@ repos:
     hooks:
       - id: sphinx-lint
         stages: [pre-commit]
-  - repo: local
-    hooks:
-      - id: pytest-check
-        name: pytest-check
-        entry: coverage run -m pytest
-        stages: [pre-push]
-        language: system
-        pass_filenames: false
-        always_run: true
