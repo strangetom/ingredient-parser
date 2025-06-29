@@ -9,7 +9,7 @@ from itertools import chain
 import nltk.stem.porter as nsp
 import pint
 
-from ingredient_parser.en._loaders import load_embeddings_model
+from ingredient_parser.en._loaders import load_embeddings_bigrams, load_embeddings_model
 
 from .._common import UREG, consume, download_nltk_resources, is_float, is_range
 from ..dataclasses import IngredientAmount
@@ -557,7 +557,7 @@ def prepare_embeddings_tokens(tokens: tuple[str, ...]) -> list[str]:
     """
     embeddings = load_embeddings_model()
 
-    return [
+    prepared_tokens = [
         stem(token.lower())
         for token in tokens
         if stem(token.lower()) in embeddings
@@ -569,3 +569,46 @@ def prepare_embeddings_tokens(tokens: tuple[str, ...]) -> list[str]:
         and token not in STOP_WORDS
         and len(token) > 1
     ]
+    return join_bigrams(prepared_tokens)
+
+
+def join_bigrams(tokens: list[str]) -> list[str]:
+    """Join bigrams in tokens list with underscore.
+
+    Provided tokens should already been stemmed and had stop words, numeric tokens,
+    punctuation and single character tokens removed.
+    Provided tokens should only be nouns, verbs, adjectives, adverbs or foreign
+    words.
+
+    Parameters
+    ----------
+    tokens : list[str]
+        List of tokens.
+
+    Returns
+    -------
+    list[str]
+        List of tokens, with bigrams joined by underscore
+
+    Examples
+    --------
+    >>> join_bigrams(["cup", "confectioners", "sugar"])
+    ["cup", "confectioners", "confectioners_sugar", "sugar"]
+    """
+    bigrams = load_embeddings_bigrams()
+
+    joined_tokens = []
+    consumed = None
+    for i, token in enumerate(tokens):
+        joined_tokens.append(token)
+        if i == consumed:
+            consumed = None
+            continue
+
+        if i < len(tokens) - 1:
+            candidate_bigram = (token, tokens[i + 1])
+            if candidate_bigram in bigrams:
+                joined_tokens.append("_".join(candidate_bigram))
+                consumed = i + 1
+
+    return joined_tokens

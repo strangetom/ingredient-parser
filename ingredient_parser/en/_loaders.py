@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+import csv
+import gzip
 import logging
 from functools import lru_cache
 from importlib.resources import as_file, files
@@ -44,3 +46,25 @@ def load_embeddings_model() -> GloVeModel:  # type: ignore
     """
     logger.debug("Loading embeddings model: ingredient_embeddings.25d.glove.txt.gz")
     return GloVeModel("data/ingredient_embeddings.25d.glove.txt.gz")
+
+
+@lru_cache
+def load_embeddings_bigrams() -> set[tuple[str, str]]:
+    """Load embeddings bigrams from csv file..
+
+    The bigrams are stored in pairs in a csv file.
+
+    Returns
+    -------
+    set[tuple[str, str]]
+        Set of bigram tuples.
+    """
+    logger.debug("Loading embeddings bigrams: bigrams.csv.gz")
+    bigrams = set()
+    with as_file(files(__package__) / "data/bigrams.csv.gz") as p:
+        with gzip.open(p, "rt") as f:
+            reader = csv.reader(f)
+            for row in reader:
+                bigrams.add(tuple(row))
+
+    return bigrams
