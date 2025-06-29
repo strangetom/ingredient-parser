@@ -175,7 +175,7 @@ def load_fdc_ingredients() -> list[FDCIngredient]:
         List of FDC ingredients.
     """
     foundation_foods = []
-    with as_file(files(__package__) / "fdc_ingredients.csv.gz") as p:
+    with as_file(files(__package__) / "data/fdc_ingredients.csv.gz") as p:
         with gzip.open(p, "rt") as f:
             reader = csv.DictReader(f)
             for row in reader:

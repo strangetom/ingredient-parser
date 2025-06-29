@@ -25,7 +25,7 @@ def load_parser_model() -> pycrfsuite.Tagger:  # type: ignore
     """
     logger.debug("Loading parser model: model.en.crfsuite")
     tagger = pycrfsuite.Tagger()  # type: ignore
-    with as_file(files(__package__) / "model.en.crfsuite") as p:
+    with as_file(files(__package__) / "data/model.en.crfsuite") as p:
         tagger.open(str(p))
         return tagger
 
@@ -43,4 +43,4 @@ def load_embeddings_model() -> GloVeModel:  # type: ignore
         Embeddings model.
     """
     logger.debug("Loading embeddings model: ingredient_embeddings.25d.glove.txt.gz")
-    return GloVeModel("ingredient_embeddings.25d.glove.txt.gz")
+    return GloVeModel("data/ingredient_embeddings.25d.glove.txt.gz")
