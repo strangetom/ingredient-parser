@@ -77,14 +77,6 @@ FOUNDATION_FOOD_OVERRIDES: dict[tuple[str, ...], FoundationFood] = {
     ),
 }
 
-# List of preferred FDC data types.
-# Increasing value indicates decreasing preference.
-PREFERRED_DATATYPES = {
-    "foundation_food": 0,  #  Most preferred
-    "survey_fndds_food": 1,
-    "sr_legacy_food": 2,
-}
-
 # Verb stems, the presence of which indicates the food is not raw and therefore should
 # not be biased towards a raw food.
 NON_RAW_FOOD_VERB_STEMS = {
@@ -565,53 +557,6 @@ class FuzzyEmbeddingMatcher:
 
         return 1 - res
 
-    def _select_best_match(
-        self, matches: list[FDCIngredientMatch]
-    ) -> FDCIngredientMatch:
-        """Select the best match from the list of sorted candidate matches, accounting
-        for data type preferences.
-
-        Select all matches with scores within 10% of the best score, then iterate
-        through the data types in order of preference and select the best match from
-        the most preferred data type where there is a match.
-
-        Parameters
-        ----------
-        matches : list[FDCIngredientMatch]
-            Sorted list of candidate FDC matches.
-
-        Returns
-        -------
-        FDCIngredientMatch
-            Selected FDC ingredient.
-        """
-        if len(matches) == 1:
-            return matches[0]
-
-        best_score = matches[0].score
-        if best_score == 0:
-            # Exact match
-            return matches[0]
-
-        # Find other matches with score within 10% of best
-        alternatives = [
-            match for match in matches if (match.score - best_score) / best_score <= 0.2
-        ]
-        if alternatives:
-            logger.debug(
-                f"Selecting best match from {len(alternatives)} candidates based on preferred FDC datatype."  # noqa
-            )
-        for data_type in PREFERRED_DATATYPES:
-            # Note that these are sorted in order of best score first because the
-            # alternatives list is sorted.
-            data_type_matches = [
-                m for m in alternatives if m.fdc.data_type == data_type
-            ]
-            if data_type_matches and data_type_matches[0].score <= 0.4:
-                return data_type_matches[0]
-
-        return matches[0]
-
     def find_best_match(
         self, ingredient_name_tokens: list[str], fdc_ingredients: list[FDCIngredient]
     ) -> FDCIngredientMatch:
@@ -646,7 +591,7 @@ class FuzzyEmbeddingMatcher:
             scored.append(FDCIngredientMatch(fdc=fdc, score=score))
 
         sorted_matches = sorted(scored, key=lambda x: x.score)
-        return self._select_best_match(sorted_matches)
+        return sorted_matches[0]
 
 
 @lru_cache
