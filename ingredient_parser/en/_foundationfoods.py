@@ -181,6 +181,11 @@ def load_fdc_ingredients() -> list[FDCIngredient]:
             for row in reader:
                 tokens = tuple(tokenize(row["description"]))
                 prepared_tokens = prepare_embeddings_tokens(tokens)
+                if not prepared_tokens:
+                    logger.debug(
+                        f"'{row['description']}' has no tokens in embedding vocabulary."
+                    )
+                    continue
                 foundation_foods.append(
                     FDCIngredient(
                         fdc_id=int(row["fdc_id"]),
