@@ -7,28 +7,28 @@ class Test_multi_ingredient_phrase_features:
         Test that multi ingredient phrase is correctly identified.
         """
         p = PreProcessor("2 tbsp chicken or beef stock")
-        assert p.sentence_structure.phrases == [[2, 3, 4, 5]]
+        assert p.sentence_structure.mip_phrases == [[2, 3, 4, 5]]
 
     def test_multi_ingredient_phrase_detection_with_name_mod(self):
         """
         Test that multi ingredient phrase with name modifier is correctly identified.
         """
         p = PreProcessor("2 tbsp hot chicken or beef stock")
-        assert p.sentence_structure.phrases == [[2, 3, 4, 5, 6]]
+        assert p.sentence_structure.mip_phrases == [[2, 3, 4, 5, 6]]
 
     def test_extended_multi_ingredient_phrase_detection(self):
         """
         Test that extended multi ingredient phrase is correctly identified.
         """
         p = PreProcessor("2 tbsp olive, vegetable or sunflower oil")
-        assert p.sentence_structure.phrases == [[2, 3, 4, 5, 6, 7]]
+        assert p.sentence_structure.mip_phrases == [[2, 3, 4, 5, 6, 7]]
 
     def test_extended_multi_ingredient_phrase_detection_comma(self):
         """
         Test that extended multi ingredient phrase is correctly identified.
         """
         p = PreProcessor("2 tbsp olive, vegetable, or sunflower oil")
-        assert p.sentence_structure.phrases == [[2, 3, 4, 5, 6, 7, 8]]
+        assert p.sentence_structure.mip_phrases == [[2, 3, 4, 5, 6, 7, 8]]
 
     def test_mip_start_feature_unit(self):
         """

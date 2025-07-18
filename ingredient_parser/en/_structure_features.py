@@ -5,6 +5,12 @@ import nltk
 from ..dataclasses import Token
 from ._constants import FLATTENED_UNITS_LIST, SIZES
 
+# Lists of (token, pos) pairs for identifying the start of example phrases.
+# For example phrases starting with an preposition/subordinating conjunction (IN)
+EXAMPLE_PHRASE_START_IN = [("AS", "IN"), ("LIKE", "IN"), ("E.G.", "IN")]
+# For example phrase starting with a JJ-IN pair
+EXAMPLE_PHRASE_START_JJ = [[("SUCH", "JJ"), ("AS", "IN")]]
+
 
 class SentenceStrucureFeatures:
     """
@@ -12,6 +18,7 @@ class SentenceStrucureFeatures:
 
     This class handles the detection and feature generation related to the structure of
     the ingredient sentence.
+
     * Multi-ingredient phrases
       A multi-ingredient phrase is a phrase within an ingredient sentence that states
       a list of alternative ingredients for a give amount. For example
@@ -24,26 +31,48 @@ class SentenceStrucureFeatures:
       A compound sentence is a sentence that includes more than one subject. For example
         * 1 tablespoon chopped fresh sage or 1 teaspoon dried sage
                                           ^^^^^^^^^^^^^^^^^^^^^^^^
+
+    * Examples of ingredients
+      Phrases that give more specific examples of the ingredient. For example
+        * 1kg floury potatoes, such as King Edward or Maris Piper, peeled
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     """
 
+    # RegexpParser to detect multi-ingredient phrases.
+    # Each phrase is made of noun/adjective chunks, separated by a conjunction or
+    # punctuation and ending with a noun.
     mip_parser = nltk.RegexpParser(
         r"""
         # Extended multi-ingredient phrase containing of 3 ingredients
+        # w, x or y z
         EMIP: {<NN.*|JJ.*>+<,><NN.*|JJ.*>+<,>?<CC><NN.*|JJ.*>*<NN.*>}
         # Multi-ingredient phrase containing of 2 ingredients
+        # x or y z
         MIP: {<NN.*|JJ.*>+<CC><NN.*|JJ.*>*<NN.*>}
         """
     )
 
-    # RegexpParser to detect the start of the subject phrase.
+    # RegexpParser to detect the start of new ingredient sentence in compound sentence.
     # UNIT and SIZE are custom tags, based on the FLATTENED_UNITS_LIST and SIZES
     # constants.
     compound_parser = nltk.RegexpParser(r"CS: {<CC><CD>+<NN.*|JJ.*|UNIT|SIZE>}")
 
+    # RegexpParser to detect phrases of examples of ingredients.
+    # A sequence of nouns or adjectives, optionally followed by a comma, repeating zero
+    # or more times.
+    # Followed by an optional conjunction or determinant.
+    # Followed by an optional sequeunce nouns or adjectives.
+    # Followed by a noun.
+    example_parser = nltk.RegexpParser(r"""
+        NP: {(<NN.*|JJ.*>+<,>?)*<CC|DT>?<NN.*|JJ.*>*<NN.*>}
+        EX: {<JJ.*>?<IN><NP>}
+    """)
+
     def __init__(self, tokenized_sentence: list[Token]):
         self.tokenized_sentence = tokenized_sentence
-        self.phrases = self.detect_phrases(tokenized_sentence)
+        self.mip_phrases = self.detect_phrases(tokenized_sentence)
         self.sentence_splits = self.detect_sentences_splits(tokenized_sentence)
+        self.example_phrases = self.detect_examples(tokenized_sentence)
 
     def _get_subtree_indices(
         self, parent_tree: nltk.Tree, subtree: nltk.Tree
@@ -182,12 +211,64 @@ class SentenceStrucureFeatures:
 
         return split_indices
 
+    def detect_examples(self, tokenized_sentence: list[Token]) -> list[list[int]]:
+        """Detect example phrases in tokenized sentence.
+
+        Example phrases are phrases that give specific examples of an ingredient, for
+        example
+            1 cup oil, such as vegetable
+                       ^^^^^^^^^^^^^^^^^
+        Parameters
+        ----------
+        tokenized_sentence : list[Token]
+            Tokenized sentence to detect phrases within.
+
+        Returns
+        -------
+        list[list[int]]
+            List of phrases. Each phrase is specified by the indices of the tokens in
+            the tokenized sentence.
+        """
+        examples = []
+
+        text_pos = [(token.text, token.pos_tag) for token in self.tokenized_sentence]
+        parsed = self.example_parser.parse(text_pos)
+        for subtree in parsed.subtrees(filter=lambda t: t.label() == "EX"):  #  type: ignore
+            indices = self._get_subtree_indices(parsed, subtree)  #  type: ignore
+            phrase_text_pos = [
+                (token.text.upper(), token.pos_tag)
+                for i, token in enumerate(self.tokenized_sentence)
+                if i in indices
+            ]
+
+            # Check start of phrase for key words
+            if phrase_text_pos[:2] in EXAMPLE_PHRASE_START_JJ:
+                examples.append(indices)
+                continue
+            elif phrase_text_pos[0] in EXAMPLE_PHRASE_START_IN:
+                examples.append(indices)
+                continue
+            elif (
+                phrase_text_pos[0][1] == "JJ"
+                and phrase_text_pos[1] in EXAMPLE_PHRASE_START_IN
+            ):
+                # The phrase starts with JJ+IN, but doesn't match any pairs in
+                # EXAMPLE_PHRASE_START_JJ.
+                # Check if it matches anything in EXAMPLE_PHRASE_START_IN is we ignore
+                # the first token.
+                examples.append(indices[1:])
+                continue
+
+        return examples
+
     def token_features(self, index: int, prefix: str) -> dict[str, bool]:
         """Return dict of features for token at index.
 
         Features:
         "mip_start": True if index at start of multi-ingredient phrase.
         "mip_end": True if index at end of multi-ingredient phrase.
+        "after_sentence_split": True if index after sentence split.
+        "example_phrase": True is index in example phrase.
 
         Parameters
         ----------
@@ -205,8 +286,9 @@ class SentenceStrucureFeatures:
             prefix + "mip_start": False,
             prefix + "mip_end": False,
             prefix + "after_sentence_split": False,
+            prefix + "example_phrase": False,
         }
-        for phrase in self.phrases:
+        for phrase in self.mip_phrases:
             if index not in phrase:
                 continue
 
@@ -219,5 +301,9 @@ class SentenceStrucureFeatures:
         for split_index in self.sentence_splits:
             if index >= split_index:
                 features[prefix + "after_sentence_split"] = True
+
+        for phrase in self.example_phrases:
+            if index in phrase:
+                features[prefix + "example_phrase"] = True
 
         return features

@@ -557,10 +557,12 @@ class PreProcessor:
             elif text in ["c", "g"]:
                 # Special cases for c (cup) and g (gram)
                 pos = "NN"
-
-            # Force 'and/or' tag to conjunction
-            if text == "and/or":
+            elif text == "and/or":
+                # Force 'and/or' tag to conjunction
                 pos = "CC"
+            elif text == "e.g.":
+                # Force "e.g." tag to preposition/coordinating subjunction
+                pos = "IN"
 
             features = TokenFeatures(
                 stem=stem(feat_text),
