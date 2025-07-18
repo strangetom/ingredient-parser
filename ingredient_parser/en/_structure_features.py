@@ -70,7 +70,7 @@ class SentenceStrucureFeatures:
 
     def __init__(self, tokenized_sentence: list[Token]):
         self.tokenized_sentence = tokenized_sentence
-        self.mip_phrases = self.detect_phrases(tokenized_sentence)
+        self.mip_phrases = self.detect_mip_phrases(tokenized_sentence)
         self.sentence_splits = self.detect_sentences_splits(tokenized_sentence)
         self.example_phrases = self.detect_examples(tokenized_sentence)
 
@@ -132,7 +132,7 @@ class SentenceStrucureFeatures:
         except ValueError:
             return False
 
-    def detect_phrases(self, tokenized_sentence: list[Token]) -> list[list[int]]:
+    def detect_mip_phrases(self, tokenized_sentence: list[Token]) -> list[list[int]]:
         """Detect multi-ingredient phrases in tokenized sentence.
 
         Parameters
