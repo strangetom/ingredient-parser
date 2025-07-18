@@ -122,3 +122,54 @@ class Test_compound_sentence_features:
                 assert token_features.get("after_sentence_split", False)
             else:
                 assert not token_features.get("after_sentence_split", False)
+
+
+class Test_example_phrase_features:
+    def test_example_phrase_detection_like(self):
+        """
+        Test phrase using "like" is detected
+        """
+        p = PreProcessor("2 tbsp chopped fresh herbs, like parsley and chives")
+        assert p.sentence_structure.example_phrases == [[6, 7, 8, 9]]
+
+    def test_example_phrase_detection_such_as(self):
+        """
+        Test phrase using "such as" is detected
+        """
+        p = PreProcessor("2 tbsp chopped fresh herbs, such as parsley and chives")
+        assert p.sentence_structure.example_phrases == [[6, 7, 8, 9, 10]]
+
+    def test_example_phrase_detection_eg(self):
+        """
+        Test phrase using "e.g." is detected
+        """
+        p = PreProcessor("2 tbsp chopped fresh herbs, e.g. parsley and chives")
+        assert p.sentence_structure.example_phrases == [[6, 7, 8, 9]]
+
+    def test_example_phrase_detection_invalid_start_adjective(self):
+        """
+        Test phrase starting with invalid adjective is detected, and invalid adjective
+        is removed from phrase indices.
+        """
+        p = PreProcessor("1 bottle dry red wine, heavy and coarse like a Zinfandel")
+        assert p.sentence_structure.example_phrases == [[9, 10, 11]]
+
+    def test_example_phrase_detection_multiple_examples(self):
+        """
+        Test phrase using "such as" is detected
+        """
+        p = PreProcessor("2 cups ale, like Boddingtons, or lager, like Carlsburg")
+        assert p.sentence_structure.example_phrases == [[4, 5], [10, 11]]
+
+    def test_example_phrase_detection_feature(self):
+        """
+        Test that the example_phrase feature is correct set.
+        """
+        p = PreProcessor("1 bottle dry red wine, heavy and coarse like a Zinfandel")
+
+        # Assert that only the tokens after 8 have example_phrase feature set True.
+        for i, token_features in enumerate(p.sentence_features()):
+            if i >= 9:
+                assert token_features.get("example_phrase", False)
+            else:
+                assert not token_features.get("example_phrase", False)
