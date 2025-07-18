@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 sqlite3.register_converter("json", json.loads)
 
-DEFAULT_MODEL_LOCATION = "ingredient_parser/en/model.en.crfsuite"
+DEFAULT_MODEL_LOCATION = "ingredient_parser/en/data/model.en.crfsuite"
 
 
 @dataclass
