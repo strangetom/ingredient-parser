@@ -2,11 +2,12 @@
 
 import argparse
 import concurrent.futures as cf
-import contextlib
 import logging
+from contextlib import contextmanager
 from pathlib import Path
 from random import randint
 from statistics import mean, stdev
+from typing import Generator
 from uuid import uuid4
 
 import pycrfsuite
@@ -25,6 +26,28 @@ from .training_utils import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+@contextmanager
+def change_log_level(level: int) -> Generator[None]:
+    """Context manager to temporarily change logging level within the context.
+
+    On exiting the context, the original level is restored.
+
+    Parameters
+    ----------
+    level : int
+        Logging level to use within context manager.
+
+    Yields
+    ------
+    Generator[None, None, None]
+        Generator, yielding None
+    """
+    original_level = logger.getEffectiveLevel()
+    logger.setLevel(level)
+    yield
+    logger.setLevel(original_level)
 
 
 def train_parser_model(
@@ -249,7 +272,7 @@ def train_multiple(args: argparse.Namespace) -> None:
         for _ in range(args.runs)
     ]
 
-    with contextlib.redirect_stdout(None):  # Suppress print output
+    with change_log_level(logging.WARNING):  # Temporarily stop logging below WARNING
         with cf.ProcessPoolExecutor(max_workers=args.processes) as executor:
             futures = [executor.submit(train_parser_model, *a) for a in arguments]
             eval_results = [
