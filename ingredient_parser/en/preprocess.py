@@ -554,13 +554,14 @@ class PreProcessor:
             # Get part of speech tag, with overrides for certain tokens
             if self._is_numeric(text):
                 pos = "CD"
-            elif text in ["c", "g"]:
+            elif text.lower() in ["c", "g"]:
                 # Special cases for c (cup) and g (gram)
                 pos = "NN"
-            elif text == "and/or":
+            elif text.lower() in ["and/or", "or", "and"]:
                 # Force 'and/or' tag to conjunction
+                # Force OR tag to conjunction
                 pos = "CC"
-            elif text == "e.g.":
+            elif text.lower() == "e.g.":
                 # Force "e.g." tag to preposition/coordinating subjunction
                 pos = "IN"
 
