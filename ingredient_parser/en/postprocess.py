@@ -904,6 +904,7 @@ class PostProcessor:
             "box",
             "bucket",
             "can",
+            "carton",
             "container",
             "envelope",
             "jar",
