@@ -321,7 +321,13 @@ def generate_argument_sets(args: argparse.Namespace) -> list[list]:
         list of lists, where each sublist is the arguments for training a model with
         one of the combinations of algorithms and parameters
     """
-    vectors = load_datasets(args.database, args.table, args.datasets)
+    vectors = load_datasets(
+        args.database,
+        args.table,
+        args.datasets,
+        discard_other=True,
+        combine_name_labels=args.combine_name_labels,
+    )
 
     # Generate list of arguments for all combinations parameters for each algorithm
     argument_sets = []
@@ -360,6 +366,7 @@ def generate_argument_sets(args: argparse.Namespace) -> list[list]:
                 save_model,
                 args.seed,
                 args.keep_models,
+                args.combine_name_labels,
             ]
             argument_sets.append(arguments)
 
@@ -374,6 +381,7 @@ def train_model_grid_search(
     save_model: str,
     seed: int,
     keep_model: bool,
+    combine_name_labels: bool,
 ) -> dict:
     """Train model using given training algorithm and parameters,
     returning model performance statistics, model parameters and elapsed training time.
@@ -395,6 +403,8 @@ def train_model_grid_search(
         testing sets.
     keep_model : bool
         If True, keep model after evaluation, otherwise delete it.
+    combine_name_labels : bool, optional
+        If True, combine all NAME labels into a single NAME label.
 
     Returns
     -------
@@ -443,7 +453,7 @@ def train_model_grid_search(
     tagger = pycrfsuite.Tagger()  # type: ignore
     tagger.open(str(save_model_path))
     labels_pred = [tagger.tag(X) for X in features_test]
-    stats = evaluate(labels_pred, truth_test, seed)
+    stats = evaluate(labels_pred, truth_test, seed, combine_name_labels)
 
     if not keep_model:
         save_model_path.unlink(missing_ok=True)

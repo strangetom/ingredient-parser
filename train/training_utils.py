@@ -70,11 +70,17 @@ class TokenStats:
 
 
 @dataclass
-class FFTokenStats:
+class TokenStatsCombinedName:
     """Statistics for token classification performance."""
 
-    FF: Metrics
-    NF: Metrics
+    NAME: Metrics
+    QTY: Metrics
+    UNIT: Metrics
+    SIZE: Metrics
+    COMMENT: Metrics
+    PURPOSE: Metrics
+    PREP: Metrics
+    PUNC: Metrics
     macro_avg: Metrics
     weighted_avg: Metrics
     accuracy: float
@@ -91,7 +97,7 @@ class SentenceStats:
 class Stats:
     """Statistics for token and sentence classification performance."""
 
-    token: TokenStats | FFTokenStats
+    token: TokenStats | TokenStatsCombinedName
     sentence: SentenceStats
     seed: int
 
@@ -161,6 +167,7 @@ def load_datasets(
     table: str,
     datasets: list[str],
     discard_other: bool = True,
+    combine_name_labels: bool = False,
 ) -> DataVectors:
     """Load raw data from csv files and transform into format required for training.
 
@@ -176,6 +183,8 @@ def load_datasets(
         Default is PARSER.
     discard_other : bool, optional
         If True, discard sentences containing tokens with OTHER label
+    combine_name_labels :  bool, optional
+        If True, combine all labels containing "NAME" into a single "NAME" label
 
     Returns
     -------
@@ -216,6 +225,7 @@ def load_datasets(
                 chunks,
                 [PreProcessor] * n_chunks,
                 [discard_other] * n_chunks,
+                [combine_name_labels] * n_chunks,
             )
         ]
 
@@ -235,7 +245,10 @@ def load_datasets(
 
 
 def process_sentences(
-    data: list[dict], PreProcessor: Callable, discard_other: bool
+    data: list[dict],
+    PreProcessor: Callable,
+    discard_other: bool,
+    combine_name_labels: bool,
 ) -> DataVectors:
     """Process training sentences from database into format needed for training and
     evaluation.
@@ -247,7 +260,9 @@ def process_sentences(
     PreProcessor : Callable
         PreProcessor class to preprocess sentences.
     discard_other : bool
-        If True, discard sentences with OTHER label
+        If True, discard sentences with OTHER
+    combine_name_labels : bool
+        If True, combine all labels containing "NAME" into a single "NAME" label
 
     Returns
     -------
@@ -278,7 +293,17 @@ def process_sentences(
         uids.append(entry["id"])
         features.append(p.sentence_features())
         tokens.append([t.text for t in p.tokenized_sentence])
-        labels.append(entry["labels"])
+
+        if combine_name_labels:
+            new_labels = []
+            for label in entry["labels"]:
+                if "NAME" in label:
+                    new_labels.append("NAME")
+                else:
+                    new_labels.append(label)
+            labels.append(new_labels)
+        else:
+            labels.append(entry["labels"])
 
         # Ensure length of tokens and length of labels are the same
         if len(p.tokenized_sentence) != len(entry["labels"]):
@@ -297,6 +322,7 @@ def evaluate(
     predictions: list[list[str]],
     truths: list[list[str]],
     seed: int,
+    combine_name_labels: bool,
 ) -> Stats:
     """Calculate statistics on the predicted labels for the test data.
 
@@ -308,6 +334,8 @@ def evaluate(
         True labels for each test sentence
     seed : int
         Seed value that produced the results
+    combine_name_labels : bool
+        If True, all NAME labels are combined into a single NAME label
 
     Returns
     -------
@@ -338,7 +366,10 @@ def evaluate(
             )
 
     token_stats["accuracy"] = accuracy_score(flat_truths, flat_predictions)
-    token_stats = TokenStats(**token_stats)
+    if combine_name_labels:
+        token_stats = TokenStatsCombinedName(**token_stats)
+    else:
+        token_stats = TokenStats(**token_stats)
 
     # Generate sentence statistics
     # The only statistics that makes sense here is accuracy because there are only

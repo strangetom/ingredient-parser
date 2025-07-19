@@ -36,6 +36,7 @@ def train_parser_model(
     detailed_results: bool,
     plot_confusion_matrix: bool,
     keep_model: bool = True,
+    combine_name_labels: bool = False,
 ) -> Stats:
     """Train model using vectors, splitting the vectors into a train and evaluation
     set based on <split>. The trained model is saved to <save_model>.
@@ -59,9 +60,12 @@ def train_parser_model(
         the test set.
     plot_confusion_matrix : bool
         If True, plot a confusion matrix of the token labels.
-    kee[_model : bool, optional
+    keep_model : bool, optional
         If False, delete model from disk after evaluating it's performance.
         Default is True.
+    combine_name_labels : bool, optional
+        If True, combine all NAME labels into a single NAME label.
+        Default is False
 
     Returns
     -------
@@ -154,7 +158,7 @@ def train_parser_model(
     if plot_confusion_matrix:
         confusion_matrix(labels_pred, truth_test)
 
-    stats = evaluate(labels_pred, truth_test, seed)
+    stats = evaluate(labels_pred, truth_test, seed, combine_name_labels)
 
     if not keep_model:
         save_model.unlink(missing_ok=True)
@@ -170,7 +174,13 @@ def train_single(args: argparse.Namespace) -> None:
     args : argparse.Namespace
         Model training configuration
     """
-    vectors = load_datasets(args.database, args.table, args.datasets)
+    vectors = load_datasets(
+        args.database,
+        args.table,
+        args.datasets,
+        discard_other=True,
+        combine_name_labels=args.combine_name_labels,
+    )
 
     if args.save_model is None:
         save_model = DEFAULT_MODEL_LOCATION
@@ -186,6 +196,7 @@ def train_single(args: argparse.Namespace) -> None:
         args.detailed,
         args.confusion,
         keep_model=True,
+        combine_name_labels=args.combine_name_labels,
     )
 
     print("Sentence-level results:")
@@ -208,7 +219,13 @@ def train_multiple(args: argparse.Namespace) -> None:
     args : argparse.Namespace
         Model training configuration
     """
-    vectors = load_datasets(args.database, args.table, args.datasets)
+    vectors = load_datasets(
+        args.database,
+        args.table,
+        args.datasets,
+        discard_other=True,
+        combine_name_labels=args.combine_name_labels,
+    )
 
     if args.save_model is None:
         save_model = DEFAULT_MODEL_LOCATION
@@ -227,6 +244,7 @@ def train_multiple(args: argparse.Namespace) -> None:
             args.detailed,
             args.confusion,
             False,  # keep_model
+            args.combine_name_labels,
         )
         for _ in range(args.runs)
     ]
