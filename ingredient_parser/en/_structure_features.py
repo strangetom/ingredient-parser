@@ -74,6 +74,14 @@ class SentenceStrucureFeatures:
         self.sentence_splits = self.detect_sentences_splits(tokenized_sentence)
         self.example_phrases = self.detect_examples(tokenized_sentence)
 
+    def __repr__(self) -> str:
+        return (
+            "SentenceStrucureFeatures("
+            + f"mip_phrases: {self.mip_phrases}, "
+            + f"sentence_splits: {self.sentence_splits}, "
+            + f"example_phrases: {self.example_phrases})"
+        )
+
     def _get_subtree_indices(
         self, parent_tree: nltk.Tree, subtree: nltk.Tree
     ) -> list[int]:
