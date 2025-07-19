@@ -22,7 +22,7 @@ class ParseJsonArg(argparse.Action):
     def __init__(self, option_strings, dest, **kwargs):
         super().__init__(option_strings, dest, **kwargs)
 
-    def __call__(self, parser, namespace, values, option_strings):
+    def __call__(self, parser, namespace, values, option_strings=None):
         setattr(namespace, self.dest, json.loads(values))
 
 
@@ -170,7 +170,7 @@ if __name__ == "__main__":
     multiple_parser.add_argument(
         "-p",
         "--processes",
-        default=os.cpu_count() - 1,
+        default=os.cpu_count() - 1,  # type: ignore
         type=int,
         help="Number of processes to spawn. Default to number of cpu cores.",
     )
@@ -227,7 +227,7 @@ if __name__ == "__main__":
     gridsearch_parser.add_argument(
         "-p",
         "--processes",
-        default=os.cpu_count() - 1,
+        default=os.cpu_count() - 1,  # type: ignore
         type=int,
         help="Number of processes to spawn. Default to number of cpu cores.",
     )
@@ -350,7 +350,7 @@ if __name__ == "__main__":
     featuresearch_parser.add_argument(
         "-p",
         "--processes",
-        default=os.cpu_count() - 1,
+        default=os.cpu_count() - 1,  # type: ignore
         type=int,
         help="Number of processes to spawn. Default to number of cpu cores.",
     )
