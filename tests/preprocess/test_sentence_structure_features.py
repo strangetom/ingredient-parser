@@ -30,6 +30,13 @@ class Test_multi_ingredient_phrase_features:
         p = PreProcessor("2 tbsp olive, vegetable, or sunflower oil")
         assert p.sentence_structure.mip_phrases == [[2, 3, 4, 5, 6, 7, 8]]
 
+    def test_multi_ingredient_phrase_detection_determinant(self):
+        """
+        Test that extended multi ingredient phrase is correctly identified.
+        """
+        p = PreProcessor("½ c grapeseed oil or any mild-flavored oil")
+        assert p.sentence_structure.mip_phrases == [[3, 4, 5, 6, 7]]
+
     def test_mip_start_feature_unit(self):
         """
         Test that the start of the multi ingredient phrase is correctly identified by

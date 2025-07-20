@@ -45,10 +45,10 @@ class SentenceStrucureFeatures:
         r"""
         # Extended multi-ingredient phrase containing of 3 ingredients
         # w, x or y z
-        EMIP: {<NN.*|JJ.*>+<,><NN.*|JJ.*>+<,>?<CC><NN.*|JJ.*>*<NN.*>}
+        EMIP: {<NN.*|JJ.*>+<,><NN.*|JJ.*>+<,>?<CC><DT|NN.*|JJ.*>*<NN.*>}
         # Multi-ingredient phrase containing of 2 ingredients
         # x or y z
-        MIP: {<NN.*|JJ.*>+<CC><NN.*|JJ.*>*<NN.*>}
+        MIP: {<NN.*|JJ.*>+<CC><DT|NN.*|JJ.*>*<NN.*>}
         """
     )
 
