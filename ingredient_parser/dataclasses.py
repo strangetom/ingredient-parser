@@ -16,6 +16,24 @@ from ._common import UREG
 
 @dataclass
 class TokenFeatures:
+    """Dataclass for common token features.
+
+    Attributes
+    ----------
+    stem : str
+        Stem of the token.
+    shape : str
+        Shape of the token, represented by X, x, d characters.
+    is_capitalised : bool
+        True if the token starts with a capital letter, else False.
+    is_unit : str
+        True if the token is in the list of units, else False.
+    is_punc : str
+        True if the token is a punctuation character, else False.
+    is_ambiguous_unit : str
+        True if the token is in the list of ambiguous units, else False.
+    """
+
     stem: str
     shape: str
     is_capitalised: bool
@@ -26,6 +44,22 @@ class TokenFeatures:
 
 @dataclass
 class Token:
+    """Dataclass representing a token from a ingredient sentence.
+
+    Attributes
+    ----------
+    index : int
+        Index of the token in the sentence.
+    text : str
+        Token text.
+    feat_text : str
+        Token text used for feature generation.
+    pos_tag : str
+        Part of speech tag for token.
+    feature : TokenFeatures
+        Common features for token.
+    """
+
     index: int
     text: str
     feat_text: str
