@@ -45,11 +45,11 @@ The steps of the tokenizer are as follows:
 Features
 ^^^^^^^^
 
-Features are properties of a token that can be deterministically calculated.
-When the sequence tagging model is trained, it will learn a weight for each of the features depending of how much that feature contributes to the token having a particular label.
-The features are always primitive data types: ``str``, ``bool``, ``int``, ``float``.
+Features are properties of a token that can be deterministically calculated without the parser model.
+When the model is trained, it will learn a weight for each of the features depending of how much that feature contributes to the token having a particular label or not having a label.
+The features are always primitive data types: ``str``, ``bool`` (``int`` or ``float`` are converted to ``str``).
 
-In addition to calculating features for the given token, they are also calculated for the three surrounding tokens depending on where the token is in the sentence.
+In addition to calculating features for the given token, they are also calculated for up to three surrounding tokens depending on where the token is in the sentence.
 This helps provide context for the current token and improves the model accuracy.
 To distinguish the features of the current token from the features of the surrounding tokens, the names features for the surrounding tokens are given a prefix based on how far from the current token they are.
 
@@ -59,12 +59,12 @@ Therefore, the features for any token are made up of properties of that token pl
 
     It can be quite difficult to work out whether all the features are useful to the model. The set of features and how they are used will continue to be refined as this library develops.
 
-Syntactic features
-~~~~~~~~~~~~~~~~~~
+Lexical features
+~~~~~~~~~~~~~~~~
 
-Syntactic features are determined from the syntax of the token in the sentence and include things like: the token, the suffix of the token, the prefix of the token, whether the token is inside parentheses etc.
+Lexical features are determined from the properties of individual tokens in the sentence and include things like: the token, the suffix of the token, the prefix of the token, whether the token is inside parentheses etc.
 
-The full list of syntactic features are as follows:
+The full list of lexical features are as follows:
 
 +-----------------+------------------------------------------------------------------------------------------------------------------------------------------------------+
 | Feature         | Description                                                                                                                                          |
@@ -101,13 +101,39 @@ The full list of syntactic features are as follows:
 To simplify the number features that the model has to learn, all tokens that are numbers are replace with ``!num``.
 
 
+Structual features
+~~~~~~~~~~~~~~~~~~
+
+Structural features are determined from the structure of the sentence.
+These are based on identifying particular phrase patterns that are common in recipe ingredient sentence.
+
++-------------------------+----------------------------------------------------------------------------------------------------------------------------+
+| Structure               | Description                                                                                                                |
++=========================+============================================================================================================================+
+| Multi-ingredient phrase | Multi-ingredient phrases are where a number of types of an ingredient are listed, such as **olive or vegetable oil**.      |
+|                         |                                                                                                                            |
+|                         | The generated features are booleans indicating the start and end of a multi-ingredient phrase.                             |
++-------------------------+----------------------------------------------------------------------------------------------------------------------------+
+| Example phrase          | Example phrases are where specific example of an ingredient is given, e.g. **such as parsley**.                            |
+|                         |                                                                                                                            |
+|                         | The generated feature is a boolean indicating if the token is part of an example phrase.                                   |
++-------------------------+----------------------------------------------------------------------------------------------------------------------------+
+| Compound sentence split | Some ingredient sentence are compound sentences, listing different (often alternative) ingredients with different amounts. |
+|                         | For example, **1 tablespoon chopped fresh basil or 1 teaspoon dried**, where *or* separates the clauses.                   |
+|                         |                                                                                                                            |
+|                         | The generated feature is a boolean indicating if the token occurs after split.                                             |
++-------------------------+----------------------------------------------------------------------------------------------------------------------------+
+
+
 Semantic features
 ~~~~~~~~~~~~~~~~~
 
 Semantic features are determined from the meaning of the token
 In practice this means making use of word embeddings, which are a method to encode a word as a numeric vector in such a way that the vectors for words with similar meanings are clustered close together.
 
-Currently semantic features are not used as features for the parser model, but this is being investigated.
+.. note::
+
+   Currently semantic features are not used as features for the parser model, but this is being investigated.
 
 Example
 ^^^^^^^
@@ -121,7 +147,7 @@ Below is an example of the features generated for one of the tokens in an ingred
     >>> p.sentence_features()[1]  # for the token: "cup"
     {
       'bias': '',
-      'sentence_length': 4,
+      'sentence_length': '4',
       'pos': 'NN',
       'stem': 'cup',
       'is_capitalised': False,
@@ -132,6 +158,10 @@ Below is an example of the features generated for one of the tokens in an ingred
       'is_after_comma': False,
       'is_after_plus': False,
       'word_shape': 'xxx',
+      'mip_start': False,
+      'mip_end': False,
+      'after_sentence_split': False,
+      'example_phrase': False,
       'prev_stem': '!num',
       'prev_pos': 'CD+NN',
       'prev_is_capitalised': False,
@@ -142,6 +172,10 @@ Below is an example of the features generated for one of the tokens in an ingred
       'prev_is_after_comma': False,
       'prev_is_after_plus': False,
       'prev_word_shape': '!xxx',
+      'prev_mip_start': False,
+      'prev_mip_end': False,
+      'prev_after_sentence_split': False,
+      'prev_example_phrase': False,
       'next_stem': 'orang',
       'next_pos': 'NN+NN',
       'next_is_capitalised': False,
@@ -152,6 +186,10 @@ Below is an example of the features generated for one of the tokens in an ingred
       'next_is_after_comma': False,
       'next_is_after_plus': False,
       'next_word_shape': 'xxxxxx',
+      'next_mip_start': False,
+      'next_mip_end': False,
+      'next_after_sentence_split': False,
+      'next_example_phrase': False,
       'next2_stem': 'juic',
       'next2_pos': 'NN+NN+NN',
       'next2_is_capitalised': False,
@@ -162,6 +200,10 @@ Below is an example of the features generated for one of the tokens in an ingred
       'next2_is_after_comma': False,
       'next2_is_after_plus': False,
       'next2_word_shape': 'xxxxx',
+      'next2_mip_start': False,
+      'next2_mip_end': False,
+      'next2_after_sentence_split': False,
+      'next2_example_phrase': False,
       'next3_stem': ',',
       'next3_pos': 'NN+NN+NN+,',
       'next3_is_capitalised': False,
@@ -171,6 +213,11 @@ Below is an example of the features generated for one of the tokens in an ingred
       'next3_is_in_parens': False,
       'next3_is_after_comma': False,
       'next3_is_after_plus': False,
-      'next3_word_shape': ','
-    }
+      'next3_word_shape': ',',
+      'next3_mip_start': False,
+      'next3_mip_end': False,
+      'next3_after_sentence_split': False,
+      'next3_example_phrase': False
+   }
+
 
