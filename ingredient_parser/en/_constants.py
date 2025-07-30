@@ -111,6 +111,7 @@ UNITS = {
     "tsps": "tsp",
     "tubes": "tube",
     "twists": "twist",
+    "units": "unit",
     "wedges": "wedge",
     "wheels": "wheel",
 }
