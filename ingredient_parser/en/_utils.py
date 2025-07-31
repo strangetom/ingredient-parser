@@ -48,6 +48,8 @@ MISINTERPRETED_UNITS = [
     "shakes",
     "tin",  # tera-inch
     "tins",
+    "unit", # micronit (micro netwon inch) 
+    "units"
     "fat",  # femto-technical-atmosphere
 ]
 
