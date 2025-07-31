@@ -20,8 +20,16 @@
     color: var(--fg);
     padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
 
-    &:hover, &[data-hovered] {
+    &:not(div):hover, &[data-hovered]:not(div) {
         background-color: var(--bg-3);
         color: var(--fg);
+    }
+    &:hover, &[data-hovered] {
+        color: var(--fg);
+        background:transparent;
+    }
+
+    &:focus, &::focus-within, &::focus-visible {
+        outline: none !important;
     }
 }

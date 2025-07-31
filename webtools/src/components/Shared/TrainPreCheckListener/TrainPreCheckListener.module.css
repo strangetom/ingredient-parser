@@ -1,0 +1,13 @@
+.codeLine {
+    font-family: var(--mantine-font-family-monospace);
+    line-height: var(--mantine-line-height);
+    padding: 2px calc(var(--mantine-spacing-xs) / 2);
+    border-radius: var(--mantine-radius-sm);
+    font-size: var(--mantine-font-size-sm);
+}
+
+.codeRoot {
+    border-radius: var(--mantine-radius-sm);
+    background-color: var(--fg-1);
+    color: var(--bg-1);
+}

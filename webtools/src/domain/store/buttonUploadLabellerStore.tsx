@@ -239,7 +239,7 @@ export const useUploadNewLabellersStore =
                 notifications.show({
                   title: 'Upload successful',
                   message: `Total of ${sentencesAmended.length} sentences added`,
-                  position: 'top-right'
+                  position: 'bottom-right'
                 })
 
                 return true
@@ -249,7 +249,7 @@ export const useUploadNewLabellersStore =
                 notifications.show({
                   title: 'Encountered some errors',
                   message: error.message,
-                  position: 'top-right'
+                  position: 'bottom-right'
                 })
                 return false
               })

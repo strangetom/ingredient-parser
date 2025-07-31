@@ -6,10 +6,20 @@ import { Link, Tab } from "../types";
 import { MainTrainModel, MainTryParser, MainLabeller } from "../../components";
 // {{{ASSETS}}}
 import { IconAbc, IconSparkles, IconTags } from "@tabler/icons-react";
+import { constructEndpoint } from "../api";
+import { notifications } from "@mantine/notifications";
+
+type PrecheckPackageMetadata = {
+  checks: {
+    failed: string[],
+    passed: string[]
+  },
+  passed: boolean
+}
 
 interface AppShellState {
   loading: boolean;
-  precheck: boolean;
+  prechecking: boolean;
   error: boolean;
   success: boolean;
   openedSide: boolean;
@@ -24,11 +34,14 @@ interface AppShellState {
   links: Link[];
   currentTab: Tab;
   setCurrentTab: (tab: Tab) => void;
+  fetchPreCheck: () => void;
+  precheckValid: boolean;
+  precheckPackages: PrecheckPackageMetadata
 }
 
 export const useAppShellStore = create<AppShellState>((set) => ({
   loading: false,
-  precheck: false,
+  prechecking: false,
   error: false,
   success: false,
   openedSide: false,
@@ -47,8 +60,42 @@ export const useAppShellStore = create<AppShellState>((set) => ({
   links:  [
     { link: '', label: 'Try the Parser', id: "parser", icon: IconAbc, disabled: false },
     { link: '', label: 'Browse & Label', id: "labeller", icon: IconTags, disabled: false },
-    { link: '', label: 'Train Model', id: "train", icon: IconSparkles, disabled: false }
+    { link: '', label: 'Train the Model', id: "train", icon: IconSparkles, disabled: false }
   ],
   currentTab: { id: 'parser', component: <MainTryParser />},
-  setCurrentTab: (tab: Tab) => set({ currentTab: tab })
+  setCurrentTab: (tab: Tab) => set({ currentTab: tab }),
+  fetchPreCheck: async () => {
+
+    set({ prechecking: true })
+
+    await fetch(
+      constructEndpoint({ path: "precheck" }), {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    })
+      .then(response => {
+        if (response.ok) return response.json()
+        throw new Error(`Server response status @ ${response.status}. Check your browser network tab for traceback.`);
+      })
+      .then(json => {
+        const valid = json.passed
+        set({ prechecking: false, precheckValid: valid, precheckPackages: json })
+      })
+      .catch(error => {
+        set({ loading: false })
+        notifications.show({
+          title: 'Encountered some errors',
+          message: error.message,
+          position: 'bottom-right'
+        })
+      })
+  },
+  precheckValid: false,
+  precheckPackages: {
+    checks: {
+      failed: [],
+      passed: []
+    },
+    passed: false
+  }
 }))

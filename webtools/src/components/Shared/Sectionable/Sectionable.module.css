@@ -22,6 +22,10 @@
     width: 100%;
 }
 
+.sectionOverflowHidden {
+    overflow: hidden;
+}
+
 .sectionPadded {
     padding: var(--small-spacing) var(--small-spacing);
 }

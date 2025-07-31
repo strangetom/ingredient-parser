@@ -30,7 +30,8 @@ export interface SectionableSectionProps extends BoxProps {
   padded?: boolean;
   full?: boolean;
   bordered?: boolean;
-  border?: "top" | "bottom" | "left" | "right"
+  border?: "top" | "bottom" | "left" | "right";
+  overflowHidden?: boolean;
 }
 
 export function SectionableSection({
@@ -39,6 +40,7 @@ export function SectionableSection({
   padded = false,
   bordered = false,
   full = false,
+  overflowHidden = false,
   border,
   children,
   ...others
@@ -50,6 +52,7 @@ export function SectionableSection({
         classes.sectionPadded,
         {
           [classes.sectionFull]: full,
+          [classes.sectionOverflowHidden]: overflowHidden
         }
       )}
     >
@@ -65,6 +68,7 @@ export function SectionableSection({
           [classes.sectionGrow]: grow,
           [classes.sectionBordered]: bordered,
           [classes.sectionFull]: full,
+          [classes.sectionOverflowHidden]: overflowHidden,
         }
       )}
       data-bordered={(bordered && border) || undefined }

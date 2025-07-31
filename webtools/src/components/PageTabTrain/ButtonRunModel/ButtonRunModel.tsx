@@ -1,6 +1,6 @@
 // {{{EXTERNAL}}}
 import React, { useState } from "react"
-import { ActionIcon, Button, Flex, Group, Loader, Menu, MultiSelect, SegmentedControl } from "@mantine/core"
+import { ActionIcon, Button, Flex, Group, Loader, Menu, MultiSelect, NumberInput, SegmentedControl, Switch, Text, TextInput } from "@mantine/core"
 import { useShallow } from "zustand/react/shallow"
 // {{{INTERNAL}}}
 import { useTabLabellerStore, useTabTrainerStore } from "../../../domain"
@@ -48,8 +48,7 @@ export function ButtonRunModel() {
         updateInputTrainer({ model: value })
       }}
       data={[
-        { label: 'Parser', value: 'parser' },
-        { label: 'Foundation Foods', value: 'foundationfoods' }
+        { label: 'Parser', value: 'parser' }
       ]}
     />
   )
@@ -65,8 +64,60 @@ export function ButtonRunModel() {
         onChange={(values) => {
           if (values.length === 0) return;
           updateInputSettings({ sources: [...values] })
+          updateInputTrainer({ sources: [...values] })
         }}
         comboboxProps={{ withinPortal: false, width: 200, position: "top-start"}}
+      />
+  )
+
+  const split = (
+    <div>
+      <NumberInput
+        value={inputTrainer.split}
+        onChange={(value) => {
+          if (!value) return;
+          updateInputTrainer({ split: parseFloat(value.toString()) })
+        }}
+        step={0.1}
+        min={0.1}
+        max={0.9}
+      />
+      <Text mt={3} c="var(--fg-4)" size="xs">
+        Fraction of data to be used for testing
+      </Text>
+    </div>
+  )
+
+  const htmlSwitch = (
+      <Switch
+        label="HTML results file"
+        description="Output a markdown file containing detailed results"
+        checked={inputTrainer.html}
+        onChange={(event) => {
+          updateInputTrainer({ html: event.currentTarget.checked })
+        }}
+      />
+  )
+
+  const confusionSwitch = (
+      <Switch
+        label="Confusion"
+        description="Plot confusion matrix of token labels"
+        checked={inputTrainer.confusion}
+        onChange={(event) => {
+          updateInputTrainer({ confusion: event.currentTarget.checked })
+        }}
+      />
+  )
+
+  const detailedSwitch = (
+      <Switch
+        label="Detail result file"
+        description="Output a file containing detailed results about accuracy"
+        checked={inputTrainer.detailed}
+        onChange={(event) => {
+          updateInputTrainer({ detailed: event.currentTarget.checked })
+        }}
       />
   )
 
@@ -80,7 +131,7 @@ export function ButtonRunModel() {
       >
           Run model
       </Button>
-        <Menu shadow="md" keepMounted={false} position="bottom-end" width={350} closeOnItemClick={false} offset={8} opened={opened} onChange={setOpened} trigger="click-hover" withinPortal={false}>
+        <Menu shadow="md" keepMounted={false} position="bottom-end" width={350} closeOnItemClick={false} offset={8} opened={opened} onChange={setOpened} trigger="click">
           <Menu.Target>
             <ActionIcon
               variant="dark"
@@ -92,14 +143,28 @@ export function ButtonRunModel() {
             </ActionIcon>
           </Menu.Target>
           <Menu.Dropdown>
-            <Menu.Label>Which model?</Menu.Label>
+            <Menu.Label>Training model</Menu.Label>
             <Menu.Item component="div">
               {model}
             </Menu.Item>
             <Menu.Divider />
-            <Menu.Label>Sources (to train against)</Menu.Label>
+            <Menu.Label>Source datasets for training</Menu.Label>
             <Menu.Item component="div">
               {labelSources}
+            </Menu.Item>
+            <Menu.Label>Split value</Menu.Label>
+            <Menu.Item component="div">
+                {split}
+            </Menu.Item>
+            <Menu.Divider />
+            <Menu.Item component="div">
+              {htmlSwitch}
+            </Menu.Item>
+            <Menu.Item component="div">
+              {detailedSwitch}
+            </Menu.Item>
+            <Menu.Item component="div">
+              {confusionSwitch}
             </Menu.Item>
           </Menu.Dropdown>
         </Menu>

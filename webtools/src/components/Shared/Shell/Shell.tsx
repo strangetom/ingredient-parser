@@ -8,12 +8,14 @@ import { useAppShellStore, useTabTrainerStore } from '../../../domain';
 import { TooltipExtended } from '../../MantineExtensions';
 import { ShellWebSocketListener } from '../ShellWebSocketListener';
 import { TabTitleListener } from '../TabTitleListener';
+import { TabMultipleListener } from '../TabMultipleListener';
+import { TabCloseListener } from '../TabCloseListener';
 // {{{STYLES}}}
 import { default as classes } from './Shell.module.css';
 // {{{ASSETS}}}
 import { IconArrowBarLeft, IconArrowBarRight, IconExternalLink } from "@tabler/icons-react"
 import { ReactComponent as Logo } from "../../../assets/logo.svg"
-import { TabCloseListener } from '../TabCloseListener';
+import { TrainPreCheckListener } from '../TrainPreCheckListener';
 
 
 export function Shell() {
@@ -103,6 +105,8 @@ export function Shell() {
        <ShellWebSocketListener />
        <TabTitleListener />
        <TabCloseListener />
+       <TabMultipleListener />
+       <TrainPreCheckListener />
 
         <AppShell
           navbar={{

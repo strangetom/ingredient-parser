@@ -74,7 +74,7 @@ export const useTabParserStore =
                   notifications.show({
                     title: 'Encountered some errors',
                     message: error.message,
-                    position: 'top-right'
+                    position: 'bottom-right'
                   })
                 })
             }

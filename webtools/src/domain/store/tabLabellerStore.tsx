@@ -211,7 +211,7 @@ export const useTabLabellerStore =
                   notifications.show({
                     title: 'Encountered some errors',
                     message: error.message,
-                    position: 'top-right'
+                    position: 'bottom-right'
                   })
                 })
             }
@@ -251,7 +251,7 @@ export const useTabLabellerStore =
                 notifications.show({
                   title: 'Encountered some errors',
                   message: error.message,
-                  position: 'top-right'
+                  position: 'bottom-right'
                 })
                 return false
               })
@@ -288,7 +288,7 @@ export const useTabLabellerStore =
                 notifications.show({
                   title: 'Encountered some errors',
                   message: error.message,
-                  position: 'top-right'
+                  position: 'bottom-right'
                 })
                 return null
               })
@@ -319,7 +319,7 @@ export const useTabLabellerStore =
                 notifications.show({
                   title: 'Encountered some errors',
                   message: error.message,
-                  position: 'top-right'
+                  position: 'bottom-right'
                 })
                 return []
               })

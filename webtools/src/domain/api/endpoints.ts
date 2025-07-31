@@ -15,6 +15,7 @@ const Endpoints = {
   websocketPort: import.meta.env.FLASK_SERVER_PORT || '5001',
   paths: {
     parser: '/parser',
+    precheck: '/precheck',
     labellerSearch: '/labeller/search',
     labellerSave: '/labeller/save',
     labellerPreUpload: '/labeller/preupload',
@@ -45,7 +46,6 @@ export const constructEndpoint = ({ path, hasPort = true, isWebSocket = false}: 
 
     return hasPort ? urlWithPort : urlNoPort
   } catch (error) {
-    console.log(error)
     return Endpoints.base
   }
 

@@ -24,7 +24,7 @@ interface TabTrainerState {
   onReceiveStatus: (event: EventLog) => void,
   onReceiveTrainProgress: (event: EventLog) => void,
   onSendTrainRun: () => void,
-  onSendTrainInterrupt: () => void;
+  /*onSendTrainInterrupt: () => void;*/
 }
 
 export const useTabTrainerStore =
@@ -34,7 +34,10 @@ export const useTabTrainerStore =
           input: {
             model: 'parser',
             sources: ["nyt","cookstr", "allrecipes", "bbc", "tc", "saveur"],
-            databasePath: ''
+            split: 0.2,
+            html: false,
+            detailed: false,
+            confusion: false
           },
           updateInput: (partial: Partial<InputTrainer>) =>
             set(
@@ -63,9 +66,10 @@ export const useTabTrainerStore =
               notifications.show({
                 title: 'Training completed',
                 message: event.message || null,
-                position: 'top-right'
+                position: 'bottom-right'
               })
             }
+            /*
             else if(event.indicator === 'Interrupted'){
               set({ training: false });
               notifications.show({
@@ -74,12 +78,14 @@ export const useTabTrainerStore =
                 position: 'bottom-right'
               })
             }
+             */
             else if(event.indicator === 'Error'){
               set({ training: false });
               notifications.show({
-                title: 'Training cancelled or encountered error',
+                title: 'Training encountered error',
                 message: event.message || null,
-                position: 'bottom-right'
+                position: 'bottom-right',
+                autoClose: false
               })
             }
           },
@@ -91,7 +97,9 @@ export const useTabTrainerStore =
             const connected = get().connected
             if (connected) {
               set({ events: [], training: true })
-              socket.emit("train", {});
+              socket.emit("train", {
+                ...get().input
+              });
             } else {
               notifications.show({
                 title: 'Not connected, web socket server is not active',
@@ -100,6 +108,7 @@ export const useTabTrainerStore =
               })
             }
           },
+          /*
           onSendTrainInterrupt() {
             const socket = get().socket
             const connected = get().connected
@@ -113,6 +122,7 @@ export const useTabTrainerStore =
               })
             }
           }
+           */
         })
       )
   )

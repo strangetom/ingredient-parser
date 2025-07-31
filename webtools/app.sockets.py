@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
 # {{DEFAULT}}
-import argparse, time, sys, io, contextlib
+import argparse, time, sys, io, contextlib, os
+from datetime import datetime
 from threading import Event, Thread
 from pathlib import Path
 # {{LIBRARIES}}
@@ -34,98 +35,143 @@ async_mode = None
 app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app, async_mode=async_mode, async_handlers=True, cors_allowed_origins="*") # path='/trainer', logger=True, engineio_logger=True
 thread = None
+thread_native_id = 0
 thread_lock = Lock()
 thread_event = Event()
 
-def background_thread(thread_event):
+def background_thread(thread_event, input_data):
     """Background thread for training behind web sockets"""
 
-    global thread
-
     try:
+        if not input_data["sources"] and not input_data["model"]:
+            raise Exception("Input data sources and model need to be supplied")
 
-            args = {
-                'database': str(SQL3_DATABASE),
-                'table': 'en',
-                'datasets': ["bbc", "cookstr", "nyt", "allrecipes", "tc"],
-                'model': 'parser',
-                'save_model': str(SAVED_MODEL),
-                'split': 0.20,
-                'seed': None,
-                'html': None,
-                'detailed': None,
-                'confusion': None
-            }
+        args = {
+            'database': str(SQL3_DATABASE),
+            'table': 'en',
+            'datasets': input_data["sources"],
+            'model': input_data["model"],
+            'save_model': str(SAVED_MODEL),
+            'split': input_data.get("split", 0.2),
+            'seed': None,
+            'html': input_data.get("html", False) or None,
+            'detailed': input_data.get("detailed", False) or None,
+            'confusion': input_data.get("confusion", False) or None
+        }
 
-            def monitor_stdout(output_buffer, interval=0.1):
-                """Monitors the output buffer for new content and calls my_function."""
-                last_position = 0
-                while True:
-                    time.sleep(interval)
-                    current_output = str(output_buffer.getvalue())
-                    if len(current_output) > last_position:
-                        new_output = current_output[last_position:]
-                        if thread_event.is_set():
-                            socketio.emit('trainer', {'data': [ln.strip() for ln in new_output.splitlines()], 'indicator': 'Logging', 'message': '' })
-                        last_position = len(current_output)
+        def monitor_stdout(output_buffer, interval=0.1):
+            """Monitors the output buffer for new content"""
+            last_position = 0
+            while True:
+                time.sleep(interval)
+                current_output = str(output_buffer.getvalue())
+                if len(current_output) > last_position:
+                    new_output = current_output[last_position:]
+                    if thread_event.is_set():
+                        socketio.emit('trainer', {
+                            'data': [ln.strip() for ln in new_output.splitlines()],
+                            'indicator': 'Logging',
+                            'message': ''
+                        })
+                    last_position = len(current_output)
 
 
-            captured_output = io.StringIO()
+        captured_output = io.StringIO()
+        monitor_thread = Thread(target=monitor_stdout, args=(captured_output,),)
+        monitor_thread.daemon = True  # allow the main thread to exit even if this is running
+        monitor_thread.start()
 
-            # Start the monitoring thread
-            monitor_thread = Thread(target=monitor_stdout, args=(captured_output,),)
-            monitor_thread.daemon = True  # Allow the main thread to exit even if this is running
-            monitor_thread.start()
+        with contextlib.redirect_stdout(captured_output):
+            print(
+                "------------------------------\n TRAINING STARTED [time={}] [pid={}] \n------------------------------\n INPUTS \n{} ------------------------------\n"
+                .format(datetime.now().strftime('%H:%M:%S'), os.getpid(), ''.join([f'[{k}={v}] \n' for k, v in args.items()]))
+            )
+            train_single(argparse.Namespace(**args))
+            print(
+                "------------------------------\n TRAINING ENDED [time={}] [pid={}] \n------------------------------\n"
+                .format(datetime.now().strftime('%H:%M:%S'), os.getpid())
+            )
+            time.sleep(1) # allow buffer time to readout final output
 
-            with contextlib.redirect_stdout(captured_output):
-                train_single(argparse.Namespace(**args))
-                print("end 1")
+        socketio.emit('status', {
+            'data': [],
+            'indicator': 'Completed',
+            'message': 'Training round completed. View console output for results.'
+        })
 
-            print("end 2")
-
-            socketio.emit('status', {'data': [], 'indicator': 'Completed', 'message': ''})
+        monitor_thread.join()
 
     except Exception as e:
-        socketio.emit('status', {'data': [], 'indicator': 'Error', 'message': e})
+        socketio.emit('status', {
+            'data': [],
+            'indicator': 'Error',
+            'message': 'Training round encountered an issue. {}'.format(str(e))
+        })
 
     finally:
         thread_event.clear()
-        thread = None
 
 @socketio.on('train')
-def train_start(data):
+def train_start(input_data):
     """Web socket receives request to start the training"""
     global thread
     global thread_native_id
     with thread_lock:
         if thread is None:
             thread_event.set()
-            thread = socketio.start_background_task(background_thread, thread_event)
+            thread = socketio.start_background_task(background_thread, thread_event, input_data)
             thread_native_id = thread.native_id
-            emit('status', {'data': [], 'indicator': 'Training', 'message': 'Thread ID is {}'.format(thread_native_id) })
+            emit('status', {
+                'data': [],
+                'indicator': 'Training',
+                'message': 'Training started (PID = {})'.format(os.getpid())
+            })
 
+'''
 @socketio.on('interrupt')
 def train_interrupted(data):
     """Web socket receives request to cancel — killing Python threading is discouraged, see https://docs.python.org/3/library/threading.html"""
     global thread
     global thread_native_id
-    thread_event.clear()
     with thread_lock:
         if thread is not None:
-            emit('status', {'data': [], 'indicator': 'Interrupted', 'message': 'Be aware that interupting the training will not terminate the process due to how threading works (thread ID ={})'.format(thread_native_id) })
+            thread_event.clear()
+            emit('status', {
+                'data': [],
+                'indicator': 'Interrupted',
+                'message': 'Be aware that interupting the training will not terminate the process due to how threading works (PID = {})'.format(os.getpid())
+            })
             thread.join()
             thread = None
             thread_native_id = None
+'''
 
 @socketio.on('connect')
 def connect():
     """Web socket sends comms to connect"""
-    emit('status', {'data': [], 'indicator': 'Connected', 'message': '' })
+    emit('status', {
+        'data': [],
+        'indicator': 'Connected',
+        'message': ''
+    })
 
 @socketio.on('disconnect')
 def disconnect():
     """Web socket sends comms to disconnect"""
-    emit('status', {'data': [], 'indicator': 'Disconnected', 'message': ''})
+
+    global thread_event
+    global thread
+    global thread_native_id
+
+    emit('status', {
+        'data': [],
+        'indicator': 'Disconnected',
+        'message': ''
+    })
+
+    thread_event.clear()
+    thread = None
+    thread_native_id = None
 
 if __name__ == '__main__':
     socketio.run(app, debug=True, port=5001)

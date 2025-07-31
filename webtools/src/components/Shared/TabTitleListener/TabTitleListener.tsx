@@ -3,24 +3,18 @@ import React, { useEffect, useState } from 'react'
 import { useDocumentTitle, useInterval } from "@mantine/hooks"
 import { useShallow } from 'zustand/react/shallow'
 // {{INTERNAL}}
-import { useTabTrainerStore } from '../../../domain'
+import { toTitleCase, useAppShellStore, useTabTrainerStore } from '../../../domain'
 
 
-function TitleStub() {
-  const [dots, setDots] = useState(0);
-  const { start, stop } = useInterval(() => setDots((d) => d === 3 ? 0 : d + 1), 1000);
+export function TabTitleListener() {
 
-  useEffect(() => {
-    start();
-    return stop;
-  }, []);
-
-  useDocumentTitle(`Training ${Array(dots).fill('.').join('')}`)
-
-  return null
-}
-
-export function TabTitleListener(){
+  const {
+    currentTab
+  } = useAppShellStore(
+    useShallow((state) => ({
+      currentTab: state.currentTab
+    })),
+  )
 
   const {
     training
@@ -30,6 +24,19 @@ export function TabTitleListener(){
     })),
   )
 
-  // this pattern ensures the document title is only updated during training
-  return training ? <TitleStub /> :null
+  const [dots, setDots] = useState(0);
+  const { start, stop } = useInterval(() => setDots((d) => d === 3 ? 0 : d + 1), 1000);
+
+  useEffect(() => {
+    start();
+    return stop;
+  }, []);
+
+  useDocumentTitle(
+    training ?
+    `Training ${Array(dots).fill('.').join('')}` :
+    toTitleCase(currentTab.id)
+  )
+
+  return null
 }

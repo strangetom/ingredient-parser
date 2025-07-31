@@ -4,3 +4,7 @@
         border-color: var(--green-alt);
     }
 }
+
+.description {
+    color: var(--fg-4)
+}
