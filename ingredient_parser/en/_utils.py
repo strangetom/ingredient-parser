@@ -48,9 +48,8 @@ MISINTERPRETED_UNITS = [
     "shakes",
     "tin",  # tera-inch
     "tins",
-    "unit", # micronit (micro netwon inch) 
-    "units"
-    "fat",  # femto-technical-atmosphere
+    "unit",  # micronit (micro netwon inch)
+    "unitsfat",  # femto-technical-atmosphere
 ]
 
 # List of unit replacements so that these units get converted to the correct pint
