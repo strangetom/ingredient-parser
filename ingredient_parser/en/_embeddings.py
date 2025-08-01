@@ -89,25 +89,26 @@ class GloVeModel:
                     self.vectors[token] = vector
 
     def _binarize_vectors(self):
-        """Binarize word vectors by converting continuous values into discrete values.
+        """Binarize vectors by converting continuous values into discrete values [1].
 
         For each word vector, calculate the average value of the positive elements and
         the negative elements. Replace each element of each word vector according to:
         if value < negative_average:
-            "NEG"
+            "VNEG"
         elif value > positive_average
-            "POS"
+            "VPOS"
         else
-            "0"
+            "V0"
 
         The resulting word vectors are stored in the binarized_vectors attribute.
 
         References
         ----------
-        J. Guo, W. Che, H. Wang, and T. Liu, ‘Revisiting Embedding Features for Simple
-        Semi-supervised Learning’, in Proceedings of the 2014 Conference on Empirical
-        Methods in Natural Language Processing (EMNLP), Doha, Qatar: Association for
-        Computational Linguistics, 2014, pp. 110–120. doi: 10.3115/v1/D14-1012.
+        .. [1] J. Guo, W. Che, H. Wang, and T. Liu, ‘Revisiting Embedding Features for
+           Simple Semi-supervised Learning’, in Proceedings of the 2014 Conference on
+           EmpiricalMethods in Natural Language Processing (EMNLP), Doha, Qatar:
+           Association for Computational Linguistics, 2014, pp. 110–120.
+           doi: 10.3115/v1/D14-1012.
         """
         self.binarized_vectors = {}
         for word, vec in self.vectors.items():
