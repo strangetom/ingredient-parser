@@ -10,12 +10,13 @@ import { ShellWebSocketListener } from '../ShellWebSocketListener';
 import { TabTitleListener } from '../TabTitleListener';
 import { TabMultipleListener } from '../TabMultipleListener';
 import { TabCloseListener } from '../TabCloseListener';
+import { ShellPreCheckListener } from '../ShellPreCheckListener';
+import { ShellTrainingCountdownListener } from '../ShellTrainingCountdownListener';
 // {{{STYLES}}}
 import { default as classes } from './Shell.module.css';
 // {{{ASSETS}}}
 import { IconArrowBarLeft, IconArrowBarRight, IconExternalLink } from "@tabler/icons-react"
 import { ReactComponent as Logo } from "../../../assets/logo.svg"
-import { TrainPreCheckListener } from '../TrainPreCheckListener';
 
 
 export function Shell() {
@@ -53,44 +54,44 @@ export function Shell() {
 
     return (
       <Wrapper {...wrapperProps}>
-      <Anchor
-      component='button'
-      className={cx(
-        classes.link,
-        { [classes.linkCollapsed]: !openedNav }
-      )}
-      data-active={item.id === currentTab.id || undefined}
-      key={item.label}
-      disabled={item.disabled}
-      onClick={(event) => {
-        event.preventDefault();
-        const match = tabs.find(tab => item.id === tab.id)
-        if (!match) return;
-        setCurrentTab(match);
-      }}
-    >
-      <Flex justify={openedNav ? "flex-start" : "center"}>
-        {training && item.id === 'train' ?  (
-          <Loader
-            size={25}
-            color="var(--fg-3)"
-            className={cx(
-              classes.trainingIcon,
-              { [classes.linkIconCollapsed]: !openedNav }
+        <Anchor
+          component='button'
+          className={cx(
+            classes.link,
+            { [classes.linkCollapsed]: !openedNav }
+          )}
+          data-active={item.id === currentTab.id || undefined}
+          key={item.label}
+          disabled={item.disabled}
+          onClick={(event) => {
+            event.preventDefault();
+            const match = tabs.find(tab => item.id === tab.id)
+            if (!match) return;
+            setCurrentTab(match);
+          }}
+        >
+          <Flex justify={openedNav ? "flex-start" : "center"}>
+            {training && item.id === 'train' ?  (
+              <Loader
+                size={25}
+                color="var(--fg-3)"
+                className={cx(
+                  classes.trainingIcon,
+                  { [classes.linkIconCollapsed]: !openedNav }
+                )}
+              />
+            ): (
+              <item.icon
+                className={cx(
+                  classes.linkIcon,
+                  { [classes.linkIconCollapsed]: !openedNav }
+                )}
+                stroke={1.5}
+              />
             )}
-          />
-        ): (
-          <item.icon
-            className={cx(
-              classes.linkIcon,
-              { [classes.linkIconCollapsed]: !openedNav }
-            )}
-            stroke={1.5}
-          />
-        )}
-        {openedNav && <span>{item.label}</span>}
-      </Flex>
-    </Anchor>
+            {openedNav && <span>{item.label}</span>}
+          </Flex>
+        </Anchor>
       </Wrapper>
     )
   });
@@ -103,10 +104,12 @@ export function Shell() {
      <>
 
        <ShellWebSocketListener />
+       <ShellPreCheckListener />
+       <ShellTrainingCountdownListener />
+
        <TabTitleListener />
        <TabCloseListener />
        <TabMultipleListener />
-       <TrainPreCheckListener />
 
         <AppShell
           navbar={{

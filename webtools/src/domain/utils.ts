@@ -7,6 +7,14 @@ export const formattedCountdownSeconds = (seconds: number) => {
   return dt.toISOString().substring(15, 19)
 }
 
+export const formattedCounterSeconds = (seconds: number) => {
+  const hh = String(Math.floor(seconds / 3600)).padStart(2, '0');
+  const mm = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');
+  const ss = String(seconds % 60).padStart(2, '0');
+
+  return `${hh}:${mm}:${ss}`;
+}
+
 export function getTodayByMonthFullStr(): string {
   return new Date().toLocaleString('en-US', { month: 'short' });
 }

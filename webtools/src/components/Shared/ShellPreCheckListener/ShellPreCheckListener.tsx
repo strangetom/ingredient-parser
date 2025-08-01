@@ -3,11 +3,11 @@ import { useEffect } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 // {{INTERNAL}}
 import { useAppShellStore } from '../../../domain'
-import { Box, Code, Divider, LoadingOverlay, Modal, Stack, Text, Title } from '@mantine/core';
+import { Box, Divider, LoadingOverlay, Modal, Text } from '@mantine/core';
 // {{STYLES}}
-import classes from "./TrainPreCheckListener.module.css"
+import classes from "./ShellPreCheckListener.module.css"
 
-export function TrainPreCheckListener() {
+export function ShellPreCheckListener() {
 
   const {
     precheckPackages,
