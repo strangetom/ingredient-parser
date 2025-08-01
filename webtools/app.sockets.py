@@ -117,15 +117,14 @@ def train_start(input_data):
     global thread
     global thread_native_id
     with thread_lock:
-        if thread is None:
-            thread_event.set()
-            thread = socketio.start_background_task(background_thread, thread_event, input_data)
-            thread_native_id = thread.native_id
-            emit('status', {
-                'data': [],
-                'indicator': 'Training',
-                'message': 'Training started (PID = {})'.format(os.getpid())
-            })
+        thread_event.set()
+        thread = socketio.start_background_task(background_thread, thread_event, input_data)
+        thread_native_id = thread.native_id
+        emit('status', {
+            'data': [],
+            'indicator': 'Training',
+            'message': 'Training started (PID = {})'.format(os.getpid())
+        })
 
 '''
 @socketio.on('interrupt')
