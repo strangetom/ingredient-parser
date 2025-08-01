@@ -188,7 +188,7 @@ class PreProcessor:
             logger.debug(f"{func.__name__}: {sentence}")
 
         return sentence.strip()
-    
+
     def _remove_price_annotations(self, sentence: str) -> str:
         """Remove price annotations like ($0.20), (£1.50), etc. from the sentence.
 
@@ -204,7 +204,8 @@ class PreProcessor:
         """
         currencies = ["$", "£", "€", "¥", "₹"]
         currency_pattern = "|".join(re.escape(c) for c in currencies)
-        # Allow optional whitespace after opening parenthesis and before currency, and after currency
+        # Allow optional whitespace after opening parenthesis and before currency and
+        # after currency
         pattern = rf"\(\s*(?:{currency_pattern})\s*[0-9.,]+\s*\)"
         return re.sub(pattern, "", sentence)
 

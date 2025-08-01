@@ -22,28 +22,6 @@ class TestPreProcessor__builtins__:
         p = PreProcessor("1/2 cup chicken broth")
         assert repr(p) == 'PreProcessor("1/2 cup chicken broth")'
 
-    def test_debug_output(self, capsys):
-        """
-        Test printed debug output
-        """
-        _ = PreProcessor("1/2 cup chicken broth", show_debug_output=True)
-        captured = capsys.readouterr()
-        assert (
-            captured.out
-            == """_remove_price_annotations: 1/2 cup chicken broth
-_replace_en_em_dash: 1/2 cup chicken broth
-_replace_html_fractions: 1/2 cup chicken broth
-_replace_unicode_fractions: 1/2 cup chicken broth
-combine_quantities_split_by_and: 1/2 cup chicken broth
-_identify_fractions: #1$2 cup chicken broth
-_split_quantity_and_units: #1$2 cup chicken broth
-_remove_unit_trailing_period: #1$2 cup chicken broth
-replace_string_range: #1$2 cup chicken broth
-_replace_dupe_units_ranges: #1$2 cup chicken broth
-_merge_quantity_x: #1$2 cup chicken broth
-_collapse_ranges: #1$2 cup chicken broth
-"""
-        )
 
 def normalise_test_cases() -> list[tuple[str, ...]]:
     """

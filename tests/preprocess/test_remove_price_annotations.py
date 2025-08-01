@@ -2,10 +2,14 @@ import pytest
 
 from ingredient_parser.en import PreProcessor
 
+
 @pytest.fixture
 def p():
-    """Define an empty PreProcessor object to use for testing the PreProcessor class methods."""
+    """Define an empty PreProcessor object to use for testing the PreProcessor
+    class methods.
+    """
     return PreProcessor("")
+
 
 class TestPreProcessor_remove_price_annotations:
     def test_remove_dollar_price(self, p):
@@ -86,7 +90,9 @@ class TestPreProcessor_remove_price_annotations:
 
     def test_multiple_non_price_parentheticals(self, p):
         input_sentence = "2 eggs (free-range) (large)"
-        assert p._remove_price_annotations(input_sentence) == "2 eggs (free-range) (large)"
+        assert (
+            p._remove_price_annotations(input_sentence) == "2 eggs (free-range) (large)"
+        )
 
     def test_mixed_price_and_non_price_parentheticals(self, p):
         input_sentence = "1 cup flour ($0.20) (organic)"
