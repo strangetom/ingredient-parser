@@ -68,6 +68,8 @@ pre-commit install
 
 to install the pre-commit hooks.
 
+Please target the **develop** branch for pull requests. The main branch is used for stable releases and hotfixes only.
+
 There is a simple web app for testing the parser with ingredient sentences and showing the parsed output. To run the web app, run the command
 
 ```bash
