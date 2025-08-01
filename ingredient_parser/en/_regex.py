@@ -58,11 +58,11 @@ STRING_RANGE_PATTERN = re.compile(
 )
 
 # Regex pattern to match quantities split by "and" e.g. 1 and 1/2.
-# Capture the whole match, and the quantites before and after the "and".
+# Capture the whole match, and the quantities before and after the "and".
 FRACTION_SPLIT_AND_PATTERN = re.compile(r"((\d+)\sand\s(\d/\d+))")
 
 # Regex pattern to match ranges where the unit appears after both quantities e.g.
-# 100 g - 200 g. This assumes the quantites and units have already been seperated
+# 100 g - 200 g. This assumes the quantities and units have already been separated
 # by a single space and that all number are decimals.
 # This regex matches:
 #   <quantity> <unit> - <quantity> <unit>
@@ -117,7 +117,9 @@ DIGIT_PATTERN = re.compile(r"[0-9]")
 FRACTION_TOKEN_PATTERN = re.compile(r"^\d*\#\d+\$\d+(?:\-\d*\#\d+\$\d+)?$")
 
 # Regex pattern to match currency within parentheses e.g. ($1.99)
-# Allows optional whitespace after opening parenthesis, before currency symbol, and
+# Allows optional white space after opening parenthesis, before currency symbol, and
 # before closing parenthesis.
+# Also allows the current to be suffixed with any number of asterisk characters because
+# that has been seen on budgetbytes.com.
 currency_pattern = "|".join(re.escape(c) for c in ["$", "£", "€", "¥", "₹"])
-CURRENCY_PATTERN = re.compile(rf"\(\s*(?:{currency_pattern})\s*[0-9.,]+\s*\)")
+CURRENCY_PATTERN = re.compile(rf"\(\s*(?:{currency_pattern})\s*[0-9.,]+\**\s*\)")

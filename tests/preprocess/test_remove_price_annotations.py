@@ -84,6 +84,10 @@ class TestPreProcessor_remove_price_annotations:
         input_sentence = "1 cup flour ( \t $ 0.20  )"
         assert p._remove_price_annotations(input_sentence) == "1 cup flour "
 
+    def test_price_annotation_with_asterisk_suffix(self, p):
+        input_sentence = "1 cup flour ($0.20**)"
+        assert p._remove_price_annotations(input_sentence) == "1 cup flour "
+
     def test_non_price_parenthetical_remains(self, p):
         input_sentence = "1 cup flour (organic)"
         assert p._remove_price_annotations(input_sentence) == "1 cup flour (organic)"
