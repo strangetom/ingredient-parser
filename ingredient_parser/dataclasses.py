@@ -15,6 +15,59 @@ from ._common import UREG
 
 
 @dataclass
+class TokenFeatures:
+    """Dataclass for common token features.
+
+    Attributes
+    ----------
+    stem : str
+        Stem of the token.
+    shape : str
+        Shape of the token, represented by X, x, d characters.
+    is_capitalised : bool
+        True if the token starts with a capital letter, else False.
+    is_unit : str
+        True if the token is in the list of units, else False.
+    is_punc : str
+        True if the token is a punctuation character, else False.
+    is_ambiguous_unit : str
+        True if the token is in the list of ambiguous units, else False.
+    """
+
+    stem: str
+    shape: str
+    is_capitalised: bool
+    is_unit: bool
+    is_punc: bool
+    is_ambiguous_unit: bool
+
+
+@dataclass
+class Token:
+    """Dataclass representing a token from a ingredient sentence.
+
+    Attributes
+    ----------
+    index : int
+        Index of the token in the sentence.
+    text : str
+        Token text.
+    feat_text : str
+        Token text used for feature generation.
+    pos_tag : str
+        Part of speech tag for token.
+    feature : TokenFeatures
+        Common features for token.
+    """
+
+    index: int
+    text: str
+    feat_text: str
+    pos_tag: str
+    features: TokenFeatures
+
+
+@dataclass
 class IngredientAmount:
     """Dataclass for holding a parsed ingredient amount.
 
@@ -304,7 +357,7 @@ class FoundationFood:
         Confidence of the match, between 0 and 1.
     fdc_id : int
         ID of the FDC database entry.
-    category: str
+    category : str
         Category of FDC database entry.
     data_type : str
         Food Data Central data set the entry belongs to.

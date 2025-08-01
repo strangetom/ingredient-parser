@@ -2,10 +2,12 @@
 
 import argparse
 import concurrent.futures as cf
-import contextlib
+import logging
+from contextlib import contextmanager
 from pathlib import Path
 from random import randint
 from statistics import mean, stdev
+from typing import Generator
 from uuid import uuid4
 
 import pycrfsuite
@@ -23,6 +25,30 @@ from .training_utils import (
     load_datasets,
 )
 
+logger = logging.getLogger(__name__)
+
+
+@contextmanager
+def change_log_level(level: int) -> Generator[None]:
+    """Context manager to temporarily change logging level within the context.
+
+    On exiting the context, the original level is restored.
+
+    Parameters
+    ----------
+    level : int
+        Logging level to use within context manager.
+
+    Yields
+    ------
+    Generator[None, None, None]
+        Generator, yielding None
+    """
+    original_level = logger.getEffectiveLevel()
+    logger.setLevel(level)
+    yield
+    logger.setLevel(original_level)
+
 
 def train_parser_model(
     vectors: DataVectors,
@@ -33,6 +59,7 @@ def train_parser_model(
     detailed_results: bool,
     plot_confusion_matrix: bool,
     keep_model: bool = True,
+    combine_name_labels: bool = False,
 ) -> Stats:
     """Train model using vectors, splitting the vectors into a train and evaluation
     set based on <split>. The trained model is saved to <save_model>.
@@ -56,9 +83,12 @@ def train_parser_model(
         the test set.
     plot_confusion_matrix : bool
         If True, plot a confusion matrix of the token labels.
-    kee[_model : bool, optional
+    keep_model : bool, optional
         If False, delete model from disk after evaluating it's performance.
         Default is True.
+    combine_name_labels : bool, optional
+        If True, combine all NAME labels into a single NAME label.
+        Default is False
 
     Returns
     -------
@@ -69,7 +99,7 @@ def train_parser_model(
     if seed is None:
         seed = randint(0, 1_000_000_000)
 
-    print(f"[INFO] {seed} is the random seed used for the train/test split.")
+    logger.info(f"{seed} is the random seed used for the train/test split.")
 
     # Split data into train and test sets
     # The stratify argument means that each dataset is represented proprtionally
@@ -96,10 +126,10 @@ def train_parser_model(
         stratify=vectors.source,
         random_state=seed,
     )
-    print(f"[INFO] {len(features_train):,} training vectors.")
-    print(f"[INFO] {len(features_test):,} testing vectors.")
+    logger.info(f"{len(features_train):,} training vectors.")
+    logger.info(f"{len(features_test):,} testing vectors.")
 
-    print("[INFO] Training model with training data.")
+    logger.info("Training model with training data.")
     trainer = pycrfsuite.Trainer(verbose=False)  # type: ignore
     trainer.set_params(
         {
@@ -117,7 +147,7 @@ def train_parser_model(
         trainer.append(X, y)
     trainer.train(str(save_model))
 
-    print("[INFO] Evaluating model with test data.")
+    logger.info("Evaluating model with test data.")
     tagger = pycrfsuite.Tagger()  # type: ignore
     tagger.open(str(save_model))
 
@@ -151,7 +181,7 @@ def train_parser_model(
     if plot_confusion_matrix:
         confusion_matrix(labels_pred, truth_test)
 
-    stats = evaluate(labels_pred, truth_test, seed)
+    stats = evaluate(labels_pred, truth_test, seed, combine_name_labels)
 
     if not keep_model:
         save_model.unlink(missing_ok=True)
@@ -167,7 +197,13 @@ def train_single(args: argparse.Namespace) -> None:
     args : argparse.Namespace
         Model training configuration
     """
-    vectors = load_datasets(args.database, args.table, args.datasets)
+    vectors = load_datasets(
+        args.database,
+        args.table,
+        args.datasets,
+        discard_other=True,
+        combine_name_labels=args.combine_name_labels,
+    )
 
     if args.save_model is None:
         save_model = DEFAULT_MODEL_LOCATION
@@ -183,6 +219,7 @@ def train_single(args: argparse.Namespace) -> None:
         args.detailed,
         args.confusion,
         keep_model=True,
+        combine_name_labels=args.combine_name_labels,
     )
 
     print("Sentence-level results:")
@@ -205,36 +242,43 @@ def train_multiple(args: argparse.Namespace) -> None:
     args : argparse.Namespace
         Model training configuration
     """
-    vectors = load_datasets(args.database, args.table, args.datasets)
+    vectors = load_datasets(
+        args.database,
+        args.table,
+        args.datasets,
+        discard_other=True,
+        combine_name_labels=args.combine_name_labels,
+    )
 
     if args.save_model is None:
         save_model = DEFAULT_MODEL_LOCATION
     else:
         save_model = args.save_model
 
-    arguments = []
-    for _ in range(args.runs):
-        # The first None argument is for the seed. This is set to None so each
-        # iteration of the training function uses a different random seed.
-        arguments.append(
-            (
-                vectors,
-                args.split,
-                Path(save_model).with_stem("model-" + str(uuid4())),
-                None,  # Seed
-                args.html,
-                args.detailed,
-                args.confusion,
-                False,  # keep_model
-            )
+    # The first None argument is for the seed. This is set to None so each
+    # iteration of the training function uses a different random seed.
+    arguments = [
+        (
+            vectors,
+            args.split,
+            Path(save_model).with_stem("model-" + str(uuid4())),
+            None,  # Seed
+            args.html,
+            args.detailed,
+            args.confusion,
+            False,  # keep_model
+            args.combine_name_labels,
         )
+        for _ in range(args.runs)
+    ]
 
-    eval_results = []
-    with contextlib.redirect_stdout(None):  # Suppress print output
+    with change_log_level(logging.WARNING):  # Temporarily stop logging below WARNING
         with cf.ProcessPoolExecutor(max_workers=args.processes) as executor:
             futures = [executor.submit(train_parser_model, *a) for a in arguments]
-            for future in tqdm(cf.as_completed(futures), total=len(futures)):
-                eval_results.append(future.result())
+            eval_results = [
+                future.result()
+                for future in tqdm(cf.as_completed(futures), total=len(futures))
+            ]
 
     word_accuracies, sentence_accuracies, seeds = [], [], []
     for result in eval_results:

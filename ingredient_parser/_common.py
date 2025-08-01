@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import collections
+import logging
 import os
 import platform
 import re
@@ -20,12 +21,16 @@ with as_file(files(__package__) / "density_context.txt") as p:
 
 SUPPORTED_LANGUAGES = ["en"]
 
+# Logging
+logger = logging.getLogger("ingredient-parser")
+logger.addHandler(logging.NullHandler())
+
 # Regex pattern for matching a numeric range e.g. 1-2, 2-3, #1$2-1#3$4.
 RANGE_PATTERN = re.compile(r"^[\d\#\$]+\s*[\-][\d\#\$]+$")
 
 
 def consume(iterator: Iterator, n: int | None) -> None:
-    """Advance the iterator n-steps ahead. If n is none, consume entirely.
+    """Advance the `iterator` n-steps ahead. If `n` is none, consume entirely.
 
     See consume from https://docs.python.org/3/library/itertools.html#itertools-recipes
 
@@ -121,7 +126,7 @@ def download_nltk_resources() -> None:
 
 
 def is_float(value: str) -> bool:
-    """Check if the value can be converted to a float.
+    """Check if `value` can be converted to a float.
 
     Parameters
     ----------
@@ -152,7 +157,7 @@ def is_float(value: str) -> bool:
 
 
 def is_range(value: str) -> bool:
-    """Check if the value is a range e.g. 100-200.
+    """Check if `value` is a range e.g. 100-200.
 
     Parameters
     ----------

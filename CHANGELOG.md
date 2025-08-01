@@ -1,5 +1,17 @@
 # Changelog
 
+## develop
+
+* Foundation food improvements:
+  * Bias foundation food matching to prefer "raw" FDC ingredients, but only if the ingredient name does not include any verbs that indicate the ingredient is not raw (e.g. "cooked").
+  * Normalise spelling of tokens in ingredient names to align with spelling used in FDC ingredient descriptions.
+* General
+  * Add logging to library, under the `ingredient-parser` namespace.
+
+* Model
+  * Improve parser model performance with new features related to sentence structure, such as whether a token is part of an example phrase, a multi-ingredient phrase, or after the split in a compound sentence. See the [Feature Generation](https://ingredient-parser.readthedocs.io/en/latest/explanation/features.html) of the docs for more details.
+
+
 ## 2.1.1
 
 * Pin Pint version to 0.24.4, as future versions intend to drop support for Python 3.10.

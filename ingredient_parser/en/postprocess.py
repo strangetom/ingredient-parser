@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import logging
 import re
 from collections import defaultdict
 from dataclasses import dataclass
@@ -31,6 +32,8 @@ from ._utils import (
     ingredient_amount_factory,
     replace_string_range,
 )
+
+logger = logging.getLogger("ingredient-parser")
 
 WORD_CHAR = re.compile(r"\w")
 
@@ -191,8 +194,11 @@ class PostProcessor:
                 else:
                     name_replaced_labels.append(label)
             self.labels = name_replaced_labels
+            logger.debug(
+                f"Relabeled tokens to {self.labels} because seperate_name=False."
+            )
 
-            # Process NAME labels as any other label, but return a list
+            # Process NAME labels as any other label, but return as a list
             if processed_name := self._postprocess("NAME"):
                 name = [processed_name]
             else:
@@ -282,7 +288,40 @@ class PostProcessor:
                     if ff:
                         foundation_foods.add(ff)
 
-        return names, list(foundation_foods)
+        return self._deduplicate_names(names), list(foundation_foods)
+
+    def _deduplicate_names(self, names: list[IngredientText]) -> list[IngredientText]:
+        """Deduplicate list of names.
+
+        Where the same name text appears in multiple IngredientText objects, the
+        confidence values are averaged, and the minimum starting_index is kept for the
+        dedeuplicated names.
+
+        Parameters
+        ----------
+        names : list[IngredientText]
+            List of names.
+
+        Returns
+        -------
+        list[IngredientText]
+            Deduplicaed list of names.
+        """
+        name_dict = defaultdict(list)
+        for name in names:
+            name_dict[name.text].append(name)
+
+        deduped_names = []
+        for text, name_objs in name_dict.items():
+            deduped_names.append(
+                IngredientText(
+                    text=text,
+                    confidence=mean([n.confidence for n in name_objs]),
+                    starting_index=min([n.starting_index for n in name_objs]),
+                )
+            )
+
+        return deduped_names
 
     def _group_name_labels(self, name_labels: list[str]) -> list[list[tuple[int, str]]]:
         """Group name labels according to name label type.
@@ -865,6 +904,7 @@ class PostProcessor:
             "box",
             "bucket",
             "can",
+            "carton",
             "container",
             "envelope",
             "jar",

@@ -2,6 +2,7 @@
 
 import argparse
 import concurrent.futures as cf
+import logging
 import os
 import time
 from datetime import timedelta
@@ -20,6 +21,8 @@ from .training_utils import (
     evaluate,
     load_datasets,
 )
+
+logger = logging.getLogger(__name__)
 
 # Valid parameter options for LBFGS training algorithm and expected types
 VALID_LBFGS_PARAMS = {
@@ -318,7 +321,13 @@ def generate_argument_sets(args: argparse.Namespace) -> list[list]:
         list of lists, where each sublist is the arguments for training a model with
         one of the combinations of algorithms and parameters
     """
-    vectors = load_datasets(args.database, args.table, args.datasets)
+    vectors = load_datasets(
+        args.database,
+        args.table,
+        args.datasets,
+        discard_other=True,
+        combine_name_labels=args.combine_name_labels,
+    )
 
     # Generate list of arguments for all combinations parameters for each algorithm
     argument_sets = []
@@ -357,6 +366,7 @@ def generate_argument_sets(args: argparse.Namespace) -> list[list]:
                 save_model,
                 args.seed,
                 args.keep_models,
+                args.combine_name_labels,
             ]
             argument_sets.append(arguments)
 
@@ -371,6 +381,7 @@ def train_model_grid_search(
     save_model: str,
     seed: int,
     keep_model: bool,
+    combine_name_labels: bool,
 ) -> dict:
     """Train model using given training algorithm and parameters,
     returning model performance statistics, model parameters and elapsed training time.
@@ -392,6 +403,8 @@ def train_model_grid_search(
         testing sets.
     keep_model : bool
         If True, keep model after evaluation, otherwise delete it.
+    combine_name_labels : bool, optional
+        If True, combine all NAME labels into a single NAME label.
 
     Returns
     -------
@@ -440,7 +453,7 @@ def train_model_grid_search(
     tagger = pycrfsuite.Tagger()  # type: ignore
     tagger.open(str(save_model_path))
     labels_pred = [tagger.tag(X) for X in features_test]
-    stats = evaluate(labels_pred, truth_test, seed)
+    stats = evaluate(labels_pred, truth_test, seed, combine_name_labels)
 
     if not keep_model:
         save_model_path.unlink(missing_ok=True)
@@ -483,14 +496,15 @@ def grid_search(args: argparse.Namespace):
 
     arguments = generate_argument_sets(args)
 
-    print(f"[INFO] Grid search over {len(arguments)} hyperparameters combinations.")
-    print(f"[INFO] {args.seed} is the random seed used for the train/test split.")
+    logger.info(f"Grid search over {len(arguments)} hyperparameters combinations.")
+    logger.info(f"{args.seed} is the random seed used for the train/test split.")
 
-    eval_results = []
     with cf.ProcessPoolExecutor(max_workers=args.processes) as executor:
         futures = [executor.submit(train_model_grid_search, *a) for a in arguments]
-        for future in tqdm(cf.as_completed(futures), total=len(futures)):
-            eval_results.append(future.result())
+        eval_results = [
+            future.result()
+            for future in tqdm(cf.as_completed(futures), total=len(futures))
+        ]
 
     # Sort with highest sentence accuracy first
     eval_results = sorted(

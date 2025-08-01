@@ -2,7 +2,9 @@
 
 import argparse
 import json
+import logging
 import os
+import sys
 from random import randint
 
 from train import (
@@ -20,8 +22,14 @@ class ParseJsonArg(argparse.Action):
     def __init__(self, option_strings, dest, **kwargs):
         super().__init__(option_strings, dest, **kwargs)
 
-    def __call__(self, parser, namespace, values, option_strings):
+    def __call__(self, parser, namespace, values, option_strings=None):
         setattr(namespace, self.dest, json.loads(values))
+
+
+LOGGING_LEVEL = {
+    0: logging.INFO,
+    1: logging.DEBUG,
+}
 
 
 if __name__ == "__main__":
@@ -85,6 +93,18 @@ if __name__ == "__main__":
         action="store_true",
         help="Plot confusion matrix of token labels.",
     )
+    train_parser.add_argument(
+        "--combine-name-labels",
+        action="store_true",
+        help="Combine labels containing 'NAME' into a single NAME label.",
+    )
+    train_parser.add_argument(
+        "-v",
+        help="Enable verbose output.",
+        action="count",
+        default=0,
+        dest="verbose",
+    )
 
     multiple_parser_help = "Average CRF performance across multiple training cycles."
     multiple_parser = subparsers.add_parser("multiple", help=multiple_parser_help)
@@ -136,6 +156,11 @@ if __name__ == "__main__":
         help="Plot confusion matrix of token labels.",
     )
     multiple_parser.add_argument(
+        "--combine-name-labels",
+        action="store_true",
+        help="Combine labels containing 'NAME' into a single NAME label.",
+    )
+    multiple_parser.add_argument(
         "-r",
         "--runs",
         default=10,
@@ -145,9 +170,16 @@ if __name__ == "__main__":
     multiple_parser.add_argument(
         "-p",
         "--processes",
-        default=os.cpu_count() - 1,
+        default=os.cpu_count() - 1,  # type: ignore
         type=int,
         help="Number of processes to spawn. Default to number of cpu cores.",
+    )
+    multiple_parser.add_argument(
+        "-v",
+        help="Enable verbose output.",
+        action="count",
+        default=0,
+        dest="verbose",
     )
 
     gridsearch_parser_help = (
@@ -195,7 +227,7 @@ if __name__ == "__main__":
     gridsearch_parser.add_argument(
         "-p",
         "--processes",
-        default=os.cpu_count() - 1,
+        default=os.cpu_count() - 1,  # type: ignore
         type=int,
         help="Number of processes to spawn. Default to number of cpu cores.",
     )
@@ -204,6 +236,11 @@ if __name__ == "__main__":
         default=randint(0, 1_000_000_000),
         type=int,
         help="Seed value used for train/test split.",
+    )
+    gridsearch_parser.add_argument(
+        "--combine-name-labels",
+        action="store_true",
+        help="Combine labels containing 'NAME' into a single NAME label.",
     )
     gridsearch_parser.add_argument(
         "--algos",
@@ -255,6 +292,13 @@ if __name__ == "__main__":
         action=ParseJsonArg,
         default=dict(),
     )
+    gridsearch_parser.add_argument(
+        "-v",
+        help="Enable verbose output.",
+        action="count",
+        default=0,
+        dest="verbose",
+    )
 
     featuresearch_parser_help = "Grid search over all sets of model features."
     featuresearch_parser = subparsers.add_parser(
@@ -299,9 +343,14 @@ if __name__ == "__main__":
         help="Keep models after evaluation instead of deleting.",
     )
     featuresearch_parser.add_argument(
+        "--combine-name-labels",
+        action="store_true",
+        help="Combine labels containing 'NAME' into a single NAME label.",
+    )
+    featuresearch_parser.add_argument(
         "-p",
         "--processes",
-        default=os.cpu_count() - 1,
+        default=os.cpu_count() - 1,  # type: ignore
         type=int,
         help="Number of processes to spawn. Default to number of cpu cores.",
     )
@@ -310,6 +359,13 @@ if __name__ == "__main__":
         default=randint(0, 1_000_000_000),
         type=int,
         help="Seed value used for train/test split.",
+    )
+    featuresearch_parser.add_argument(
+        "-v",
+        help="Enable verbose output.",
+        action="count",
+        default=0,
+        dest="verbose",
     )
 
     utility_help = "Utilities to aid cleaning training data."
@@ -340,8 +396,21 @@ if __name__ == "__main__":
         nargs="*",
         default=["bbc", "cookstr", "nyt", "allrecipes", "tc"],
     )
+    utility_parser.add_argument(
+        "-v",
+        help="Enable verbose output.",
+        action="count",
+        default=0,
+        dest="verbose",
+    )
 
     args = parser.parse_args()
+
+    logging.basicConfig(
+        stream=sys.stdout,
+        level=LOGGING_LEVEL[args.verbose],
+        format="[%(levelname)s] (%(module)s) %(message)s",
+    )
 
     if args.command == "train":
         train_single(args)

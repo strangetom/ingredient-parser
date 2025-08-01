@@ -112,3 +112,21 @@ class TestPostProcessor_postprocess_names:
         p = PostProcessor(sentence, tokens, pos_tags, labels, scores)
         names, _ = p._postprocess_names()
         assert names == expected
+
+    def test_deuplicate_ingredient_names(self):
+        """
+        Test that a list containing one IngredientText objects is returned
+        """
+        sentence = "1/2 cup sugar plus 1 1/2 tablespoons sugar"
+        tokens = ["#1$2", "cup", "sugar", "plus", "1#1$2", "tablespoon", "sugar"]
+        pos_tags = ["CD", "NN", "NN", "CC", "CD", "NN", "NN"]
+        labels = ["QTY", "UNIT", "B_NAME_TOK", "COMMENT", "QTY", "UNIT", "B_NAME_TOK"]
+        scores = [0.0] * len(tokens)
+
+        expected = [
+            IngredientText(text="sugar", confidence=0, starting_index=2),
+        ]
+
+        p = PostProcessor(sentence, tokens, pos_tags, labels, scores)
+        names, _ = p._postprocess_names()
+        assert names == expected
