@@ -115,3 +115,9 @@ DIGIT_PATTERN = re.compile(r"[0-9]")
 # The group at the end of the regex is optional, for capturing the upper end if the
 # token is a range.
 FRACTION_TOKEN_PATTERN = re.compile(r"^\d*\#\d+\$\d+(?:\-\d*\#\d+\$\d+)?$")
+
+# Regex pattern to match currency within parentheses e.g. ($1.99)
+# Allows optional whitespace after opening parenthesis, before currency symbol, and
+# before closing parenthesis.
+currency_pattern = "|".join(re.escape(c) for c in ["$", "£", "€", "¥", "₹"])
+CURRENCY_PATTERN = re.compile(rf"\(\s*(?:{currency_pattern})\s*[0-9.,]+\s*\)")

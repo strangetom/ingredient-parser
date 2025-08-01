@@ -18,6 +18,7 @@ from ._constants import (
 )
 from ._regex import (
     CAPITALISED_PATTERN,
+    CURRENCY_PATTERN,
     DIGIT_PATTERN,
     DUPE_UNIT_RANGES_PATTERN,
     EXPANDED_RANGE,
@@ -192,6 +193,9 @@ class PreProcessor:
     def _remove_price_annotations(self, sentence: str) -> str:
         """Remove price annotations like ($0.20), (£1.50), etc. from the sentence.
 
+        Allows whitespace to occur after openining parenthesis, after currency symbol
+        and before closing parenthesis.
+
         Parameters
         ----------
         sentence : str
@@ -202,12 +206,7 @@ class PreProcessor:
         str
             Ingredient sentence with price annotations removed
         """
-        currencies = ["$", "£", "€", "¥", "₹"]
-        currency_pattern = "|".join(re.escape(c) for c in currencies)
-        # Allow optional whitespace after opening parenthesis and before currency and
-        # after currency
-        pattern = rf"\(\s*(?:{currency_pattern})\s*[0-9.,]+\s*\)"
-        return re.sub(pattern, "", sentence)
+        return CURRENCY_PATTERN.sub("", sentence)
 
     def _replace_en_em_dash(self, sentence: str) -> str:
         """Replace en-dashes and em-dashes with hyphens.
