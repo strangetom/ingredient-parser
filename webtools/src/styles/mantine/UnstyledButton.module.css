@@ -2,6 +2,6 @@
     &:focus,
     &:focus-within,
     &:focus-visible {
-        outline: 1px solid var(--fg);
+        outline: 1px solid transparent;
     }
 }
