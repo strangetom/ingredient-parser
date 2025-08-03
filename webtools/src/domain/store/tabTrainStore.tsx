@@ -35,6 +35,7 @@ export const useTabTrainerStore =
             model: 'parser',
             sources: ["nyt","cookstr", "allrecipes", "bbc", "tc", "saveur"],
             split: 0.2,
+            seed: Math.floor(Math.random() * 1_000_000_001),
             html: false,
             detailed: false,
             confusion: false

@@ -88,6 +88,33 @@ export function ButtonRunModel() {
     </div>
   )
 
+  const seed = (
+    <div>
+      <Group gap="xs">
+      <NumberInput
+        w={120}
+        value={inputTrainer.seed}
+        onChange={(value) => {
+          if (!value) return;
+          updateInputTrainer({ seed: parseFloat(value.toString()) })
+        }}
+        hideControls
+      />
+      <Button
+        variant="light"
+        onClick={() => {
+          updateInputTrainer({ seed: Math.floor(Math.random() * 1_000_000_001) })
+        }}
+      >
+        Generate
+      </Button>
+      </Group>
+      <Text mt={3} c="var(--fg-4)" size="xs">
+        Seed value used for train/test split
+      </Text>
+    </div>
+  )
+
   const htmlSwitch = (
       <Switch
         label="HTML results file"
@@ -131,7 +158,7 @@ export function ButtonRunModel() {
       >
           Run model
       </Button>
-        <Menu shadow="md" keepMounted={false} position="bottom-end" width={350} closeOnItemClick={false} offset={8} opened={opened} onChange={setOpened} trigger="click">
+        <Menu shadow="md" keepMounted={false} position="bottom-end" width={450} closeOnItemClick={false} offset={8} opened={opened} onChange={setOpened} trigger="click">
           <Menu.Target>
             <ActionIcon
               variant="dark"
@@ -152,9 +179,15 @@ export function ButtonRunModel() {
             <Menu.Item component="div">
               {labelSources}
             </Menu.Item>
+            <Menu.Divider />
             <Menu.Label>Split value</Menu.Label>
             <Menu.Item component="div">
                 {split}
+            </Menu.Item>
+            <Menu.Divider />
+            <Menu.Label>Seed value</Menu.Label>
+            <Menu.Item component="div">
+                {seed}
             </Menu.Item>
             <Menu.Divider />
             <Menu.Item component="div">

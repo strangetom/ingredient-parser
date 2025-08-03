@@ -59,11 +59,9 @@ export const useTabTrainerCounterStore = create(
 export async function subscribeCounterStore(training: boolean) {
   const state = useTabTrainerCounterStore.getState()
   if(training) {
-    console.log("counter::training::on")
     state.start()
   }
   else {
-    console.log("counter::training::off")
     state.stop()
     state.reset(0)
   }
