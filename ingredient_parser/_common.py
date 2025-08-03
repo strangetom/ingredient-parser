@@ -95,11 +95,21 @@ def show_model_card(lang: str = "en") -> None:
     ----------
     lang : str, optional
         Selected language to open model card for.
+
+    Raises
+    ------
+    FileNotFoundError
+        Raised if model card not found at expected path.
+    ValueError
+        Raised if unsupported language provided in lang argument.
     """
     if lang not in SUPPORTED_LANGUAGES:
         raise ValueError(f'Unsupported language "{lang}"')
 
     with as_file(files(__package__) / lang / f"data/ModelCard.{lang}.md") as p:
+        if not p.exists():
+            raise FileNotFoundError(f"Could not find Model Card at {p}")
+
         if platform.system() == "Darwin":  # macOS
             subprocess.call(("open", p))
         elif platform.system() == "Windows":  # Windows
