@@ -99,7 +99,7 @@ def show_model_card(lang: str = "en") -> None:
     if lang not in SUPPORTED_LANGUAGES:
         raise ValueError(f'Unsupported language "{lang}"')
 
-    with as_file(files(__package__) / lang / f"ModelCard.{lang}.md") as p:
+    with as_file(files(__package__) / lang / f"data/ModelCard.{lang}.md") as p:
         if platform.system() == "Darwin":  # macOS
             subprocess.call(("open", p))
         elif platform.system() == "Windows":  # Windows
