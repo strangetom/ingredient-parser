@@ -5,13 +5,15 @@ import argparse, time, sys, io, contextlib, os
 from datetime import datetime
 from threading import Event, Thread
 from pathlib import Path
-# {{LIBRARIES}}
+from random import randint
+from threading import Lock
+# {{FLASK|SOCKETS}}
 from flask import Flask
 from flask_cors import CORS
-from threading import Lock
 from flask_socketio import SocketIO, emit
 # {{INTERNAL}}
 sys.path.append("..") # force use of local, not system wide ingredient parser installed
+from ingredient_parser.en._loaders import load_parser_model
 from train import train_single
 
 # globals
@@ -53,7 +55,7 @@ def background_thread(thread_event, input_data):
             'model': input_data["model"],
             'save_model': str(SAVED_MODEL),
             'split': input_data.get("split", 0.2),
-            'seed': None,
+            'seed': input_data.get("seed", randint(0, 1_000_000_000)),
             'html': input_data.get("html", False) or None,
             'detailed': input_data.get("detailed", False) or None,
             'confusion': input_data.get("confusion", False) or None
@@ -173,4 +175,4 @@ def disconnect():
     thread_native_id = None
 
 if __name__ == '__main__':
-    socketio.run(app, debug=True, port=5001)
+    socketio.run(app, debug=True, allow_unsafe_werkzeug=True, port=5001)
