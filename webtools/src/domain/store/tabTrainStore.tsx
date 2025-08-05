@@ -17,6 +17,7 @@ interface TabTrainerState {
   connected: boolean;
   indicator: string;
   training: boolean;
+  optimisticCacheReset: boolean;
   events: EventLog[];
   socket: Socket<any, any>
   onReceiveConnect: () => void,
@@ -47,6 +48,7 @@ export const useTabTrainerStore =
           ,
           connected: false,
           indicator: "Connecting",
+          optimisticCacheReset: false,
           training: false,
           socket:  io(constructEndpoint({ path: "trainerConnect", isWebSocket: true }), {
             cors: {
@@ -63,7 +65,7 @@ export const useTabTrainerStore =
           onReceiveStatus: (event: EventLog) => {
             set({ indicator: event.indicator });
             if(event.indicator === 'Completed'){
-              set({ training: false });
+              set({ training: false, optimisticCacheReset: true });
               notifications.show({
                 title: 'Training completed',
                 message: event.message || null,

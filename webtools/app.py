@@ -9,7 +9,7 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS, cross_origin
 # {{INTERNAL}}
 sys.path.append("..") # force use of local, not system wide ingredient parser installed
-
+from ingredient_parser.en._loaders import load_parser_model
 from ingredient_parser import inspect_parser
 from ingredient_parser.dataclasses import FoundationFood, IngredientAmount, IngredientText, ParserDebugInfo
 
@@ -27,6 +27,9 @@ sqlite3.register_converter("json", json.loads)
 # flask
 app = Flask(__name__, static_folder=NPM_BUILD_DIRECTORY, static_url_path="/")
 cors = CORS(app)
+
+# @lru_cache decorator reset on load
+load_parser_model.cache_clear()
 
 def error_response(status: int, message: str = ""):
     """Boilerplate for errors"""
@@ -106,6 +109,10 @@ def parser():
             string_units = data.get("string_units", False)
             imperial_units = data.get("imperial_units", False)
             foundation_foods = data.get("foundation_foods", False)
+            optimistic_cache_reset = data.get("optimistic_cache_reset", False)
+
+            if optimistic_cache_reset:
+                load_parser_model.cache_clear()
 
             parser_info = inspect_parser(
                 sentence=sentence,
@@ -483,4 +490,4 @@ def catch_all(path):
     return app.send_static_file("index.html")
 
 if __name__ == '__main__':
-    app.run(port=5000)
+    app.run(port=5000, debug=True)

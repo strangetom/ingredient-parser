@@ -1,7 +1,8 @@
 .track {
+
     .input:checked + &  {
-        background-color: var(--green-alt);
-        border-color: var(--green-alt);
+        --switch-bg: var(--green-alt);
+        --switch-text-color: var(--white);
     }
 }
 

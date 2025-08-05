@@ -13,7 +13,6 @@ from flask_cors import CORS
 from flask_socketio import SocketIO, emit
 # {{INTERNAL}}
 sys.path.append("..") # force use of local, not system wide ingredient parser installed
-from ingredient_parser.en._loaders import load_parser_model
 from train import train_single
 
 # globals

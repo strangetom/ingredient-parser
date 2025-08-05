@@ -3,6 +3,7 @@ import { InputHistoryTabPaser, InputTabParser, ParsedTabParser } from "../types/
 import { createJSONStorage, persist, subscribeWithSelector } from "zustand/middleware";
 import { notifications } from '@mantine/notifications';
 import { constructEndpoint } from "../api";
+import { useTabTrainerStore } from "./tabTrainStore";
 
 type TabParserInputProvided = {
   input?: InputTabParser,
@@ -48,6 +49,7 @@ export const useTabParserStore =
           setParsed: (data: ParsedTabParser | null) => set({ parsed: data}),
           getParsedApi: async (opts?: TabParserInputProvided) => {
             const input = opts?.input || get().input
+            const tabTrainerStoreState = useTabTrainerStore.getState()
 
             if (input && input.sentence.trim().length !== 0) {
               set({ loading: true })
@@ -57,7 +59,9 @@ export const useTabParserStore =
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                  ...input
+                  ...input,
+                  // if a training run has completed, need to instruct flask server to reset cache on loading the model file
+                  optimistic_cache_reset: tabTrainerStoreState.optimisticCacheReset
                 })
               })
                 .then(response => {
@@ -67,6 +71,8 @@ export const useTabParserStore =
                 .then(json => {
                   set({ loading: false })
                   get().setParsed(json);
+                  // reset the cache flag; only requires activation once each time a model is trained
+                  useTabTrainerStore.setState({ optimisticCacheReset: false })
                   if(opts?.shouldAddToHistory) get().addHistory({ ...input, timestamp: new Date().toString() })
                 })
                 .catch(error => {
