@@ -48,13 +48,13 @@ The model has the following accuracy on a test data set of 20% of the total data
 
 ```
 Sentence-level results:
-	Accuracy: 94.66%
+	Accuracy: 94.97%
 
 Word-level results:
-	Accuracy 97.82%
-	Precision (micro) 97.81%
-	Recall (micro) 97.82%
-	F1 score (micro) 97.81%
+	Accuracy 97.91%
+	Precision (micro) 97.89%
+	Recall (micro) 97.91%
+	F1 score (micro) 97.89%
 ```
 
 ## Development
@@ -95,3 +95,9 @@ $ npm run dev
 **Documentation**
 
 The dependencies for building the documentation are in the `requirements-doc.txt` file.
+
+**Contribution**
+
+Please target the **develop** branch for pull requests. The main branch is used for stable releases and hotfixes only.
+
+There is a simple web app for testing the parser with ingredient sentences and showing the parsed output. To run the web app, run the command

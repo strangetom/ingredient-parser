@@ -55,6 +55,7 @@ def test_results_to_html(
     td {
       padding: 0.5rem 1rem;
       border: black 1px solid;
+      position: relative;
     }
     div > div {
       display: flex;
@@ -84,6 +85,19 @@ def test_results_to_html(
     }
     .hidden {
       display: none;
+    }
+    tr:first-of-type {
+      counter-reset: token-counter;
+      counter-set: token-counter -1;
+    }
+    tr:first-of-type td:not(:first-of-type)::after {
+      counter-increment: token-counter;
+      content: counter(token-counter);
+      position: absolute;
+      top: 0;
+      right: .25rem;
+      font-size: .7rem;
+      color: #999;
     }
     """
     head.append(style)

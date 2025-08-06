@@ -2,9 +2,13 @@
 
 import argparse
 import concurrent.futures as cf
-import contextlib
+import logging
+from contextlib import contextmanager
+from pathlib import Path
 from random import randint
 from statistics import mean, stdev
+from typing import Generator
+from uuid import uuid4
 
 import pycrfsuite
 from sklearn.model_selection import train_test_split
@@ -15,41 +19,47 @@ from .test_results_to_html import test_results_to_html
 from .training_utils import (
     DEFAULT_MODEL_LOCATION,
     DataVectors,
-    ModelType,
     Stats,
     confusion_matrix,
     evaluate,
     load_datasets,
 )
 
+logger = logging.getLogger(__name__)
 
-def get_model_type(cmd_arg: str) -> ModelType:
-    """Convert command line argument for model type into enum
+
+@contextmanager
+def change_log_level(level: int) -> Generator[None]:
+    """Context manager to temporarily change logging level within the context.
+
+    On exiting the context, the original level is restored.
 
     Parameters
     ----------
-    cmd_arg : str
-        Command line argument for model
+    level : int
+        Logging level to use within context manager.
 
-    Returns
-    -------
-    ModelType
+    Yields
+    ------
+    Generator[None, None, None]
+        Generator, yielding None
     """
-    types = {
-        "parser": ModelType.PARSER,
-        "foundationfoods": ModelType.FOUNDATION_FOODS,
-    }
-    return types[cmd_arg]
+    original_level = logger.getEffectiveLevel()
+    logger.setLevel(level)
+    yield
+    logger.setLevel(original_level)
 
 
 def train_parser_model(
     vectors: DataVectors,
     split: float,
-    save_model: str,
+    save_model: Path,
     seed: int | None,
     html: bool,
     detailed_results: bool,
     plot_confusion_matrix: bool,
+    keep_model: bool = True,
+    combine_name_labels: bool = False,
 ) -> Stats:
     """Train model using vectors, splitting the vectors into a train and evaluation
     set based on <split>. The trained model is saved to <save_model>.
@@ -60,7 +70,7 @@ def train_parser_model(
         Vectors loaded from training csv files
     split : float
         Fraction of vectors to use for evaluation.
-    save_model : str
+    save_model : Path
         Path to save trained model to.
     seed : int | None
         Integer used as seed for splitting the vectors between the training and
@@ -73,6 +83,12 @@ def train_parser_model(
         the test set.
     plot_confusion_matrix : bool
         If True, plot a confusion matrix of the token labels.
+    keep_model : bool, optional
+        If False, delete model from disk after evaluating it's performance.
+        Default is True.
+    combine_name_labels : bool, optional
+        If True, combine all NAME labels into a single NAME label.
+        Default is False
 
     Returns
     -------
@@ -83,7 +99,7 @@ def train_parser_model(
     if seed is None:
         seed = randint(0, 1_000_000_000)
 
-    print(f"[INFO] {seed} is the random seed used for the train/test split.")
+    logger.info(f"{seed} is the random seed used for the train/test split.")
 
     # Split data into train and test sets
     # The stratify argument means that each dataset is represented proprtionally
@@ -110,10 +126,10 @@ def train_parser_model(
         stratify=vectors.source,
         random_state=seed,
     )
-    print(f"[INFO] {len(features_train):,} training vectors.")
-    print(f"[INFO] {len(features_test):,} testing vectors.")
+    logger.info(f"{len(features_train):,} training vectors.")
+    logger.info(f"{len(features_test):,} testing vectors.")
 
-    print("[INFO] Training model with training data.")
+    logger.info("Training model with training data.")
     trainer = pycrfsuite.Trainer(verbose=False)  # type: ignore
     trainer.set_params(
         {
@@ -129,11 +145,11 @@ def train_parser_model(
     )
     for X, y in zip(features_train, truth_train):
         trainer.append(X, y)
-    trainer.train(save_model)
+    trainer.train(str(save_model))
 
-    print("[INFO] Evaluating model with test data.")
+    logger.info("Evaluating model with test data.")
     tagger = pycrfsuite.Tagger()  # type: ignore
-    tagger.open(save_model)
+    tagger.open(str(save_model))
 
     labels_pred, scores_pred = [], []
     for X in features_test:
@@ -165,141 +181,12 @@ def train_parser_model(
     if plot_confusion_matrix:
         confusion_matrix(labels_pred, truth_test)
 
-    stats = evaluate(labels_pred, truth_test, seed, ModelType.PARSER)
+    stats = evaluate(labels_pred, truth_test, seed, combine_name_labels)
+
+    if not keep_model:
+        save_model.unlink(missing_ok=True)
+
     return stats
-
-
-def train_ff_model(
-    vectors: DataVectors,
-    split: float,
-    save_model: str,
-    seed: int | None,
-    html: bool,
-    detailed_results: bool,
-    plot_confusion_matrix: bool,
-) -> Stats:
-    """Train model using vectors, splitting the vectors into a train and evaluation
-    set based on <split>. The trained model is saved to <save_model>.
-
-    Parameters
-    ----------
-    vectors : DataVectors
-        Vectors loaded from training csv files
-    split : float
-        Fraction of vectors to use for evaluation.
-    save_model : str
-        Path to save trained model to.
-    seed : int | None
-        Integer used as seed for splitting the vectors between the training and
-        testing sets. If None, a random seed is generated within this function.
-    html : bool
-        If True, write html file of incorrect evaluation sentences
-        and print out details about OTHER labels.
-    detailed_results : bool
-        If True, write output files with details about how labeling performed on
-        the test set.
-    plot_confusion_matrix : bool
-        If True, plot a confusion matrix of the token labels.
-
-    Returns
-    -------
-    Stats
-        Statistics evaluating the model
-    """
-    # Generate random seed for the train/test split if none provided.
-    if seed is None:
-        seed = randint(0, 1_000_000_000)
-
-    print(f"[INFO] {seed} is the random seed used for the train/test split.")
-
-    # Split data into train and test sets
-    # The stratify argument means that each dataset is represented proprtionally
-    # in the train and tests sets, avoiding the possibility that train or tests sets
-    # contain data from one dataset disproportionally.
-    (
-        _,
-        sentences_test,
-        features_train,
-        features_test,
-        truth_train,
-        truth_test,
-        _,
-        source_test,
-        _,
-        tokens_test,
-    ) = train_test_split(
-        vectors.sentences,
-        vectors.features,
-        vectors.labels,
-        vectors.source,
-        vectors.tokens,
-        test_size=split,
-        stratify=vectors.source,
-        random_state=seed,
-    )
-    print(f"[INFO] {len(features_train):,} training vectors.")
-    print(f"[INFO] {len(features_test):,} testing vectors.")
-
-    print("[INFO] Training model with training data.")
-    trainer = pycrfsuite.Trainer(verbose=False)  # type: ignore
-    trainer.set_params(
-        {
-            "feature.minfreq": 0,
-            "feature.possible_states": True,
-            "feature.possible_transitions": True,
-            "c1": 0.4,
-            "c2": 0,
-            "max_linesearch": 5,
-            "num_memories": 3,
-            "period": 10,
-        }
-    )
-    for X, y in zip(features_train, truth_train):
-        trainer.append(X, y)
-    trainer.train(save_model)
-
-    print("[INFO] Evaluating model with test data.")
-    tagger = pycrfsuite.Tagger()  # type: ignore
-    tagger.open(save_model)
-
-    labels_pred, scores_pred = [], []
-    for X in features_test:
-        labels = tagger.tag(X)
-        labels_pred.append(labels)
-        scores_pred.append(
-            [tagger.marginal(label, i) for i, label in enumerate(labels)]
-        )
-
-    if html:
-        test_results_to_html(
-            sentences_test,
-            tokens_test,
-            truth_test,
-            labels_pred,
-            scores_pred,
-            source_test,
-        )
-
-    if detailed_results:
-        test_results_to_detailed_results(
-            sentences_test,
-            tokens_test,
-            truth_test,
-            labels_pred,
-            scores_pred,
-        )
-
-    if plot_confusion_matrix:
-        confusion_matrix(labels_pred, truth_test)
-
-    stats = evaluate(labels_pred, truth_test, seed, ModelType.FOUNDATION_FOODS)
-    return stats
-
-
-MODEL_FCNS = {
-    "parser": train_parser_model,
-    "foundationfoods": train_ff_model,
-}
 
 
 def train_single(args: argparse.Namespace) -> None:
@@ -311,23 +198,28 @@ def train_single(args: argparse.Namespace) -> None:
         Model training configuration
     """
     vectors = load_datasets(
-        args.database, args.table, args.datasets, get_model_type(args.model)
+        args.database,
+        args.table,
+        args.datasets,
+        discard_other=True,
+        combine_name_labels=args.combine_name_labels,
     )
 
     if args.save_model is None:
-        save_model = DEFAULT_MODEL_LOCATION[args.model]
+        save_model = DEFAULT_MODEL_LOCATION
     else:
         save_model = args.save_model
 
-    model_fcn = MODEL_FCNS[args.model]
-    stats = model_fcn(
+    stats = train_parser_model(
         vectors,
         args.split,
-        save_model,
+        Path(save_model),
         args.seed,
         args.html,
         args.detailed,
         args.confusion,
+        keep_model=True,
+        combine_name_labels=args.combine_name_labels,
     )
 
     print("Sentence-level results:")
@@ -351,13 +243,15 @@ def train_multiple(args: argparse.Namespace) -> None:
         Model training configuration
     """
     vectors = load_datasets(
-        args.database, args.table, args.datasets, get_model_type(args.model)
+        args.database,
+        args.table,
+        args.datasets,
+        discard_other=True,
+        combine_name_labels=args.combine_name_labels,
     )
 
-    model_fcn = MODEL_FCNS[args.model]
-
     if args.save_model is None:
-        save_model = DEFAULT_MODEL_LOCATION[args.model]
+        save_model = DEFAULT_MODEL_LOCATION
     else:
         save_model = args.save_model
 
@@ -367,20 +261,24 @@ def train_multiple(args: argparse.Namespace) -> None:
         (
             vectors,
             args.split,
-            save_model,
-            None,
+            Path(save_model).with_stem("model-" + str(uuid4())),
+            None,  # Seed
             args.html,
             args.detailed,
             args.confusion,
+            False,  # keep_model
+            args.combine_name_labels,
         )
-    ] * args.runs
+        for _ in range(args.runs)
+    ]
 
-    eval_results = []
-    with contextlib.redirect_stdout(None):  # Suppress print output
+    with change_log_level(logging.WARNING):  # Temporarily stop logging below WARNING
         with cf.ProcessPoolExecutor(max_workers=args.processes) as executor:
-            futures = [executor.submit(model_fcn, *a) for a in arguments]
-            for future in tqdm(cf.as_completed(futures), total=len(futures)):
-                eval_results.append(future.result())
+            futures = [executor.submit(train_parser_model, *a) for a in arguments]
+            eval_results = [
+                future.result()
+                for future in tqdm(cf.as_completed(futures), total=len(futures))
+            ]
 
     word_accuracies, sentence_accuracies, seeds = [], [], []
     for result in eval_results:

@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import pytest
 
 from ingredient_parser._common import (
@@ -5,6 +7,7 @@ from ingredient_parser._common import (
     group_consecutive_idx,
     is_float,
     is_range,
+    show_model_card,
 )
 
 
@@ -87,7 +90,7 @@ class Test_is_range:
         assert not is_range("1x")
 
 
-class TestPostProcessor_group_consecutive_indices:
+class Test_group_consecutive_indices:
     def test_single_group(self):
         """
         Return single group
@@ -103,3 +106,18 @@ class TestPostProcessor_group_consecutive_indices:
         input_indices = [0, 1, 2, 4, 5, 6, 8, 9]
         groups = group_consecutive_idx(input_indices)
         assert [list(g) for g in groups] == [[0, 1, 2], [4, 5, 6], [8, 9]]
+
+
+class Test_show_model_card:
+    @patch("os.startfile", create=True)
+    @patch("subprocess.call")
+    def test_model_card_found(self, mock_startfile, mock_subprocess_call):
+        """Test model card found at path derived from selected language.
+
+        The calls to os.startfile and subprocess.call are mocked to prevent the model
+        card from actually opening.
+        """
+        try:
+            show_model_card("en")
+        except FileNotFoundError:
+            pytest.fail("Model card not found.")

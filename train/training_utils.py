@@ -2,9 +2,9 @@
 
 import concurrent.futures as cf
 import json
+import logging
 import sqlite3
 from dataclasses import dataclass
-from enum import Enum, auto
 from functools import partial
 from itertools import chain, islice
 from typing import Any, Callable, Iterable
@@ -18,18 +18,11 @@ from sklearn.metrics import (
 
 from ingredient_parser import SUPPORTED_LANGUAGES
 
+logger = logging.getLogger(__name__)
+
 sqlite3.register_converter("json", json.loads)
 
-DEFAULT_MODEL_LOCATION = {
-    "parser": "ingredient_parser/en/model.en.crfsuite",
-    "foundationfoods": "ingredient_parser/en/ff_model.en.crfsuite",
-    "embeddings": "ingredient_parser/en/embeddings.floret.bin",
-}
-
-
-class ModelType(Enum):
-    PARSER = auto()
-    FOUNDATION_FOODS = auto()
+DEFAULT_MODEL_LOCATION = "ingredient_parser/en/data/model.en.crfsuite"
 
 
 @dataclass
@@ -77,11 +70,17 @@ class TokenStats:
 
 
 @dataclass
-class FFTokenStats:
+class TokenStatsCombinedName:
     """Statistics for token classification performance."""
 
-    FF: Metrics
-    NF: Metrics
+    NAME: Metrics
+    QTY: Metrics
+    UNIT: Metrics
+    SIZE: Metrics
+    COMMENT: Metrics
+    PURPOSE: Metrics
+    PREP: Metrics
+    PUNC: Metrics
     macro_avg: Metrics
     weighted_avg: Metrics
     accuracy: float
@@ -98,7 +97,7 @@ class SentenceStats:
 class Stats:
     """Statistics for token and sentence classification performance."""
 
-    token: TokenStats | FFTokenStats
+    token: TokenStats | TokenStatsCombinedName
     sentence: SentenceStats
     seed: int
 
@@ -167,8 +166,8 @@ def load_datasets(
     database: str,
     table: str,
     datasets: list[str],
-    model_type: ModelType = ModelType.PARSER,
     discard_other: bool = True,
+    combine_name_labels: bool = False,
 ) -> DataVectors:
     """Load raw data from csv files and transform into format required for training.
 
@@ -181,11 +180,11 @@ def load_datasets(
     datasets : list[str]
         List of data source to include.
         Valid options are: nyt, cookstr, bbc, cookstr, tc
-    model_type : ModelType, optional
-        The type of model to prepare data for training.
         Default is PARSER.
     discard_other : bool, optional
         If True, discard sentences containing tokens with OTHER label
+    combine_name_labels :  bool, optional
+        If True, combine all labels containing "NAME" into a single "NAME" label
 
     Returns
     -------
@@ -198,7 +197,7 @@ def load_datasets(
     """
     PreProcessor = select_preprocessor(table)
 
-    print("[INFO] Loading and transforming training data.")
+    logger.info("Loading and transforming training data.")
 
     n = len(datasets)
     with sqlite3.connect(database, detect_types=sqlite3.PARSE_DECLTYPES) as conn:
@@ -218,16 +217,17 @@ def load_datasets(
     chunk_size = int((len(data) + n_chunks) / n_chunks)
     chunks = chunked(data, chunk_size)
 
-    vectors = []
     with cf.ProcessPoolExecutor(max_workers=4) as executor:
-        for vec in executor.map(
-            process_sentences,
-            chunks,
-            [model_type] * n_chunks,
-            [PreProcessor] * n_chunks,
-            [discard_other] * n_chunks,
-        ):
-            vectors.append(vec)
+        vectors = [
+            vec
+            for vec in executor.map(
+                process_sentences,
+                chunks,
+                [PreProcessor] * n_chunks,
+                [discard_other] * n_chunks,
+                [combine_name_labels] * n_chunks,
+            )
+        ]
 
     all_vectors = DataVectors(
         sentences=list(chain.from_iterable(v.sentences for v in vectors)),
@@ -239,13 +239,16 @@ def load_datasets(
         discarded=sum(v.discarded for v in vectors),
     )
 
-    print(f"[INFO] {len(all_vectors.sentences):,} usable vectors.")
-    print(f"[INFO] {all_vectors.discarded:,} discarded due to OTHER labels.")
+    logger.info(f"{len(all_vectors.sentences):,} usable vectors.")
+    logger.info(f"{all_vectors.discarded:,} discarded due to OTHER labels.")
     return all_vectors
 
 
 def process_sentences(
-    data: list[dict], model_type: ModelType, PreProcessor: Callable, discard_other: bool
+    data: list[dict],
+    PreProcessor: Callable,
+    discard_other: bool,
+    combine_name_labels: bool,
 ) -> DataVectors:
     """Process training sentences from database into format needed for training and
     evaluation.
@@ -254,12 +257,12 @@ def process_sentences(
     ----------
     data : list[dict]
         List of dicts, where each dict is the database row.
-    model_type : ModelType
-        Type of model being training: PARSER or FOUNDATION_FOODS
     PreProcessor : Callable
         PreProcessor class to preprocess sentences.
     discard_other : bool
-        If True, discard sentences with OTHER label
+        If True, discard sentences with OTHER
+    combine_name_labels : bool
+        If True, combine all labels containing "NAME" into a single "NAME" label
 
     Returns
     -------
@@ -288,29 +291,18 @@ def process_sentences(
         sentences.append(entry["sentence"])
         p = PreProcessor(entry["sentence"])
         uids.append(entry["id"])
+        features.append(p.sentence_features())
+        tokens.append([t.text for t in p.tokenized_sentence])
 
-        if model_type == ModelType.FOUNDATION_FOODS:
-            name_idx = [idx for idx, lab in enumerate(entry["labels"]) if "NAME" in lab]
-            name_labels = [
-                "FF" if idx in entry["foundation_foods"] else "NF" for idx in name_idx
-            ]
-            name_features = [
-                feat
-                for idx, feat in enumerate(p.sentence_features())
-                if idx in name_idx
-            ]
-            name_tokens = [
-                token.text
-                for idx, token in enumerate(p.tokenized_sentence)
-                if idx in name_idx
-            ]
-
-            features.append(name_features)
-            tokens.append(name_tokens)
-            labels.append(name_labels)
+        if combine_name_labels:
+            new_labels = []
+            for label in entry["labels"]:
+                if "NAME" in label:
+                    new_labels.append("NAME")
+                else:
+                    new_labels.append(label)
+            labels.append(new_labels)
         else:
-            features.append(p.sentence_features())
-            tokens.append([t.text for t in p.tokenized_sentence])
             labels.append(entry["labels"])
 
         # Ensure length of tokens and length of labels are the same
@@ -330,7 +322,7 @@ def evaluate(
     predictions: list[list[str]],
     truths: list[list[str]],
     seed: int,
-    model_type: ModelType = ModelType.PARSER,
+    combine_name_labels: bool,
 ) -> Stats:
     """Calculate statistics on the predicted labels for the test data.
 
@@ -342,9 +334,8 @@ def evaluate(
         True labels for each test sentence
     seed : int
         Seed value that produced the results
-    model_type : ModelType, optional
-        The type of model to generate stats for training.
-        Default is PARSER.
+    combine_name_labels : bool
+        If True, all NAME labels are combined into a single NAME label
 
     Returns
     -------
@@ -375,9 +366,8 @@ def evaluate(
             )
 
     token_stats["accuracy"] = accuracy_score(flat_truths, flat_predictions)
-
-    if model_type == ModelType.FOUNDATION_FOODS:
-        token_stats = FFTokenStats(**token_stats)
+    if combine_name_labels:
+        token_stats = TokenStatsCombinedName(**token_stats)
     else:
         token_stats = TokenStats(**token_stats)
 
@@ -423,5 +413,5 @@ def confusion_matrix(
     ax.tick_params(axis="x", labelrotation=45)
     fig.tight_layout()
     fig.savefig(figure_path)
-    print(f"[INFO] Confusion matrix saved to {figure_path}")
+    logger.info(f"Confusion matrix saved to {figure_path}.")
     plt.close(fig)

@@ -1,0 +1,226 @@
+@import 'colours.css';
+
+body {
+  font-family: sans-serif;
+  margin: 0;
+  padding: 0;
+  line-height: 1.5;
+  background-color: var(--bg-s);
+  color: var(--fg);
+}
+
+header {
+  position: sticky;
+  top: 0;
+  background-color: var(--bg);
+  padding: .55rem 2rem;
+  box-shadow: var(--big-shadow);
+  border-bottom: 1px solid var(--bg-2);
+  display: flex;
+  justify-content: space-between;
+  z-index: 1;
+}
+header .controls {
+  display: flex;
+}
+header .control-group {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: .25rem;
+}
+header h1 {
+  margin: 0;
+  font-size: 1.75rem;
+}
+header h1 .data-length {
+  font-size: 1rem;
+  font-weight: normal;
+  color: var(--fg-2);
+}
+header p {
+  margin: 0;
+  font-size: .9rem;
+  color: var(--fg-4);
+}
+header a, header button {
+  color: var(--fg);
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  padding: .1rem .5rem;
+  border-radius: var(--small-radius);
+  border: 1px solid var(--bg-4);
+  background-color: var(--bg-s);
+  margin: 0 .5rem;
+  box-shadow: var(--small-shadow);
+  font-size: 1rem;
+  line-height: 1.5;
+  min-width: 10ch;
+  top: 0;
+}
+header a:hover, header button:hover {
+  background-color: var(--bg-2);
+}
+
+.success {
+  background-color: var(--green-alt) !important;
+  color: var(--bg) !important;
+  border: 1px solid var(--bg) !important;
+}
+.failure {
+  background-color: var(--red-alt) !important;
+  color: var(--bg) !important;
+  border: 1px solid var(--bg) !important;
+}
+
+main {
+  width: calc(100vw - 2rem);
+  margin: 1rem;
+}
+p {
+  margin: 0.5rem;
+}
+.entry {
+  overflow-x: auto;
+  padding: 0 .5rem 1rem;
+  margin-bottom: .5rem;
+}
+.entry:focus-within {
+  border: 1px solid var(--fg);
+  border-radius: var(--small-radius);
+  box-shadow: var(--big-shadow);
+  background-color: var(--bg-1);
+}
+.index {
+  font-size: .9rem;
+  color: var(--fg-4);
+  position: relative;
+}
+.index:hover:after {
+  content: attr(data-dataset);
+  position: absolute;
+  z-index: 1;
+  display: block;
+  top: 1.5rem;
+  left: 0;
+  background-color: var(--bg);
+  border-radius: var(--small-radius);
+  border: 1px solid var(--bg-2);
+  padding: .25rem;
+  white-space: nowrap;
+  box-shadow: var(--big-shadow);
+}
+.sentence {
+  font-size: 1.2rem;
+  margin: 0.25rem;
+}
+
+table {
+  font-size: .9rem;
+  border: 2px solid var(--bg-4);
+  border-radius: var(--medium-radius);
+  border-collapse: collapse;
+}
+td {
+  position: relative;
+  text-align: center;
+  font-size: 1.1rem;
+  padding: 3px;
+  border: 1px solid var(--bg);
+  background-color: var(--background-color, --bg-s);
+}
+td[class^="B"]:after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: var(--green-alt);
+  clip-path: polygon(0% 0%, 10% 50%, 0% 100%);
+}
+td[class^="I"]:after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: var(--green-alt);
+  clip-path: polygon(0% 45%, 10% 45%, 10% 55%, 0% 55%);
+}
+td > div {
+  display: grid;
+}
+td > div > * {
+  grid-area: 1 / 1;
+}
+select {
+  text-align: center;
+  color: var(--fg);
+  box-sizing: border-box;
+  border: none;
+  border-radius: var(--small-radius);
+  padding: .3rem;
+  background-color: var(--background-color);
+  width: 13ch;
+  word-break: break-word;
+}
+
+
+.QTY {
+  --background-color: color-mix(in srgb, var(--green), #333);
+}
+.UNIT {
+  --background-color: color-mix(in srgb, var(--yellow), #333);
+}
+.COMMENT {
+  --background-color: color-mix(in srgb, var(--purple), #333);
+}
+.PREP {
+  --background-color: color-mix(in srgb, var(--blue-alt), #333);
+}
+.PUNC {
+  --background-color: color-mix(in srgb, var(--gray), #333);
+}
+.SIZE {
+  --background-color: color-mix(in srgb, var(--orange), #333);
+}
+.PURPOSE {
+  --background-color: color-mix(in srgb, var(--red), #333);
+}
+.B_TOK,.I_TOK {
+  --background-color: color-mix(in srgb, var(--aqua), #111);
+}
+.NAME_VAR,.VAR {
+  --background-color: color-mix(in srgb, var(--aqua), #444);
+}
+.NAME_MOD,.MOD {
+  --background-color: color-mix(in srgb, var(--aqua), #777);
+}
+.NAME_SEP,.SEP {
+  --background-color: color-mix(in srgb, var(--gray), var(--orange-alt) 15%);
+}
+
+button {
+  border-radius: var(--small-radius);
+  background-color: var(--bg);
+  padding: .25rem .5rem;
+  margin-left: .5rem;
+  font-size: 1rem;
+  top: -2px;
+  position: relative;  
+}
+button:focus {
+  background-color: var(--bg-3);
+  font-weight: bold;
+}
+button.delete {
+  border: 1px solid var(--red-alt);
+  color: var(--red-alt);
+}
+button.copy {
+  border: 1px solid var(--blue-alt);
+  color: var(--blue-alt);
+}
