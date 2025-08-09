@@ -15,7 +15,7 @@ def p():
     """
     sentence = "2 14 ounce cans of coconut milk"
     tokens = ["2", "14", "ounce", "can", "of", "coconut", "milk"]
-    pos_tags = ["CD", "CD", "NN", "MD", "VB", "NN"]
+    pos_tags = ["CD", "CD", "NN", "MD", "VB", "NN", "NN"]
     labels = ["QTY", "QTY", "UNIT", "UNIT", "COMMENT", "B_NAME_TOK", "I_NAME_TOK"]
     scores = [
         0.9995971493946465,
