@@ -568,6 +568,9 @@ class PostProcessor:
 
             return self.pos_tags[idx]
 
+        # Return empty string so we don't try to merge this with the next name.
+        # This should never occur because self._postprocess_indices is called before
+        # this and that function skips over any potential name that is all punctuation.
         return ""
 
     def _postprocess_indices(
