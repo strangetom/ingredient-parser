@@ -517,7 +517,7 @@ class PostProcessor:
                 )
                 token_idx = [*merge_with_next_idx, *token_idx]
 
-            if self.pos_tags[token_idx[-1]] in {"DT", "IN", "JJ"}:
+            if self._last_non_punc_token_pos(token_idx) in {"DT", "IN", "JJ"}:
                 # Mark name for merging with next name.
                 merge_with_next = ing_text
                 merge_with_next_idx = token_idx
@@ -547,6 +547,28 @@ class PostProcessor:
                     foundation_foods.add(ff)
 
         return self._deduplicate_names(names), list(foundation_foods)
+
+    def _last_non_punc_token_pos(self, token_idx: list[int]) -> str:
+        """Return the POS tag at the last index in token_idx, ignoring all indices
+        corresponding to punctuation.
+
+        Parameters
+        ----------
+        token_idx : list[int]
+            List of token indices to find last non-punctuation POS tag.
+
+        Returns
+        -------
+        str
+            POS tag for last non-punctuation index.
+        """
+        for idx in reversed(token_idx):
+            if self.labels[idx] == "PUNC":
+                continue
+
+            return self.pos_tags[idx]
+
+        return ""
 
     def _postprocess_indices(
         self, label_idx: list[int], selected_label: str
