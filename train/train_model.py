@@ -12,7 +12,7 @@ from uuid import uuid4
 
 import pycrfsuite
 from sklearn.model_selection import train_test_split
-from tqdm import tqdm
+from tabulate import tabulate
 
 from .test_results_to_detailed_results import test_results_to_detailed_results
 from .test_results_to_html import test_results_to_html
@@ -21,6 +21,7 @@ from .training_utils import (
     DataVectors,
     Stats,
     confusion_matrix,
+    convert_num_ordinal,
     evaluate,
     load_datasets,
 )
@@ -29,7 +30,7 @@ logger = logging.getLogger(__name__)
 
 
 @contextmanager
-def change_log_level(level: int) -> Generator[None]:
+def change_log_level(level: int) -> Generator[None, None, None]:
     """Context manager to temporarily change logging level within the context.
 
     On exiting the context, the original level is restored.
@@ -222,15 +223,29 @@ def train_single(args: argparse.Namespace) -> None:
         combine_name_labels=args.combine_name_labels,
     )
 
-    print("Sentence-level results:")
-    print(f"\tAccuracy: {100 * stats.sentence.accuracy:.2f}%")
+    headers = [
+        "Sentence-level results",
+        "Word-level results"
+    ]
+    table = []
 
-    print()
-    print("Word-level results:")
-    print(f"\tAccuracy {100 * stats.token.accuracy:.2f}%")
-    print(f"\tPrecision (micro) {100 * stats.token.weighted_avg.precision:.2f}%")
-    print(f"\tRecall (micro) {100 * stats.token.weighted_avg.recall:.2f}%")
-    print(f"\tF1 score (micro) {100 * stats.token.weighted_avg.f1_score:.2f}%")
+    table.append([
+        f"Accuracy: {100 * stats.sentence.accuracy:.2f}%",
+        f"Accuracy: {100 * stats.token.accuracy:.2f}%\n Precision (micro) {100 * stats.token.weighted_avg.precision:.2f}%\n Recall (micro) {100 * stats.token.weighted_avg.recall:.2f}%\n F1 score (micro) {100 * stats.token.weighted_avg.f1_score:.2f}%"
+    ])
+
+    print(
+        '\n' +
+        tabulate(
+            table,
+            headers=headers,
+            tablefmt="pretty",
+            maxcolwidths=[None, None],
+            stralign="left",
+            numalign="right"
+        )
+        + '\n'
+    )
 
 
 def train_multiple(args: argparse.Namespace) -> None:
@@ -272,13 +287,14 @@ def train_multiple(args: argparse.Namespace) -> None:
         for _ in range(args.runs)
     ]
 
-    with change_log_level(logging.WARNING):  # Temporarily stop logging below WARNING
-        with cf.ProcessPoolExecutor(max_workers=args.processes) as executor:
-            futures = [executor.submit(train_parser_model, *a) for a in arguments]
-            eval_results = [
-                future.result()
-                for future in tqdm(cf.as_completed(futures), total=len(futures))
-            ]
+    word_accuracies, sentence_accuracies, seeds, eval_results = [], [], [], []
+    #with change_log_level(logging.WARNING):  # Temporarily stop logging below WARNING
+    with cf.ProcessPoolExecutor(max_workers=args.processes) as executor:
+        futures = [executor.submit(train_parser_model, *a) for a in arguments]
+        logger.info(f"Queued for {args.runs} separate runs. This may take some time.")
+        for idx, future in enumerate(cf.as_completed(futures)):
+            logger.info(f"{convert_num_ordinal(idx + 1)} run completed")
+            eval_results.append(future.result())
 
     word_accuracies, sentence_accuracies, seeds = [], [], []
     for result in eval_results:
@@ -288,15 +304,9 @@ def train_multiple(args: argparse.Namespace) -> None:
 
     sentence_mean = 100 * mean(sentence_accuracies)
     sentence_uncertainty = 3 * 100 * stdev(sentence_accuracies)
-    print()
-    print("Average sentence-level accuracy:")
-    print(f"\t-> {sentence_mean:.2f}% ± {sentence_uncertainty:.2f}%")
 
     word_mean = 100 * mean(word_accuracies)
     word_uncertainty = 3 * 100 * stdev(word_accuracies)
-    print()
-    print("Average word-level accuracy:")
-    print(f"\t-> {word_mean:.2f}% ± {word_uncertainty:.2f}%")
 
     index_best = max(
         range(len(sentence_accuracies)), key=sentence_accuracies.__getitem__
@@ -310,6 +320,56 @@ def train_multiple(args: argparse.Namespace) -> None:
     min_sent = 100 * sentence_accuracies[index_worst]
     min_word = 100 * word_accuracies[index_worst]
     min_seed = seeds[index_worst]
-    print()
-    print(f"Best:  Sentence {max_sent:.2f}% / Word {max_word:.2f}% (Seed: {max_seed})")
-    print(f"Worst: Sentence {min_sent:.2f}% / Word {min_word:.2f}% (Seed: {min_seed})")
+
+
+    headers = [
+        "Run",
+        "Word/Token accuracy",
+        "Sentence accuracy",
+        "Seed"
+    ]
+
+    table = []
+    for idx, result in enumerate(eval_results):
+        table.append(
+            [
+                convert_num_ordinal(idx + 1),
+                f"{100 * result.token.accuracy:.2f}%",
+                f"{100 * result.sentence.accuracy:.2f}%",
+                f"{result.seed}",
+            ]
+        )
+
+    table.append(['-'] * len(headers))
+    table.append([
+        "Average",
+        f"{word_mean:.2f}% ± {word_uncertainty:.2f}%",
+        f"{sentence_mean:.2f}% ± {sentence_uncertainty:.2f}%",
+        f"{max_seed}"
+    ])
+    table.append(['-'] * len(headers))
+    table.append([
+        "Best",
+        f"{max_word:.2f}%",
+        f"{max_sent:.2f}%",
+        f"{max_seed}"
+    ])
+    table.append([
+        "Worst",
+        f"{min_word:.2f}%",
+        f"{min_sent:.2f}%",
+        f"{min_seed}"
+    ])
+
+    print(
+        '\n' +
+        tabulate(
+            table,
+            headers=headers,
+            tablefmt="pretty",
+            maxcolwidths=[None, None, None, None],
+            stralign="left",
+            numalign="right"
+        )
+        + '\n'
+    )
