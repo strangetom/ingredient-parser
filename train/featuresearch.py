@@ -12,7 +12,6 @@ from uuid import uuid4
 import pycrfsuite
 from sklearn.model_selection import train_test_split
 from tabulate import tabulate
-from tqdm import tqdm
 
 from .train_model import DEFAULT_MODEL_LOCATION
 from .training_utils import (
