@@ -189,6 +189,11 @@ def train_parser_model(
 
     return stats
 
+def train_parser_model_bypass_logging(*kargs) -> Stats:
+    stats = None
+    with change_log_level(logging.WARNING):  # Temporarily stop logging below WARNING for multi-processing
+        stats = train_parser_model(*kargs)
+    return stats
 
 def train_single(args: argparse.Namespace) -> None:
     """Train CRF model once.
@@ -231,7 +236,7 @@ def train_single(args: argparse.Namespace) -> None:
 
     table.append([
         f"Accuracy: {100 * stats.sentence.accuracy:.2f}%",
-        f"Accuracy: {100 * stats.token.accuracy:.2f}%\n Precision (micro) {100 * stats.token.weighted_avg.precision:.2f}%\n Recall (micro) {100 * stats.token.weighted_avg.recall:.2f}%\n F1 score (micro) {100 * stats.token.weighted_avg.f1_score:.2f}%"
+        f"Accuracy: {100 * stats.token.accuracy:.2f}%\nPrecision (micro) {100 * stats.token.weighted_avg.precision:.2f}%\nRecall (micro) {100 * stats.token.weighted_avg.recall:.2f}%\nF1 score (micro) {100 * stats.token.weighted_avg.f1_score:.2f}%"
     ])
 
     print(
@@ -288,9 +293,8 @@ def train_multiple(args: argparse.Namespace) -> None:
     ]
 
     word_accuracies, sentence_accuracies, seeds, eval_results = [], [], [], []
-    #with change_log_level(logging.WARNING):  # Temporarily stop logging below WARNING
     with cf.ProcessPoolExecutor(max_workers=args.processes) as executor:
-        futures = [executor.submit(train_parser_model, *a) for a in arguments]
+        futures = [executor.submit(train_parser_model_bypass_logging, *a) for a in arguments]
         logger.info(f"Queued for {args.runs} separate runs. This may take some time.")
         for idx, future in enumerate(cf.as_completed(futures)):
             logger.info(f"{convert_num_ordinal(idx + 1)} run completed")
