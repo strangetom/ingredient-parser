@@ -33,7 +33,7 @@ from ._utils import (
     replace_string_range,
 )
 
-logger = logging.getLogger("ingredient-parser")
+logger = logging.getLogger("ingredient-parser.postprocess")
 
 WORD_CHAR = re.compile(r"\w")
 
@@ -195,7 +195,7 @@ class PostProcessor:
                     name_replaced_labels.append(label)
             self.labels = name_replaced_labels
             logger.debug(
-                f"Relabeled tokens to {self.labels} because seperate_name=False."
+                f"Relabelled tokens to {self.labels} because seperate_name=False."
             )
 
             # Process NAME labels as any other label, but return as a list
