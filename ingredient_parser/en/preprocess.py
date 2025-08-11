@@ -41,7 +41,7 @@ from ._utils import (
     tokenize,
 )
 
-logger = logging.getLogger("ingredient-parser")
+logger = logging.getLogger("ingredient-parser.preprocess")
 
 CONSECUTIVE_SPACES = re.compile(r"\s+")
 
