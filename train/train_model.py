@@ -7,7 +7,7 @@ from contextlib import contextmanager
 from pathlib import Path
 from random import randint
 from statistics import mean, stdev
-from typing import Generator
+from typing import Generator, TextIO
 from uuid import uuid4
 
 import pycrfsuite
@@ -49,6 +49,28 @@ def change_log_level(level: int) -> Generator[None, None, None]:
     logger.setLevel(level)
     yield
     logger.setLevel(original_level)
+
+@contextmanager
+def set_redirect_log_stream(io_stream: TextIO) -> Generator[None, None, None]:
+    """Context manager to accept io_stream for logging, primarily used in web app since it bypasses train.py where logging is set globally
+
+    Parameters
+    ----------
+    io_stream : TextIO
+        io.IOString() stream
+
+    Yields
+    ------
+    Generator[None, None, None]
+        Generator, yielding None
+    """
+    logging.basicConfig(
+        stream=io_stream,
+        level=logging.INFO,
+        format="[%(levelname)s] (%(module)s) %(message)s",
+    )
+
+    yield
 
 
 def train_parser_model(
