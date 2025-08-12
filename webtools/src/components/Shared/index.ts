@@ -11,3 +11,4 @@ export * from './ShellWebSocketListener';
 export * from './TabTitleListener'
 export * from './TabCloseListener'
 export * from './TabMultipleListener'
+export * from './PopoverQuestionMark';

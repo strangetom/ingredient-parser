@@ -5,6 +5,8 @@ import { Sectionable } from "./Shared"
 import { ButtonInterruptModel, ButtonRunModel, ColorSwatchIndicator, SectionProgressText, SectionNotes } from "./PageTabTrain"
 import { TimeElapsedIndicator } from "./PageTabTrain/TimeElapsedIndicator"
 import { FetchAvailableSouceListener } from "./PageTabLabeller"
+import { ButtonRunModelGridSearch } from "./PageTabTrain/ButtonRunModelGridSearch"
+import { SectionSelectMode } from "./PageTabTrain/SectionSelectMode"
 
 export function MainTrainModel() {
 
@@ -14,12 +16,17 @@ export function MainTrainModel() {
       <FetchAvailableSouceListener />
 
       <Sectionable.ActionBar position="top">
+        <SectionSelectMode />
+      </Sectionable.ActionBar>
+
+      <Sectionable.ActionBar position="top">
         <Sectionable.ActionBarSubGrouping>
           <ColorSwatchIndicator />
           <TimeElapsedIndicator />
         </Sectionable.ActionBarSubGrouping>
         <Sectionable.ActionBarSubGrouping>
           {/**<ButtonInterruptModel />**/}
+          <ButtonRunModelGridSearch />
           <ButtonRunModel />
         </Sectionable.ActionBarSubGrouping>
       </Sectionable.ActionBar>

@@ -7,7 +7,7 @@
 
 .option {
     margin-top: 0.125rem;
-    padding: var(--small-spacing);
+    padding: var(--xxsmall-spacing) var(--small-spacing);
 
     &[data-combobox-active] {
         background: var(--bg-3);
@@ -33,4 +33,8 @@
         background: var(--bg-3);
         color: var(--fg);
     }
+}
+
+.footer {
+  border-color: color-mix(in srgb,var(--fg),transparent 66%) !important;
 }

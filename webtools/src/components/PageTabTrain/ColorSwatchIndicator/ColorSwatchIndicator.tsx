@@ -18,7 +18,7 @@ function ColorSwatchDot(){
   const color = useMemo(() =>
     ({
       'Connected': 'var(--green)',
-      'Training': 'var(--fg)',
+      'Running': 'var(--fg)',
       'Disconnected': 'var(--red)',
       'Interrupted': 'var(--red)',
       'Cancelled': 'var(--red)',
@@ -32,6 +32,7 @@ function ColorSwatchDot(){
       size={12}
       withShadow={false}
       color={color}
+      className={(indicator === 'Training' && 'animate-pulse') || undefined }
     />
   )
 }

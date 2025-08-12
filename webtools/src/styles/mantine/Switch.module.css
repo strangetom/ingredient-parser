@@ -4,6 +4,12 @@
         --switch-bg: var(--green-alt);
         --switch-text-color: var(--white);
     }
+
+    .input:focus-visible + & {
+      outline: 1px solid var(--fg);
+      outline-offset: 1px;
+    }
+
 }
 
 .description {

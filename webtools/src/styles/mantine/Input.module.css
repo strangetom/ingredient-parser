@@ -15,4 +15,10 @@
     &:focus-visible {
         outline: 1px solid var(--fg);
     }
+
+    &:disabled {
+        opacity: 0.4;
+        background-color: var(--fg-3);
+        color: var(--fg);
+    }
 }

@@ -1,19 +1,21 @@
 #!/usr/bin/env python3
 
 # {{DEFAULT}}
-import argparse, time, sys, io, contextlib, os
-from datetime import datetime
+import argparse, sys, io, contextlib, os, time, logging, json
+from datetime import datetime, timedelta
 from threading import Event, Thread
 from pathlib import Path
 from random import randint
 from threading import Lock
+from typing import TextIO
+from io import StringIO
 # {{FLASK|SOCKETS}}
 from flask import Flask
 from flask_cors import CORS
 from flask_socketio import SocketIO, emit
 # {{INTERNAL}}
 sys.path.append("..") # force use of local, not system wide ingredient parser installed
-from train import train_single
+from train import train_single, train_multiple, grid_search, set_redirect_log_stream
 
 # globals
 parent_dir = Path(__file__).parent.parent
@@ -25,6 +27,13 @@ MODEL_REQUIREMENTS = parent_dir / 'requirements-dev.txt'
 # flask
 app = Flask(__name__, static_folder=NPM_BUILD_DIRECTORY, static_url_path="/")
 cors = CORS(app)
+
+# logging for app_sockets.py
+logger = logging.getLogger(__name__)
+LOGGING_LEVEL = {
+    0: logging.INFO,
+    1: logging.DEBUG,
+}
 
 # flask socket-io
 #
@@ -40,41 +49,85 @@ thread_native_id = 0
 thread_lock = Lock()
 thread_event = Event()
 
+def safe_json_load(json_string):
+    """
+    Safely loads a JSON string and returns the Python object.
+    Returns None if the string is not valid JSON.
+    """
+
 def background_thread(thread_event, input_data):
     """Background thread for training behind web sockets"""
 
     try:
-        if not input_data["sources"] and not input_data["model"]:
-            raise Exception("Input data sources and model need to be supplied")
 
-        args = {
-            'database': str(SQL3_DATABASE),
-            'table': 'en',
-            'datasets': input_data["sources"],
-            'model': input_data["model"],
-            'save_model': str(SAVED_MODEL),
-            'split': input_data.get("split", 0.2),
-            'seed': input_data.get("seed", randint(0, 1_000_000_000)),
-            'html': input_data.get("html", False) or None,
-            'detailed': input_data.get("detailed", False) or None,
-            'confusion': input_data.get("confusion", False) or None
-        }
+        args = {}
 
-        def monitor_stdout(output_buffer, interval=0.1):
+        if not input_data["task"]:
+            raise Exception("Input task needs to be supplied, either training or gridsearch")
+
+        if input_data["task"] == 'gridsearch':
+
+            global_params = None
+            try:
+                global_params = json.loads(input_data.get("algosGlobalParams", '{}'))
+            except json.JSONDecodeError:
+                global_params = {}
+
+            args = {
+                'database': str(SQL3_DATABASE),
+                'table': 'en',
+                'datasets': input_data["sources"],
+                'save_model': str(SAVED_MODEL),
+                'split': input_data.get("split", 0.2),
+                'seed': input_data.get("seed", randint(0, 1_000_000_000)),
+                'processes': input_data.get("processes", os.cpu_count() - 1),
+                'combine_name_labels': input_data.get("combineNameLabels", False) or None,
+                'algos': input_data.get("algos", ['lbfgs']),
+                'global_params': global_params,
+                'keep_models': input_data.get("keepModels", False),
+                'lbfgs_params': None,
+                'ap_params': None,
+                'l2sgd_params': None,
+                'pa_params': None,
+                'arow_params': None
+            }
+        else:
+            args = {
+                'database': str(SQL3_DATABASE),
+                'table': 'en',
+                'datasets': input_data["sources"],
+                'save_model': str(SAVED_MODEL),
+                'split': input_data.get("split", 0.2),
+                'seed': input_data.get("seed", randint(0, 1_000_000_000)),
+                'html': input_data.get("html", False) or None,
+                'detailed': input_data.get("detailed", False) or None,
+                'confusion': input_data.get("confusion", False) or None,
+                'combine_name_labels': input_data.get("combineNameLabels", False) or None,
+            }
+
+            if input_data["task"] == 'training' and input_data["runsCategory"] == 'multiple' and input_data["runs"] >= 1:
+                args = {
+                    **args,
+                    'runs': input_data.get("runs", 1),
+                    'processes': input_data.get("processes", os.cpu_count() - 1)
+                }
+
+        def monitor_stdout(output_buffer: TextIO, interval=0.1):
             """Monitors the output buffer for new content"""
-            last_position = 0
-            while True:
-                time.sleep(interval)
-                current_output = str(output_buffer.getvalue())
-                if len(current_output) > last_position:
-                    new_output = current_output[last_position:]
-                    if thread_event.is_set():
-                        socketio.emit('trainer', {
-                            'data': [ln.strip() for ln in new_output.splitlines()],
-                            'indicator': 'Logging',
-                            'message': ''
-                        })
-                    last_position = len(current_output)
+            if isinstance(output_buffer, StringIO):
+                last_position = 0
+                while True:
+                    time.sleep(interval)
+                    current_output = str(output_buffer.getvalue())
+                    if len(current_output) > last_position:
+                        new_output = current_output[last_position:]
+                        if thread_event.is_set():
+                            socketio.emit('trainer', {
+                                'data': [ln.strip() for ln in new_output.splitlines()],
+                                'indicator': 'Logging',
+                                'message': ''
+                            })
+                        last_position = len(current_output)
 
 
         captured_output = io.StringIO()
@@ -82,17 +135,30 @@ def background_thread(thread_event, input_data):
         monitor_thread.daemon = True  # allow the main thread to exit even if this is running
         monitor_thread.start()
 
-        with contextlib.redirect_stdout(captured_output):
-            print(
-                "------------------------------\n TRAINING STARTED [time={}] [pid={}] \n------------------------------\n INPUTS \n{} ------------------------------\n"
-                .format(datetime.now().strftime('%H:%M:%S'), os.getpid(), ''.join([f'[{k}={v}] \n' for k, v in args.items()]))
-            )
-            train_single(argparse.Namespace(**args))
-            print(
-                "------------------------------\n TRAINING ENDED [time={}] [pid={}] \n------------------------------\n"
-                .format(datetime.now().strftime('%H:%M:%S'), os.getpid())
-            )
-            time.sleep(1) # allow buffer time to readout final output
+        logging.basicConfig(
+            stream=captured_output,
+            level=logging.INFO,
+            format="[%(levelname)s] (%(module)s) %(message)s",
+        )
+
+
+        with set_redirect_log_stream(captured_output):
+            with contextlib.redirect_stdout(captured_output):
+                logger.info(f"{input_data['task'].capitalize()} requested @ {datetime.now().strftime('%H:%M:%S')} on PID {os.getpid()} ")
+                logger.info(f"{input_data['task'].capitalize()} inputs {', '.join([f'{k}={v}' for k, v in args.items()])}")
+
+                start_time = time.monotonic()
+                if input_data["task"] == 'training' and input_data["runsCategory"] == 'multiple':
+                    train_multiple(argparse.Namespace(**args))
+                elif input_data["task"] == 'training' and input_data["runsCategory"] == 'single':
+                    train_single(argparse.Namespace(**args))
+                elif input_data["task"] == 'gridsearch':
+                    grid_search(argparse.Namespace(**args))
+                period_time = time.monotonic() - start_time
+                period_seconds = timedelta(seconds=int(period_time)).total_seconds()
+                logger.info(f"{input_data['task'].capitalize()} ended @ {datetime.now().strftime('%H:%M:%S')} on PID {os.getpid()}")
+                logger.info(f"Took approximately {period_seconds // 60}mins {period_seconds % 60}s")
+                time.sleep(1) # allow buffer time to readout final output
 
         socketio.emit('status', {
             'data': [],
@@ -123,7 +189,7 @@ def train_start(input_data):
         thread_native_id = thread.native_id
         emit('status', {
             'data': [],
-            'indicator': 'Training',
+            'indicator': 'Running',
             'message': 'Training started (PID = {})'.format(os.getpid())
         })
 

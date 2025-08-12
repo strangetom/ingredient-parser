@@ -1,6 +1,6 @@
 // {{{EXTERNAL}}}
 import React from "react";
-import { Input, MantineProvider, createTheme, Checkbox, Radio, Anchor, Switch, List, Avatar, SimpleGrid, Paper, Stack, Group, Flex, Text, AppShell, Title, Overlay, Progress, Dialog, ModalRoot, Modal, Center, Button, Grid, Menu, Tooltip, Badge, Kbd, Select, SegmentedControl, MantineThemeComponents, Accordion, Affix, Image, Combobox, RadioIndicator, MultiSelect, Pill, Divider, Container, Loader, Slider, ActionIcon, Indicator, Spoiler, Drawer, Code, UnstyledButton, Skeleton, ScrollArea, Notification, Pagination, Popover, Table } from "@mantine/core";
+import { Input, MantineProvider, createTheme, Checkbox, Radio, Anchor, Switch, List, Avatar, SimpleGrid, Paper, Stack, Group, Flex, Text, AppShell, Title, Overlay, Progress, Dialog, ModalRoot, Modal, Center, Button, Grid, Menu, Tooltip, Badge, Kbd, Select, SegmentedControl, MantineThemeComponents, Accordion, Affix, Image, Combobox, RadioIndicator, MultiSelect, Pill, Divider, Container, Loader, Slider, ActionIcon, Indicator, Spoiler, Drawer, Code, UnstyledButton, Skeleton, ScrollArea, Notification, Pagination, Popover, Table, NumberInput } from "@mantine/core";
 import { Notifications } from '@mantine/notifications';
 // {{{ INTERNAL }}}
 import { default as unstyledButtonClasses } from './styles/mantine/UnstyledButton.module.css';
@@ -44,6 +44,7 @@ import { default as codeClasses } from './styles/mantine/Code.module.css';
 import { default as pillClasses } from './styles/mantine/Pill.module.css';
 import { default as popoverClasses } from './styles/mantine/Popover.module.css';
 import { default as tableClasses } from './styles/mantine/Table.module.css';
+import { default as numberInputClasses } from './styles/mantine/NumberInput.module.css';
 
 
 export function GlobalStyles({
@@ -59,6 +60,9 @@ export function GlobalStyles({
     }),
     Pill: Pill.extend({
       classNames: pillClasses
+    }),
+    NumberInput: NumberInput.extend({
+      classNames: numberInputClasses
     }),
     Table: Table.extend({
       classNames: tableClasses

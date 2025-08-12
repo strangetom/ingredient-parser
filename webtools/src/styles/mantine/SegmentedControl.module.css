@@ -15,3 +15,22 @@
       }
     }
 }
+
+.input {
+    &[data-focus-ring='auto'] {
+      &:focus:focus-visible {
+        & + .label {
+          --segmented-control-outline: 2px solid var(--fg);
+        }
+      }
+    }
+
+    &[data-focus-ring='always'] {
+      &:focus {
+        & + .label {
+          --segmented-control-outline: 2px solid var(--fg);
+        }
+      }
+    }
+
+}

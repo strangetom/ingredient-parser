@@ -5,11 +5,30 @@ import { useShallow } from "zustand/react/shallow"
 // {{{INTERNAL}}}
 import { useTabLabellerStore, useTabTrainerStore } from "../../../domain"
 // {{{ASSETS}}}
-import { IconChevronDown, IconChevronUp } from "@tabler/icons-react"
+import { IconChevronDown, IconChevronUp, IconSwitch } from "@tabler/icons-react"
+import { PopoverQuestionMark } from "../../Shared"
+
+function PopoverQuestionMarkWrapper({
+  label,
+  description
+}: {
+  label?: string,
+  description?: string
+}) {
+  return (
+    <Flex gap="xs" justify="flex-start">
+      <div>{label}</div>
+      <PopoverQuestionMark>
+        {description}
+      </PopoverQuestionMark>
+    </Flex>
+  )
+}
 
 export function ButtonRunModel() {
 
   const {
+    mode,
     connected,
     training,
     onSendTrainRun,
@@ -17,6 +36,7 @@ export function ButtonRunModel() {
     updateInputTrainer
   } = useTabTrainerStore(
     useShallow((state) => ({
+      mode: state.mode,
       connected: state.connected,
       training: state.training,
       onSendTrainRun: state.onSendTrainRun,
@@ -41,56 +61,70 @@ export function ButtonRunModel() {
 
   const [opened, setOpened] = useState(false);
 
-  const model = (
-    <SegmentedControl
-      value={inputTrainer.model}
-      onChange={(value: string) => {
-        updateInputTrainer({ model: value })
+  const modelRunCategoryInput = (
+    <Group gap="xl" w="100%" justify="space-between">
+      <SegmentedControl
+        value={inputTrainer.runsCategory}
+        onChange={(value: string) => {
+          updateInputTrainer({ runsCategory: value })
+        }}
+        data={[
+          { label: 'Single', value: 'single' },
+          { label: 'Multiple', value: 'multiple' }
+        ]}
+      />
+      <div>
+        <NumberInput
+          disabled={inputTrainer.runsCategory === 'single'}
+          w={120}
+          value={inputTrainer.runs}
+          onChange={(value) => {
+            if (!value) return;
+            updateInputTrainer({ runs: parseFloat(value.toString()) })
+          }}
+          step={1}
+          min={2}
+        />
+        <Text mt={3} c="var(--fg-4)" size="xs">
+          Number of training runs
+        </Text>
+      </div>
+    </Group>
+  )
+
+  const labelSourcesInput = fetchingAvailablePublisherSources ? (
+    <Flex style={{ width: "100%" }}>
+      <Loader color="var(--fg)" size={16} />
+    </Flex>
+  ) : (
+    <MultiSelect
+      data={availablePublisherSources}
+      value={input.settings.sources}
+      onChange={(values) => {
+        if (values.length === 0) return;
+        updateInputSettings({ sources: [...values] })
+        updateInputTrainer({ sources: [...values] })
       }}
-      data={[
-        { label: 'Parser', value: 'parser' }
-      ]}
+      comboboxProps={{ withinPortal: false, width: 200, position: "top-start" }}
     />
   )
 
-  const labelSources = fetchingAvailablePublisherSources ?  (
-      <Flex style={{ width: "100%" }}>
-        <Loader color="var(--fg)" size={16} />
-      </Flex>
-  ) : (
-      <MultiSelect
-        data={availablePublisherSources}
-        value={input.settings.sources}
-        onChange={(values) => {
-          if (values.length === 0) return;
-          updateInputSettings({ sources: [...values] })
-          updateInputTrainer({ sources: [...values] })
-        }}
-        comboboxProps={{ withinPortal: false, width: 200, position: "top-start"}}
-      />
+  const splitInput = (
+    <NumberInput
+      w={120}
+      value={inputTrainer.split}
+      onChange={(value) => {
+        if (!value) return;
+        updateInputTrainer({ split: parseFloat(value.toString()) })
+      }}
+      step={0.1}
+      min={0.1}
+      max={0.9}
+    />
   )
 
-  const split = (
-    <div>
-      <NumberInput
-        value={inputTrainer.split}
-        onChange={(value) => {
-          if (!value) return;
-          updateInputTrainer({ split: parseFloat(value.toString()) })
-        }}
-        step={0.1}
-        min={0.1}
-        max={0.9}
-      />
-      <Text mt={3} c="var(--fg-4)" size="xs">
-        Fraction of data to be used for testing
-      </Text>
-    </div>
-  )
-
-  const seed = (
-    <div>
-      <Group gap="xs">
+  const seedInput = (
+    <Group gap="xs">
       <NumberInput
         w={120}
         value={inputTrainer.seed}
@@ -108,17 +142,32 @@ export function ButtonRunModel() {
       >
         Generate
       </Button>
-      </Group>
-      <Text mt={3} c="var(--fg-4)" size="xs">
-        Seed value used for train/test split
-      </Text>
-    </div>
+    </Group>
   )
 
-  const htmlSwitch = (
+  const combineLabelsFlagSwitch = (
+    <Switch
+      label={
+        <PopoverQuestionMarkWrapper
+          label="Combine NAME labels"
+          description="Determines whether to combine all NAME labels into a single NAME label"
+        />
+      }
+      checked={inputTrainer.combineNameLabels}
+      onChange={(event) => {
+        updateInputTrainer({ combineNameLabels: event.currentTarget.checked })
+      }}
+    />
+  )
+
+  const htmlFlagSwitch = (
       <Switch
-        label="HTML results file"
-        description="Output a markdown file containing detailed results"
+        label={
+          <PopoverQuestionMarkWrapper
+            label="HTML results file"
+            description="Output an html file listing all the sentences where the model labelled any token incorrectly and what the errors were"
+          />
+        }
         checked={inputTrainer.html}
         onChange={(event) => {
           updateInputTrainer({ html: event.currentTarget.checked })
@@ -126,10 +175,14 @@ export function ButtonRunModel() {
       />
   )
 
-  const confusionSwitch = (
+  const confusionFlagSwitch = (
       <Switch
-        label="Confusion"
-        description="Plot confusion matrix of token labels"
+        label={
+          <PopoverQuestionMarkWrapper
+            label="Confusion"
+            description="Output a confusion matrix showing the mapping between true label and predicted label"
+          />
+        }
         checked={inputTrainer.confusion}
         onChange={(event) => {
           updateInputTrainer({ confusion: event.currentTarget.checked })
@@ -137,10 +190,14 @@ export function ButtonRunModel() {
       />
   )
 
-  const detailedSwitch = (
+  const detailedFlagSwitch = (
       <Switch
-        label="Detail result file"
-        description="Output a file containing detailed results about accuracy"
+        label={
+          <PopoverQuestionMarkWrapper
+            label="Detailed errors"
+            description="Output a set of TSV containing information about the types of errors made by the model"
+          />
+        }
         checked={inputTrainer.detailed}
         onChange={(event) => {
           updateInputTrainer({ detailed: event.currentTarget.checked })
@@ -148,59 +205,110 @@ export function ButtonRunModel() {
       />
   )
 
-  return connected ? (
+  const debugLevelFlagSwitch = (
+      <Switch
+        label={
+          <PopoverQuestionMarkWrapper
+            label="Verbose debugging"
+            description="Output verbose logging. Only use for debugging purposes"
+          />
+        }
+        checked={inputTrainer.debugLevel === 1}
+        onChange={(event) => {
+          updateInputTrainer({ debugLevel: event.currentTarget.checked ? 1 : 0 })
+        }}
+      />
+  )
+
+  return (connected && mode === 'trainer') ? (
     <Group wrap="nowrap" gap={0}>
       <Button
         loading={training}
         style={{ width: 150, height: 50, borderTopRightRadius: 0, borderBottomRightRadius: 0 }}
         variant="dark"
-        onClick={onSendTrainRun}
+        onClick={() => onSendTrainRun('training')}
       >
-          Run model
+        Train model
       </Button>
-        <Menu shadow="md" keepMounted={false} position="bottom-end" width={450} closeOnItemClick={false} offset={8} opened={opened} onChange={setOpened} trigger="click">
-          <Menu.Target>
-            <ActionIcon
-              variant="dark"
-              style={{ borderTopLeftRadius: 0, borderBottomLeftRadius: 0, borderTop: 'none', borderBottom: 'none',borderRight: 'none' }}
-              size={50}
-              disabled={training}
-            >
-              {opened ? <IconChevronUp size={16} /> : <IconChevronDown size={16} />}
-            </ActionIcon>
-          </Menu.Target>
-          <Menu.Dropdown>
-            <Menu.Label>Training model</Menu.Label>
-            <Menu.Item component="div">
-              {model}
-            </Menu.Item>
-            <Menu.Divider />
-            <Menu.Label>Source datasets for training</Menu.Label>
-            <Menu.Item component="div">
-              {labelSources}
-            </Menu.Item>
-            <Menu.Divider />
-            <Menu.Label>Split value</Menu.Label>
-            <Menu.Item component="div">
-                {split}
-            </Menu.Item>
-            <Menu.Divider />
-            <Menu.Label>Seed value</Menu.Label>
-            <Menu.Item component="div">
-                {seed}
-            </Menu.Item>
-            <Menu.Divider />
-            <Menu.Item component="div">
-              {htmlSwitch}
-            </Menu.Item>
-            <Menu.Item component="div">
-              {detailedSwitch}
-            </Menu.Item>
-            <Menu.Item component="div">
-              {confusionSwitch}
-            </Menu.Item>
-          </Menu.Dropdown>
-        </Menu>
+      <Menu
+        shadow="md"
+        keepMounted={false}
+        position="bottom-end"
+        width={500}
+        closeOnItemClick={false}
+        offset={8}
+        opened={opened}
+        onChange={setOpened}
+        trigger="click"
+      >
+        <Menu.Target>
+          <ActionIcon
+            variant="dark"
+            style={{ borderTopLeftRadius: 0, borderBottomLeftRadius: 0, borderTop: 'none', borderBottom: 'none',borderRight: 'none' }}
+            size={50}
+            disabled={training}
+          >
+            {opened ? <IconChevronUp size={16} /> : <IconChevronDown size={16} />}
+          </ActionIcon>
+        </Menu.Target>
+        <Menu.Dropdown>
+          <Menu.Label>
+            <PopoverQuestionMarkWrapper
+              label="Training runs"
+              description="The type of training run — multiple runs will take longer"
+            />
+          </Menu.Label>
+          <Menu.Item component="div">
+            {modelRunCategoryInput}
+          </Menu.Item>
+          <Menu.Divider />
+          <Menu.Label>
+            <PopoverQuestionMarkWrapper
+              label="Source datasets"
+              description="The datasets to use for training"
+            />
+          </Menu.Label>
+          <Menu.Item component="div">
+            {labelSourcesInput}
+          </Menu.Item>
+          <Menu.Divider />
+          <Menu.Label>
+            <PopoverQuestionMarkWrapper
+              label="Split value"
+              description="Fraction of data to be used for testing"
+            />
+          </Menu.Label>
+          <Menu.Item component="div">
+            {splitInput}
+          </Menu.Item>
+          <Menu.Divider />
+          <Menu.Label>
+            <PopoverQuestionMarkWrapper
+              label="Seed value"
+              description="Seed value used for train/test split"
+            />
+          </Menu.Label>
+          <Menu.Item component="div">
+            {seedInput}
+          </Menu.Item>
+          <Menu.Divider />
+          <Menu.Item component="div">
+            {htmlFlagSwitch}
+          </Menu.Item>
+          <Menu.Item component="div">
+            {detailedFlagSwitch}
+          </Menu.Item>
+          <Menu.Item component="div">
+            {confusionFlagSwitch}
+          </Menu.Item>
+          <Menu.Item component="div">
+            {combineLabelsFlagSwitch}
+          </Menu.Item>
+          <Menu.Item component="div">
+            {debugLevelFlagSwitch}
+          </Menu.Item>
+        </Menu.Dropdown>
+      </Menu>
     </Group>
   )  : null
 }

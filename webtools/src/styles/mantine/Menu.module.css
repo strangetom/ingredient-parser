@@ -11,6 +11,9 @@
 }
 
 .divider {
+    margin-top: 4px;
+    margin-bottom: 4px;
+    border-top: 1px solid;
     margin-left: -4px;
     width: calc(100% + 8px);
     border-color: color-mix(in srgb,var(--fg),transparent 86%);
@@ -31,5 +34,17 @@
 
     &:focus, &::focus-within, &::focus-visible {
         outline: none !important;
+    }
+
+    &:where(:focus) {
+      &:where(:not(:disabled, [data-disabled])) {
+        @mixin where-light {
+            background-color: var(--bg-2);
+        }
+
+        @mixin where-dark {
+            background-color: var(--bg-2);
+        }
+      }
     }
 }
