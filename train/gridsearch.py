@@ -502,7 +502,7 @@ def grid_search(args: argparse.Namespace):
     eval_results = []
     with cf.ProcessPoolExecutor(max_workers=args.processes) as executor:
         futures = [executor.submit(train_model_grid_search, *a) for a in arguments]
-        logger.info(f"Queued for separate runs against {len(args.algos)} algorithms. This may take some time.")
+        logger.info(f"Queued for separate runs against {len(args.algos)} algorithms")
         for idx, future in enumerate(cf.as_completed(futures)):
             logger.info(f"{convert_num_ordinal(idx + 1)} algorithm completed")
             eval_results.append(future.result())
@@ -539,14 +539,14 @@ def grid_search(args: argparse.Namespace):
         )
 
     print(
-        '\n' +
-        tabulate(
+        "\n"
+        + tabulate(
             table,
             headers=headers,
-            tablefmt="pretty",
+            tablefmt="fancy_grid",
             maxcolwidths=[None, 130, None, None, None, None],
             stralign="left",
-            numalign="right"
+            numalign="right",
         )
-        + '\n'
+        + "\n"
     )

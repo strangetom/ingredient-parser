@@ -416,22 +416,21 @@ def confusion_matrix(
     logger.info(f"Confusion matrix saved to {figure_path}.")
     plt.close(fig)
 
-def convert_num_ordinal(
-    num: Union[int, float, str]
-) -> str:
+
+def convert_num_ordinal(num: Union[int, float, str]) -> str:
     """Converts a number (int) into its ordinal; falls back to input if unsuccessful
 
-        make_ordinal(0)   => '0th'
-        make_ordinal(3)   => '3rd'
-        make_ordinal(122) => '122nd'
-        make_ordinal(213) => '213th'
+    make_ordinal(0)   => '0th'
+    make_ordinal(3)   => '3rd'
+    make_ordinal(122) => '122nd'
+    make_ordinal(213) => '213th'
     """
     try:
         n = int(num)
         if 11 <= (n % 100) <= 13:
-            suffix = 'th'
+            suffix = "th"
         else:
-            suffix = ['th', 'st', 'nd', 'rd', 'th'][min(n % 10, 4)]
+            suffix = ["th", "st", "nd", "rd", "th"][min(n % 10, 4)]
         return str(n) + suffix
-    except:
+    except TypeError or ValueError:
         return str(num)

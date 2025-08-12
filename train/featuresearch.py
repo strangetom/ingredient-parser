@@ -213,8 +213,12 @@ def feature_search(args: argparse.Namespace):
 
     eval_results = []
     with cf.ProcessPoolExecutor(max_workers=args.processes) as executor:
-        futures = [executor.submit(train_model_feature_search, *a) for a in argument_sets]
-        logger.info(f"Queued for separate runs against {len(argument_sets)} feature sets. This may take some time.")
+        futures = [
+            executor.submit(train_model_feature_search, *a) for a in argument_sets
+        ]
+        logger.info(
+            f"Queued for separate runs against {len(argument_sets)} feature sets"
+        )
         for idx, future in enumerate(cf.as_completed(futures)):
             logger.info(f"{convert_num_ordinal(idx + 1)} set completed")
             eval_results.append(future.result())
@@ -248,13 +252,13 @@ def feature_search(args: argparse.Namespace):
         )
 
     print(
-        '\n' +
-        tabulate(
+        "\n"
+        + tabulate(
             table,
             headers=headers,
-            tablefmt="pretty",
+            tablefmt="fancy_grid",
             stralign="left",
-            numalign="right"
+            numalign="right",
         )
-        + '\n'
+        + "\n"
     )

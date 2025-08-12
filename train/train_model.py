@@ -50,9 +50,11 @@ def change_log_level(level: int) -> Generator[None, None, None]:
     yield
     logger.setLevel(original_level)
 
+
 @contextmanager
 def set_redirect_log_stream(io_stream: TextIO) -> Generator[None, None, None]:
-    """Context manager to accept io_stream for logging, primarily used in web app since it bypasses train.py where logging is set globally
+    """Context manager to accept io_stream for logging used in web app
+        Required by web app as it bypasses train.py where logging is configured
 
     Parameters
     ----------
@@ -211,11 +213,15 @@ def train_parser_model(
 
     return stats
 
+
 def train_parser_model_bypass_logging(*kargs) -> Stats:
     stats = None
-    with change_log_level(logging.WARNING):  # Temporarily stop logging below WARNING for multi-processing
+    with change_log_level(
+        logging.WARNING
+    ):  # Temporarily stop logging below WARNING for multi-processing
         stats = train_parser_model(*kargs)
     return stats
+
 
 def train_single(args: argparse.Namespace) -> None:
     """Train CRF model once.
@@ -250,28 +256,30 @@ def train_single(args: argparse.Namespace) -> None:
         combine_name_labels=args.combine_name_labels,
     )
 
-    headers = [
-        "Sentence-level results",
-        "Word-level results"
-    ]
+    headers = ["Sentence-level results", "Word-level results"]
     table = []
 
-    table.append([
-        f"Accuracy: {100 * stats.sentence.accuracy:.2f}%",
-        f"Accuracy: {100 * stats.token.accuracy:.2f}%\nPrecision (micro) {100 * stats.token.weighted_avg.precision:.2f}%\nRecall (micro) {100 * stats.token.weighted_avg.recall:.2f}%\nF1 score (micro) {100 * stats.token.weighted_avg.f1_score:.2f}%"
-    ])
+    table.append(
+        [
+            f"Accuracy: {100 * stats.sentence.accuracy:.2f}%",
+            f"Accuracy: {100 * stats.token.accuracy:.2f}%\n"
+            f"Precision (micro) {100 * stats.token.weighted_avg.precision:.2f}%\n"
+            f"Recall (micro) {100 * stats.token.weighted_avg.recall:.2f}%\n"
+            f"F1 score (micro) {100 * stats.token.weighted_avg.f1_score:.2f}%",
+        ]
+    )
 
     print(
-        '\n' +
-        tabulate(
+        "\n"
+        + tabulate(
             table,
             headers=headers,
-            tablefmt="pretty",
+            tablefmt="fancy_grid",
             maxcolwidths=[None, None],
             stralign="left",
-            numalign="right"
+            numalign="right",
         )
-        + '\n'
+        + "\n"
     )
 
 
@@ -316,8 +324,10 @@ def train_multiple(args: argparse.Namespace) -> None:
 
     word_accuracies, sentence_accuracies, seeds, eval_results = [], [], [], []
     with cf.ProcessPoolExecutor(max_workers=args.processes) as executor:
-        futures = [executor.submit(train_parser_model_bypass_logging, *a) for a in arguments]
-        logger.info(f"Queued for {args.runs} separate runs. This may take some time.")
+        futures = [
+            executor.submit(train_parser_model_bypass_logging, *a) for a in arguments
+        ]
+        logger.info(f"Queued for {args.runs} separate runs")
         for idx, future in enumerate(cf.as_completed(futures)):
             logger.info(f"{convert_num_ordinal(idx + 1)} run completed")
             eval_results.append(future.result())
@@ -347,13 +357,7 @@ def train_multiple(args: argparse.Namespace) -> None:
     min_word = 100 * word_accuracies[index_worst]
     min_seed = seeds[index_worst]
 
-
-    headers = [
-        "Run",
-        "Word/Token accuracy",
-        "Sentence accuracy",
-        "Seed"
-    ]
+    headers = ["Run", "Word/Token accuracy", "Sentence accuracy", "Seed"]
 
     table = []
     for idx, result in enumerate(eval_results):
@@ -366,36 +370,28 @@ def train_multiple(args: argparse.Namespace) -> None:
             ]
         )
 
-    table.append(['-'] * len(headers))
-    table.append([
-        "Average",
-        f"{word_mean:.2f}% ± {word_uncertainty:.2f}%",
-        f"{sentence_mean:.2f}% ± {sentence_uncertainty:.2f}%",
-        f"{max_seed}"
-    ])
-    table.append(['-'] * len(headers))
-    table.append([
-        "Best",
-        f"{max_word:.2f}%",
-        f"{max_sent:.2f}%",
-        f"{max_seed}"
-    ])
-    table.append([
-        "Worst",
-        f"{min_word:.2f}%",
-        f"{min_sent:.2f}%",
-        f"{min_seed}"
-    ])
+    table.append(["-"] * len(headers))
+    table.append(
+        [
+            "Average",
+            f"{word_mean:.2f}% ± {word_uncertainty:.2f}%",
+            f"{sentence_mean:.2f}% ± {sentence_uncertainty:.2f}%",
+            f"{max_seed}",
+        ]
+    )
+    table.append(["-"] * len(headers))
+    table.append(["Best", f"{max_word:.2f}%", f"{max_sent:.2f}%", f"{max_seed}"])
+    table.append(["Worst", f"{min_word:.2f}%", f"{min_sent:.2f}%", f"{min_seed}"])
 
     print(
-        '\n' +
-        tabulate(
+        "\n"
+        + tabulate(
             table,
             headers=headers,
-            tablefmt="pretty",
+            tablefmt="fancy_grid",
             maxcolwidths=[None, None, None, None],
             stralign="left",
-            numalign="right"
+            numalign="right",
         )
-        + '\n'
+        + "\n"
     )
