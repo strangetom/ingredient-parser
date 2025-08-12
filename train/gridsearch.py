@@ -13,11 +13,11 @@ from uuid import uuid4
 import pycrfsuite
 from sklearn.model_selection import train_test_split
 from tabulate import tabulate
-from tqdm import tqdm
 
 from .train_model import DEFAULT_MODEL_LOCATION
 from .training_utils import (
     DataVectors,
+    convert_num_ordinal,
     evaluate,
     load_datasets,
 )
@@ -499,12 +499,13 @@ def grid_search(args: argparse.Namespace):
     logger.info(f"Grid search over {len(arguments)} hyperparameters combinations.")
     logger.info(f"{args.seed} is the random seed used for the train/test split.")
 
+    eval_results = []
     with cf.ProcessPoolExecutor(max_workers=args.processes) as executor:
         futures = [executor.submit(train_model_grid_search, *a) for a in arguments]
-        eval_results = [
-            future.result()
-            for future in tqdm(cf.as_completed(futures), total=len(futures))
-        ]
+        logger.info(f"Queued for separate runs against {len(args.algos)} algorithms")
+        for idx, future in enumerate(cf.as_completed(futures)):
+            logger.info(f"{convert_num_ordinal(idx + 1)} algorithm completed")
+            eval_results.append(future.result())
 
     # Sort with highest sentence accuracy first
     eval_results = sorted(
@@ -538,10 +539,14 @@ def grid_search(args: argparse.Namespace):
         )
 
     print(
-        tabulate(
+        "\n"
+        + tabulate(
             table,
             headers=headers,
             tablefmt="fancy_grid",
             maxcolwidths=[None, 130, None, None, None, None],
+            stralign="left",
+            numalign="right",
         )
+        + "\n"
     )
