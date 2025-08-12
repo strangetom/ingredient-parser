@@ -6,8 +6,7 @@ twine
 pre-commit
 pytest
 coverage
-tqdm
-Flask
+flask
 tabulate
 matplotlib
 -e .
