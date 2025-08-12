@@ -510,7 +510,9 @@ class PostProcessor:
                 # If we need to merge the previous name, do it now.
                 ing_text = IngredientText(
                     text=merge_with_next.text + " " + ing_text.text,
-                    confidence=(merge_with_next.confidence + ing_text.confidence) / 2,
+                    confidence=round(
+                        (merge_with_next.confidence + ing_text.confidence) / 2, 6
+                    ),
                     starting_index=min(
                         [merge_with_next.starting_index, ing_text.starting_index]
                     ),
