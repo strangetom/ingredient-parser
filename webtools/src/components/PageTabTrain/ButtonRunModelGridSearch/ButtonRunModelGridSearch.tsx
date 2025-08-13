@@ -186,11 +186,11 @@ export function ButtonRunModelGridSearch() {
     <Group wrap="nowrap" gap={0}>
       <Button
         loading={training}
-        style={{ width: 150, height: 50, borderTopRightRadius: 0, borderBottomRightRadius: 0 }}
+        style={{ width: 200, height: 50, borderTopRightRadius: 0, borderBottomRightRadius: 0 }}
         variant="dark"
         onClick={() => onSendTrainRun("gridsearch")}
       >
-        Tune model
+        Run gridsearch
       </Button>
         <Menu shadow="md" keepMounted={false} position="bottom-end" width={500} closeOnItemClick={false} offset={8} opened={opened} onChange={setOpened} trigger="click" menuItemTabIndex={0} loop={false} trapFocus={true}>
           <Menu.Target>

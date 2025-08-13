@@ -32,7 +32,7 @@ function ColorSwatchDot(){
       size={12}
       withShadow={false}
       color={color}
-      className={(indicator === 'Training' && 'animate-pulse') || undefined }
+      className={(indicator === 'Running' && 'animate-pulse') || undefined }
     />
   )
 }

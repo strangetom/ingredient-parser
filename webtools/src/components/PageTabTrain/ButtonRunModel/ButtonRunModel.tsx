@@ -224,11 +224,11 @@ export function ButtonRunModel() {
     <Group wrap="nowrap" gap={0}>
       <Button
         loading={training}
-        style={{ width: 150, height: 50, borderTopRightRadius: 0, borderBottomRightRadius: 0 }}
+        style={{ width: 200, height: 50, borderTopRightRadius: 0, borderBottomRightRadius: 0 }}
         variant="dark"
         onClick={() => onSendTrainRun('training')}
       >
-        Train model
+        Run train model
       </Button>
       <Menu
         shadow="md"

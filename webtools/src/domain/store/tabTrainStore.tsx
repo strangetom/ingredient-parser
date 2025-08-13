@@ -40,7 +40,7 @@ export const useTabTrainerStore =
             sources: ["nyt","cookstr", "allrecipes", "bbc", "tc", "saveur"],
             split: 0.2,
             seed: Math.floor(Math.random() * 1_000_000_001),
-            combine_name_labels: false,
+            combineNameLabels: false,
             html: false,
             detailed: false,
             confusion: false,
@@ -55,7 +55,7 @@ export const useTabTrainerStore =
             )
           ,
           inputGridSearch: {
-            combine_name_labels: false,
+            combineNameLabels: false,
             sources: ["nyt","cookstr", "allrecipes", "bbc", "tc", "saveur"],
             split: 0.2,
             seed: Math.floor(Math.random() * 1_000_000_001),
