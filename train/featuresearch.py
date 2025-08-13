@@ -12,11 +12,11 @@ from uuid import uuid4
 import pycrfsuite
 from sklearn.model_selection import train_test_split
 from tabulate import tabulate
-from tqdm import tqdm
 
 from .train_model import DEFAULT_MODEL_LOCATION
 from .training_utils import (
     DataVectors,
+    convert_num_ordinal,
     evaluate,
     load_datasets,
 )
@@ -211,14 +211,17 @@ def feature_search(args: argparse.Namespace):
     logger.info(f"Grid search over {len(argument_sets)} feature sets.")
     logger.info(f"{args.seed} is the random seed used for the train/test split.")
 
+    eval_results = []
     with cf.ProcessPoolExecutor(max_workers=args.processes) as executor:
         futures = [
             executor.submit(train_model_feature_search, *a) for a in argument_sets
         ]
-        eval_results = [
-            future.result()
-            for future in tqdm(cf.as_completed(futures), total=len(futures))
-        ]
+        logger.info(
+            f"Queued for separate runs against {len(argument_sets)} feature sets"
+        )
+        for idx, future in enumerate(cf.as_completed(futures)):
+            logger.info(f"{convert_num_ordinal(idx + 1)} set completed")
+            eval_results.append(future.result())
 
     # Sort with highest sentence accuracy first
     eval_results = sorted(
@@ -248,4 +251,14 @@ def feature_search(args: argparse.Namespace):
             ]
         )
 
-    print(tabulate(table, headers=headers, tablefmt="simple_outline"))
+    print(
+        "\n"
+        + tabulate(
+            table,
+            headers=headers,
+            tablefmt="fancy_grid",
+            stralign="left",
+            numalign="right",
+        )
+        + "\n"
+    )

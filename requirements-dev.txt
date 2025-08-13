@@ -6,7 +6,6 @@ twine
 pre-commit
 pytest
 coverage
-tqdm
 flask
 flask-CORS
 flask-socketIO
