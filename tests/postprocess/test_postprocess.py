@@ -672,7 +672,7 @@ class TestPostProcessor_parsed:
             name=[
                 IngredientText(
                     text="fresh basil leaves",
-                    confidence=0.8586214999999999,
+                    confidence=0.858621,
                     starting_index=1,
                 )
             ],
