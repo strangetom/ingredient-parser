@@ -36,5 +36,4 @@ export type InputTrainerGridSearch = {
   processes: number;
   algos: string[];
   algosGlobalParams: string;
-  keepModels: boolean;
 } & InputTrainerShared

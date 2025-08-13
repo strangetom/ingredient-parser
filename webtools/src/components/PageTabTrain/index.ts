@@ -1,5 +1,4 @@
 export * from './ColorSwatchIndicator'
 export * from './ButtonRunModel'
-export * from './ButtonInterruptModel'
 export * from './SectionProgressText'
 export * from './SectionNotes'

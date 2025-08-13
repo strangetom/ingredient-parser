@@ -2,7 +2,7 @@
 import React from "react"
 // {{{INTERNAL}}}
 import { Sectionable } from "./Shared"
-import { ButtonInterruptModel, ButtonRunModel, ColorSwatchIndicator, SectionProgressText, SectionNotes } from "./PageTabTrain"
+import { ButtonRunModel, ColorSwatchIndicator, SectionProgressText, SectionNotes } from "./PageTabTrain"
 import { TimeElapsedIndicator } from "./PageTabTrain/TimeElapsedIndicator"
 import { FetchAvailableSouceListener } from "./PageTabLabeller"
 import { ButtonRunModelGridSearch } from "./PageTabTrain/ButtonRunModelGridSearch"
@@ -25,7 +25,6 @@ export function MainTrainModel() {
           <TimeElapsedIndicator />
         </Sectionable.ActionBarSubGrouping>
         <Sectionable.ActionBarSubGrouping>
-          {/**<ButtonInterruptModel />**/}
           <ButtonRunModelGridSearch />
           <ButtonRunModel />
         </Sectionable.ActionBarSubGrouping>

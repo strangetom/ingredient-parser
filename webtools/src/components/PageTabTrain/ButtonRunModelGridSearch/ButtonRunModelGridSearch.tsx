@@ -167,21 +167,6 @@ export function ButtonRunModelGridSearch() {
     />
   )
 
-  const keepModelsFlagSwitch = (
-    <Switch
-      label={
-        <PopoverQuestionMarkWrapper
-          label="Keep model"
-          description="Keep models (.crfsuite files) after evaluation instead of deleting"
-        />
-      }
-      checked={inputGridSearch.keepModels}
-      onChange={(event) => {
-        updateInputGridSearch({ keepModels: event.currentTarget.checked })
-      }}
-    />
-  )
-
   return (connected && mode === 'tuner') ? (
     <Group wrap="nowrap" gap={0}>
       <Button
@@ -279,9 +264,6 @@ export function ButtonRunModelGridSearch() {
             <Menu.Divider />
             <Menu.Item component="div">
               {combineLabelsFlagSwitch}
-            </Menu.Item>
-            <Menu.Item component="div">
-              {keepModelsFlagSwitch}
             </Menu.Item>
           </Menu.Dropdown>
         </Menu>

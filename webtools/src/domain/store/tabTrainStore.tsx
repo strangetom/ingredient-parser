@@ -28,8 +28,7 @@ interface TabTrainerState {
   onReceiveDisconnect: () => void,
   onReceiveStatus: (event: EventLog) => void,
   onReceiveTrainProgress: (event: EventLog) => void,
-  onSendTrainRun: (category: InputTrainerTask) => void,
-  /*onSendTrainInterrupt: () => void;*/
+  onSendTrainRun: (category: InputTrainerTask) => void
 }
 
 export const useTabTrainerStore =
@@ -62,7 +61,6 @@ export const useTabTrainerStore =
             processes: (window.navigator.hardwareConcurrency || 2) - 1,
             algos: ['lbfgs'],
             algosGlobalParams: '{}',
-            keepModels: false,
             debugLevel: 0  // 0: logging.INFO, 1: logging.DEBUG
           },
           updateInputGridSearch: (partial: Partial<InputTrainerGridSearch>) =>
@@ -98,16 +96,6 @@ export const useTabTrainerStore =
                 position: 'bottom-right'
               })
             }
-            /*
-            else if(event.indicator === 'Interrupted'){
-              set({ training: false });
-              notifications.show({
-                title: 'Training interrupt',
-                message: event.message || null,
-                position: 'bottom-right'
-              })
-            }
-             */
             else if(event.indicator === 'Error'){
               set({ training: false });
               notifications.show({
@@ -150,21 +138,6 @@ export const useTabTrainerStore =
               })
             }
           },
-          /*
-          onSendTrainInterrupt() {
-            const socket = get().socket
-            const connected = get().connected
-            if (connected) {
-              socket.emit("interrupt", {});
-            } else {
-              notifications.show({
-                title: 'Not connected, web socket server is not active',
-                message: null,
-                position: 'bottom-right'
-              })
-            }
-          }
-           */
         })
       )
   )
