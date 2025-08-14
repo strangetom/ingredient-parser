@@ -1,36 +1,35 @@
 .root {
-    background-color: var(--bg-1);
+	background-color: var(--bg-1);
 }
 
 .indicator {
-    background-color: var(--bg-2);
+	background-color: var(--bg-2);
 }
 
 .label {
-    color: var(--fg);
+	color: var(--fg);
 
-    &:where(:not([data-disabled], [data-active], [data-read-only])) {
-      @mixin hover {
-          color: var(--fg-4);
-      }
-    }
+	&:where(:not([data-disabled], [data-active], [data-read-only])) {
+		&:hover {
+			color: var(--fg-4);
+		}
+	}
 }
 
 .input {
-    &[data-focus-ring='auto'] {
-      &:focus:focus-visible {
-        & + .label {
-          --segmented-control-outline: 2px solid var(--fg);
-        }
-      }
-    }
+	&[data-focus-ring="auto"] {
+		&:focus:focus-visible {
+			& + .label {
+				--segmented-control-outline: 2px solid var(--fg);
+			}
+		}
+	}
 
-    &[data-focus-ring='always'] {
-      &:focus {
-        & + .label {
-          --segmented-control-outline: 2px solid var(--fg);
-        }
-      }
-    }
-
+	&[data-focus-ring="always"] {
+		&:focus {
+			& + .label {
+				--segmented-control-outline: 2px solid var(--fg);
+			}
+		}
+	}
 }

@@ -1,3 +1,1 @@
-export {
-  PrefabExamplesParser
-} from "./PrefabExamplesParser"
+export { PrefabExamplesParser } from "./PrefabExamplesParser";

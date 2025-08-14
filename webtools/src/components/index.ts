@@ -1,3 +1,3 @@
-export { MainLabeller } from "./MainLabeller"
-export { MainTryParser } from "./MainTryParser"
-export { MainTrainModel } from "./MainTrainModel"
+export { MainLabeller } from "./MainLabeller";
+export { MainTrainModel } from "./MainTrainModel";
+export { MainTryParser } from "./MainTryParser";

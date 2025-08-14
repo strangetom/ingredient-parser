@@ -1,3 +1,1 @@
-export {
-  PrefabExamplesLabellerSource
-} from "./PrefabExamplesLabellerSource"
+export { PrefabExamplesLabellerSource } from "./PrefabExamplesLabellerSource";

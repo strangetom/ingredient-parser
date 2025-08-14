@@ -7,33 +7,29 @@
  *
  */
 
-export type TrainerMode =
-  "tuner" |
-  "trainer"
+export type TrainerMode = "tuner" | "trainer";
 
-export type InputTrainerTask =
-  "training"    |
-  "gridsearch"
+export type InputTrainerTask = "training" | "gridsearch";
 
 export type InputTrainerShared = {
-  split: number;
-  seed: number;
-  sources: string[];
-  debugLevel: number;
-  combineNameLabels: boolean;
-}
+	split: number;
+	seed: number;
+	sources: string[];
+	debugLevel: number;
+	combineNameLabels: boolean;
+};
 
 export type InputTrainer = {
-  html: boolean;
-  runs: number;
-  runsCategory: string;
-  processes: number;
-  detailed: boolean;
-  confusion: boolean;
-} & InputTrainerShared
+	html: boolean;
+	runs: number;
+	runsCategory: string;
+	processes: number;
+	detailed: boolean;
+	confusion: boolean;
+} & InputTrainerShared;
 
 export type InputTrainerGridSearch = {
-  processes: number;
-  algos: string[];
-  algosGlobalParams: string;
-} & InputTrainerShared
+	processes: number;
+	algos: string[];
+	algosGlobalParams: string;
+} & InputTrainerShared;

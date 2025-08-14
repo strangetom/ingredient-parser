@@ -1,15 +1,11 @@
-// {{{EXTERNAL}}}
-import React from "react";
 // {{{INTERNAL}}}
-import { GlobalStyles } from "./Styles";
 import { Shell } from "./components/Shared";
-
+import { GlobalStyles } from "./Styles";
 
 export default function App() {
-
-  return (
-    <GlobalStyles>
-      <Shell />
-    </GlobalStyles>
-  )
+	return (
+		<GlobalStyles>
+			<Shell />
+		</GlobalStyles>
+	);
 }

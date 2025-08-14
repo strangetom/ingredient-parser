@@ -1,3 +1,1 @@
-export {
-  ButtonUpload
-} from "./ButtonUpload"
+export { ButtonUpload } from "./ButtonUpload";

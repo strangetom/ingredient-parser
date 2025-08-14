@@ -1,3 +1,1 @@
-export {
-  TableParsedResults
-} from "./TableParsedResults"
+export { TableParsedResults } from "./TableParsedResults";

@@ -1,51 +1,43 @@
 // {{{EXTERNAL}}}
-import React from 'react';
-import { Box, Group } from '@mantine/core';
-import cx from 'clsx';
+import { Box } from "@mantine/core";
+import cx from "clsx";
+import type React from "react";
 // {{{STYLES}}}
-import { default as classes } from "./ActionBar.module.css"
+import { default as classes } from "./ActionBar.module.css";
 
-export interface ActionBarProps  {
-  position?: "top" | "bottom";
-  children?: React.ReactNode;
-  grow?: boolean
+export interface ActionBarProps {
+	position?: "top" | "bottom";
+	children?: React.ReactNode;
+	grow?: boolean;
 }
 
 export function ActionBar(props: ActionBarProps) {
+	const { position = "top", children, grow = false, ...others } = props;
 
-  const {
-    position = "top",
-    children,
-    grow = false,
-    ...others
-  } = props
-
-   return (
-     <Box
-       className={cx(
-         classes.root,
-         { [classes.grow]: grow }
-       )}
-       data-position={position}
-       {...others}
-     >
-        <Box className={classes.groupings}>
-          {children}
-       </Box>
-     </Box>
-   )
- }
-
-export interface ActionBarSubGroupingProps  {
-  children?: React.ReactNode;
+	return (
+		<Box
+			className={cx(classes.root, { [classes.grow]: grow })}
+			data-position={position}
+			{...others}
+		>
+			<Box className={classes.groupings}>{children}</Box>
+		</Box>
+	);
 }
 
-function ActionBarSubGrouping({ children, ...others }: ActionBarSubGroupingProps) {
-  return (
-    <Box className={classes.subgroupings}  {...others}>
-      {children}
-    </Box>
-  );
+export interface ActionBarSubGroupingProps {
+	children?: React.ReactNode;
+}
+
+function ActionBarSubGrouping({
+	children,
+	...others
+}: ActionBarSubGroupingProps) {
+	return (
+		<Box className={classes.subgroupings} {...others}>
+			{children}
+		</Box>
+	);
 }
 
 ActionBar.SubGrouping = ActionBarSubGrouping;

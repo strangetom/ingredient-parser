@@ -1,21 +1,20 @@
 .table {
-    border-radius: var(--medium-radius);
-    --table-hover-color: color-mix(in srgb,var(--fg),transparent 95%) !important;
-    --table-striped-color: var(--bg-1);
-    --table-border-color: color-mix(in srgb,var(--fg),transparent 50%) !important;
+	border-radius: var(--medium-radius);
+	--table-hover-color: color-mix(in srgb, var(--fg), transparent 95%);
+	--table-striped-color: var(--bg-1);
+	--table-border-color: color-mix(in srgb, var(--fg), transparent 50%);
 }
 
-
 .tbody {
-  & > :where(tr) {
-      background-color: var(--bg-2);
+	& > :where(tr) {
+		background-color: var(--bg-2);
 
-    &:where([data-striped='odd']:nth-of-type(odd)) {
-      background-color: var(--table-striped-color);
-    }
+		&:where([data-striped="odd"]:nth-of-type(odd)) {
+			background-color: var(--table-striped-color);
+		}
 
-    &:where([data-striped='even']:nth-of-type(even)) {
-      background-color: var(--table-striped-color);
-    }
-  }
+		&:where([data-striped="even"]:nth-of-type(even)) {
+			background-color: var(--table-striped-color);
+		}
+	}
 }

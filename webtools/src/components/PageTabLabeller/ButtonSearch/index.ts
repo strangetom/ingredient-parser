@@ -1,3 +1,1 @@
-export {
-  ButtonSearch
-} from "./ButtonSearch"
+export { ButtonSearch } from "./ButtonSearch";

@@ -1,3 +1,1 @@
-export  {
-  ActionIconTooltipped
-} from "./ActionIconTooltipped"
+export { ActionIconTooltipped } from "./ActionIconTooltipped";

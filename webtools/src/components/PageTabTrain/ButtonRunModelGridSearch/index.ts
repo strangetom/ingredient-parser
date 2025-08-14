@@ -1,3 +1,1 @@
-export {
-  ButtonRunModelGridSearch
-} from "./ButtonRunModelGridSearch"
+export { ButtonRunModelGridSearch } from "./ButtonRunModelGridSearch";

@@ -1,50 +1,48 @@
 .dropdown {
-    background: var(--bg-1);
-    color: var(--fg);
-    border: 1px solid color-mix(in srgb,var(--fg),transparent 86%);
-    border-radius: var(--small-radius);
+	background: var(--bg-1);
+	color: var(--fg);
+	border: 1px solid color-mix(in srgb, var(--fg), transparent 86%);
+	border-radius: var(--small-radius);
 }
 
 .label {
-    font-size: var(--mantine-font-size-sm);
-    color: var(--fg-4);
+	font-size: var(--mantine-font-size-sm);
+	color: var(--fg-4);
 }
 
 .divider {
-    margin-top: 4px;
-    margin-bottom: 4px;
-    border-top: 1px solid;
-    margin-left: -4px;
-    width: calc(100% + 8px);
-    border-color: color-mix(in srgb,var(--fg),transparent 86%);
+	margin-top: 4px;
+	margin-bottom: 4px;
+	border-top: 1px solid;
+	margin-left: -4px;
+	width: calc(100% + 8px);
+	border-color: color-mix(in srgb, var(--fg), transparent 86%);
 }
 
 .item {
-    color: var(--fg);
-    padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
+	color: var(--fg);
+	padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
 
-    &:not(div):hover, &[data-hovered]:not(div) {
-        background-color: var(--bg-3);
-        color: var(--fg);
-    }
-    &:hover, &[data-hovered] {
-        color: var(--fg);
-        background:transparent;
-    }
+	&:not(div):hover,
+	&[data-hovered]:not(div) {
+		background-color: var(--bg-3);
+		color: var(--fg);
+	}
+	&:hover,
+	&[data-hovered] {
+		color: var(--fg);
+		background: transparent;
+	}
 
-    &:focus, &::focus-within, &::focus-visible {
-        outline: none !important;
-    }
+	&:focus,
+	&:focus-within,
+	&:focus-visible {
+		outline: none;
+	}
 
-    &:where(:focus) {
-      &:where(:not(:disabled, [data-disabled])) {
-        @mixin where-light {
-            background-color: var(--bg-2);
-        }
-
-        @mixin where-dark {
-            background-color: var(--bg-2);
-        }
-      }
-    }
+	&:where(:focus) {
+		&:where(:not(:disabled, [data-disabled])) {
+			background-color: var(--bg-2);
+		}
+	}
 }

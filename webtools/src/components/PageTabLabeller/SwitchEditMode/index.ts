@@ -1,3 +1,1 @@
-export {
-  SwitchEditMode
-} from './SwitchEditMode'
+export { SwitchEditMode } from "./SwitchEditMode";

@@ -1,52 +1,53 @@
 {
-  "name": "Ingredient Parser Web Tool",
-  "version": "0.1.2",
-  "description": "Web tool for Ingredient Parser from @strangetom",
-  "main": "index.tsx",
-  "private": true,
-  "dependencies": {
-    "@mantine/core": "^8.0.0",
-    "@mantine/dropzone": "^8.0.0",
-    "@mantine/hooks": "^8.0.0",
-    "@mantine/notifications": "^8.0.0",
-    "@tabler/icons-react": "^3.5.0",
-    "@types/react": "^18.2.0",
-    "@types/react-dom": "^18.2.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-router-dom": "^6.3.0",
-    "react-virtualized": "^9.22.5",
-    "socket.io-client": "^4.8.1",
-    "zustand": "^5.0.3"
-  },
-  "scripts": {
-    "dev": "npm run watch & P1=$! & npm run flask & P2=$! & npm run sockets & P3=$! wait $P1 $P2 $P3 2>&1",
-    "watch": "vite build --watch",
-    "flask": "python3_path=$(which python3) && \"$python3_path\" app.py",
-    "sockets": "python3_path=$(which python3) && \"$python3_path\" app.sockets.py"
-  },
-  "overrides": {
-    "vite": {
-      "rollup": "npm:@rollup/wasm-node"
-    }
-  },
-  "resolutions": {
-    "rollup": "npm:@rollup/wasm-node"
-  },
-  "devDependencies": {
-    "@svgr/core": "^8.1.0",
-    "@svgr/plugin-jsx": "^8.1.0",
-    "@types/node": "^20.14.2",
-    "@types/react": "^18.2.55",
-    "@types/react-dom": "^18.2.19",
-    "@types/react-virtualized": "^9.21.30",
-    "@vitejs/plugin-react": "^4.3.1",
-    "postcss": "^8.4.38",
-    "postcss-preset-mantine": "^1.15.0",
-    "postcss-simple-vars": "^7.0.1",
-    "typescript": "^5.3.3",
-    "vite": "^6.3.5",
-    "vite-plugin-html": "^3.2.2",
-    "vite-tsconfig-paths": "^5.0.1"
-  }
+	"name": "Ingredient Parser Web Tool",
+	"version": "1.0.0",
+	"description": "Web tool for Ingredient Parser from @strangetom",
+	"main": "index.tsx",
+	"private": true,
+	"dependencies": {
+		"@mantine/core": "^8.0.0",
+		"@mantine/dropzone": "^8.0.0",
+		"@mantine/hooks": "^8.0.0",
+		"@mantine/notifications": "^8.0.0",
+		"@tabler/icons-react": "^3.5.0",
+		"@types/react": "^18.2.0",
+		"@types/react-dom": "^18.2.0",
+		"react": "^18.2.0",
+		"react-dom": "^18.2.0",
+		"react-router-dom": "^6.3.0",
+		"react-virtualized": "^9.22.5",
+		"socket.io-client": "^4.8.1",
+		"zustand": "^5.0.3"
+	},
+	"scripts": {
+		"dev": "npm run watch & P1=$! & npm run flask & P2=$! & npm run sockets & P3=$! wait $P1 $P2 $P3 2>&1",
+		"watch": "vite build --watch",
+		"flask": "python3_path=$(which python3) && \"$python3_path\" app.py",
+		"sockets": "python3_path=$(which python3) && \"$python3_path\" app.sockets.py"
+	},
+	"overrides": {
+		"vite": {
+			"rollup": "npm:@rollup/wasm-node"
+		}
+	},
+	"resolutions": {
+		"rollup": "npm:@rollup/wasm-node"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.2.0",
+		"@svgr/core": "^8.1.0",
+		"@svgr/plugin-jsx": "^8.1.0",
+		"@types/node": "^20.14.2",
+		"@types/react": "^18.2.55",
+		"@types/react-dom": "^18.2.19",
+		"@types/react-virtualized": "^9.21.30",
+		"@vitejs/plugin-react": "^4.3.1",
+		"postcss": "^8.4.38",
+		"postcss-preset-mantine": "^1.15.0",
+		"postcss-simple-vars": "^7.0.1",
+		"typescript": "^5.3.3",
+		"vite": "^6.3.5",
+		"vite-plugin-html": "^3.2.2",
+		"vite-tsconfig-paths": "^5.0.1"
+	}
 }

@@ -1,3 +1,1 @@
-export {
-  TextInputSubmit
-} from "./TextInputSubmit"
+export { TextInputSubmit } from "./TextInputSubmit";

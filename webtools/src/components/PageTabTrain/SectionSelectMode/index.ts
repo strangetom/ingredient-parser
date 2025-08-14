@@ -1,3 +1,1 @@
-export {
-  SectionSelectMode
-} from "./SectionSelectMode"
+export { SectionSelectMode } from "./SectionSelectMode";

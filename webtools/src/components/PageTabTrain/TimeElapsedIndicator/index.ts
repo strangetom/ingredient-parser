@@ -1,3 +1,1 @@
-export {
-  TimeElapsedIndicator
-} from "./TimeElapsedIndicator"
+export { TimeElapsedIndicator } from "./TimeElapsedIndicator";

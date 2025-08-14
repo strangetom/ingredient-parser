@@ -1,3 +1,1 @@
-export {
-  Sectionable,
-} from "./Sectionable"
+export { Sectionable } from "./Sectionable";

@@ -1,3 +1,1 @@
-export {
-  SectionNotes
-} from './SectionNotes'
+export { SectionNotes } from "./SectionNotes";

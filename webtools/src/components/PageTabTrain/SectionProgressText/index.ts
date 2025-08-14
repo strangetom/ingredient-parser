@@ -1,3 +1,1 @@
-export {
-  SectionProgressText
-} from './SectionProgressText'
+export { SectionProgressText } from "./SectionProgressText";

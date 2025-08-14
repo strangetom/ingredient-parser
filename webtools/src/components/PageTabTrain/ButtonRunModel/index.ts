@@ -1,3 +1,1 @@
-export {
-  ButtonRunModel
-} from './ButtonRunModel'
+export { ButtonRunModel } from "./ButtonRunModel";

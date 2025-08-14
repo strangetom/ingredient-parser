@@ -1,32 +1,30 @@
 // {{EXTERNAL}}
-import React, { useCallback, useEffect, useState } from 'react'
-
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export function TabMultipleListener() {
+	const channel = useRef(new BroadcastChannel("tab"));
+	const [original, setOriginal] = useState(false);
 
-  const channel = new BroadcastChannel('tab');
-  const [original, setOriginal] = useState(false)
+	const broadcastListener = useCallback(
+		(msg: MessageEvent) => {
+			if (msg.data === "tab-secondary-instance" && !original) {
+				alert("Cannot open multiple instances");
+			} else {
+				setOriginal(true);
+			}
+		},
+		[original],
+	);
 
-  const broadcastListener = useCallback((msg:  MessageEvent<any>) => {
-    if (msg.data === 'tab-secondary-instance' && !original) {
-      alert('Cannot open multiple instances');
-    }
-    else {
-      setOriginal(true)
-    }
-  }, [original])
+	useEffect(() => {
+		channel.current.postMessage("tab-secondary-instance");
 
-  useEffect(() => {
+		channel.current.addEventListener("message", broadcastListener);
 
-    channel.postMessage('tab-secondary-instance');
+		return () => {
+			channel.current.removeEventListener("message", broadcastListener);
+		};
+	}, [broadcastListener]);
 
-    channel.addEventListener('message', broadcastListener);
-
-    return () => {
-      channel.removeEventListener('message', broadcastListener)
-    }
-
-  }, [broadcastListener])
-
-  return null
+	return null;
 }

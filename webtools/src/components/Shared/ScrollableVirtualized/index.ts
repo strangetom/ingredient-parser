@@ -1,3 +1,1 @@
-export {
-  ScrollableVirtualized
-} from "./ScrollableVirtualized"
+export { ScrollableVirtualized } from "./ScrollableVirtualized";

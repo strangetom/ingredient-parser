@@ -1,3 +1,1 @@
-export {
-  TabTitleListener
-} from './TabTitleListener'
+export { TabTitleListener } from "./TabTitleListener";

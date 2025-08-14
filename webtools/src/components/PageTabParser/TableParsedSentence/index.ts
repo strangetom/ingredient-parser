@@ -1,3 +1,1 @@
-export {
-  TableParsedSentence
-} from "./TableParsedSentence"
+export { TableParsedSentence } from "./TableParsedSentence";

@@ -1,3 +1,1 @@
-export {
-  PopoverQuestionMark
-} from "./PopoverQuestionMark"
+export { PopoverQuestionMark } from "./PopoverQuestionMark";

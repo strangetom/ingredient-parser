@@ -1,3 +1,1 @@
-export {
-  FetchAvailableSouceListener
-} from "./FetchAvailableSouceListener"
+export { FetchAvailableSouceListener } from "./FetchAvailableSouceListener";

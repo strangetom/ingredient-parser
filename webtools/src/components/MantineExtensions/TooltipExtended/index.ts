@@ -1,4 +1,4 @@
 export {
-  TooltipExtended,
-  TooltipExtendedWithShortcut
-} from "./TooltipExtended"
+	TooltipExtended,
+	TooltipExtendedWithShortcut,
+} from "./TooltipExtended";

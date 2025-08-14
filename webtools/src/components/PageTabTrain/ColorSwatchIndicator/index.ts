@@ -1,3 +1,1 @@
-export {
-  ColorSwatchIndicator
-} from "./ColorSwatchIndicator"
+export { ColorSwatchIndicator } from "./ColorSwatchIndicator";

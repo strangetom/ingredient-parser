@@ -1,3 +1,1 @@
-export {
-  ActionBarEditable
-} from "./ActionBarEditable"
+export { ActionBarEditable } from "./ActionBarEditable";

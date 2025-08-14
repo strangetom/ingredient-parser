@@ -1,24 +1,22 @@
 // {{EXTERNAL}}
-import { useEffect } from 'react'
+import { useEffect } from "react";
 // {{INTERNAL}}
-import { subscribeCounterStore, useTabTrainerStore } from '../../../domain'
+import { subscribeCounterStore, useTabTrainerStore } from "../../../domain";
 
-export function ShellTrainingCountdownListener(){
+export function ShellTrainingCountdownListener() {
+	useEffect(() => {
+		const subscriptionTrainingStatusStore = useTabTrainerStore.subscribe(
+			(state) => state.training,
+			(training) => {
+				console.log("reached here");
+				subscribeCounterStore(training);
+			},
+		);
 
-  useEffect(() => {
+		return () => {
+			subscriptionTrainingStatusStore();
+		};
+	}, []);
 
-    const subscriptionTrainingStatusStore = useTabTrainerStore.subscribe(
-      (state) => state.training,
-      (training) => {
-        console.log("reached here")
-        subscribeCounterStore(training)
-      }
-    )
-
-    return () => {
-      subscriptionTrainingStatusStore()
-    }
-  }, [])
-
-  return null
+	return null;
 }

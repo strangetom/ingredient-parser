@@ -1,25 +1,24 @@
 .root {
-    --pagination-active-bg: var(--bg-1);
+	--pagination-active-bg: var(--bg-1);
 }
 
 .control {
-    color: var(--fg);
-    background-color: var(--bg-2);
-    border: 1px solid var(--fg-2);
-    box-shadow: var(--small-shadow);
-    border-radius: var(--small-radius);
+	color: var(--fg);
+	background-color: var(--bg-2);
+	border: 1px solid var(--fg-2);
+	box-shadow: var(--small-shadow);
+	border-radius: var(--small-radius);
 
-    @mixin hover {
-      &:where(:not(:disabled, [data-disabled])) {
-          background-color: var(--fg);
-          color: var(--bg-2);
-      }
-    }
+	&:hover {
+		&:where(:not(:disabled, [data-disabled])) {
+			background-color: var(--fg);
+			color: var(--bg-2);
+		}
+	}
 
-    &:where([data-active]) {
-      background-color: var(--bg);
-      border: 1px solid var(--fg-2);
-      color: var(--fg);
-
-    }
+	&:where([data-active]) {
+		background-color: var(--bg);
+		border: 1px solid var(--fg-2);
+		color: var(--fg);
+	}
 }

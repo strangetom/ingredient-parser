@@ -1,3 +1,1 @@
-export {
-  ShellPreCheckListener
-} from "./ShellPreCheckListener"
+export { ShellPreCheckListener } from "./ShellPreCheckListener";

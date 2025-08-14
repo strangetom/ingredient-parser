@@ -1,20 +1,21 @@
 :root {
-    --xxbig-spacing: 1.75rem;
-    --xbig-spacing: 1.5rem;
-    --big-spacing: 1.25rem;
-    --medium-spacing:	1rem;
-    --small-spacing: 0.75rem;
-    --xsmall-spacing: 0.5rem;
-    --xxsmall-spacing: 0.25rem;
-    --big-radius: 1rem;
-    --medium-radius: .5rem;
-    --small-radius: .25rem;
-    /* Generated using https://www.joshwcomeau.com/shadow-palette/ */
-    --shadow-color: 20deg 6% 9%;
-    --big-shadow: 0.3px 0.5px 0.7px hsl(var(--shadow-color) / 0.33),
-        1.4px 2.8px 3.9px -0.9px hsl(var(--shadow-color) / 0.42),
-        4.9px 9.9px 13.7px -1.7px hsl(var(--shadow-color) / 0.52);
-    --small-shadow:
-        0.3px 0.5px 0.7px hsl(var(--shadow-color) / 0.36),
-        1px 2px 2.8px -1.7px hsl(var(--shadow-color) / 0.52);
+	--xxbig-spacing: 1.75rem;
+	--xbig-spacing: 1.5rem;
+	--big-spacing: 1.25rem;
+	--medium-spacing: 1rem;
+	--small-spacing: 0.75rem;
+	--xsmall-spacing: 0.5rem;
+	--xxsmall-spacing: 0.25rem;
+	--big-radius: 1rem;
+	--medium-radius: 0.5rem;
+	--small-radius: 0.25rem;
+	/* Generated using https://www.joshwcomeau.com/shadow-palette/ */
+	--shadow-color: 20deg 6% 9%;
+	--big-shadow:
+		0.3px 0.5px 0.7px hsl(var(--shadow-color) / 0.33),
+		1.4px 2.8px 3.9px -0.9px hsl(var(--shadow-color) / 0.42),
+		4.9px 9.9px 13.7px -1.7px hsl(var(--shadow-color) / 0.52);
+	--small-shadow:
+		0.3px 0.5px 0.7px hsl(var(--shadow-color) / 0.36), 1px 2px 2.8px -1.7px
+		hsl(var(--shadow-color) / 0.52);
 }

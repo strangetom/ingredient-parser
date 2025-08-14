@@ -1,3 +1,1 @@
-export {
-  ShellWebSocketListener
-} from './ShellWebSocketListener'
+export { ShellWebSocketListener } from "./ShellWebSocketListener";

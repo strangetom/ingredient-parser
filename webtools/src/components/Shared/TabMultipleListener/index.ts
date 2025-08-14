@@ -1,3 +1,1 @@
-export {
-  TabMultipleListener
-} from "./TabMultipleListener"
+export { TabMultipleListener } from "./TabMultipleListener";

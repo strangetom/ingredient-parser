@@ -1,8 +1,1 @@
-export {
-  Shell
-} from "./Shell"
-
-export type {
-  Link,
-  LinkIdentifier
-} from "./Shell"
+export { Shell } from "./Shell";

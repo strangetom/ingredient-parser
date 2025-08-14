@@ -1,3 +1,1 @@
-export {
-  ShellTrainingCountdownListener
-} from "./ShellTrainingCountdownListener"
+export { ShellTrainingCountdownListener } from "./ShellTrainingCountdownListener";

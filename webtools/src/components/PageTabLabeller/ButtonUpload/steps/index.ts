@@ -1,3 +1,3 @@
-export * from "./StepOne"
-export * from "./StepTwo"
-export * from "./StepThree"
+export * from "./StepOne";
+export * from "./StepThree";
+export * from "./StepTwo";

@@ -1,19 +1,13 @@
-import React, { useEffect } from "react"
-import { useTabLabellerStore } from "../../../domain"
-import { useShallow } from "zustand/react/shallow"
+// {{{EXTERNAL}}}
+import { useEffect } from "react";
+import { useTabLabellerStore } from "../../../domain";
 
-export function FetchAvailableSouceListener(){
-  const {
-    fetchAvailableSourcesApi
-  } = useTabLabellerStore(
-    useShallow((state) => ({
-      fetchAvailableSourcesApi: state.fetchAvailableSourcesApi
-    })),
-  )
+export function FetchAvailableSouceListener() {
+	useEffect(() => {
+		const fetchAvailableSourcesApi =
+			useTabLabellerStore.getState().fetchAvailableSourcesApi;
+		fetchAvailableSourcesApi();
+	}, []);
 
-  useEffect(() => {
-    fetchAvailableSourcesApi()
-  }, [])
-
-  return <React.Fragment />
+	return null;
 }

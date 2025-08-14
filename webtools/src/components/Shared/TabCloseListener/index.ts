@@ -1,3 +1,1 @@
-export {
-  TabCloseListener
-} from './TabCloseListener'
+export { TabCloseListener } from "./TabCloseListener";

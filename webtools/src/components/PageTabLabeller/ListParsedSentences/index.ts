@@ -1,3 +1,1 @@
-export {
-  ListParsedSentences
-} from './ListParsedSentences'
+export { ListParsedSentences } from "./ListParsedSentences";

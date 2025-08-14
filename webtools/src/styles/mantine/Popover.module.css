@@ -1,6 +1,6 @@
 .dropdown {
-    background: var(--bg-1);
-    color: var(--fg);
-    border: 1px solid color-mix(in srgb,var(--fg),transparent 86%);
-    border-radius: var(--small-radius);
+	background: var(--bg-1);
+	color: var(--fg);
+	border: 1px solid color-mix(in srgb, var(--fg), transparent 86%);
+	border-radius: var(--small-radius);
 }

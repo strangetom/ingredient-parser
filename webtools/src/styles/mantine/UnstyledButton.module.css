@@ -1,7 +1,7 @@
 .root {
-    &:focus,
-    &:focus-within,
-    &:focus-visible {
-        outline: 1px solid transparent;
-    }
+	&:focus,
+	&:focus-within,
+	&:focus-visible {
+		outline: 1px solid transparent;
+	}
 }

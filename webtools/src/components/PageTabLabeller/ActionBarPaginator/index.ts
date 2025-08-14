@@ -1,3 +1,1 @@
-export {
-  ActionBarPaginator
-} from "./ActionBarPaginator"
+export { ActionBarPaginator } from "./ActionBarPaginator";

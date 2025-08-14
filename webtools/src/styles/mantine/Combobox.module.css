@@ -1,40 +1,40 @@
 .dropdown {
-    background: var(--fg);
-    color: var(--bg-3);
-    border: 1px solid color-mix(in srgb,var(--bg-3),transparent 66%);
-    border-radius: var(--small-radius);
+	background: var(--fg);
+	color: var(--bg-3);
+	border: 1px solid color-mix(in srgb, var(--bg-3), transparent 66%);
+	border-radius: var(--small-radius);
 }
 
 .option {
-    margin-top: 0.125rem;
-    padding: var(--xxsmall-spacing) var(--small-spacing);
+	margin-top: 0.125rem;
+	padding: var(--xxsmall-spacing) var(--small-spacing);
 
-    &[data-combobox-active] {
-        background: var(--bg-3);
-        color: var(--fg);
-    }
+	&[data-combobox-active] {
+		background: var(--bg-3);
+		color: var(--fg);
+	}
 
-    &[data-combobox-selected] {
-        background: var(--bg-3);
-        color: var(--fg);
-    }
+	&[data-combobox-selected] {
+		background: var(--bg-3);
+		color: var(--fg);
+	}
 
-    &[data-combobox-disabled] {
-        text-decoration: line-through;
-        cursor: not-allowed;
+	&[data-combobox-disabled] {
+		text-decoration: line-through;
+		cursor: not-allowed;
 
-        &:hover {
-            background: transparent;
-            color: #909296;
-        }
-    }
+		&:hover {
+			background: transparent;
+			color: #909296;
+		}
+	}
 
-    &:hover {
-        background: var(--bg-3);
-        color: var(--fg);
-    }
+	&:hover {
+		background: var(--bg-3);
+		color: var(--fg);
+	}
 }
 
 .footer {
-  border-color: color-mix(in srgb,var(--fg),transparent 66%) !important;
+	border-color: color-mix(in srgb, var(--fg), transparent 66%);
 }

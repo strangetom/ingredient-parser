@@ -1,3 +1,1 @@
-export {
-  ButtonSubmit
-} from "./ButtonSubmit"
+export { ButtonSubmit } from "./ButtonSubmit";

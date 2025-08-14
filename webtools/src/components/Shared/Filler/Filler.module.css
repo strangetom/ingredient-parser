@@ -1,23 +1,23 @@
 .root {
-     height: 100%;
-     width: 100%;
-     position: absolute;
-     top: 0;
-     left: 0;
-     right: 0;
-     bottom: 0;
-     display: flex;
-     flex-direction: column;
-     gap: var(--xxsmall-spacing);
+	height: 100%;
+	width: 100%;
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	display: flex;
+	flex-direction: column;
+	gap: var(--xxsmall-spacing);
 }
 
 .illustration {
-    width: 250px;
-    fill: var(--fg);
+	width: 250px;
+	fill: var(--fg);
 }
 
 .text {
-    max-width: 250px;
-    text-align: center;
-    color: var(--fg);
+	max-width: 250px;
+	text-align: center;
+	color: var(--fg);
 }
