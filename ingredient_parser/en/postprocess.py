@@ -201,6 +201,16 @@ class PostProcessor:
             # Process NAME labels as any other label, but return as a list
             if processed_name := self._postprocess("NAME"):
                 name = [processed_name]
+                if self.foundation_foods:
+                    # Extract name tokens. We can only return a single foundation food,
+                    # but we still need to return a list.
+                    name_tokens = [
+                        token
+                        for token, label in zip(self.tokens, self.labels)
+                        if label == "NAME"
+                    ]
+                    if ff := match_foundation_foods(name_tokens):
+                        foundationfoods = [ff]
             else:
                 name = []
 
