@@ -15,7 +15,7 @@ def p():
     """
     sentence = "2 14 ounce cans of coconut milk"
     tokens = ["2", "14", "ounce", "can", "of", "coconut", "milk"]
-    pos_tags = ["CD", "CD", "NN", "MD", "VB", "NN"]
+    pos_tags = ["CD", "CD", "NN", "MD", "VB", "NN", "NN"]
     labels = ["QTY", "QTY", "UNIT", "UNIT", "COMMENT", "B_NAME_TOK", "I_NAME_TOK"]
     scores = [
         0.9995971493946465,
@@ -41,6 +41,8 @@ def p():
 def p_string_numbers():
     """Define a PostProcessor object with discard_isolated_stop_words set to True
     to use for testing the PostProcessor class methods.
+
+    This sentence includes numbers written as words.
     """
     sentence = "2 butternut squash, about one and one-half pounds each"
     tokens = [
@@ -95,6 +97,8 @@ def p_string_numbers():
 def p_string_numbers_range():
     """Define a PostProcessor object with discard_isolated_stop_words set to True
     to use for testing the PostProcessor class methods.
+
+    This sentence includes a number range written in words.
     """
     sentence = "2 butternut squash, about one or two pounds each"
     tokens = [
@@ -149,6 +153,8 @@ def p_string_numbers_range():
 def p_postprep():
     """Define a PostProcessor object with discard_isolated_stop_words set to False
     to use for testing the PostProcessor class methods.
+
+    This sentence has the name after the preparation instruction.
     """
     sentence = "1 tbsp chopped pistachios"
     tokens = ["1", "tbsp", "chopped", "pistachios"]
@@ -204,6 +210,8 @@ def p_no_discard():
 def p_fraction_in_prep():
     """Define a PostProcessor object for sentence with a fraction in prep
     to use for testing the PostProcessor class methods.
+
+    This sentence includes a fraction in the preparation instructions.
     """
     sentence = "3 carrots, peeled and sliced into 5mm (¼in) coins"
     tokens = [
@@ -278,6 +286,8 @@ def p_fraction_in_prep():
 def p_fraction_range_in_prep():
     """Define a PostProcessor object for sentence with a fraction range in prep
     to use for testing the PostProcessor class methods.
+
+    This sentence includes a number range in the preparation instructions.
     """
     sentence = "3 carrots, peeled and sliced into 5-10mm (¼-½in) coins"
     tokens = [
@@ -346,6 +356,35 @@ def p_fraction_range_in_prep():
     ]
 
     return PostProcessor(sentence, tokens, pos_tags, labels, scores)
+
+
+@pytest.fixture
+def p_split_name():
+    """Define a PostProcessor object with discard_isolated_stop_words set to False
+    to use for testing the PostProcessor class methods.
+
+    This sentence has the name split by a token with a non-name label.
+    """
+    sentence = "5 fresh large basil leaves"
+    tokens = ["5", "fresh", "large", "basil", "leaves"]
+    pos_tags = ["CD", "JJ", "JJ", "NN", "NN"]
+    labels = ["QTY", "B_NAME_TOK", "SIZE", "B_NAME_TOK", "I_NAME_TOK"]
+    scores = [
+        0.99938548647492,
+        0.968725226931013,
+        0.9588222550056443,
+        0.5092435116086577,
+        0.9877923155569212,
+    ]
+
+    return PostProcessor(
+        sentence,
+        tokens,
+        pos_tags,
+        labels,
+        scores,
+        discard_isolated_stop_words=False,
+    )
 
 
 class TestPostProcessor__builtins__:
@@ -490,7 +529,10 @@ class TestPostProcessor_parsed:
         assert p_string_numbers_range.parsed == expected
 
     def test_postprep_amounts(self, p_postprep):
-        """ """
+        """
+        Test fixture returns expected ParsedIngredient object, with the preparation
+        tokens before the ingredient name.
+        """
         expected = ParsedIngredient(
             name=[
                 IngredientText(text="pistachios", confidence=0.998841, starting_index=3)
@@ -558,6 +600,10 @@ class TestPostProcessor_parsed:
         assert p_no_discard.parsed == expected
 
     def test_fraction_in_prep(self, p_fraction_in_prep):
+        """
+        Test fixture returns expected ParsedIngredient object, with the fraction in the
+        preparation instruction retained.
+        """
         expected = ParsedIngredient(
             name=[
                 IngredientText(text="carrots", confidence=0.998212, starting_index=1)
@@ -586,6 +632,10 @@ class TestPostProcessor_parsed:
         assert p_fraction_in_prep.parsed == expected
 
     def test_fraction_range_in_prep(self, p_fraction_range_in_prep):
+        """
+        Test fixture returns expected ParsedIngredient object, with the fraction range
+        in the preparation instruction retained.
+        """
         expected = ParsedIngredient(
             name=[
                 IngredientText(text="carrots", confidence=0.998212, starting_index=1)
@@ -612,3 +662,35 @@ class TestPostProcessor_parsed:
         )
 
         assert p_fraction_range_in_prep.parsed == expected
+
+    def test_split_ingredient_name(self, p_split_name):
+        """
+        Test fixture returns expected ParsedIngredient object, with a single name
+        despite a SIZE token splitting the name.
+        """
+        expected = ParsedIngredient(
+            name=[
+                IngredientText(
+                    text="fresh basil leaves",
+                    confidence=0.858621,
+                    starting_index=1,
+                )
+            ],
+            size=IngredientText(text="large", confidence=0.958822, starting_index=2),
+            amount=[
+                ingredient_amount_factory(
+                    quantity="5",
+                    unit="",
+                    text="5",
+                    confidence=0.999385,
+                    starting_index=0,
+                )
+            ],
+            preparation=None,
+            comment=None,
+            purpose=None,
+            foundation_foods=[],
+            sentence="5 fresh large basil leaves",
+        )
+
+        assert p_split_name.parsed == expected

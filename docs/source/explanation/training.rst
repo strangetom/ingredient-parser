@@ -112,7 +112,7 @@ An outline of the code for testing the model is shown below, which opens the tra
 
 .. note::
 
-    See the `Parser Model Card <https://github.com/strangetom/ingredient-parser/blob/master/ingredient_parser/en/ModelCard.en.md>`_ for the current model performance.
+    See the `Parser Model Card <https://github.com/strangetom/ingredient-parser/blob/master/ingredient_parser/en/data/ModelCard.en.md>`_ for the current model performance.
 
 To aid in assessing the model performance in more detailed, a number of optional outputs can be created by using the following arguments to the ``train.py`` command.
 

@@ -48,12 +48,14 @@ The post-processing to obtain the ingredient names is similar to above, but with
    #. Each NAME_VAR group is prepended to the beginning of the previous B_NAME_TOK group.
    #. Each NAME_MOD group is prepended to all previous B_NAME_TOK or NAME_VAR+B_NAME_TOK groups.
 
-#. Post-process these groups of indices as above, noting that the first two steps are already completed.
+#. Post-process these groups of indices as per the other, non-name labels, noting that the first two steps are already completed.
+#. If there are multiple names, check the part of speech tag for the last token in each name.
+   If the part of speech tag is IN, DT or JJ, merge the name with the next name.
 
 The output of this function is a list of :class:`IngredientText` objects, one for each ingredient names.
 
 If ``separate_names`` is set to False, then all the NAME_* label types are treated as a single NAME label and the post-processing is the same for the SIZE, PREP, PURPOSE and COMMENT labels.
-This will return a single :class:`IngredientText` object.
+This will return a list containing a single :class:`IngredientText` object.
 
 Amount
 ^^^^^^

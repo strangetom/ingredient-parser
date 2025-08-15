@@ -22,28 +22,6 @@ class TestPreProcessor__builtins__:
         p = PreProcessor("1/2 cup chicken broth")
         assert repr(p) == 'PreProcessor("1/2 cup chicken broth")'
 
-    def test_debug_output(self, capsys):
-        """
-        Test printed debug output
-        """
-        _ = PreProcessor("1/2 cup chicken broth", show_debug_output=True)
-        captured = capsys.readouterr()
-        assert (
-            captured.out
-            == """_replace_en_em_dash: 1/2 cup chicken broth
-_replace_html_fractions: 1/2 cup chicken broth
-_replace_unicode_fractions: 1/2 cup chicken broth
-combine_quantities_split_by_and: 1/2 cup chicken broth
-_identify_fractions: #1$2 cup chicken broth
-_split_quantity_and_units: #1$2 cup chicken broth
-_remove_unit_trailing_period: #1$2 cup chicken broth
-replace_string_range: #1$2 cup chicken broth
-_replace_dupe_units_ranges: #1$2 cup chicken broth
-_merge_quantity_x: #1$2 cup chicken broth
-_collapse_ranges: #1$2 cup chicken broth
-"""
-        )
-
 
 def normalise_test_cases() -> list[tuple[str, ...]]:
     """
@@ -107,7 +85,7 @@ class TestPreProcessor_sentence_features:
         expected = [
             {
                 "bias": "",
-                "sentence_length": 4,
+                "sentence_length": "4",
                 "pos": "CD",
                 "stem": "!num",
                 "is_capitalised": False,
@@ -118,6 +96,10 @@ class TestPreProcessor_sentence_features:
                 "is_after_comma": False,
                 "is_after_plus": False,
                 "word_shape": "!xxx",
+                "mip_start": False,
+                "mip_end": False,
+                "after_sentence_split": False,
+                "example_phrase": False,
                 "next_stem": "cup",
                 "next_pos": "CD+NN",
                 "next_is_capitalised": False,
@@ -128,6 +110,10 @@ class TestPreProcessor_sentence_features:
                 "next_is_after_comma": False,
                 "next_is_after_plus": False,
                 "next_word_shape": "xxx",
+                "next_mip_start": False,
+                "next_mip_end": False,
+                "next_after_sentence_split": False,
+                "next_example_phrase": False,
                 "next2_stem": "chicken",
                 "next2_pos": "CD+NN+NN",
                 "next2_is_capitalised": False,
@@ -138,6 +124,10 @@ class TestPreProcessor_sentence_features:
                 "next2_is_after_comma": False,
                 "next2_is_after_plus": False,
                 "next2_word_shape": "xxxxxxx",
+                "next2_mip_start": False,
+                "next2_mip_end": False,
+                "next2_after_sentence_split": False,
+                "next2_example_phrase": False,
                 "next3_stem": "broth",
                 "next3_pos": "CD+NN+NN+NN",
                 "next3_is_capitalised": False,
@@ -148,10 +138,14 @@ class TestPreProcessor_sentence_features:
                 "next3_is_after_comma": False,
                 "next3_is_after_plus": False,
                 "next3_word_shape": "xxxxx",
+                "next3_mip_start": False,
+                "next3_mip_end": False,
+                "next3_after_sentence_split": False,
+                "next3_example_phrase": False,
             },
             {
                 "bias": "",
-                "sentence_length": 4,
+                "sentence_length": "4",
                 "pos": "NN",
                 "stem": "cup",
                 "is_capitalised": False,
@@ -162,6 +156,10 @@ class TestPreProcessor_sentence_features:
                 "is_after_comma": False,
                 "is_after_plus": False,
                 "word_shape": "xxx",
+                "mip_start": False,
+                "mip_end": False,
+                "after_sentence_split": False,
+                "example_phrase": False,
                 "prev_stem": "!num",
                 "prev_pos": "CD+NN",
                 "prev_is_capitalised": False,
@@ -172,6 +170,10 @@ class TestPreProcessor_sentence_features:
                 "prev_is_after_comma": False,
                 "prev_is_after_plus": False,
                 "prev_word_shape": "!xxx",
+                "prev_mip_start": False,
+                "prev_mip_end": False,
+                "prev_after_sentence_split": False,
+                "prev_example_phrase": False,
                 "next_stem": "chicken",
                 "next_pos": "NN+NN",
                 "next_is_capitalised": False,
@@ -182,6 +184,10 @@ class TestPreProcessor_sentence_features:
                 "next_is_after_comma": False,
                 "next_is_after_plus": False,
                 "next_word_shape": "xxxxxxx",
+                "next_mip_start": False,
+                "next_mip_end": False,
+                "next_after_sentence_split": False,
+                "next_example_phrase": False,
                 "next2_stem": "broth",
                 "next2_pos": "NN+NN+NN",
                 "next2_is_capitalised": False,
@@ -192,10 +198,14 @@ class TestPreProcessor_sentence_features:
                 "next2_is_after_comma": False,
                 "next2_is_after_plus": False,
                 "next2_word_shape": "xxxxx",
+                "next2_mip_start": False,
+                "next2_mip_end": False,
+                "next2_after_sentence_split": False,
+                "next2_example_phrase": False,
             },
             {
                 "bias": "",
-                "sentence_length": 4,
+                "sentence_length": "4",
                 "pos": "NN",
                 "stem": "chicken",
                 "is_capitalised": False,
@@ -212,6 +222,10 @@ class TestPreProcessor_sentence_features:
                 "suffix_4": "cken",
                 "prefix_5": "chick",
                 "suffix_5": "icken",
+                "mip_start": False,
+                "mip_end": False,
+                "after_sentence_split": False,
+                "example_phrase": False,
                 "prev_stem": "cup",
                 "prev_pos": "NN+NN",
                 "prev_is_capitalised": False,
@@ -222,6 +236,10 @@ class TestPreProcessor_sentence_features:
                 "prev_is_after_comma": False,
                 "prev_is_after_plus": False,
                 "prev_word_shape": "xxx",
+                "prev_mip_start": False,
+                "prev_mip_end": False,
+                "prev_after_sentence_split": False,
+                "prev_example_phrase": False,
                 "prev2_stem": "!num",
                 "prev2_pos": "CD+NN+NN",
                 "prev2_is_capitalised": False,
@@ -232,6 +250,10 @@ class TestPreProcessor_sentence_features:
                 "prev2_is_after_comma": False,
                 "prev2_is_after_plus": False,
                 "prev2_word_shape": "!xxx",
+                "prev2_mip_start": False,
+                "prev2_mip_end": False,
+                "prev2_after_sentence_split": False,
+                "prev2_example_phrase": False,
                 "next_stem": "broth",
                 "next_pos": "NN+NN",
                 "next_is_capitalised": False,
@@ -242,10 +264,14 @@ class TestPreProcessor_sentence_features:
                 "next_is_after_comma": False,
                 "next_is_after_plus": False,
                 "next_word_shape": "xxxxx",
+                "next_mip_start": False,
+                "next_mip_end": False,
+                "next_after_sentence_split": False,
+                "next_example_phrase": False,
             },
             {
                 "bias": "",
-                "sentence_length": 4,
+                "sentence_length": "4",
                 "pos": "NN",
                 "stem": "broth",
                 "is_capitalised": False,
@@ -260,6 +286,10 @@ class TestPreProcessor_sentence_features:
                 "suffix_3": "oth",
                 "prefix_4": "brot",
                 "suffix_4": "roth",
+                "mip_start": False,
+                "mip_end": False,
+                "after_sentence_split": False,
+                "example_phrase": False,
                 "prev_stem": "chicken",
                 "prev_pos": "NN+NN",
                 "prev_is_capitalised": False,
@@ -270,6 +300,10 @@ class TestPreProcessor_sentence_features:
                 "prev_is_after_comma": False,
                 "prev_is_after_plus": False,
                 "prev_word_shape": "xxxxxxx",
+                "prev_mip_start": False,
+                "prev_mip_end": False,
+                "prev_after_sentence_split": False,
+                "prev_example_phrase": False,
                 "prev2_stem": "cup",
                 "prev2_pos": "NN+NN+NN",
                 "prev2_is_capitalised": False,
@@ -280,6 +314,10 @@ class TestPreProcessor_sentence_features:
                 "prev2_is_after_comma": False,
                 "prev2_is_after_plus": False,
                 "prev2_word_shape": "xxx",
+                "prev2_mip_start": False,
+                "prev2_mip_end": False,
+                "prev2_after_sentence_split": False,
+                "prev2_example_phrase": False,
                 "prev3_stem": "!num",
                 "prev3_pos": "CD+NN+NN+NN",
                 "prev3_is_capitalised": False,
@@ -290,6 +328,10 @@ class TestPreProcessor_sentence_features:
                 "prev3_is_after_comma": False,
                 "prev3_is_after_plus": False,
                 "prev3_word_shape": "!xxx",
+                "prev3_mip_start": False,
+                "prev3_mip_end": False,
+                "prev3_after_sentence_split": False,
+                "prev3_example_phrase": False,
             },
         ]
 

@@ -1,5 +1,25 @@
 # Changelog
 
+## 2.2.0
+
+### Foundation foods:
+
+* Bias foundation food matching to prefer "raw" FDC ingredients, but only if the ingredient name does not include any verbs that indicate the ingredient is not raw (e.g. "cooked").
+* Normalise spelling of tokens in ingredient names to align with spelling used in FDC ingredient descriptions.
+* Fix a bug where foundation foods were never calculated if `separate_names=False`.
+
+### General
+
+* Add logging to library, under the `ingredient-parser` namespace.
+
+### Model
+
+* Improve parser model performance with new features related to sentence structure, such as whether a token is part of an example phrase, a multi-ingredient phrase, or after the split in a compound sentence. See the [Feature Generation](https://ingredient-parser.readthedocs.io/en/latest/explanation/features.html) of the docs for more details.
+
+### Processing
+
+* Improve post processing of names to avoid returning multiple names if the name is split by a non-name token. For example, in the sentence "*8 fresh large basil leaves*", the name should be returned as "*fresh basil leaves*" and not as two separate names: "*fresh*", "*basil leaves*".
+
 ## 2.1.1
 
 * Pin Pint version to 0.24.4, as future versions intend to drop support for Python 3.10.

@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 
+import logging
 import re
 import string
 import unicodedata
-from dataclasses import dataclass
 from html import unescape
 
 from nltk import pos_tag
 
+from ..dataclasses import Token, TokenFeatures
 from ._constants import (
     AMBIGUOUS_UNITS,
     FLATTENED_UNITS_LIST,
@@ -17,6 +18,7 @@ from ._constants import (
 )
 from ._regex import (
     CAPITALISED_PATTERN,
+    CURRENCY_PATTERN,
     DIGIT_PATTERN,
     DUPE_UNIT_RANGES_PATTERN,
     EXPANDED_RANGE,
@@ -30,6 +32,7 @@ from ._regex import (
     UNITS_QUANTITY_PATTERN,
     UPPERCASE_PATTERN,
 )
+from ._structure_features import SentenceStrucureFeatures
 from ._utils import (
     combine_quantities_split_by_and,
     is_unit_synonym,
@@ -38,26 +41,9 @@ from ._utils import (
     tokenize,
 )
 
+logger = logging.getLogger("ingredient-parser.preprocess")
+
 CONSECUTIVE_SPACES = re.compile(r"\s+")
-
-
-@dataclass
-class TokenFeatures:
-    stem: str
-    shape: str
-    is_capitalised: bool
-    is_unit: bool
-    is_punc: bool
-    is_ambiguous_unit: bool
-
-
-@dataclass
-class Token:
-    index: int
-    text: str
-    feat_text: str
-    pos_tag: str
-    features: TokenFeatures
 
 
 class PreProcessor:
@@ -111,13 +97,9 @@ class PreProcessor:
     ----------
     input_sentence : str
         Input ingredient sentence.
-    show_debug_output : bool, optional
-        If True, print out each stage of the sentence normalisation
 
     Attributes
     ----------
-    show_debug_output : bool
-        If True, print out each stage of the sentence normalisation
     input : str
         Input ingredient sentence.
     sentence : str
@@ -129,27 +111,22 @@ class PreProcessor:
         Tokenised ingredient sentence.
     """
 
-    def __init__(
-        self,
-        input_sentence: str,
-        show_debug_output: bool = False,
-    ):
+    def __init__(self, input_sentence: str):
         """Initialise.
 
         Parameters
         ----------
         input_sentence : str
             Input ingredient sentence
-        show_debug_output : bool, optional
-            If True, print out each stage of the sentence normalisation
 
         """
-        self.show_debug_output = show_debug_output
         self.input: str = input_sentence
         self.sentence: str = self._normalise(input_sentence)
+        logger.debug(f'Normalised sentence: "{self.sentence}".')
 
         self.singularised_indices = []
         self.tokenized_sentence = self._calculate_tokens(self.sentence)
+        self.sentence_structure = SentenceStrucureFeatures(self.tokenized_sentence)
 
     def __repr__(self) -> str:
         """__repr__ method.
@@ -193,6 +170,7 @@ class PreProcessor:
         # List of functions to apply to sentence
         # Note that the order matters
         funcs = [
+            self._remove_price_annotations,
             self._replace_en_em_dash,
             self._replace_html_fractions,
             self._replace_unicode_fractions,
@@ -208,11 +186,27 @@ class PreProcessor:
 
         for func in funcs:
             sentence = func(sentence)
-
-            if self.show_debug_output:
-                print(f"{func.__name__}: {sentence}")
+            logger.debug(f"{func.__name__}: {sentence}")
 
         return sentence.strip()
+
+    def _remove_price_annotations(self, sentence: str) -> str:
+        """Remove price annotations like ($0.20), (£1.50), etc. from the sentence.
+
+        Allows whitespace to occur after openining parenthesis, after currency symbol
+        and before closing parenthesis.
+
+        Parameters
+        ----------
+        sentence : str
+            Ingredient sentence
+
+        Returns
+        -------
+        str
+            Ingredient sentence with price annotations removed
+        """
+        return CURRENCY_PATTERN.sub("", sentence)
 
     def _replace_en_em_dash(self, sentence: str) -> str:
         """Replace en-dashes and em-dashes with hyphens.
@@ -564,6 +558,9 @@ class PreProcessor:
             else:
                 text_tokens.append(text)
 
+        logger.debug(f"Tokenized sentence: {text_tokens}.")
+        logger.debug(f"Singularised tokens at indices: {self.singularised_indices}.")
+
         tokens = []
         for i, (text, pos) in enumerate(pos_tag(text_tokens)):
             # Convert tokens:
@@ -577,9 +574,16 @@ class PreProcessor:
             # Get part of speech tag, with overrides for certain tokens
             if self._is_numeric(text):
                 pos = "CD"
-            elif text in ["c", "g"]:
+            elif text.lower() in ["c", "g"]:
                 # Special cases for c (cup) and g (gram)
                 pos = "NN"
+            elif text.lower() in ["and/or", "or", "and"]:
+                # Force 'and/or' tag to conjunction
+                # Force OR tag to conjunction
+                pos = "CC"
+            elif text.lower() == "e.g.":
+                # Force "e.g." tag to preposition/coordinating subjunction
+                pos = "IN"
 
             features = TokenFeatures(
                 stem=stem(feat_text),
@@ -970,7 +974,7 @@ class PreProcessor:
 
         return ngram_features
 
-    def _token_features(self, token: Token) -> dict[str, str | bool | int | float]:
+    def _token_features(self, token: Token) -> dict[str, str | bool]:
         """Return the features for the token at the given index in the sentence.
 
         If the token at the given index appears in the corpus parameter, the token is
@@ -984,15 +988,15 @@ class PreProcessor:
 
         Returns
         -------
-        dict[str, str | bool| int | float]
+        dict[str, str | bool]
             Dictionary of features for token at index.
         """
 
         index = token.index
-        features: dict[str, str | bool | int | float] = {}
+        features: dict[str, str | bool] = {}
 
         features["bias"] = ""
-        features["sentence_length"] = self._sentence_length_bucket()
+        features["sentence_length"] = str(self._sentence_length_bucket())
 
         # Features for current token
         features["pos"] = token.pos_tag
@@ -1002,6 +1006,7 @@ class PreProcessor:
 
         features |= self._common_features(index, "")
         features |= self._ngram_features(token.feat_text, "")
+        features |= self.sentence_structure.token_features(index, "")
 
         # Features for previous token
         if index > 0:
@@ -1014,6 +1019,7 @@ class PreProcessor:
                 )
             )
             features |= self._common_features(index - 1, "prev_")
+            features |= self.sentence_structure.token_features(index - 1, "prev_")
 
         # Features for previous previous token
         if index > 1:
@@ -1027,6 +1033,7 @@ class PreProcessor:
                 )
             )
             features |= self._common_features(index - 2, "prev2_")
+            features |= self.sentence_structure.token_features(index - 2, "prev2_")
 
         # Features for previous previous previous token
         if index > 2:
@@ -1041,6 +1048,7 @@ class PreProcessor:
                 )
             )
             features |= self._common_features(index - 3, "prev3_")
+            features |= self.sentence_structure.token_features(index - 3, "prev3_")
 
         # Features for next token
         if index < len(self.tokenized_sentence) - 1:
@@ -1053,6 +1061,7 @@ class PreProcessor:
                 )
             )
             features |= self._common_features(index + 1, "next_")
+            features |= self.sentence_structure.token_features(index + 1, "next_")
 
         # Features for next next token
         if index < len(self.tokenized_sentence) - 2:
@@ -1066,6 +1075,7 @@ class PreProcessor:
                 )
             )
             features |= self._common_features(index + 2, "next2_")
+            features |= self.sentence_structure.token_features(index + 2, "next2_")
 
         # Features for next next next token
         if index < len(self.tokenized_sentence) - 3:
@@ -1080,15 +1090,17 @@ class PreProcessor:
                 )
             )
             features |= self._common_features(index + 3, "next3_")
+            features |= self.sentence_structure.token_features(index + 3, "next3_")
 
         return features
 
-    def sentence_features(self) -> list[dict[str, str | bool | int | float]]:
-        """Return features for all tokens in sentence.
+    def sentence_features(self) -> list[dict[str, str | bool]]:
+        """Return dict of features for each token in sentence.
 
         Returns
         -------
-        list[dict[str, str | bool | int]]
-            List of features for each token in sentence
+        list[dict[str, str | bool]]
+            List of feature dicts for each token in sentence
         """
+        logger.debug("Generating features for tokens.")
         return [self._token_features(token) for token in self.tokenized_sentence]

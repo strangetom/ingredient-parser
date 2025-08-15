@@ -48,13 +48,13 @@ The model has the following accuracy on a test data set of 20% of the total data
 
 ```
 Sentence-level results:
-	Accuracy: 94.66%
+	Accuracy: 94.94%
 
 Word-level results:
-	Accuracy 97.82%
-	Precision (micro) 97.81%
-	Recall (micro) 97.82%
-	F1 score (micro) 97.81%
+	Accuracy 97.90%
+	Precision (micro) 97.88%
+	Recall (micro) 97.90%
+	F1 score (micro) 97.88%
 ```
 
 ## Development
@@ -67,6 +67,8 @@ pre-commit install
 ```
 
 to install the pre-commit hooks.
+
+Please target the **develop** branch for pull requests. The main branch is used for stable releases and hotfixes only.
 
 There is a simple web app for testing the parser with ingredient sentences and showing the parsed output. To run the web app, run the command
 

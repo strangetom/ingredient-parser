@@ -5,4 +5,5 @@ How to guides
    :maxdepth: 1
 
    Convert units <convert-units>
+   Logging <logging>
    Extend to other languages <extending>

@@ -2,6 +2,7 @@
 
 import argparse
 import concurrent.futures as cf
+import logging
 import os
 import time
 from datetime import timedelta
@@ -11,14 +12,16 @@ from uuid import uuid4
 import pycrfsuite
 from sklearn.model_selection import train_test_split
 from tabulate import tabulate
-from tqdm import tqdm
 
 from .train_model import DEFAULT_MODEL_LOCATION
 from .training_utils import (
     DataVectors,
+    convert_num_ordinal,
     evaluate,
     load_datasets,
 )
+
+logger = logging.getLogger(__name__)
 
 DISCARDED_FEATURES = {
     0: [],
@@ -71,6 +74,7 @@ def train_model_feature_search(
     save_model: str,
     seed: int,
     keep_model: bool,
+    combine_name_labels: bool,
 ) -> dict:
     """Train model using selected features returning model performance statistics,
     model parameters and elapsed training time.
@@ -90,6 +94,8 @@ def train_model_feature_search(
         testing sets.
     keep_model : bool
         If True, keep model after evaluation, otherwise delete it.
+    combine_name_labels : bool, optional
+        If True, combine all NAME labels into a single NAME label.
 
     Returns
     -------
@@ -154,7 +160,7 @@ def train_model_feature_search(
     tagger = pycrfsuite.Tagger()  # type: ignore
     tagger.open(str(save_model_path))
     labels_pred = [tagger.tag(X) for X in features_test]
-    stats = evaluate(labels_pred, truth_test, seed)
+    stats = evaluate(labels_pred, truth_test, seed, combine_name_labels)
 
     if not keep_model:
         save_model_path.unlink(missing_ok=True)
@@ -176,7 +182,13 @@ def feature_search(args: argparse.Namespace):
     args : argparse.Namespace
         Feature search configuration
     """
-    vectors = load_datasets(args.database, args.table, args.datasets)
+    vectors = load_datasets(
+        args.database,
+        args.table,
+        args.datasets,
+        discard_other=True,
+        combine_name_labels=args.combine_name_labels,
+    )
 
     if args.save_model is None:
         save_model = DEFAULT_MODEL_LOCATION
@@ -192,18 +204,23 @@ def feature_search(args: argparse.Namespace):
             save_model,
             args.seed,
             args.keep_models,
+            args.combine_name_labels,
         ]
         argument_sets.append(arguments)
 
-    print(f"[INFO] Grid search over {len(argument_sets)} feature sets.")
-    print(f"[INFO] {args.seed} is the random seed used for the train/test split.")
+    logger.info(f"Grid search over {len(argument_sets)} feature sets.")
+    logger.info(f"{args.seed} is the random seed used for the train/test split.")
 
     eval_results = []
     with cf.ProcessPoolExecutor(max_workers=args.processes) as executor:
         futures = [
             executor.submit(train_model_feature_search, *a) for a in argument_sets
         ]
-        for future in tqdm(cf.as_completed(futures), total=len(futures)):
+        logger.info(
+            f"Queued for separate runs against {len(argument_sets)} feature sets"
+        )
+        for idx, future in enumerate(cf.as_completed(futures)):
+            logger.info(f"{convert_num_ordinal(idx + 1)} set completed")
             eval_results.append(future.result())
 
     # Sort with highest sentence accuracy first
@@ -234,4 +251,14 @@ def feature_search(args: argparse.Namespace):
             ]
         )
 
-    print(tabulate(table, headers=headers, tablefmt="simple_outline"))
+    print(
+        "\n"
+        + tabulate(
+            table,
+            headers=headers,
+            tablefmt="fancy_grid",
+            stralign="left",
+            numalign="right",
+        )
+        + "\n"
+    )

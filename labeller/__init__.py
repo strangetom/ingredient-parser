@@ -237,11 +237,9 @@ def apply_filter(params: dict[str, str]):
     # 9 possible labels in total
     if len(labels) == 14:
         # Search through sentences
-        indices = []
-        for entry in data:
-            if query.search(entry["sentence"]):
-                indices.append(str(entry["id"]))
-
+        indices = [
+            str(entry["id"]) for entry in data if query.search(entry["sentence"])
+        ]
         return redirect(url_for("sentences_by_id", indices=",".join(indices)))
     else:
         # Build string to search through from tokens with specified labels

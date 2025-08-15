@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import logging
 import re
 from collections import defaultdict
 from dataclasses import dataclass
@@ -31,6 +32,8 @@ from ._utils import (
     ingredient_amount_factory,
     replace_string_range,
 )
+
+logger = logging.getLogger("ingredient-parser.postprocess")
 
 WORD_CHAR = re.compile(r"\w")
 
@@ -191,10 +194,23 @@ class PostProcessor:
                 else:
                     name_replaced_labels.append(label)
             self.labels = name_replaced_labels
+            logger.debug(
+                f"Relabelled tokens to {self.labels} because seperate_name=False."
+            )
 
-            # Process NAME labels as any other label, but return a list
+            # Process NAME labels as any other label, but return as a list
             if processed_name := self._postprocess("NAME"):
                 name = [processed_name]
+                if self.foundation_foods:
+                    # Extract name tokens. We can only return a single foundation food,
+                    # but we still need to return a list.
+                    name_tokens = [
+                        token
+                        for token, label in zip(self.tokens, self.labels)
+                        if label == "NAME"
+                    ]
+                    if ff := match_foundation_foods(name_tokens):
+                        foundationfoods = [ff]
             else:
                 name = []
 
@@ -265,24 +281,44 @@ class PostProcessor:
 
         name_labels = [self.labels[i] for i in name_idx]
         bio_groups = self._group_name_labels(name_labels)
-        constructed_names = self._construct_names(bio_groups)
+        constructed_names = self._construct_names_from_bio_groups(bio_groups)
+        names, foundation_foods = self._convert_name_indices_to_object(
+            name_idx, constructed_names
+        )
+        return names, foundation_foods
 
-        names = []
-        foundation_foods = set()  # Use a set to avoid duplicates
-        for group in constructed_names:
-            # Convert from name_label indices to token indices
-            token_idx = [name_idx[idx] for idx in group]
-            ing_text = self._postprocess_indices(token_idx, "NAME")
-            if ing_text is not None:
-                names.append(ing_text)
+    def _deduplicate_names(self, names: list[IngredientText]) -> list[IngredientText]:
+        """Deduplicate list of names.
 
-                if self.foundation_foods:
-                    tokens = [self.tokens[i] for i in token_idx]
-                    ff = match_foundation_foods(tokens)
-                    if ff:
-                        foundation_foods.add(ff)
+        Where the same name text appears in multiple IngredientText objects, the
+        confidence values are averaged, and the minimum starting_index is kept for the
+        deduplicated names.
 
-        return names, list(foundation_foods)
+        Parameters
+        ----------
+        names : list[IngredientText]
+            List of names.
+
+        Returns
+        -------
+        list[IngredientText]
+            Deduplicated list of names.
+        """
+        name_dict = defaultdict(list)
+        for name in names:
+            name_dict[name.text].append(name)
+
+        deduped_names = []
+        for text, name_objs in name_dict.items():
+            deduped_names.append(
+                IngredientText(
+                    text=text,
+                    confidence=mean([n.confidence for n in name_objs]),
+                    starting_index=min([n.starting_index for n in name_objs]),
+                )
+            )
+
+        return deduped_names
 
     def _group_name_labels(self, name_labels: list[str]) -> list[list[tuple[int, str]]]:
         """Group name labels according to name label type.
@@ -342,7 +378,7 @@ class PostProcessor:
 
         return name_groups
 
-    def _construct_names(
+    def _construct_names_from_bio_groups(
         self, name_groups: list[list[tuple[int, str]]]
     ) -> list[list[int]]:
         """Construct names from BIO groups.
@@ -396,7 +432,7 @@ class PostProcessor:
                     last_encountered_name_used = True
                 else:
                     # If we are here, then we've come across a VAR group that does not
-                    # preceed a TOK group, so the model has made an error in it's
+                    # precede a TOK group, so the model has made an error in it's
                     # labelling. Add this VAR group anyway.
                     constructed_names.append(current_group_idx)
 
@@ -439,6 +475,114 @@ class PostProcessor:
             if label != "PUNC":
                 return label.split("_")[-1]
 
+        return ""
+
+    def _convert_name_indices_to_object(
+        self, name_idx: list[int], name_indices: list[list[int]]
+    ) -> tuple[list[IngredientText], list[FoundationFood]]:
+        """Convert grouped indices for name tokens into IngredientText objects. If
+        foundation foods are enabled, determine matching foundation food for each name.
+
+        If an ingredient name ends with a token with POS tag of DT, IN or JJ, merge it
+        with the next name group, if there is one. This is to avoid cases in a sentence
+        like "5 fresh large basil leaves" where "large" is given the SIZE label,
+        resulting in two separate names: "fresh" and "basil leaves". Instead, we want to
+        return a single name: "fresh basil leaves".
+
+        Parameters
+        ----------
+        name_idx : list[int]
+            List of indices of NAME tokens.
+        name_indices : list[list[int]]
+            List of groups of indices corresponding to ingredient names.
+
+        Returns
+        -------
+        tuple[list[IngredientText], list[FoundationFood]]
+            List of deduplicated IngredientText objects and FoundationFoods objects.
+        """
+        names = []
+        foundation_foods = set()  # Use a set to avoid duplicates
+
+        # Keep track of IngredientText objects and indices to merge with next.
+        # We do the merge if the name ends with DT, IN, JJ part of speech tag.
+        merge_with_next: IngredientText | None = None
+        merge_with_next_idx: list[int] | None = None
+
+        for group in name_indices:
+            # Convert from name_label indices to token indices
+            token_idx = [name_idx[idx] for idx in group]
+            ing_text = self._postprocess_indices(token_idx, "NAME")
+            if ing_text is None:
+                continue
+
+            if merge_with_next and merge_with_next_idx:
+                # If we need to merge the previous name, do it now.
+                ing_text = IngredientText(
+                    text=merge_with_next.text + " " + ing_text.text,
+                    confidence=round(
+                        (merge_with_next.confidence + ing_text.confidence) / 2, 6
+                    ),
+                    starting_index=min(
+                        [merge_with_next.starting_index, ing_text.starting_index]
+                    ),
+                )
+                token_idx = [*merge_with_next_idx, *token_idx]
+
+            if self._last_non_punc_token_pos(token_idx) in {"DT", "IN", "JJ"}:
+                # Mark name for merging with next name.
+                merge_with_next = ing_text
+                merge_with_next_idx = token_idx
+                # Skip to next iteration
+                continue
+            else:
+                names.append(ing_text)
+                merge_with_next = None
+                merge_with_next_idx = None
+
+                if self.foundation_foods:
+                    # Bug: token_idx is wrong here if we merged names
+                    tokens = [self.tokens[i] for i in token_idx]
+                    ff = match_foundation_foods(tokens)
+                    if ff:
+                        foundation_foods.add(ff)
+
+        if merge_with_next and merge_with_next_idx:
+            # Catch any remaining IngredientText objects marked as needing to be merged
+            # but haven't been.
+            names.append(merge_with_next)
+            if self.foundation_foods:
+                # Bug: token_idx is wrong here if we merged names
+                tokens = [self.tokens[i] for i in merge_with_next_idx]
+                ff = match_foundation_foods(tokens)
+                if ff:
+                    foundation_foods.add(ff)
+
+        return self._deduplicate_names(names), list(foundation_foods)
+
+    def _last_non_punc_token_pos(self, token_idx: list[int]) -> str:
+        """Return the POS tag at the last index in token_idx, ignoring all indices
+        corresponding to punctuation.
+
+        Parameters
+        ----------
+        token_idx : list[int]
+            List of token indices to find last non-punctuation POS tag.
+
+        Returns
+        -------
+        str
+            POS tag for last non-punctuation index.
+        """
+        for idx in reversed(token_idx):
+            if self.labels[idx] == "PUNC":
+                continue
+
+            return self.pos_tags[idx]
+
+        # Return empty string so we don't try to merge this with the next name.
+        # This should never occur because self._postprocess_indices is called before
+        # this and that function skips over any potential name that is all punctuation.
         return ""
 
     def _postprocess_indices(
@@ -865,6 +1009,7 @@ class PostProcessor:
             "box",
             "bucket",
             "can",
+            "carton",
             "container",
             "envelope",
             "jar",
