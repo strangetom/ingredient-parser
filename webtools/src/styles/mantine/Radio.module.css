@@ -1,0 +1,6 @@
+.radio {
+	&:checked {
+		background-color: var(--green-alt);
+		border-color: var(--green-alt);
+	}
+}

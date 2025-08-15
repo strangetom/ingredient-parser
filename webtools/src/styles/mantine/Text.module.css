@@ -1,0 +1,9 @@
+.root {
+	&[data-variant="dark"] {
+		color: var(--bg-3);
+	}
+
+	&[data-variant="light"] {
+		color: var(--fg);
+	}
+}

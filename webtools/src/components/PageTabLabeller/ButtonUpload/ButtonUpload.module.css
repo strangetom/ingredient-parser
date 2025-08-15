@@ -1,0 +1,31 @@
+.content {
+	overflow: hidden;
+}
+
+.inner {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	width: 100%;
+}
+
+.scrollarea {
+	height: 100%;
+	width: 100%;
+	flex-grow: 1;
+	position: relative;
+}
+
+.stepperRoot {
+	height: 100%;
+	width: 100%;
+}
+
+.stepperSteps {
+	display: none;
+}
+
+.stepperContent {
+	height: 100%;
+	width: 100%;
+}
