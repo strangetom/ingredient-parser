@@ -71,12 +71,12 @@ def group_consecutive_idx(idx: list[int]) -> Generator[Iterator[int], None, None
     Parameters
     ----------
     idx : list[int]
-        List of indices
+        List of indices.
 
     Yields
     ------
     list[list[int]]
-        List of lists, where each sub-list contains consecutive indices
+        List of lists, where each sub-list contains consecutive indices.
 
     Examples
     --------
@@ -141,12 +141,12 @@ def is_float(value: str) -> bool:
     Parameters
     ----------
     value : str
-        Value to check
+        Value to check.
 
     Returns
     -------
     bool
-        True if the value can be converted to float, else False
+        True if the value can be converted to float, else False.
 
     Examples
     --------
@@ -172,12 +172,12 @@ def is_range(value: str) -> bool:
     Parameters
     ----------
     value : str
-        Value to check
+        Value to check.
 
     Returns
     -------
     bool
-        True if the value is a range, else False
+        True if the value is a range, else False.
 
     Examples
     --------

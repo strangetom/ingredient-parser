@@ -21,6 +21,13 @@ class GloVeModel:
     """
 
     def __init__(self, vec_file: str):
+        """Initialise.
+
+        Parameters
+        ----------
+        vec_file : str
+            Path to GloVe embeddings file.
+        """
         self.vec_file = vec_file
         self._load_vectors_from_file(vec_file)
         self._binarize_vectors()
@@ -72,7 +79,7 @@ class GloVeModel:
         Parameters
         ----------
         vec_file : str
-            File to load vectors from.
+            Path to GloVe embeddings file.
         """
         self.vectors = {}
         with as_file(files(__package__) / vec_file) as p:

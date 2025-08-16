@@ -129,7 +129,7 @@ class IngredientAmount:
         Returns
         -------
         Self
-            Deep copy of self
+            Deep copy of self.
         """
         return copy.deepcopy(self)
 
@@ -255,7 +255,7 @@ class CompositeIngredientAmount:
         Returns
         -------
         pint.Quantity
-            Combined amount
+            Combined amount.
 
         Raises
         ------
@@ -314,8 +314,7 @@ class CompositeIngredientAmount:
         Returns
         -------
         pint.Quantity
-            Combined amount converted to given units
-
+            Combined amount converted to given units.
         """
         # Apply density context for conversion.
         # This is only relevant if converting between mass <-> volume.
@@ -346,8 +345,7 @@ class IngredientText:
 
 @dataclass
 class FoundationFood:
-    """Dataclass for the attributes of an entry in the Food Data Central database that
-    matches an ingredient name from an ingredient sentence.
+    """Dataclass for the attributes of an entry in the Food Data Central database.
 
     Attributes
     ----------
@@ -435,7 +433,6 @@ class ParsedIngredient:
          * the preparation instruction is after the name(s) AND
          * the amount is after the preparation instruction
         e.g. Onion, thinly sliced (about 1 cup)
-
 
         Assumes that any preparation text appear entirely before or entirely after all
         names.

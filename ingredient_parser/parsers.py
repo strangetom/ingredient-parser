@@ -24,7 +24,7 @@ def parse_ingredient(
         Ingredient sentence to parse.
     lang : str
         Language of sentence.
-        Currently supported options are: en
+        Currently supported options are: en.
     separate_names : bool, optional
         If True and the sentence contains multiple alternative ingredients, return an
         IngredientText object for each ingredient name, otherwise return a single
@@ -58,7 +58,7 @@ def parse_ingredient(
     Returns
     -------
     ParsedIngredient
-        ParsedIngredient object of structured data parsed from input string
+        ParsedIngredient object of structured data parsed from input string.
     """
     if lang not in SUPPORTED_LANGUAGES:
         raise ValueError(f'Unsupported language "{lang}"')
@@ -102,7 +102,7 @@ def parse_multiple_ingredients(
         List of sentences to parse.
     lang : str
         Language of sentence.
-        Currently supported options are: en
+        Currently supported options are: en.
     separate_names : bool, optional
         If True and the sentence contains multiple alternative ingredients, return an
         IngredientText object for each ingredient name, otherwise return a single
@@ -136,8 +136,7 @@ def parse_multiple_ingredients(
     Returns
     -------
     list[ParsedIngredient]
-        List of ParsedIngredient objects of structured data parsed
-        from input sentences
+        List of ParsedIngredient objects of structured data parsed from input sentences.
     """
     return [
         parse_ingredient(
@@ -172,7 +171,7 @@ def inspect_parser(
         Ingredient sentence to parse.
     lang : str
         Language of sentence.
-        Currently supported options are: en
+        Currently supported options are: en.
     separate_names : bool, optional
         If True and the sentence contains multiple alternative ingredients, return an
         IngredientText object for each ingredient name, otherwise return a single

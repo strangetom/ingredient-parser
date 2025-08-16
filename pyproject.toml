@@ -91,3 +91,13 @@ reportUnuedFunction = true
 reportUnusedVariable = true
 reportWildcardImportFromLibrary = true
 reportPrivateUsage = true
+
+[tool.numpydoc_validation]
+checks = [
+    "all",   # report on all checks, except the below
+    "GL01",
+    "GL08",
+    "ES01",
+    "SA01",
+    "EX01",
+]

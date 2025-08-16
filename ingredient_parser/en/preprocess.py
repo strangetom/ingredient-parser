@@ -117,8 +117,7 @@ class PreProcessor:
         Parameters
         ----------
         input_sentence : str
-            Input ingredient sentence
-
+            Input ingredient sentence.
         """
         self.input: str = input_sentence
         self.sentence: str = self._normalise(input_sentence)
@@ -134,7 +133,7 @@ class PreProcessor:
         Returns
         -------
         str
-            String representation of initialised object
+            String representation of initialised object.
         """
         return f'PreProcessor("{self.input}")'
 
@@ -144,7 +143,7 @@ class PreProcessor:
         Returns
         -------
         str
-            Human readable string representation of object
+            Human readable string representation of object.
         """
         _str = [
             "Pre-processed recipe ingredient sentence",
@@ -160,12 +159,12 @@ class PreProcessor:
         Parameters
         ----------
         sentence : str
-            Ingredient sentence
+            Ingredient sentence.
 
         Returns
         -------
         str
-            Normalised ingredient sentence
+            Normalised ingredient sentence.
         """
         # List of functions to apply to sentence
         # Note that the order matters
@@ -199,12 +198,12 @@ class PreProcessor:
         Parameters
         ----------
         sentence : str
-            Ingredient sentence
+            Ingredient sentence.
 
         Returns
         -------
         str
-            Ingredient sentence with price annotations removed
+            Ingredient sentence with price annotations removed.
         """
         return CURRENCY_PATTERN.sub("", sentence)
 
@@ -214,12 +213,12 @@ class PreProcessor:
         Parameters
         ----------
         sentence : str
-            Ingredient sentence
+            Ingredient sentence.
 
         Returns
         -------
         str
-            Ingredient sentence with en and em dashes replaced with hyphens
+            Ingredient sentence with en and em dashes replaced with hyphens.
 
         Examples
         --------
@@ -239,12 +238,12 @@ class PreProcessor:
         Parameters
         ----------
         sentence : str
-            Ingredient sentence
+            Ingredient sentence.
 
         Returns
         -------
         str
-            Ingredient sentence with html fractions replaced
+            Ingredient sentence with html fractions replaced.
 
         Examples
         --------
@@ -255,8 +254,7 @@ class PreProcessor:
         return unescape(sentence)
 
     def _identify_fractions(self, sentence: str) -> str:
-        """Identify fractions and modify them so that they are do not get split by
-        the tokenizer.
+        """Identify and modify fractions so that they do not get split by the tokenizer.
 
         This looks for fractions with the format of 1/2, 1/4, 1 1/2 etc. and replaces
         the forward slash with $ and inserts a # before the fractional part.
@@ -264,12 +262,12 @@ class PreProcessor:
         Parameters
         ----------
         sentence : str
-            Ingredient sentence
+            Ingredient sentence.
 
         Returns
         -------
         str
-            Ingredient sentence with fractions replaced with decimals
+            Ingredient sentence with fractions replaced with decimals.
 
         Examples
         --------
@@ -324,12 +322,12 @@ class PreProcessor:
         Parameters
         ----------
         sentence : str
-            Ingredient sentence
+            Ingredient sentence.
 
         Returns
         -------
         str
-            Ingredient sentence with unicode fractions replaced
+            Ingredient sentence with unicode fractions replaced.
 
         Examples
         --------
@@ -360,12 +358,12 @@ class PreProcessor:
         Parameters
         ----------
         sentence : str
-            Ingredient sentence
+            Ingredient sentence.
 
         Returns
         -------
         str
-            Ingredient sentence with spaces inserted between quantity and units
+            Ingredient sentence with spaces inserted between quantity and units.
 
         Examples
         --------
@@ -396,12 +394,12 @@ class PreProcessor:
         Parameters
         ----------
         sentence : str
-            Ingredient sentence
+            Ingredient sentence.
 
         Returns
         -------
         str
-            Ingredient sentence with trailing periods from units removed
+            Ingredient sentence with trailing periods from units removed.
 
         Examples
         --------
@@ -440,13 +438,13 @@ class PreProcessor:
         Parameters
         ----------
         sentence : str
-            Ingredient sentence
+            Ingredient sentence.
 
         Returns
         -------
         str
             Ingredient sentence with ranges containing unit twice replaced with
-            standardised range
+            standardised range.
 
         Examples
         --------
@@ -486,12 +484,12 @@ class PreProcessor:
         Parameters
         ----------
         sentence : str
-            Ingredient sentence
+            Ingredient sentence.
 
         Returns
         -------
         str
-            Ingredient sentence with single "x" merged into preceding number
+            Ingredient sentence with single "x" merged into preceding number.
 
         Examples
         --------
@@ -511,12 +509,12 @@ class PreProcessor:
         Parameters
         ----------
         sentence : str
-            Ingredient sentence
+            Ingredient sentence.
 
         Returns
         -------
         str
-            Ingredient sentence with white space removed from ranges
+            Ingredient sentence with white space removed from ranges.
 
         Examples
         --------
@@ -612,12 +610,12 @@ class PreProcessor:
         Parameters
         ----------
         token : str
-            Token to check
+            Token to check.
 
         Returns
         -------
         bool
-            True if token is a unit, else False
+            True if token is a unit, else False.
 
         Examples
         --------
@@ -637,12 +635,12 @@ class PreProcessor:
         Parameters
         ----------
         token : str
-            Token to check
+            Token to check.
 
         Returns
         -------
         bool
-            True if token is a punctuation mark, else False
+            True if token is a punctuation mark, else False.
 
         Examples
         --------
@@ -666,12 +664,12 @@ class PreProcessor:
         Parameters
         ----------
         token : str
-            Token to check
+            Token to check.
 
         Returns
         -------
         bool
-            True if token is numeric, else False
+            True if token is numeric, else False.
 
         Examples
         --------
@@ -738,12 +736,12 @@ class PreProcessor:
         Parameters
         ----------
         index : int
-            Index of token to check
+            Index of token to check.
 
         Returns
         -------
         bool
-            True if token follows comma, else False
+            True if token follows comma, else False.
         """
         return "," in [t.feat_text for t in self.tokenized_sentence[:index]]
 
@@ -755,12 +753,12 @@ class PreProcessor:
         Parameters
         ----------
         index : int
-            Index of token to check
+            Index of token to check.
 
         Returns
         -------
         bool
-            True if token follows "plus", else False
+            True if token follows "plus", else False.
         """
         return "plus" in [t.feat_text for t in self.tokenized_sentence[:index]]
 
@@ -770,12 +768,12 @@ class PreProcessor:
         Parameters
         ----------
         token : str
-            Token to check
+            Token to check.
 
         Returns
         -------
         bool
-            True if token starts with a capital letter, else False
+            True if token starts with a capital letter, else False.
 
         Examples
         --------
@@ -795,12 +793,12 @@ class PreProcessor:
         Parameters
         ----------
         index : int
-            Index of token to check
+            Index of token to check.
 
         Returns
         -------
         bool
-            True if index is inside parentheses or is parenthesis, else False
+            True if index is inside parentheses or is parenthesis, else False.
         """
         # If it's "(" or ")", return True
         if self.tokenized_sentence[index].feat_text in ["(", ")", "[", "]"]:
@@ -825,12 +823,12 @@ class PreProcessor:
         Parameters
         ----------
         token : str
-            Token to check
+            Token to check.
 
         Returns
         -------
         bool
-            True if token is in AMBIGUOUS_UNITS, else False
+            True if token is in AMBIGUOUS_UNITS, else False.
 
         Examples
         --------
@@ -856,7 +854,7 @@ class PreProcessor:
         Returns
         -------
         int
-            Length bucket of sentence
+            Length bucket of sentence.
         """
         length = len(self.tokenized_sentence)
         bucket = 1
@@ -984,7 +982,7 @@ class PreProcessor:
         Parameters
         ----------
         token : Token
-            Token to generate features for
+            Token to generate features for.
 
         Returns
         -------
@@ -1100,7 +1098,7 @@ class PreProcessor:
         Returns
         -------
         list[dict[str, str | bool]]
-            List of feature dicts for each token in sentence
+            List of feature dicts for each token in sentence.
         """
         logger.debug("Generating features for tokens.")
         return [self._token_features(token) for token in self.tokenized_sentence]
