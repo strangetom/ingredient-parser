@@ -115,6 +115,7 @@ def parser():
             imperial_units = data.get("imperial_units", False)
             foundation_foods = data.get("foundation_foods", False)
             optimistic_cache_reset = data.get("optimistic_cache_reset", False)
+            separate_names = data.get("separate_names", False)
 
             if optimistic_cache_reset:
                 load_parser_model.cache_clear()
@@ -126,6 +127,7 @@ def parser():
                 string_units=string_units,
                 imperial_units=imperial_units,
                 foundation_foods=foundation_foods,
+                separate_names=separate_names,
             )
             parsed = parser_info.PostProcessor.parsed
             marginals = get_all_marginals(parser_info)

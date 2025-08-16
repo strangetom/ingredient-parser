@@ -269,8 +269,6 @@ export function GlobalStyles({ children }: { children: React.ReactNode }) {
 	const theme = createTheme({
 		scale: 1,
 		components: components,
-		fontFamily: '"Work Sans", sans-serif',
-		headings: { fontFamily: '"Work Sans", sans-serif' },
 	});
 
 	return (

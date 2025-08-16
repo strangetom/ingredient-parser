@@ -49,7 +49,7 @@ interface TabTrainerState {
 export const useTabTrainerStore = create(
 	subscribeWithSelector<TabTrainerState>((set, get) => ({
 		input: {
-			sources: ["nyt", "cookstr", "allrecipes", "bbc", "tc", "saveur"],
+			sources: ["nyt", "cookstr", "allrecipes", "bbc", "tc"],
 			split: 0.2,
 			seed: Math.floor(Math.random() * 1_000_000_001),
 			combineNameLabels: false,
@@ -65,7 +65,7 @@ export const useTabTrainerStore = create(
 			set(({ input }) => ({ input: { ...input, ...partial } })),
 		inputGridSearch: {
 			combineNameLabels: false,
-			sources: ["nyt", "cookstr", "allrecipes", "bbc", "tc", "saveur"],
+			sources: ["nyt", "cookstr", "allrecipes", "bbc", "tc"],
 			split: 0.2,
 			seed: Math.floor(Math.random() * 1_000_000_001),
 			processes: (window.navigator.hardwareConcurrency || 2) - 1,

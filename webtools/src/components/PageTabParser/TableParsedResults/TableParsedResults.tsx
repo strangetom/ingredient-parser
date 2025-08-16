@@ -25,27 +25,28 @@ function TableBase() {
 			verticalSpacing="sm"
 		>
 			<Table.Tbody>
-				<TableRow items={parsed.name} title="NAMES" badgeCategory="NAME_VAR" />
-				<TableRow items={parsed.amounts} title="AMOUNTS" badgeCategory="UNIT" />
-				<TableRow
-					items={parsed.foundation_foods}
-					title="FOUNDATION FOODS"
-					badgeCategory="OTHER"
-				/>
+				<TableRow items={parsed.name} title="Name" badgeCategory="NAME_VAR" />
+				<TableRow items={[parsed.size]} title="Size" badgeCategory="SIZE" />
+				<TableRow items={parsed.amounts} title="Amount" badgeCategory="UNIT" />
 				<TableRow
 					items={[parsed.preparation]}
-					title="PREPARATION"
+					title="Preparation"
 					badgeCategory="PREP"
 				/>
 				<TableRow
+					items={[parsed.comment]}
+					title="Comment"
+					badgeCategory="COMMENT"
+				/>
+				<TableRow
 					items={[parsed.purpose]}
-					title="PURPOSE"
+					title="Purpose"
 					badgeCategory="PURPOSE"
 				/>
 				<TableRow
-					items={[parsed.comment]}
-					title="COMMENT"
-					badgeCategory="COMMENT"
+					items={parsed.foundation_foods}
+					title="Foundation Food"
+					badgeCategory="OTHER"
 				/>
 			</Table.Tbody>
 		</Table>

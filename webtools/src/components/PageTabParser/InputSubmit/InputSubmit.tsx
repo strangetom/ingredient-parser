@@ -6,6 +6,7 @@ import {
 	Button,
 	Combobox,
 	type ComboboxProps,
+	Flex,
 	Group,
 	Indicator,
 	Menu,
@@ -28,8 +29,9 @@ import {
 } from "@tabler/icons-react";
 import { useCallback, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
-// {{{INTERNAL}}}
 import { useTabParserStore } from "../../../domain";
+// {{{INTERNAL}}}
+import { PopoverQuestionMark } from "../../Shared";
 
 function ActionIconClear(props: ActionIconProps) {
 	const { sentence, updateInput, setParsed } = useTabParserStore(
@@ -71,6 +73,142 @@ function ActionIconFilter(props: ActionIconProps) {
 
 	const [opened, setOpened] = useState(false);
 
+	const foundationFoodsInput = (
+		<Switch
+			defaultChecked
+			checked={input.foundation_foods}
+			label={
+				<Flex gap="xs" justify="flex-start">
+					<div>Foundation foods</div>
+					<PopoverQuestionMark>
+						Foundation foods are the core or fundamental part of an ingredient
+						name, without any other words like descriptive adjectives or brand
+						names. If enabled, the foundation foods are extracted from the
+						ingredient name
+					</PopoverQuestionMark>
+				</Flex>
+			}
+			name="FOUNDATION_FOOD"
+			onChange={(event) =>
+				updateInput({ foundation_foods: event.target.checked })
+			}
+			styles={{
+				root: { width: "100%" },
+				labelWrapper: { width: "100%" },
+			}}
+		/>
+	);
+
+	const discardIsolatedStopWordsInput = (
+		<Switch
+			defaultChecked
+			checked={input.discard_isolated_stop_words}
+			label={
+				<Flex gap="xs" justify="flex-start">
+					<div>Discard isolated stop words</div>
+					<PopoverQuestionMark>
+						Discard stop words that appear in isolation within the name,
+						preparation, size, purpose or comment fields. If disabled, then all
+						words from the input sentence are retained in the parsed output.
+					</PopoverQuestionMark>
+				</Flex>
+			}
+			name="discard_isolated_stop_words"
+			onChange={(event) =>
+				updateInput({ discard_isolated_stop_words: event.target.checked })
+			}
+			style={{ width: "100%" }}
+		/>
+	);
+
+	const stringUnitsInput = (
+		<Switch
+			defaultChecked
+			checked={input.string_units}
+			label={
+				<Flex gap="xs" justify="flex-start">
+					<div>String units</div>
+					<PopoverQuestionMark>
+						If set to True, the IngredientAmount unit will be the string
+						identified from the sentence instead of a data class object.
+					</PopoverQuestionMark>
+				</Flex>
+			}
+			name="string_units"
+			onChange={(event) => updateInput({ string_units: event.target.checked })}
+			style={{ width: "100%" }}
+		/>
+	);
+
+	const expectNameInput = (
+		<Switch
+			defaultChecked
+			checked={input.expect_name_in_output}
+			label={
+				<Flex gap="xs" justify="flex-start">
+					<div>Expect name in output</div>
+					<PopoverQuestionMark>
+						Sometimes a name isn’t identified in the ingredient sentence, often
+						due to the sentence structure being unusual or the sentence contains
+						an ingredient name that is ambiguous. For these cases, attempt to
+						find the most likely name even if the words making that name are
+						considered more likely to belong to a different field of the
+						ParsedIngredient object.
+					</PopoverQuestionMark>
+				</Flex>
+			}
+			name="expect_name_in_output"
+			onChange={(event) =>
+				updateInput({ expect_name_in_output: event.target.checked })
+			}
+			style={{ width: "100%" }}
+		/>
+	);
+
+	const imperialUnitsInput = (
+		<Switch
+			defaultChecked
+			checked={input.imperial_units}
+			label={
+				<Flex gap="xs" justify="flex-start">
+					<div>Imperial units</div>
+					<PopoverQuestionMark>
+						Some units have have multiple definitions versions with the same
+						name but representing different quantities, such as fluid ounces,
+						cups, pints, quarts or gallons.
+					</PopoverQuestionMark>
+				</Flex>
+			}
+			name="imperial_units"
+			onChange={(event) =>
+				updateInput({ imperial_units: event.target.checked })
+			}
+			style={{ width: "100%" }}
+		/>
+	);
+
+	const separateNamesInput = (
+		<Group gap="xs">
+			<Switch
+				checked={input.separate_names}
+				label={
+					<Flex gap="xs" justify="flex-start">
+						<div>Separate names</div>
+						<PopoverQuestionMark>
+							If the ingredient sentence includes multiple alternative
+							ingredient names, return each name separately
+						</PopoverQuestionMark>
+					</Flex>
+				}
+				name="separate_names"
+				onChange={(event) =>
+					updateInput({ separate_names: event.target.checked })
+				}
+				style={{ width: "100%" }}
+			/>
+		</Group>
+	);
+
 	return (
 		<Menu
 			shadow="md"
@@ -89,73 +227,17 @@ function ActionIconFilter(props: ActionIconProps) {
 			</Menu.Target>
 
 			<Menu.Dropdown>
-				<Menu.Item component="div">
-					<Switch
-						defaultChecked
-						checked={input.foundation_foods}
-						label="Foundation food"
-						name="FOUNDATION_FOOD"
-						onChange={(event) =>
-							updateInput({ foundation_foods: event.target.checked })
-						}
-						styles={{
-							root: { width: "100%" },
-							labelWrapper: { width: "100%" },
-						}}
-					/>
-				</Menu.Item>
+				<Menu.Item component="div">{foundationFoodsInput}</Menu.Item>
 				<Menu.Divider />
-				<Menu.Item component="div">
-					<Switch
-						defaultChecked
-						checked={input.discard_isolated_stop_words}
-						label="Discard isolated stop words"
-						name="discard_isolated_stop_words"
-						onChange={(event) =>
-							updateInput({ discard_isolated_stop_words: event.target.checked })
-						}
-						style={{ width: "100%" }}
-					/>
-				</Menu.Item>
+				<Menu.Item component="div">{discardIsolatedStopWordsInput}</Menu.Item>
 				<Menu.Divider />
-				<Menu.Item component="div">
-					<Switch
-						defaultChecked
-						checked={input.expect_name_in_output}
-						label="Expect name"
-						name="expect_name_in_output"
-						onChange={(event) =>
-							updateInput({ expect_name_in_output: event.target.checked })
-						}
-						style={{ width: "100%" }}
-					/>
-				</Menu.Item>
+				<Menu.Item component="div">{stringUnitsInput}</Menu.Item>
 				<Menu.Divider />
-				<Menu.Item component="div">
-					<Switch
-						defaultChecked
-						checked={input.string_units}
-						label="String units"
-						name="string_units"
-						onChange={(event) =>
-							updateInput({ string_units: event.target.checked })
-						}
-						style={{ width: "100%" }}
-					/>
-				</Menu.Item>
+				<Menu.Item component="div">{expectNameInput}</Menu.Item>
 				<Menu.Divider />
-				<Menu.Item component="div">
-					<Switch
-						defaultChecked
-						checked={input.imperial_units}
-						label="Imperial units"
-						name="imperial_units"
-						onChange={(event) =>
-							updateInput({ imperial_units: event.target.checked })
-						}
-						style={{ width: "100%" }}
-					/>
-				</Menu.Item>
+				<Menu.Item component="div">{imperialUnitsInput}</Menu.Item>
+				<Menu.Divider />
+				<Menu.Item component="div">{separateNamesInput}</Menu.Item>
 			</Menu.Dropdown>
 		</Menu>
 	);

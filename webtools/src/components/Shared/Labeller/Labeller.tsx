@@ -24,6 +24,21 @@ import {
 // {{{STYLES}}}
 import { default as classes } from "./Labeller.module.css";
 
+const sortedMarginalsList = [
+	"B_NAME_TOK",
+	"INAME_TOK",
+	"NAME_VAR",
+	"NAME_MOD",
+	"NAME_SEP",
+	"QTY",
+	"UNIT",
+	"PREP",
+	"PURPOSE",
+	"COMMENT",
+	"SIZE",
+	"PUNC",
+];
+
 export interface LabellerProps extends BoxProps {
 	identifier?: number | string;
 	editMode?: boolean;
@@ -106,16 +121,24 @@ export function Labeller({
 	}
 
 	if (marginalsMode && marginals) {
-		const marginalRows = Object.keys(marginals).map((category) => (
-			<Flex
-				key={`marignal-row-${category}`}
-				justify="space-between"
-				gap="var(--small-spacing)"
-			>
-				<div>{category}</div>
-				<div>{(marginals[category as LabellerCategory] * 100).toFixed(2)}</div>
-			</Flex>
-		));
+		const marginalRows = Object.keys(marginals)
+			.sort(
+				(a, b) =>
+					sortedMarginalsList.indexOf(a) - sortedMarginalsList.indexOf(b),
+			)
+			.map((category) => (
+				<Flex
+					key={`marignal-row-${category}`}
+					justify="space-between"
+					gap="var(--small-spacing)"
+				>
+					<div>{category}</div>
+					<div>
+						{(marginals[category as LabellerCategory] * 100).toFixed(2)}%
+					</div>
+				</Flex>
+			));
+
 		return (
 			<Tooltip {...tooltipProps} label={marginalRows}>
 				<Box

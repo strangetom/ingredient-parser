@@ -60,7 +60,7 @@ export const defaultInputLabeller = {
 	settings: {
 		caseSensitive: false,
 		wholeWord: false,
-		sources: ["nyt", "cookstr", "allrecipes", "bbc", "tc", "saveur"],
+		sources: ["nyt", "cookstr", "allrecipes", "bbc", "tc"],
 		labels: [
 			"COMMENT",
 			"B_NAME_TOK",

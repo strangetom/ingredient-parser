@@ -23,13 +23,19 @@ from flask_socketio import SocketIO, emit
 
 # {{INTERNAL}}
 sys.path.append("..")  # force use of local, not system wide ingredient parser installed
-from train import grid_search, set_redirect_log_stream, train_multiple, train_single
+from train import (
+    grid_search,
+    set_redirect_log_stream,
+    set_temp_working_directory,
+    train_multiple,
+    train_single,
+)
 
 # globals
 parent_dir = Path(__file__).parent.parent
 NPM_BUILD_DIRECTORY = "build"
 SQL3_DATABASE = parent_dir / "train/data/training.sqlite3"
-SAVED_MODEL = parent_dir / "ingredient_parser/en/model.en.crfsuite"
+SAVED_MODEL = parent_dir / "ingredient_parser/en/data/model.en.crfsuite"
 MODEL_REQUIREMENTS = parent_dir / "requirements-dev.txt"
 
 # flask
@@ -170,38 +176,42 @@ def background_thread(thread_event, input_data):
 
         with set_redirect_log_stream(captured_output):
             with contextlib.redirect_stdout(captured_output):
-                logger.info(
+                logger.debug(
                     f"{input_data['task'].capitalize()} requested"
-                    f"@ {datetime.now().strftime('%H:%M:%S')} on PID {os.getpid()}"
+                    f" @ {datetime.now().strftime('%H:%M:%S')} on PID {os.getpid()}"
                 )
-                logger.info(
-                    f"{input_data['task'].capitalize()} inputs"
-                    f"{', '.join([f'{k}={v}' for k, v in args.items()])}"
+                logger.debug(
+                    f"{input_data['task'].capitalize()} inputs "
+                    f" {', '.join([f'{k}={v}' for k, v in args.items()])}"
                 )
 
                 start_time = time.monotonic()
-                if (
-                    input_data["task"] == "training"
-                    and input_data["runsCategory"] == "multiple"
-                ):
-                    train_multiple(argparse.Namespace(**args))
-                elif (
-                    input_data["task"] == "training"
-                    and input_data["runsCategory"] == "single"
-                ):
-                    train_single(argparse.Namespace(**args))
-                elif input_data["task"] == "gridsearch":
-                    grid_search(argparse.Namespace(**args))
+
+                with set_temp_working_directory(parent_dir):
+                    if (
+                        input_data["task"] == "training"
+                        and input_data["runsCategory"] == "multiple"
+                    ):
+                        train_multiple(argparse.Namespace(**args))
+                    elif (
+                        input_data["task"] == "training"
+                        and input_data["runsCategory"] == "single"
+                    ):
+                        train_single(argparse.Namespace(**args))
+                    elif input_data["task"] == "gridsearch":
+                        grid_search(argparse.Namespace(**args))
                 period_time = time.monotonic() - start_time
                 period_seconds = timedelta(seconds=int(period_time)).total_seconds()
-                logger.info(
+
+                logger.debug(
                     f"{input_data['task'].capitalize()} ended"
-                    f"@ {datetime.now().strftime('%H:%M:%S')} on PID {os.getpid()}"
+                    f" @ {datetime.now().strftime('%H:%M:%S')} on PID {os.getpid()}"
                 )
-                logger.info(
+                logger.debug(
                     f"Took approximately"
-                    f"{int(period_seconds // 60)}mins {int(period_seconds % 60)}s"
+                    f" {int(period_seconds // 60)}mins {int(period_seconds % 60)}s"
                 )
+
                 time.sleep(1)  # allow buffer time to readout final output
 
         socketio.emit(

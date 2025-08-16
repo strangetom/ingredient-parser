@@ -7,6 +7,7 @@ export interface InputTabParser {
 	string_units: boolean;
 	imperial_units: boolean;
 	foundation_foods: boolean;
+	separate_names: boolean;
 }
 
 export interface InputHistoryTabPaser extends Input {

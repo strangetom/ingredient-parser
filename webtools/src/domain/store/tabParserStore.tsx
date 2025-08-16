@@ -47,7 +47,8 @@ export const useTabParserStore = create(
 					expect_name_in_output: true,
 					string_units: false,
 					imperial_units: false,
-					foundation_foods: false,
+					foundation_foods: true,
+					separate_names: false,
 				},
 				updateInput: (partial: Partial<InputTabParser>) =>
 					set(({ input }) => ({ input: { ...input, ...partial } })),

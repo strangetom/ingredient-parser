@@ -20,6 +20,14 @@ export type Confidence = {
 	confidence: number;
 	text: string;
 	starting_index: number;
+	quantity: string;
+	quantity_max: string;
+	unit: string;
+	APPROXIMATE: boolean;
+	MULTIPLIER: boolean;
+	PREPARED_INGREDIENT: boolean;
+	RANGE: boolean;
+	SINGULAR: boolean;
 };
 
 export type Amount = {

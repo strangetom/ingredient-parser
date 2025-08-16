@@ -130,6 +130,7 @@ export function ButtonRunModel() {
 			step={0.1}
 			min={0.1}
 			max={0.9}
+			decimalScale={3}
 		/>
 	);
 
