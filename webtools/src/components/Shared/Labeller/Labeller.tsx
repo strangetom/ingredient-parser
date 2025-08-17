@@ -4,16 +4,18 @@ import {
 	Badge,
 	Box,
 	type BoxProps,
+	Combobox,
 	Flex,
 	Menu,
 	Tooltip,
 	type TooltipProps,
+	useCombobox,
 } from "@mantine/core";
 import type { UseListStateHandlers } from "@mantine/hooks";
 // {{{ASSETS}}}
 import { IconSelector } from "@tabler/icons-react";
 import cx from "clsx";
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 // {{{INTERNAL}}}
 import {
 	type LabellerCategory,
@@ -63,6 +65,7 @@ export function Labeller({
 	handler,
 	...others
 }: LabellerProps) {
+	const [search, setSearch] = useState("");
 	const [txt, lbl, marginals] = token;
 	const [editable, setEditable] = useState(lbl);
 
@@ -86,37 +89,78 @@ export function Labeller({
 		[handler, identifier, txt],
 	);
 
+	const combobox = useCombobox({
+		onDropdownClose: () => {
+			combobox.resetSelectedOption();
+			combobox.focusTarget();
+			setSearch("");
+		},
+
+		onDropdownOpen: () => {
+			combobox.focusSearchInput();
+		},
+	});
+
 	if (editMode) {
-		const menuItems = labellers.map((labeller) => (
-			<>
-				<Menu.Item
-					component="button"
-					className={classes.menuItem}
-					onClick={() => onEditHandler(labeller)}
+		const menuItems = labellers
+			.filter((item) =>
+				item.toLowerCase().includes(search.toLowerCase().trim()),
+			)
+			.map((labeller) => (
+				<Combobox.Option
+					key={`labeller-${labeller}`}
+					value={labeller}
+					style={{ padding: "calc(var(--small-spacing) / 3)" }}
 				>
 					<Badge variant={labeller}>{labeller}</Badge>
-				</Menu.Item>
-			</>
-		));
+				</Combobox.Option>
+			));
 
 		return (
-			<Menu position="bottom-start" keepMounted={false}>
-				<Menu.Target>
+			<Combobox
+				store={combobox}
+				width={250}
+				position="bottom-start"
+				onOptionSubmit={(val) => {
+					if (!val) return;
+					onEditHandler(val as LabellerCategory);
+					combobox.closeDropdown();
+				}}
+				keepMounted={false}
+			>
+				<Combobox.Target>
 					<Box
 						component="button"
 						className={cx(classes.labeller, classes.editable)}
 						data-labeller={editable}
 						data-size={size}
 						data-position={position}
+						onClick={() => combobox.toggleDropdown()}
 						{...others}
 					>
 						<span>{txt}</span>
 						<IconSelector size={16} />
 					</Box>
-				</Menu.Target>
+				</Combobox.Target>
 
-				<Menu.Dropdown>{menuItems}</Menu.Dropdown>
-			</Menu>
+				<Combobox.Dropdown>
+					<Combobox.Search
+						value={search}
+						onChange={(event) => {
+							setSearch(event.currentTarget.value);
+						}}
+					/>
+					<Combobox.Options mah={200} style={{ overflowY: "auto" }}>
+						{menuItems.length > 0 ? (
+							menuItems
+						) : (
+							<Combobox.Empty c="var(--fg-4)">
+								Type a correct label
+							</Combobox.Empty>
+						)}
+					</Combobox.Options>
+				</Combobox.Dropdown>
+			</Combobox>
 		);
 	}
 

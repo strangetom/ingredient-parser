@@ -5,6 +5,7 @@ import json
 import random
 import re
 import sqlite3
+import string
 import sys
 import traceback
 from importlib.metadata import PackageNotFoundError, distribution
@@ -24,6 +25,7 @@ from ingredient_parser.dataclasses import (
     ParserDebugInfo,
 )
 from ingredient_parser.en._loaders import load_parser_model
+from ingredient_parser.en.preprocess import PreProcessor
 
 # globals
 parent_dir = Path(__file__).parent.parent
@@ -408,15 +410,26 @@ def labeller_search():
                 whole_word = data.get("wholeWord", False)
                 case_sensitive = data.get("caseSensitive", False)
 
+                # preprocess for correct token comparison later
+                sentence_preprocessed = PreProcessor(sentence).sentence
                 # reserve ** or ~~ for wildcard, treat as empty string
-                sentence = " " if re.search(r"\*\*|~~", sentence) else sentence
+                sentence_cleansed = (
+                    " "
+                    if re.search(r"\*\*|~~", sentence_preprocessed)
+                    else sentence_preprocessed
+                )
 
-                escaped = re.escape(sentence)
+                escaped = re.escape(sentence_cleansed)
 
                 if whole_word:
+                    while escaped[-1] in string.punctuation:
+                        escaped = escaped[:-1]
                     expression = rf"\b{escaped}\b"
                 else:
                     expression = escaped
+
+                # provide query flexibility around mid-sentence punctation
+                expression = re.sub(r"[;,—:-]", r"\\s*[;,—:-]\\s*", expression)
 
                 if case_sensitive:
                     query = re.compile(expression, re.UNICODE)
@@ -436,21 +449,17 @@ def labeller_search():
                 indices = []
 
                 for row in rows:
-                    if len(labels) == 9:
-                        if query.search(row["sentence"]):
-                            indices.append(row["id"])
-                    else:
-                        partial_sentence = " ".join(
-                            [
-                                tok
-                                for tok, label in list(
-                                    zip(row["tokens"], row["labels"])
-                                )
-                                if label in labels
-                            ]
-                        )
-                        if query.search(partial_sentence):
-                            indices.append(row["id"])
+                    partial_sentence = " ".join(
+                        [
+                            tok
+                            for tok, label in list(zip(row["tokens"], row["labels"]))
+                            if label in labels
+                        ]
+                    )
+                    if query.search(partial_sentence) or (
+                        partial_sentence == sentence_cleansed
+                    ):
+                        indices.append(row["id"])
 
                 batch_size = 250  # SQLite has a default limit of 999 parameters
                 rows = []
