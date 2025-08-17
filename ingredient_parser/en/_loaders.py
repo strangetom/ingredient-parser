@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+import gzip
+import json
 import logging
 from functools import lru_cache
 from importlib.resources import as_file, files
@@ -44,3 +46,23 @@ def load_embeddings_model() -> GloVeModel:  # type: ignore
     """
     logger.debug("Loading embeddings model: ingredient_embeddings.25d.glove.txt.gz")
     return GloVeModel("data/ingredient_embeddings.25d.glove.txt.gz")
+
+
+@lru_cache
+def load_ingredient_tagdict() -> dict[str, str]:
+    """Cached function for loading ingredient token part of speech tagdict.
+
+    The entries in this dict are used to bypass the part of speech tagging model so the
+    token is always given the tag in this dict.
+
+    Returns
+    -------
+    dict[str, str]
+        Dict of token:tag pairs
+    """
+    with as_file(files(__package__) / "data/ingredient_tagdict.json.gz") as p:
+        with gzip.open(p, "rt") as f:
+            tagdict = json.load(f)
+
+    logger.debug("Loaded ingredient POS tagdict from ingredient_tagdict.json.gz.")
+    return tagdict

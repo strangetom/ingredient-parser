@@ -6,8 +6,6 @@ import string
 import unicodedata
 from html import unescape
 
-from nltk import pos_tag
-
 from ..dataclasses import Token, TokenFeatures
 from ._constants import (
     AMBIGUOUS_UNITS,
@@ -36,6 +34,7 @@ from ._structure_features import SentenceStrucureFeatures
 from ._utils import (
     combine_quantities_split_by_and,
     is_unit_synonym,
+    pos_tag,
     replace_string_range,
     stem,
     tokenize,
