@@ -1,6 +1,7 @@
 // {{{EXTERNAL}}}
 import {
 	ActionIcon,
+	Box,
 	Button,
 	Flex,
 	Group,
@@ -286,7 +287,9 @@ export function ButtonRunModel() {
 							description="The type of training run — multiple runs will take longer"
 						/>
 					</Menu.Label>
-					<Menu.Item component="div">{modelRunCategoryInput}</Menu.Item>
+					<Box py="xs" px="sm">
+						{modelRunCategoryInput}
+					</Box>
 					<Menu.Divider />
 					<Menu.Label>
 						<PopoverQuestionMarkWrapper
@@ -294,7 +297,9 @@ export function ButtonRunModel() {
 							description="The datasets to use for training"
 						/>
 					</Menu.Label>
-					<Menu.Item component="div">{labelSourcesInput}</Menu.Item>
+					<Box py="xs" px="sm">
+						{labelSourcesInput}
+					</Box>
 					<Menu.Divider />
 					<Menu.Label>
 						<PopoverQuestionMarkWrapper
@@ -302,7 +307,9 @@ export function ButtonRunModel() {
 							description="Fraction of data to be used for testing"
 						/>
 					</Menu.Label>
-					<Menu.Item component="div">{splitInput}</Menu.Item>
+					<Box py="xs" px="sm">
+						{splitInput}
+					</Box>
 					<Menu.Divider />
 					<Menu.Label>
 						<PopoverQuestionMarkWrapper
@@ -310,13 +317,25 @@ export function ButtonRunModel() {
 							description="Seed value used for train/test split"
 						/>
 					</Menu.Label>
-					<Menu.Item component="div">{seedInput}</Menu.Item>
+					<Box py="xs" px="sm">
+						{seedInput}
+					</Box>
 					<Menu.Divider />
-					<Menu.Item component="div">{htmlFlagSwitch}</Menu.Item>
-					<Menu.Item component="div">{detailedFlagSwitch}</Menu.Item>
-					<Menu.Item component="div">{confusionFlagSwitch}</Menu.Item>
-					<Menu.Item component="div">{combineLabelsFlagSwitch}</Menu.Item>
-					<Menu.Item component="div">{debugLevelFlagSwitch}</Menu.Item>
+					<Box py="xs" px="sm">
+						{htmlFlagSwitch}
+					</Box>
+					<Box py="xs" px="sm">
+						{detailedFlagSwitch}
+					</Box>
+					<Box py="xs" px="sm">
+						{confusionFlagSwitch}
+					</Box>
+					<Box py="xs" px="sm">
+						{combineLabelsFlagSwitch}
+					</Box>
+					<Box py="xs" px="sm">
+						{debugLevelFlagSwitch}
+					</Box>
 				</Menu.Dropdown>
 			</Menu>
 		</Group>

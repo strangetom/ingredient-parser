@@ -4,6 +4,7 @@ import {
 	ActionIcon,
 	ActionIconGroup,
 	type ActionIconProps,
+	Box,
 	Checkbox,
 	Flex,
 	Group,
@@ -167,7 +168,7 @@ function ActionIconFilter(props: ActionIconProps) {
 
 			<Menu.Dropdown>
 				<Menu.Label>Keyword (options)</Menu.Label>
-				<Menu.Item component="div">
+				<Box py="xs" px="sm">
 					<Checkbox
 						defaultChecked
 						checked={input.settings.wholeWord}
@@ -181,8 +182,8 @@ function ActionIconFilter(props: ActionIconProps) {
 							labelWrapper: { width: "100%" },
 						}}
 					/>
-				</Menu.Item>
-				<Menu.Item component="div">
+				</Box>
+				<Box py="xs" px="sm">
 					<Checkbox
 						defaultChecked
 						checked={input.settings.caseSensitive}
@@ -198,13 +199,17 @@ function ActionIconFilter(props: ActionIconProps) {
 							labelWrapper: { width: "100%" },
 						}}
 					/>
-				</Menu.Item>
+				</Box>
 				<Menu.Divider />
 				<Menu.Label>Labels (to search against)</Menu.Label>
-				<Menu.Item component="div">{labelFilters}</Menu.Item>
+				<Box py="xs" px="sm">
+					{labelFilters}
+				</Box>
 				<Menu.Divider />
 				<Menu.Label>Sources (to search against)</Menu.Label>
-				<Menu.Item component="div">{labelSources}</Menu.Item>
+				<Box py="xs" px="sm">
+					{labelSources}
+				</Box>
 			</Menu.Dropdown>
 		</Menu>
 	);

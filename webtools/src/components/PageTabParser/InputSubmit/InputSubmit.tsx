@@ -3,6 +3,7 @@ import {
 	ActionIcon,
 	ActionIconGroup,
 	type ActionIconProps,
+	Box,
 	Button,
 	Combobox,
 	type ComboboxProps,
@@ -227,17 +228,29 @@ function ActionIconFilter(props: ActionIconProps) {
 			</Menu.Target>
 
 			<Menu.Dropdown>
-				<Menu.Item component="div">{foundationFoodsInput}</Menu.Item>
+				<Box py="xs" px="sm">
+					{foundationFoodsInput}
+				</Box>
 				<Menu.Divider />
-				<Menu.Item component="div">{discardIsolatedStopWordsInput}</Menu.Item>
+				<Box py="xs" px="sm">
+					{discardIsolatedStopWordsInput}
+				</Box>
 				<Menu.Divider />
-				<Menu.Item component="div">{stringUnitsInput}</Menu.Item>
+				<Box py="xs" px="sm">
+					{stringUnitsInput}
+				</Box>
 				<Menu.Divider />
-				<Menu.Item component="div">{expectNameInput}</Menu.Item>
+				<Box py="xs" px="sm">
+					{expectNameInput}
+				</Box>
 				<Menu.Divider />
-				<Menu.Item component="div">{imperialUnitsInput}</Menu.Item>
+				<Box py="xs" px="sm">
+					{imperialUnitsInput}
+				</Box>
 				<Menu.Divider />
-				<Menu.Item component="div">{separateNamesInput}</Menu.Item>
+				<Box py="xs" px="sm">
+					{separateNamesInput}
+				</Box>
 			</Menu.Dropdown>
 		</Menu>
 	);
