@@ -6,7 +6,6 @@ import {
 	type BoxProps,
 	Combobox,
 	Flex,
-	Menu,
 	Tooltip,
 	type TooltipProps,
 	useCombobox,
@@ -15,7 +14,7 @@ import type { UseListStateHandlers } from "@mantine/hooks";
 // {{{ASSETS}}}
 import { IconSelector } from "@tabler/icons-react";
 import cx from "clsx";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 // {{{INTERNAL}}}
 import {
 	type LabellerCategory,
@@ -42,7 +41,8 @@ const sortedMarginalsList = [
 ];
 
 export interface LabellerProps extends BoxProps {
-	identifier?: number | string;
+	indexIdentifier?: number | string;
+	sentenceIdentifier?: number | string;
 	editMode?: boolean;
 	marginalsMode?: boolean;
 	tooltipProps?: TooltipProps;
@@ -55,7 +55,8 @@ export interface LabellerProps extends BoxProps {
 }
 
 export function Labeller({
-	identifier,
+	indexIdentifier,
+	sentenceIdentifier,
 	editMode = false,
 	marginalsMode = false,
 	tooltipProps = { label: undefined },
@@ -67,26 +68,29 @@ export function Labeller({
 }: LabellerProps) {
 	const [search, setSearch] = useState("");
 	const [txt, lbl, marginals] = token;
-	const [editable, setEditable] = useState(lbl);
+	const [lblCategoryEditable, setLblCategoryEditable] =
+		useState<LabellerCategory>(lbl);
 
 	const onEditHandler = useCallback(
 		(labellerCat: LabellerCategory) => {
-			setEditable(labellerCat);
-			if (handler && identifier) {
+			setLblCategoryEditable(labellerCat);
+			if (handler && typeof indexIdentifier !== "undefined") {
 				handler.applyWhere(
-					(item) => item.id === identifier,
+					(item) => item.id === sentenceIdentifier,
 					(item) => ({
 						...item,
 						edited: true,
-						tokens: item.tokens.map((tkn: Token) => {
-							if (tkn[0] === txt) return [txt, labellerCat];
-							else return tkn;
+						tokens: item.tokens.map((tkn: Token, ix: number) => {
+							const [tokenText, ,] = tkn;
+							if (tokenText === txt && indexIdentifier === ix) {
+								return [txt, labellerCat] as Token;
+							} else return tkn;
 						}),
 					}),
 				);
 			}
 		},
-		[handler, identifier, txt],
+		[handler, indexIdentifier, sentenceIdentifier, txt],
 	);
 
 	const combobox = useCombobox({
@@ -132,7 +136,7 @@ export function Labeller({
 					<Box
 						component="button"
 						className={cx(classes.labeller, classes.editable)}
-						data-labeller={editable}
+						data-labeller={lblCategoryEditable}
 						data-size={size}
 						data-position={position}
 						onClick={() => combobox.toggleDropdown()}

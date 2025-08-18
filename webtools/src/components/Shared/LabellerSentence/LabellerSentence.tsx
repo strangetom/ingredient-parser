@@ -69,16 +69,20 @@ export function LabellerSentence({
 		}
 	}, [handler, sentence.id]);
 
-	const labellers = sentence.tokens.map((tkn, i) => (
-		<Labeller
-			key={`sentence-token-${tkn}`}
-			position={i % 2 === 0 ? "top" : "bottom"}
-			token={tkn}
-			handler={handler}
-			identifier={sentence.id}
-			{...labellerProps}
-		/>
-	));
+	const labellers = sentence.tokens.map((tkn, ix) => {
+		const [tokenText, tokenLabelCategory] = tkn;
+		return (
+			<Labeller
+				key={`sentence-token-${tokenText}-${tokenLabelCategory}-${ix * 10}`}
+				position={ix % 2 === 0 ? "top" : "bottom"}
+				token={tkn}
+				handler={handler}
+				indexIdentifier={ix}
+				sentenceIdentifier={sentence.id}
+				{...labellerProps}
+			/>
+		);
+	});
 
 	const words = (
 		<Text variant="light" fz="1.25em" p="0 calc(var(--small-spacing) / 2)">

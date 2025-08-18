@@ -1,7 +1,7 @@
 // {{{EXTERNAL}}}
 import { Box, type MantineStyleProp } from "@mantine/core";
 import type { UseListStateHandlers } from "@mantine/hooks";
-import { useCallback } from "react";
+import { useMemo } from "react";
 import { AutoSizer, List as ListVirtual } from "react-virtualized";
 // {{{INTERNAL}}}
 import type { ParsedSentenceEditable } from "../../../domain";
@@ -44,17 +44,22 @@ export function ScrollableVirtualized({
 		...labellerProps,
 	} as LabellerProps;
 
-	const sentenceListRenderer = useCallback(
-		({ index, style }: { index: number; style: MantineStyleProp }) => (
-			<LabellerSentence
-				key={`labeller-sentence-${index}`}
-				style={style}
-				sentence={parsedSentencesProvided[index]}
-				labellerProps={defaultLabellerProps}
-				{...defaultLabellerSentenceProps}
-			/>
-		),
-		[parsedSentencesProvided],
+	const sentenceListRenderer = useMemo(
+		() =>
+			({ index, style }: { index: number; style: MantineStyleProp }) => (
+				<LabellerSentence
+					key={`labeller-sentence-${index}`}
+					style={style}
+					sentence={parsedSentencesProvided[index]}
+					labellerProps={defaultLabellerProps}
+					{...defaultLabellerSentenceProps}
+				/>
+			),
+		[
+			parsedSentencesProvided,
+			defaultLabellerProps,
+			defaultLabellerSentenceProps,
+		],
 	);
 
 	return (

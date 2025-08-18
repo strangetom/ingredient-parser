@@ -128,9 +128,9 @@ export function ButtonRunModel() {
 				if (!value) return;
 				updateInputTrainer({ split: parseFloat(value.toString()) });
 			}}
-			step={0.1}
-			min={0.1}
-			max={0.9}
+			step={0.001}
+			min={0.001}
+			max={0.999}
 			decimalScale={3}
 		/>
 	);

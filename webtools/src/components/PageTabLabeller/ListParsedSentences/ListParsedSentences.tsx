@@ -63,6 +63,7 @@ export function ListParsedSentences() {
 				visible={loading}
 				overlayProps={{ opacity: 0.6, blur: 0, bg: "var(--bg-s)" }}
 				loaderProps={{ children: <div /> }}
+				zIndex={1}
 			/>
 			{parsed ? (
 				<>
