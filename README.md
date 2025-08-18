@@ -2,7 +2,7 @@
 
 The Ingredient Parser package is a Python package for parsing structured information out of recipe ingredient sentences.
 
-![](docs/source/_static/logo.png)
+![](docs/source/_static/logos/logo_wide.png)
 
 ## Documentation
 
@@ -67,6 +67,34 @@ pre-commit install
 ```
 
 to install the pre-commit hooks.
+
+**Web app**
+
+There is a simple web app for testing the parser, browsing the database, labelling entries, and running the basic model.
+
+To run the web app, follow the prior steps on `requirements-dev.txt`, and separately install [Node](https://nodejs.org/en/download), the JS runtime. Once globally installed on your machine, download your packages in the webtools directory with:
+
+```bash
+$ npm install
+```
+
+After package installs, run dev to start.
+
+```bash
+$ npm run dev
+```
+
+*tl;dr — inside package.json, `flask` runs the base server, `sockets` runs the web sockets server, and `watch` runs vite build for the react/typescripe bundle — separate flask instances are required to accommodate better web socket behavior*
+
+![Screen shot of web parser](docs/source/_static/webtools/app.parser.screenshot.png)
+![Screen shot of web labeller](docs/source/_static/webtools/app.labeller.screenshot.png)
+![Screen shot of web trainer](docs/source/_static/webtools/app.trainer.screenshot.png)
+
+**Documentation**
+
+The dependencies for building the documentation are in the `requirements-doc.txt` file.
+
+**Contribution**
 
 Please target the **develop** branch for pull requests. The main branch is used for stable releases and hotfixes only.
 
