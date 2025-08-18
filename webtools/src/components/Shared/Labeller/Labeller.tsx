@@ -96,7 +96,7 @@ export function Labeller({
 	const combobox = useCombobox({
 		onDropdownClose: () => {
 			combobox.resetSelectedOption();
-			combobox.focusTarget();
+			combobox.targetRef.current?.focus();
 			setSearch("");
 		},
 
@@ -132,9 +132,10 @@ export function Labeller({
 				}}
 				keepMounted={false}
 			>
-				<Combobox.Target>
+				<Combobox.Target targetType="button">
 					<Box
 						component="button"
+						type="button"
 						className={cx(classes.labeller, classes.editable)}
 						data-labeller={lblCategoryEditable}
 						data-size={size}
