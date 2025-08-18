@@ -1,3 +1,5 @@
+.. _reference-explanation-usage:
+
 Model Usage
 ===========
 

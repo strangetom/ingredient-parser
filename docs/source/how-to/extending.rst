@@ -1,3 +1,5 @@
+.. _reference-how-to-extending:
+
 Extend to other languages
 =========================
 

@@ -1,3 +1,21 @@
 .content {
-	background-color: var(--bg-2);
+	background-color: var(--bg-s);
+}
+
+.header {
+	background-color: var(--bg-1);
+	border-bottom: 1px solid color-mix(in srgb, var(--fg-3), transparent 75%);
+}
+
+.title {
+	font-weight: 700;
+}
+
+.close {
+	color: var(--fg);
+
+	&:hover {
+		background-color: transparent;
+		color: var(--fg-3);
+	}
 }

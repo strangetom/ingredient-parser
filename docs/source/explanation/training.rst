@@ -1,3 +1,5 @@
+.. _reference-explanation-training:
+
 Model Training
 ==============
 
@@ -225,4 +227,3 @@ The figure below shows how the sentence- and word-level performance has changed 
 .. image:: /_static/performance-history.svg
   :class: .dark-light
   :alt: Bar graph showing the model performance improving which each new release
-

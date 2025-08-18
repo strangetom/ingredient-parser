@@ -1,3 +1,5 @@
+.. _reference-tutorials-index:
+
 Getting Started
 ===============
 
@@ -46,6 +48,11 @@ Ingredient Parser depends on the following
 * `Pint <https://pint.readthedocs.io/en/stable/>`_
 * `Numpy <https://numpy.org/>`_
 
+.. note::
+
+    To use the companion web app, a.k.a. **webtools**, :ref:`follow the steps in this section <reference-tutorials-web-app>`.
+
+
 Usage
 ^^^^^
 
@@ -90,3 +97,4 @@ Each of the fields (except sentence) has a confidence value associated with it. 
 
    Options <options>
    Examples <examples>
+   Web app <webtools>

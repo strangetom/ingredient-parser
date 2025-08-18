@@ -1,3 +1,5 @@
+.. _reference-explanation-features:
+
 Feature Generation
 ==================
 
@@ -219,5 +221,3 @@ Below is an example of the features generated for one of the tokens in an ingred
       'next3_after_sentence_split': False,
       'next3_example_phrase': False
    }
-
-

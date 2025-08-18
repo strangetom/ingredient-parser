@@ -1,7 +1,12 @@
-Ingredient Parser documentation!
+.. _reference-homepage:
+
+Ingredient Parser documentation
 ================================
 
 The Ingredient Parser package is a Python package for parsing information from recipe ingredient sentences.
+
+.. figure:: /_static/logos/logo_wide.png
+  :alt: Ingredient parser banner logo
 
 .. grid:: 1 2 2 4
 
