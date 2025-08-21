@@ -7,6 +7,8 @@ pre-commit
 pytest
 coverage
 flask
+flask-CORS
+flask-socketIO
 tabulate
 matplotlib
 -e .
