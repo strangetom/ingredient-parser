@@ -8,7 +8,6 @@ export function ShellTrainingCountdownListener() {
 		const subscriptionTrainingStatusStore = useTabTrainerStore.subscribe(
 			(state) => state.training,
 			(training) => {
-				console.log("reached here");
 				subscribeCounterStore(training);
 			},
 		);

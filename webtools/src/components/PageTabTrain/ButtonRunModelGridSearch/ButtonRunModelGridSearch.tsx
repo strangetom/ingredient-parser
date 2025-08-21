@@ -1,35 +1,25 @@
 // {{{EXTERNAL}}}
 import {
 	ActionIcon,
-	Anchor,
 	Box,
 	Button,
-	Code,
 	Flex,
 	Group,
-	JsonInput,
 	Loader,
-	LoadingOverlay,
 	Menu,
 	MultiSelect,
 	NumberInput,
 	Switch,
-	Text,
 } from "@mantine/core";
-import { useDisclosure } from "@mantine/hooks";
 // {{{ASSETS}}}
-import {
-	IconChevronDown,
-	IconChevronUp,
-	IconCode,
-	IconX,
-} from "@tabler/icons-react";
+import { IconChevronDown, IconChevronUp } from "@tabler/icons-react";
 import { useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { useTabLabellerStore, useTabTrainerStore } from "../../../domain";
 // {{{INTERNAL}}}
-import { ActionIconTooltipped, PopoverQuestionMark } from "../../Shared";
+import { PopoverQuestionMark } from "../../Shared";
 import { ComboBoxAlgos } from "./ComboBoxAlgos";
+import { TextAreaAlgosParams } from "./TextAreaAlgosParams";
 
 function PopoverQuestionMarkWrapper({
 	label,
@@ -81,9 +71,6 @@ export function ButtonRunModelGridSearch() {
 	);
 
 	const [opened, setOpened] = useState(false);
-	const [jsonError, setHasJsonError] = useState(false);
-	const [prettyJsonOpened, { open: openPrettyJson, close: closePrettyJson }] =
-		useDisclosure(false);
 
 	const labelSourcesInput = fetchingAvailablePublisherSources ? (
 		<Flex style={{ width: "100%" }}>
@@ -110,9 +97,10 @@ export function ButtonRunModelGridSearch() {
 				if (!value) return;
 				updateInputGridSearch({ split: parseFloat(value.toString()) });
 			}}
-			step={0.1}
-			min={0.1}
-			max={0.9}
+			step={0.001}
+			min={0.001}
+			max={0.999}
+			decimalScale={3}
 		/>
 	);
 
@@ -140,53 +128,6 @@ export function ButtonRunModelGridSearch() {
 		</Group>
 	);
 
-	const algosInput = (
-		<div>
-			<Box style={{ position: "relative" }}>
-				<JsonInput
-					value={inputGridSearch.algosGlobalParams}
-					onChange={(value) => {
-						updateInputGridSearch({ algosGlobalParams: value });
-
-						try {
-							JSON.parse(value);
-							setHasJsonError(false);
-						} catch {
-							setHasJsonError(true);
-						}
-					}}
-					validationError="Invalid JSON — parameters will be ignored unless corrected"
-					rows={4}
-				/>
-				{!jsonError && (
-					<Box
-						style={{
-							position: "absolute",
-							bottom: "var(--xsmall-spacing)",
-							right: "var(--xsmall-spacing)",
-						}}
-					>
-						<ActionIconTooltipped
-							text="View pretty format"
-							iconography={IconCode}
-							onClick={openPrettyJson}
-						/>
-					</Box>
-				)}
-			</Box>
-			<Text fz="xs">
-				View CRFSuite's{" "}
-				<Anchor
-					target="_blank"
-					fz="inherit"
-					href="https://www.chokkan.org/software/crfsuite/manual.html"
-				>
-					hyper-parameters documentation
-				</Anchor>
-			</Text>
-		</div>
-	);
-
 	const combineLabelsFlagSwitch = (
 		<Switch
 			label={
@@ -199,6 +140,23 @@ export function ButtonRunModelGridSearch() {
 			onChange={(event) => {
 				updateInputGridSearch({
 					combineNameLabels: event.currentTarget.checked,
+				});
+			}}
+		/>
+	);
+
+	const debugLevelFlagSwitch = (
+		<Switch
+			label={
+				<PopoverQuestionMarkWrapper
+					label="Verbose debugging"
+					description="Output verbose logging. Only use for debugging purposes"
+				/>
+			}
+			checked={inputGridSearch.debugLevel === 1}
+			onChange={(event) => {
+				updateInputGridSearch({
+					debugLevel: event.currentTarget.checked ? 1 : 0,
 				});
 			}}
 		/>
@@ -254,63 +212,6 @@ export function ButtonRunModelGridSearch() {
 					</ActionIcon>
 				</Menu.Target>
 				<Menu.Dropdown>
-					<LoadingOverlay
-						visible={prettyJsonOpened}
-						loaderProps={{
-							style: {
-								position: "relative",
-								height: "100%",
-								width: "100%",
-								padding: "var(--medium-spacing)",
-							},
-							children: (
-								<div
-									style={{
-										position: "relative",
-										height: "100%",
-										width: "100%",
-									}}
-								>
-									<Code block style={{ height: "100%", width: "100%" }}>
-										{!jsonError &&
-											JSON.stringify(
-												JSON.parse(inputGridSearch.algosGlobalParams),
-												null,
-												2,
-											)}
-									</Code>
-									<Box
-										style={{
-											position: "absolute",
-											top: "var(--xsmall-spacing)",
-											right: "var(--xsmall-spacing)",
-										}}
-									>
-										<ActionIconTooltipped
-											text="Exit"
-											iconography={IconX}
-											onClick={closePrettyJson}
-										/>
-									</Box>
-								</div>
-							),
-						}}
-						zIndex={99999}
-						overlayProps={{
-							blur: 0,
-							backgroundOpacity: 0.9,
-							color: "var(--bg-1)",
-							center: false,
-						}}
-						styles={{
-							root: {
-								display: "block",
-								align: undefined,
-								justifyContent: undefined,
-							},
-						}}
-					/>
-
 					<Menu.Label>
 						<PopoverQuestionMarkWrapper
 							label="Algorithm(s)"
@@ -322,12 +223,12 @@ export function ButtonRunModelGridSearch() {
 					</Box>
 					<Menu.Label>
 						<PopoverQuestionMarkWrapper
-							label="Algorithm global parameters"
+							label="Algorithm parameters"
 							description="The hyper-parameters applied to the CRFsuite algorithm — it is recommended to copy & paste your json, editing features here is limited"
 						/>
 					</Menu.Label>
 					<Box py="xs" px="sm">
-						{algosInput}
+						<TextAreaAlgosParams />
 					</Box>
 					<Menu.Divider />
 					<Menu.Label>
@@ -360,7 +261,12 @@ export function ButtonRunModelGridSearch() {
 						{seedInput}
 					</Box>
 					<Menu.Divider />
-					<Menu.Item component="div">{combineLabelsFlagSwitch}</Menu.Item>
+					<Box py="xs" px="sm">
+						{combineLabelsFlagSwitch}
+					</Box>
+					<Box py="xs" px="sm">
+						{debugLevelFlagSwitch}
+					</Box>
 				</Menu.Dropdown>
 			</Menu>
 		</Group>

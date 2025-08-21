@@ -14,7 +14,7 @@ from io import StringIO
 from pathlib import Path
 from random import randint
 from threading import Event, Lock, Thread
-from typing import TextIO
+from typing import Any, Dict, TextIO
 
 # {{FLASK|SOCKETS}}
 from flask import Flask
@@ -44,10 +44,6 @@ cors = CORS(app)
 
 # logging for app_sockets.py
 logger = logging.getLogger(__name__)
-LOGGING_LEVEL = {
-    0: logging.INFO,
-    1: logging.DEBUG,
-}
 
 # flask socket-io
 #
@@ -66,11 +62,14 @@ thread_lock = Lock()
 thread_event = Event()
 
 
-def safe_json_load(json_string):
+def safe_json_load(json_string: str) -> Dict[str, Any]:
     """
-    Safely loads a JSON string and returns the Python object.
-    Returns None if the string is not valid JSON.
+    Safely loads a JSON string and returns the JSON dictionary
     """
+    try:
+        return json.loads(json_string)
+    except json.JSONDecodeError:
+        return {}
 
 
 def background_thread(thread_event, input_data):
@@ -78,18 +77,16 @@ def background_thread(thread_event, input_data):
 
     try:
         args = {}
+        task = input_data.get("task", None)
+        is_verbose = input_data.get("debugLevel", 0)
 
-        if not input_data["task"]:
-            raise Exception(
-                "Input task needs to be supplied, either training or gridsearch"
-            )
-
-        if input_data["task"] == "gridsearch":
-            global_params = None
-            try:
-                global_params = json.loads(input_data.get("algosGlobalParams", "{}"))
-            except json.JSONDecodeError:
-                global_params = {}
+        if task == "gridsearch":
+            algos_global_params = input_data.get("algosGlobalParams", "{}")
+            algos_ap_params = input_data.get("algosAPParams", "{}")
+            algos_pa_params = input_data.get("algosPAParams", "{}")
+            algos_lbfgs_params = input_data.get("algosLBFGSParams", "{}")
+            algos_arow_params = input_data.get("algosAROWParams", "{}")
+            algos_l2sgd_params = input_data.get("algosL2SGDParams", "{}")
 
             args = {
                 "database": str(SQL3_DATABASE),
@@ -102,15 +99,15 @@ def background_thread(thread_event, input_data):
                 "combine_name_labels": input_data.get("combineNameLabels", False)
                 or None,
                 "algos": input_data.get("algos", ["lbfgs"]),
-                "global_params": global_params,
                 "keep_models": False,
-                "lbfgs_params": None,
-                "ap_params": None,
-                "l2sgd_params": None,
-                "pa_params": None,
-                "arow_params": None,
+                "global_params": safe_json_load(algos_global_params),
+                "lbfgs_params": safe_json_load(algos_lbfgs_params),
+                "ap_params": safe_json_load(algos_ap_params),
+                "l2sgd_params": safe_json_load(algos_l2sgd_params),
+                "pa_params": safe_json_load(algos_pa_params),
+                "arow_params": safe_json_load(algos_arow_params),
             }
-        else:
+        elif task == "training":
             args = {
                 "database": str(SQL3_DATABASE),
                 "table": "en",
@@ -135,6 +132,10 @@ def background_thread(thread_event, input_data):
                     "runs": input_data.get("runs", 1),
                     "processes": input_data.get("processes", os.cpu_count() - 1),
                 }
+        else:
+            raise Exception(
+                "Input task needs to be supplied, either training or gridsearch"
+            )
 
         def monitor_stdout(output_buffer: TextIO, interval=0.1):
             """Monitors the output buffer for new content"""
@@ -170,7 +171,7 @@ def background_thread(thread_event, input_data):
 
         logging.basicConfig(
             stream=captured_output,
-            level=logging.INFO,
+            level=(logging.DEBUG if is_verbose else logging.INFO),
             format="[%(levelname)s] (%(module)s) %(message)s",
         )
 

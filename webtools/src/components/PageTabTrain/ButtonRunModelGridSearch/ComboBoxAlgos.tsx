@@ -1,3 +1,4 @@
+// {{{EXTERNAL}}}
 import {
 	Anchor,
 	Checkbox,
@@ -11,33 +12,9 @@ import {
 } from "@mantine/core";
 import { useCallback } from "react";
 import { useShallow } from "zustand/react/shallow";
-import { useTabTrainerStore } from "../../../domain";
-
-interface Item {
-	value: string;
-	description: string;
-	url: string;
-}
-
-const algorithms: Item[] = [
-	{
-		value: "lbfgs",
-		description: "Gradient descent using the L-BFGS method",
-		url: "",
-	},
-	{ value: "ap", description: " Averaged Perceptron", url: "" },
-	{
-		value: "l2sgd",
-		description: "Stochastic Gradient Descent with L2 regularization term",
-		url: "",
-	},
-	{ value: "pa", description: "Passive Aggressive", url: "" },
-	{
-		value: "arow",
-		description: "Adaptive Regularization of Weight Vector",
-		url: "",
-	},
-];
+// {{{INTERNAL}}}
+import { type AlgoVariant, useTabTrainerStore } from "../../../domain";
+import algorithms from "./algorithmVariantsDescriptive";
 
 export function ComboBoxAlgos() {
 	const { algos } = useTabTrainerStore(
@@ -53,12 +30,11 @@ export function ComboBoxAlgos() {
 
 	const handleValueSelect = useCallback(
 		(val: string) => {
-			const updateInputGridSearch =
-				useTabTrainerStore.getState().updateInputGridSearch;
+			const { updateInputGridSearch } = useTabTrainerStore.getState();
 			updateInputGridSearch({
-				algos: algos.includes(val)
-					? algos.filter((v) => v !== val)
-					: [...algos, val],
+				algos: algos.includes(val as AlgoVariant)
+					? algos.filter((v) => v !== (val as AlgoVariant))
+					: [...algos, val as AlgoVariant],
 			});
 		},
 		[algos],
@@ -66,8 +42,7 @@ export function ComboBoxAlgos() {
 
 	const handleValueRemove = useCallback(
 		(val: string) => {
-			const updateInputGridSearch =
-				useTabTrainerStore.getState().updateInputGridSearch;
+			const { updateInputGridSearch } = useTabTrainerStore.getState();
 			updateInputGridSearch({
 				algos: algos.filter((v) => v !== val),
 			});
@@ -117,6 +92,8 @@ export function ComboBoxAlgos() {
 			store={combobox}
 			onOptionSubmit={handleValueSelect}
 			withinPortal={false}
+			width={400}
+			position="top-start"
 		>
 			<Combobox.DropdownTarget>
 				<PillsInput pointer onClick={() => combobox.toggleDropdown()}>

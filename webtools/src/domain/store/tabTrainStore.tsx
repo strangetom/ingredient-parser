@@ -4,12 +4,14 @@ import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
 import { constructEndpoint } from "../api";
 import type {
+	AlgoVariant,
 	InputTrainer,
 	InputTrainerGridSearch,
 	InputTrainerTask,
 	Json,
 	TrainerMode,
 } from "../types";
+import { validateJson } from "../utils";
 
 interface ServerToClientEvents {
 	trainer: (payload: EventLog) => void;
@@ -31,6 +33,7 @@ interface TabTrainerState {
 	updateInput: (partial: Partial<InputTrainer>) => void;
 	inputGridSearch: InputTrainerGridSearch;
 	updateInputGridSearch: (partial: Partial<InputTrainerGridSearch>) => void;
+	sanitizeAlgosInputGridSearch: () => Partial<InputTrainerGridSearch>;
 	mode: TrainerMode;
 	updateMode: (mode: TrainerMode) => void;
 	connected: boolean;
@@ -71,13 +74,50 @@ export const useTabTrainerStore = create(
 			processes: (window.navigator.hardwareConcurrency || 2) - 1,
 			algos: ["lbfgs"],
 			algosGlobalParams: "{}",
+			algosLBFGSParams: "{}",
+			algosAPParams: "{}",
+			algosL2SGDParams: "{}",
+			algosPAParams: "{}",
+			algosAROWParams: "{}",
 			debugLevel: 0, // 0: logging.INFO, 1: logging.DEBUG
 		},
 		updateInputGridSearch: (partial: Partial<InputTrainerGridSearch>) =>
 			set(({ inputGridSearch }) => ({
 				inputGridSearch: { ...inputGridSearch, ...partial },
 			})),
-		mode: "trainer",
+		sanitizeAlgosInputGridSearch: () => {
+			const { inputGridSearch } = get();
+			const {
+				algos,
+				algosGlobalParams,
+				algosAPParams,
+				algosAROWParams,
+				algosL2SGDParams,
+				algosLBFGSParams,
+				algosPAParams,
+			} = inputGridSearch;
+
+			const gridsearchSanitizer = (params: string, variant: AlgoVariant) => {
+				const clonedStubGlobal = ["global", ...algos];
+				const isIncludedAndValid =
+					clonedStubGlobal.includes(variant) &&
+					validateJson(params, JSON.parse);
+				return (isIncludedAndValid && params) || undefined;
+			};
+
+			const inputGridSearchResolved = {
+				...inputGridSearch,
+				algosGlobalParams: gridsearchSanitizer(algosGlobalParams, "global"),
+				algosAPParams: gridsearchSanitizer(algosAPParams, "ap"),
+				algosAROWParams: gridsearchSanitizer(algosAROWParams, "arow"),
+				algosL2SGDParams: gridsearchSanitizer(algosL2SGDParams, "l2sgd"),
+				algosLBFGSParams: gridsearchSanitizer(algosLBFGSParams, "lbfgs"),
+				algosPAParams: gridsearchSanitizer(algosPAParams, "pa"),
+			};
+
+			return inputGridSearchResolved;
+		},
+		mode: "trainer" as TrainerMode,
 		updateMode: (mode: TrainerMode) => set({ mode: mode }),
 		connected: false,
 		indicator: "Connecting",
@@ -129,15 +169,18 @@ export const useTabTrainerStore = create(
 			if (connected) {
 				set({ events: [], training: true });
 
+				const { input, sanitizeAlgosInputGridSearch } = get();
+				const inputGridSearchSanitized = sanitizeAlgosInputGridSearch();
+
 				if (task === "training") {
 					socket.emit("train", {
 						task: "training",
-						...get().input,
+						...input,
 					});
 				} else if (task === "gridsearch") {
 					socket.emit("train", {
 						task: "gridsearch",
-						...get().inputGridSearch,
+						...inputGridSearchSanitized,
 					});
 				} else {
 					set({ training: false });

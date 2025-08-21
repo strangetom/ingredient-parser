@@ -11,6 +11,16 @@ export type TrainerMode = "tuner" | "trainer";
 
 export type InputTrainerTask = "training" | "gridsearch";
 
+export type AlgoVariant = "lbfgs" | "ap" | "l2sgd" | "pa" | "arow" | "global";
+
+export type AlgoVariantStoreNamespace =
+	| "algosGlobalParams"
+	| "algosLBFGSParams"
+	| "algosAPParams"
+	| "algosL2SGDParams"
+	| "algosPAParams"
+	| "algosAROWParams";
+
 export type InputTrainerShared = {
 	split: number;
 	seed: number;
@@ -30,6 +40,11 @@ export type InputTrainer = {
 
 export type InputTrainerGridSearch = {
 	processes: number;
-	algos: string[];
+	algos: AlgoVariant[];
 	algosGlobalParams: string;
+	algosLBFGSParams: string;
+	algosAPParams: string;
+	algosL2SGDParams: string;
+	algosPAParams: string;
+	algosAROWParams: string;
 } & InputTrainerShared;

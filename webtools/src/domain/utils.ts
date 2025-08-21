@@ -104,42 +104,6 @@ export function isAlphaLetter(str: string) {
 	return str.toUpperCase() !== str.toLowerCase();
 }
 
-// https://stackoverflow.com/questions/14458819/simplest-way-to-obfuscate-and-deobfuscate-a-string-in-javascript
-export function obfs(str: string, key: number, n = 126): string {
-	// return String itself if the given parameters are invalid
-	if (
-		!(typeof key === "number" && key % 1 === 0) ||
-		!(typeof key === "number" && key % 1 === 0)
-	) {
-		return str.toString();
-	}
-
-	const chars = str.toString().split("");
-
-	for (let i = 0; i < chars.length; i++) {
-		const c = chars[i].charCodeAt(0);
-
-		if (c <= n) {
-			chars[i] = String.fromCharCode((chars[i].charCodeAt(0) + key) % n);
-		}
-	}
-
-	return chars.join("");
-}
-
-// https://stackoverflow.com/questions/14458819/simplest-way-to-obfuscate-and-deobfuscate-a-string-in-javascript
-export function deobf(str: string, key: number, n = 126): string {
-	// return String itself if the given parameters are invalid
-	if (
-		!(typeof key === "number" && key % 1 === 0) ||
-		!(typeof key === "number" && key % 1 === 0)
-	) {
-		return str.toString();
-	}
-
-	return obfs(str.toString(), n - key);
-}
-
 // https://stackoverflow.com/questions/36637146/encode-string-to-hex
 export function hex(str: string) {
 	return str
@@ -217,24 +181,54 @@ export function romanize(integer: number): string {
 
 /* Primitives */
 
-export function intersection(
-	a: Array<string | number | null | undefined>,
-	b: Array<string | number | null | undefined>,
-): Array<string | number | null | undefined> {
+export function validateJson(
+	value: string | null | undefined,
+	deserialize: typeof JSON.parse,
+) {
+	if (typeof value === "string" && value.trim().length === 0) {
+		return true;
+	}
+
+	if (!value) {
+		return false;
+	}
+
+	try {
+		deserialize(value);
+		return true;
+	} catch (_) {
+		return false;
+	}
+}
+
+export function safeParseJsonPrettyStringify(
+	value: string | null | undefined,
+	deserialize: typeof JSON.parse,
+	serialize: typeof JSON.stringify,
+) {
+	const fallback = "{}";
+
+	if ((typeof value === "string" && value.trim().length === 0) || !value) {
+		return serialize(JSON.parse(fallback), null, 2);
+	}
+
+	try {
+		deserialize(value);
+		return serialize(JSON.parse(value), null, 2);
+	} catch (_) {
+		return serialize(JSON.parse(fallback), null, 2);
+	}
+}
+
+export function intersection<T>(a: Array<T>, b: Array<T>): Array<T> {
 	return a.filter((o) => b.includes(o));
 }
 
-export function difference(
-	a: Array<string | number | null | undefined>,
-	b: Array<string | number | null | undefined>,
-): Array<string | number | null | undefined> {
+export function difference<T>(a: Array<T>, b: Array<T>): Array<T> {
 	return a.filter((o) => !b.includes(o));
 }
 
-export function union(
-	a: Array<string | number | null | undefined>,
-	b: Array<string | number | null | undefined>,
-): Array<string | number | null | undefined> {
+export function union<T>(a: Array<T>, b: Array<T>): Array<T> {
 	return [...new Set([...a, ...b])];
 }
 
@@ -269,9 +263,9 @@ export function getHostFromUrl(url: string) {
 }
 
 export function utmParameterize(url: string) {
-	const source = "utm_source=theblankdish";
+	const source = "utm_source=ingredientparser";
 	const medium = "utm_medium=referral";
-	const name = "utm_campaign=theblankdish";
+	const name = "utm_campaign=ingredientparser";
 	return `${url}?${[source, medium, name].join("&")}`;
 }
 
@@ -285,84 +279,4 @@ export function hexToRgb(hex: string) {
 	const b = bigint & 255;
 
 	return `rgb(${[r, g, b].join(",")})`;
-}
-
-interface HSL {
-	h: number;
-	s: number;
-	l: number;
-}
-
-export function hslFromRgb(rgb: string): HSL {
-	const rgbArr = rgb.replace(/[^0-9,]/g, "").split(",");
-	const r1 = Number(rgbArr[0]) / 255,
-		g1 = Number(rgbArr[1]) / 255,
-		b1 = Number(rgbArr[2]) / 255;
-
-	const maxColor = Math.max(r1, g1, b1),
-		minColor = Math.min(r1, g1, b1);
-
-	let L = (maxColor + minColor) / 2,
-		S = 0,
-		H = 0;
-
-	if (maxColor !== minColor) {
-		if (L < 0.5) {
-			S = (maxColor - minColor) / (maxColor + minColor);
-		} else {
-			S = (maxColor - minColor) / (2.0 - maxColor - minColor);
-		}
-		if (r1 === maxColor) {
-			H = (g1 - b1) / (maxColor - minColor);
-		} else if (g1 === maxColor) {
-			H = 2.0 + (b1 - r1) / (maxColor - minColor);
-		} else {
-			H = 4.0 + (r1 - g1) / (maxColor - minColor);
-		}
-	}
-	L = L * 100;
-	S = S * 100;
-	H = H * 60;
-	if (H < 0) {
-		H += 360;
-	}
-	return { h: H, s: S, l: L };
-}
-
-export function colorNameFromHsl(hsl: HSL): string {
-	const l = Math.floor(hsl.l),
-		s = Math.floor(hsl.s),
-		h = Math.floor(hsl.h);
-
-	if (s <= 10 && l >= 90) {
-		return "white";
-	} else if (l <= 15) {
-		return "black";
-	} else if ((s <= 10 && l <= 70) || s === 0) {
-		return "gray";
-	} else if ((h >= 0 && h <= 15) || h >= 346) {
-		return "red";
-	} else if (h >= 16 && h <= 35) {
-		if (s < 90) {
-			return "brown";
-		} else {
-			return "orange";
-		}
-	} else if (h >= 36 && h <= 54) {
-		if (s < 90) {
-			return "brown";
-		} else {
-			return "yellow";
-		}
-	} else if (h >= 55 && h <= 165) {
-		return "green";
-	} else if (h >= 166 && h <= 260) {
-		return "blue";
-	} else if (h >= 261 && h <= 290) {
-		return "purple";
-	} else if (h >= 291 && h <= 345) {
-		return "pink";
-	} else {
-		return "white";
-	}
 }
