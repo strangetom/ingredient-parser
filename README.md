@@ -99,5 +99,3 @@ The dependencies for building the documentation are in the `requirements-doc.txt
 **Contribution**
 
 Please target the **develop** branch for pull requests. The main branch is used for stable releases and hotfixes only.
-
-There is a simple web app for testing the parser with ingredient sentences and showing the parsed output. To run the web app, run the command
