@@ -1,0 +1,1 @@
+export { TableParsedSentence } from "./TableParsedSentence";
