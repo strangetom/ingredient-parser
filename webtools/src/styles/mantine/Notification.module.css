@@ -1,0 +1,32 @@
+.root {
+	background: var(--bg-1);
+	color: var(--fg);
+	border: 1px solid color-mix(in srgb, var(--fg), transparent 86%);
+	border-radius: var(--small-radius);
+
+	&::before {
+		display: none;
+	}
+}
+
+.title {
+	color: var(--fg-1);
+}
+
+.description {
+	color: var(--fg);
+}
+
+.closeButton {
+	& svg {
+		color: var(--fg);
+	}
+
+	&:hover {
+		background-color: transparent;
+
+		& svg {
+			color: var(--fg-3);
+		}
+	}
+}
