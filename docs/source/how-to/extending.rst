@@ -130,15 +130,14 @@ Depending on the language, you may need a language specific :func:`tokenize <ing
 
 .. tip::
 
-    A web app has been developed to aid in the adding and labelling of training sentences. Run the command
+    A web app has been developed to aid in the adding and labelling of training sentences. If intending to add another language, you will need to adjust some of the web app code. Regardless, you can run these commands under the webtools directory to install the packages and run the web app.
 
     .. code:: bash
 
-        $ flask --app labeller run
+        $ npm install
+        $ npm run dev
 
     Then navigate to http://localhost:5000 in your browser.
-
-    You may need to tweak this to work with the correct database.
 
 1. Normalise
 ~~~~~~~~~~~~

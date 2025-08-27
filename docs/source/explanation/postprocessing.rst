@@ -56,7 +56,7 @@ The post-processing to obtain the ingredient names is similar to above, but with
 The output of this function is a list of :class:`IngredientText` objects, one for each ingredient names.
 
 If ``separate_names`` is set to False, then all the NAME_* label types are treated as a single NAME label and the post-processing is the same for the SIZE, PREP, PURPOSE and COMMENT labels.
-This will return a single :class:`IngredientText` object.
+This will return a list containing a single :class:`IngredientText` object.
 
 Amount
 ^^^^^^

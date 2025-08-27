@@ -1,3 +1,1 @@
-export {
-  LabellerDefinitionsModal
-} from "./LabellerDefinitionsModal"
+export { LabellerDefinitionsModal } from "./LabellerDefinitionsModal";

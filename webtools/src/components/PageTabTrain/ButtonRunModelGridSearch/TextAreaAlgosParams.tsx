@@ -29,13 +29,16 @@ import { useShallow } from "zustand/react/shallow";
 import {
 	type AlgoVariant,
 	type AlgoVariantStoreNamespace,
-	algorithmsNamespaceToVariant,
-	algorithmsVariantToNamespace,
 	safeParseJsonPrettyStringify,
 	useTabTrainerStore,
 	validateJson,
 } from "../../../domain";
 import { ActionIconTooltipped } from "../../Shared";
+// {{{INTERNAL}}}
+import {
+	algorithmsNamespaceToVariant,
+	algorithmsVariantToNamespace,
+} from "./algorithmVariantNamespace";
 
 interface VariantNamespaceType {
 	variantNameSpace: AlgoVariantStoreNamespace;

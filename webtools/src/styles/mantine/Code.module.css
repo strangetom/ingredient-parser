@@ -1,0 +1,13 @@
+.root {
+	background-color: var(--fg-1);
+	color: var(--bg-1);
+
+	&[data-variant="darker"] {
+		background-color: var(--fg);
+		color: var(--bg);
+	}
+	&[data-variant="lighter"] {
+		background-color: var(--fg-2);
+		color: var(--bg-2);
+	}
+}

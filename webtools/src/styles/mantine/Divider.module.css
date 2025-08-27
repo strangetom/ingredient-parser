@@ -1,0 +1,11 @@
+.root {
+	&:where([data-orientation="horizontal"]) {
+		border-top: var(--divider-size) var(--divider-border-style, solid)
+			color-mix(in srgb, var(--fg), transparent 66%);
+	}
+
+	&:where([data-orientation="vertical"]) {
+		border-inline-start: var(--divider-size) var(--divider-border-style, solid)
+			color-mix(in srgb, var(--fg), transparent 66%);
+	}
+}

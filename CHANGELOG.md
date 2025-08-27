@@ -1,11 +1,12 @@
 # Changelog
 
-## develop
+## 2.2.0
 
 ### Foundation foods:
 
 * Bias foundation food matching to prefer "raw" FDC ingredients, but only if the ingredient name does not include any verbs that indicate the ingredient is not raw (e.g. "cooked").
 * Normalise spelling of tokens in ingredient names to align with spelling used in FDC ingredient descriptions.
+* Fix a bug where foundation foods were never calculated if `separate_names=False`.
 
 ### General
 

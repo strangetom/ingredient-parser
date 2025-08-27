@@ -46,7 +46,7 @@ Ingredient Parser depends on the following
 * `python-crfsuite <https://python-crfsuite.readthedocs.io/en/latest/>`_
 * `NLTK <https://www.nltk.org/>`_
 * `Pint <https://pint.readthedocs.io/en/stable/>`_
-* `Floret <https://github.com/explosion/floret>`_
+* `Numpy <https://numpy.org/>`_
 
 .. note::
 

@@ -1,3 +1,1 @@
-export {
-  ModalUnsavedChanges
-} from "./ModalUnsavedChanges"
+export { ModalUnsavedChanges } from "./ModalUnsavedChanges";

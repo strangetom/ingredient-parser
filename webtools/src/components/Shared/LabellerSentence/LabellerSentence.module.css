@@ -32,7 +32,7 @@
 	}
 
 	&[data-deletion] {
-	    .sentence {
+		.sentence {
 			opacity: 0.25;
 			pointer-events: none;
 		}
@@ -47,11 +47,11 @@
 	padding: var(--small-spacing);
 
 	&[data-edited] {
-	    background-color: color-mix(in srgb, var(--green), transparent 85%);
+		background-color: color-mix(in srgb, var(--green), transparent 85%);
 	}
 
 	&[data-deletion] {
-        background-color: color-mix(in srgb, var(--red), transparent 85%);
+		background-color: color-mix(in srgb, var(--red), transparent 85%);
 	}
 }
 

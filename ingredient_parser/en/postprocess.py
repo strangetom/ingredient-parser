@@ -153,7 +153,7 @@ class PostProcessor:
         Returns
         -------
         str
-            String representation of initialised object
+            String representation of initialised object.
         """
         return f'PostProcessor("{self.sentence}")'
 
@@ -163,7 +163,7 @@ class PostProcessor:
         Returns
         -------
         str
-            Human readable string representation of object
+            Human readable string representation of object.
         """
         _str = [
             "Post-processed recipe ingredient sentence",
@@ -201,6 +201,16 @@ class PostProcessor:
             # Process NAME labels as any other label, but return as a list
             if processed_name := self._postprocess("NAME"):
                 name = [processed_name]
+                if self.foundation_foods:
+                    # Extract name tokens. We can only return a single foundation food,
+                    # but we still need to return a list.
+                    name_tokens = [
+                        token
+                        for token, label in zip(self.tokens, self.labels)
+                        if label == "NAME"
+                    ]
+                    if ff := match_foundation_foods(name_tokens):
+                        foundationfoods = [ff]
             else:
                 name = []
 
@@ -226,12 +236,12 @@ class PostProcessor:
         Parameters
         ----------
         selected_label : str
-            Label of tokens to postprocess
+            Label of tokens to postprocess.
 
         Returns
         -------
         IngredientText
-            Object containing ingredient comment text and confidence
+            Object containing ingredient comment text and confidence.
         """
         # Select indices of tokens, labels and scores for selected_label
         # Do not include tokens, labels and scores in self.consumed
@@ -258,6 +268,8 @@ class PostProcessor:
         Returns
         -------
         list[IngredientText], list[FoundationFoods]
+            List of IngredientText objects for names.
+            List of matching FoundationFood objects for names.
         """
         name_idx = [
             i
@@ -459,7 +471,7 @@ class PostProcessor:
         Returns
         -------
         str
-            Group label
+            Group label.
         """
         for label in labels:
             if label != "PUNC":
@@ -470,8 +482,10 @@ class PostProcessor:
     def _convert_name_indices_to_object(
         self, name_idx: list[int], name_indices: list[list[int]]
     ) -> tuple[list[IngredientText], list[FoundationFood]]:
-        """Convert grouped indices for name tokens into IngredientText objects. If
-        foundation foods are enabled, determine matching foundation food for each name.
+        """Convert grouped indices for name tokens into IngredientText objects.
+
+        If foundation foods are enabled, determine matching foundation food for each
+        name.
 
         If an ingredient name ends with a token with POS tag of DT, IN or JJ, merge it
         with the next name group, if there is one. This is to avoid cases in a sentence
@@ -510,7 +524,9 @@ class PostProcessor:
                 # If we need to merge the previous name, do it now.
                 ing_text = IngredientText(
                     text=merge_with_next.text + " " + ing_text.text,
-                    confidence=(merge_with_next.confidence + ing_text.confidence) / 2,
+                    confidence=round(
+                        (merge_with_next.confidence + ing_text.confidence) / 2, 6
+                    ),
                     starting_index=min(
                         [merge_with_next.starting_index, ing_text.starting_index]
                     ),
@@ -549,8 +565,9 @@ class PostProcessor:
         return self._deduplicate_names(names), list(foundation_foods)
 
     def _last_non_punc_token_pos(self, token_idx: list[int]) -> str:
-        """Return the POS tag at the last index in token_idx, ignoring all indices
-        corresponding to punctuation.
+        """Return the POS tag at the last index in token_idx.
+
+        Indices corresponding to punctuation are ignored.
 
         Parameters
         ----------
@@ -587,7 +604,7 @@ class PostProcessor:
         Parameters
         ----------
         label_idx : list[int]
-            List of indices of tokens to postprocess into IngredientText
+            List of indices of tokens to postprocess into IngredientText.
         selected_label : str
             Label of tokens being post processed.
 
@@ -705,12 +722,12 @@ class PostProcessor:
         Parameters
         ----------
         list_ : list[Any]
-            List of items to remove consumed elements from
+            List of items to remove consumed elements from.
 
         Returns
         -------
         list[Any]
-            List of items without consumed elements
+            List of items without consumed elements.
         """
         return [el for i, el in enumerate(list_) if i not in self.consumed]
 
@@ -793,12 +810,12 @@ class PostProcessor:
         Parameters
         ----------
         text : str
-            Text resulting from combining tokens with same label
+            Text resulting from combining tokens with same label.
 
         Returns
         -------
         str
-            Text, with punctuation errors fixed
+            Text, with punctuation errors fixed.
 
         Examples
         --------
@@ -856,12 +873,12 @@ class PostProcessor:
         Parameters
         ----------
         text : str
-            Ingredient sentence
+            Ingredient sentence.
 
         Returns
         -------
         str
-            Ingredient sentence with string numbers replace with numeric values
+            Ingredient sentence with string numbers replace with numeric values.
 
         Examples
         --------
@@ -882,7 +899,7 @@ class PostProcessor:
         return text
 
     def _convert_string_number_qty(self) -> None:
-        """Convert QTY tokens that are string numbers to numeric values
+        """Convert QTY tokens that are string numbers to numeric values.
 
         This function modifies the tokens, labels and scores lists in place to replace
         any string numbers with QTY label with their numeric value.
@@ -968,18 +985,18 @@ class PostProcessor:
         Parameters
         ----------
         idx : list[int]
-            List of indices of the tokens/labels/scores in the full tokenized sentence
+            List of indices of the tokens/labels/scores in the full tokenized sentence.
         tokens : list[str]
-            Tokens for input sentence
+            Tokens for input sentence.
         labels : list[str]
-            Labels for input sentence tokens
+            Labels for input sentence tokens.
         scores : list[float]
-            Scores for each label
+            Scores for each label.
 
         Returns
         -------
         list[IngredientAmount]
-            List of IngredientAmount objects
+            List of IngredientAmount objects.
         """
         # We assume that the pattern will not be longer than the longest list
         # defined here.
@@ -1098,18 +1115,18 @@ class PostProcessor:
         Parameters
         ----------
         idx : list[int]
-            List of indices of the tokens/labels/scores in the full tokenized sentence
+            List of indices of the tokens/labels/scores in the full tokenized sentence.
         tokens : list[str]
-            Tokens for input sentence
+            Tokens for input sentence.
         labels : list[str]
-            Labels for input sentence tokens
+            Labels for input sentence tokens.
         scores : list[float]
-            Scores for each label
+            Scores for each label.
 
         Returns
         -------
         list[CompositeIngredientAmount]
-            List of IngredientAmount objects
+            List of IngredientAmount objects.
         """
         # Define patterns for composite amounts based on a sequence of labels.
         # Also set the indices of the pattern sequence where the first and
@@ -1352,18 +1369,18 @@ class PostProcessor:
         Parameters
         ----------
         idx : list[int]
-            List of indices of the tokens/labels/scores in the full tokenized sentence
+            List of indices of the tokens/labels/scores in the full tokenized sentence.
         tokens : list[str]
-            Tokens for input sentence
+            Tokens for input sentence.
         labels : list[str]
-            Labels for input sentence tokens
+            Labels for input sentence tokens.
         scores : list[float]
-            Scores for each label
+            Scores for each label.
 
         Returns
         -------
         list[IngredientAmount]
-            List of IngredientAmount objects
+            List of IngredientAmount objects.
         """
         amounts = []
 
@@ -1469,18 +1486,18 @@ class PostProcessor:
         Parameters
         ----------
         i : int
-            Index of current token
+            Index of current token.
         tokens : list[str]
-            List of all tokens
+            List of all tokens.
         labels : list[str]
-            List of all token labels
+            List of all token labels.
         idx : list[int]
-            List of indices of the tokens/labels/scores in the full tokenized sentence
+            List of indices of the tokens/labels/scores in the full tokenized sentence.
 
         Returns
         -------
         bool
-            True if current token is approximate
+            True if current token is approximate.
 
         Examples
         --------
@@ -1535,18 +1552,18 @@ class PostProcessor:
         Parameters
         ----------
         i : int
-            Index of current token
+            Index of current token.
         tokens : list[str]
-            List of all tokens
+            List of all tokens.
         labels : list[str]
-            List of all token labels
+            List of all token labels.
         idx : list[int]
-            List of indices of the tokens/labels/scores in the full tokenized sentence
+            List of indices of the tokens/labels/scores in the full tokenized sentence.
 
         Returns
         -------
         bool
-            True if current token is singular
+            True if current token is singular.
 
         Examples
         --------
@@ -1598,18 +1615,18 @@ class PostProcessor:
         Parameters
         ----------
         i : int
-            Index of current token
+            Index of current token.
         tokens : list[str]
-            List of all tokens
+            List of all tokens.
         labels : list[str]
-            List of all token labels
+            List of all token labels.
         idx : list[int]
-            List of indices of the tokens/labels/scores in the full tokenized sentence
+            List of indices of the tokens/labels/scores in the full tokenized sentence.
 
         Returns
         -------
         bool
-            True if current token is singular
+            True if current token is singular and approximate.
 
         Examples
         --------
@@ -1653,18 +1670,18 @@ class PostProcessor:
         Parameters
         ----------
         i : int
-            Index of current token
+            Index of current token.
         tokens : list[str]
-            List of all tokens
+            List of all tokens.
         labels : list[str]
-            List of all token labels
+            List of all token labels.
         idx : list[int]
-            List of indices of the tokens/labels/scores in the full tokenized sentence
+            List of indices of the tokens/labels/scores in the full tokenized sentence.
 
         Returns
         -------
         bool
-            True if current token is approximate
+            True if current token is prepared.
 
         Examples
         --------
@@ -1719,12 +1736,12 @@ class PostProcessor:
         Parameters
         ----------
         amounts : list[_PartialIngredientAmount]
-            List of amounts
+            List of amounts.
 
         Returns
         -------
         list[_PartialIngredientAmount]
-            List of amount with all related amounts having the same flags
+            List of amount with all related amounts having the same flags.
         """
         # Group amounts into related groups
         grouped = []
