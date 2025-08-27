@@ -1,14 +1,25 @@
 .. _reference-tutorials-web-app:
 
-Webtools
+Web App
 =======
 
-The ingredient parser library provides a convenient web interface that you can run locally to access most of the library's functionality. The web app, a.k.a. **webtools**, supports basic workflow needs, namely:
+The ingredient parser library provides a convenient web interface that you can run locally to access most of the library's functionality. The web app (**webtools**), supports basic workflow needs, namely:
 
 * Testing and using the trained parser (a.k.a. :func:`parse_ingredient <ingredient_parser.parsers.parse_ingredient>`)
 * Browsing the ingredient training database (:ref:`view data/labels page <reference-explanation-data>`)
 * Labeling ingredient training entries (:ref:`view data/labels page <reference-explanation-data>`)
 * Training and tuning the parser (a.k.a. :func:`train_single <train.train_single>`, :func:`train_multiple <train.train_multiple>`, :func:`grid_search <train.grid_search>`)
+
+Requirements and Setup
+~~~~~~~~~~~~
+
+To run the **webtools**, install all python libraries in ``requirements-dev.txt``. Next, install `Node <https://nodejs.org/en/download>`_, the Javascript runtime, on your machine. Lastly, navigate to the ``webtools`` directory and run the following commands:
+
+.. code:: bash
+
+    $ npm install
+    $ npm run dev
+
 
 Screenshots
 ~~~~~~~~~~~
@@ -23,17 +34,6 @@ Screenshots
 
     .. figure:: /_static/webtools/app.trainer.screenshot.png
         :alt: Webtools trainer screenshot
-
-
-Requirements and Setup
-~~~~~~~~~~~~
-
-To run the **webtools**, first ensure you have installed the base libraries from ``requirements-dev.txt``. Next, install `NodeJS <https://nodejs.org/en/download>`_, the Javascript runtime, on your machine. Lastly, navigate to the Ingredient Parser ``webtools`` directory and run the following commands:
-
-.. code:: bash
-
-    $ npm install
-    $ npm run dev
 
 Tech Stack
 ~~~~~~~~~~~~

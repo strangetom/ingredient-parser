@@ -224,6 +224,6 @@ Historical performance
 The model performance has improved over time as a result of improvements to the labelling consistency of the training data, the sentence normalization steps and the feature selection.
 The figure below shows how the sentence- and word-level performance has changed over time.
 
-.. image:: /_static/performance-history.svg
+.. image:: /_static/diagrams/performance-history.svg
   :class: .dark-light
   :alt: Bar graph showing the model performance improving which each new release

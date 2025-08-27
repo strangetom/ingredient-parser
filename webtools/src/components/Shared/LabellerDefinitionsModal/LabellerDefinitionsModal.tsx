@@ -1,9 +1,8 @@
 import { Divider, Drawer, Group, Text } from "@mantine/core";
 import { Fragment } from "react";
 import { useShallow } from "zustand/react/shallow";
-import { useAppShellStore } from "../../../domain";
+import { collectionsLabelDefinitions, useAppShellStore } from "../../../domain";
 import { Labeller, type LabellerProps } from "../Labeller/Labeller";
-import labelDefinitions from "./defintions";
 
 function SmallLabelDefinitionRow({
 	labellerProps,
@@ -45,13 +44,13 @@ export function LabellerDefinitionsModal() {
 			onClose={() => setLabelDefsModalOpen(false)}
 			size="xl"
 		>
-			{labelDefinitions.map(({ token, definitions }, ix) => (
+			{collectionsLabelDefinitions.map(({ token, definitions }, ix) => (
 				<Fragment key={`label-definnition-${token[1]}`}>
 					<SmallLabelDefinitionRow
 						labellerProps={{ size: "small", token: token }}
 						definitions={definitions}
 					/>
-					{ix + 1 < labelDefinitions.length && <Divider />}
+					{ix + 1 < collectionsLabelDefinitions.length && <Divider />}
 				</Fragment>
 			))}
 		</Drawer>
