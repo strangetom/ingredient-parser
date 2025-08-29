@@ -9,6 +9,11 @@ from functools import partial
 from itertools import chain, islice
 from typing import Any, Callable, Iterable
 
+import matplotlib
+
+matplotlib.use(
+    "Agg"
+)  # suppress matplotlib gui / headless environment for simple file dump
 from matplotlib import pyplot as plt
 from sklearn.metrics import (
     ConfusionMatrixDisplay,

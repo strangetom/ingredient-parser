@@ -59,7 +59,9 @@ Word-level results:
 
 ## Development
 
-The development dependencies are in the ```requirements-dev.txt``` file. Details on the training process can be found in the [Model Guide](https://ingredient-parser.readthedocs.io/en/latest/guide/index.html) documentation.
+**Basic**
+
+The development dependencies are in the `requirements-dev.txt` file. Details on the training process can be found in the [Model Guide](https://ingredient-parser.readthedocs.io/en/latest/guide/index.html) documentation.
 
 Before committing anything, install [pre-commit](https://pre-commit.com/) and run
 ```
@@ -68,16 +70,32 @@ pre-commit install
 
 to install the pre-commit hooks.
 
-Please target the **develop** branch for pull requests. The main branch is used for stable releases and hotfixes only.
+**Web app**
 
-There is a simple web app for testing the parser with ingredient sentences and showing the parsed output. To run the web app, run the command
+There is a simple web app for testing the parser, browsing the database, labelling entries, and running the basic model.
+
+To run the web app, follow the prior steps on `requirements-dev.txt`, and separately install [Node](https://nodejs.org/en/download), the JS runtime. Once globally installed on your machine, download your packages in the webtools directory with:
 
 ```bash
-$ flask --app webapp run
+$ npm install
 ```
 
-![Screen shot of web app](docs/source/_static/app-screenshot.png)
+After package installs, run dev to start.
 
-This requires the development dependencies to be installed.
+```bash
+$ npm run dev
+```
 
-The dependencies for building the documentation are in the ```requirements-doc.txt``` file.
+*tl;dr — inside package.json, `flask` runs the base server, `sockets` runs the web sockets server, and `watch` runs vite build for the react/typescripe bundle — separate flask instances are required to accommodate better web socket behavior*
+
+![Screen shot of web parser](docs/source/_static/app.parser.screenshot.png)
+![Screen shot of web labeller](docs/source/_static/app.labeller.screenshot.png)
+![Screen shot of web trainer](docs/source/_static/app.trainer.screenshot.png)
+
+**Documentation**
+
+The dependencies for building the documentation are in the `requirements-doc.txt` file.
+
+**Contribution**
+
+Please target the **develop** branch for pull requests. The main branch is used for stable releases and hotfixes only.

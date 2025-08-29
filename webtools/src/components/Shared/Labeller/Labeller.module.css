@@ -1,0 +1,188 @@
+.labeller {
+	font-size: 1.25rem;
+	position: relative;
+	padding: 0 calc(var(--small-spacing) / 2);
+	background-color: var(--color);
+	color: var(--bg);
+
+	&:hover {
+		opacity: 0.9;
+		&::before {
+			opacity: 0.9;
+		}
+	}
+
+	&[data-size="small"] {
+		font-size: 1rem;
+	}
+	&[data-size="medium"] {
+		font-size: 1.25rem;
+	}
+	&[data-size="large"] {
+		font-size: 1.5rem;
+	}
+
+	&::before {
+		display: block;
+		padding: 4px;
+		color: var(--bg);
+		position: absolute;
+		left: 0;
+		font-size: 10px;
+		line-height: 1;
+	}
+
+	&[data-position="top"] {
+		&::before {
+			top: -18px;
+		}
+	}
+	&[data-position="bottom"] {
+		&::before {
+			bottom: -18px;
+		}
+	}
+
+	&[data-labeller="QTY"] {
+		--color: var(--green-alt);
+		&::before {
+			content: "QTY";
+			background-color: var(--green);
+		}
+	}
+	&[data-labeller="UNIT"] {
+		--color: var(--yellow-alt);
+		&::before {
+			content: "UNIT";
+			background-color: var(--yellow);
+		}
+	}
+	&[data-labeller="NAME"] {
+		--color: var(--aqua-alt);
+		&::before {
+			content: "NAME";
+			background-color: var(--aqua);
+		}
+	}
+	&[data-labeller="B_NAME_TOK"] {
+		--color: var(--aqua-alt);
+		&::before {
+			content: "B-NAME";
+			background-color: var(--aqua);
+		}
+	}
+	&[data-labeller="I_NAME_TOK"] {
+		--color: var(--aqua-alt);
+		&::before {
+			content: "I-NAME";
+			background-color: var(--aqua);
+		}
+	}
+	&[data-labeller="NAME_VAR"] {
+		--color: var(--aqua-alt);
+		&::before {
+			content: "NAME_VAR";
+			background-color: var(--aqua);
+		}
+	}
+	&[data-labeller="NAME_MOD"] {
+		--color: var(--aqua-alt);
+		&::before {
+			content: "NAME_MOD";
+			background-color: var(--aqua);
+		}
+	}
+	&[data-labeller="NAME_SEP"] {
+		--color: var(--aqua-alt);
+		&::before {
+			content: "NAME_SEP";
+			background-color: var(--aqua);
+		}
+	}
+	&[data-labeller="COMMENT"] {
+		--color: var(--purple-alt);
+		&::before {
+			content: "COMMENT";
+			background-color: var(--purple);
+		}
+	}
+	&[data-labeller="PREP"] {
+		--color: var(--blue-alt);
+		&::before {
+			content: "PREP";
+			background-color: var(--blue);
+		}
+	}
+	&[data-labeller="PUNC"] {
+		--color: var(--gray);
+		&::before {
+			content: "PUNC";
+			background-color: var(--gray);
+		}
+	}
+	&[data-labeller="PURPOSE"] {
+		--color: var(--red-alt);
+		&::before {
+			content: "PREP";
+			background-color: var(--red);
+		}
+	}
+	&[data-labeller="AMOUNT"] {
+		--color: #b8981e;
+		&::before {
+			content: "AMOUNT";
+			background-color: var(--yellow);
+		}
+	}
+	&[data-labeller="SIZE"] {
+		--color: var(--orange);
+		&::before {
+			content: "SIZE";
+			background-color: var(--orange-alt);
+		}
+	}
+	&[data-labeller="UNIT"] {
+		--color: var(--white);
+		&::before {
+			content: "UNIT";
+			background-color: var(--white);
+		}
+	}
+	&[data-labeller="OTHER"] {
+		--color: var(--white);
+		&::before {
+			content: "OTHER";
+			background-color: var(--white);
+		}
+	}
+}
+
+.plain {
+	font-size: 1.25rem;
+	position: relative;
+	padding: 0 calc(var(--small-spacing) / 2);
+	background-color: var(--color);
+	color: var(--fg);
+
+	&[data-size="small"] {
+		font-size: 1rem;
+	}
+	&[data-size="medium"] {
+		font-size: 1.25rem;
+	}
+	&[data-size="large"] {
+		font-size: 1.5rem;
+	}
+}
+
+.editable {
+	cursor: pointer;
+	display: inline-flex;
+	gap: 6px;
+	align-items: center;
+	border: none;
+}
+
+.marginable {
+	cursor: help;
+}
