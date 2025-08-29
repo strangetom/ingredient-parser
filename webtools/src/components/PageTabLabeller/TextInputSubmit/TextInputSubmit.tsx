@@ -70,20 +70,29 @@ function ActionIconQuestion(props: ActionIconProps) {
 }
 
 function ActionIconClear(props: ActionIconProps) {
-	const { sentence, updateInput, setParsed, setActivePage } =
-		useTabLabellerStore(
-			useShallow((state) => ({
-				sentence: state.input.sentence,
-				updateInput: state.updateInput,
-				setParsed: state.setParsed,
-				setActivePage: state.setActivePage,
-			})),
-		);
+	const { sentence } = useTabLabellerStore(
+		useShallow((state) => ({
+			sentence: state.input.sentence,
+		})),
+	);
 
 	const onClearHandler = () => {
-		updateInput({ sentence: "" });
-		setParsed(null);
-		setActivePage(1);
+		const { hasUnsavedChanges, setUnsavedChangesModalOpen } =
+			useTabLabellerStore.getState();
+		const fnCallback = () => {
+			const { updateInput, setParsed, setActivePage } =
+				useTabLabellerStore.getState();
+			updateInput({ sentence: "" });
+			setParsed(null);
+			setActivePage(1);
+		};
+		if (hasUnsavedChanges()) {
+			const { setUnsavedChangesFnCallback } = useTabLabellerStore.getState();
+			setUnsavedChangesFnCallback(fnCallback);
+			setUnsavedChangesModalOpen(true);
+		} else {
+			fnCallback();
+		}
 	};
 
 	return (

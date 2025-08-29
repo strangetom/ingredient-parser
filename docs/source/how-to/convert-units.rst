@@ -1,3 +1,5 @@
+.. _reference-how-to-convert-units:
+
 Convert between units
 =====================
 

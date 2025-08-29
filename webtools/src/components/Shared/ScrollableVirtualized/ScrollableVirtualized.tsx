@@ -1,10 +1,12 @@
 // {{{EXTERNAL}}}
 import { Box, type MantineStyleProp } from "@mantine/core";
-import type { UseListStateHandlers } from "@mantine/hooks";
 import { useMemo } from "react";
 import { AutoSizer, List as ListVirtual } from "react-virtualized";
 // {{{INTERNAL}}}
-import type { ParsedSentenceEditable } from "../../../domain";
+import type {
+	ParsedSentenceEditable,
+	ParsedSentenceEditableHandler,
+} from "../../../domain";
 import {
 	type LabellerProps,
 	LabellerSentence,
@@ -14,12 +16,7 @@ import {
 
 export interface ScrollableVirtualizedProps extends ScrollableProps {
 	parsedSentencesProvided: ParsedSentenceEditable[];
-	parsedSentencesProvidedHandler: Omit<
-		UseListStateHandlers<ParsedSentenceEditable>,
-		"setState"
-	> & {
-		set: (items: ParsedSentenceEditable[]) => void;
-	};
+	parsedSentencesProvidedHandler: ParsedSentenceEditableHandler;
 	labellerSentenceProps?: Omit<LabellerSentenceProps, "tokens" | "sentence">;
 	labellerProps?: Omit<LabellerProps, "token">;
 }

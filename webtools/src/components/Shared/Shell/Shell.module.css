@@ -71,19 +71,19 @@
 			}
 		}
 	}
+
+	.linkIconCollapsed {
+		margin-right: 0;
+	}
+
+	.trainingIcon {
+		margin-right: var(--mantine-spacing-sm);
+	}
 }
 
 .linkCollapsed {
 	padding: var(--small-spacing) var(--xsmall-spacing);
 	justify-content: center;
-}
-
-.trainingIcon {
-	margin-right: var(--mantine-spacing-sm);
-}
-
-.linkIconCollapsed {
-	margin-right: 0;
 }
 
 .badge {

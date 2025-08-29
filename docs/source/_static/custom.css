@@ -1,3 +1,30 @@
+/* Lightbox */
+.lightbox .lb-image {
+  border: none;
+}
+.lightbox .lb-outerContainer {
+  border-radius: 4px;
+  background-color: var(--pst-color-background);
+}
+
+.lightbox .lb-data .lb-close {
+  filter: alpha(Opacity=50);
+  opacity: .5;
+}
+
+/* Left navbar logo iconography */
+.navbar-brand {
+    justify-content: flex-start;
+    align-items: flex-start;
+    gap: 0.25rem;
+}
+.navbar-brand img {
+  width: 4rem;
+}
+.navbar-brand .title {
+  font-size: 1rem;
+}
+
 /* Tweak cards on homepage */
 .sd-card {
     background-color: var(--pst-color-on-background);
@@ -10,9 +37,44 @@
     border-top: none !important;
 }
 
+/* Layout overrides */
+html[data-theme=dark] {
+    .bd-sidebar-primary {
+    border-right: 1px solid color-mix(in srgb,var(--fg),transparent 66%);
+    }
+    .bd-footer-content {
+        border-top: 1px solid color-mix(in srgb,var(--fg),transparent 66%);
+    }
+}
+html[data-theme=light] {
+    .bd-sidebar-primary {
+        border-right: 1px solid color-mix(in srgb,var(--bg-4),transparent 66%);
+    }
+    .bd-footer-content {
+        border-top: 1px solid color-mix(in srgb,var(--bg-4),transparent 66%);
+    }
+}
+
+nav.bd-links {
+  margin-right: 0 !important;
+}
+nav.page-toc {
+  margin-bottom: 0 !important;
+}
+#pst-back-to-top {
+  top: 95vh;
+}
+.bottom-right {
+  right: 20px;
+  bottom: 20px;
+}
+
 /* Remove border radius from search box */
 .search-button-field {
-    border-radius: revert;
+    border-radius: 0.25rem;
+}
+.search-button-field:hover {
+    box-shadow: 0 0 0 .1rem var(--pst-color-link-hover);
 }
 
 /* Remove bullets from parameter lists in API docs */
@@ -21,21 +83,56 @@
     padding-left: 0;
 }
 
-/* Give <strong> a a different colour */
-strong {
-    color: var(--pst-color-secondary);
-}
-
-/* Remove underline from abbreviations */
-abbr[title] {
-    text-decoration: 1px dotted var(--pst-color-link);
-}
-
 /* Add better separation between function and classes */
 .class, .function {
     margin-top: 1rem;
     padding-bottom: 1rem;
     border-bottom: 1px solid var(--pst-color-on-surface);
+}
+
+/* Globals */
+:root {
+	color-scheme: dark;
+	--bg: #1d2021;
+	--bg-s: #32302f;
+	--bg-1: #3c3836;
+	--bg-2: #504945;
+	--bg-3: #665c54;
+	--bg-4: #7c6f64;
+	--fg: #fbf1c7;
+	--fg-1: #ebdbb2;
+	--fg-2: #d5c4a1;
+	--fg-3: #bdae93;
+	--fg-4: #a89984;
+	--gray: #928374;
+	--white: #ffffff;
+	--black: #333333;
+	--red: #cc241d;
+	--red-blend: #982823;
+	--red-alt: #fb4934;
+	--green: #98971a;
+	--green-blend: #98971a;
+	--green-alt: #b8bb26;
+	--yellow: #d79921;
+	--yellow-blend: #9f7625;
+	--yellow-alt: #fabd2f;
+	--blue: #458588;
+	--blue-blend: #3e686a;
+	--blue-alt: #83a598;
+	--purple: #b16286;
+	--purple-blend: #865169;
+	--purple-alt: #d3869b;
+	--orange: #d65d0e;
+	--orange-blend: #9f4e19;
+	--orange-alt: #fe8019;
+	--aqua: #689d6a;
+	--aqua-blend: #567856;
+	--aqua-alt: #8ec07c;
+}
+
+
+html {
+    --pst-header-height: 2.5rem;
 }
 
 /* Set theme using gruvbox colours */
@@ -80,7 +177,7 @@ html[data-theme=dark] {
     --pst-color-inline-code: #fe8019;
     --pst-color-inline-code-links: var(--pst-color-inline-code);
     --pst-color-target: #3e686ab3;
-    --pst-color-background: #1d2021;
+    --pst-color-background: #32302f;
     --pst-color-on-background: #504945;
     --pst-color-surface: #3c3836;
     --pst-color-on-surface: #bdae93;
@@ -143,6 +240,16 @@ html[data-theme=light] {
     --pst-color-warning-bg: #d65d0e80;
     --pst-color-success-bg: #689d6a;
     --pst-color-table-row-hover-bg: #b1628620;
+}
+
+/* Give <strong> a a different colour */
+strong {
+    color: var(--pst-color-secondary);
+}
+
+/* Remove underline from abbreviations */
+abbr[title] {
+    text-decoration: 1px dotted var(--pst-color-link);
 }
 
 /* Fix text colour in search box on search result page */

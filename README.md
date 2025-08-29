@@ -2,7 +2,7 @@
 
 The Ingredient Parser package is a Python package for parsing structured information out of recipe ingredient sentences.
 
-![](docs/source/_static/logo.png)
+![](docs/source/_static/logos/logo_wide.png)
 
 ## Documentation
 
@@ -61,36 +61,15 @@ Word-level results:
 
 **Basic**
 
-The development dependencies are in the `requirements-dev.txt` file. Details on the training process can be found in the [Model Guide](https://ingredient-parser.readthedocs.io/en/latest/guide/index.html) documentation.
+Train and fine-tune new ingredient datasets to expand beyond the existing trained model provided in the library. The development dependencies are in the `requirements-dev.txt` file. Details on the training process can be found in the [Model Guide](https://ingredient-parser.readthedocs.io/en/latest/guide/index.html) documentation.
 
-Before committing anything, install [pre-commit](https://pre-commit.com/) and run
-```
-pre-commit install
-```
+**Web App**
 
-to install the pre-commit hooks.
+The ingredient parser library provides a convenient web interface that you can run locally to access most of the library's functionality, including using the parser, browsing the database, labelling entries, and training the model(s). View the [specific README](webtools/README.md) in webtools for a detailed overview.
 
-**Web app**
-
-There is a simple web app for testing the parser, browsing the database, labelling entries, and running the basic model.
-
-To run the web app, follow the prior steps on `requirements-dev.txt`, and separately install [Node](https://nodejs.org/en/download), the JS runtime. Once globally installed on your machine, download your packages in the webtools directory with:
-
-```bash
-$ npm install
-```
-
-After package installs, run dev to start.
-
-```bash
-$ npm run dev
-```
-
-*tl;dr — inside package.json, `flask` runs the base server, `sockets` runs the web sockets server, and `watch` runs vite build for the react/typescripe bundle — separate flask instances are required to accommodate better web socket behavior*
-
-![Screen shot of web parser](docs/source/_static/app.parser.screenshot.png)
-![Screen shot of web labeller](docs/source/_static/app.labeller.screenshot.png)
-![Screen shot of web trainer](docs/source/_static/app.trainer.screenshot.png)
+| Parser | Labeller | Trainer |
+| :------- | :------- | :------- |
+| ![Screen shot of web parser](docs/source/_static/webtools/app.parser.screenshot.png)     | ![Screen shot of web labeller](docs/source/_static/webtools/app.labeller.screenshot.png)     | ![Screen shot of web trainer](docs/source/_static/webtools/app.trainer.screenshot.png)   |
 
 **Documentation**
 
@@ -98,4 +77,12 @@ The dependencies for building the documentation are in the `requirements-doc.txt
 
 **Contribution**
 
-Please target the **develop** branch for pull requests. The main branch is used for stable releases and hotfixes only.
+Please target the **develop** branch for pull requests. The **main** branch is used for stable releases and hotfixes only.
+
+Before committing anything, install [pre-commit](https://pre-commit.com/) and run the following to install the hooks:
+
+```bash
+$ pre-commit install
+```
+
+Pre-commit hooks cover both the main python library code and the web app (webtools) code.

@@ -16,7 +16,7 @@ export function ButtonSubmit(props: ButtonProps) {
 	return (
 		<Button
 			variant="dark"
-			h={50}
+			style={{ width: 150, height: 50 }}
 			onClick={() => getParsedApi({ shouldAddToHistory: true })}
 			disabled={input.sentence.trim().length === 0}
 			loading={loading}

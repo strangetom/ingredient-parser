@@ -25,9 +25,16 @@
 		padding: 18px 0;
 	}
 
+	&[data-edited] {
+		.identifable {
+			color: var(--green);
+		}
+	}
+
 	&[data-deletion] {
 		.sentence {
-			opacity: 0.11;
+			opacity: 0.25;
+			pointer-events: none;
 		}
 		.identifable {
 			color: var(--red);
@@ -38,6 +45,14 @@
 .listable {
 	border-bottom: 1px solid color-mix(in srgb, var(--fg), transparent 66%);
 	padding: var(--small-spacing);
+
+	&[data-edited] {
+		background-color: color-mix(in srgb, var(--green), transparent 85%);
+	}
+
+	&[data-deletion] {
+		background-color: color-mix(in srgb, var(--red), transparent 85%);
+	}
 }
 
 .spacerRight {
@@ -55,32 +70,4 @@
 	align-items: center;
 	flex-direction: row;
 	gap: var(--small-spacing);
-}
-
-.editable2 {
-	position: absolute;
-	right: 0;
-	transform: translateY(-50%);
-	top: 50%;
-	z-index: 1;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	flex-direction: row;
-	gap: var(--small-spacing);
-}
-
-.identifable2 {
-	position: absolute;
-	left: 0;
-	width: 60px;
-	transform: translateY(-50%);
-	top: 50%;
-	z-index: 1;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	flex-direction: column;
-	gap: var(--small-spacing);
-	font-size: 0.75rem;
 }

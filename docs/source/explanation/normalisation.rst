@@ -1,4 +1,5 @@
 .. currentmodule:: ingredient_parser.en.preprocess
+.. _reference-explanation-normalisation:
 
 Sentence Normalisation
 ======================

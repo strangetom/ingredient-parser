@@ -1,3 +1,5 @@
+.. _reference-explanation-foundation-foods:
+
 Foundation foods
 ================
 

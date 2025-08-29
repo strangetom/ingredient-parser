@@ -21,13 +21,16 @@ import { useShallow } from "zustand/react/shallow";
 import { ReactComponent as Logo } from "../../../assets/logo.svg";
 // {{INTERNAL}}
 import { useAppShellStore, useTabTrainerStore } from "../../../domain";
-import { TooltipExtended } from "../../MantineExtensions";
-import { ShellPreCheckListener } from "../ShellPreCheckListener";
-import { ShellTrainingCountdownListener } from "../ShellTrainingCountdownListener";
-import { ShellWebSocketListener } from "../ShellWebSocketListener";
-import { TabCloseListener } from "../TabCloseListener";
-import { TabMultipleListener } from "../TabMultipleListener";
-import { TabTitleListener } from "../TabTitleListener";
+import {
+	LabellerDefinitionsModal,
+	ShellPreCheckListener,
+	ShellTrainingCountdownListener,
+	ShellWebSocketListener,
+	TabCloseListener,
+	TabMultipleListener,
+	TabTitleListener,
+	TooltipExtended,
+} from "..";
 // {{{STYLES}}}
 import { default as classes } from "./Shell.module.css";
 
@@ -116,6 +119,7 @@ export function Shell() {
 			<TabTitleListener />
 			<TabCloseListener />
 			<TabMultipleListener />
+			<LabellerDefinitionsModal />
 
 			<AppShell
 				navbar={{

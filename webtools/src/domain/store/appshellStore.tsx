@@ -37,6 +37,8 @@ interface AppShellState {
 	fetchPreCheck: () => void;
 	precheckValid: boolean;
 	precheckPackages: PrecheckPackageMetadata;
+	labelDefsModalOpen: boolean;
+	setLabelDefsModalOpen: (opened: boolean) => void;
 }
 
 export const useAppShellStore = create<AppShellState>((set) => ({
@@ -120,4 +122,7 @@ export const useAppShellStore = create<AppShellState>((set) => ({
 		},
 		passed: false,
 	},
+	labelDefsModalOpen: false,
+	setLabelDefsModalOpen: (opened: boolean) =>
+		set({ labelDefsModalOpen: opened }),
 }));

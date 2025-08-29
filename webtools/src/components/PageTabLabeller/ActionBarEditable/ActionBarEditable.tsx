@@ -1,18 +1,19 @@
 // {{{EXTERNAL}}}
-import { Button, Divider, Drawer, Group, Text } from "@mantine/core";
-import { useDisclosure } from "@mantine/hooks";
+import { Button, Group } from "@mantine/core";
 import { IconTags } from "@tabler/icons-react";
-import { Fragment } from "react";
 import { useShallow } from "zustand/react/shallow";
-import { type Token, useTabLabellerStore } from "../../../domain";
-import { Labeller, type LabellerProps } from "../../Shared";
+import {
+	type Token,
+	useAppShellStore,
+	useTabLabellerStore,
+} from "../../../domain";
 
 interface LabelDefinition {
 	token: Token;
 	definitions: string[];
 }
 
-const labelDefinitions: LabelDefinition[] = [
+const _labelDefinitions: LabelDefinition[] = [
 	{
 		token: ["120", "QTY"],
 		definitions: ["Quantity of the ingredient."],
@@ -80,29 +81,6 @@ const labelDefinitions: LabelDefinition[] = [
 	},
 ];
 
-function SmallLabelDefinitionRow({
-	labellerProps,
-	definitions,
-}: {
-	labellerProps: LabellerProps;
-	definitions: string[];
-}) {
-	return (
-		<Group gap="md" pt="xl" pb="xs" px="xs" wrap="nowrap">
-			<div style={{ minWidth: 75 }}>
-				<Labeller size="small" {...labellerProps} />
-			</div>
-			<div>
-				{definitions.map((definition) => (
-					<Text key={`definnition-${definition}`} size="sm">
-						{definition}
-					</Text>
-				))}
-			</div>
-		</Group>
-	);
-}
-
 export function ActionBarEditable() {
 	const { editing, editLabellerItemsApi } = useTabLabellerStore(
 		useShallow((state) => ({
@@ -111,46 +89,27 @@ export function ActionBarEditable() {
 		})),
 	);
 
-	const [
-		openedDefinitions,
-		{ open: openDefinitions, close: closeDefinitions },
-	] = useDisclosure(false);
-
+	const { setLabelDefsModalOpen } = useAppShellStore(
+		useShallow((state) => ({
+			setLabelDefsModalOpen: state.setLabelDefsModalOpen,
+		})),
+	);
 	const onEditApiHandler = async () => {
 		await editLabellerItemsApi();
 	};
 
 	return (
 		<>
-			<Drawer
-				position="right"
-				withCloseButton={false}
-				styles={{ body: { padding: 0, height: "100%" } }}
-				opened={openedDefinitions}
-				onClose={closeDefinitions}
-				size="xl"
-			>
-				{labelDefinitions.map(({ token, definitions }, ix) => (
-					<Fragment key={`label-definnition-${token[1]}`}>
-						<SmallLabelDefinitionRow
-							labellerProps={{ size: "small", token: token }}
-							definitions={definitions}
-						/>
-						{ix + 1 < labelDefinitions.length && <Divider />}
-					</Fragment>
-				))}
-			</Drawer>
-
 			<div />
 
 			<Group gap="xs">
 				<Button
 					variant="dark"
 					h={50}
-					onClick={openDefinitions}
+					onClick={() => setLabelDefsModalOpen(true)}
 					leftSection={<IconTags />}
 				>
-					View label definitions
+					Label definitions
 				</Button>
 
 				<Button

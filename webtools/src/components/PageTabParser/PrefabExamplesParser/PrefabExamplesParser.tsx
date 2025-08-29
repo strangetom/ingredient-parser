@@ -10,10 +10,9 @@ import {
 } from "@mantine/core";
 // {{{ASSETS}}}
 import { IconCopy, IconCopyCheck } from "@tabler/icons-react";
-
+import { collectionsPrefabParserSentences } from "../../../domain";
 // {{{INTERNAL}}}
 import { ActionIconTooltipped } from "../../Shared";
-import sentences from "./sentences";
 
 export function PrefabExamplesParser(props: BoxProps) {
 	return (
@@ -23,8 +22,9 @@ export function PrefabExamplesParser(props: BoxProps) {
 		>
 			<ScrollArea.Autosize w={350} mah={150} type="always">
 				<Stack gap={1}>
-					{sentences.map(({ value }) => (
+					{collectionsPrefabParserSentences.map(({ value }) => (
 						<Group
+							key={`prefab-sentence-${value}`}
 							bg="color-mix(in srgb,var(--fg), transparent 90%)"
 							pr="var(--medium-spacing)"
 							pl="var(--xsmall-spacing)"

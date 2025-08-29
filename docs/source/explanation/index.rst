@@ -1,3 +1,5 @@
+.. _reference-explanation-index:
+
 Model Guide
 ===========
 
@@ -7,7 +9,7 @@ Post-processing of the sequence of labels and tokens is then used to populate th
 
 The figure below shows the processing pipelines used for training the model and parsing a sentence.
 
-.. figure:: /_static/pipelines.svg
+.. figure:: /_static/diagrams/pipelines.svg
   :alt: Training and parsing pipelines.
 
   Training and parsing pipelines.
