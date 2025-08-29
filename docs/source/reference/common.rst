@@ -1,4 +1,4 @@
-.. _reference-api-dataclasses:
+.. _reference-api-common:
 
 Common
 ======

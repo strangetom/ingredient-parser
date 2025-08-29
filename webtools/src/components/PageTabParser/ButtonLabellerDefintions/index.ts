@@ -1,3 +1,1 @@
-export {
-  ButtonLabellerDefinitions
-} from "./ButtonLabellerDefinitions"
+export { ButtonLabellerDefinitions } from "./ButtonLabellerDefinitions";

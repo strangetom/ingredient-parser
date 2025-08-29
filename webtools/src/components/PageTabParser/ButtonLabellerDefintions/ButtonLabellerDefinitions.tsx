@@ -6,21 +6,21 @@ import { useShallow } from "zustand/react/shallow";
 import { useAppShellStore } from "../../../domain";
 
 export function ButtonLabellerDefinitions(props: ButtonProps) {
-  const { setLabelDefsModalOpen } = useAppShellStore(
-    useShallow((state) => ({
-      setLabelDefsModalOpen: state.setLabelDefsModalOpen,
-    })),
-  );
+	const { setLabelDefsModalOpen } = useAppShellStore(
+		useShallow((state) => ({
+			setLabelDefsModalOpen: state.setLabelDefsModalOpen,
+		})),
+	);
 
-  return (
-    <Button
-      variant="dark"
-      h={50}
-      onClick={() => setLabelDefsModalOpen(true)}
-      leftSection={<IconTags />}
-      {...props}
-    >
-      Label definitions
-    </Button>
-  );
+	return (
+		<Button
+			variant="dark"
+			h={50}
+			onClick={() => setLabelDefsModalOpen(true)}
+			leftSection={<IconTags />}
+			{...props}
+		>
+			Label definitions
+		</Button>
+	);
 }
