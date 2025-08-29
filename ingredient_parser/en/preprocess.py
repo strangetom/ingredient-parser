@@ -45,6 +45,9 @@ logger = logging.getLogger("ingredient-parser.preprocess")
 
 CONSECUTIVE_SPACES = re.compile(r"\s+")
 
+# Type alias for dict of token features.
+FeatureDict = dict[str, str | bool]
+
 
 class PreProcessor:
     """Recipe ingredient sentence PreProcessor class.
@@ -972,7 +975,7 @@ class PreProcessor:
 
         return ngram_features
 
-    def _token_features(self, token: Token) -> dict[str, str | bool]:
+    def _token_features(self, token: Token) -> FeatureDict:
         """Return the features for the token at the given index in the sentence.
 
         If the token at the given index appears in the corpus parameter, the token is
@@ -986,12 +989,12 @@ class PreProcessor:
 
         Returns
         -------
-        dict[str, str | bool]
+        FeatureDict
             Dictionary of features for token at index.
         """
 
         index = token.index
-        features: dict[str, str | bool] = {}
+        features: FeatureDict = {}
 
         features["bias"] = ""
         features["sentence_length"] = str(self._sentence_length_bucket())
@@ -1092,12 +1095,12 @@ class PreProcessor:
 
         return features
 
-    def sentence_features(self) -> list[dict[str, str | bool]]:
+    def sentence_features(self) -> list[FeatureDict]:
         """Return dict of features for each token in sentence.
 
         Returns
         -------
-        list[dict[str, str | bool]]
+        list[FeatureDict]
             List of feature dicts for each token in sentence.
         """
         logger.debug("Generating features for tokens.")
