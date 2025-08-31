@@ -86,6 +86,10 @@ Iterate over the extract NAME labels and group consecutive labels of the same ty
 
 When grouping the token together, we store the index and label of the tokens.
 
+.. note::
+
+  The indices here are the indices of elements from the extracted NAME labels i.e. an index of 0 here is the first element of the extracted NAME labels which refers to the token at index 2 of the whole sentence.
+
 For the example sentence, we get the following groups:
 
 .. code:: python
@@ -108,10 +112,6 @@ This is more easily done by iterating in reverse over the groups and applying th
 * Each NAME_MOD group is prepended to all previous name groups.
 
 The output from this construction step are groups of indices, where each group represents an ingredient name.
-
-.. note::
-
-  The indices here are the indices of elements from the extracted NAME labels i.e. an index of 0 here is the first element of the extracted NAME labels which refers to the token at index 2 of the whole sentence.
 
 For the example sentence, the constructed groups of indices are:
 
