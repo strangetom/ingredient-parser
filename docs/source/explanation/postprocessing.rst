@@ -105,11 +105,11 @@ Construct names from NAME groups
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 From the name groups, we construct the ingredient names.
-This is more easily done by iterating in reverse over the groups and applying the following logic:
+This is most easily done by iterating in reverse over the groups and applying the following logic:
 
 * Each group starting with B_NAME_TOK forms a new name.
-* Each NAME_VAR group is prepended to the beginning of the more recent name.
-* Each NAME_MOD group is prepended to all previous name groups.
+* Each NAME_VAR group is prepended to the beginning of the most recent name.
+* Each NAME_MOD group is prepended to all previous names.
 
 The output from this construction step are groups of indices, where each group represents an ingredient name.
 
@@ -125,7 +125,7 @@ For the example sentence, the constructed groups of indices are:
 Create :class:`IngredientText` objects
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-With the group of indices obtained from the previous step, we can convert these to token indices and then follow the steps used to post-process the SIZE, PREP, PURPOSE, COMMENT labels described above.
+With the groups of indices obtained from the previous step, we can convert to token indices and then follow the steps used to post-process the SIZE, PREP, PURPOSE, COMMENT labels described above.
 
 Once the :class:`IngredientText` objects have been obtained, we perform one final post-processing step. If there are multiple names, we check the part of speech tag for the last token in each name. If the part of speech tag is **IN**, **DT** or **JJ**, we merge the name with the next name. This merging of ingredient names is necessary to mitigate against mislabelling of tokens by the model, which can happen if a name is split by a token with another label.
 
