@@ -46,7 +46,7 @@ Name
 
 The post-processing to obtain the ingredient names is similar to above, but with a couple of extra steps before the steps listed above used to identify the different ingredient names.
 
-.. figure:: /_static/name_postprocessing.svg
+.. figure:: /_static/diagrams/name_postprocessing.svg
   :alt: Ingredient name post-processing steps.
 
 The first three steps are unique to the post-processing of ingredient names and are described in more detail below.
@@ -174,7 +174,7 @@ For example:
     ]
 
 Quantities
-++++++++++
+~~~~~~~~~~
 
 Quantities are returned as :class:`fractions.Fraction` objects, or ``str`` for non-numeric quantities (e.g. dozen).
 
@@ -197,7 +197,7 @@ For performance reasons, the regular expressions used to substitute the text wit
     :lines: 166-198
 
 Units
-+++++
+~~~~~
 
 .. note::
 
@@ -257,7 +257,7 @@ By default, US customary units are used where a unit has more than one definitio
     See the :doc:`Convert between units </how-to/convert-units>` how-to guide.
 
 IngredientAmount flags
-++++++++++++++++++++++
+~~~~~~~~~~~~~~~~~~~~~~
 
 :class:`IngredientAmount` objects have a number of flags that are set to provide additional information about the amount.
 
@@ -285,7 +285,7 @@ IngredientAmount flags
 
 
 Special cases for amounts
-+++++++++++++++++++++++++
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 There are some particular cases where the combination of QTY and UNIT labels that make up an amount are not straightforward.
 For example, consider the sentence **2 14 ounce cans coconut milk**.
