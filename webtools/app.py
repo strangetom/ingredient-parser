@@ -8,6 +8,7 @@ import sqlite3
 import string
 import sys
 import traceback
+from http import HTTPStatus
 from importlib.metadata import PackageNotFoundError, distribution
 from pathlib import Path
 
@@ -27,13 +28,19 @@ from ingredient_parser.dataclasses import (
 from ingredient_parser.en._loaders import load_parser_model
 from ingredient_parser.en.preprocess import PreProcessor
 
-# globals
+# globals defs
 parent_dir = Path(__file__).parent.parent
 NPM_BUILD_DIRECTORY = "build"
 SQL3_DATABASE_TABLE = "en"
 SQL3_DATABASE = parent_dir / "train/data/training.sqlite3"
 MODEL_REQUIREMENTS = parent_dir / "requirements-dev.txt"
-RESERVED_LABELLER_SEARCH_CHARS = r"\*\*|\~\~|\=\="
+
+
+# global regex
+RESERVED_LABELLER_SEARCH_CHARS = r"\*\*|\~\~|\=\="  # ** or ~~ or ==
+RESERVED_DOTNUM_RANGE_CHARS = (
+    r"^\d*\.?\d*(?<!\.)\.\.(?!\.)\d*\.?\d*$"  # {digit}..{digit}
+)
 
 # sqlite
 sqlite3.register_adapter(list, json.dumps)
@@ -47,23 +54,36 @@ cors = CORS(app)
 load_parser_model.cache_clear()
 
 
-def error_response(status: int, message: str = ""):
+# helpers
+def is_valid_dotnum_range(s: str) -> bool:
+    """Checks a str against the format "{digit}..{digit}"""
+
+    return bool(re.fullmatch(RESERVED_DOTNUM_RANGE_CHARS, s))
+
+
+def error_response(
+    status: int,
+    traceback: str = "",
+):
     """Boilerplate for errors"""
-    if status == 400:
+
+    try:
         return jsonify(
-            {"status": 400, "error": "Sorry, bad params", "message": message}
-        ), 400
-    elif status == 404:
+            {
+                "status": HTTPStatus(status).value,
+                "error": f"{HTTPStatus(status).name}",
+                "traceback": traceback,
+                "description": HTTPStatus(status).description,
+            }
+        ), HTTPStatus(status).value
+    except Exception:
         return jsonify(
-            {"status": 404, "error": "Sorry, resource not found", "message": message}
-        ), 404
-    elif status == 500:
-        return jsonify(
-            {"status": 404, "error": "Sorry, api failed", "message": message}
-        ), 500
-    else:
-        return jsonify(
-            {"status": status, "error": "Sorry, something failed", "message": message}
+            {
+                "status": 500,
+                "error": f"{HTTPStatus.INTERNAL_SERVER_ERROR.value}",
+                "traceback": "",
+                "description": HTTPStatus.INTERNAL_SERVER_ERROR.description,
+            }
         ), 500
 
 
@@ -99,6 +119,7 @@ def get_all_marginals(parser_info: ParserDebugInfo) -> list[dict[str, float]]:
     return marginals
 
 
+# routes
 @app.route("/parser", methods=["POST"])
 @cross_origin()
 def parser():
@@ -194,7 +215,7 @@ def parser():
 
         except Exception as ex:
             traced = "".join(traceback.TracebackException.from_exception(ex).format())
-            return error_response(status=500, message=traced)
+            return error_response(status=500, traceback=traced)
 
     else:
         return error_response(status=404)
@@ -235,7 +256,7 @@ def preupload():
 
         except Exception as ex:
             traced = "".join(traceback.TracebackException.from_exception(ex).format())
-            return error_response(status=500, message=traced)
+            return error_response(status=500, traceback=traced)
 
     else:
         return error_response(status=404)
@@ -264,7 +285,7 @@ def available_sources():
 
         except Exception as ex:
             traced = "".join(traceback.TracebackException.from_exception(ex).format())
-            return error_response(status=500, message=traced)
+            return error_response(status=500, traceback=traced)
 
     else:
         return error_response(status=404)
@@ -328,7 +349,7 @@ def labeller_save():
         except Exception as ex:
             traced = "".join(traceback.TracebackException.from_exception(ex).format())
             print(traced)
-            return error_response(status=500, message=traced)
+            return error_response(status=500, traceback=traced)
 
     else:
         return error_response(status=404)
@@ -379,16 +400,10 @@ def labeller_bulk_upload():
 
         except Exception as ex:
             traced = "".join(traceback.TracebackException.from_exception(ex).format())
-            return error_response(status=500, message=traced)
+            return error_response(status=500, traceback=traced)
 
     else:
         return error_response(status=404)
-
-
-def is_valid_dotnum_range(s: str) -> bool:
-    """Checks a str against the format "{digit}..{digit}"""
-
-    return bool(re.fullmatch(r"^\d*\.?\d*(?<!\.)\.\.(?!\.)\d*\.?\d*$", s))
 
 
 @app.route("/labeller/search", methods=["POST"])
@@ -427,11 +442,10 @@ def labeller_search():
                 # reserve == for id search
                 ids_reserved = []
                 if reserved_char_match in ["=="]:
-                    ids_unique = map(str.strip, list(set(sentence[2:].split(","))))
                     ids_actual = [
-                        ix
-                        for ix in ids_unique
-                        if ix.isdigit() or is_valid_dotnum_range(ix)
+                        ix.strip()
+                        for ix in set(sentence[2:].split(","))
+                        if ix.strip().isdigit() or is_valid_dotnum_range(ix.strip())
                     ]
 
                     for id in ids_actual:
@@ -542,7 +556,7 @@ def labeller_search():
 
         except Exception as ex:
             traced = "".join(traceback.TracebackException.from_exception(ex).format())
-            return error_response(status=500, message=traced)
+            return error_response(status=500, traceback=traced)
 
     else:
         return error_response(status=404)

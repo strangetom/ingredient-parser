@@ -38,6 +38,7 @@ import {
 	labellers,
 	useTabLabellerStore,
 } from "../../../domain";
+import { PopoverQuestionMark } from "../../Shared";
 
 interface ReservedChars {
 	chars: {
@@ -55,8 +56,8 @@ const reservedCharacters: ReservedChars[] = [
 		],
 		description: (
 			<span>
-				Reserved for wildcard searches. Use this to search the ingredient
-				database without a keyword. For example, input only <Code>**</Code>.
+				Reserved for wildcard searches. Use this to search the database without
+				a keyword. For example, input only <Code>**</Code>.
 			</span>
 		),
 	},
@@ -66,10 +67,9 @@ const reservedCharacters: ReservedChars[] = [
 		],
 		description: (
 			<span>
-				Reserved for ID matched searches. Use this to directly query the
-				ingredient database row IDs. Supports double dot notation for ID ranges.
-				For example the input <Code>== 1,2,10..14</Code> would be interpreted as{" "}
-				<Code>== 1,2,10,11,12,13,14</Code>.
+				Reserved for seaching by ID, with dot notation support for ranges. Use
+				this to directly query the database rows. For example, input{" "}
+				<Code>== 1,2,10..14</Code> or <Code>== 1,2,10,11,12,13,14</Code>.
 			</span>
 		),
 	},
@@ -101,13 +101,28 @@ function ReservedCharDescriptor({
 	);
 }
 
+function PopoverQuestionMarkWrapper({
+	label,
+	description,
+}: {
+	label?: string;
+	description?: string;
+}) {
+	return (
+		<Flex gap="xs" justify="flex-start">
+			<div>{label}</div>
+			<PopoverQuestionMark>{description}</PopoverQuestionMark>
+		</Flex>
+	);
+}
+
 function ActionIconQuestion(props: ActionIconProps) {
 	const [opened, { close, open }] = useDisclosure(false);
 
 	return (
 		<Popover
 			opened={opened}
-			shadow="md"
+			shadow="xs"
 			keepMounted={false}
 			position="bottom-end"
 			width={350}
@@ -141,6 +156,13 @@ function ActionIconQuestion(props: ActionIconProps) {
 						{i + 1 !== reservedCharacters.length && <Divider />}
 					</>
 				))}
+				<Divider />
+				<Box px="xs" py="xs" bg="var(--bg-s)">
+					<Text size="xs" fs="italic">
+						For full querying capabilities, use a standard SQLite adapter or
+						browser
+					</Text>
+				</Box>
 			</Popover.Dropdown>
 		</Popover>
 	);
@@ -253,7 +275,12 @@ function ActionIconFilter(props: ActionIconProps) {
 			</Menu.Target>
 
 			<Menu.Dropdown>
-				<Menu.Label>Keyword (options)</Menu.Label>
+				<Menu.Label>
+					<PopoverQuestionMarkWrapper
+						label="Keyword matching"
+						description="Additional keyword matching options"
+					/>
+				</Menu.Label>
 				<Box py="xs" px="sm">
 					<Checkbox
 						defaultChecked
@@ -287,12 +314,22 @@ function ActionIconFilter(props: ActionIconProps) {
 					/>
 				</Box>
 				<Menu.Divider />
-				<Menu.Label>Labels (to search against)</Menu.Label>
+				<Menu.Label>
+					<PopoverQuestionMarkWrapper
+						label="Labels"
+						description="The labels (tokens) to search against"
+					/>
+				</Menu.Label>
 				<Box py="xs" px="sm">
 					{labelFilters}
 				</Box>
 				<Menu.Divider />
-				<Menu.Label>Sources (to search against)</Menu.Label>
+				<Menu.Label>
+					<PopoverQuestionMarkWrapper
+						label="Source datasets"
+						description="The datasets to search against"
+					/>
+				</Menu.Label>
 				<Box py="xs" px="sm">
 					{labelSources}
 				</Box>
