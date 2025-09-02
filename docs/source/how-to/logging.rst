@@ -1,3 +1,5 @@
+.. _reference-how-to-logging:
+
 Logging
 =======
 

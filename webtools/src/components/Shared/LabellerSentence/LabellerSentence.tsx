@@ -1,7 +1,6 @@
 // {{{EXTERNAL}}}
 
 import { Box, type BoxProps, CopyButton, Text } from "@mantine/core";
-import type { UseListStateHandlers } from "@mantine/hooks";
 // {{{ASSETS}}}
 import {
 	IconCopy,
@@ -12,7 +11,8 @@ import {
 	IconTrashXFilled,
 } from "@tabler/icons-react";
 import cx from "clsx";
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
+import type { ParsedSentenceEditableHandler } from "../../../domain";
 import type { ParsedSentenceEditable } from "../../../domain/types";
 // {{{INTERNAL}}}
 import { ActionIconTooltipped, Labeller, type LabellerProps } from "../";
@@ -27,9 +27,7 @@ export interface LabellerSentenceProps extends BoxProps {
 	tasks?: Task[];
 	listable?: boolean;
 	labellerProps?: Omit<LabellerProps, "token">;
-	handler?: Omit<UseListStateHandlers<ParsedSentenceEditable>, "setState"> & {
-		set: (items: ParsedSentenceEditable[]) => void;
-	};
+	handler?: ParsedSentenceEditableHandler;
 	index?: number;
 }
 
@@ -41,33 +39,38 @@ export function LabellerSentence({
 	labellerProps,
 	...others
 }: LabellerSentenceProps) {
-	const [deletion, setDeletion] = useState(sentence?.removed || false);
-	const [edited] = useState(sentence?.edited || false);
-	const [plain, setPlain] = useState(false);
+	const { edited, removed, plain } = sentence;
 
-	const onSetForRemovalHandler = useCallback(() => {
-		setDeletion((o) => !o);
-		if (handler) {
-			handler.applyWhere(
-				(item) => item.id === sentence.id,
-				(item) => ({ ...item, removed: true }),
-			);
-		}
-	}, [handler, sentence.id]);
+	const onSetHandler = useCallback(
+		(attribute: "plain" | "removed" | "edited") => {
+			if (handler) {
+				handler.applyWhere(
+					(item) => item.id === sentence.id,
+					(item) => {
+						const clone = item;
+						return { ...clone, [attribute]: true };
+					},
+				);
+			}
+		},
+		[handler, sentence.id],
+	);
 
-	const onRevertRemovalHandler = useCallback(() => {
-		setDeletion((o) => !o);
-		if (handler) {
-			handler.applyWhere(
-				(item) => item.id === sentence.id,
-				(item) => {
-					const clone = item;
-					delete clone.removed;
-					return { ...clone };
-				},
-			);
-		}
-	}, [handler, sentence.id]);
+	const onRevertHandler = useCallback(
+		(attribute: "plain" | "removed" | "edited") => {
+			if (handler) {
+				handler.applyWhere(
+					(item) => item.id === sentence.id,
+					(item) => {
+						const clone = item;
+						delete clone[attribute];
+						return { ...clone };
+					},
+				);
+			}
+		},
+		[handler, sentence.id],
+	);
 
 	const labellers = sentence.tokens.map((tkn, ix) => {
 		const [tokenText, tokenLabelCategory] = tkn;
@@ -96,11 +99,13 @@ export function LabellerSentence({
 			className={cx({
 				[classes.listable]: listable,
 			})}
+			data-deletion={removed || undefined}
+			data-edited={edited || undefined}
 		>
 			<Box
-				data-deletion={deletion || undefined}
-				data-edited={edited || undefined}
 				className={classes.root}
+				data-deletion={removed || undefined}
+				data-edited={edited || undefined}
 			>
 				{sentence.id && (
 					<Box className={classes.identifable}>{sentence.id}</Box>
@@ -112,13 +117,13 @@ export function LabellerSentence({
 							(plain ? (
 								<ActionIconTooltipped
 									iconography={IconEyeX}
-									onClick={() => setPlain(false)}
+									onClick={() => onRevertHandler("plain")}
 									text="View tokens"
 								/>
 							) : (
 								<ActionIconTooltipped
 									iconography={IconEye}
-									onClick={() => setPlain(true)}
+									onClick={() => onSetHandler("plain")}
 									text="View plain"
 								/>
 							))}
@@ -141,17 +146,17 @@ export function LabellerSentence({
 							</CopyButton>
 						)}
 						{tasks.includes("remove") &&
-							(deletion ? (
+							(removed ? (
 								<ActionIconTooltipped
 									iconography={IconTrashXFilled}
-									onClick={onRevertRemovalHandler}
+									onClick={() => onRevertHandler("removed")}
 									text="Undo removal"
 									actionIconProps={{ color: "red" }}
 								/>
 							) : (
 								<ActionIconTooltipped
 									iconography={IconTrash}
-									onClick={onSetForRemovalHandler}
+									onClick={() => onSetHandler("removed")}
 									text="Mark for removal"
 									actionIconProps={{ color: "red" }}
 								/>

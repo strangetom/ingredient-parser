@@ -12,3 +12,4 @@ API Reference
    common
    dataclasses
    foundationfoods
+   trainer

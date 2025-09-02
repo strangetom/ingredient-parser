@@ -11,6 +11,7 @@ export type ParsedSentence = {
 export interface ParsedSentenceEditable extends ParsedSentence {
 	edited?: boolean;
 	removed?: boolean;
+	plain?: boolean;
 }
 
 export interface ParsedTabLabller {

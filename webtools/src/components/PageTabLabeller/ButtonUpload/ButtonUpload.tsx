@@ -27,17 +27,10 @@ import classes from "./ButtonUpload.module.css";
 import { StepOne, StepThree, StepTwo } from "./steps";
 
 function UploadMountListener() {
-	const { setState, resetState, onIngredientSentenceEntryHandler } =
-		useUploadNewLabellersStore(
-			useShallow((state) => ({
-				setState: state.setState,
-				resetState: state.resetState,
-				onIngredientSentenceEntryHandler:
-					state.onIngredientSentenceEntryHandler,
-			})),
-		);
-
 	useEffect(() => {
+		const { setState, resetState, onIngredientSentenceEntryHandler } =
+			useUploadNewLabellersStore.getState();
+
 		setState({
 			stepCallbackFns: [onIngredientSentenceEntryHandler, null, null],
 		});
@@ -142,13 +135,27 @@ export function ButtonUpload(props: ButtonProps) {
 		if (result) close();
 	};
 
+	const onOpenHandler = () => {
+		const {
+			hasUnsavedChanges,
+			setUnsavedChangesModalOpen,
+			setUnsavedChangesFnCallback,
+		} = useTabLabellerStore.getState();
+		if (hasUnsavedChanges()) {
+			setUnsavedChangesFnCallback(open);
+			setUnsavedChangesModalOpen(true);
+		} else {
+			open();
+		}
+	};
+
 	return (
 		<>
 			<Button
 				variant="dark"
 				h={50}
 				leftSection={<IconUpload size={16} />}
-				onClick={open}
+				onClick={onOpenHandler}
 				{...props}
 			>
 				Upload New
