@@ -6,6 +6,8 @@ import {
 	type ActionIconProps,
 	Box,
 	Checkbox,
+	Code,
+	Divider,
 	Flex,
 	Group,
 	Kbd,
@@ -13,9 +15,11 @@ import {
 	Menu,
 	MultiSelect,
 	Popover,
+	Stack,
 	Text,
 	TextInput,
 	type TextInputProps,
+	Title,
 	Transition,
 } from "@mantine/core";
 import { getHotkeyHandler, useDisclosure } from "@mantine/hooks";
@@ -26,7 +30,7 @@ import {
 	IconQuestionMark,
 	IconX,
 } from "@tabler/icons-react";
-import { useState } from "react";
+import { type ReactNode, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 // {{{INTERNAL}}}
 import {
@@ -34,6 +38,68 @@ import {
 	labellers,
 	useTabLabellerStore,
 } from "../../../domain";
+
+interface ReservedChars {
+	chars: {
+		value: string;
+		label: string;
+	}[];
+	description: ReactNode;
+}
+
+const reservedCharacters: ReservedChars[] = [
+	{
+		chars: [
+			{ value: "**", label: "(double asterick)" },
+			{ value: "~~", label: "(double tilde)" },
+		],
+		description: (
+			<span>
+				Reserved for wildcard searches. Use this to search the ingredient
+				database without a keyword. For example, input only <Code>**</Code>.
+			</span>
+		),
+	},
+	{
+		chars: [
+			{ value: "== n,n+1", label: "(double equals, comma separated numbers)" },
+		],
+		description: (
+			<span>
+				Reserved for ID matched searches. Use this to directly query the
+				ingredient database row IDs. Supports double dot notation for ID ranges.
+				For example the input <Code>== 1,2,10..14</Code> would be interpreted as{" "}
+				<Code>== 1,2,10,11,12,13,14</Code>.
+			</span>
+		),
+	},
+];
+
+function ReservedCharDescriptor({
+	reservedChars,
+}: {
+	reservedChars: ReservedChars;
+}) {
+	const { chars, description } = reservedChars;
+
+	return (
+		<Stack gap="xs" px="xs" py="sm">
+			<Stack gap="xs">
+				{chars.map(({ label, value }) => (
+					<Group key={`rchar-${label}`} gap={3}>
+						<Kbd>{value}</Kbd>
+						<Text variant="light" size="xs">
+							{label}
+						</Text>
+					</Group>
+				))}
+			</Stack>
+			<Text variant="light" size="sm">
+				{description}
+			</Text>
+		</Stack>
+	);
+}
 
 function ActionIconQuestion(props: ActionIconProps) {
 	const [opened, { close, open }] = useDisclosure(false);
@@ -44,7 +110,7 @@ function ActionIconQuestion(props: ActionIconProps) {
 			shadow="md"
 			keepMounted={false}
 			position="bottom-end"
-			width={180}
+			width={350}
 			offset={8}
 		>
 			<Popover.Target>
@@ -59,11 +125,22 @@ function ActionIconQuestion(props: ActionIconProps) {
 				</ActionIcon>
 			</Popover.Target>
 
-			<Popover.Dropdown>
-				<Text variant="light" size="sm">
-					Use double tilde <Kbd>~~</Kbd> or double asterick <Kbd>**</Kbd> to
-					search all records against your filters
-				</Text>
+			<Popover.Dropdown p={0}>
+				<Box px="xs" py="md">
+					<Title order={4} lh={1}>
+						Search Operators
+					</Title>
+				</Box>
+				<Divider />
+				{reservedCharacters.map((reservedChar, i) => (
+					<>
+						<ReservedCharDescriptor
+							key={`rchar-descriptor-${reservedChar.description}`}
+							reservedChars={reservedChar}
+						/>
+						{i + 1 !== reservedCharacters.length && <Divider />}
+					</>
+				))}
 			</Popover.Dropdown>
 		</Popover>
 	);

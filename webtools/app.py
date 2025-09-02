@@ -33,6 +33,7 @@ NPM_BUILD_DIRECTORY = "build"
 SQL3_DATABASE_TABLE = "en"
 SQL3_DATABASE = parent_dir / "train/data/training.sqlite3"
 MODEL_REQUIREMENTS = parent_dir / "requirements-dev.txt"
+RESERVED_LABELLER_SEARCH_CHARS = r"\*\*|\~\~|\=\="
 
 # sqlite
 sqlite3.register_adapter(list, json.dumps)
@@ -50,11 +51,11 @@ def error_response(status: int, message: str = ""):
     """Boilerplate for errors"""
     if status == 400:
         return jsonify(
-            {"status": 400, "error": "Sorry, bad params", "message": None}
+            {"status": 400, "error": "Sorry, bad params", "message": message}
         ), 400
     elif status == 404:
         return jsonify(
-            {"status": 404, "error": "Sorry, resource not found", "message": None}
+            {"status": 404, "error": "Sorry, resource not found", "message": message}
         ), 404
     elif status == 500:
         return jsonify(
@@ -62,7 +63,7 @@ def error_response(status: int, message: str = ""):
         ), 500
     else:
         return jsonify(
-            {"status": status, "error": "Sorry, something failed", "message": None}
+            {"status": status, "error": "Sorry, something failed", "message": message}
         ), 500
 
 
@@ -111,13 +112,13 @@ def parser():
 
         try:
             sentence = data.get("sentence", "")
-            discard_isolated_stop_words = data.get("discard_isolated_stop_words", False)
-            expect_name_in_output = data.get("expect_name_in_output", False)
+            discard_isolated_stop_words = data.get("discard_isolated_stop_words", True)
+            expect_name_in_output = data.get("expect_name_in_output", True)
             string_units = data.get("string_units", False)
             imperial_units = data.get("imperial_units", False)
-            foundation_foods = data.get("foundation_foods", False)
+            foundation_foods = data.get("foundation_foods", True)
             optimistic_cache_reset = data.get("optimistic_cache_reset", False)
-            separate_names = data.get("separate_names", False)
+            separate_names = data.get("separate_names", True)
 
             if optimistic_cache_reset:
                 load_parser_model.cache_clear()
@@ -384,6 +385,12 @@ def labeller_bulk_upload():
         return error_response(status=404)
 
 
+def is_valid_dotnum_range(s: str) -> bool:
+    """Checks a str against the format "{digit}..{digit}"""
+
+    return bool(re.fullmatch(r"^\d*\.?\d*(?<!\.)\.\.(?!\.)\d*\.?\d*$", s))
+
+
 @app.route("/labeller/search", methods=["POST"])
 @cross_origin()
 def labeller_search():
@@ -410,12 +417,36 @@ def labeller_search():
                 whole_word = data.get("wholeWord", False)
                 case_sensitive = data.get("caseSensitive", False)
 
+                reserved_char_search = re.search(
+                    RESERVED_LABELLER_SEARCH_CHARS, sentence
+                )
+                reserved_char_match = (
+                    reserved_char_search.group() if reserved_char_search else None
+                )
+
+                # reserve == for id search
+                ids_reserved = []
+                if reserved_char_match in ["=="]:
+                    ids_unique = map(str.strip, list(set(sentence[2:].split(","))))
+                    ids_actual = [
+                        ix
+                        for ix in ids_unique
+                        if ix.isdigit() or is_valid_dotnum_range(ix)
+                    ]
+
+                    for id in ids_actual:
+                        if is_valid_dotnum_range(id):
+                            start, stop = id.split("..")
+                            ids_reserved.extend(range(int(start), int(stop) + 1))
+                        elif id.isdigit():
+                            ids_reserved.append(int(id))
+
                 # preprocess for correct token comparison later
                 sentence_preprocessed = PreProcessor(sentence).sentence
                 # reserve ** or ~~ for wildcard, treat as empty string
                 sentence_cleansed = (
                     " "
-                    if re.search(r"\*\*|~~", sentence_preprocessed)
+                    if reserved_char_match in ["**", "~~"]
                     else sentence_preprocessed
                 )
 
@@ -456,8 +487,10 @@ def labeller_search():
                             if label in labels
                         ]
                     )
-                    if query.search(partial_sentence) or (
-                        partial_sentence == sentence_cleansed
+                    if (
+                        row["id"] in ids_reserved
+                        or query.search(partial_sentence)
+                        or partial_sentence == sentence_cleansed
                     ):
                         indices.append(row["id"])
 
@@ -468,7 +501,7 @@ def labeller_search():
                     cursor.execute(
                         f"""
                         SELECT *
-                        FROM en
+                        FROM {SQL3_DATABASE_TABLE}
                         WHERE id IN ({",".join(["?"] * len(batch))})
                         """,
                         (batch),
@@ -488,7 +521,7 @@ def labeller_search():
                     cursor.execute(
                         f"""
                         SELECT COUNT(*)
-                        FROM en
+                        FROM {SQL3_DATABASE_TABLE}
                         WHERE id IN ({",".join(["?"] * len(batch))})
                         """,
                         (batch),
