@@ -250,12 +250,8 @@ export function ButtonRunModel() {
 				Run train model
 			</Button>
 			<Menu
-				shadow="md"
-				keepMounted={false}
-				position="bottom-end"
 				width={500}
 				closeOnItemClick={false}
-				offset={8}
 				opened={opened}
 				onChange={setOpened}
 				trigger="click"

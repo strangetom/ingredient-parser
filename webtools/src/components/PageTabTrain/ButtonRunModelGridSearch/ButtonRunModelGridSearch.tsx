@@ -178,12 +178,8 @@ export function ButtonRunModelGridSearch() {
 				Run gridsearch
 			</Button>
 			<Menu
-				shadow="md"
-				keepMounted={false}
-				position="bottom-end"
 				width={500}
 				closeOnItemClick={false}
-				offset={8}
 				opened={opened}
 				onChange={setOpened}
 				trigger="click"

@@ -120,14 +120,7 @@ function ActionIconQuestion(props: ActionIconProps) {
 	const [opened, { close, open }] = useDisclosure(false);
 
 	return (
-		<Popover
-			opened={opened}
-			shadow="xs"
-			keepMounted={false}
-			position="bottom-end"
-			width={350}
-			offset={8}
-		>
+		<Popover opened={opened} width={350}>
 			<Popover.Target>
 				<ActionIcon
 					onMouseEnter={open}
@@ -258,12 +251,8 @@ function ActionIconFilter(props: ActionIconProps) {
 
 	return (
 		<Menu
-			shadow="md"
-			keepMounted={false}
-			position="bottom-end"
 			width={350}
 			closeOnItemClick={false}
-			offset={8}
 			opened={opened}
 			onChange={setOpened}
 			trigger="click"
