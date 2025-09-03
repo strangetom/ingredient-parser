@@ -233,7 +233,7 @@ export function ButtonUpload(props: ButtonProps) {
 				onClick={onOpenHandler}
 				{...props}
 			>
-				Upload New
+				Upload new
 			</Button>
 
 			{opened && <UploadMountListener />}
