@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-# {{DEFAULT}}
 import json
 import random
 import re
@@ -11,13 +10,12 @@ import traceback
 from http import HTTPStatus
 from importlib.metadata import PackageNotFoundError, distribution
 from pathlib import Path
+from typing import Union
 
-# {{LIBRARIES}}
 from flask import Flask, jsonify, request
 from flask_cors import CORS, cross_origin
 
-# {{INTERNAL}}
-sys.path.append("..")  # force use of local, not system wide ingredient parser installed
+sys.path.append("..")
 from ingredient_parser import inspect_parser
 from ingredient_parser.dataclasses import (
     FoundationFood,
@@ -28,60 +26,76 @@ from ingredient_parser.dataclasses import (
 from ingredient_parser.en._loaders import load_parser_model
 from ingredient_parser.en.preprocess import PreProcessor
 
-# globals defs
+# Globals
 parent_dir = Path(__file__).parent.parent
 NPM_BUILD_DIRECTORY = "build"
 SQL3_DATABASE_TABLE = "en"
 SQL3_DATABASE = parent_dir / "train/data/training.sqlite3"
 MODEL_REQUIREMENTS = parent_dir / "requirements-dev.txt"
-
-
-# global regex
 RESERVED_LABELLER_SEARCH_CHARS = r"\*\*|\~\~|\=\="  # ** or ~~ or ==
 RESERVED_DOTNUM_RANGE_CHARS = (
     r"^\d*\.?\d*(?<!\.)\.\.(?!\.)\d*\.?\d*$"  # {digit}..{digit}
 )
 
-# sqlite
+# SQLite
 sqlite3.register_adapter(list, json.dumps)
 sqlite3.register_converter("json", json.loads)
 
-# flask
+# Flask
 app = Flask(__name__, static_folder=NPM_BUILD_DIRECTORY, static_url_path="/")
 cors = CORS(app)
 
-# @lru_cache decorator reset on load
+# Reset on load @lru_cache
 load_parser_model.cache_clear()
 
 
-# helpers
-def is_valid_dotnum_range(s: str) -> bool:
-    """Checks a str against the format "{digit}..{digit}"""
+# Helpers
+def is_valid_dotnum_range(value: str) -> bool:
+    """Checks str against the format "{digit}..{digit}"""
 
-    return bool(re.fullmatch(RESERVED_DOTNUM_RANGE_CHARS, s))
+    return bool(re.fullmatch(RESERVED_DOTNUM_RANGE_CHARS, value))
 
 
-def error_response(
+def jsonify_error(
     status: int,
-    traceback: str = "",
+    exception: Union[Exception, None] = None,
 ):
-    """Boilerplate for errors"""
+    """Boilerplate json response for all HTTP errors
+
+    Parameters
+    -------
+    status : int
+        Any HTTPCode value, e.g. 200, 404, etc
+    exception: Exception | None
+        Exception handle to display traceback message
+
+    Returns
+    -------
+    Flask JSONify Response
+
+    """
 
     try:
         return jsonify(
             {
                 "status": HTTPStatus(status).value,
                 "error": f"{HTTPStatus(status).name}",
-                "traceback": traceback,
+                "traceback": "".join(
+                    traceback.TracebackException.from_exception(exception).format()
+                )
+                if exception
+                else "",
                 "description": HTTPStatus(status).description,
             }
         ), HTTPStatus(status).value
-    except Exception:
+    except Exception as ex:
         return jsonify(
             {
                 "status": 500,
                 "error": f"{HTTPStatus.INTERNAL_SERVER_ERROR.value}",
-                "traceback": "",
+                "traceback": "".join(
+                    traceback.TracebackException.from_exception(ex).format()
+                ),
                 "description": HTTPStatus.INTERNAL_SERVER_ERROR.description,
             }
         ), 500
@@ -90,6 +104,16 @@ def error_response(
 def get_all_marginals(parser_info: ParserDebugInfo) -> list[dict[str, float]]:
     """
     Return marginals for each label for each token in sentence.
+
+    Parameters
+    -------
+    parser_info: ParserDebugInfo
+        For token extraction, and access to marginal calculations
+
+    Returns
+    -------
+    list[dict[str, float]]
+        List of marginals, e.g. [ { 'B_NAME_TOK': 0.04, 'QTY': 0.56 }, ... ]
     """
 
     labels = [
@@ -115,7 +139,6 @@ def get_all_marginals(parser_info: ParserDebugInfo) -> list[dict[str, float]]:
             token_marginals[label] = round(tagger.marginal(label, i), 4)
 
         marginals.append(token_marginals)
-
     return marginals
 
 
@@ -129,7 +152,7 @@ def parser():
         data = request.json
 
         if data is None:
-            return error_response(status=404)
+            return jsonify_error(status=404)
 
         try:
             sentence = data.get("sentence", "")
@@ -214,11 +237,10 @@ def parser():
             )
 
         except Exception as ex:
-            traced = "".join(traceback.TracebackException.from_exception(ex).format())
-            return error_response(status=500, traceback=traced)
+            return jsonify_error(status=500, exception=ex)
 
     else:
-        return error_response(status=404)
+        return jsonify_error(status=404)
 
 
 @app.route("/labeller/preupload", methods=["POST"])
@@ -229,15 +251,15 @@ def preupload():
         data = request.json
 
         if data is None:
-            return error_response(status=404)
+            return jsonify_error(status=404)
 
         try:
             sentences = data.get("sentences", [])
-            collector = []
+            data_response = []
 
             for sentence in sentences:
                 parser_info = inspect_parser(sentence=sentence)
-                collector.append(
+                data_response.append(
                     {
                         "id": "".join(
                             random.choice("0123456789ABCDEF") for _ in range(6)
@@ -252,21 +274,22 @@ def preupload():
                     }
                 )
 
-            return jsonify(collector)
+            return jsonify(data_response)
 
         except Exception as ex:
-            traced = "".join(traceback.TracebackException.from_exception(ex).format())
-            return error_response(status=500, traceback=traced)
+            return jsonify_error(status=500, exception=ex)
 
     else:
-        return error_response(status=404)
+        return jsonify_error(status=404)
 
 
 @app.route("/labeller/available-sources", methods=["GET"])
 @cross_origin()
 def available_sources():
+    """Endpoint for retrieving all sources from database"""
+
     if request.method == "GET":
-        available_sources = []
+        data_response = []
 
         try:
             with sqlite3.connect(
@@ -275,20 +298,23 @@ def available_sources():
                 conn.row_factory = sqlite3.Row
                 cursor = conn.cursor()
 
-                cursor.execute("""SELECT DISTINCT source FROM en""")
+                cursor.execute(
+                    f"""
+                        SELECT DISTINCT source FROM {SQL3_DATABASE_TABLE}
+                    """
+                )
                 rows = cursor.fetchall()
-                available_sources = [source[0] for source in rows]
+                data_response = [source[0] for source in rows]
 
             conn.close()
 
-            return jsonify(available_sources)
+            return jsonify(data_response)
 
         except Exception as ex:
-            traced = "".join(traceback.TracebackException.from_exception(ex).format())
-            return error_response(status=500, traceback=traced)
+            return jsonify_error(status=500, exception=ex)
 
     else:
-        return error_response(status=404)
+        return jsonify_error(status=404)
 
 
 @app.route("/labeller/save", methods=["POST"])
@@ -300,7 +326,7 @@ def labeller_save():
         data = request.json
 
         if data is None:
-            return error_response(status=404)
+            return jsonify_error(status=404)
 
         try:
             edited = []
@@ -343,16 +369,15 @@ def labeller_save():
                 conn.commit()
 
             conn.close()
+            data_response = {"success": True}
 
-            return jsonify({"success": True})
+            return jsonify(data_response)
 
         except Exception as ex:
-            traced = "".join(traceback.TracebackException.from_exception(ex).format())
-            print(traced)
-            return error_response(status=500, traceback=traced)
+            return jsonify_error(status=500, exception=ex)
 
     else:
-        return error_response(status=404)
+        return jsonify_error(status=404)
 
 
 @app.route("/labeller/bulk-upload", methods=["POST"])
@@ -364,7 +389,7 @@ def labeller_bulk_upload():
         data = request.json
 
         if data is None:
-            return error_response(status=404)
+            return jsonify_error(status=404)
 
         try:
             bulk = []
@@ -395,15 +420,15 @@ def labeller_bulk_upload():
                 conn.commit()
 
             conn.close()
+            data_response = {"success": True}
 
-            return jsonify({"success": True})
+            return jsonify(data_response)
 
         except Exception as ex:
-            traced = "".join(traceback.TracebackException.from_exception(ex).format())
-            return error_response(status=500, traceback=traced)
+            return jsonify_error(status=500, exception=ex)
 
     else:
-        return error_response(status=404)
+        return jsonify_error(status=404)
 
 
 @app.route("/labeller/search", methods=["POST"])
@@ -416,7 +441,7 @@ def labeller_search():
         data = request.json
 
         if data is None:
-            return error_response(status=404)
+            return jsonify_error(status=404)
 
         try:
             with sqlite3.connect(
@@ -542,24 +567,21 @@ def labeller_search():
                     )
                     count += [cursor.fetchone()[0]]
 
-                final = dict(
-                    {
-                        "data": data[offset : offset + 250],
-                        "total": sum(count),
-                        "offset": offset,
-                    }
-                )
+                data_response = {
+                    "data": data[offset : offset + 250],
+                    "total": sum(count),
+                    "offset": offset,
+                }
 
             conn.close()
 
-            return jsonify(final)
+            return jsonify(data_response)
 
         except Exception as ex:
-            traced = "".join(traceback.TracebackException.from_exception(ex).format())
-            return error_response(status=500, traceback=traced)
+            return jsonify_error(status=500, exception=ex)
 
     else:
-        return error_response(status=404)
+        return jsonify_error(status=404)
 
 
 @app.route("/precheck", methods=["GET"])
@@ -601,7 +623,9 @@ def pre_check():
             satisfied = False
             checks["failed"].append(f"{req}")
 
-    return jsonify({"checks": checks, "passed": satisfied})
+    data_response = {"checks": checks, "passed": satisfied}
+
+    return jsonify(data_response)
 
 
 @app.route("/", defaults={"path": ""})

@@ -48,7 +48,9 @@ export function MainLabeller() {
 			</Sectionable.Section>
 
 			<Sectionable.ActionBar
-				mounted={Boolean(parsed) && editModeEnabled}
+				mounted={
+					Boolean(parsed) && editModeEnabled && parsedSentences.length > 0
+				}
 				position="bottom"
 			>
 				<ActionBarEditable />
