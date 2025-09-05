@@ -1,5 +1,23 @@
 # Changelog
 
+## develop
+
+> [!NOTE]
+>
+> This release only contains changes related to the development tools for this library. There are no changes to the functionality of the library.
+
+### Development tools
+
+* Replace the labeller and webapp tools with a new tool ("webtools") written in react. Many thanks to @[mcioffi](https://github.com/mcioffi) for this contribution. Key functionality:
+
+  * Parser, to display to parsed output of an input ingredient sentence.
+
+  * Labeller, to edit the labelled training data or add new training data.
+
+  * Trainer, to initiate training of models.
+
+  See the [docs](https://ingredient-parser.readthedocs.io/en/develop/tutorials/webtools.html) for more information.
+
 ## 2.2.0
 
 ### Foundation foods:

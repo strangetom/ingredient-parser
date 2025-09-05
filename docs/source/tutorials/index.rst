@@ -50,7 +50,7 @@ Ingredient Parser depends on the following
 
 .. note::
 
-    To use the companion web app, a.k.a. **webtools**, :ref:`follow the steps in this section <reference-tutorials-web-app>`.
+    To use the companion web app, a.k.a. **webtools**, :ref:`follow the steps in this section <reference-tutorials-webtools>`.
 
 
 Usage
@@ -97,4 +97,4 @@ Each of the fields (except sentence) has a confidence value associated with it. 
 
    Options <options>
    Examples <examples>
-   Web app <webtools>
+   Webtools <webtools>
