@@ -223,19 +223,18 @@ export const useUploadNewLabellersStore = create(
 		bulkUploadApi: async () => {
 			set({ uploadingBulk: true });
 
-			const sentences = get().parsedSentences;
-			const source = get().publisherSource;
+			const { parsedSentences: sentences, publisherSource: source } = get();
 			const fetchAvailableSourcesApi =
 				useTabLabellerStore.getState().fetchAvailableSourcesApi;
 			const getLabellerSearchApi =
 				useTabLabellerStore.getState().getLabellerSearchApi;
-			const inputSettings = useTabLabellerStore.getState().input.settings;
-			const updateInput = useTabLabellerStore.getState().updateInput;
-			const setParsed = useTabLabellerStore.getState().setParsed;
-			const sentencesAmended = sentences.map((sentence) => ({
-				...sentence,
-				source: source,
-			}));
+			const { input, updateInput, setParsed } = useTabLabellerStore.getState();
+			const sentencesAmended = sentences
+				.filter(({ removed }) => !removed)
+				.map((sentence) => ({
+					...sentence,
+					source: source,
+				}));
 
 			const result = await fetch(
 				constructEndpoint({ path: "labellerBulkUpload" }),
@@ -258,7 +257,7 @@ export const useUploadNewLabellersStore = create(
 						const newInput = {
 							input: {
 								sentence: "~~",
-								settings: { ...inputSettings, sources: [source] },
+								settings: { ...input.settings, sources: [source] },
 							},
 							offsetPage: 0,
 						};

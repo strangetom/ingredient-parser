@@ -1,4 +1,5 @@
 .. currentmodule:: ingredient_parser.parsers
+.. _tutorials-examples:
 
 Examples
 ========
@@ -264,4 +265,3 @@ Sometimes a single ingredient sentence will contain multiple phrases, each speci
                  foundation_foods=[],
                  sentence='1 cup peeled and cooked fresh chestnuts (about 20), '
                           'or 1 cup canned, unsweetened chestnuts')
-

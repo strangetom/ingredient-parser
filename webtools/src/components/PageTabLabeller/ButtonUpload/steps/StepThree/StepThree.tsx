@@ -18,7 +18,7 @@ import {
 	type TextProps,
 	useCombobox,
 } from "@mantine/core";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 // {{{INTERNAL}}}
 import {
@@ -158,10 +158,16 @@ export function TextCount(props: TextProps) {
 			parsedSentences: state.parsedSentences,
 		})),
 	);
+
+	const chosenParsedSentences = useMemo(
+		() => parsedSentences.filter(({ removed }) => !removed),
+		[parsedSentences],
+	);
+
 	return (
 		<Text c="var(--mantine-color-gray-3)" size="sm" {...props}>
-			There are {parsedSentences.length} sentence
-			{parsedSentences.length === 1 ? null : "s"} to be uploaded
+			{chosenParsedSentences.length} sentence
+			{chosenParsedSentences.length === 1 ? null : "s"} selected for upload
 		</Text>
 	);
 }

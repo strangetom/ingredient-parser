@@ -4,6 +4,7 @@ import { useShallow } from "zustand/react/shallow";
 import { useTabParserStore } from "../domain";
 // {{{INTERNAL}}}
 import {
+	ButtonLabellerDefinitions,
 	ButtonSubmit,
 	InputSubmit,
 	TableParsedResults,
@@ -24,6 +25,7 @@ export function MainTryParser() {
 				<InputSubmit style={{ flexBasis: "100%" }} />
 				<Sectionable.ActionBarSubGrouping>
 					<ButtonSubmit />
+					<ButtonLabellerDefinitions />
 				</Sectionable.ActionBarSubGrouping>
 			</Sectionable.ActionBar>
 

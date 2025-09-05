@@ -16,8 +16,19 @@ export function ButtonSearch() {
 		);
 
 	const onSearchWrapperHandler = () => {
-		getLabellerSearchApi();
-		setActivePage(1);
+		const { hasUnsavedChanges, setUnsavedChangesModalOpen } =
+			useTabLabellerStore.getState();
+		const fnCallback = () => {
+			getLabellerSearchApi();
+			setActivePage(1);
+		};
+		if (hasUnsavedChanges()) {
+			const { setUnsavedChangesFnCallback } = useTabLabellerStore.getState();
+			setUnsavedChangesFnCallback(fnCallback);
+			setUnsavedChangesModalOpen(true);
+		} else {
+			fnCallback();
+		}
 	};
 
 	return (

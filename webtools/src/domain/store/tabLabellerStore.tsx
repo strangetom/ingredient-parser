@@ -23,6 +23,13 @@ type TabLabellerInputProvided =
 	  }
 	| undefined;
 
+export type ParsedSentenceEditableHandler = Omit<
+	UseListStateHandlers<ParsedSentenceEditable>,
+	"setState"
+> & {
+	set: (items: ParsedSentenceEditable[]) => void;
+};
+
 interface TabLabellerState {
 	loading: boolean;
 	editing: boolean;
@@ -30,6 +37,11 @@ interface TabLabellerState {
 	uploading: boolean;
 	error: boolean;
 	success: boolean;
+	hasUnsavedChanges: () => boolean;
+	unsavedChangesModalOpen: boolean;
+	setUnsavedChangesModalOpen: (opened: boolean) => void;
+	unsavedChangesFnCallback: (() => void) | null;
+	setUnsavedChangesFnCallback: (fn: (() => void) | null) => void;
 	activePage: number;
 	setActivePage: (page: number) => void;
 	editModeEnabled: boolean;
@@ -40,11 +52,9 @@ interface TabLabellerState {
 	parsed: ParsedTabLabller | null;
 	setParsed: (data: ParsedTabLabller | null) => void;
 	parsedSentencesOriginal: ParsedSentenceEditable[];
+	parsedSentencesOriginalHandler: ParsedSentenceEditableHandler;
 	parsedSentences: ParsedSentenceEditable[];
-	parsedSentencesHandler: Omit<
-		UseListStateHandlers<ParsedSentenceEditable>,
-		"setState"
-	> & { set: (items: ParsedSentenceEditable[]) => void };
+	parsedSentencesHandler: ParsedSentenceEditableHandler;
 	getLabellerSearchApi: (opts?: TabLabellerInputProvided) => void;
 	editLabellerItemsApi: () => Promise<boolean>;
 	parseNewLabellerItemsForUploadApi: (
@@ -87,7 +97,16 @@ export const useTabLabellerStore = create(
 		uploading: false,
 		error: false,
 		success: false,
-		activePage: 0,
+		hasUnsavedChanges: () =>
+			get().parsedSentences.filter(({ edited, removed }) => edited || removed)
+				.length !== 0 && get().editModeEnabled,
+		unsavedChangesModalOpen: false,
+		setUnsavedChangesModalOpen: (opened: boolean) =>
+			set({ unsavedChangesModalOpen: opened }),
+		unsavedChangesFnCallback: null,
+		setUnsavedChangesFnCallback: (fn: (() => void) | null) =>
+			set({ unsavedChangesFnCallback: fn }),
+		activePage: 1,
 		setActivePage: (page: number) => set({ activePage: page }),
 		editModeEnabled: false,
 		setEditModeEnabled: (enabled: boolean) => set({ editModeEnabled: enabled }),
@@ -101,6 +120,106 @@ export const useTabLabellerStore = create(
 		parsed: null,
 		setParsed: (data: ParsedTabLabller | null) => set({ parsed: data }),
 		parsedSentencesOriginal: [],
+		parsedSentencesOriginalHandler: {
+			set: (items: ParsedSentenceEditable[]) =>
+				set({ parsedSentencesOriginal: items }),
+			append: (...items: ParsedSentenceEditable[]) =>
+				set(({ parsedSentencesOriginal }) => ({
+					parsedSentencesOriginal: [...parsedSentencesOriginal, ...items],
+				})),
+			prepend: (...items: ParsedSentenceEditable[]) =>
+				set(({ parsedSentencesOriginal }) => ({
+					parsedSentencesOriginal: [...items, ...parsedSentencesOriginal],
+				})),
+			insert: (index: number, ...items: ParsedSentenceEditable[]) =>
+				set(({ parsedSentencesOriginal }) => ({
+					parsedSentencesOriginal: [
+						...parsedSentencesOriginal.slice(0, index),
+						...items,
+						...parsedSentencesOriginal.slice(index),
+					],
+				})),
+			pop: () =>
+				set(({ parsedSentencesOriginal }) => {
+					const cloned = [...parsedSentencesOriginal];
+					cloned.pop();
+					return { parsedSentencesOriginal: cloned };
+				}),
+			shift: () =>
+				set(({ parsedSentencesOriginal }) => {
+					const cloned = [...parsedSentencesOriginal];
+					cloned.shift();
+					return { parsedSentencesOriginal: cloned };
+				}),
+			apply: (
+				fn: (item: ParsedSentenceEditable, index?: number) => ParsedSentence,
+			) =>
+				set(({ parsedSentencesOriginal }) => ({
+					parsedSentencesOriginal: parsedSentencesOriginal.map((item, index) =>
+						fn(item, index),
+					),
+				})),
+			applyWhere: (
+				condition: (item: ParsedSentenceEditable, index: number) => boolean,
+				fn: (item: ParsedSentenceEditable, index?: number) => ParsedSentence,
+			) =>
+				set(({ parsedSentencesOriginal }) => ({
+					parsedSentencesOriginal: parsedSentencesOriginal.map((item, index) =>
+						condition(item, index) ? fn(item, index) : item,
+					),
+				})),
+			remove: (...indices: number[]) =>
+				set(({ parsedSentencesOriginal }) => ({
+					parsedSentencesOriginal: parsedSentencesOriginal.filter(
+						(_, index) => !indices.includes(index),
+					),
+				})),
+			reorder: ({ from, to }: { from: number; to: number }) =>
+				set(({ parsedSentencesOriginal }) => {
+					const cloned = [...parsedSentencesOriginal];
+					const item = parsedSentencesOriginal[from];
+
+					cloned.splice(from, 1);
+					cloned.splice(to, 0, item);
+
+					return { parsedSentencesOriginal: cloned };
+				}),
+			swap: ({ from, to }: { from: number; to: number }) =>
+				set(({ parsedSentencesOriginal }) => {
+					const cloned = [...parsedSentencesOriginal];
+					const fromItem = cloned[from];
+					const toItem = cloned[to];
+
+					cloned.splice(to, 1, fromItem);
+					cloned.splice(from, 1, toItem);
+
+					return { parsedSentencesOriginal: cloned };
+				}),
+			setItem: (index: number, item: ParsedSentence) =>
+				set(({ parsedSentencesOriginal }) => {
+					const cloned = [...parsedSentencesOriginal];
+					cloned[index] = item;
+					return { parsedSentencesOriginal: cloned };
+				}),
+			setItemProp: <
+				K extends keyof ParsedSentenceEditable,
+				U extends ParsedSentenceEditable[K],
+			>(
+				index: number,
+				prop: K,
+				value: U,
+			) =>
+				set(({ parsedSentencesOriginal }) => {
+					const cloned = [...parsedSentencesOriginal];
+					cloned[index] = { ...cloned[index], [prop]: value };
+					return { parsedSentencesOriginal: cloned };
+				}),
+			filter: (fn: (item: ParsedSentenceEditable, i: number) => boolean) => {
+				set(({ parsedSentencesOriginal }) => ({
+					parsedSentencesOriginal: parsedSentencesOriginal.filter(fn),
+				}));
+			},
+		},
 		parsedSentences: [],
 		parsedSentencesHandler: {
 			set: (items: ParsedSentenceEditable[]) => set({ parsedSentences: items }),
@@ -259,10 +378,10 @@ export const useTabLabellerStore = create(
 				body: JSON.stringify({
 					edited: sentences
 						.filter(({ edited }) => edited)
-						.map(({ edited, removed, ...others }) => ({ ...others })),
+						.map(({ edited, removed, plain, ...others }) => ({ ...others })),
 					removed: sentences
 						.filter(({ removed }) => removed)
-						.map(({ edited, removed, ...others }) => ({ ...others })),
+						.map(({ edited, removed, plain, ...others }) => ({ ...others })),
 				}),
 			})
 				.then((response) => {

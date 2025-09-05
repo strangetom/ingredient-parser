@@ -12,20 +12,18 @@ export function ListParsedSentences() {
 		editModeEnabled,
 		parsed,
 		parsedSentencesOriginal,
+		parsedSentencesOriginalHandler,
 		parsedSentences,
 		parsedSentencesHandler,
-		updateInput,
-		getLabellerSearchApi,
 	} = useTabLabellerStore(
 		useShallow((state) => ({
 			loading: state.loading,
 			editModeEnabled: state.editModeEnabled,
 			parsed: state.parsed,
 			parsedSentencesOriginal: state.parsedSentencesOriginal,
+			parsedSentencesOriginalHandler: state.parsedSentencesOriginalHandler,
 			parsedSentences: state.parsedSentences,
 			parsedSentencesHandler: state.parsedSentencesHandler,
-			updateInput: state.updateInput,
-			getLabellerSearchApi: state.getLabellerSearchApi,
 		})),
 	);
 
@@ -53,6 +51,8 @@ export function ListParsedSentences() {
 				wholeWord: false,
 			},
 		} as InputTabLabeller;
+		const { updateInput, getLabellerSearchApi } =
+			useTabLabellerStore.getState();
 		updateInput(preFabInput);
 		getLabellerSearchApi();
 	};
@@ -86,7 +86,7 @@ export function ListParsedSentences() {
 						<ScrollableVirtualized
 							style={{ height: "100%", width: "100%" }}
 							parsedSentencesProvided={parsedSentencesOriginal}
-							parsedSentencesProvidedHandler={{}}
+							parsedSentencesProvidedHandler={parsedSentencesOriginalHandler}
 							labellerSentenceProps={{
 								tasks: ["copy", "plain"],
 								listable: true,

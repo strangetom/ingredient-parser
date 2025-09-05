@@ -3,14 +3,15 @@
 import { useShallow } from "zustand/react/shallow";
 import { useTabLabellerStore } from "../domain";
 import {
+	ActionBarEditable,
 	ActionBarPaginator,
 	ButtonSearch,
 	ButtonUpload,
 	FetchAvailableSouceListener,
 	ListParsedSentences,
+	ModalUnsavedChanges,
 	TextInputSubmit,
 } from "./PageTabLabeller";
-import { ActionBarEditable } from "./PageTabLabeller/ActionBarEditable";
 // {{{INTERNAL}}}
 import { Sectionable } from "./Shared";
 
@@ -26,6 +27,7 @@ export function MainLabeller() {
 	return (
 		<Sectionable>
 			<FetchAvailableSouceListener />
+			<ModalUnsavedChanges />
 
 			<Sectionable.ActionBar position="top">
 				<TextInputSubmit style={{ flexBasis: "100%" }} />
@@ -46,7 +48,9 @@ export function MainLabeller() {
 			</Sectionable.Section>
 
 			<Sectionable.ActionBar
-				mounted={Boolean(parsed) && editModeEnabled}
+				mounted={
+					Boolean(parsed) && editModeEnabled && parsedSentences.length > 0
+				}
 				position="bottom"
 			>
 				<ActionBarEditable />

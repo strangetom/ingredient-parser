@@ -3,17 +3,23 @@ import {
 	Box,
 	Button,
 	type ButtonProps,
+	Center,
 	Drawer,
 	type DrawerOverlayProps,
 	type DrawerProps,
 	Group,
 	Stepper,
+	Transition,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 // {{{ASSETS}}}
-import { IconUpload } from "@tabler/icons-react";
+import {
+	IconBan,
+	IconCircleCheckFilled,
+	IconUpload,
+} from "@tabler/icons-react";
 import type React from "react";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useShallow } from "zustand/react/shallow";
 import {
 	TOTAL_UPLOAD_STEPS,
@@ -26,18 +32,80 @@ import { Sectionable } from "../../Shared";
 import classes from "./ButtonUpload.module.css";
 import { StepOne, StepThree, StepTwo } from "./steps";
 
-function UploadMountListener() {
-	const { setState, resetState, onIngredientSentenceEntryHandler } =
-		useUploadNewLabellersStore(
-			useShallow((state) => ({
-				setState: state.setState,
-				resetState: state.resetState,
-				onIngredientSentenceEntryHandler:
-					state.onIngredientSentenceEntryHandler,
-			})),
-		);
+interface ButtonUploadEntriesProps extends ButtonProps {
+	onClick?: () => void;
+}
 
+function ButtonUploadEntries(props: ButtonUploadEntriesProps) {
+	const { onClick, children, ...others } = props;
+
+	const { publisherSource, parsedSentences } = useUploadNewLabellersStore(
+		useShallow((state) => ({
+			publisherSource: state.publisherSource,
+			parsedSentences: state.parsedSentences,
+		})),
+	);
+
+	const chosenParsedSentences = useMemo(
+		() => parsedSentences.filter(({ removed }) => !removed),
+		[parsedSentences],
+	);
+
+	return (
+		<Button
+			variant="light"
+			disabled={!publisherSource || chosenParsedSentences.length === 0}
+			onClick={onClick}
+			leftSection={
+				<Box style={{ height: 24, width: 24, position: "relative" }}>
+					<Transition
+						mounted={!publisherSource || chosenParsedSentences.length === 0}
+						transition="fade-left"
+					>
+						{(styles) => (
+							<Center
+								style={{
+									...styles,
+									height: "100%",
+									width: "100%",
+									position: "absolute",
+								}}
+							>
+								<IconBan size={24} />
+							</Center>
+						)}
+					</Transition>
+					<Transition
+						mounted={!(!publisherSource || chosenParsedSentences.length === 0)}
+						transition="fade-right"
+					>
+						{(styles) => (
+							<Center
+								style={{
+									...styles,
+									height: "100%",
+									width: "100%",
+									position: "absolute",
+								}}
+							>
+								<IconCircleCheckFilled size={24} />
+							</Center>
+						)}
+					</Transition>
+				</Box>
+			}
+			{...others}
+		>
+			{children}
+		</Button>
+	);
+}
+
+function UploadMountListener() {
 	useEffect(() => {
+		const { setState, resetState, onIngredientSentenceEntryHandler } =
+			useUploadNewLabellersStore.getState();
+
 		setState({
 			stepCallbackFns: [onIngredientSentenceEntryHandler, null, null],
 		});
@@ -142,16 +210,30 @@ export function ButtonUpload(props: ButtonProps) {
 		if (result) close();
 	};
 
+	const onOpenHandler = () => {
+		const {
+			hasUnsavedChanges,
+			setUnsavedChangesModalOpen,
+			setUnsavedChangesFnCallback,
+		} = useTabLabellerStore.getState();
+		if (hasUnsavedChanges()) {
+			setUnsavedChangesFnCallback(open);
+			setUnsavedChangesModalOpen(true);
+		} else {
+			open();
+		}
+	};
+
 	return (
 		<>
 			<Button
 				variant="dark"
 				h={50}
 				leftSection={<IconUpload size={16} />}
-				onClick={open}
+				onClick={onOpenHandler}
 				{...props}
 			>
-				Upload New
+				Upload new
 			</Button>
 
 			{opened && <UploadMountListener />}
@@ -181,13 +263,9 @@ export function ButtonUpload(props: ButtonProps) {
 							</Button>
 						)}
 						{activeStep === TOTAL_UPLOAD_STEPS - 1 && (
-							<Button
-								variant="light"
-								disabled={!publisherSource}
-								onClick={onUploadBulkApiHandler}
-							>
+							<ButtonUploadEntries onClick={onUploadBulkApiHandler}>
 								Upload entries
-							</Button>
+							</ButtonUploadEntries>
 						)}
 					</Group>
 				}

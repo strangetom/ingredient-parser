@@ -117,6 +117,12 @@ export function GlobalStyles({ children }: { children: React.ReactNode }) {
 		}),
 		Popover: Popover.extend({
 			classNames: popoverClasses,
+			defaultProps: {
+				shadow: "sm",
+				offset: 8,
+				keepMounted: false,
+				position: "bottom-end",
+			},
 		}),
 		Drawer: Drawer.extend({
 			classNames: drawerClasses,
@@ -239,6 +245,12 @@ export function GlobalStyles({ children }: { children: React.ReactNode }) {
 		Grid: Grid.extend({}),
 		Menu: Menu.extend({
 			classNames: menuClasses,
+			defaultProps: {
+				shadow: "sm",
+				offset: 8,
+				keepMounted: false,
+				position: "bottom-end",
+			},
 		}),
 		Tooltip: Tooltip.extend({
 			defaultProps: {
@@ -269,6 +281,14 @@ export function GlobalStyles({ children }: { children: React.ReactNode }) {
 	const theme = createTheme({
 		scale: 1,
 		components: components,
+		shadows: {
+			// rgba(189, 174, 147) = var(--fg-3)
+			xs: "0 0.0625rem 0.1875rem  rgb(189, 174, 147, 0.05) , 0 0.0625rem 0.125rem rgb(189, 174, 147, 0.05)",
+			sm: "0 0.0625rem 0.1875rem rgb(189, 174, 147, 0.05), rgb(189, 174, 147, 0.05) 0 0.625rem 0.9375rem -0.3125rem, rgb(189, 174, 147, 0.04) 0 0.4375rem 0.4375rem -0.3125rem",
+			md: "0 0.0625rem 0.1875rem rgb(189, 174, 147, 0.05), rgb(189, 174, 147, 0.05) 0 1.25rem 1.5625rem -0.3125rem, rgb(189, 174, 147, 0.04) 0 0.625rem 0.625rem -0.3125rem",
+			lg: "0 0.0625rem 0.1875rem rgb(189, 174, 147, 0.05), rgb(189, 174, 147, 0.05) 0 1.75rem 1.4375rem -0.4375rem, rgb(189, 174, 147, 0.04) 0 0.75rem 0.75rem -0.4375rem",
+			xl: "0 0.0625rem 0.1875rem rgb(189, 174, 147, 0.05), rgb(189, 174, 147, 0.05) 0 2.25rem 1.75rem -0.4375rem, rgb(189, 174, 147, 0.04) 0 1.0625rem 1.0625rem -0.4375rem",
+		},
 	});
 
 	return (

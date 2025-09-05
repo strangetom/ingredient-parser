@@ -13,8 +13,11 @@ import {
 import { useCallback } from "react";
 import { useShallow } from "zustand/react/shallow";
 // {{{INTERNAL}}}
-import { type AlgoVariant, useTabTrainerStore } from "../../../domain";
-import algorithms from "./algorithmVariantsDescriptive";
+import {
+	type AlgoVariant,
+	collectionsAlgorithms,
+	useTabTrainerStore,
+} from "../../../domain";
 
 export function ComboBoxAlgos() {
 	const { algos } = useTabTrainerStore(
@@ -60,7 +63,7 @@ export function ComboBoxAlgos() {
 		</Pill>
 	));
 
-	const options = algorithms.map((item) => (
+	const options = collectionsAlgorithms.map((item) => (
 		<Combobox.Option
 			key={`algorithm-option-${item.value}`}
 			py="xs"
