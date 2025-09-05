@@ -259,7 +259,7 @@ export const useUploadNewLabellersStore = create(
 								sentence: "~~",
 								settings: { ...input.settings, sources: [source] },
 							},
-							offsetPage: 1,
+							offsetPage: 0,
 						};
 						getLabellerSearchApi(newInput);
 						updateInput(newInput.input);

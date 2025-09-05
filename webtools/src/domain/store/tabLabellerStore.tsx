@@ -322,7 +322,7 @@ export const useTabLabellerStore = create(
 		},
 		getLabellerSearchApi: async (opts?: TabLabellerInputProvided) => {
 			const input = opts?.input || get().input;
-			const offset = opts?.offsetPage || 1;
+			const offset = opts?.offsetPage || 0;
 
 			if (input && input.sentence.length !== 0) {
 				set({ loading: true });

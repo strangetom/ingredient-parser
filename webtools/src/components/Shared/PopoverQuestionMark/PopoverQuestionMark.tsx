@@ -13,7 +13,7 @@ import { useDisclosure } from "@mantine/hooks";
 import { IconQuestionMark } from "@tabler/icons-react";
 
 export function PopoverQuestionMark({
-	shadow = "sm",
+	shadow = "none",
 	withArrow = true,
 	width = 200,
 	position = "top",

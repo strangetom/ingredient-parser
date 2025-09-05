@@ -212,11 +212,9 @@ function ActionIconFilter(props: ActionIconProps) {
 
 	return (
 		<Menu
-			shadow="md"
 			position="top-end"
 			width={350}
 			closeOnItemClick={false}
-			offset={8}
 			opened={opened}
 			onChange={setOpened}
 			trigger="click"

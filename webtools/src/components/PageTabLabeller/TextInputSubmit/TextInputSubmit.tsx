@@ -6,6 +6,8 @@ import {
 	type ActionIconProps,
 	Box,
 	Checkbox,
+	Code,
+	Divider,
 	Flex,
 	Group,
 	Kbd,
@@ -13,9 +15,11 @@ import {
 	Menu,
 	MultiSelect,
 	Popover,
+	Stack,
 	Text,
 	TextInput,
 	type TextInputProps,
+	Title,
 	Transition,
 } from "@mantine/core";
 import { getHotkeyHandler, useDisclosure } from "@mantine/hooks";
@@ -26,7 +30,7 @@ import {
 	IconQuestionMark,
 	IconX,
 } from "@tabler/icons-react";
-import { useState } from "react";
+import { type ReactNode, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 // {{{INTERNAL}}}
 import {
@@ -34,19 +38,89 @@ import {
 	labellers,
 	useTabLabellerStore,
 } from "../../../domain";
+import { PopoverQuestionMark } from "../../Shared";
+
+interface ReservedChars {
+	chars: {
+		value: string;
+		label: string;
+	}[];
+	description: ReactNode;
+}
+
+const reservedCharacters: ReservedChars[] = [
+	{
+		chars: [
+			{ value: "**", label: "(double asterick)" },
+			{ value: "~~", label: "(double tilde)" },
+		],
+		description: (
+			<span>
+				Reserved for wildcard searches. Use this to search the database without
+				a keyword. For example, input only <Code>**</Code>.
+			</span>
+		),
+	},
+	{
+		chars: [
+			{ value: "== n,n+1", label: "(double equals, comma separated numbers)" },
+		],
+		description: (
+			<span>
+				Reserved for seaching by ID, with dot notation support for ranges. Use
+				this to directly query the database rows. For example, input{" "}
+				<Code>== 1,2,10..14</Code> or <Code>== 1,2,10,11,12,13,14</Code>.
+			</span>
+		),
+	},
+];
+
+function ReservedCharDescriptor({
+	reservedChars,
+}: {
+	reservedChars: ReservedChars;
+}) {
+	const { chars, description } = reservedChars;
+
+	return (
+		<Stack gap="xs" px="xs" py="sm">
+			<Stack gap="xs">
+				{chars.map(({ label, value }) => (
+					<Group key={`rchar-${label}`} gap={3}>
+						<Kbd>{value}</Kbd>
+						<Text variant="light" size="xs">
+							{label}
+						</Text>
+					</Group>
+				))}
+			</Stack>
+			<Text variant="light" size="sm">
+				{description}
+			</Text>
+		</Stack>
+	);
+}
+
+function PopoverQuestionMarkWrapper({
+	label,
+	description,
+}: {
+	label?: string;
+	description?: string;
+}) {
+	return (
+		<Flex gap="xs" justify="flex-start">
+			<div>{label}</div>
+			<PopoverQuestionMark>{description}</PopoverQuestionMark>
+		</Flex>
+	);
+}
 
 function ActionIconQuestion(props: ActionIconProps) {
 	const [opened, { close, open }] = useDisclosure(false);
 
 	return (
-		<Popover
-			opened={opened}
-			shadow="md"
-			keepMounted={false}
-			position="bottom-end"
-			width={180}
-			offset={8}
-		>
+		<Popover opened={opened} width={350}>
 			<Popover.Target>
 				<ActionIcon
 					onMouseEnter={open}
@@ -59,11 +133,29 @@ function ActionIconQuestion(props: ActionIconProps) {
 				</ActionIcon>
 			</Popover.Target>
 
-			<Popover.Dropdown>
-				<Text variant="light" size="sm">
-					Use double tilde <Kbd>~~</Kbd> or double asterick <Kbd>**</Kbd> to
-					search all records against your filters
-				</Text>
+			<Popover.Dropdown p={0}>
+				<Box px="xs" py="md">
+					<Title order={4} lh={1}>
+						Search Operators
+					</Title>
+				</Box>
+				<Divider />
+				{reservedCharacters.map((reservedChar, i) => (
+					<>
+						<ReservedCharDescriptor
+							key={`rchar-descriptor-${reservedChar.description}`}
+							reservedChars={reservedChar}
+						/>
+						{i + 1 !== reservedCharacters.length && <Divider />}
+					</>
+				))}
+				<Divider />
+				<Box px="xs" py="xs" bg="var(--bg-s)">
+					<Text size="xs" fs="italic">
+						For full querying capabilities, use a standard SQLite adapter or
+						browser
+					</Text>
+				</Box>
 			</Popover.Dropdown>
 		</Popover>
 	);
@@ -159,12 +251,8 @@ function ActionIconFilter(props: ActionIconProps) {
 
 	return (
 		<Menu
-			shadow="md"
-			keepMounted={false}
-			position="bottom-end"
 			width={350}
 			closeOnItemClick={false}
-			offset={8}
 			opened={opened}
 			onChange={setOpened}
 			trigger="click"
@@ -176,7 +264,12 @@ function ActionIconFilter(props: ActionIconProps) {
 			</Menu.Target>
 
 			<Menu.Dropdown>
-				<Menu.Label>Keyword (options)</Menu.Label>
+				<Menu.Label>
+					<PopoverQuestionMarkWrapper
+						label="Keyword matching"
+						description="Additional keyword matching options"
+					/>
+				</Menu.Label>
 				<Box py="xs" px="sm">
 					<Checkbox
 						defaultChecked
@@ -210,12 +303,22 @@ function ActionIconFilter(props: ActionIconProps) {
 					/>
 				</Box>
 				<Menu.Divider />
-				<Menu.Label>Labels (to search against)</Menu.Label>
+				<Menu.Label>
+					<PopoverQuestionMarkWrapper
+						label="Labels"
+						description="The labels (tokens) to search against"
+					/>
+				</Menu.Label>
 				<Box py="xs" px="sm">
 					{labelFilters}
 				</Box>
 				<Menu.Divider />
-				<Menu.Label>Sources (to search against)</Menu.Label>
+				<Menu.Label>
+					<PopoverQuestionMarkWrapper
+						label="Source datasets"
+						description="The datasets to search against"
+					/>
+				</Menu.Label>
 				<Box py="xs" px="sm">
 					{labelSources}
 				</Box>

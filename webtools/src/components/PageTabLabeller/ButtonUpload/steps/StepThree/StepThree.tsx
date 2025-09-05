@@ -166,8 +166,8 @@ export function TextCount(props: TextProps) {
 
 	return (
 		<Text c="var(--mantine-color-gray-3)" size="sm" {...props}>
-			There are {chosenParsedSentences.length} sentence
-			{chosenParsedSentences.length === 1 ? null : "s"} to be uploaded
+			{chosenParsedSentences.length} sentence
+			{chosenParsedSentences.length === 1 ? null : "s"} selected for upload
 		</Text>
 	);
 }
