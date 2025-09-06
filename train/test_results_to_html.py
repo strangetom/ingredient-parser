@@ -332,7 +332,7 @@ def create_filter_elements(mismatch_counts: set[int], sources: set[str]) -> ET.E
         div_mismatch_filters.append(label)
 
     div_src_filters = ET.Element("div")
-    for src in sources:
+    for src in sorted(sources):
         inp = ET.Element(
             "input",
             attrib={
