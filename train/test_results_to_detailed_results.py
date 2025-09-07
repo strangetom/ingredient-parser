@@ -22,6 +22,7 @@ class _SentenceLabeling:
 def test_results_to_detailed_results(
     sentences: list[str],
     sentence_tokens: list[str],
+    features_truth: list[list[dict[str, str | bool]]],
     labels_truth: list[list[str]],
     labels_prediction: list[list[str]],
     scores_prediction: list[list[float]],
@@ -31,15 +32,17 @@ def test_results_to_detailed_results(
     Parameters
     ----------
     sentences : list[str]
-        List of ingredient sentences
+        List of ingredient sentences.
     sentence_tokens : list[str]
-        List of tokens for sentence
+        List of tokens for sentence.
     labels_truth : list[list[str]]
-        True labels for sentence
+        True labels for sentence.
+    features_truth : list[list[dict[str, str | bool]]]
+        Features for tokens in sentences.
     labels_prediction : list[list[str]]
-        Predicted labels for sentence
+        Predicted labels for sentence.
     scores_prediction : list[list[float]]
-        Scores for predicted labels for sentence
+        Scores for predicted labels for sentence.
     """
     # Compute classification stats
     # sentence_classif: sentence => (# correct, # incorrect)
@@ -50,15 +53,11 @@ def test_results_to_detailed_results(
     token_classif = defaultdict(lambda: defaultdict(int))
     # token_details: auxilliary info for misclassified tokens
     token_details = []
+    # feature_classif: feature => (# correct, # incorrect)
+    feature_classif = defaultdict(lambda: defaultdict(int))
 
-    for sentence, tokens, truth, prediction, scores in sorted(
-        zip(
-            sentences,
-            sentence_tokens,
-            labels_truth,
-            labels_prediction,
-            scores_prediction,
-        )
+    for sentence, tokens, features, truth, prediction in sorted(
+        zip(sentences, sentence_tokens, features_truth, labels_truth, labels_prediction)
     ):
         # per-sentence numbers
         correct = truth == prediction
@@ -67,7 +66,7 @@ def test_results_to_detailed_results(
 
         # per-token numbers
         idx = 0
-        for token, truth1, prediction1, _ in zip(tokens, truth, prediction, scores):
+        for token, truth1, prediction1 in zip(tokens, truth, prediction):
             correct = truth1 == prediction1
             token_classif[token][correct] += 1
             if not correct:
@@ -75,6 +74,13 @@ def test_results_to_detailed_results(
                     _TokenPrediction(token, idx, sentence, truth1, prediction1)
                 )
             idx += 1
+
+        # per feature numbers
+        for feature_dict, truth1, prediction1 in zip(features, truth, prediction):
+            correct = truth1 == prediction1
+            for feature, value in feature_dict.items():
+                feature_str = feature + "=" + str(value)
+                feature_classif[feature_str][correct] += 1
 
     # Write out classification stats
     # Per-token stats
@@ -87,6 +93,18 @@ def test_results_to_detailed_results(
             frac_correct = float(correct) / total
             assert "\t" not in token, f"token has a tab: {token}"
             writer.writerow([token, total, correct, incorrect, f"{frac_correct:.3f}"])
+
+    # Per-feature stats
+    with open("classification_results_features.tsv", "w") as crs:
+        writer = csv.writer(crs, delimiter="\t", lineterminator="\n")
+        writer.writerow(
+            ["feature", "total", "correct", "incorrect", "fraction_correct"]
+        )
+        for feature, feature_dict in feature_classif.items():
+            correct, incorrect = feature_dict[True], feature_dict[False]
+            total = correct + incorrect
+            frac_correct = float(correct) / total
+            writer.writerow([feature, total, correct, incorrect, f"{frac_correct:.3f}"])
 
     with open("classification_results_token_sentences.tsv", "w") as crts:
         writer = csv.writer(crts, delimiter="\t", lineterminator="\n")
