@@ -60,7 +60,7 @@ def parse_ingredient_en(
     Returns
     -------
     ParsedIngredient
-        ParsedIngredient object of structured data parsed from input string
+        ParsedIngredient object of structured data parsed from input string.
     """
     logger.debug(f'Parsing sentence "{sentence}" using "en" parser.')
     TAGGER = load_parser_model()

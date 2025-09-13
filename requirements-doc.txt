@@ -4,5 +4,7 @@ pydata-sphinx-theme
 sphinx_design
 sphinx-book-theme
 sphinx_copybutton
+sphinx-favicon
+sphinxcontrib.lightbox2
 myst-parser
 numpydoc

@@ -1,4 +1,5 @@
 .. currentmodule:: ingredient_parser.parsers
+.. _tutorials-examples:
 
 Examples
 ========
@@ -265,3 +266,42 @@ Sometimes a single ingredient sentence will contain multiple phrases, each speci
                  sentence='1 cup peeled and cooked fresh chestnuts (about 20), '
                           'or 1 cup canned, unsweetened chestnuts')
 
+Foundation foods
+~~~~~~~~~~~~~~~~
+
+A basic example to show the full output from parse_ingredient() when ``foundation_foods=True``.
+
+.. code:: python
+
+    >>> parse_ingredient("1 large red onion, finely diced")
+    ParsedIngredient(name=[IngredientText(text='red onion',
+                                          confidence=0.994235,
+                                          starting_index=2)],
+                     size=IngredientText(text='large',
+                                         confidence=0.997111,
+                                         starting_index=1),
+                     amount=[IngredientAmount(quantity=Fraction(1, 1),
+                                              quantity_max=Fraction(1, 1),
+                                              unit='',
+                                              text='1',
+                                              confidence=0.999933,
+                                              starting_index=0,
+                                              APPROXIMATE=False,
+                                              SINGULAR=False,
+                                              RANGE=False,
+                                              MULTIPLIER=False,
+                                              PREPARED_INGREDIENT=False)],
+                     preparation=IngredientText(text='finely diced',
+                                                confidence=0.998908,
+                                                starting_index=5),
+                     comment=None,
+                     purpose=None,
+                     foundation_foods=[
+                        FoundationFood(text='Onions, red, raw',
+                                       confidence=1.0,
+                                       fdc_id=790577,
+                                       category='Vegetables and Vegetable Products',
+                                       data_type='foundation_food',
+                                       url='https://fdc.nal.usda.gov/food-details/790577/nutrients')
+                     ],
+                     sentence='1 large red onion, finely diced')

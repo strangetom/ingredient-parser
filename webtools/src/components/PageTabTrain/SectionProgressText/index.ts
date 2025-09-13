@@ -1,0 +1,1 @@
+export { SectionProgressText } from "./SectionProgressText";

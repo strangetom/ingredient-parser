@@ -1,0 +1,73 @@
+.root {
+	position: relative;
+	width: 100%;
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+
+	.identifable {
+		padding: 0 var(--small-spacing);
+		flex-basis: auto;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		flex-direction: column;
+		gap: var(--small-spacing);
+		font-size: 0.75rem;
+	}
+
+	.sentence {
+		position: relative;
+		flex-basis: 100%;
+		white-space: nowrap;
+		overflow-x: auto;
+		margin: 0;
+		padding: 18px 0;
+	}
+
+	&[data-edited] {
+		.identifable {
+			color: var(--green);
+		}
+	}
+
+	&[data-deletion] {
+		.sentence {
+			opacity: 0.25;
+			pointer-events: none;
+		}
+		.identifable {
+			color: var(--red);
+		}
+	}
+}
+
+.listable {
+	border-bottom: 1px solid color-mix(in srgb, var(--fg), transparent 66%);
+	padding: var(--small-spacing);
+
+	&[data-edited] {
+		background-color: color-mix(in srgb, var(--green), transparent 85%);
+	}
+
+	&[data-deletion] {
+		background-color: color-mix(in srgb, var(--red), transparent 85%);
+	}
+}
+
+.spacerRight {
+	padding-right: calc(60px + var(--small-spacing));
+}
+.spacerLeft {
+	padding-left: calc(60px + var(--small-spacing));
+}
+
+.editable {
+	padding: 0 var(--small-spacing);
+	flex-basis: auto;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	flex-direction: row;
+	gap: var(--small-spacing);
+}

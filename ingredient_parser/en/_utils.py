@@ -97,7 +97,7 @@ def tokenize(sentence: str) -> list[str]:
     Parameters
     ----------
     sentence : str
-        Ingredient sentence to tokenize
+        Ingredient sentence to tokenize.
 
     Returns
     -------
@@ -187,12 +187,12 @@ def stem(token: str) -> str:
     Parameters
     ----------
     token : str
-        Token to stem
+        Token to stem.
 
     Returns
     -------
     str
-        Stem of token
+        Stem of token.
     """
     return STEMMER.stem(token)
 
@@ -206,13 +206,13 @@ def pluralise_units(sentence: str) -> str:
     Parameters
     ----------
     sentence : str
-        Input sentence
+        Input sentence.
 
     Returns
     -------
     str
         Input sentence with any words in the values of UNITS replaced with their plural
-        version
+        version.
 
     Examples
     --------
@@ -240,7 +240,7 @@ def convert_to_pint_unit(unit: str, imperial_units: bool = False) -> str | pint.
     Parameters
     ----------
     unit : str
-        Unit to find in pint Unit Registry
+        Unit to find in pint Unit Registry.
     imperial_units : bool, optional
         If True, use imperial units instead of US customary units for the following:
         fluid ounce, cup, pint, quart, gallon.
@@ -249,6 +249,8 @@ def convert_to_pint_unit(unit: str, imperial_units: bool = False) -> str | pint.
     Returns
     -------
     str | pint.Unit
+        Pint.Unit object if unit found in Pint unit registry, otherwise return input
+        unit.
 
     Examples
     --------
@@ -343,13 +345,12 @@ def combine_quantities_split_by_and(text: str) -> str:
     Parameters
     ----------
     text : str
-        Text to combine
+        Text to combine.
 
     Returns
     -------
     str
-        Text with split fractions replaced with
-        single decimal value.
+        Text with split fractions replaced with single decimal value.
 
     Examples
     --------
@@ -371,8 +372,7 @@ def combine_quantities_split_by_and(text: str) -> str:
 def replace_string_range(text: str) -> str:
     """Replace range in the form "<num> to <num" with range "<num>-<num>".
 
-    For example
-    -----------
+    For example:
     1 to 2 -> 1-2
     8.5 to 12.5 -> 8.5-12.5
     16- to 9-
@@ -380,12 +380,12 @@ def replace_string_range(text: str) -> str:
     Parameters
     ----------
     text : str
-        Text to replace within
+        Text to replace within.
 
     Returns
     -------
     str
-        Text with string ranges replaced with standardised range
+        Text with string ranges replaced with standardised range.
 
     Examples
     --------
@@ -402,12 +402,12 @@ def replace_string_range(text: str) -> str:
 
 @lru_cache(maxsize=512)
 def to_frac(token: str) -> Fraction:
-    """Convert a QTY token into a Fraction object
+    """Convert a QTY token into a Fraction object.
 
     Parameters
     ----------
     token : str
-        Token with QTY label
+        Token with QTY label.
 
     Returns
     -------
@@ -445,15 +445,15 @@ def ingredient_amount_factory(
     Parameters
     ----------
     quantity : str
-        Quantity of amount
+        Quantity of amount.
     unit : str
-        Unit of amount
+        Unit of amount.
     text : str
-        Combined quantity and amount e.g. "1 cup"
+        Combined quantity and amount e.g. "1 cup".
     confidence : float
-        Average confidence of all tokens contributing to amount
+        Average confidence of all tokens contributing to amount.
     starting_index : int
-        Starting index of first token contributing to amount
+        Starting index of first token contributing to amount.
     APPROXIMATE : bool, optional
         When True, indicates that the amount is approximate.
         Default is False.
@@ -477,6 +477,7 @@ def ingredient_amount_factory(
     Returns
     -------
     IngredientAmount
+        IngredientAmount object for given inputs.
     """
     RANGE = False
     MULTIPLIER = False
@@ -549,7 +550,7 @@ def prepare_embeddings_tokens(tokens: tuple[str, ...]) -> list[str]:
     Parameters
     ----------
     tokens : tuple[str, ...]
-        Tuple of tokens
+        Tuple of tokens.
 
     Returns
     -------

@@ -1,0 +1,17 @@
+.control {
+	background-color: var(--fg);
+	color: var(--bg-3);
+
+	&:disabled {
+		opacity: 0.8;
+		color: var(--bg-4);
+	}
+
+	&:hover {
+		background-color: var(--fg);
+
+		&:disabled {
+			background-color: var(--fg-3);
+		}
+	}
+}

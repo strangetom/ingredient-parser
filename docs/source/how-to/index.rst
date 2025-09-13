@@ -1,3 +1,5 @@
+.. _reference-how-to-index:
+
 How to guides
 =============
 

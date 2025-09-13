@@ -69,6 +69,13 @@ class SentenceStrucureFeatures:
     """)
 
     def __init__(self, tokenized_sentence: list[Token]):
+        """Initialize.
+
+        Parameters
+        ----------
+        tokenized_sentence : list[Token]
+            Tokenized sentence.
+        """
         self.tokenized_sentence = tokenized_sentence
         self.mip_phrases = self.detect_mip_phrases(tokenized_sentence)
         self.sentence_splits = self.detect_sentences_splits(tokenized_sentence)

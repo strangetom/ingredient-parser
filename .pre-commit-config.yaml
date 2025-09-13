@@ -5,26 +5,52 @@ repos:
     rev: v5.0.0
     hooks:
       - id: check-added-large-files
+        name: (base:repo) debug-statements
         args: ['--maxkb=5000']
         stages: [pre-commit]
       - id: check-ast
+        name: (base:repo) check-ast
         stages: [pre-commit]
       - id: check-toml
+        name: (base:repo) check-toml
         stages: [pre-commit]
       - id: check-yaml
+        name: (base:repo) check-yaml
         stages: [pre-commit]
       - id: debug-statements
+        name: (base:repo) debug-statements
         stages: [pre-commit]
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.11.6
     hooks:
       - id: ruff
+        name: (base:repo) ruff
         args: ["--fix"]
         stages: [pre-commit]
       - id: ruff-format
+        name: (base:repo) ruff-format
         stages: [pre-commit]
   - repo: https://github.com/sphinx-contrib/sphinx-lint
     rev: v1.0.0
     hooks:
       - id: sphinx-lint
+        name: (docs:repo) sphinx-lint
         stages: [pre-commit]
+  - repo: local
+    hooks:
+      - id: biome-check-ts-js
+        name: (webtools:repo) biome check typescript/javascript
+        entry: npx @biomejs/biome check --write ./webtools/src --config-path=./webtools/biome.json --files-ignore-unknown=true --no-errors-on-unmatched
+        language: node
+        types: [text]
+        files: "\\.(jsx?|tsx?|c(js|ts)|m(js|ts)|d\\.(ts|cts|mts)|jsonc?)$"
+        exclude: ^docs/
+        require_serial: true
+      - id: biome-check-css
+        name: (webtools:repo) biome check css
+        entry: npx @biomejs/biome check --write ./webtools/src --config-path=./webtools/biome.json --files-ignore-unknown=true --no-errors-on-unmatched
+        language: node
+        types: [text]
+        files: "\\.(css?)$"
+        exclude: ^docs/
+        require_serial: true

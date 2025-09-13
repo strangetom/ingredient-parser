@@ -215,7 +215,7 @@ class uSIF:
     embeddings_dimension : int
         Dimension of embeddings model.
     fdc_ingredients : dict[str, list[FDCIngredient]]
-        Lists of FDC ingredients, grouped by data type.
+        Lists of FDC ingredients.
     fdc_vectors : dict[str, list[FDCIngredient]]
         Lists of embedding vectors for FDC ingredients, grouped by data type.
     min_prob : float
@@ -225,6 +225,15 @@ class uSIF:
     """
 
     def __init__(self, embeddings: GloVeModel, fdc_ingredients: list[FDCIngredient]):
+        """Initialize.
+
+        Parameters
+        ----------
+        embeddings : GloVeModel
+            GloVe embeddings model.
+        fdc_ingredients : list[FDCIngredient]
+            List of FDC ingredients.
+        """
         self.embeddings = embeddings
         self.embeddings_dimension: int = embeddings.dimension
 
@@ -267,7 +276,7 @@ class uSIF:
         Returns
         -------
         int
-            Average sentence length
+            Average sentence length.
         """
         token_count = 0
         sentence_count = 0
@@ -314,7 +323,7 @@ class uSIF:
     def _embed_fdc_ingredients(self) -> list[np.ndarray]:
         """Calculate embedding vectors for all FDC ingredients.
 
-        Returnstoken_prob
+        Returns
         -------
         list[np.ndarray]
             List of embedding vectors for FDC ingredients.
@@ -422,10 +431,17 @@ class FuzzyEmbeddingMatcher:
     Attributes
     ----------
     embeddings : GloVeModel
-        Floret embeddings model.
+        GloVe embeddings model.
     """
 
     def __init__(self, embeddings: GloVeModel):
+        """Initialize.
+
+        Parameters
+        ----------
+        embeddings : GloVeModel
+            GloVe embeddings model.
+        """
         self.embeddings = embeddings
 
     @lru_cache
@@ -442,7 +458,7 @@ class FuzzyEmbeddingMatcher:
         Returns
         -------
         np.ndarray
-            Embedding vector
+            Embedding vector for token.
         """
         return self.embeddings[token]
 

@@ -2,7 +2,7 @@
 
 The Ingredient Parser package is a Python package for parsing structured information out of recipe ingredient sentences.
 
-![](docs/source/_static/logo.png)
+![](docs/source/_static/logos/logo_wide.png)
 
 ## Documentation
 
@@ -59,25 +59,30 @@ Word-level results:
 
 ## Development
 
-The development dependencies are in the ```requirements-dev.txt``` file. Details on the training process can be found in the [Model Guide](https://ingredient-parser.readthedocs.io/en/latest/guide/index.html) documentation.
+**Basic**
 
-Before committing anything, install [pre-commit](https://pre-commit.com/) and run
-```
-pre-commit install
-```
+Train and fine-tune new ingredient datasets to expand beyond the existing trained model provided in the library. The development dependencies are in the `requirements-dev.txt` file. Details on the training process can be found in the [Model Guide](https://ingredient-parser.readthedocs.io/en/latest/guide/index.html) documentation.
 
-to install the pre-commit hooks.
+**Web App**
 
-Please target the **develop** branch for pull requests. The main branch is used for stable releases and hotfixes only.
+The ingredient parser library provides a convenient web interface that you can run locally to access most of the library's functionality, including using the parser, browsing the database, labelling entries, and training the model(s). View the [specific README](webtools/README.md) in webtools for a detailed overview.
 
-There is a simple web app for testing the parser with ingredient sentences and showing the parsed output. To run the web app, run the command
+| Parser | Labeller | Trainer |
+| :------- | :------- | :------- |
+| ![Screen shot of web parser](docs/source/_static/webtools/app.parser.screenshot.png)     | ![Screen shot of web labeller](docs/source/_static/webtools/app.labeller.screenshot.png)     | ![Screen shot of web trainer](docs/source/_static/webtools/app.trainer.screenshot.png)   |
+
+**Documentation**
+
+The dependencies for building the documentation are in the `requirements-doc.txt` file.
+
+**Contribution**
+
+Please target the **develop** branch for pull requests. The **main** branch is used for stable releases and hotfixes only.
+
+Before committing anything, install [pre-commit](https://pre-commit.com/) and run the following to install the hooks:
 
 ```bash
-$ flask --app webapp run
+$ pre-commit install
 ```
 
-![Screen shot of web app](docs/source/_static/app-screenshot.png)
-
-This requires the development dependencies to be installed.
-
-The dependencies for building the documentation are in the ```requirements-doc.txt``` file.
+Pre-commit hooks cover both the main python library code and the web app (webtools) code.

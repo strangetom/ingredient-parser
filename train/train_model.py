@@ -3,6 +3,7 @@
 import argparse
 import concurrent.futures as cf
 import logging
+import os
 from contextlib import contextmanager
 from pathlib import Path
 from random import randint
@@ -73,6 +74,29 @@ def set_redirect_log_stream(io_stream: TextIO) -> Generator[None, None, None]:
     )
 
     yield
+
+
+@contextmanager
+def set_temp_working_directory(new_path: Path) -> Generator[None, None, None]:
+    """Context manager to temporarily set working directory
+       Required by web app when html,tsv training files are dumped
+
+    Parameters
+    ----------
+    new_path : Path
+        Working directory path
+
+    Yields
+    ------
+    Generator[None, None, None]
+        Generator, yielding None
+    """
+    original_path = os.getcwd()
+    os.chdir(new_path)
+    try:
+        yield
+    finally:
+        os.chdir(original_path)
 
 
 def train_parser_model(
@@ -198,6 +222,7 @@ def train_parser_model(
         test_results_to_detailed_results(
             sentences_test,
             tokens_test,
+            features_test,
             truth_test,
             labels_pred,
             scores_pred,

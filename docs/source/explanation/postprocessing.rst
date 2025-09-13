@@ -1,4 +1,5 @@
 .. currentmodule:: ingredient_parser.dataclasses
+.. _reference-explanation-postprocessing:
 
 Post-processing
 ===============
@@ -38,24 +39,96 @@ The output of this processing is an :class:`IngredientText` object for each labe
 Name
 ^^^^
 
+.. note::
+
+  If ``separate_names`` is set to False, then all the NAME_* label types are treated as a single NAME label and the post-processing is the same for the SIZE, PREP, PURPOSE and COMMENT labels.
+  This will return a list containing a single :class:`IngredientText` object.
+
 The post-processing to obtain the ingredient names is similar to above, but with a couple of extra steps before the steps listed above used to identify the different ingredient names.
 
-#. Find the indices for all B_NAME_TOK, I_NAME_TOK, NAME_VAR, NAME_MOD, NAME_SEP and PUNC labels
-#. Group indices with the same label together.
-   When grouping, B_NAME_TOK and I_NAME_TOK are also grouped together, with each B_NAME_TOK starting a new group.
-#. Iterate through the groups in reverse, applying the following rules:
+.. figure:: /_static/diagrams/name_postprocessing.svg
+  :alt: Ingredient name post-processing steps.
 
-   #. Each NAME_VAR group is prepended to the beginning of the previous B_NAME_TOK group.
-   #. Each NAME_MOD group is prepended to all previous B_NAME_TOK or NAME_VAR+B_NAME_TOK groups.
+The first three steps are unique to the post-processing of ingredient names and are described in more detail below.
+The fourth step is the same as the non-name labels described above, using the groups of indices output from step 3.
 
-#. Post-process these groups of indices as per the other, non-name labels, noting that the first two steps are already completed.
-#. If there are multiple names, check the part of speech tag for the last token in each name.
-   If the part of speech tag is IN, DT or JJ, merge the name with the next name.
+We will use the sentence **8 ounces whole yellow or red bell pepper** as an example to show how the ingredient name post-processing works.
 
-The output of this function is a list of :class:`IngredientText` objects, one for each ingredient names.
+This sentence has the following tokens and labels:
 
-If ``separate_names`` is set to False, then all the NAME_* label types are treated as a single NAME label and the post-processing is the same for the SIZE, PREP, PURPOSE and COMMENT labels.
-This will return a list containing a single :class:`IngredientText` object.
++-----------+-----+--------+----------+----------+----------+----------+------------+------------+
+| **Index** | 0   | 1      | 2        | 3        | 4        | 5        | 6          | 7          |
++-----------+-----+--------+----------+----------+----------+----------+------------+------------+
+| **Token** | 8   | ounces | whole    | yellow   | or       | red      | bell       | pepper     |
++-----------+-----+--------+----------+----------+----------+----------+------------+------------+
+| **Label** | QTY | UNIT   | NAME_MOD | NAME_VAR | NAME_SEP | NAME_VAR | B_NAME_TOK | I_NAME_TOK |
++-----------+-----+--------+----------+----------+----------+----------+------------+------------+
+
+Extract NAME labels
+~~~~~~~~~~~~~~~~~~~
+
+This is a straight forward step that finds that indices of all tokens that have been given one of the following labels: B_NAME_TOK, I_NAME_TOK, NAME_VAR, NAME_MOD, NAME_SEP, PUNC.
+
+This results in the following indices:
+
+.. code:: python
+
+  [2, 3, 4, 5, 6, 7]
+
+Group tokens by NAME label
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Iterate over the extract NAME labels and group consecutive labels of the same type together.
+
+* Consecutive NAME_MOD labels are grouped together.
+* Consecutive NAME_VAR labels are grouped together.
+* Consecutive B_NAME_TOK, I_NAME_TOK and PUNC labels are grouped together.
+* NAME_SEP labels are used to force the start of a new grouping.
+
+When grouping the token together, we store the index and label of the tokens.
+
+.. note::
+
+  The indices here are the indices of elements from the extracted NAME labels i.e. an index of 0 here is the first element of the extracted NAME labels which refers to the token at index 2 of the whole sentence.
+
+For the example sentence, we get the following groups:
+
+.. code:: python
+
+  [
+    [(0, 'NAME_MOD')],
+    [(1, 'NAME_VAR')],
+    [(3, 'NAME_VAR')],
+    [(4, 'B_NAME_TOK'), (5, 'I_NAME_TOK')]
+  ]
+
+Construct names from NAME groups
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+From the name groups, we construct the ingredient names.
+This is most easily done by iterating in reverse over the groups and applying the following logic:
+
+* Each group starting with B_NAME_TOK forms a new name.
+* Each NAME_VAR group is prepended to the beginning of the most recent name.
+* Each NAME_MOD group is prepended to all previous names.
+
+The output from this construction step are groups of indices, where each group represents an ingredient name.
+
+For the example sentence, the constructed groups of indices are:
+
+.. code:: python
+
+  [
+    (0, 1, 4, 5), # whole yellow bell pepper
+    (0, 3, 4, 5)  # whole red bell pepper
+  ]
+
+Create :class:`IngredientText` objects
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+With the groups of indices obtained from the previous step, we can convert to token indices and then follow the steps used to post-process the SIZE, PREP, PURPOSE, COMMENT labels described above.
+
+Once the :class:`IngredientText` objects have been obtained, we perform one final post-processing step. If there are multiple names, we check the part of speech tag for the last token in each name. If the part of speech tag is **IN**, **DT** or **JJ**, we merge the name with the next name. This merging of ingredient names is necessary to mitigate against mislabelling of tokens by the model, which can happen if a name is split by a token with another label.
 
 Amount
 ^^^^^^
@@ -101,7 +174,7 @@ For example:
     ]
 
 Quantities
-++++++++++
+~~~~~~~~~~
 
 Quantities are returned as :class:`fractions.Fraction` objects, or ``str`` for non-numeric quantities (e.g. dozen).
 
@@ -124,11 +197,11 @@ For performance reasons, the regular expressions used to substitute the text wit
     :lines: 166-198
 
 Units
-+++++
+~~~~~
 
 .. note::
 
-    The use of :class:`pint.Unit` objects can be disabled by setting ``string_units=True`` in the :func:`parse_ingredient <ingredient_parser.parsers.parse_ingredient>` function. When this is True, units will be returned as strings, correctly pluralised for the quantity.
+  The use of :class:`pint.Unit` objects can be disabled by setting ``string_units=True`` in the :func:`parse_ingredient <ingredient_parser.parsers.parse_ingredient>` function. When this is True, units will be returned as strings, correctly pluralised for the quantity.
 
 The `Pint <https://pint.readthedocs.io/en/stable/>`_ library is used to standardise the units where possible.
 If the unit in a parsed :class:`IngredientAmount` can be matched to a unit in the Pint Unit Registry, then a :class:`pint.Unit` object is used in place of the unit string.
@@ -184,7 +257,7 @@ By default, US customary units are used where a unit has more than one definitio
     See the :doc:`Convert between units </how-to/convert-units>` how-to guide.
 
 IngredientAmount flags
-++++++++++++++++++++++
+~~~~~~~~~~~~~~~~~~~~~~
 
 :class:`IngredientAmount` objects have a number of flags that are set to provide additional information about the amount.
 
@@ -212,7 +285,7 @@ IngredientAmount flags
 
 
 Special cases for amounts
-+++++++++++++++++++++++++
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 There are some particular cases where the combination of QTY and UNIT labels that make up an amount are not straightforward.
 For example, consider the sentence **2 14 ounce cans coconut milk**.

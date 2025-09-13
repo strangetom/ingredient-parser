@@ -7,8 +7,13 @@ import sqlite3
 from dataclasses import dataclass
 from functools import partial
 from itertools import chain, islice
-from typing import Any, Callable, Iterable, Union
+from typing import Any, Callable, Iterable
 
+import matplotlib
+
+matplotlib.use(
+    "Agg"
+)  # suppress matplotlib gui / headless environment for simple file dump
 from matplotlib import pyplot as plt
 from sklearn.metrics import (
     ConfusionMatrixDisplay,
@@ -103,16 +108,10 @@ class Stats:
 
 
 def chunked(iterable: Iterable, n: int) -> Iterable:
-    """Break *iterable* into lists of length *n*:
-
-        >>> list(chunked([1, 2, 3, 4, 5, 6], 3))
-        [[1, 2, 3], [4, 5, 6]]
+    """Break *iterable* into lists of length *n*.
 
     By the default, the last yielded list will have fewer than *n* elements
     if the length of *iterable* is not divisible by *n*:
-
-        >>> list(chunked([1, 2, 3, 4, 5, 6, 7, 8], 3))
-        [[1, 2, 3], [4, 5, 6], [7, 8]]
 
     Parameters
     ----------
@@ -125,10 +124,31 @@ def chunked(iterable: Iterable, n: int) -> Iterable:
     -------
     Iterable
         Chunks of iterable with size n (or less for the last chunk).
+
+    Examples
+    --------
+    >>> list(chunked([1, 2, 3, 4, 5, 6], 3))
+    [[1, 2, 3], [4, 5, 6]]
+
+    >>> list(chunked([1, 2, 3, 4, 5, 6, 7, 8], 3))
+    [[1, 2, 3], [4, 5, 6], [7, 8]]
     """
 
-    def take(n, iterable):
-        "Return first n items of the iterable as a list."
+    def take(n: int, iterable: Iterable) -> list:
+        """Return first n items of the iterable as a list.
+
+        Parameters
+        ----------
+        n : int
+            Number of items to return in list.
+        iterable : Iterable
+            Iterable to return items from.
+
+        Returns
+        -------
+        list
+            List of first n items of iterable.
+        """
         return list(islice(iterable, n))
 
     return iter(partial(take, n, iter(iterable)), [])
@@ -140,7 +160,7 @@ def select_preprocessor(lang: str) -> Any:
     Parameters
     ----------
     lang : str
-        Language of training data
+        Language of training data.
 
     Returns
     -------
@@ -174,17 +194,17 @@ def load_datasets(
     Parameters
     ----------
     database : str
-        Path to database of training data
+        Path to database of training data.
     table : str
-        Name of database table containing training data
+        Name of database table containing training data.
     datasets : list[str]
         List of data source to include.
-        Valid options are: nyt, cookstr, bbc, cookstr, tc
+        Valid options are: nyt, cookstr, bbc, cookstr, tc.
         Default is PARSER.
     discard_other : bool, optional
-        If True, discard sentences containing tokens with OTHER label
+        If True, discard sentences containing tokens with OTHER label.
     combine_name_labels :  bool, optional
-        If True, combine all labels containing "NAME" into a single "NAME" label
+        If True, combine all labels containing "NAME" into a single "NAME" label.
 
     Returns
     -------
@@ -250,8 +270,7 @@ def process_sentences(
     discard_other: bool,
     combine_name_labels: bool,
 ) -> DataVectors:
-    """Process training sentences from database into format needed for training and
-    evaluation.
+    """Process sentences from database into format needed for training and evaluation.
 
     Parameters
     ----------
@@ -260,9 +279,9 @@ def process_sentences(
     PreProcessor : Callable
         PreProcessor class to preprocess sentences.
     discard_other : bool
-        If True, discard sentences with OTHER
+        If True, discard sentences with OTHER.
     combine_name_labels : bool
-        If True, combine all labels containing "NAME" into a single "NAME" label
+        If True, combine all labels containing "NAME" into a single "NAME" label.
 
     Returns
     -------
@@ -329,18 +348,18 @@ def evaluate(
     Parameters
     ----------
     predictions : list[list[str]]
-        Predicted labels for each test sentence
+        Predicted labels for each test sentence.
     truths : list[list[str]]
-        True labels for each test sentence
+        True labels for each test sentence.
     seed : int
-        Seed value that produced the results
+        Seed value that produced the results.
     combine_name_labels : bool
-        If True, all NAME labels are combined into a single NAME label
+        If True, all NAME labels are combined into a single NAME label.
 
     Returns
     -------
     Stats
-        Dataclass holding token and sentence statistics:
+        Dataclass holding token and sentence statistics.
     """
     # Generate token statistics
     # Flatten prediction and truth lists
@@ -390,9 +409,9 @@ def confusion_matrix(
     Parameters
     ----------
     predictions : list[list[str]]
-        Predicted labels for each test sentence
+        Predicted labels for each test sentence.
     truths : list[list[str]]
-        True labels for each test sentence
+        True labels for each test sentence.
     figure_path : str, optional
         Path to save figure to.
     """
@@ -417,13 +436,34 @@ def confusion_matrix(
     plt.close(fig)
 
 
-def convert_num_ordinal(num: Union[int, float, str]) -> str:
-    """Converts a number (int) into its ordinal; falls back to input if unsuccessful
+def convert_num_ordinal(num: int | float | str) -> str:
+    """Convert a number (int-like) into its ordinal.
 
-    make_ordinal(0)   => '0th'
-    make_ordinal(3)   => '3rd'
-    make_ordinal(122) => '122nd'
-    make_ordinal(213) => '213th'
+    Falls back to input if unsuccessful.
+
+    Parameters
+    ----------
+    num : int | float | str
+        Number to convert to ordinal.
+
+    Returns
+    -------
+    str
+        Ordinal version of number.
+
+    Examples
+    --------
+    >>> convert_num_ordinal(0)
+    "0th"
+
+    >>> convert_num_ordinal("3")
+    "3rd"
+
+    >>> convert_num_ordinal(122.0)
+    "122nd"
+
+    >>> convert_num_ordinal(213)
+    "213th"
     """
     try:
         n = int(num)
