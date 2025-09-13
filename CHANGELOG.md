@@ -1,6 +1,6 @@
 # Changelog
 
-## develop
+## 2.3.0
 
 > [!NOTE]
 >
@@ -17,6 +17,8 @@
   * Trainer, to initiate training of models.
 
   See the [docs](https://ingredient-parser.readthedocs.io/en/develop/tutorials/webtools.html) for more information.
+  
+* When generated detailed results when model training (using `--detailed`) also generate a file detailing classification results for features.
 
 ## 2.2.0
 
