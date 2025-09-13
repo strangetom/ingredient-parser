@@ -26,7 +26,7 @@ The following parts of an ingredient sentence can be extracted:
 +----------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | **purpose**          | The purpose of the ingredient, such as for garnish.                                                                                                                  |
 +----------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| **foundation foods** | The core or fundamental item of an ingredient sentence, without any other words like descriptive adjectives or brand names.                                          |
+| **foundation foods** | The entry or entries from the `Food Data Central <https://fdc.nal.usda.gov/>`_ database matching the ingredient name.                                                |
 |                      | See :doc:`Foundation Foods </explanation/foundation>` for more details.                                                                                              |
 |                      |                                                                                                                                                                      |
 |                      | Note that this is not extracted by default, but can be enabled using the ``foundation_foods`` keyword argument.                                                      |
@@ -47,10 +47,6 @@ Ingredient Parser depends on the following
 * `NLTK <https://www.nltk.org/>`_
 * `Pint <https://pint.readthedocs.io/en/stable/>`_
 * `Numpy <https://numpy.org/>`_
-
-.. note::
-
-    To use the companion web app, a.k.a. **webtools**, :ref:`follow the steps in this section <reference-tutorials-web-app>`.
 
 
 Usage
@@ -91,10 +87,14 @@ This function takes a single ingredient sentence and returns a :class:`ParsedIng
 
 Each of the fields (except sentence) has a confidence value associated with it. This is a value between 0 and 1, where 0 represents no confidence and 1 represent full confidence. This is the confidence that the natural language model has that the given label is correct, averaged across all tokens that contribute to that particular field.
 
+.. tip::
+
+    The companion :ref:`webtools <reference-tutorials-webtools>` has a parser tool that can be used to test the library's functionality.
+
 .. toctree::
    :maxdepth: 1
    :hidden:
 
    Options <options>
    Examples <examples>
-   Web app <webtools>
+   Webtools <webtools>
