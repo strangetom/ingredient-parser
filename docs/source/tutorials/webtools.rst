@@ -18,14 +18,27 @@ The web app (**webtools**) supports basic workflow needs, namely:
 Requirements and Setup
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-To run the **webtools**, install all python libraries in ``requirements-dev.txt``.
+To run the **webtools**, clone the repository and install all python libraries in ``requirements-dev.txt``.
 Next, install `Node <https://nodejs.org/en/download>`_, a Javascript runtime, on your machine.
-Lastly, navigate to the ``webtools`` directory and run the following commands:
+Lastly, navigate to the ``webtools`` directory and install using ``npm``:
 
 .. code:: bash
 
+    # Clone repository
+    $ git clone https://github.com/strangetom/ingredient-parser.git
+    $ cd ingredient-parser
+
+    # Create venv and install required packages
+    $ python -m venv venv
+    $ source venv/bin/activate
+    $ python -m pip install -r requirements-dev.txt
+
+    # Install webtools
+    $ cd webtools
     $ npm install
     $ npm run dev
+
+The **webtools** can be accessed at http://localhost:5000 in your browser.
 
 .. grid:: 1 2 2 3
 
