@@ -547,26 +547,16 @@ class PreProcessor:
         list[Token]
             List of Tokens for sentence.
         """
-
-        # Singularise units
-        text_tokens = []
-        for i, text in enumerate(tokenize(sentence)):
-            singular = UNITS.get(text, None)
-            if singular is not None:
-                text_tokens.append(singular)
-                self.singularised_indices.append(i)
-            else:
-                text_tokens.append(text)
-
-        logger.debug(f"Tokenized sentence: {text_tokens}.")
-        logger.debug(f"Singularised tokens at indices: {self.singularised_indices}.")
-
         tokens = []
-        for i, (text, pos) in enumerate(pos_tag(text_tokens)):
+        for i, (text, pos) in enumerate(pos_tag(tokenize(sentence))):
             # Convert tokens:
             # * Singularise units, keeping track of indices of singularised tokens
             # * Replace numeric token with "!num"
-            if self._is_numeric(text):
+            if singular := UNITS.get(text):
+                self.singularised_indices.append(i)
+                feat_text = singular
+                text = singular
+            elif self._is_numeric(text):
                 feat_text = "!num"
             else:
                 feat_text = text
@@ -603,6 +593,9 @@ class PreProcessor:
                     features=features,
                 )
             )
+
+        logger.debug(f"Tokenized sentence: {[t.text for t in tokens]}.")
+        logger.debug(f"Singularised tokens at indices: {self.singularised_indices}.")
 
         return tokens
 
