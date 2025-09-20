@@ -133,8 +133,7 @@ def string_search(
         cursor.execute(
             f"""
             SELECT *, find_sublist_index(tokens, :target, :case, :whole) as start_index 
-            FROM {SQL3_DATABASE_TABLE}
-            WHERE find_sublist_index(tokens, :target, :case, :whole) >= 0
+            FROM {SQL3_DATABASE_TABLE} WHERE start_index >= 0
             """,
             {"target": search_tokens, "case": case_sensitive, "whole": whole_word},
         )
