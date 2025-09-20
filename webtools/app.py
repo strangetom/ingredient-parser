@@ -20,7 +20,6 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS, cross_origin
 from search import id_search, list_all_entries, string_search
 
-# sys.path.append("..")
 from ingredient_parser import inspect_parser
 from ingredient_parser.dataclasses import (
     FoundationFood,

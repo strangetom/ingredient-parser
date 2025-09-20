@@ -9,7 +9,6 @@ from typing import Generator, Iterable, TypeVar
 
 from _globals import SQL3_DATABASE, SQL3_DATABASE_TABLE
 
-# sys.path.append("..")
 from ingredient_parser.en.preprocess import PreProcessor
 
 logger = logging.getLogger(__name__)
