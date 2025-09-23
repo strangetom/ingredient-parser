@@ -66,8 +66,8 @@
 		color: var(--bg);
 	}
 	&[data-variant="UNIT"] {
+		background: var(--yellow-alt);
 		color: var(--bg);
-		background: var(--mantine-color-white);
 	}
 	&[data-variant="OTHER"] {
 		color: var(--bg);
