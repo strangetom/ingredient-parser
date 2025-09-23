@@ -14,7 +14,7 @@ class Test_expect_name_in_output:
         """
         Test that the returned name is []
         """
-        sentence = "½ cup or so flour in a plate"
+        sentence = "1 can (14 fluid ounces, or 425 ml) coconut milk"
         parsed = parse_ingredient(sentence, expect_name_in_output=False)
         assert parsed.name == []
 
@@ -22,7 +22,7 @@ class Test_expect_name_in_output:
         """
         Test that the returned name is [] when not separating names
         """
-        sentence = "½ cup or so flour in a plate"
+        sentence = "1 can (14 fluid ounces, or 425 ml) coconut milk"
         parsed = parse_ingredient(
             sentence, expect_name_in_output=False, separate_names=False
         )
