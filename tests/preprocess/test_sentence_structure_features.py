@@ -35,7 +35,7 @@ class Test_multi_ingredient_phrase_features:
         Test that extended multi ingredient phrase is correctly identified.
         """
         p = PreProcessor("½ c grapeseed oil or any mild-flavored oil")
-        assert p.sentence_structure.mip_phrases == [[3, 4, 5, 6, 7]]
+        assert p.sentence_structure.mip_phrases == [[2, 3, 4, 5, 6, 7]]
 
     def test_mip_start_feature_unit(self):
         """
