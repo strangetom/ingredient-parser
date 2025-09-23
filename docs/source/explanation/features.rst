@@ -61,6 +61,8 @@ Therefore, the features for any token are made up of properties of that token pl
 
     It can be quite difficult to work out whether all the features are useful to the model. The set of features and how they are used will continue to be refined as this library develops.
 
+.. _lexical-features:
+
 Lexical features
 ~~~~~~~~~~~~~~~~
 
@@ -102,6 +104,8 @@ The full list of lexical features are as follows:
 
 To simplify the number features that the model has to learn, all tokens that are numbers are replace with ``!num``.
 
+
+.. _structural-features:
 
 Structual features
 ~~~~~~~~~~~~~~~~~~
