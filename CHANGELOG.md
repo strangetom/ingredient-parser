@@ -1,5 +1,11 @@
 # Changelog
 
+## develop
+
+### Processing
+
+* Improve the part of speech tagging accuracy by extending the built-in `tagdict` in NLTK's part of speech tagger.
+
 ## 2.3.0
 
 > [!NOTE]
