@@ -361,6 +361,8 @@ class FoundationFood:
         Food Data Central data set the entry belongs to.
     url : str
         URL for FDC database entry.
+    name_index : int
+        Index of associated name in ParsedIngredient.name list.
     """
 
     text: str
@@ -369,6 +371,7 @@ class FoundationFood:
     category: str
     data_type: str
     url: str = field(init=False)
+    name_index: int
 
     def __post_init__(self):
         self.url = f"https://fdc.nal.usda.gov/food-details/{self.fdc_id}/nutrients"
