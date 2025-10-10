@@ -479,7 +479,7 @@ class PostProcessor:
         return ""
 
     def _convert_name_indices_to_object(
-        self, name_idx: list[int], name_indices: list[list[int]]
+        self, name_idx: list[int], name_index_groups: list[list[int]]
     ) -> tuple[list[IngredientText], list[FoundationFood]]:
         """Convert grouped indices for name tokens into IngredientText objects.
 
@@ -496,8 +496,9 @@ class PostProcessor:
         ----------
         name_idx : list[int]
             List of indices of NAME tokens.
-        name_indices : list[list[int]]
+        name_index_groups : list[list[int]]
             List of groups of indices corresponding to ingredient names.
+            These indices refer to the name_idx list.
 
         Returns
         -------
@@ -513,7 +514,7 @@ class PostProcessor:
         # Merge name_idx group with next if it ends with DT, IN or JJ part of speech
         # tag.
         merged_name_idx = []
-        for group in name_indices:
+        for group in name_index_groups:
             # Convert from name_label indices to token indices
             token_idx = [name_idx[idx] for idx in group]
 
