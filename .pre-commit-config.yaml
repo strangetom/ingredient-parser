@@ -2,7 +2,7 @@
 # See https://pre-commit.com/hooks.html for info on hooks
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v5.0.0
+    rev: v6.0.0
     hooks:
       - id: check-added-large-files
         name: (base:repo) debug-statements
@@ -21,7 +21,7 @@ repos:
         name: (base:repo) debug-statements
         stages: [pre-commit]
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.11.6
+    rev: v0.13.3
     hooks:
       - id: ruff
         name: (base:repo) ruff

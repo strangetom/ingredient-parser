@@ -219,6 +219,7 @@ def parser():
                             fdc_id=food.fdc_id,
                             category=food.category,
                             data_type=food.data_type,
+                            name_index=food.name_index,
                         )
                         for food in parsed.foundation_foods
                     ]
