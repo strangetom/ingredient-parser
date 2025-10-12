@@ -10,7 +10,7 @@ description = "A Python package to parse structured information from recipe ingr
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]
-requires-python = ">=3.10, <3.14"
+requires-python = ">=3.11, <3.15"
 keywords = ["recipe", "ingredient", "ingredients", "nlp", "parsing" ]
 authors = [
     { name="Tom Strange", email="tpstrange@gmail.com"},
@@ -29,7 +29,7 @@ classifiers = [
 dependencies = [
     "nltk>=3.9.1",
     "python-crfsuite",
-    "pint==0.24.4",
+    "pint>=0.25.0",
     "numpy",
 ]
 
