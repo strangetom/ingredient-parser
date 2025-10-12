@@ -4,9 +4,15 @@
 
 ### Processing
 
+> [!WARNING]
+>
+> This release drops support for Python 3.10.
+
 * Improve the part of speech tagging accuracy by extending the built-in `tagdict` in NLTK's part of speech tagger.
 * Add `name_index` field to `FoundationFood` objects. This field refers to the index of the matching name in the `ParsedIngredient.name` list.
   * The list of names and foundation foods are also guaranteed to be in the same order (although be aware that a name may not have a matching foundation food).
+* Drop support for Python 3.10.
+* Add support for Python 3.14.
 
 
 ## 2.3.0
