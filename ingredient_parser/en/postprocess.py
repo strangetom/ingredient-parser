@@ -760,6 +760,8 @@ class PostProcessor:
             "!",
             "?",
             "*",
+            "&",
+            "/",
         ]:
             idx = idx[1:]
 
@@ -771,6 +773,8 @@ class PostProcessor:
             ":",
             ";",
             "-",
+            "&",
+            "/",
         ]:
             idx = idx[:-1]
 
