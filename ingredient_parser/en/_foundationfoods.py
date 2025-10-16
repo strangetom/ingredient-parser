@@ -175,6 +175,7 @@ def load_fdc_ingredients() -> list[FDCIngredient]:
     foundation_foods = []
     with as_file(files(__package__) / "data/fdc_ingredients.csv.gz") as p:
         with gzip.open(p, "rt") as f:
+            logger.debug("Loading FDC ingredients: 'fdc_ingredients.csv.gz'.")
             reader = csv.DictReader(f)
             for row in reader:
                 tokens = tuple(tokenize(row["description"]))
@@ -645,7 +646,7 @@ def get_fuzzy_matcher() -> FuzzyEmbeddingMatcher:
 
 # Phrase and token substitutions to normalise spelling of ingredient name tokens to the
 # spellings used in the FDC ingredient descriptions.
-# All tokens in these dicts are stemmed.
+# All tokens in these dicts are stemmed and lower case.
 FDC_PHRASE_SUBSTITUTIONS: dict[tuple[str, ...], list[str]] = {
     ("doubl", "cream"): ["heavi", "cream"],
     ("glac", "cherri"): ["maraschino", "cherri"],
@@ -653,6 +654,7 @@ FDC_PHRASE_SUBSTITUTIONS: dict[tuple[str, ...], list[str]] = {
     ("mang", "tout"): ["snow", "pea"],
     ("plain", "flour"): ["all", "purpos", "flour"],
     ("singl", "cream"): ["light", "cream"],
+    ("haa", "avocado"): ["hass", "avocado"],
 }
 FDC_TOKEN_SUBSTITUTIONS: dict[str, str] = {
     "aubergin": "eggplant",
@@ -669,6 +671,9 @@ FDC_TOKEN_SUBSTITUTIONS: dict[str, str] = {
     "rocket": "arugula",
     "swede": "rutabaga",
     "yoghurt": "yogurt",
+}
+FDC_TOKEN_TO_PHRASE_SUBSTITUTIONS: dict[str, list[str]] = {
+    "lemongrass": ["lemon", "grass"],
 }
 
 
@@ -703,6 +708,8 @@ def normalise_spelling(tokens: list[str]) -> list[str]:
             normalised_tokens.extend(FDC_PHRASE_SUBSTITUTIONS[(token, next_token)])
             # Jump forward to avoid processing next_token again.
             consume(itokens, 1)
+        elif token in FDC_TOKEN_TO_PHRASE_SUBSTITUTIONS:
+            normalised_tokens.extend(FDC_TOKEN_TO_PHRASE_SUBSTITUTIONS[token])
         elif token in FDC_TOKEN_SUBSTITUTIONS:
             normalised_tokens.append(FDC_TOKEN_SUBSTITUTIONS[token])
         else:
