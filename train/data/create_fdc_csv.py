@@ -125,7 +125,7 @@ if __name__ == "__main__":
         "--output",
         help="Path to save gzipped csv file to.",
         type=str,
-        default="ingredient_parser/en/fdc_ingredients.csv.gz",
+        default="ingredient_parser/en/data/fdc_ingredients.csv.gz",
     )
     args = parser.parse_args()
 
