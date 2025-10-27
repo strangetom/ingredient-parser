@@ -68,7 +68,7 @@ def main():
     ax.legend(loc="upper left", ncols=1, fontsize=16)
     ax.set_ylim(82, 101)
     ax.set_xlim(-0.7, 2 * len(releases) - 0.3)
-    fig.savefig("docs/source/_static/performance-history.svg")
+    fig.savefig("docs/source/_static/diagrams/performance-history.svg")
 
 
 if __name__ == "__main__":
