@@ -838,7 +838,7 @@ class PostProcessor:
         text = text.replace(" / ", "/")
 
         # Correct space preceding various punctuation
-        for punc in [",", ":", ";", ".", "!", "?", "*", "'"]:
+        for punc in [",", ":", ";", ".", "!", "?", "*"]:
             text = text.replace(f" {punc}", punc)
 
         return text.strip()
