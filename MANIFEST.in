@@ -3,5 +3,6 @@ include ingredient_parser/en/data/model.en.crfsuite
 include ingredient_parser/en/data/ModelCard.en.md
 include ingredient_parser/en/data/ingredient_embeddings.25d.glove.txt.gz
 include ingredient_parser/en/data/fdc_ingredients.csv.gz
+include ingredient_parser/en/data/ingredient_tagdict.json.gz
 global-exclude test*
 prune */__pycache__
