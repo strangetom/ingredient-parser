@@ -674,6 +674,7 @@ FDC_TOKEN_SUBSTITUTIONS: dict[str, str] = {
 }
 FDC_TOKEN_TO_PHRASE_SUBSTITUTIONS: dict[str, list[str]] = {
     "lemongrass": ["lemon", "grass"],
+    "low-sodium": ["low", "sodium"],
 }
 
 
