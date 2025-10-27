@@ -6,8 +6,6 @@ import string
 import unicodedata
 from html import unescape
 
-from nltk import pos_tag
-
 from ..dataclasses import Token, TokenFeatures
 from ._constants import (
     AMBIGUOUS_UNITS,
@@ -36,6 +34,7 @@ from ._structure_features import SentenceStrucureFeatures
 from ._utils import (
     combine_quantities_split_by_and,
     is_unit_synonym,
+    pos_tag,
     replace_string_range,
     stem,
     tokenize,
@@ -548,26 +547,16 @@ class PreProcessor:
         list[Token]
             List of Tokens for sentence.
         """
-
-        # Singularise units
-        text_tokens = []
-        for i, text in enumerate(tokenize(sentence)):
-            singular = UNITS.get(text, None)
-            if singular is not None:
-                text_tokens.append(singular)
-                self.singularised_indices.append(i)
-            else:
-                text_tokens.append(text)
-
-        logger.debug(f"Tokenized sentence: {text_tokens}.")
-        logger.debug(f"Singularised tokens at indices: {self.singularised_indices}.")
-
         tokens = []
-        for i, (text, pos) in enumerate(pos_tag(text_tokens)):
+        for i, (text, pos) in enumerate(pos_tag(tokenize(sentence))):
             # Convert tokens:
             # * Singularise units, keeping track of indices of singularised tokens
             # * Replace numeric token with "!num"
-            if self._is_numeric(text):
+            if singular := UNITS.get(text):
+                self.singularised_indices.append(i)
+                feat_text = singular
+                text = singular
+            elif self._is_numeric(text):
                 feat_text = "!num"
             else:
                 feat_text = text
@@ -604,6 +593,9 @@ class PreProcessor:
                     features=features,
                 )
             )
+
+        logger.debug(f"Tokenized sentence: {[t.text for t in tokens]}.")
+        logger.debug(f"Singularised tokens at indices: {self.singularised_indices}.")
 
         return tokens
 
@@ -1013,12 +1005,13 @@ class PreProcessor:
         if index > 0:
             prev_token = self.tokenized_sentence[index - 1]
             features["prev_stem"] = prev_token.features.stem
-            features["prev_pos"] = "+".join(
+            features["prev_pos_ngram"] = "+".join(
                 (
                     self.tokenized_sentence[index - 1].pos_tag,
                     self.tokenized_sentence[index].pos_tag,
                 )
             )
+            features["prev_pos"] = self.tokenized_sentence[index - 1].pos_tag
             features |= self._common_features(index - 1, "prev_")
             features |= self.sentence_structure.token_features(index - 1, "prev_")
 
@@ -1026,13 +1019,14 @@ class PreProcessor:
         if index > 1:
             prev2_token = self.tokenized_sentence[index - 2]
             features["prev2_stem"] = prev2_token.features.stem
-            features["prev2_pos"] = "+".join(
+            features["prev2_pos_ngram"] = "+".join(
                 (
                     self.tokenized_sentence[index - 2].pos_tag,
                     self.tokenized_sentence[index - 1].pos_tag,
                     self.tokenized_sentence[index].pos_tag,
                 )
             )
+            features["prev2_pos"] = self.tokenized_sentence[index - 2].pos_tag
             features |= self._common_features(index - 2, "prev2_")
             features |= self.sentence_structure.token_features(index - 2, "prev2_")
 
@@ -1040,7 +1034,7 @@ class PreProcessor:
         if index > 2:
             prev3_token = self.tokenized_sentence[index - 3]
             features["prev3_stem"] = prev3_token.features.stem
-            features["prev3_pos"] = "+".join(
+            features["prev3_pos_ngram"] = "+".join(
                 (
                     self.tokenized_sentence[index - 3].pos_tag,
                     self.tokenized_sentence[index - 2].pos_tag,
@@ -1048,6 +1042,7 @@ class PreProcessor:
                     self.tokenized_sentence[index].pos_tag,
                 )
             )
+            features["prev3_pos"] = self.tokenized_sentence[index - 3].pos_tag
             features |= self._common_features(index - 3, "prev3_")
             features |= self.sentence_structure.token_features(index - 3, "prev3_")
 
@@ -1055,12 +1050,13 @@ class PreProcessor:
         if index < len(self.tokenized_sentence) - 1:
             next_token = self.tokenized_sentence[index + 1]
             features["next_stem"] = next_token.features.stem
-            features["next_pos"] = "+".join(
+            features["next_pos_ngram"] = "+".join(
                 (
                     self.tokenized_sentence[index].pos_tag,
                     self.tokenized_sentence[index + 1].pos_tag,
                 )
             )
+            features["next_pos"] = self.tokenized_sentence[index + 1].pos_tag
             features |= self._common_features(index + 1, "next_")
             features |= self.sentence_structure.token_features(index + 1, "next_")
 
@@ -1068,13 +1064,14 @@ class PreProcessor:
         if index < len(self.tokenized_sentence) - 2:
             next2_token = self.tokenized_sentence[index + 2]
             features["next2_stem"] = next2_token.features.stem
-            features["next2_pos"] = "+".join(
+            features["next2_pos_ngram"] = "+".join(
                 (
                     self.tokenized_sentence[index].pos_tag,
                     self.tokenized_sentence[index + 1].pos_tag,
                     self.tokenized_sentence[index + 2].pos_tag,
                 )
             )
+            features["next2_pos"] = self.tokenized_sentence[index + 2].pos_tag
             features |= self._common_features(index + 2, "next2_")
             features |= self.sentence_structure.token_features(index + 2, "next2_")
 
@@ -1082,7 +1079,7 @@ class PreProcessor:
         if index < len(self.tokenized_sentence) - 3:
             next3_token = self.tokenized_sentence[index + 3]
             features["next3_stem"] = next3_token.features.stem
-            features["next3_pos"] = "+".join(
+            features["next3_pos_ngram"] = "+".join(
                 (
                     self.tokenized_sentence[index].pos_tag,
                     self.tokenized_sentence[index + 1].pos_tag,
@@ -1090,6 +1087,7 @@ class PreProcessor:
                     self.tokenized_sentence[index + 3].pos_tag,
                 )
             )
+            features["next3_pos"] = self.tokenized_sentence[index + 3].pos_tag
             features |= self._common_features(index + 3, "next3_")
             features |= self.sentence_structure.token_features(index + 3, "next3_")
 

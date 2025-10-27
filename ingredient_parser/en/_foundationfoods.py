@@ -25,13 +25,13 @@ logger = logging.getLogger("ingredient-parser.foundation-foods")
 # The tokens in the dict keys are stemmed.
 FOUNDATION_FOOD_OVERRIDES: dict[tuple[str, ...], FoundationFood] = {
     ("salt",): FoundationFood(
-        "Salt, table, iodized", 1, 746775, "Spices and Herbs", "foundation_food"
+        "Salt, table, iodized", 1, 746775, "Spices and Herbs", "foundation_food", 0
     ),
     (
         "sea",
         "salt",
     ): FoundationFood(
-        "Salt, table, iodized", 1, 746775, "Spices and Herbs", "foundation_food"
+        "Salt, table, iodized", 1, 746775, "Spices and Herbs", "foundation_food", 0
     ),
     ("egg",): FoundationFood(
         "Eggs, Grade A, Large, egg whole",
@@ -39,6 +39,7 @@ FOUNDATION_FOOD_OVERRIDES: dict[tuple[str, ...], FoundationFood] = {
         748967,
         "Dairy and Egg Products",
         "foundation_food",
+        0,
     ),
     ("butter",): FoundationFood(
         "Butter, stick, unsalted",
@@ -46,6 +47,7 @@ FOUNDATION_FOOD_OVERRIDES: dict[tuple[str, ...], FoundationFood] = {
         789828,
         "Dairy and Egg Products",
         "foundation_food",
+        0,
     ),
     ("garlic",): FoundationFood(
         "Garlic, raw",
@@ -53,6 +55,7 @@ FOUNDATION_FOOD_OVERRIDES: dict[tuple[str, ...], FoundationFood] = {
         1104647,
         "Vegetables and Vegetable Products",
         "foundation_food",
+        0,
     ),
     ("mayonnais",): FoundationFood(
         "Mayonnaise, regular",
@@ -60,6 +63,7 @@ FOUNDATION_FOOD_OVERRIDES: dict[tuple[str, ...], FoundationFood] = {
         2710204,
         "Mayonnaise",
         "survey_fndds_food",
+        0,
     ),
     ("all-purpos", "flour"): FoundationFood(
         "Mayonnaise, regular",
@@ -67,6 +71,7 @@ FOUNDATION_FOOD_OVERRIDES: dict[tuple[str, ...], FoundationFood] = {
         2710204,
         "Mayonnaise",
         "survey_fndds_food",
+        0,
     ),
     ("all", "purpos", "flour"): FoundationFood(
         "Flour, wheat, all-purpose, unenriched, unbleached",
@@ -74,6 +79,7 @@ FOUNDATION_FOOD_OVERRIDES: dict[tuple[str, ...], FoundationFood] = {
         790018,
         "Cereal Grains and Pasta",
         "foundation_food",
+        0,
     ),
 }
 
@@ -169,6 +175,7 @@ def load_fdc_ingredients() -> list[FDCIngredient]:
     foundation_foods = []
     with as_file(files(__package__) / "data/fdc_ingredients.csv.gz") as p:
         with gzip.open(p, "rt") as f:
+            logger.debug("Loading FDC ingredients: 'fdc_ingredients.csv.gz'.")
             reader = csv.DictReader(f)
             for row in reader:
                 tokens = tuple(tokenize(row["description"]))
@@ -639,7 +646,7 @@ def get_fuzzy_matcher() -> FuzzyEmbeddingMatcher:
 
 # Phrase and token substitutions to normalise spelling of ingredient name tokens to the
 # spellings used in the FDC ingredient descriptions.
-# All tokens in these dicts are stemmed.
+# All tokens in these dicts are stemmed and lower case.
 FDC_PHRASE_SUBSTITUTIONS: dict[tuple[str, ...], list[str]] = {
     ("doubl", "cream"): ["heavi", "cream"],
     ("glac", "cherri"): ["maraschino", "cherri"],
@@ -647,6 +654,7 @@ FDC_PHRASE_SUBSTITUTIONS: dict[tuple[str, ...], list[str]] = {
     ("mang", "tout"): ["snow", "pea"],
     ("plain", "flour"): ["all", "purpos", "flour"],
     ("singl", "cream"): ["light", "cream"],
+    ("haa", "avocado"): ["hass", "avocado"],
 }
 FDC_TOKEN_SUBSTITUTIONS: dict[str, str] = {
     "aubergin": "eggplant",
@@ -663,6 +671,10 @@ FDC_TOKEN_SUBSTITUTIONS: dict[str, str] = {
     "rocket": "arugula",
     "swede": "rutabaga",
     "yoghurt": "yogurt",
+}
+FDC_TOKEN_TO_PHRASE_SUBSTITUTIONS: dict[str, list[str]] = {
+    "lemongrass": ["lemon", "grass"],
+    "low-sodium": ["low", "sodium"],
 }
 
 
@@ -697,6 +709,8 @@ def normalise_spelling(tokens: list[str]) -> list[str]:
             normalised_tokens.extend(FDC_PHRASE_SUBSTITUTIONS[(token, next_token)])
             # Jump forward to avoid processing next_token again.
             consume(itokens, 1)
+        elif token in FDC_TOKEN_TO_PHRASE_SUBSTITUTIONS:
+            normalised_tokens.extend(FDC_TOKEN_TO_PHRASE_SUBSTITUTIONS[token])
         elif token in FDC_TOKEN_SUBSTITUTIONS:
             normalised_tokens.append(FDC_TOKEN_SUBSTITUTIONS[token])
         else:
@@ -708,7 +722,7 @@ def normalise_spelling(tokens: list[str]) -> list[str]:
     return normalised_tokens
 
 
-def match_foundation_foods(tokens: list[str]) -> FoundationFood | None:
+def match_foundation_foods(tokens: list[str], name_idx: int) -> FoundationFood | None:
     """Match ingredient name to foundation foods from FDC ingredient.
 
     This is done in three stages.
@@ -728,11 +742,12 @@ def match_foundation_foods(tokens: list[str]) -> FoundationFood | None:
     ----------
     tokens : list[str]
         Ingredient name tokens.
+    name_idx : int
+        Index of corresponding name in ParsedIngredient.names list.
 
     Returns
     -------
     FoundationFood | None
-        Matching foundation food, or None if no match can be found.
     """
     logger.debug(f"Matching FDC ingredient for ingredient name tokens: {tokens}")
     prepared_tokens = prepare_embeddings_tokens(tuple(tokens))
@@ -745,7 +760,9 @@ def match_foundation_foods(tokens: list[str]) -> FoundationFood | None:
 
     if tuple(normalised_tokens) in FOUNDATION_FOOD_OVERRIDES:
         logger.debug("Returning FDC ingredient from override list.")
-        return FOUNDATION_FOOD_OVERRIDES[tuple(normalised_tokens)]
+        match = FOUNDATION_FOOD_OVERRIDES[tuple(normalised_tokens)]
+        match.name_index = name_idx
+        return match
 
     u = get_usif_matcher()
     candidate_matches = u.find_candidate_matches(normalised_tokens, n=50)
@@ -765,6 +782,7 @@ def match_foundation_foods(tokens: list[str]) -> FoundationFood | None:
             fdc_id=best_match.fdc.fdc_id,
             category=best_match.fdc.category,
             data_type=best_match.fdc.data_type,
+            name_index=name_idx,
         )
 
     logger.debug("No FDC ingredients found with good enough match.")

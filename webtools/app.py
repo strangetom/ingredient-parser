@@ -2,20 +2,24 @@
 
 import json
 import random
-import re
 import sqlite3
-import string
-import sys
 import traceback
 from http import HTTPStatus
 from importlib.metadata import PackageNotFoundError, distribution
-from pathlib import Path
 from typing import Union
 
+from _globals import (
+    MODEL_REQUIREMENTS,
+    NPM_BUILD_DIRECTORY,
+    RESERVED_DOTNUM_RANGE_CHARS,
+    RESERVED_LABELLER_SEARCH_CHARS,
+    SQL3_DATABASE,
+    SQL3_DATABASE_TABLE,
+)
 from flask import Flask, jsonify, request
 from flask_cors import CORS, cross_origin
+from search import id_search, list_all_entries, string_search
 
-sys.path.append("..")
 from ingredient_parser import inspect_parser
 from ingredient_parser.dataclasses import (
     FoundationFood,
@@ -24,18 +28,6 @@ from ingredient_parser.dataclasses import (
     ParserDebugInfo,
 )
 from ingredient_parser.en._loaders import load_parser_model
-from ingredient_parser.en.preprocess import PreProcessor
-
-# Globals
-parent_dir = Path(__file__).parent.parent
-NPM_BUILD_DIRECTORY = "build"
-SQL3_DATABASE_TABLE = "en"
-SQL3_DATABASE = parent_dir / "train/data/training.sqlite3"
-MODEL_REQUIREMENTS = parent_dir / "requirements-dev.txt"
-RESERVED_LABELLER_SEARCH_CHARS = r"\*\*|\~\~|\=\="  # ** or ~~ or ==
-RESERVED_DOTNUM_RANGE_CHARS = (
-    r"^\d*\.?\d*(?<!\.)\.\.(?!\.)\d*\.?\d*$"  # {digit}..{digit}
-)
 
 # SQLite
 sqlite3.register_adapter(list, json.dumps)
@@ -52,8 +44,7 @@ load_parser_model.cache_clear()
 # Helpers
 def is_valid_dotnum_range(value: str) -> bool:
     """Checks str against the format "{digit}..{digit}"""
-
-    return bool(re.fullmatch(RESERVED_DOTNUM_RANGE_CHARS, value))
+    return bool(RESERVED_DOTNUM_RANGE_CHARS.fullmatch(value))
 
 
 def jsonify_error(
@@ -228,6 +219,7 @@ def parser():
                             fdc_id=food.fdc_id,
                             category=food.category,
                             data_type=food.data_type,
+                            name_index=food.name_index,
                         )
                         for food in parsed.foundation_foods
                     ]
@@ -298,11 +290,7 @@ def available_sources():
                 conn.row_factory = sqlite3.Row
                 cursor = conn.cursor()
 
-                cursor.execute(
-                    f"""
-                        SELECT DISTINCT source FROM {SQL3_DATABASE_TABLE}
-                    """
-                )
+                cursor.execute(f"SELECT DISTINCT source FROM {SQL3_DATABASE_TABLE}")
                 rows = cursor.fetchall()
                 data_response = [source[0] for source in rows]
 
@@ -434,9 +422,8 @@ def labeller_bulk_upload():
 @app.route("/labeller/search", methods=["POST"])
 @cross_origin()
 def labeller_search():
-    """Endpoint for applying selected filter to database and returning editable sentence
-    TODO: Better SQLite queries should be used for future readability and performance"""
-
+    """Endpoint for applying selected filter to database and returning editable
+    sentence."""
     if request.method == "POST":
         data = request.json
 
@@ -444,137 +431,55 @@ def labeller_search():
             return jsonify_error(status=404)
 
         try:
-            with sqlite3.connect(
-                SQL3_DATABASE, detect_types=sqlite3.PARSE_DECLTYPES
-            ) as conn:
-                conn.row_factory = sqlite3.Row
-                cursor = conn.cursor()
+            offset = data.get("offset", 0)
+            sources = data.get("sources", [])
+            labels = data.get("labels", [])
+            sentence = data.get("sentence", "")
+            whole_word = data.get("wholeWord", False)
+            case_sensitive = data.get("caseSensitive", False)
 
-                offset = data.get("offset", 0)
-                sources = data.get("sources", [])
-                labels = data.get("labels", [])
-                sentence = data.get("sentence", "")
-                whole_word = data.get("wholeWord", False)
-                case_sensitive = data.get("caseSensitive", False)
+            reserved_char_search = RESERVED_LABELLER_SEARCH_CHARS.search(sentence)
+            reserved_char_match = (
+                reserved_char_search.group() if reserved_char_search else None
+            )
 
-                reserved_char_search = re.search(
-                    RESERVED_LABELLER_SEARCH_CHARS, sentence
-                )
-                reserved_char_match = (
-                    reserved_char_search.group() if reserved_char_search else None
-                )
-
-                # reserve == for id search
+            if reserved_char_match == "==":
+                # Search by ID
                 ids_reserved = []
-                if reserved_char_match in ["=="]:
-                    ids_actual = [
-                        ix.strip()
-                        for ix in set(sentence[2:].split(","))
-                        if ix.strip().isdigit() or is_valid_dotnum_range(ix.strip())
-                    ]
+                ids_actual = [
+                    ix.strip()
+                    for ix in set(sentence[2:].split(","))
+                    if ix.strip().isdigit() or is_valid_dotnum_range(ix.strip())
+                ]
 
-                    for id in ids_actual:
-                        if is_valid_dotnum_range(id):
-                            start, stop = id.split("..")
-                            ids_reserved.extend(range(int(start), int(stop) + 1))
-                        elif id.isdigit():
-                            ids_reserved.append(int(id))
+                for id_ in ids_actual:
+                    if is_valid_dotnum_range(id_):
+                        start, stop = id_.split("..")
+                        ids_reserved.extend(range(int(start), int(stop) + 1))
+                    elif id_.isdigit():
+                        ids_reserved.append(int(id_))
 
-                # preprocess for correct token comparison later
-                sentence_preprocessed = PreProcessor(sentence).sentence
-                # reserve ** or ~~ for wildcard, treat as empty string
-                sentence_cleansed = (
-                    " "
-                    if reserved_char_match in ["**", "~~"]
-                    else sentence_preprocessed
+                matches = id_search(ids_reserved)
+
+            elif reserved_char_match in ["**", "~~"]:
+                # Return all results
+                matches = list_all_entries()
+
+            else:
+                # Search by user input string
+                matches = string_search(
+                    sentence, labels, sources, case_sensitive, whole_word
                 )
 
-                escaped = re.escape(sentence_cleansed)
-
-                if whole_word:
-                    while escaped[-1] in string.punctuation:
-                        escaped = escaped[:-1]
-                    expression = rf"\b{escaped}\b"
-                else:
-                    expression = escaped
-
-                # provide query flexibility around mid-sentence punctation
-                expression = re.sub(r"[;,—:-]", r"\\s*[;,—:-]\\s*", expression)
-
-                if case_sensitive:
-                    query = re.compile(expression, re.UNICODE)
-                else:
-                    query = re.compile(expression, re.UNICODE | re.IGNORECASE)
-
-                cursor.execute(
-                    f"""
-                    SELECT *
-                    FROM {SQL3_DATABASE_TABLE}
-                    WHERE source IN ({",".join(["?"] * len(sources))})
-                    """,
-                    (sources),
-                )
-                rows = cursor.fetchall()
-
-                indices = []
-
-                for row in rows:
-                    partial_sentence = " ".join(
-                        [
-                            tok
-                            for tok, label in list(zip(row["tokens"], row["labels"]))
-                            if label in labels
-                        ]
-                    )
-                    if (
-                        row["id"] in ids_reserved
-                        or query.search(partial_sentence)
-                        or partial_sentence == sentence_cleansed
-                    ):
-                        indices.append(row["id"])
-
-                batch_size = 250  # SQLite has a default limit of 999 parameters
-                rows = []
-                for i in range(0, len(indices), batch_size):
-                    batch = indices[i : i + batch_size]
-                    cursor.execute(
-                        f"""
-                        SELECT *
-                        FROM {SQL3_DATABASE_TABLE}
-                        WHERE id IN ({",".join(["?"] * len(batch))})
-                        """,
-                        (batch),
-                    )
-                    rows += cursor.fetchall()
-
-                data = []
-                for row in rows:
-                    data.append(
-                        {**row, "tokens": list(zip(row["tokens"], row["labels"]))}
-                    )
-
-                batch_size = 999  # SQLite has a default limit of 999 parameters
-                count = []
-                for i in range(0, len(indices), batch_size):
-                    batch = indices[i : i + batch_size]
-                    cursor.execute(
-                        f"""
-                        SELECT COUNT(*)
-                        FROM {SQL3_DATABASE_TABLE}
-                        WHERE id IN ({",".join(["?"] * len(batch))})
-                        """,
-                        (batch),
-                    )
-                    count += [cursor.fetchone()[0]]
-
-                data_response = {
-                    "data": data[offset : offset + 250],
-                    "total": sum(count),
-                    "offset": offset,
-                }
-
-            conn.close()
-
+            # Convert tokens field to required format for frontend
+            matches = [
+                {**m, "tokens": list(zip(m["tokens"], m["labels"]))} for m in matches
+            ]
+            data_response = {
+                "data": matches[offset : offset + 250],
+                "total": len(matches),
+                "offset": offset,
+            }
             return jsonify(data_response)
 
         except Exception as ex:

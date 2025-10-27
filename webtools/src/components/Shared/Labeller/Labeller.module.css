@@ -141,13 +141,6 @@
 			background-color: var(--orange-alt);
 		}
 	}
-	&[data-labeller="UNIT"] {
-		--color: var(--white);
-		&::before {
-			content: "UNIT";
-			background-color: var(--white);
-		}
-	}
 	&[data-labeller="OTHER"] {
 		--color: var(--white);
 		&::before {

@@ -8,8 +8,9 @@ from itertools import chain
 
 import nltk.stem.porter as nsp
 import pint
+from nltk.tag import _get_tagger, _pos_tag
 
-from ingredient_parser.en._loaders import load_embeddings_model
+from ingredient_parser.en._loaders import load_embeddings_model, load_ingredient_tagdict
 
 from .._common import UREG, consume, download_nltk_resources, is_float, is_range
 from ..dataclasses import IngredientAmount
@@ -49,7 +50,8 @@ MISINTERPRETED_UNITS = [
     "tin",  # tera-inch
     "tins",
     "unit",  # micronit (micro netwon inch)
-    "unitsfat",  # femto-technical-atmosphere
+    "units",
+    "fat",  # femto-technical-atmosphere
 ]
 
 # List of unit replacements so that these units get converted to the correct pint
@@ -137,6 +139,30 @@ def tokenize(sentence: str) -> list[str]:
     tokens = [FULL_STOP_TOKENISER.split(tok) for tok in combined]
 
     return [tok for tok in chain.from_iterable(tokens) if tok]
+
+
+def pos_tag(tokens: list[str]) -> list[tuple[str, str]]:
+    """Tag tokens with parts of speech.
+
+    This is a modification of NLTK's default part of speech tagging functionality which
+    extends the tagdict with additional, ingredient sentence specific entries.
+    The tagdict is a dict of token:tag pairs which bypass the part of speech tagging
+    model.
+
+    Parameters
+    ----------
+    tokens : list[str]
+        List of tokens.
+
+    Returns
+    -------
+    list[tuple[str, str]]
+        List of (token, tag) pairs.
+    """
+    tagger = _get_tagger("eng")
+    ingredient_tagdict = load_ingredient_tagdict()
+    tagger.tagdict.update(ingredient_tagdict)
+    return _pos_tag(tokens=tokens, tagset=None, tagger=tagger, lang="eng")
 
 
 def combine_and_or(tokens: list[str]) -> list[str]:

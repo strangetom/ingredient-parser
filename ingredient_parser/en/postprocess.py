@@ -209,7 +209,7 @@ class PostProcessor:
                         for token, label in zip(self.tokens, self.labels)
                         if label == "NAME"
                     ]
-                    if ff := match_foundation_foods(name_tokens):
+                    if ff := match_foundation_foods(name_tokens, 0):
                         foundationfoods = [ff]
             else:
                 name = []
@@ -289,38 +289,37 @@ class PostProcessor:
         )
         return names, foundation_foods
 
-    def _deduplicate_names(self, names: list[IngredientText]) -> list[IngredientText]:
-        """Deduplicate list of names.
+    def _merge(self, objs: list[IngredientText]) -> IngredientText:
+        """Merge list of IngredientText objects into a single object.
 
-        Where the same name text appears in multiple IngredientText objects, the
-        confidence values are averaged, and the minimum starting_index is kept for the
-        deduplicated names.
+        Text values are joined by a space, unless all text values are the same in which
+        case only one of values is kept.
+        Confidence values are averaged.
+        Starting index is set to the lowest value.
 
         Parameters
         ----------
         names : list[IngredientText]
-            List of names.
+            List of objets to merge.
 
         Returns
         -------
-        list[IngredientText]
-            Deduplicated list of names.
+        IngredientText
+            Merged IngredientText object.
         """
-        name_dict = defaultdict(list)
-        for name in names:
-            name_dict[name.text].append(name)
+        sorted_objs = sorted(objs, key=lambda x: x.starting_index)
 
-        deduped_names = []
-        for text, name_objs in name_dict.items():
-            deduped_names.append(
-                IngredientText(
-                    text=text,
-                    confidence=mean([n.confidence for n in name_objs]),
-                    starting_index=min([n.starting_index for n in name_objs]),
-                )
-            )
+        if len({n.text for n in sorted_objs}) == 1:
+            text = sorted_objs[0].text
+        else:
+            text = " ".join(n.text for n in sorted_objs)
 
-        return deduped_names
+        merged = IngredientText(
+            text=text,
+            confidence=round(mean(n.confidence for n in sorted_objs), 6),
+            starting_index=min(n.starting_index for n in sorted_objs),
+        )
+        return merged
 
     def _group_name_labels(self, name_labels: list[str]) -> list[list[tuple[int, str]]]:
         """Group name labels according to name label type.
@@ -480,7 +479,7 @@ class PostProcessor:
         return ""
 
     def _convert_name_indices_to_object(
-        self, name_idx: list[int], name_indices: list[list[int]]
+        self, name_idx: list[int], name_index_groups: list[list[int]]
     ) -> tuple[list[IngredientText], list[FoundationFood]]:
         """Convert grouped indices for name tokens into IngredientText objects.
 
@@ -497,72 +496,71 @@ class PostProcessor:
         ----------
         name_idx : list[int]
             List of indices of NAME tokens.
-        name_indices : list[list[int]]
+        name_index_groups : list[list[int]]
             List of groups of indices corresponding to ingredient names.
+            These indices refer to the name_idx list.
 
         Returns
         -------
         tuple[list[IngredientText], list[FoundationFood]]
             List of deduplicated IngredientText objects and FoundationFoods objects.
         """
-        names = []
-        foundation_foods = set()  # Use a set to avoid duplicates
 
         # Keep track of IngredientText objects and indices to merge with next.
         # We do the merge if the name ends with DT, IN, JJ part of speech tag.
-        merge_with_next: IngredientText | None = None
-        merge_with_next_idx: list[int] | None = None
+        merge_with_next = False
+        merge_with_next_idx: list[int] = []
 
-        for group in name_indices:
+        # Merge name_idx group with next if it ends with DT, IN or JJ part of speech
+        # tag.
+        merged_name_idx = []
+        for group in name_index_groups:
             # Convert from name_label indices to token indices
             token_idx = [name_idx[idx] for idx in group]
-            ing_text = self._postprocess_indices(token_idx, "NAME")
-            if ing_text is None:
-                continue
 
             if merge_with_next and merge_with_next_idx:
-                # If we need to merge the previous name, do it now.
-                ing_text = IngredientText(
-                    text=merge_with_next.text + " " + ing_text.text,
-                    confidence=round(
-                        (merge_with_next.confidence + ing_text.confidence) / 2, 6
-                    ),
-                    starting_index=min(
-                        [merge_with_next.starting_index, ing_text.starting_index]
-                    ),
-                )
                 token_idx = [*merge_with_next_idx, *token_idx]
 
             if self._last_non_punc_token_pos(token_idx) in {"DT", "IN", "JJ"}:
                 # Mark name for merging with next name.
-                merge_with_next = ing_text
+                merge_with_next = True
                 merge_with_next_idx = token_idx
                 # Skip to next iteration
                 continue
             else:
-                names.append(ing_text)
-                merge_with_next = None
-                merge_with_next_idx = None
-
-                if self.foundation_foods:
-                    # Bug: token_idx is wrong here if we merged names
-                    tokens = [self.tokens[i] for i in token_idx]
-                    ff = match_foundation_foods(tokens)
-                    if ff:
-                        foundation_foods.add(ff)
+                merged_name_idx.append(token_idx)
+                merge_with_next = False
+                merge_with_next_idx = []
 
         if merge_with_next and merge_with_next_idx:
-            # Catch any remaining IngredientText objects marked as needing to be merged
+            # Catch any remaining name indices marked as needing to be merged
             # but haven't been.
-            names.append(merge_with_next)
-            if self.foundation_foods:
-                # Bug: token_idx is wrong here if we merged names
-                tokens = [self.tokens[i] for i in merge_with_next_idx]
-                ff = match_foundation_foods(tokens)
-                if ff:
-                    foundation_foods.add(ff)
+            merged_name_idx.append(merge_with_next_idx)
 
-        return self._deduplicate_names(names), list(foundation_foods)
+        # Build IngredientText objects, merging duplicate names where found.
+        names = []
+        foundation_foods = []
+        for token_idx in merged_name_idx:
+            ing_text = self._postprocess_indices(token_idx, "NAME")
+            if not ing_text:
+                continue
+
+            if ing_text.text in [n.text for n in names]:
+                dupe_idx = [i for i, n in enumerate(names) if n.text == ing_text.text]
+                merged = self._merge([*[names[i] for i in dupe_idx], ing_text])
+                names[dupe_idx[0]] = merged
+            else:
+                names.append(ing_text)
+
+                if self.foundation_foods:
+                    # We don't match foundation foods for duplicate names because we
+                    # will have already found any match for the first instance of the
+                    # name.
+                    tokens = [self.tokens[i] for i in token_idx]
+                    if ff := match_foundation_foods(tokens, len(names) - 1):
+                        foundation_foods.append(ff)
+
+        return names, foundation_foods
 
     def _last_non_punc_token_pos(self, token_idx: list[int]) -> str:
         """Return the POS tag at the last index in token_idx.
@@ -762,6 +760,9 @@ class PostProcessor:
             "!",
             "?",
             "*",
+            "&",
+            "/",
+            "--",
         ]:
             idx = idx[1:]
 
@@ -773,6 +774,10 @@ class PostProcessor:
             ":",
             ";",
             "-",
+            "&",
+            "/",
+            "*",
+            "--",
         ]:
             idx = idx[:-1]
 
@@ -833,7 +838,7 @@ class PostProcessor:
         text = text.replace(" / ", "/")
 
         # Correct space preceding various punctuation
-        for punc in [",", ":", ";", ".", "!", "?", "*", "'"]:
+        for punc in [",", ":", ";", ".", "!", "?", "*"]:
             text = text.replace(f" {punc}", punc)
 
         return text.strip()

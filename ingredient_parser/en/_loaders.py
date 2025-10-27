@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+import gzip
+import json
 import logging
 from functools import lru_cache
 from importlib.resources import as_file, files
@@ -23,7 +25,7 @@ def load_parser_model() -> pycrfsuite.Tagger:  # type: ignore
     pycrfsuite.Tagger
         Parser model loaded into Tagger object.
     """
-    logger.debug("Loading parser model: model.en.crfsuite")
+    logger.debug("Loading parser model: 'model.en.crfsuite'")
     tagger = pycrfsuite.Tagger()  # type: ignore
     with as_file(files(__package__) / "data/model.en.crfsuite") as p:
         tagger.open(str(p))
@@ -42,5 +44,25 @@ def load_embeddings_model() -> GloVeModel:  # type: ignore
     GloVeModel
         Embeddings model.
     """
-    logger.debug("Loading embeddings model: ingredient_embeddings.25d.glove.txt.gz")
+    logger.debug("Loading embeddings model: 'ingredient_embeddings.25d.glove.txt.gz'.")
     return GloVeModel("data/ingredient_embeddings.25d.glove.txt.gz")
+
+
+@lru_cache
+def load_ingredient_tagdict() -> dict[str, str]:
+    """Cached function for loading ingredient token part of speech tagdict.
+
+    The entries in this dict are used to bypass the part of speech tagging model so the
+    token is always given the tag in this dict.
+
+    Returns
+    -------
+    dict[str, str]
+        Dict of token:tag pairs
+    """
+    logger.debug("Loading ingredient POS tagdict: 'ingredient_tagdict.json.gz'.")
+    with as_file(files(__package__) / "data/ingredient_tagdict.json.gz") as p:
+        with gzip.open(p, "rt") as f:
+            tagdict = json.load(f)
+
+    return tagdict

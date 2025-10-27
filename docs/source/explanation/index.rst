@@ -56,3 +56,4 @@ The :doc:`Post-processing <postprocessing>` page provides more details on this p
    Model Usage <usage>
    Post-processing <postprocessing>
    Foundation foods <foundation>
+   Appendix <appendix/index>

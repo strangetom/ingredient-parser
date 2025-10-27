@@ -61,6 +61,8 @@ Therefore, the features for any token are made up of properties of that token pl
 
     It can be quite difficult to work out whether all the features are useful to the model. The set of features and how they are used will continue to be refined as this library develops.
 
+.. _lexical-features:
+
 Lexical features
 ~~~~~~~~~~~~~~~~
 
@@ -103,6 +105,8 @@ The full list of lexical features are as follows:
 To simplify the number features that the model has to learn, all tokens that are numbers are replace with ``!num``.
 
 
+.. _structural-features:
+
 Structual features
 ~~~~~~~~~~~~~~~~~~
 
@@ -144,7 +148,7 @@ Below is an example of the features generated for one of the tokens in an ingred
 
 .. code:: python
 
-    >>> from Preprocess import PreProcessor
+    >>> from ingredient_parser.en import PreProcessor
     >>> p = PreProcessor("1/2 cup orange juice, freshly squeezed")
     >>> p.sentence_features()[1]  # for the token: "cup"
     {
@@ -165,7 +169,8 @@ Below is an example of the features generated for one of the tokens in an ingred
       'after_sentence_split': False,
       'example_phrase': False,
       'prev_stem': '!num',
-      'prev_pos': 'CD+NN',
+      'prev_pos_ngram': 'CD+NN',
+      'prev_pos': 'CD',
       'prev_is_capitalised': False,
       'prev_is_unit': False,
       'prev_is_punc': False,
@@ -179,7 +184,8 @@ Below is an example of the features generated for one of the tokens in an ingred
       'prev_after_sentence_split': False,
       'prev_example_phrase': False,
       'next_stem': 'orang',
-      'next_pos': 'NN+NN',
+      'next_pos_ngram': 'NN+NN',
+      'next_pos': 'NN',
       'next_is_capitalised': False,
       'next_is_unit': False,
       'next_is_punc': False,
@@ -193,7 +199,8 @@ Below is an example of the features generated for one of the tokens in an ingred
       'next_after_sentence_split': False,
       'next_example_phrase': False,
       'next2_stem': 'juic',
-      'next2_pos': 'NN+NN+NN',
+      'next2_pos_ngram': 'NN+NN+NN',
+      'next2_pos': 'NN',
       'next2_is_capitalised': False,
       'next2_is_unit': False,
       'next2_is_punc': False,
@@ -207,7 +214,8 @@ Below is an example of the features generated for one of the tokens in an ingred
       'next2_after_sentence_split': False,
       'next2_example_phrase': False,
       'next3_stem': ',',
-      'next3_pos': 'NN+NN+NN+,',
+      'next3_pos_ngram': 'NN+NN+NN+,',
+      'next3_pos': ',',
       'next3_is_capitalised': False,
       'next3_is_unit': False,
       'next3_is_punc': True,

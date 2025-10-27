@@ -47,14 +47,14 @@ The core of the library is a sequence labelling model that is used to label each
 The model has the following accuracy on a test data set of 20% of the total data used:
 
 ```
-Sentence-level results:
-	Accuracy: 94.94%
-
-Word-level results:
-	Accuracy 97.90%
-	Precision (micro) 97.88%
-	Recall (micro) 97.90%
-	F1 score (micro) 97.88%
+╒══════════════════════════╤══════════════════════════╕
+│ Sentence-level results   │ Word-level results       │
+╞══════════════════════════╪══════════════════════════╡
+│ Accuracy: 95.27%         │ Accuracy: 98.10%         │
+│                          │ Precision (micro) 98.08% │
+│                          │ Recall (micro) 98.10%    │
+│                          │ F1 score (micro) 98.09%  │
+╘══════════════════════════╧══════════════════════════╛
 ```
 
 ## Development

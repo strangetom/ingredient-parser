@@ -1,4 +1,4 @@
 nltk>=3.9.1
 python-crfsuite
-pint==0.24.4
+pint>=0.25.0
 numpy
