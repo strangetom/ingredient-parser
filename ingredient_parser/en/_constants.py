@@ -368,7 +368,6 @@ STOP_WORDS = {
     "how",
     "all",
     "any",
-    "both",
     "each",
     "few",
     "more",
