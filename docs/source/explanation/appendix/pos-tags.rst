@@ -37,3 +37,9 @@ This new ``tagdict`` contains over 1000 new words compared to NLTK's built-in ta
         ingredient_tagdict = load_ingredient_tagdict()
         tagger.tagdict.update(ingredient_tagdict)
         return _pos_tag(tokens=tokens, tagset=None, tagger=tagger, lang="eng")
+
+.. note::
+
+    After initially generating the new ``tagdict``, we will manually insert additional entries for unambiguous words encountered in the wild that the tagger gets wrong, resulting in incorrect parsing of a sentence.
+
+    This means that the ``tagdict`` distributed with this library is not entirely reproducible using the approach described here.
