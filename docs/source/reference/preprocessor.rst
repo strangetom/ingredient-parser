@@ -1,6 +1,6 @@
 .. _reference-api-preprocess:
 
-PreProcess
+Preprocess
 ==========
 
 .. automodule:: ingredient_parser.en.preprocess

@@ -3,5 +3,5 @@
 Foundation Foods
 ================
 
-.. automodule:: ingredient_parser.en._foundationfoods
+.. automodule:: ingredient_parser.en.foundationfoods
    :members:

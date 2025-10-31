@@ -118,8 +118,8 @@ class PostProcessor:
         If True, populate the foundation_foods field of ParsedIngredient.
         Default is False, in which case the foundation_foods field is an empty list.
     consumed : list[int]
-        List of indices of tokens consumed as part of setting the APPROXIMATE and
-        SINGULAR flags. These tokens should not end up in the parsed output.
+        List of indices of tokens consumed as part of postprocesing the tokens and
+        labels.
     """
 
     def __init__(
