@@ -125,3 +125,7 @@ NON_RAW_FOOD_VERB_STEMS = {
 }
 # Also include "raw" so we don't add if again if already present
 NON_RAW_FOOD_VERB_STEMS.add("raw")
+
+# Tokens that indicated following words are negated.
+# NS = not specified.
+NEGATION_TOKENS = {"no", "not", "without", "NS"}

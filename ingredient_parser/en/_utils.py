@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import re
-import string
 from fractions import Fraction
 from functools import lru_cache
 from itertools import chain
@@ -10,13 +9,12 @@ import nltk.stem.porter as nsp
 import pint
 from nltk.tag import _get_tagger, _pos_tag
 
-from ingredient_parser.en._loaders import load_embeddings_model, load_ingredient_tagdict
+from ingredient_parser.en._loaders import load_ingredient_tagdict
 
 from .._common import UREG, consume, download_nltk_resources, is_float, is_range
 from ..dataclasses import IngredientAmount
 from ._constants import (
     FLATTENED_UNITS_LIST,
-    STOP_WORDS,
     UNIT_SYNONYMS,
     UNITS,
 )
@@ -564,36 +562,3 @@ def ingredient_amount_factory(
         MULTIPLIER=MULTIPLIER,
         PREPARED_INGREDIENT=PREPARED_INGREDIENT,
     )
-
-
-@lru_cache(maxsize=512)
-def prepare_embeddings_tokens(tokens: tuple[str, ...]) -> list[str]:
-    """Prepare tokens for use with embeddings model.
-
-    This involves obtaning the stem for the token and discarding tokens which are
-    numeric, which are punctuation, or which are in STOP_WORDS.
-
-    Parameters
-    ----------
-    tokens : tuple[str, ...]
-        Tuple of tokens.
-
-    Returns
-    -------
-    list[str]
-        Prepared tokens.
-    """
-    embeddings = load_embeddings_model()
-
-    return [
-        stem(token.lower())
-        for token in tokens
-        if stem(token.lower()) in embeddings
-        and not token.isnumeric()
-        and not token.isdigit()
-        and not token.isdecimal()
-        and not token.isspace()
-        and token not in string.punctuation
-        and token not in STOP_WORDS
-        and len(token) > 1
-    ]

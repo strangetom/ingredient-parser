@@ -10,10 +10,13 @@ import numpy as np
 from ...dataclasses import FoundationFood
 from .._embeddings import GloVeModel
 from .._loaders import load_embeddings_model
-from .._utils import prepare_embeddings_tokens
 from ._ff_constants import FOUNDATION_FOOD_OVERRIDES, NON_RAW_FOOD_VERB_STEMS
 from ._ff_dataclasses import FDCIngredient, FDCIngredientMatch
-from ._ff_utils import load_fdc_ingredients, normalise_spelling
+from ._ff_utils import (
+    load_fdc_ingredients,
+    normalise_spelling,
+    prepare_embeddings_tokens,
+)
 
 logger = logging.getLogger("ingredient-parser.foundation-foods")
 
