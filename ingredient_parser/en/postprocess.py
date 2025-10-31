@@ -9,7 +9,7 @@ from itertools import chain, pairwise
 from statistics import mean
 from typing import Any
 
-from ingredient_parser.en._foundationfoods import match_foundation_foods
+from ingredient_parser.en.foundationfoods import match_foundation_foods
 
 from .._common import consume, group_consecutive_idx
 from ..dataclasses import (
