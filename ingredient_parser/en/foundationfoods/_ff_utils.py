@@ -157,21 +157,21 @@ def load_fdc_ingredients() -> list[FDCIngredient]:
             logger.debug("Loading FDC ingredients: 'fdc_ingredients.csv.gz'.")
             reader = csv.DictReader(f)
             for row in reader:
-                tokens, negated_tokens = tokenize_with_negation(row["description"])
-                prepared_tokens = prepare_embeddings_tokens(tokens)
-                if not prepared_tokens:
+                tokens_weights = tokenize_fdc_description(row["description"])
+                if not tokens_weights:
                     logger.debug(
                         f"'{row['description']}' has no tokens in embedding vocabulary."
                     )
                     continue
+                tokens, weights = zip(*tokens_weights)
                 foundation_foods.append(
                     FDCIngredient(
                         fdc_id=int(row["fdc_id"]),
                         data_type=row["data_type"],
                         description=row["description"],
                         category=row["category"],
-                        tokens=prepared_tokens,
-                        negated_tokens=negated_tokens,
+                        tokens=list(tokens),
+                        weights=list(weights),
                     )
                 )
 
@@ -179,30 +179,55 @@ def load_fdc_ingredients() -> list[FDCIngredient]:
     return foundation_foods
 
 
-def tokenize_with_negation(description: str) -> tuple[tuple[str, ...], set[str]]:
-    """Tokenize description, return tokens and negated tokens.
-    Negated tokens are tokens that occur in a phrase after a token such as "no", "not",
-    "without". Phrases are determined by splitting the description on commas.
+def tokenize_fdc_description(description: str) -> list[tuple[str, float]]:
+    """Tokenize FDC ingredient description, returning tokens and weight for each token.
+
+    Tokens that are not compatible with the embedddings are discarded.
+
+    Weights are calculated using a 1/x decay based on the number of phrases in
+    the description. Each phrase is determined by the position of commas and later
+    phrases have lower weights. Fo example
+
+    Oil, olive, extra light
+    1     1/2    1/3   1/3
+
+    Negated tokens are given a weight of 0. These are tokens that occur in a phrase
+    after a token such as "no", "not", "without".
+
     Parameters
     ----------
     description : str
         FDC description to tokenize.
+
     Returns
     -------
-    tuple[tuple[str, ...], set[str]]
-        tuple of description tokens.
-        set of negated tokens.
+    list[tuple[str, float]]
+        List of (token, weight) tuples.
     """
     tokens = tokenize(description)
-    negated_tokens = set()
-    for _, phrase in groupby(tokens, lambda x: x != ","):
-        phrase = list(phrase)
+
+    weights = []
+    phrase_count = 1
+    for is_phrase, phrase in groupby(tokens, lambda x: x != ","):
+        if not is_phrase:
+            # If not phrase (i.e. is the comma), set weight to 0.
+            # These tokens will be discarded later anyway.
+            weights.append(0.0)
+            continue
+
+        phrase = list(prepare_embeddings_tokens(tuple(phrase)))
+        phrase_weights = [1 / phrase_count] * len(phrase)
+
+        # Check for negated tokens and set weight to 0.
         for neg in NEGATION_TOKENS:
             if neg in phrase:
                 neg_idx = phrase.index(neg)
                 # Include negation token negated_tokens set since it won't hold any
                 # further relevant semantic information.
-                negated_tokens |= set(phrase[neg_idx:])
+                for neg_idx in range(phrase.index(neg), len(phrase)):
+                    phrase_weights[neg_idx] = 0
 
-    tokens = tuple(token for token in tokens if token not in negated_tokens)
-    return tokens, negated_tokens
+        weights.extend(phrase_weights)
+        phrase_count += 1
+
+    return list(zip(tokens, weights))

@@ -12,7 +12,7 @@ class FDCIngredient:
     description: str
     category: str
     tokens: list[str]
-    negated_tokens: set[str]
+    weights: list[float]
 
 
 @dataclass
