@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 
+import itertools
 import json
 import random
 import sqlite3
 import traceback
+from fractions import Fraction
 from http import HTTPStatus
 from importlib.metadata import PackageNotFoundError, distribution
-from typing import Union
+from typing import Any, List, Union
 
 from _globals import (
     MODEL_REQUIREMENTS,
@@ -17,12 +19,14 @@ from _globals import (
     SQL3_DATABASE_TABLE,
 )
 from flask import Flask, jsonify, request
+from flask.json.provider import DefaultJSONProvider
 from flask_cors import CORS, cross_origin
+from pint import Unit
 from search import id_search, list_all_entries, string_search
 
 from ingredient_parser import inspect_parser
 from ingredient_parser.dataclasses import (
-    FoundationFood,
+    CompositeIngredientAmount,
     IngredientAmount,
     IngredientText,
     ParserDebugInfo,
@@ -33,8 +37,23 @@ from ingredient_parser.en._loaders import load_parser_model
 sqlite3.register_adapter(list, json.dumps)
 sqlite3.register_converter("json", json.loads)
 
+
 # Flask
+class JsonProviderIngredientSerializable(DefaultJSONProvider):
+    """Custom serialization for non-natively serializable types, namely Fraction."""
+
+    @staticmethod
+    def default(entity: Any):
+        if isinstance(entity, Fraction):
+            return str(entity)
+        elif isinstance(entity, Unit):
+            return str(entity)
+        return DefaultJSONProvider.default(entity)
+
+
 app = Flask(__name__, static_folder=NPM_BUILD_DIRECTORY, static_url_path="/")
+app.json_provider_class = JsonProviderIngredientSerializable
+app.json = JsonProviderIngredientSerializable(app)
 cors = CORS(app)
 
 # Reset on load @lru_cache
@@ -133,6 +152,29 @@ def get_all_marginals(parser_info: ParserDebugInfo) -> list[dict[str, float]]:
     return marginals
 
 
+def amount_resolver(
+    amounts: List[Union[CompositeIngredientAmount, IngredientAmount]],
+) -> List[IngredientAmount]:
+    """
+    Iterates over a polymorphic list of ingredient amounts, requires flattening logic
+
+    Parameters
+    -------
+    amounts: List[Union[CompositeIngredientAmount, IngredientAmount]]
+
+    Returns
+    -------
+    List[IngredientAmount]
+
+    """
+    collector = [
+        (amount.amounts if isinstance(amount, CompositeIngredientAmount) else [amount])
+        for amount in amounts
+    ]
+
+    return list(itertools.chain.from_iterable(collector))
+
+
 # routes
 @app.route("/parser", methods=["POST"])
 @cross_origin()
@@ -170,63 +212,38 @@ def parser():
             parsed = parser_info.PostProcessor.parsed
             marginals = get_all_marginals(parser_info)
 
-            return jsonify(
-                {
-                    "tokens": list(
-                        zip(
-                            parser_info.PostProcessor.tokens,
-                            parser_info.PostProcessor.labels,
-                            marginals,
-                        )
-                    ),
-                    "name": parsed.name
-                    if parsed.name is not None
-                    else [IngredientText("", 0, 0)],
-                    "size": parsed.size
-                    if parsed.size is not None
-                    else IngredientText("", 0, 0),
-                    "amounts": [
-                        IngredientAmount(
-                            quantity=str(amount.quantity),
-                            quantity_max=str(amount.quantity_max),
-                            text=amount.text,
-                            confidence=amount.confidence,
-                            starting_index=amount.starting_index,
-                            unit=str(amount.unit),
-                            APPROXIMATE=amount.APPROXIMATE,
-                            SINGULAR=amount.SINGULAR,
-                            RANGE=amount.RANGE,
-                            MULTIPLIER=amount.MULTIPLIER,
-                            PREPARED_INGREDIENT=amount.PREPARED_INGREDIENT,
-                        )
-                        for amount in parsed.amount
-                    ]
-                    if parsed.amount is not None
-                    else [],
-                    "preparation": parsed.preparation
-                    if parsed.preparation is not None
-                    else IngredientText("", 0, 0),
-                    "comment": parsed.comment
-                    if parsed.comment is not None
-                    else IngredientText("", 0, 0),
-                    "purpose": parsed.purpose
-                    if parsed.purpose is not None
-                    else IngredientText("", 0, 0),
-                    "foundation_foods": [
-                        FoundationFood(
-                            text=food.text,
-                            confidence=food.confidence,
-                            fdc_id=food.fdc_id,
-                            category=food.category,
-                            data_type=food.data_type,
-                            name_index=food.name_index,
-                        )
-                        for food in parsed.foundation_foods
-                    ]
-                    if parsed.foundation_foods is not None
-                    else [],
-                }
-            )
+            data_response = {
+                "tokens": list(
+                    zip(
+                        parser_info.PostProcessor.tokens,
+                        parser_info.PostProcessor.labels,
+                        marginals,
+                    )
+                ),
+                "name": parsed.name
+                if parsed.name is not None
+                else [IngredientText("", 0, 0)],
+                "size": parsed.size
+                if parsed.size is not None
+                else IngredientText("", 0, 0),
+                "amounts": amount_resolver(parsed.amount)
+                if parsed.amount is not None
+                else [],
+                "preparation": parsed.preparation
+                if parsed.preparation is not None
+                else IngredientText("", 0, 0),
+                "comment": parsed.comment
+                if parsed.comment is not None
+                else IngredientText("", 0, 0),
+                "purpose": parsed.purpose
+                if parsed.purpose is not None
+                else IngredientText("", 0, 0),
+                "foundation_foods": parsed.foundation_foods
+                if parsed.foundation_foods is not None
+                else [],
+            }
+
+            return jsonify(data_response)
 
         except Exception as ex:
             return jsonify_error(status=500, exception=ex)
