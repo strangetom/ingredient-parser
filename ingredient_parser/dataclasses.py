@@ -15,7 +15,7 @@ import pycrfsuite
 from ._common import UREG
 
 
-class UnitSystem(enum.Enum):
+class UnitSystem(enum.StrEnum):
     """Enum defining unit systems"""
 
     METRIC = enum.auto()
