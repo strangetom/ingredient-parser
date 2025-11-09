@@ -352,11 +352,8 @@ def is_unit_synonym(unit1: str, unit2: str) -> bool:
         return False
 
     # Make singular if plural
-    if unit1 in UNITS.keys():
-        unit1 = UNITS[unit1]
-
-    if unit2 in UNITS.keys():
-        unit2 = UNITS[unit2]
+    unit1 = UNITS.get(unit1, unit1)
+    unit2 = UNITS.get(unit2, unit2)
 
     for synonyms in UNIT_SYNONYMS:
         if unit1 in synonyms and unit2 in synonyms:

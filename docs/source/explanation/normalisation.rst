@@ -28,6 +28,10 @@ The normalisation of the input sentence is done on initialisation of a :class:`P
 
 Each of the normalisation steps is described below.
 
+#. ``_remove_price_annotations``
+
+   Price annotations, typically at the end of ingredient sentences such as ``($1.99)``, are removed.
+
 #. ``_replace_en_em_dash``
 
    En-dashes (`–`) and em-dashes (`—`) are replaced with hyphens (`-`). This makes identification of ranges of quantities easier.

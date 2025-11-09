@@ -1,5 +1,11 @@
 # Changelog
 
+## develop
+
+### Processing
+
+* Add `unit_system` attribute to `IngredientAmount` and `CompositeIngredientAmount` to indicate which unit system the amount uses e.g. metric, US customary, imperial.
+
 ## 2.4.0
 
 ### General

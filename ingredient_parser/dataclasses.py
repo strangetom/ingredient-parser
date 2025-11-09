@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import copy
+import enum
 import operator
 from dataclasses import dataclass, field
 from fractions import Fraction
@@ -12,6 +13,16 @@ import pint
 import pycrfsuite
 
 from ._common import UREG
+
+
+class UnitSystem(enum.Enum):
+    """Enum defining unit systems"""
+
+    METRIC = enum.auto()
+    US_CUSTOMARY = enum.auto()
+    IMPERIAL = enum.auto()
+    OTHER = enum.auto()
+    NONE = enum.auto()
 
 
 @dataclass
@@ -93,6 +104,8 @@ class IngredientAmount:
         This is the average confidence of all tokens that contribute to this object.
     starting_index : int
         Index of token in sentence that starts this amount
+    unit_system : UnitSystem
+        Unit system (e.g. metric) that the unit of the amount belongs to.
     APPROXIMATE : bool, optional
         When True, indicates that the amount is approximate.
         Default is False.
@@ -117,11 +130,15 @@ class IngredientAmount:
     text: str
     confidence: float
     starting_index: int
+    unit_system: UnitSystem = field(init=False)
     APPROXIMATE: bool = False
     SINGULAR: bool = False
     RANGE: bool = False
     MULTIPLIER: bool = False
     PREPARED_INGREDIENT: bool = False
+
+    def __post_init__(self):
+        self.unit_system = self._determine_unit_system()
 
     def _copy(self):
         """Return deepcopy of current object.
@@ -186,14 +203,75 @@ class IngredientAmount:
         converted_amount.quantity = q_converted.magnitude
         converted_amount.quantity_max = q_max_converted.magnitude
         converted_amount.unit = q_converted.units  # type: ignore
+        converted_amount.unit_system = converted_amount._determine_unit_system()
 
-        # Fraction object don't support float-style formatting until Python 3.12, so we
+        # Fraction objects don't support float-style formatting until Python 3.12, so we
         # can't just use f"{q_converted:P}"
         converted_amount.text = (
             f"{float(q_converted.magnitude):g} " + f"{q_converted.units:P}"
         )
 
         return converted_amount
+
+    def _determine_unit_system(self) -> UnitSystem:
+        """Determine the unit system (e.g. metric, imperial) for the amount.
+
+        Returns
+        -------
+        UnitSystem
+            Enum specifying the unit system in use.
+        """
+        if self.unit == "":
+            return UnitSystem.NONE
+
+        if isinstance(self.unit, pint.Unit):
+            # If unit is a pint.Unit, convert to string
+            unit = str(self.unit)
+        else:
+            unit = self.unit
+
+        # Detect if unit is imperial unit and if so, remove "imperial_" from unit text
+        # so we don't have to include "imperial_*" versions in the check below.
+        imperial_unit = "imperial" in unit  # type: ignore
+        unit = unit.replace("imperial_", "")  # type: ignore
+
+        # Split unit on spaces for cases like "large clove", "oz can"
+        for part in unit.split():
+            if part.lower() in {
+                "g",
+                "gram",
+                "kg",
+                "kilogram",
+                "l",
+                "liter",
+                "litre",
+                "ml",
+                "milliliter",
+                "millilitre",
+            }:
+                return UnitSystem.METRIC
+            elif part.lower() in {
+                "lb",
+                "pound",
+                "oz",
+                "ounce",
+                "st",
+                "stone",
+                "c",
+                "cup",
+                "tsp",
+                "teaspoon",
+                "tbsp",
+                "tablespoon",
+                "pt",
+                "pint",
+            }:
+                if imperial_unit:
+                    return UnitSystem.IMPERIAL
+                else:
+                    return UnitSystem.US_CUSTOMARY
+
+        return UnitSystem.OTHER
 
 
 @dataclass
@@ -221,6 +299,8 @@ class CompositeIngredientAmount:
         This is the average confidence of all tokens that contribute to this object.
     starting_index : int
         Index of token in sentence that starts this amount.
+    unit_system : UnitSystem
+        Unit system (e.g. metric) that the unit of the amount belongs to.
     """
 
     amounts: list[IngredientAmount]
@@ -229,6 +309,7 @@ class CompositeIngredientAmount:
     text: str = field(init=False)
     confidence: float = field(init=False)
     starting_index: int = field(init=False)
+    unit_system: UnitSystem = field(init=False)
 
     def __post_init__(self):
         """On dataclass instantiation, generate the text field."""
@@ -244,6 +325,22 @@ class CompositeIngredientAmount:
         # Set confidence to average of confidence values for amounts that make up the
         # composite amount.
         self.confidence = mean(amount.confidence for amount in self.amounts)
+
+        # Determine unit system from amounts
+        unit_systems = {amount.unit_system for amount in self.amounts}
+        if (
+            len(unit_systems) == 2
+            and UnitSystem.IMPERIAL in unit_systems
+            and UnitSystem.US_CUSTOMARY in unit_systems
+        ):
+            # Special case where we have a US customary unit paired with a unit that has
+            # a US customary and imperial version e.g. tbsp and cup.
+            # The imperial_units=True flag must have been set, so set to IMPERIAL
+            self.unit_system = UnitSystem.IMPERIAL
+        elif len(unit_systems) > 1:
+            self.unit_system = UnitSystem.OTHER
+        else:
+            self.unit_system = unit_systems.pop()
 
     def combined(self) -> pint.Quantity:
         """Return the combined amount in a single unit for the composite amount.
@@ -288,7 +385,9 @@ class CompositeIngredientAmount:
             (amount.quantity * amount.unit for amount in self.amounts),  # type: ignore
         )
 
-    def convert_to(self, unit: str, density: pint.Quantity = 1000 * UREG("kg/m^3")):
+    def convert_to(
+        self, unit: str, density: pint.Quantity = 1000 * UREG("kg/m^3")
+    ) -> pint.Quantity:
         """Convert units of the combined CompositeIngredientAmount object to given unit.
 
         Conversion is only possible if none of the quantity, quantity_max and unit are

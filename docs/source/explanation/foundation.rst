@@ -22,7 +22,7 @@ the :func:`parse_ingredient <ingredient_parser.parsers.parse_ingredient>` functi
 .. code:: python
 
     >>> from ingredient_parser import parse_ingredient
-    >>> parse_ingredient("1 large organic cucumber", foundation_foods=True)
+    >>> parse_ingredient("24 fresh basil leaves or dried basil", foundation_foods=True)
     ParsedIngredient(
         name=[IngredientText(text='fresh basil leaves',
                              confidence=0.973058,
@@ -37,6 +37,7 @@ the :func:`parse_ingredient <ingredient_parser.parsers.parse_ingredient>` functi
                                  text='24',
                                  confidence=0.999702,
                                  starting_index=0,
+                                 unit_system=<UnitSystem.NONE: 5>,
                                  APPROXIMATE=False,
                                  SINGULAR=False,
                                  RANGE=False,

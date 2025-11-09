@@ -156,6 +156,8 @@ For example:
                   unit=<Unit('cup')>,
                   text='0.75 cups',
                   confidence=0.999881,
+                  starting_index=0,
+                  unit_system=<UnitSystem.US_CUSTOMARY: 2>,
                   APPROXIMATE=False,
                   SINGULAR=False,
                   RANGE=False,
@@ -166,6 +168,8 @@ For example:
                   unit=<Unit('gram')>,
                   text='170 g',
                   confidence=0.995941,
+                  starting_index=3,
+                  unit_system=<UnitSystem.METRIC: 1>,
                   APPROXIMATE=False,
                   SINGULAR=False,
                   RANGE=False,
@@ -194,7 +198,7 @@ The replacements are predefined in the ``STRING_NUMBERS`` constant.
 For performance reasons, the regular expressions used to substitute the text with the number are pre-compiled and provided in the ``STRING_NUMBERS_REGEXES`` constant, which is a dictionary where the value is a tuple of (pre-compiled regular expression, substitute value).
 
 .. literalinclude:: ../../../ingredient_parser/en/_constants.py
-    :lines: 166-198
+    :lines: 186-218
 
 Units
 ~~~~~
@@ -222,6 +226,8 @@ By default, US customary units are used where a unit has more than one definitio
                                  unit=<Unit('cup')>,
                                  text='0.75 cups',
                                  confidence=0.999926,
+                                 starting_index=0,
+                                 unit_system=<UnitSystem.US_CUSTOMARY: 2>,
                                  APPROXIMATE=False,
                                  SINGULAR=False,
                                  RANGE=False,
@@ -241,6 +247,8 @@ By default, US customary units are used where a unit has more than one definitio
                                  unit=<Unit('imperial_cup')>,
                                  text='0.75 cups',
                                  confidence=0.999926,
+                                 starting_index=0,
+                                 unit_system=<UnitSystem.IMPERIAL: 3>,
                                  APPROXIMATE=False,
                                  SINGULAR=False,
                                  RANGE=False,
@@ -300,6 +308,8 @@ In this case there are two amounts: **2 cans** and **14 ounce**, where the latte
                       unit='cans',
                       text='2 cans',
                       confidence=0.999897,
+                      starting_index=0,
+                      unit_system=<UnitSystem.OTHER: 4>,
                       APPROXIMATE=False,
                       SINGULAR=False,
                       RANGE=False,
@@ -310,6 +320,8 @@ In this case there are two amounts: **2 cans** and **14 ounce**, where the latte
                       unit=<Unit('ounce')>,
                       text='14 ounces',
                       confidence=0.998793,
+                      starting_index=1,
+                      unit_system=<UnitSystem.US_CUSTOMARY: 2>,
                       APPROXIMATE=False,
                       SINGULAR=True,
                       RANGE=False,
@@ -336,6 +348,7 @@ For example
                              text='1 lb',
                              confidence=0.999923,
                              starting_index=0,
+                             unit_system=<UnitSystem.US_CUSTOMARY: 2>,
                              APPROXIMATE=False,
                              SINGULAR=False,
                              RANGE=False,
@@ -347,6 +360,7 @@ For example
                              text='2 oz',
                              confidence=0.998968,
                              starting_index=2,
+                             unit_system=<UnitSystem.US_CUSTOMARY: 2>,
                              APPROXIMATE=False,
                              SINGULAR=False,
                              RANGE=False,
@@ -357,4 +371,5 @@ For example
         text='1 lb 2 oz',
         confidence=0.9994455,
         starting_index=0
+        unit_system=<UnitSystem.US_CUSTOMARY: 2>,
     )]
