@@ -34,6 +34,10 @@ IMPERIAL_UNITS = {
     "quart": "imperial_quart",
     "pint": "imperial_pint",
     "gallon": "imperial_gallon",
+    "tablespoon": "imperial_tablespoon",
+    "tbsp": "imperial_tbsp",
+    "teaspoon": "imperial_tsp",
+    "tsp": "imperial_tsp",
 }
 
 # List of units that pint interprets as incorrect unit

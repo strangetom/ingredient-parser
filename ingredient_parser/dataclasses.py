@@ -226,17 +226,17 @@ class IngredientAmount:
 
         if isinstance(self.unit, pint.Unit):
             # If unit is a pint.Unit, convert to string
-            unit = str(self.unit)
+            str_unit = str(self.unit)
         else:
-            unit = self.unit
+            str_unit = self.unit
 
         # Detect if unit is imperial unit and if so, remove "imperial_" from unit text
         # so we don't have to include "imperial_*" versions in the check below.
-        imperial_unit = "imperial" in unit  # type: ignore
-        unit = unit.replace("imperial_", "")  # type: ignore
+        imperial_unit = "imperial" in str_unit
+        str_unit = str_unit.replace("imperial_", "")
 
         # Split unit on spaces for cases like "large clove", "oz can"
-        for part in unit.split():
+        for part in str_unit.split():
             if part.lower() in {
                 "g",
                 "gram",

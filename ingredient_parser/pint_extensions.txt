@@ -1,0 +1,11 @@
+@context(p=1) density
+    # p density of the liquid (mass/volume)
+    [volume] -> [mass]: value * p
+    [mass] -> [volume]: value / p
+@end
+
+@group ImperialVolumeExtras
+    imperial_tablespoon = imperial_cup / 16 = imperial_tbsp = UK_tablespoon = UK_tbsp
+    imperial_teaspoon = imperial_cup / 48 = imperial_tsp = UK_teaspoon = UK_tsp
+@end
+
