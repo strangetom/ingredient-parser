@@ -6,6 +6,7 @@ import {
 	Breadcrumbs,
 	type BreadcrumbsProps,
 	Flex,
+	type FlexProps,
 	Table,
 	type TableTrProps,
 	Text,
@@ -40,10 +41,94 @@ function TableRowTooltip({ children, label, ...others }: TooltipProps) {
 	);
 }
 
+interface TableRowLineItemProps extends FlexProps {
+	isCompositeIngredient: boolean;
+	badgeCategory: LabellerCategory;
+	lineItem: Confidence | FoundationFood | Amount;
+}
+
+function TableRowLineItem({
+	isCompositeIngredient,
+	badgeCategory,
+	lineItem,
+	...others
+}: TableRowLineItemProps) {
+	const { text, confidence, APPROXIMATE, SINGULAR, PREPARED_INGREDIENT } =
+		lineItem;
+
+	return (
+		<Flex justify="flex-start" align="center" fz="md" {...others}>
+			<Box>{text}</Box>
+			{isCompositeIngredient && (
+				<TableRowTooltip label="Composite Ingredient">
+					<Badge style={{ cursor: "help" }} ml={6}>
+						C
+					</Badge>
+				</TableRowTooltip>
+			)}
+			{APPROXIMATE && (
+				<TableRowTooltip label="Approximate">
+					<Badge style={{ cursor: "help" }} ml={6}>
+						~
+					</Badge>
+				</TableRowTooltip>
+			)}
+			{SINGULAR && (
+				<TableRowTooltip label="Singular">
+					<Badge style={{ cursor: "help" }} ml={6}>
+						1
+					</Badge>
+				</TableRowTooltip>
+			)}
+			{PREPARED_INGREDIENT && (
+				<TableRowTooltip label="Prepared Ingredient">
+					<Badge style={{ cursor: "help" }} ml={6}>
+						P
+					</Badge>
+				</TableRowTooltip>
+			)}
+			{confidence !== 0 && (
+				<Badge ml={6} variant={badgeCategory}>
+					{(confidence * 100).toFixed(2)}%
+				</Badge>
+			)}
+		</Flex>
+	);
+}
+
+interface TableRowLineFoundationItemProps extends FlexProps {
+	badgeCategory: LabellerCategory;
+	lineItem: FoundationFood;
+}
+
+function TableRowLineFoundationItem({
+	badgeCategory,
+	lineItem,
+}: TableRowLineFoundationItemProps) {
+	const { text, confidence, fdc_id } = lineItem;
+
+	return (
+		<Flex justify="flex-start" align="center" fz="md">
+			<Anchor
+				href={`https://fdc.nal.usda.gov/food-details/${fdc_id}/nutrients`}
+				target="_blank"
+				fw="normal"
+			>
+				{text}
+			</Anchor>
+			{confidence !== 0 && (
+				<Badge ml={6} variant={badgeCategory}>
+					{(confidence * 100).toFixed(2)}%
+				</Badge>
+			)}
+		</Flex>
+	);
+}
+
 interface TableRowProps extends TableTrProps {
 	title: string;
 	badgeCategory: LabellerCategory;
-	items: Confidence[] | FoundationFood[] | Amount[];
+	items: Confidence[] | FoundationFood[] | Amount[] | Amount[][];
 }
 
 export function TableRow({
@@ -62,71 +147,58 @@ export function TableRow({
 		fz: "md",
 	} as BreadcrumbsProps;
 
-	const itemsBreadcrumbs = items.map(
-		({
-			text,
-			confidence,
-			APPROXIMATE,
-			SINGULAR,
-			PREPARED_INGREDIENT,
-			...others
-		}) =>
-			others?.fdc_id ? (
-				<Flex
-					justify="flex-start"
-					align="center"
-					fz="md"
-					key={`table-row-${text}`}
-				>
-					<Anchor
-						href={`https://fdc.nal.usda.gov/food-details/${others.fdc_id}/nutrients`}
-						target="_blank"
-						fw="normal"
-					>
-						{text}
-					</Anchor>
-					{confidence !== 0 && (
-						<Badge ml={6} variant={badgeCategory}>
-							{(confidence * 100).toFixed(2)}%
-						</Badge>
-					)}
-				</Flex>
+	const isNestedAmount = items.some((_i) => Array.isArray(_i));
+
+	if (isNestedAmount) {
+		const itemsBreadcrumbs = items.map((item) =>
+			Array.isArray(item) ? (
+				item.map((itemsSub) => (
+					<TableRowLineItem
+						key={`table-row-${itemsSub.text}`}
+						isCompositeIngredient={true}
+						lineItem={itemsSub}
+						badgeCategory={badgeCategory}
+					/>
+				))
 			) : (
-				<Flex
-					justify="flex-start"
-					align="center"
-					fz="md"
-					key={`table-row-${text}`}
-				>
-					<Box>{text}</Box>
-					{APPROXIMATE && (
-						<TableRowTooltip label="Approximate">
-							<Badge style={{ cursor: "help" }} ml={6}>
-								~
-							</Badge>
-						</TableRowTooltip>
-					)}
-					{SINGULAR && (
-						<TableRowTooltip label="Singular">
-							<Badge style={{ cursor: "help" }} ml={6}>
-								1
-							</Badge>
-						</TableRowTooltip>
-					)}
-					{PREPARED_INGREDIENT && (
-						<TableRowTooltip label="Prepared Ingredient">
-							<Badge style={{ cursor: "help" }} ml={6}>
-								P
-							</Badge>
-						</TableRowTooltip>
-					)}
-					{confidence !== 0 && (
-						<Badge ml={6} variant={badgeCategory}>
-							{(confidence * 100).toFixed(2)}%
-						</Badge>
-					)}
-				</Flex>
+				<TableRowLineItem
+					key={`table-row-${item.text}`}
+					isCompositeIngredient={false}
+					lineItem={item}
+					badgeCategory={badgeCategory}
+				/>
 			),
+		);
+
+		return (
+			<Table.Tr {...others}>
+				<Table.Td width={100} fw="bold">
+					<Text variant="light">{title}</Text>
+				</Table.Td>
+				<Table.Td>
+					<Breadcrumbs {...breadcrumbDefaultProps}>
+						{itemsBreadcrumbs}
+					</Breadcrumbs>
+				</Table.Td>
+			</Table.Tr>
+		);
+	}
+
+	const itemsBreadcrumbs = items.map((item) =>
+		item?.fdc_id ? (
+			<TableRowLineFoundationItem
+				key={`table-row-${item.text}`}
+				lineItem={item}
+				badgeCategory={badgeCategory}
+			/>
+		) : (
+			<TableRowLineItem
+				key={`table-row-${item.text}`}
+				isCompositeIngredient={false}
+				lineItem={item}
+				badgeCategory={badgeCategory}
+			/>
+		),
 	);
 
 	return (
