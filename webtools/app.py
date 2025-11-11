@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import itertools
 import json
 import random
 import sqlite3
@@ -154,9 +153,9 @@ def get_all_marginals(parser_info: ParserDebugInfo) -> list[dict[str, float]]:
 
 def amount_resolver(
     amounts: List[Union[CompositeIngredientAmount, IngredientAmount]],
-) -> List[IngredientAmount]:
+) -> List[Union[IngredientAmount, List[IngredientAmount]]]:
     """
-    Iterates over a polymorphic list of ingredient amounts, requires flattening logic
+    Iterates over a polymorphic list of ingredient amounts
 
     Parameters
     -------
@@ -164,15 +163,14 @@ def amount_resolver(
 
     Returns
     -------
-    List[IngredientAmount]
+    List[Union[IngredientAmount, List[IngredientAmount]]]
 
     """
-    collector = [
-        (amount.amounts if isinstance(amount, CompositeIngredientAmount) else [amount])
+
+    return [
+        (amount.amounts if isinstance(amount, CompositeIngredientAmount) else amount)
         for amount in amounts
     ]
-
-    return list(itertools.chain.from_iterable(collector))
 
 
 # routes
