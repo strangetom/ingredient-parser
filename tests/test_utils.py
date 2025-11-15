@@ -74,23 +74,23 @@ class Test_convert_to_pint_unit:
         Test that imperial units are returned where appropriate
         """
         assert (
-            convert_to_pint_unit("fl oz", imperial_units=True)
+            convert_to_pint_unit("fl oz", volumetric_units_country="imperial")
             == UREG("imperial_fluid_ounce").units
         )
         assert (
-            convert_to_pint_unit("cup", imperial_units=True)
+            convert_to_pint_unit("cup", volumetric_units_country="imperial")
             == UREG("imperial_cup").units
         )
         assert (
-            convert_to_pint_unit("quart", imperial_units=True)
+            convert_to_pint_unit("quart", volumetric_units_country="imperial")
             == UREG("imperial_quart").units
         )
         assert (
-            convert_to_pint_unit("pint", imperial_units=True)
+            convert_to_pint_unit("pint", volumetric_units_country="imperial")
             == UREG("imperial_pint").units
         )
         assert (
-            convert_to_pint_unit("gallon", imperial_units=True)
+            convert_to_pint_unit("gallon", volumetric_units_country="imperial")
             == UREG("imperial_gallon").units
         )
 

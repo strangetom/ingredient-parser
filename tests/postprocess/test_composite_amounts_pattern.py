@@ -179,7 +179,12 @@ class TestPostProcessor_composite_amounts_pattern:
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
         p = PostProcessor(
-            sentence, tokens, pos_tags, labels, scores, imperial_units=True
+            sentence,
+            tokens,
+            pos_tags,
+            labels,
+            scores,
+            volumetric_units_country="imperial",
         )
 
         expected = [
@@ -191,7 +196,7 @@ class TestPostProcessor_composite_amounts_pattern:
                         text="2 pints",
                         confidence=0,
                         starting_index=3,
-                        imperial_units=True,
+                        volumetric_units_country="imperial",
                     ),
                     ingredient_amount_factory(
                         quantity="12.75",
@@ -199,7 +204,7 @@ class TestPostProcessor_composite_amounts_pattern:
                         text="12.75 fl oz",
                         confidence=0,
                         starting_index=5,
-                        imperial_units=True,
+                        volumetric_units_country="imperial",
                     ),
                 ],
                 join="",

@@ -18,7 +18,7 @@ def parse_ingredient_en(
     discard_isolated_stop_words: bool = True,
     expect_name_in_output: bool = True,
     string_units: bool = False,
-    imperial_units: bool = False,
+    volumetric_units_country: str = "us",
     foundation_foods: bool = False,
 ) -> ParsedIngredient:
     """Parse an English language ingredient sentence to return structured data.
@@ -46,10 +46,11 @@ def parse_ingredient_en(
         If True, return all IngredientAmount units as strings.
         If False, convert IngredientAmount units to pint.Unit objects where possible.
         Default is False.
-    imperial_units : bool, optional
-        If True, use imperial units instead of US customary units for pint.Unit objects
-        for the the following units: fluid ounce, cup, pint, quart, gallon.
-        Default is False, which results in US customary units being used.
+    volumetric_units_country : str, optional
+        Set the country standard for volumetric units such as cups, tablespoon.
+        Available options are "us", "uk", "imperial", "aus".
+        "uk" and "imperial" are synonyms.
+        Default is "us".
         This has no effect if string_units=True.
     foundation_foods : bool, optional
         If True, extract foundation foods from ingredient name. Foundation foods are
@@ -95,7 +96,7 @@ def parse_ingredient_en(
         separate_names=separate_names,
         discard_isolated_stop_words=discard_isolated_stop_words,
         string_units=string_units,
-        imperial_units=imperial_units,
+        volumetric_units_country=volumetric_units_country,
         foundation_foods=foundation_foods,
     )
     parsed = postprocessed_sentence.parsed
@@ -109,7 +110,7 @@ def inspect_parser_en(
     discard_isolated_stop_words: bool = True,
     expect_name_in_output: bool = True,
     string_units: bool = False,
-    imperial_units: bool = False,
+    volumetric_units_country: str = "us",
     foundation_foods: bool = False,
 ) -> ParserDebugInfo:
     """Return intermediate objects generated during parsing for inspection.
@@ -137,10 +138,11 @@ def inspect_parser_en(
         If True, return all IngredientAmount units as strings.
         If False, convert IngredientAmount units to pint.Unit objects where possible.
         Default is False.
-    imperial_units : bool, optional
-        If True, use imperial units instead of US customary units for pint.Unit objects
-        for the the following units: fluid ounce, cup, pint, quart, gallon.
-        Default is False, which results in US customary units being used.
+    volumetric_units_country : str, optional
+        Set the country standard for volumetric units such as cups, tablespoon.
+        Available options are "us", "uk", "imperial", "aus".
+        "uk" and "imperial" are synonyms.
+        Default is "us".
         This has no effect if string_units=True.
     foundation_foods : bool, optional
         If True, extract foundation foods from ingredient name. Foundation foods are
@@ -186,7 +188,7 @@ def inspect_parser_en(
         separate_names=separate_names,
         discard_isolated_stop_words=discard_isolated_stop_words,
         string_units=string_units,
-        imperial_units=imperial_units,
+        volumetric_units_country=volumetric_units_country,
         foundation_foods=foundation_foods,
     )
 

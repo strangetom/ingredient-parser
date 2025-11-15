@@ -26,18 +26,18 @@ from ._regex import (
     STRING_RANGE_PATTERN,
 )
 
-# Dict mapping certain units to their imperial version in pint
-IMPERIAL_UNITS = {
-    "cup": "imperial_cup",
-    "floz": "imperial_floz",
-    "fluid_ounce": "imperial_fluid_ounce",
-    "quart": "imperial_quart",
-    "pint": "imperial_pint",
-    "gallon": "imperial_gallon",
-    "tablespoon": "imperial_tablespoon",
-    "tbsp": "imperial_tbsp",
-    "teaspoon": "imperial_tsp",
-    "tsp": "imperial_tsp",
+# List of volumetric units that have different country versions.
+VOLUMETRIC_UNITS_W_ALTERNATIVES = {
+    "cup",
+    "floz",
+    "fluid_ounce",
+    "quart",
+    "pint",
+    "gallon",
+    "tablespoon",
+    "tbsp",
+    "teaspoon",
+    "tsp",
 }
 
 # List of units that pint interprets as incorrect unit
@@ -262,7 +262,9 @@ def pluralise_units(sentence: str) -> str:
 
 
 @lru_cache(maxsize=512)
-def convert_to_pint_unit(unit: str, imperial_units: bool = False) -> str | pint.Unit:
+def convert_to_pint_unit(
+    unit: str, volumetric_units_country: str = "us"
+) -> str | pint.Unit:
     """Convert a unit to a pint.Unit object, if possible.
 
     If the unit is not found in the pint Unit Registry, just return the input unit.
@@ -271,10 +273,12 @@ def convert_to_pint_unit(unit: str, imperial_units: bool = False) -> str | pint.
     ----------
     unit : str
         Unit to find in pint Unit Registry.
-    imperial_units : bool, optional
-        If True, use imperial units instead of US customary units for the following:
-        fluid ounce, cup, pint, quart, gallon.
-        Default is False, which results in US customary units being used.
+    volumetric_units_country : str, optional
+        Set the country standard for volumetric units such as cups, tablespoon.
+        Available options are "us", "uk", "imperial", "aus".
+        "uk" and "imperial" are synonyms.
+        Default is "us".
+        This has no effect if string_units=True.
 
     Returns
     -------
@@ -293,7 +297,7 @@ def convert_to_pint_unit(unit: str, imperial_units: bool = False) -> str | pint.
     >>> convert_to_pint_unit("fl oz")
     <Unit('fluid_ounce')>
 
-    >>> convert_to_pint_unit("cup", imperial_units=True)
+    >>> convert_to_pint_unit("cup", volumetric_units_country="imperial")
     <Unit('imperial_cup')>
     """
     if "-" in unit:
@@ -312,9 +316,9 @@ def convert_to_pint_unit(unit: str, imperial_units: bool = False) -> str | pint.
     for regex, replacement in UNIT_REPLACEMENTS:
         unit = regex.sub(replacement, unit)
 
-    if imperial_units:
-        for original, replacement in IMPERIAL_UNITS.items():
-            unit = unit.replace(original, replacement)
+    if unit in VOLUMETRIC_UNITS_W_ALTERNATIVES and volumetric_units_country != "us":
+        # Convert unit to country specific version e.g. cups -> imperial_cup
+        unit = volumetric_units_country + "_" + unit
 
     # If unit not empty string and found in Unit Registry,
     # return pint.Unit object for unit
@@ -458,7 +462,7 @@ def ingredient_amount_factory(
     SINGULAR: bool = False,
     PREPARED_INGREDIENT: bool = False,
     string_units: bool = False,
-    imperial_units: bool = False,
+    volumetric_units_country: str = "us",
 ) -> IngredientAmount:
     """Create ingredient amount object from parts.
 
@@ -495,10 +499,11 @@ def ingredient_amount_factory(
         If True, return all IngredientAmount units as strings.
         If False, convert IngredientAmount units to pint.Unit objects where possible.
         Default is False.
-    imperial_units : bool, optional
-        If True, use imperial units instead of US customary units for pint.Unit objects
-        for the the following units: fluid ounce, cup, pint, quart, gallon.
-        Default is False, which results in US customary units being used.
+    volumetric_units_country : str, optional
+        Set the country standard for volumetric units such as cups, tablespoon.
+        Available options are "us", "uk", "imperial", "aus".
+        "uk" and "imperial" are synonyms.
+        Default is "us".
         This has no effect if string_units=True.
 
     Returns
@@ -537,7 +542,7 @@ def ingredient_amount_factory(
         # a pint.Unit object instead of a string. This has the benefit
         # of simplifying alternative unit representations into a single
         # common representation
-        _unit = convert_to_pint_unit(_unit, imperial_units)
+        _unit = convert_to_pint_unit(_unit, volumetric_units_country)
 
     # Pluralise unit as necessary
     if _quantity != 1 and _quantity != "" and not RANGE:

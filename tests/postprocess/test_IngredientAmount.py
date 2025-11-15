@@ -127,7 +127,9 @@ class TestPostProcessor_CompositeIngredientAmount:
         Test that the unit system for a composite ingredient amount is correct set when
         one of the units is imperial and the other US customary.
         """
-        am1 = ingredient_amount_factory("1", "cup", "1 cup", 0, 0, imperial_units=True)
+        am1 = ingredient_amount_factory(
+            "1", "cup", "1 cup", 0, 0, volumetric_units_country="imperial"
+        )
         am2 = ingredient_amount_factory("2", "tbsp", "2 tbsp", 0, 0)
 
         amount = CompositeIngredientAmount(
