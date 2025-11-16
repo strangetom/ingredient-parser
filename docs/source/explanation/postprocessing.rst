@@ -157,7 +157,7 @@ For example:
                   text='0.75 cups',
                   confidence=0.999881,
                   starting_index=0,
-                  unit_system=<UnitSystem.US_CUSTOMARY: 2>,
+                  unit_system=<UnitSystem.US_CUSTOMARY: 'us_customary'>,
                   APPROXIMATE=False,
                   SINGULAR=False,
                   RANGE=False,
@@ -169,7 +169,7 @@ For example:
                   text='170 g',
                   confidence=0.995941,
                   starting_index=3,
-                  unit_system=<UnitSystem.METRIC: 1>,
+                  unit_system=<UnitSystem.METRIC: 'metric'>,
                   APPROXIMATE=False,
                   SINGULAR=False,
                   RANGE=False,
@@ -213,11 +213,13 @@ If the unit in a parsed :class:`IngredientAmount` can be matched to a unit in th
 This has the benefit of standardising units that can be represented in different formats, for example a `gram` could be represented in the sentence as `g`, `gram`, `grams`.
 These will all be represented using the same ``<Unit('gram')>`` object in the parsed information.
 
-By default, US customary units are used where a unit has more than one definition. This can be changed to use the Imperial unit by setting ``imperial_units=True`` in the :func:`parse_ingredient <ingredient_parser.parsers.parse_ingredient>` function call.
+By default, US customary units are used for volumetric measurements that have multiple defintions (e.g. cup, tablespoon etc.).
+This can be changed to use other unit systems using the ``volumetric_units_system`` keyword argument in the :func:`parse_ingredient <ingredient_parser.parsers.parse_ingredient>` function call.
+See :doc:`Options </tutorials/options>` for the available options.
 
 .. code:: python
 
-    >>> parse_ingredient("3/4 cup heavy cream", imperial_units=False)  # Default
+    >>> parse_ingredient("3/4 cup heavy cream", volumetric_units_system="us_customary")  # Default
     ParsedIngredient(
         name=IngredientText(text='heavy cream', confidence=0.997513),
         size=None,
@@ -227,7 +229,7 @@ By default, US customary units are used where a unit has more than one definitio
                                  text='0.75 cups',
                                  confidence=0.999926,
                                  starting_index=0,
-                                 unit_system=<UnitSystem.US_CUSTOMARY: 2>,
+                                 unit_system=<UnitSystem.US_CUSTOMARY: 'us_customary'>,
                                  APPROXIMATE=False,
                                  SINGULAR=False,
                                  RANGE=False,
@@ -238,7 +240,7 @@ By default, US customary units are used where a unit has more than one definitio
         sentence='3/4 cup heavy cream'
     )
 
-    >>> parse_ingredient("3/4 cup heavy cream", imperial_units=True)
+    >>> parse_ingredient("3/4 cup heavy cream", volumetric_units_system="imperial")
     ParsedIngredient(
         name=IngredientText(text='heavy cream', confidence=0.997513),
         size=None,
@@ -248,7 +250,7 @@ By default, US customary units are used where a unit has more than one definitio
                                  text='0.75 cups',
                                  confidence=0.999926,
                                  starting_index=0,
-                                 unit_system=<UnitSystem.IMPERIAL: 3>,
+                                 unit_system=<UnitSystem.IMPERIAL: 'imperial'>,
                                  APPROXIMATE=False,
                                  SINGULAR=False,
                                  RANGE=False,
@@ -309,7 +311,7 @@ In this case there are two amounts: **2 cans** and **14 ounce**, where the latte
                       text='2 cans',
                       confidence=0.999897,
                       starting_index=0,
-                      unit_system=<UnitSystem.OTHER: 4>,
+                      unit_system=<UnitSystem.OTHER: 'other'>,
                       APPROXIMATE=False,
                       SINGULAR=False,
                       RANGE=False,
@@ -321,7 +323,7 @@ In this case there are two amounts: **2 cans** and **14 ounce**, where the latte
                       text='14 ounces',
                       confidence=0.998793,
                       starting_index=1,
-                      unit_system=<UnitSystem.US_CUSTOMARY: 2>,
+                      unit_system=<UnitSystem.US_CUSTOMARY: 'us_customary'>,
                       APPROXIMATE=False,
                       SINGULAR=True,
                       RANGE=False,
@@ -348,7 +350,7 @@ For example
                              text='1 lb',
                              confidence=0.999923,
                              starting_index=0,
-                             unit_system=<UnitSystem.US_CUSTOMARY: 2>,
+                             unit_system=<UnitSystem.US_CUSTOMARY: 'us_customary'>,
                              APPROXIMATE=False,
                              SINGULAR=False,
                              RANGE=False,
@@ -360,7 +362,7 @@ For example
                              text='2 oz',
                              confidence=0.998968,
                              starting_index=2,
-                             unit_system=<UnitSystem.US_CUSTOMARY: 2>,
+                             unit_system=<UnitSystem.US_CUSTOMARY: 'us_customary'>,
                              APPROXIMATE=False,
                              SINGULAR=False,
                              RANGE=False,
@@ -371,5 +373,5 @@ For example
         text='1 lb 2 oz',
         confidence=0.9994455,
         starting_index=0
-        unit_system=<UnitSystem.US_CUSTOMARY: 2>,
+        unit_system=<UnitSystem.US_CUSTOMARY: 'us_customary'>,
     )]

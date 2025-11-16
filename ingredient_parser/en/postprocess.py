@@ -132,7 +132,7 @@ class PostProcessor:
         separate_names: bool = True,
         discard_isolated_stop_words: bool = True,
         string_units: bool = False,
-        imperial_units: bool = False,
+        volumetric_units_system: str = "us_customary",
         foundation_foods: bool = False,
     ):
         self.sentence = sentence
@@ -143,7 +143,7 @@ class PostProcessor:
         self.separate_names = separate_names
         self.discard_isolated_stop_words = discard_isolated_stop_words
         self.string_units = string_units
-        self.imperial_units = imperial_units
+        self.volumetric_units_system = volumetric_units_system
         self.foundation_foods = foundation_foods
         self.consumed = []
 
@@ -1062,7 +1062,7 @@ class PostProcessor:
                         starting_index=idx[match[0]],
                         APPROXIMATE=self._is_approximate(match[0], tokens, labels, idx),
                         string_units=self.string_units,
-                        imperial_units=self.imperial_units,
+                        volumetric_units_system=self.volumetric_units_system,
                     )
                     amounts.append(first)
                     # Pop the first and last items from the list of matching indices
@@ -1088,7 +1088,7 @@ class PostProcessor:
                             SINGULAR=True,
                             APPROXIMATE=first.APPROXIMATE,
                             string_units=self.string_units,
-                            imperial_units=self.imperial_units,
+                            volumetric_units_system=self.volumetric_units_system,
                         )
                         amounts.append(amount)
 
@@ -1259,7 +1259,7 @@ class PostProcessor:
                     confidence=score_1,
                     starting_index=idx[match[start1]],
                     string_units=self.string_units,
-                    imperial_units=self.imperial_units,
+                    volumetric_units_system=self.volumetric_units_system,
                 )
 
                 # Second amount
@@ -1275,7 +1275,7 @@ class PostProcessor:
                     confidence=score_2,
                     starting_index=idx[match[start2]],
                     string_units=self.string_units,
-                    imperial_units=self.imperial_units,
+                    volumetric_units_system=self.volumetric_units_system,
                 )
 
                 composite_amounts.append(
@@ -1472,7 +1472,7 @@ class PostProcessor:
                     SINGULAR=amount.SINGULAR,
                     PREPARED_INGREDIENT=amount.PREPARED_INGREDIENT,
                     string_units=self.string_units,
-                    imperial_units=self.imperial_units,
+                    volumetric_units_system=self.volumetric_units_system,
                 )
             )
 

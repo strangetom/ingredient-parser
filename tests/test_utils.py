@@ -69,29 +69,100 @@ class Test_convert_to_pint_unit:
         assert convert_to_pint_unit("C") == UREG("cup").units
         assert convert_to_pint_unit("c") == UREG("cup").units
 
+    def test_alternative_pints(self):
+        """
+        Test that imperial pints are returned when imperial is requested.
+        Test that australian pints are return when australian is requested.
+        There's no such thing as a metric pint, so test that the default pint
+        (i.e. US customary is returned.)
+        """
+        assert (
+            convert_to_pint_unit("pint", volumetric_units_system="imperial")
+            == UREG("imperial_pint").units
+        )
+        assert (
+            convert_to_pint_unit("pint", volumetric_units_system="australian")
+            == UREG("aus_pint").units
+        )
+        assert (
+            convert_to_pint_unit("pint", volumetric_units_system="metric")
+            == UREG("pint").units
+        )
+
     def test_imperial_units(self):
         """
         Test that imperial units are returned where appropriate
         """
         assert (
-            convert_to_pint_unit("fl oz", imperial_units=True)
+            convert_to_pint_unit("fl oz", volumetric_units_system="imperial")
             == UREG("imperial_fluid_ounce").units
         )
         assert (
-            convert_to_pint_unit("cup", imperial_units=True)
+            convert_to_pint_unit("cup", volumetric_units_system="imperial")
             == UREG("imperial_cup").units
         )
         assert (
-            convert_to_pint_unit("quart", imperial_units=True)
+            convert_to_pint_unit("quart", volumetric_units_system="imperial")
             == UREG("imperial_quart").units
         )
         assert (
-            convert_to_pint_unit("pint", imperial_units=True)
+            convert_to_pint_unit("pint", volumetric_units_system="imperial")
             == UREG("imperial_pint").units
         )
         assert (
-            convert_to_pint_unit("gallon", imperial_units=True)
+            convert_to_pint_unit("gallon", volumetric_units_system="imperial")
             == UREG("imperial_gallon").units
+        )
+
+    def test_metric_volumetric_units(self):
+        """
+        Test that metric volumetric units are returned where appropriate
+        """
+        assert (
+            convert_to_pint_unit("cup", volumetric_units_system="metric")
+            == UREG("metric_cup").units
+        )
+        assert (
+            convert_to_pint_unit("tbsp", volumetric_units_system="metric")
+            == UREG("metric_tbsp").units
+        )
+        assert (
+            convert_to_pint_unit("teaspoon", volumetric_units_system="metric")
+            == UREG("metric_teaspoon").units
+        )
+
+    def test_australian_units(self):
+        """
+        Test that australian tbsp is returned, and metric cup and tsp.
+        """
+        assert (
+            convert_to_pint_unit("cup", volumetric_units_system="australian")
+            == UREG("metric_cup").units
+        )
+        assert (
+            convert_to_pint_unit("tbsp", volumetric_units_system="australian")
+            == UREG("aus_tbsp").units
+        )
+        assert (
+            convert_to_pint_unit("teaspoon", volumetric_units_system="australian")
+            == UREG("metric_teaspoon").units
+        )
+
+    def test_japanese_units(self):
+        """
+        Test that japanese cup is returned, and metric tbsp and tsp.
+        """
+        assert (
+            convert_to_pint_unit("cup", volumetric_units_system="japanese")
+            == UREG("jp_cup").units
+        )
+        assert (
+            convert_to_pint_unit("tbsp", volumetric_units_system="japanese")
+            == UREG("metric_tbsp").units
+        )
+        assert (
+            convert_to_pint_unit("teaspoon", volumetric_units_system="japanese")
+            == UREG("metric_teaspoon").units
         )
 
     def test_unit_with_hypen(self):

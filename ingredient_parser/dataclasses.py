@@ -21,6 +21,8 @@ class UnitSystem(enum.StrEnum):
     METRIC = enum.auto()
     US_CUSTOMARY = enum.auto()
     IMPERIAL = enum.auto()
+    AUSTRALIAN = enum.auto()
+    JAPANESE = enum.auto()
     OTHER = enum.auto()
     NONE = enum.auto()
 
@@ -224,16 +226,19 @@ class IngredientAmount:
         if self.unit == "":
             return UnitSystem.NONE
 
-        if isinstance(self.unit, pint.Unit):
-            # If unit is a pint.Unit, convert to string
-            str_unit = str(self.unit)
-        else:
-            str_unit = self.unit
+        # If unit is a pint.Unit, convert to string
+        str_unit = str(self.unit) if isinstance(self.unit, pint.Unit) else self.unit
 
-        # Detect if unit is imperial unit and if so, remove "imperial_" from unit text
-        # so we don't have to include "imperial_*" versions in the check below.
-        imperial_unit = "imperial" in str_unit
+        # Detect if unit uses a particular volumetric unit system.
+        # Remove that identifying text from the unit to make the check below simpler.
+        imperial_unit = "imperial_" in str_unit
+        metric_unit = "metric_" in str_unit
+        aus_unit = "aus_" in str_unit
+        jpn_unit = "jp_" in str_unit
         str_unit = str_unit.replace("imperial_", "")
+        str_unit = str_unit.replace("metric_", "")
+        str_unit = str_unit.replace("aus_", "")
+        str_unit = str_unit.replace("jp_", "")
 
         # Split unit on spaces for cases like "large clove", "oz can"
         for part in str_unit.split():
@@ -268,6 +273,12 @@ class IngredientAmount:
             }:
                 if imperial_unit:
                     return UnitSystem.IMPERIAL
+                elif metric_unit:
+                    return UnitSystem.METRIC
+                elif aus_unit:
+                    return UnitSystem.AUSTRALIAN
+                elif jpn_unit:
+                    return UnitSystem.JAPANESE
                 else:
                     return UnitSystem.US_CUSTOMARY
 
