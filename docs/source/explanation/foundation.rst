@@ -37,7 +37,7 @@ the :func:`parse_ingredient <ingredient_parser.parsers.parse_ingredient>` functi
                                  text='24',
                                  confidence=0.999702,
                                  starting_index=0,
-                                 unit_system=<UnitSystem.NONE: 5>,
+                                 unit_system=<UnitSystem.NONE: 'none'>,
                                  APPROXIMATE=False,
                                  SINGULAR=False,
                                  RANGE=False,

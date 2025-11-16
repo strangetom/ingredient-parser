@@ -94,6 +94,12 @@ If set to **True**, the :class:`IngredientAmount <ingredient_parser.dataclasses.
 ``imperial_units``
 ^^^^^^^^^^^^^^^^^^
 
+.. deprecated:: v2.5.0
+
+    This keyword argument will be removed in a future version.
+
+    Use the ``volumetric_units_system="imperial"`` for the same functionality.
+
 Default: **False**
 
 Some units have have multiple definitions versions with the same name but representing different quantities, such as fluid ounces, cups, pints, quarts or gallons.
@@ -109,6 +115,43 @@ Some units have have multiple definitions versions with the same name but repres
 
         >>> parse_ingredient("2 pints chicken stock", imperial_units=True).amount[0].unit
         <Unit('imperial_pint')>
+
+This option has no effect if ``string_units=True``.
+
+``volumetric_units_system``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Default: **us_customary**
+
+Some units have have multiple definitions with the same name but representing different quantities, such as fluid ounces, cups, pints, quarts or gallons.
+
+The following options are available to select between the different systems.
+
++------------------+-------------------------------------------------------------+
+| Options          | Description                                                 |
++==================+=============================================================+
+| ``us_customary`` | Uses the US customary definitions for the following units:  |
+|                  |                                                             |
+|                  | gallon, quart, fluid ounce pint, cup, tablespoon, teaspoon. |
++------------------+-------------------------------------------------------------+
+| ``imperial``     | Uses the Imperial definitions for the following units:      |
+|                  |                                                             |
+|                  | gallon, quart, fluid ounce pint, cup, tablespoon, teaspoon. |
++------------------+-------------------------------------------------------------+
+| ``metric``       | Uses metric definitions for the following units:            |
+|                  |                                                             |
+|                  | cup (250 ml), tablespoon (15 ml), teaspoon (5 ml).          |
++------------------+-------------------------------------------------------------+
+| ``australian``   | Uses the Australian definitions for the following units:    |
+|                  |                                                             |
+|                  | pint (570 ml), tablespoon (20 ml).                          |
+|                  |                                                             |
+|                  | Uses metric defintions for cup and teaspoon.                |
++------------------+-------------------------------------------------------------+
+| ``japanese``     | Uses the Japanese definitions for the following units:      |
+|                  |                                                             |
+|                  | cup (200 ml).                                               |
++------------------+-------------------------------------------------------------+
 
 This option has no effect if ``string_units=True``.
 

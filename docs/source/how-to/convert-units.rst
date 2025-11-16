@@ -22,7 +22,7 @@ The ``convert_to`` function of :class:`IngredientAmount <ingredient_parser.datac
         text='2.65 pound',
         confidence=0.99986,
         starting_index=0,
-        unit_system=<UnitSystem.US_CUSTOMARY: 2>,
+        unit_system=<UnitSystem.US_CUSTOMARY: 'us_customary'>,
         APPROXIMATE=False,
         SINGULAR=False,
         RANGE=False,
@@ -47,7 +47,7 @@ The ``convert_to`` function of :class:`CompositeIngredientAmount <ingredient_par
 
     >>> CompositeIngredientAmount.combined().to(unit)
 
-however it also support conversion between mass and volume as described below.
+however it also supports conversion between mass and volume as described below.
 
 Converting between mass and volume
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -69,7 +69,7 @@ The default value is the density of water: 1000 kg/m\ :sup:`3`.
         text='236.588 gram',
         confidence=0.999943,
         starting_index=0,
-        unit_system=<UnitSystem.METRIC: 1>,
+        unit_system=<UnitSystem.METRIC: 'metric'>,
         APPROXIMATE=False,
         SINGULAR=False,
         RANGE=False,
@@ -88,7 +88,7 @@ The default value is the density of water: 1000 kg/m\ :sup:`3`.
         text='240 gram',
         confidence=0.999949,
         starting_index=0,
-        unit_system=<UnitSystem.METRIC: 1>,
+        unit_system=<UnitSystem.METRIC: 'metric'>,
         APPROXIMATE=False,
         SINGULAR=False,
         RANGE=False,

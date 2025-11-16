@@ -4,7 +4,20 @@
 
 ### Processing
 
-* Add `unit_system` attribute to `IngredientAmount` and `CompositeIngredientAmount` to indicate which unit system the amount uses e.g. metric, US customary, imperial.
+* Add `unit_system` attribute to `IngredientAmount` and `CompositeIngredientAmount` to indicate which unit system the amount uses e.g. metric, US customary, imperial etc.
+
+* Replace `imperial_units` keyword argument with `volumetric_unit_system` which allows for specifying unit system that will be used to volumetric units like cup, tablespoon etc. where there can are multiple options with slight differences in the volumes.
+  * Supported options are `us_customary` (default), `imperial`, `metric` (for metric tablespoon, teaspoon definitions) , `australian` (for Australian pints, tablespoons), `japanese` (for Japanese cups).
+  * See docs for specific details.
+
+* Make customised units registry (`UREG`) easily importable
+
+  ```py
+  from ingredient_parser import UREG
+  ```
+
+  
+
 
 ## 2.4.0
 
