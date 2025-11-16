@@ -280,7 +280,7 @@ class TestPostProcessor_sizable_unit_pattern:
             pos_tags,
             labels,
             scores,
-            volumetric_units_country="imperial",
+            volumetric_units_system="imperial",
         )
 
         expected = [
@@ -294,7 +294,7 @@ class TestPostProcessor_sizable_unit_pattern:
                 confidence=0,
                 starting_index=4,
                 SINGULAR=True,
-                volumetric_units_country="imperial",
+                volumetric_units_system="imperial",
             ),
         ]
 

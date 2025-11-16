@@ -184,7 +184,7 @@ class TestPostProcessor_composite_amounts_pattern:
             pos_tags,
             labels,
             scores,
-            volumetric_units_country="imperial",
+            volumetric_units_system="imperial",
         )
 
         expected = [
@@ -196,7 +196,7 @@ class TestPostProcessor_composite_amounts_pattern:
                         text="2 pints",
                         confidence=0,
                         starting_index=3,
-                        volumetric_units_country="imperial",
+                        volumetric_units_system="imperial",
                     ),
                     ingredient_amount_factory(
                         quantity="12.75",
@@ -204,7 +204,7 @@ class TestPostProcessor_composite_amounts_pattern:
                         text="12.75 fl oz",
                         confidence=0,
                         starting_index=5,
-                        volumetric_units_country="imperial",
+                        volumetric_units_system="imperial",
                     ),
                 ],
                 join="",

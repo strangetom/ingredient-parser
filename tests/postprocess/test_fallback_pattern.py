@@ -72,7 +72,7 @@ class TestPostProcessor_fallback_pattern:
         """
         Test that imperial units are returned for 'cup'
         """
-        p = PostProcessor("", [], [], [], [], volumetric_units_country="imperial")
+        p = PostProcessor("", [], [], [], [], volumetric_units_system="imperial")
         tokens = ["About", "2", "cup", "flour"]
         labels = ["COMMENT", "QTY", "UNIT", "B_NAME_TOK"]
         scores = [0.0] * len(tokens)
@@ -86,7 +86,7 @@ class TestPostProcessor_fallback_pattern:
                 confidence=0,
                 starting_index=1,
                 APPROXIMATE=True,
-                volumetric_units_country="imperial",
+                volumetric_units_system="imperial",
             )
         ]
 
