@@ -46,11 +46,11 @@ ParsedIngredient(
 )
 ```
 
-Refer to the documentation [here](https://ingredient-parser.readthedocs.io/en/latest/start/index.html#optional-parameters) for the optional parameters that can be used with `parse_ingredient` .
+Refer to the documentation [here](https://ingredient-parser.readthedocs.io/en/latest/tutorials/options.html) for the optional parameters that can be used with `parse_ingredient` .
 
 ## Model
 
-The core of the library is a sequence labelling model that is used to label each token in the sentence with the part of the sentence it belongs to. A data set of 81,000 example sentences is used to train and evaluate the model. See the [Model Guide](https://ingredient-parser.readthedocs.io/en/latest/guide/index.html) in the documentation for mode details.
+The core of the library is a sequence labelling model that is used to label each token in the sentence with the part of the sentence it belongs to. A data set of 81,000 example sentences is used to train and evaluate the model. See the [Explanation](https://ingredient-parser.readthedocs.io/en/latest/explanation/index.html) section of the documentation for more details.
 
 The model has the following accuracy on a test data set of 20% of the total data used:
 
@@ -69,7 +69,7 @@ The model has the following accuracy on a test data set of 20% of the total data
 
 **Basic**
 
-Train and fine-tune new ingredient datasets to expand beyond the existing trained model provided in the library. The development dependencies are in the `requirements-dev.txt` file. Details on the training process can be found in the [Model Guide](https://ingredient-parser.readthedocs.io/en/latest/guide/index.html) documentation.
+Train and fine-tune new ingredient datasets to expand beyond the existing trained model provided in the library. The development dependencies are in the `requirements-dev.txt` file. Details on the training process can be found in the [Explanation](https://ingredient-parser.readthedocs.io/en/latest/explanation/index.html) documentation.
 
 **Web App**
 
