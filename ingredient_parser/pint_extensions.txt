@@ -12,5 +12,6 @@
     metric_tablespoon = 15 * ml = metric_tbsp
     metric_teaspoon = 5 * ml = metric_tsp
     aus_tablespoon = 20 * ml = aus_tbsp
+    aus_pint = 570 * ml
     jp_cup = 200 * ml
 @end

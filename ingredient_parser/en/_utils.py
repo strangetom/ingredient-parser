@@ -31,7 +31,7 @@ VOLUMETRIC_UNITS_W_ALTERNATIVES = {
     "cup": {
         "imperial": "imperial_cup",
         "japanese": "jp_cup",
-        "australian": "aus_cup",
+        "australian": "metric_cup",
         "metric": "metric_cup",
     },
     "floz": {
@@ -45,6 +45,7 @@ VOLUMETRIC_UNITS_W_ALTERNATIVES = {
     },
     "pint": {
         "imperial": "imperial_pint",
+        "australian": "aus_pint",
     },
     "gallon": {
         "imperial": "imperial_gallon",
@@ -52,13 +53,13 @@ VOLUMETRIC_UNITS_W_ALTERNATIVES = {
     "tablespoon": {
         "imperial": "imperial_tablespoon",
         "japanese": "metric_tablespoon",
-        "australian": "metric_tablespoon",
+        "australian": "aus_tablespoon",
         "metric": "metric_tablespoon",
     },
     "tbsp": {
         "imperial": "imperial_tablespoon",
         "japanese": "metric_tablespoon",
-        "australian": "metric_tablespoon",
+        "australian": "aus_tablespoon",
         "metric": "metric_tablespoon",
     },
     "teaspoon": {
