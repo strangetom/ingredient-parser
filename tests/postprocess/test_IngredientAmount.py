@@ -108,6 +108,76 @@ class TestPostProcessor_IngredientAmount:
         assert amount.unit_system == UnitSystem.US_CUSTOMARY
 
 
+class Test_IngredientAmountVolumetricUnitSystem:
+    def test_metric_volumentric_measurements(self):
+        """
+        Test that tbsp is interpreted as a metric tablespoon when volumetric_unit_system
+        is set to "metric".
+        """
+        amount = ingredient_amount_factory(
+            quantity="1",
+            unit="tbsp",
+            text="1 tbsp",
+            confidence=0,
+            starting_index=0,
+            volumetric_units_system="metric",
+        )
+
+        assert amount.unit_system == UnitSystem.METRIC
+        assert amount.unit == UREG("metric_tablespoon")
+
+    def test_imperial_volumentric_measurements(self):
+        """
+        Test that pint is interpreted as a imperial pint when volumetric_unit_system
+        is set to "imperial".
+        """
+        amount = ingredient_amount_factory(
+            quantity="1",
+            unit="pint",
+            text="1 pint",
+            confidence=0,
+            starting_index=0,
+            volumetric_units_system="imperial",
+        )
+
+        assert amount.unit_system == UnitSystem.IMPERIAL
+        assert amount.unit == UREG("imperial_pint")
+
+    def test_japanese_volumentric_measurements(self):
+        """
+        Test that cup is interpreted as japanese cup when volumetric_unit_system
+        is set to "japanese".
+        """
+        amount = ingredient_amount_factory(
+            quantity="1",
+            unit="cup",
+            text="1 cup",
+            confidence=0,
+            starting_index=0,
+            volumetric_units_system="japanese",
+        )
+
+        assert amount.unit_system == UnitSystem.JAPANESE
+        assert amount.unit == UREG("jp_cup")
+
+    def test_australian_volumentric_measurements(self):
+        """
+        Test that pint is interpreted as a australian pint when volumetric_unit_system
+        is set to "australian".
+        """
+        amount = ingredient_amount_factory(
+            quantity="1",
+            unit="pint",
+            text="1 pint",
+            confidence=0,
+            starting_index=0,
+            volumetric_units_system="australian",
+        )
+
+        assert amount.unit_system == UnitSystem.AUSTRALIAN
+        assert amount.unit == UREG("aus_pint")
+
+
 class TestPostProcessor_CompositeIngredientAmount:
     def test_composite_ingredient_amount_us_customary(self):
         """
