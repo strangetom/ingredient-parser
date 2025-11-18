@@ -339,16 +339,7 @@ class CompositeIngredientAmount:
 
         # Determine unit system from amounts
         unit_systems = {amount.unit_system for amount in self.amounts}
-        if (
-            len(unit_systems) == 2
-            and UnitSystem.IMPERIAL in unit_systems
-            and UnitSystem.US_CUSTOMARY in unit_systems
-        ):
-            # Special case where we have a US customary unit paired with a unit that has
-            # a US customary and imperial version e.g. tbsp and cup.
-            # The imperial_units=True flag must have been set, so set to IMPERIAL
-            self.unit_system = UnitSystem.IMPERIAL
-        elif len(unit_systems) > 1:
+        if len(unit_systems) > 1:
             self.unit_system = UnitSystem.OTHER
         else:
             self.unit_system = unit_systems.pop()

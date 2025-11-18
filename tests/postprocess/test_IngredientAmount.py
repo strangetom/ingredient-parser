@@ -200,7 +200,9 @@ class TestPostProcessor_CompositeIngredientAmount:
         am1 = ingredient_amount_factory(
             "1", "cup", "1 cup", 0, 0, volumetric_units_system="imperial"
         )
-        am2 = ingredient_amount_factory("2", "tbsp", "2 tbsp", 0, 0)
+        am2 = ingredient_amount_factory(
+            "2", "tbsp", "2 tbsp", 0, 0, volumetric_units_system="imperial"
+        )
 
         amount = CompositeIngredientAmount(
             amounts=[am1, am2], join="", subtractive=False
