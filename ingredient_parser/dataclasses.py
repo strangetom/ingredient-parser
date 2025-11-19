@@ -260,6 +260,7 @@ class IngredientAmount:
                 "pound",
                 "oz",
                 "ounce",
+                "fluid_ounce",
                 "st",
                 "stone",
                 "c",
