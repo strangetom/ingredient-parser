@@ -340,7 +340,17 @@ class CompositeIngredientAmount:
 
         # Determine unit system from amounts
         unit_systems = {amount.unit_system for amount in self.amounts}
-        if len(unit_systems) > 1:
+        if len(unit_systems) > 1 and UnitSystem.AUSTRALIAN in unit_systems:
+            # Australian units system has different pints and tbsp.
+            # In a CompositeIngredientAmount these can be paired with another metric
+            # amount.
+            self.unit_system = UnitSystem.AUSTRALIAN
+        elif len(unit_systems) > 1 and UnitSystem.JAPANESE in unit_systems:
+            # Japanese units system has different cups.
+            # In a CompositeIngredientAmount these can be paired with another metric
+            # amount.
+            self.unit_system = UnitSystem.JAPANESE
+        elif len(unit_systems) > 1:
             self.unit_system = UnitSystem.OTHER
         else:
             self.unit_system = unit_systems.pop()

@@ -726,3 +726,337 @@ class TestPostProcessor_composite_amounts_pattern:
             assert out.confidence == expected.confidence
             assert out.starting_index == expected.starting_index
             assert out.combined() == expected.combined()
+
+    def test_approximate_lb_oz_pattern(self):
+        """
+        Test that the lb-oz pair are returned as a composite amounts marked as
+        approximate.
+        """
+        sentence = "About 1lb 2oz pecorino romano cheese (or a vegetarian alternative)"
+        tokens = [
+            "About",
+            "1",
+            "lb",
+            "2",
+            "oz",
+            "pecorino",
+            "romano",
+            "cheese",
+            "(",
+            "or",
+            "a",
+            "vegetarian",
+            "alternative",
+            ")",
+        ]
+        pos_tags = [
+            "RB",
+            "CD",
+            "JJ",
+            "CD",
+            "NN",
+            "NN",
+            "NN",
+            "NN",
+            "(",
+            "CC",
+            "DT",
+            "JJ",
+            "NN",
+            ")",
+        ]
+        labels = [
+            "COMMENT",
+            "QTY",
+            "UNIT",
+            "QTY",
+            "UNIT",
+            "B_NAME_TOK",
+            "I_NAME_TOK",
+            "I_NAME_TOK",
+            "COMMENT",
+            "COMMENT",
+            "COMMENT",
+            "COMMENT",
+            "COMMENT",
+            "COMMENT",
+        ]
+        scores = [0.0] * len(tokens)
+        idx = list(range(len(tokens)))
+        p = PostProcessor(sentence, tokens, pos_tags, labels, scores)
+
+        expected = [
+            CompositeIngredientAmount(
+                amounts=[
+                    ingredient_amount_factory(
+                        quantity="1",
+                        unit="lb",
+                        text="1 lb",
+                        confidence=0,
+                        starting_index=1,
+                        APPROXIMATE=True,
+                    ),
+                    ingredient_amount_factory(
+                        quantity="2",
+                        unit="oz",
+                        text="2 oz",
+                        confidence=0,
+                        starting_index=3,
+                        APPROXIMATE=True,
+                    ),
+                ],
+                join="",
+                subtractive=False,
+            ),
+        ]
+
+        # Don't check scores
+        output = p._composite_amounts_pattern(idx, tokens, labels, scores)
+        assert len(output) == len(expected)
+        for out, expected in zip(output, expected):
+            assert out.amounts == expected.amounts
+            assert out.join == expected.join
+            assert out.confidence == expected.confidence
+            assert out.starting_index == expected.starting_index
+            assert out.combined() == expected.combined()
+            for amount in out.amounts:
+                assert amount.APPROXIMATE
+
+    def test_singular_lb_oz_pattern(self):
+        """
+        Test that the lb-oz pair are returned as a composite amounts marked as
+        singular.
+        """
+        sentence = "1lb 2oz each pecorino romano and parmesan cheese"
+        tokens = [
+            "1",
+            "lb",
+            "2",
+            "oz",
+            "each",
+            "pecorino",
+            "romano",
+            "and",
+            "parmesan",
+            "cheese",
+        ]
+        pos_tags = ["CD", "JJ", "CD", "IN", "DT", "NN", "NN", "CC", "NN", "NN"]
+        labels = [
+            "QTY",
+            "UNIT",
+            "QTY",
+            "UNIT",
+            "COMMENT",
+            "B_NAME_TOK",
+            "I_NAME_TOK",
+            "NAME_SEP",
+            "B_NAME_TOK",
+            "I_NAME_TOK",
+        ]
+        scores = [0.0] * len(tokens)
+        idx = list(range(len(tokens)))
+        p = PostProcessor(sentence, tokens, pos_tags, labels, scores)
+
+        expected = [
+            CompositeIngredientAmount(
+                amounts=[
+                    ingredient_amount_factory(
+                        quantity="1",
+                        unit="lb",
+                        text="1 lb",
+                        confidence=0,
+                        starting_index=0,
+                        SINGULAR=True,
+                    ),
+                    ingredient_amount_factory(
+                        quantity="2",
+                        unit="oz",
+                        text="2 oz",
+                        confidence=0,
+                        starting_index=2,
+                        SINGULAR=True,
+                    ),
+                ],
+                join="",
+                subtractive=False,
+            ),
+        ]
+
+        # Don't check scores
+        output = p._composite_amounts_pattern(idx, tokens, labels, scores)
+        assert len(output) == len(expected)
+        for out, expected in zip(output, expected):
+            assert out.amounts == expected.amounts
+            assert out.join == expected.join
+            assert out.confidence == expected.confidence
+            assert out.starting_index == expected.starting_index
+            assert out.combined() == expected.combined()
+            for amount in out.amounts:
+                assert amount.SINGULAR
+
+    def test_singular_and_approximate_lb_oz_pattern(self):
+        """
+        Test that the lb-oz pair are returned as a composite amounts marked as
+        approximate and singular.
+        """
+        sentence = "2 large butternut squash, each about 1lb 1 oz"
+        tokens = [
+            "2",
+            "large",
+            "butternut",
+            "squash",
+            ",",
+            "each",
+            "about",
+            "1",
+            "lb",
+            "1",
+            "oz",
+        ]
+        pos_tags = ["CD", "JJ", "NN", "NN", ",", "DT", "RB", "CD", "JJ", "CD", "NN"]
+        labels = [
+            "QTY",
+            "SIZE",
+            "B_NAME_TOK",
+            "I_NAME_TOK",
+            "PUNC",
+            "COMMENT",
+            "COMMENT",
+            "QTY",
+            "UNIT",
+            "QTY",
+            "UNIT",
+        ]
+        scores = [0.0] * len(tokens)
+        idx = list(range(len(tokens)))
+        p = PostProcessor(sentence, tokens, pos_tags, labels, scores)
+
+        expected = [
+            CompositeIngredientAmount(
+                amounts=[
+                    ingredient_amount_factory(
+                        quantity="1",
+                        unit="lb",
+                        text="1 lb",
+                        confidence=0,
+                        starting_index=7,
+                        APPROXIMATE=True,
+                        SINGULAR=True,
+                    ),
+                    ingredient_amount_factory(
+                        quantity="1",
+                        unit="oz",
+                        text="1 oz",
+                        confidence=0,
+                        starting_index=9,
+                        APPROXIMATE=True,
+                        SINGULAR=True,
+                    ),
+                ],
+                join="",
+                subtractive=False,
+            ),
+        ]
+
+        # Don't check scores
+        output = p._composite_amounts_pattern(idx, tokens, labels, scores)
+        assert len(output) == len(expected)
+        for out, expected in zip(output, expected):
+            assert out.amounts == expected.amounts
+            assert out.join == expected.join
+            assert out.confidence == expected.confidence
+            assert out.starting_index == expected.starting_index
+            assert out.combined() == expected.combined()
+            for amount in out.amounts:
+                assert amount.APPROXIMATE
+                assert amount.SINGULAR
+
+    def test_prepared_lb_oz_pattern(self):
+        """
+        Test that the lb-oz pair are returned as a composite amounts marked as
+        approximate and singular.
+        """
+        sentence = "Strained homemade chicken stock, to yield 1 pint 3 fl oz"
+        tokens = [
+            "Strained",
+            "homemade",
+            "chicken",
+            "stock",
+            ",",
+            "to",
+            "yield",
+            "1",
+            "pint",
+            "3",
+            "fl",
+            "oz",
+        ]
+
+        pos_tags = [
+            "VBN",
+            "JJ",
+            "NN",
+            "NN",
+            ",",
+            "TO",
+            "VB",
+            "CD",
+            "NN",
+            "CD",
+            "NN",
+            "NN",
+        ]
+        labels = [
+            "PREP",
+            "B_NAME_TOK",
+            "I_NAME_TOK",
+            "I_NAME_TOK",
+            "PUNC",
+            "COMMENT",
+            "COMMENT",
+            "QTY",
+            "UNIT",
+            "QTY",
+            "UNIT",
+            "UNIT",
+        ]
+        scores = [0.0] * len(tokens)
+        idx = list(range(len(tokens)))
+        p = PostProcessor(sentence, tokens, pos_tags, labels, scores)
+
+        expected = [
+            CompositeIngredientAmount(
+                amounts=[
+                    ingredient_amount_factory(
+                        quantity="1",
+                        unit="pint",
+                        text="1 pint",
+                        confidence=0,
+                        starting_index=7,
+                        PREPARED_INGREDIENT=True,
+                    ),
+                    ingredient_amount_factory(
+                        quantity="3",
+                        unit="fl oz",
+                        text="3 fl oz",
+                        confidence=0,
+                        starting_index=9,
+                        PREPARED_INGREDIENT=True,
+                    ),
+                ],
+                join="",
+                subtractive=False,
+            ),
+        ]
+
+        # Don't check scores
+        output = p._composite_amounts_pattern(idx, tokens, labels, scores)
+        assert len(output) == len(expected)
+        for out, expected in zip(output, expected):
+            assert out.amounts == expected.amounts
+            assert out.join == expected.join
+            assert out.confidence == expected.confidence
+            assert out.starting_index == expected.starting_index
+            assert out.combined() == expected.combined()
+            for amount in out.amounts:
+                assert amount.PREPARED_INGREDIENT
