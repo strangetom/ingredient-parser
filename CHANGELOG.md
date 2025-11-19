@@ -10,12 +10,13 @@
   * Supported options are `us_customary` (default), `imperial`, `metric` (for metric tablespoon, teaspoon definitions) , `australian` (for Australian pints, tablespoons), `japanese` (for Japanese cups).
   * See docs for specific details.
 
-* Make customised units registry (`UREG`) easily importable
+* Make customised units registry (`UREG`) easily importable.
 
   ```py
   from ingredient_parser import UREG
   ```
 
+  * This customised units registry includes additional units relevant to cooking, such as metric cups and tablespoons, japanese cups, australian tablespoons.
   
 
 
