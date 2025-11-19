@@ -61,6 +61,15 @@ class TestPostProcessor_match_foundation_foods:
         assert p.foundation_foods != []
         assert p.foundation_foods[0].fdc_id == fdc_id
 
+    @pytest.mark.parametrize(("sentence", "fdc_id"), SIMPLE_EXAMPLES)
+    def test_match_foundation_foods_simple_combined_names(self, sentence, fdc_id):
+        """
+        Test that each example sentence returns the correct foundation food.
+        """
+        p = parse_ingredient(sentence, separate_names=False, foundation_foods=True)
+        assert p.foundation_foods != []
+        assert p.foundation_foods[0].fdc_id == fdc_id
+
     @pytest.mark.parametrize(("sentence", "fdc_ids"), MULTIPLE_EXAMPLES)
     def test_match_foundation_foods_multiple(self, sentence, fdc_ids):
         """
