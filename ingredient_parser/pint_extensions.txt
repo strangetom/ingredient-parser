@@ -1,0 +1,17 @@
+@context(p=1) density
+    # p density of the liquid (mass/volume)
+    [volume] -> [mass]: value * p
+    [mass] -> [volume]: value / p
+@end
+
+@group VolumetricMeasurementExtras
+    imperial_tablespoon = imperial_cup / 16 = imperial_tbsp = UK_tablespoon = UK_tbsp
+    imperial_teaspoon = imperial_cup / 48 = imperial_tsp = UK_teaspoon = UK_tsp
+    # https://en.wikipedia.org/wiki/Cup_(unit)
+    metric_cup = 250 * ml
+    metric_tablespoon = 15 * ml = metric_tbsp
+    metric_teaspoon = 5 * ml = metric_tsp
+    aus_tablespoon = 20 * ml = aus_tbsp
+    aus_pint = 570 * ml
+    jp_cup = 200 * ml
+@end

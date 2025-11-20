@@ -1,4 +1,4 @@
-include ingredient_parser/density_context.txt
+include ingredient_parser/pint_extensions.txt
 include ingredient_parser/en/data/model.en.crfsuite
 include ingredient_parser/en/data/ModelCard.en.md
 include ingredient_parser/en/data/ingredient_embeddings.25d.glove.txt.gz

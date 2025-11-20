@@ -1,9 +1,22 @@
 #!/usr/bin/env python3
 
+import warnings
+
 from ingredient_parser.en import inspect_parser_en, parse_ingredient_en
 
 from . import SUPPORTED_LANGUAGES
 from .dataclasses import ParsedIngredient, ParserDebugInfo
+
+warnings.simplefilter("always", DeprecationWarning)
+
+
+SUPPORTED_VOLUMEETRIC_UNITS_SYSTEMS = {
+    "us_customary",
+    "imperial",
+    "metric",
+    "australian",
+    "japanese",
+}
 
 
 def parse_ingredient(
@@ -14,6 +27,7 @@ def parse_ingredient(
     expect_name_in_output: bool = True,
     string_units: bool = False,
     imperial_units: bool = False,
+    volumetric_units_system: str = "us_customary",
     foundation_foods: bool = False,
 ) -> ParsedIngredient:
     """Parse an ingredient sentence to return structured data.
@@ -40,14 +54,19 @@ def parse_ingredient(
         model gives it a different label. Note that this does guarantee the output
         contains a name.
         Default is True.
-    string_units : bool
+    string_units : bool, optional
         If True, return all IngredientAmount units as strings.
         If False, convert IngredientAmount units to pint.Unit objects where possible.
         Default is False.
-    imperial_units : bool
+    imperial_units : bool, optional
         If True, use imperial units instead of US customary units for pint.Unit objects
         for the the following units: fluid ounce, cup, pint, quart, gallon.
         Default is False, which results in US customary units being used.
+        This has no effect if string_units=True.
+    volumetric_units_system : str, optional
+        Sets the units system for volumetric measurements, like "cup" or "tablespoon".
+        Available options are "us_customary" (default), "imperial", "metric",
+        "australian", "japanese".
         This has no effect if string_units=True.
     foundation_foods : bool, optional
         If True, extract foundation foods from ingredient name. Foundation foods are
@@ -63,6 +82,22 @@ def parse_ingredient(
     if lang not in SUPPORTED_LANGUAGES:
         raise ValueError(f'Unsupported language "{lang}"')
 
+    if imperial_units:
+        warnings.warn(
+            (
+                "imperial_units=True argument is deprecated. "
+                "Use volumetric_units_system='imperal'"
+            ),
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        volumetric_units_system = "imperial"
+
+    if volumetric_units_system not in SUPPORTED_VOLUMEETRIC_UNITS_SYSTEMS:
+        raise ValueError(
+            f'Unsupported volumetric_units_system "{volumetric_units_system}"'
+        )
+
     match lang:
         case "en":
             return parse_ingredient_en(
@@ -71,7 +106,7 @@ def parse_ingredient(
                 discard_isolated_stop_words=discard_isolated_stop_words,
                 expect_name_in_output=expect_name_in_output,
                 string_units=string_units,
-                imperial_units=imperial_units,
+                volumetric_units_system=volumetric_units_system,
                 foundation_foods=foundation_foods,
             )
         case _:
@@ -86,6 +121,7 @@ def parse_multiple_ingredients(
     expect_name_in_output: bool = True,
     string_units: bool = False,
     imperial_units: bool = False,
+    volumetric_units_system: str = "us",
     foundation_foods: bool = False,
 ) -> list[ParsedIngredient]:
     """Parse multiple ingredient sentences in one go.
@@ -127,6 +163,11 @@ def parse_multiple_ingredients(
         for the the following units: fluid ounce, cup, pint, quart, gallon.
         Default is False, which results in US customary units being used.
         This has no effect if string_units=True.
+    volumetric_units_system : str, optional
+        Sets the units system for volumetric measurements, like "cup" or "tablespoon".
+        Available options are "us_customary" (default), "imperial", "metric",
+        "australian", "japanese".
+        This has no effect if string_units=True.
     foundation_foods : bool, optional
         If True, extract foundation foods from ingredient name. Foundation foods are
         the fundamental foods without any descriptive terms, e.g. 'cucumber' instead
@@ -147,6 +188,7 @@ def parse_multiple_ingredients(
             expect_name_in_output=expect_name_in_output,
             string_units=string_units,
             imperial_units=imperial_units,
+            volumetric_units_system=volumetric_units_system,
             foundation_foods=foundation_foods,
         )
         for sentence in sentences
@@ -161,6 +203,7 @@ def inspect_parser(
     expect_name_in_output: bool = True,
     string_units: bool = False,
     imperial_units: bool = False,
+    volumetric_units_system: str = "us_customary",
     foundation_foods: bool = False,
 ) -> ParserDebugInfo:
     """Return intermediate objects generated during parsing for inspection.
@@ -196,6 +239,11 @@ def inspect_parser(
         for the the following units: fluid ounce, cup, pint, quart, gallon.
         Default is False, which results in US customary units being used.
         This has no effect if string_units=True.
+    volumetric_units_system : str, optional
+        Sets the units system for volumetric measurements, like "cup" or "tablespoon".
+        Available options are "us_customary" (default), "imperial", "metric",
+        "australian", "japanese".
+        This has no effect if string_units=True.
     foundation_foods : bool, optional
         If True, extract foundation foods from ingredient name. Foundation foods are
         the fundamental foods without any descriptive terms, e.g. 'cucumber' instead
@@ -211,6 +259,22 @@ def inspect_parser(
     if lang not in SUPPORTED_LANGUAGES:
         raise ValueError(f'Unsupported language "{lang}"')
 
+    if imperial_units:
+        warnings.warn(
+            (
+                "imperial_units=True argument is deprecated. "
+                "Use volumetric_units_system='imperal'"
+            ),
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        volumetric_units_system = "imperial"
+
+    if volumetric_units_system not in SUPPORTED_VOLUMEETRIC_UNITS_SYSTEMS:
+        raise ValueError(
+            f'Unsupported volumetric_units_system "{volumetric_units_system}"'
+        )
+
     match lang:
         case "en":
             return inspect_parser_en(
@@ -219,7 +283,7 @@ def inspect_parser(
                 discard_isolated_stop_words=discard_isolated_stop_words,
                 expect_name_in_output=expect_name_in_output,
                 string_units=string_units,
-                imperial_units=imperial_units,
+                volumetric_units_system=volumetric_units_system,
                 foundation_foods=foundation_foods,
             )
         case _:

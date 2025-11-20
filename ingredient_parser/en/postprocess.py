@@ -132,7 +132,7 @@ class PostProcessor:
         separate_names: bool = True,
         discard_isolated_stop_words: bool = True,
         string_units: bool = False,
-        imperial_units: bool = False,
+        volumetric_units_system: str = "us_customary",
         foundation_foods: bool = False,
     ):
         self.sentence = sentence
@@ -143,7 +143,7 @@ class PostProcessor:
         self.separate_names = separate_names
         self.discard_isolated_stop_words = discard_isolated_stop_words
         self.string_units = string_units
-        self.imperial_units = imperial_units
+        self.volumetric_units_system = volumetric_units_system
         self.foundation_foods = foundation_foods
         self.consumed = []
 
@@ -1062,7 +1062,7 @@ class PostProcessor:
                         starting_index=idx[match[0]],
                         APPROXIMATE=self._is_approximate(match[0], tokens, labels, idx),
                         string_units=self.string_units,
-                        imperial_units=self.imperial_units,
+                        volumetric_units_system=self.volumetric_units_system,
                     )
                     amounts.append(first)
                     # Pop the first and last items from the list of matching indices
@@ -1088,7 +1088,7 @@ class PostProcessor:
                             SINGULAR=True,
                             APPROXIMATE=first.APPROXIMATE,
                             string_units=self.string_units,
-                            imperial_units=self.imperial_units,
+                            volumetric_units_system=self.volumetric_units_system,
                         )
                         amounts.append(amount)
 
@@ -1247,7 +1247,8 @@ class PostProcessor:
                     continue
 
                 # First amount
-                quantity_1 = tokens[match[start1]]
+                mstart1 = match[start1]  # Index of start of 1st part in full sentence.
+                quantity_1 = tokens[mstart1]
                 unit_1 = tokens[match[start1 + 1]]
                 score_1 = mean(scores[i] for i in match[start1 : start1 + 2])
                 text_1 = " ".join((quantity_1, unit_1)).strip()
@@ -1257,13 +1258,14 @@ class PostProcessor:
                     unit=unit_1,
                     text=text_1,
                     confidence=score_1,
-                    starting_index=idx[match[start1]],
+                    starting_index=idx[mstart1],
                     string_units=self.string_units,
-                    imperial_units=self.imperial_units,
+                    volumetric_units_system=self.volumetric_units_system,
                 )
 
                 # Second amount
-                quantity_2 = tokens[match[start2]]
+                mstart2 = match[start2]  # Index of start of 2nd part in full sentence.
+                quantity_2 = tokens[mstart2]
                 unit_2 = " ".join([tokens[i] for i in match[start2 + 1 :]])
                 score_2 = mean(scores[i] for i in match[start2:])
                 text_2 = " ".join((quantity_2, unit_2)).strip()
@@ -1273,10 +1275,48 @@ class PostProcessor:
                     unit=unit_2,
                     text=text_2,
                     confidence=score_2,
-                    starting_index=idx[match[start2]],
+                    starting_index=idx[mstart2],
                     string_units=self.string_units,
-                    imperial_units=self.imperial_units,
+                    volumetric_units_system=self.volumetric_units_system,
                 )
+
+                # Check if flags should be set and make sure both IngredientAmounts get
+                # the same flags.
+                prepared = self._is_prepared(
+                    idx[mstart1], tokens, labels, idx
+                ) or self._is_prepared(idx[mstart2], tokens, labels, idx)
+
+                approximate = self._is_approximate(
+                    idx[mstart1], tokens, labels, idx
+                ) or self._is_prepared(idx[mstart2], tokens, labels, idx)
+
+                # The _is_singular check only works if the index provided is for a token
+                # labelled with UNIT.
+                # Therefore, use idx[mstart + 1] to get the unit for the first amount
+                # and idx[match[-1]] to get the last unit for the second amount.
+                singular = self._is_singular(
+                    idx[mstart1 + 1], tokens, labels, idx
+                ) or self._is_singular(idx[match[-1]], tokens, labels, idx)
+
+                if self._is_singular_and_approximate(
+                    idx[mstart1], tokens, labels, idx
+                ) or self._is_singular_and_approximate(
+                    idx[mstart2], tokens, labels, idx
+                ):
+                    approximate = True
+                    singular = True
+
+                if approximate:
+                    first_amount.APPROXIMATE = True
+                    second_amount.APPROXIMATE = True
+
+                if singular:
+                    first_amount.SINGULAR = True
+                    second_amount.SINGULAR = True
+
+                if prepared:
+                    first_amount.PREPARED_INGREDIENT = True
+                    second_amount.PREPARED_INGREDIENT = True
 
                 composite_amounts.append(
                     CompositeIngredientAmount(
@@ -1472,7 +1512,7 @@ class PostProcessor:
                     SINGULAR=amount.SINGULAR,
                     PREPARED_INGREDIENT=amount.PREPARED_INGREDIENT,
                     string_units=self.string_units,
-                    imperial_units=self.imperial_units,
+                    volumetric_units_system=self.volumetric_units_system,
                 )
             )
 

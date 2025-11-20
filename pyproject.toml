@@ -84,10 +84,10 @@ docstring-code-format = true
 
 [tool.pyright]
 include = ["ingredient_parser", "train"]
-exclude = ["**/__pycache__", "venv", "tests", "webapp", "labeller"]
+exclude = ["**/__pycache__", "venv", "tests", "webtools"]
 reportUnusedImport = true
 reportUnusedClass = true
-reportUnuedFunction = true
+reportUnusedFunction = true
 reportUnusedVariable = true
 reportWildcardImportFromLibrary = true
 reportPrivateUsage = true

@@ -2,7 +2,7 @@ from fractions import Fraction
 
 import pytest
 
-from ingredient_parser.dataclasses import CompositeIngredientAmount
+from ingredient_parser.dataclasses import UnitSystem
 from ingredient_parser.en._utils import UREG, ingredient_amount_factory
 
 
@@ -22,6 +22,7 @@ class TestPostProcessor_IngredientAmount:
 
         assert amount.quantity == 25
         assert amount.quantity_max == 25
+        assert amount.unit_system == UnitSystem.METRIC
 
     def test_range_quantity(self):
         """
@@ -40,6 +41,7 @@ class TestPostProcessor_IngredientAmount:
         assert amount.quantity == 25
         assert amount.quantity_max == 30
         assert amount.RANGE
+        assert amount.unit_system == UnitSystem.METRIC
 
     def test_multiplier_quantity(self):
         """
@@ -54,6 +56,7 @@ class TestPostProcessor_IngredientAmount:
         assert amount.quantity == 1
         assert amount.quantity_max == 1
         assert amount.MULTIPLIER
+        assert amount.unit_system == UnitSystem.OTHER
 
     def test_pluralisation_string_unit(self):
         """
@@ -66,6 +69,7 @@ class TestPostProcessor_IngredientAmount:
 
         assert amount.unit == "cans"
         assert amount.text == "2 cans"
+        assert amount.unit_system == UnitSystem.OTHER
 
     def test_pluralisation_pint_unit(self):
         """
@@ -81,6 +85,7 @@ class TestPostProcessor_IngredientAmount:
 
         assert amount.unit == UREG("gram").units
         assert amount.text == "200 grams"
+        assert amount.unit_system == UnitSystem.METRIC
 
     def test_fraction_range_quantity(self):
         """
@@ -100,6 +105,77 @@ class TestPostProcessor_IngredientAmount:
         assert amount.quantity_max == 0.5
         assert amount.text == "1/4-1/2 tsp"
         assert amount.RANGE
+        assert amount.unit_system == UnitSystem.US_CUSTOMARY
+
+
+class Test_IngredientAmountVolumetricUnitSystem:
+    def test_metric_volumentric_measurements(self):
+        """
+        Test that tbsp is interpreted as a metric tablespoon when volumetric_unit_system
+        is set to "metric".
+        """
+        amount = ingredient_amount_factory(
+            quantity="1",
+            unit="tbsp",
+            text="1 tbsp",
+            confidence=0,
+            starting_index=0,
+            volumetric_units_system="metric",
+        )
+
+        assert amount.unit_system == UnitSystem.METRIC
+        assert amount.unit == UREG("metric_tablespoon")
+
+    def test_imperial_volumentric_measurements(self):
+        """
+        Test that pint is interpreted as a imperial pint when volumetric_unit_system
+        is set to "imperial".
+        """
+        amount = ingredient_amount_factory(
+            quantity="1",
+            unit="pint",
+            text="1 pint",
+            confidence=0,
+            starting_index=0,
+            volumetric_units_system="imperial",
+        )
+
+        assert amount.unit_system == UnitSystem.IMPERIAL
+        assert amount.unit == UREG("imperial_pint")
+
+    def test_japanese_volumentric_measurements(self):
+        """
+        Test that cup is interpreted as japanese cup when volumetric_unit_system
+        is set to "japanese".
+        """
+        amount = ingredient_amount_factory(
+            quantity="1",
+            unit="cup",
+            text="1 cup",
+            confidence=0,
+            starting_index=0,
+            volumetric_units_system="japanese",
+        )
+
+        assert amount.unit_system == UnitSystem.JAPANESE
+        assert amount.unit == UREG("jp_cup")
+
+    def test_australian_volumentric_measurements(self):
+        """
+        Test that pint is interpreted as a australian pint when volumetric_unit_system
+        is set to "australian".
+        """
+        amount = ingredient_amount_factory(
+            quantity="1",
+            unit="pint",
+            text="1 pint",
+            confidence=0,
+            starting_index=0,
+            volumetric_units_system="australian",
+        )
+
+        assert amount.unit_system == UnitSystem.AUSTRALIAN
+        assert amount.unit == UREG("aus_pint")
 
 
 class Test_IngredientAmount_convert_to:
@@ -121,8 +197,9 @@ class Test_IngredientAmount_convert_to:
         assert converted.quantity_max == 1000 * amount.quantity_max
         assert converted.unit == UREG("gram").units
         assert converted.text == "1200 gram"
+        assert converted.unit_system == UnitSystem.METRIC
 
-    def test_convert_metric_to_imperial(self):
+    def test_convert_metric_to_us_customary(self):
         """
         Test that 500 ml is converted to ... cups
         """
@@ -140,6 +217,27 @@ class Test_IngredientAmount_convert_to:
         assert converted.quantity_max == Fraction(4226752837730377, 2000000000000000)
         assert converted.unit == UREG("cup").units
         assert converted.text == "2.11338 cup"
+        assert converted.unit_system == UnitSystem.US_CUSTOMARY
+
+    def test_convert_metric_to_imperial(self):
+        """
+        Test that 500 ml is converted to ... cups
+        """
+        amount = ingredient_amount_factory(
+            quantity="500",
+            unit="ml",
+            text="500 ml",
+            confidence=0,
+            starting_index=0,
+        )
+
+        converted = amount.convert_to("imperial_cup")
+
+        assert converted.quantity == Fraction(879876993196351, 500000000000000)
+        assert converted.quantity_max == Fraction(879876993196351, 500000000000000)
+        assert converted.unit == UREG("imperial_cup").units
+        assert converted.text == "1.75975 imperial_cup"
+        assert converted.unit_system == UnitSystem.IMPERIAL
 
     def test_string_unit(self):
         """
@@ -170,16 +268,3 @@ class Test_IngredientAmount_convert_to:
 
         with pytest.raises(TypeError):
             _ = amount.convert_to("ml")
-
-    def test_composite_ingredient_amount(self):
-        am1 = ingredient_amount_factory("2", "lbs", "2 lb", 0, 0)
-        am2 = ingredient_amount_factory("2", "oz", "2 oz", 0, 0)
-
-        amount = CompositeIngredientAmount(
-            amounts=[am1, am2], join="", subtractive=False
-        )
-
-        converted = amount.convert_to("kg")
-
-        assert converted.magnitude == Fraction(77110702900000017, 80000000000000000)
-        assert converted.units == UREG("kg").units

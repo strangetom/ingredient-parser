@@ -275,7 +275,12 @@ class TestPostProcessor_sizable_unit_pattern:
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
         p = PostProcessor(
-            sentence, tokens, pos_tags, labels, scores, imperial_units=True
+            sentence,
+            tokens,
+            pos_tags,
+            labels,
+            scores,
+            volumetric_units_system="imperial",
         )
 
         expected = [
@@ -289,7 +294,7 @@ class TestPostProcessor_sizable_unit_pattern:
                 confidence=0,
                 starting_index=4,
                 SINGULAR=True,
-                imperial_units=True,
+                volumetric_units_system="imperial",
             ),
         ]
 

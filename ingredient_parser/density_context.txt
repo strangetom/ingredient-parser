@@ -1,5 +1,0 @@
-@context(p=1) density
-    # p density of the liquid (mass/volume)
-    [volume] -> [mass]: value * p
-    [mass] -> [volume]: value / p
-@end
