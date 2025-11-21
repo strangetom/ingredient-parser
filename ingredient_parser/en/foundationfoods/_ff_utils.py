@@ -204,19 +204,24 @@ def tokenize_fdc_description(description: str) -> list[tuple[str, float]]:
     list[tuple[str, float]]
         List of (token, weight) tuples.
     """
-    tokens = tokenize(description)
+    embeddings = load_embeddings_model()
+    tokens = tokenize(description.lower())
 
     weights = []
+    prepared_tokens = []
     phrase_count = 1
     for is_phrase, phrase in groupby(tokens, lambda x: x != ","):
         if not is_phrase:
-            # If not phrase (i.e. is the comma), set weight to 0.
+            # If not phrase (i.e. is the comma), set weight to 0 if token is in vocab.
             # These tokens will be discarded later anyway.
-            weights.append(0.0)
+            for token in phrase:
+                if token in embeddings:
+                    prepared_tokens.append(phrase)
+                    weights.append(1.0)
             continue
 
         phrase = list(prepare_embeddings_tokens(tuple(phrase)))
-        phrase_weights = [1 / phrase_count] * len(phrase)
+        phrase_weights = [1] * len(phrase)
 
         # Check for negated tokens and set weight to 0.
         for neg in NEGATION_TOKENS:
@@ -227,7 +232,8 @@ def tokenize_fdc_description(description: str) -> list[tuple[str, float]]:
                 for neg_idx in range(phrase.index(neg), len(phrase)):
                     phrase_weights[neg_idx] = 0
 
+        prepared_tokens.extend(phrase)
         weights.extend(phrase_weights)
         phrase_count += 1
 
-    return list(zip(tokens, weights))
+    return list(zip(prepared_tokens, weights))
