@@ -548,6 +548,13 @@ def ingredient_amount_factory(
     """
     RANGE = False
     MULTIPLIER = False
+
+    if quantity.endswith("x"):
+        # If multiplier, set MULTIPLER flag then strip "x" suffix and process quantity
+        # as normal.
+        MULTIPLIER = True
+        quantity = quantity.removesuffix("x")
+
     if is_range(quantity):
         # If range, set quantity to min of range, set quantity_max to max
         # of range, set RANGE flag to True
@@ -559,12 +566,6 @@ def ingredient_amount_factory(
         # If float or fraction, set quantity_max = quantity
         _quantity = to_frac(quantity)
         quantity_max = _quantity
-    elif quantity.endswith("x"):
-        # If multiplier, set quantity and quantity_max to value without 'x', and
-        # set MULTIPLER flag.
-        _quantity = to_frac(quantity[:-1])
-        quantity_max = _quantity
-        MULTIPLIER = True
     else:
         _quantity = quantity
         # Fallback to setting quantity_max to quantity
