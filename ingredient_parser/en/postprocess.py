@@ -1439,12 +1439,26 @@ class PostProcessor:
 
         for i, (token, label, score) in enumerate(zip(tokens, labels, scores)):
             if label == "QTY":
-                # Whenever we come across a new QTY, create new IngredientAmount,
-                # unless the token is "dozen" and the previous label was QTY, in which
-                # case we modify the quantity of the previous amount.
+                # Whenever we come across a new QTY, create new IngredientAmount with
+                # some exceptions.
                 if token == "dozen" and labels[i - 1] == "QTY":
+                    # If the token is "dozen" and the previous label was QTY, in which
+                    # case we modify the quantity of the previous amount.
                     amounts[-1].quantity = amounts[-1].quantity + " dozen"
                     amounts[-1].confidence.append(score)
+                elif labels[i - 1] == "QTY" and tokens[i - 1].endswith("x"):
+                    # This is a multiplier followed by another amount
+                    # e.g. "1x 15 ml tbsp", so mark this amount as related to the
+                    # previous one.
+                    amounts.append(
+                        _PartialIngredientAmount(
+                            quantity=token,
+                            unit=[],
+                            confidence=[score],
+                            starting_index=idx[i],
+                            related_to_previous=True,
+                        )
+                    )
                 else:
                     amounts.append(
                         _PartialIngredientAmount(
@@ -1809,6 +1823,17 @@ class PostProcessor:
             if any(am.PREPARED_INGREDIENT for am in group):
                 for am in group:
                     am.PREPARED_INGREDIENT = True
+
+            # If any amount in a group of related amounts is a multiplier (e.g. 1x)
+            # then mark all following amounts with SINGULAR=True
+            singular_after_multiplier = False
+            for amount in group:
+                if singular_after_multiplier:
+                    amount.SINGULAR = True
+                    continue
+
+                if amount.quantity.endswith("x"):
+                    singular_after_multiplier = True
 
         # Flatten list for return
         return list(chain.from_iterable(grouped))

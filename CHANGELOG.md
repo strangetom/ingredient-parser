@@ -8,7 +8,7 @@
 
 * Replace `imperial_units` keyword argument with `volumetric_unit_system` which allows for specifying unit system that will be used to volumetric units like cup, tablespoon etc. where there can are multiple options with slight differences in the volumes.
   * Supported options are `us_customary` (default), `imperial`, `metric` (for metric tablespoon, teaspoon definitions) , `australian` (for Australian pints, tablespoons), `japanese` (for Japanese cups).
-  * See docs for specific details.
+  * See [docs](https://ingredient-parser.readthedocs.io/en/latest/tutorials/options.html#volumetric-units-system) for specific details.
 
 * Make customised units registry (`UREG`) easily importable.
 
@@ -17,7 +17,10 @@
   ```
 
   * This customised units registry includes additional units relevant to cooking, such as metric cups and tablespoons, japanese cups, australian tablespoons.
-  
+
+* Fix exception be raised if quantity range ended with `x`  (e.g. `3-4x`).
+
+* If an amount has `MULTIPLIER=True`, set `SINGULAR=True` for any immediately subsequent amounts.
 
 
 ## 2.4.0

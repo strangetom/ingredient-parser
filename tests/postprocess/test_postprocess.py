@@ -746,6 +746,7 @@ class TestPostProcessor_parsed:
                     text="15 ml tablespoon",
                     confidence=0.99988,
                     starting_index=1,
+                    SINGULAR=True,
                 ),
             ],
             preparation=None,
