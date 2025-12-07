@@ -33,7 +33,7 @@ class uSIF:
         GloVe embeddings model.
     embeddings_dimension : int
         Dimension of embeddings model.
-    fdc_ingredients : dict[str, list[FDCIngredient]]
+    fdc_ingredients : list[FDCIngredient]
         Lists of FDC ingredients.
     fdc_vectors : dict[str, list[FDCIngredient]]
         Lists of embedding vectors for FDC ingredients, grouped by data type.
@@ -199,9 +199,7 @@ class uSIF:
             np.dot(vec1, vec2) / (np.linalg.norm(vec1) * np.linalg.norm(vec2))
         )
 
-    def find_candidate_matches(
-        self, tokens: list[str], n: int
-    ) -> list[FDCIngredientMatch]:
+    def score_matches(self, tokens: list[str]) -> list[FDCIngredientMatch]:
         """Find best candidate matches between input token and FDC ingredients with a
         cosine similarity of no more than cutoff.
 
@@ -209,8 +207,6 @@ class uSIF:
         ----------
         tokens : list[str]
             List of tokens.
-        n : int
-            Number of matches to return, sorted by best score.
 
         Returns
         -------
@@ -231,7 +227,7 @@ class uSIF:
             )
 
         sorted_candidates = sorted(candidates, key=lambda x: x.score)
-        return sorted_candidates[:n]
+        return sorted_candidates
 
 
 @lru_cache
