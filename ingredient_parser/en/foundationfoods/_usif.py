@@ -147,9 +147,9 @@ class uSIF:
         list[np.ndarray]
             List of embedding vectors for FDC ingredients.
         """
-        return [self._embed(fdc.tokens) for fdc in self.fdc_ingredients]
+        return [self._embed(fdc.tokens, fdc.weights) for fdc in self.fdc_ingredients]
 
-    def _embed(self, tokens: list[str]) -> np.ndarray:
+    def _embed(self, tokens: list[str], phrase_weight: list[float]) -> np.ndarray:
         """Return single embedding vector for input tokens calculated from the weighted
         mean of the embeddings for each token.
 
@@ -157,25 +157,29 @@ class uSIF:
         ----------
         tokens : list[str]
             List of input tokens.
+        phrase_weight : list[float]
+            List of weight based on phrase position.
 
         Returns
         -------
         np.ndarray
             Embedding vector for input.
         """
-        tokens_in_vocab = [t for t in tokens if t in self.embeddings]
+        tokens_in_vocab = [
+            (t, w) for t, w in zip(tokens, phrase_weight) if t in self.embeddings
+        ]
 
         if not tokens_in_vocab:
             return np.zeros(self.embeddings_dimension) + self.a
         else:
             token_vectors = np.array(
-                [self.embeddings[token] for token in tokens_in_vocab]
+                [self.embeddings[token] for token, _ in tokens_in_vocab]
             )
             normalised = token_vectors * (1.0 / np.linalg.norm(token_vectors, axis=0))
             weighted = np.array(
                 [
-                    self._weight(token) * normalised[i, :]
-                    for i, token in enumerate(tokens_in_vocab)
+                    phrase_weight * self._weight(token) * normalised[i, :]
+                    for i, (token, phrase_weight) in enumerate(tokens_in_vocab)
                 ]
             )
             return np.mean(weighted, axis=0)
@@ -214,7 +218,7 @@ class uSIF:
             List of best n candidate matching FDC ingredients.
         """
         prepared_tokens = prepare_embeddings_tokens(tuple(tokens))
-        input_token_vector = self._embed(prepared_tokens)
+        input_token_vector = self._embed(prepared_tokens, [1] * len(prepared_tokens))
 
         candidates = []
         for idx, vec in enumerate(self.fdc_vectors):

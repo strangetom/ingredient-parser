@@ -9,7 +9,6 @@ from importlib.resources import as_file, files
 from itertools import groupby
 
 from ..._common import consume
-from .._constants import STOP_WORDS
 from .._loaders import load_embeddings_model
 from .._utils import stem, tokenize
 from ._ff_constants import NEGATION_TOKENS
@@ -132,7 +131,6 @@ def prepare_embeddings_tokens(tokens: tuple[str, ...]) -> list[str]:
         and not token.isdecimal()
         and not token.isspace()
         and token not in string.punctuation
-        and token not in STOP_WORDS
         and len(token) > 1
     ]
 
@@ -209,7 +207,7 @@ def tokenize_fdc_description(description: str) -> list[tuple[str, float]]:
 
     weights = []
     prepared_tokens = []
-    phrase_count = 1
+    phrase_count = 0
     for is_phrase, phrase in groupby(tokens, lambda x: x != ","):
         if not is_phrase:
             # If not phrase (i.e. is the comma), set weight to 0 if token is in vocab.
@@ -217,11 +215,11 @@ def tokenize_fdc_description(description: str) -> list[tuple[str, float]]:
             for token in phrase:
                 if token in embeddings:
                     prepared_tokens.append(phrase)
-                    weights.append(1.0)
+                    weights.append(0.0)
             continue
 
         phrase = list(prepare_embeddings_tokens(tuple(phrase)))
-        phrase_weights = [1] * len(phrase)
+        phrase_weights = [1 - phrase_count * 1e-3] * len(phrase)
 
         # Check for negated tokens and set weight to 0.
         for neg in NEGATION_TOKENS:
