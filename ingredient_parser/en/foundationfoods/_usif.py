@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from collections import defaultdict
+from dataclasses import dataclass
 from functools import lru_cache
 
 import numpy as np
@@ -9,6 +10,14 @@ from .._embeddings import GloVeModel
 from .._loaders import load_embeddings_model
 from ._ff_dataclasses import FDCIngredient, FDCIngredientMatch
 from ._ff_utils import load_fdc_ingredients, prepare_embeddings_tokens
+
+
+@dataclass
+class Embedding:
+    """Dataclass for holding an embedding vector and it's norm."""
+
+    vec: np.ndarray
+    norm: np.floating
 
 
 class uSIF:
@@ -139,15 +148,26 @@ class uSIF:
         """
         return self.a / (0.5 * self.a + self.token_prob.get(token, self.min_prob))
 
-    def _embed_fdc_ingredients(self) -> list[np.ndarray]:
+    def _embed_fdc_ingredients(self) -> list[Embedding]:
         """Calculate embedding vectors for all FDC ingredients.
 
         Returns
         -------
-        list[np.ndarray]
+        list[Embedding]
             List of embedding vectors for FDC ingredients.
         """
-        return [self._embed(fdc.tokens, fdc.weights) for fdc in self.fdc_ingredients]
+        embedded = []
+        for fdc in self.fdc_ingredients:
+            vec = self._embed(fdc.tokens, fdc.weights)
+            norm = np.linalg.norm(vec)
+            embedded.append(
+                Embedding(
+                    vec=vec,
+                    norm=norm,
+                )
+            )
+
+        return embedded
 
     def _embed(self, tokens: list[str], phrase_weight: list[float]) -> np.ndarray:
         """Return single embedding vector for input tokens calculated from the weighted
@@ -184,7 +204,7 @@ class uSIF:
             )
             return np.mean(weighted, axis=0)
 
-    def _cosine_similarity(self, vec1: np.ndarray, vec2: np.ndarray) -> float:
+    def _cosine_similarity(self, vec1: Embedding, vec2: Embedding) -> float:
         """Return cosine similarity score for input vectors.
 
         Parameters
@@ -199,9 +219,7 @@ class uSIF:
         float
             Cosine similarity score.
         """
-        return 1 - float(
-            np.dot(vec1, vec2) / (np.linalg.norm(vec1) * np.linalg.norm(vec2))
-        )
+        return 1 - float(np.dot(vec1.vec, vec2.vec) / (vec1.norm * vec2.norm))
 
     def score_matches(self, tokens: list[str]) -> list[FDCIngredientMatch]:
         """Find best candidate matches between input token and FDC ingredients with a
@@ -218,7 +236,8 @@ class uSIF:
             List of best n candidate matching FDC ingredients.
         """
         prepared_tokens = prepare_embeddings_tokens(tuple(tokens))
-        input_token_vector = self._embed(prepared_tokens, [1] * len(prepared_tokens))
+        vec = self._embed(prepared_tokens, [1] * len(prepared_tokens))
+        input_token_vector = Embedding(vec=vec, norm=np.linalg.norm(vec))
 
         candidates = []
         for idx, vec in enumerate(self.fdc_vectors):
