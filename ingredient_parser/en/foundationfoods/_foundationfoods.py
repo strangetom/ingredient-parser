@@ -3,7 +3,11 @@
 
 import logging
 
-from ingredient_parser.en.foundationfoods._ff_dataclasses import FDCIngredientMatch
+import numpy as np
+
+from ingredient_parser.en.foundationfoods._ff_dataclasses import (
+    FDCIngredientMatch,
+)
 
 from ...dataclasses import FoundationFood
 from ._bm25 import get_bm25_matcher
@@ -64,6 +68,7 @@ def match_foundation_foods(tokens: list[str], name_idx: int) -> FoundationFood |
     # the food is not raw (e.g. cooked)
     if len(set(normalised_tokens) & NON_RAW_FOOD_VERB_STEMS) == 0:
         normalised_tokens.append("raw")
+    print(normalised_tokens)
 
     u = get_usif_matcher()
     usif_matches = u.score_matches(normalised_tokens)
@@ -71,16 +76,31 @@ def match_foundation_foods(tokens: list[str], name_idx: int) -> FoundationFood |
         logger.debug("No matching FDC ingredients found with uSIF matcher.")
         return None
 
+    print("uSIF matches:")
+    for m in usif_matches[:10]:
+        print(f"{m.score}: {m.fdc.description}")
+    print()
+
     bm25 = get_bm25_matcher()
     bm25_matches = bm25.score_matches(normalised_tokens)
 
-    fused_matches = merge_matches(bm25_matches, usif_matches)
+    print("BM25 matches:")
+    for m in bm25_matches[:10]:
+        print(f"{m.score}: {m.fdc.description}")
+    print()
+
+    fused_matches = dbsf(bm25_matches, usif_matches)
     best_match = fused_matches[0]
 
-    if best_match.score <= 0.4:
+    print("Fused matches:")
+    for m in fused_matches[:10]:
+        print(f"{m.score}: {m.fdc.description}")
+    print()
+
+    if best_match.score >= 0.4:
         return FoundationFood(
             text=best_match.fdc.description,
-            confidence=round(1 - best_match.score, 6),
+            confidence=round(best_match.score, 6),
             fdc_id=best_match.fdc.fdc_id,
             category=best_match.fdc.category,
             data_type=best_match.fdc.data_type,
@@ -98,40 +118,153 @@ DATASET_PREFERENCE = [
 ]
 
 
-def merge_matches(
-    bm25_matches: list[FDCIngredientMatch], usif_matches: list[FDCIngredientMatch]
-) -> list[FDCIngredientMatch]:
-    """Merge matches from BM25 and uSIF matchers using reciprocal rank fusion.
+def estimate_matcher_confidence(scores: list[float]) -> float:
+    """Calculate confidence of a matcher function from the spread of scores.
 
+    A larger gap between the best two scores indicates higher confidence. Beacuse the
+    difference between the best two scores is normalised to the best score, this
+    approach will work for scores that have an arbitrary scale.
+
+    Parameters
+    ----------
+    scores : list[float]
+        List of matcher scores.
+
+    Returns
+    -------
+    float
+        Description
+    """
+    if len(scores) < 2:
+        return 1.0
+
+    max_score = max(scores)
+    second_max = sorted(scores, reverse=True)[1]
+    spread = max_score - second_max
+
+    if max_score > 0:
+        return 1.0 + (spread / max_score)
+    else:
+        return 1.0
+
+
+def normalize_scores(scores: list[float]) -> list[float]:
+    """
+    DBSF normalization: Use mean and 3-sigma to normalize scores to [0, 1]
+
+    Formula: normalized = (score - (μ - 3σ)) / (6σ)
+    Then clip to [0, 1]
+    """
+    if not scores or len(scores) == 0:
+        return []
+
+    scores_array = np.array(scores)
+    mu = np.mean(scores_array)
+    sigma = np.std(scores_array)
+
+    # Handle edge case where all scores are identical
+    if sigma == 0:
+        return [0.5] * len(scores)
+
+    # DBSF normalization formula
+    lower_bound = mu - 3 * sigma
+    upper_bound = mu + 3 * sigma
+    range_val = upper_bound - lower_bound
+
+    normalized = []
+    for score in scores_array:
+        # Normalize to [0, 1] range
+        norm_score = (score - lower_bound) / range_val
+        # Clip to ensure [0, 1]
+        norm_score = max(0.0, min(1.0, norm_score))
+        normalized.append(norm_score)
+
+    return normalized
+
+
+def dbsf(
+    bm25_matches: list[FDCIngredientMatch],
+    usif_matches: list[FDCIngredientMatch],
+    top_n: int = 100,
+) -> list[FDCIngredientMatch]:
+    """Distribution-based score fusion of BM25 and uSIF match results.
+
+    Fuse the matches from BM25 matcher and uSIF matcher by normalising their scores
+    based on the score distribution statistics and summing the normalised scores for
+    each match.
+
+    The provided `bm25_matches` and `usif_matches` lists contain the raw scores for all
+    possible FDC ingredients. We only consider the `top_n` of these to avoid the
+    distribution statistics being skewed by the poor matches. This is beacuse there are
+    far more poor matches than there are good matches.
+
+    The fusing of the normalised scores for a match is weighted by the confidence of
+    each matcher. If a matcher has one score significantly higher than all others, then
+    it is more confidence and we account for that be increasing the confidence in that
+    matcher.
+
+    References
+    ----------
+    .. [1] D. Kim, B. Kim, D. Han, and M. Eibich, ‘AutoRAG: Automated Framework for
+    optimization of Retrieval Augmented Generation Pipeline’, Oct. 28, 2024,
+    arXiv: arXiv:2410.20878. doi: 10.48550/arXiv.2410.20878.
 
     Parameters
     ----------
     bm25_matches : list[FDCIngredientMatch]
-        Matches return from BM25 matcher.
+        List of FDCIngredientMatch from the BM25 matcher.
     usif_matches : list[FDCIngredientMatch]
-        Matches return from uSIF matcher.
+        List of FDCIngredientMatch from the uSIF matcher.
+    top_n : int, optional
+        Number of top matches to consider.
 
     Returns
     -------
     list[FDCIngredientMatch]
-        Ordered list of matches.
+        List of FDCIngredientMatch ordered best to worse.
     """
-    # Create dict for uSIF matches for quickly looking up the rank of an entry by FDC ID
-    usif_dict = {f.fdc.fdc_id: rank for rank, f in enumerate(usif_matches)}
+    bm25_matches = bm25_matches[:top_n]
+    usif_matches = usif_matches[:top_n]
+
+    # Estimate matcher confidences based on spread of (unnormalised) scores
+    bm25_conf = estimate_matcher_confidence([m.score for m in bm25_matches])
+    usif_conf = estimate_matcher_confidence([m.score for m in usif_matches])
+    total_conf = bm25_conf + usif_conf
+    bm25_conf = bm25_conf / total_conf * 2
+    usif_conf = usif_conf / total_conf * 2
+
+    # Normalize both score distributions
+    bm25_normalized = normalize_scores([m.score for m in bm25_matches])
+    print("BM25 normalised scores:")
+    for s in bm25_normalized[:10]:
+        print(f"{s}")
+    print()
+    usif_normalized = normalize_scores([m.score for m in usif_matches])
+    print("uSIF normalised scores:")
+    for s in usif_normalized[:10]:
+        print(f"{1 - s}")
+    print()
+
+    # Create dict mapping fdc_id to normalized score
+    usif_dict = {
+        match.fdc.fdc_id: norm_score
+        for match, norm_score in zip(usif_matches, usif_normalized)
+    }
+    bm25_dict = {
+        match.fdc.fdc_id: norm_score
+        for match, norm_score in zip(bm25_matches, bm25_normalized)
+    }
 
     fused_matches = []
-    for rank, match in enumerate(bm25_matches):
-        fdc_id = match.fdc.fdc_id
+    fdc_entries = set(m.fdc for m in bm25_matches) | set(m.fdc for m in usif_matches)
+    for fdc in fdc_entries:
+        bm25_norm_score = bm25_dict.get(fdc.fdc_id, 0)
+        # uSIF scores are inverted (i.e. smaller = better). Therefore, after
+        # normalisation, subtract from one to make bigger = better.
+        usif_norm_score = 1 - usif_dict.get(fdc.fdc_id, 1)
 
-        bm25_rank = 1 / (60 + rank)
-        usif_rank = 1 / (60 + usif_dict[fdc_id])
-        fused_rank = bm25_rank + usif_rank
-        fused_matches.append(
-            FDCIngredientMatch(
-                fdc=match.fdc,
-                score=fused_rank,
-            )
-        )
+        fused_score = bm25_conf * bm25_norm_score + usif_conf * usif_norm_score
+        fused_matches.append(FDCIngredientMatch(fdc=fdc, score=float(fused_score / 2)))
 
     # When resolving identical scores, prefer the ingredient with the word "raw" in it.
     return sorted(
