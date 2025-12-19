@@ -6,8 +6,8 @@ import numpy as np
 
 from .._embeddings import GloVeModel
 from .._loaders import load_embeddings_model
-from ._ff_constants import NON_RAW_FOOD_VERB_STEMS
 from ._ff_dataclasses import FDCIngredient, FDCIngredientMatch
+from ._ff_utils import load_fdc_ingredients
 
 
 class FuzzyEmbeddingMatcher:
@@ -29,7 +29,7 @@ class FuzzyEmbeddingMatcher:
         GloVe embeddings model.
     """
 
-    def __init__(self, embeddings: GloVeModel):
+    def __init__(self, embeddings: GloVeModel, fdc_ingredients: list[FDCIngredient]):
         """Initialize.
 
         Parameters
@@ -38,6 +38,7 @@ class FuzzyEmbeddingMatcher:
             GloVe embeddings model.
         """
         self.embeddings = embeddings
+        self.fdc_ingredients = fdc_ingredients
 
     @lru_cache
     def _get_vector(self, token: str) -> np.ndarray:
@@ -57,80 +58,26 @@ class FuzzyEmbeddingMatcher:
         """
         return self.embeddings[token]
 
-    @lru_cache(maxsize=512)
-    def _token_similarity(self, token1: str, token2: str) -> float:
-        """Calculate similarity between two word embeddings.
-
-        This uses the reciprocal euclidean distance transformed by a sigmoid function to
-        return a value between 0 and 1.
-        1 indicates an exact match (i.e. token1 and token2 are the same).
-        0 indicates no match whatsoever.
-
-        Parameters
-        ----------
-        token1 : str
-            First token.
-        token2 : str
-            Second token.
-
-        Returns
-        -------
-        float
-            Value between 0 and 1.
-        """
-        euclidean_dist = np.linalg.norm(
-            self._get_vector(token1) - self._get_vector(token2)
-        )
-
-        if euclidean_dist == 0:
-            return 1
-        elif euclidean_dist == np.inf:
-            return 0
-        else:
-            sigmoid = 1 / (1 + np.exp(-1 / euclidean_dist))
-            return float(sigmoid)
-
-    @lru_cache(maxsize=512)
-    def _max_token_similarity(
-        self, token: str, fdc_ingredient_tokens: tuple[str, ...]
-    ) -> float:
-        """Calculate the maximum similarity of token to FDC ingredient description
-        tokens.
-
-        Similarity score is calculated from the euclidean distance between token and
-        all tokens that make up the FDC ingredient description.
-        The reciprocal of this distance if transformed using a sigmoid function to
-        return the score between 0 and 1.
-        A score of 1 indicates that token is found exactly in fdc_ingredient.
-
-        Parameters
-        ----------
-        token : str
-            Token to calculate similarity of.
-        fdc_ingredient_tokens : tuple[str, ...]
-            FDC ingredient description tokens to calculate maximum token similarity to.
-
-        Returns
-        -------
-        float
-            Membership score between 0 and 1, where 1 indicates exact match.
-        """
-        return max(self._token_similarity(token, t) for t in fdc_ingredient_tokens)
-
     def _fuzzy_document_distance(
         self,
-        ingredient_name_tokens: list[str],
-        fdc_ingredient_tokens: list[str],
+        ingredient_tokens: list[str],
+        fdc_tokens: list[str],
+        ingredient_vectors: np.ndarray,
+        fdc_vectors: np.ndarray,
     ) -> float:
         """Calculate fuzzy document distance metric between ingredient name and FDC
         ingredient description.
 
         Parameters
         ----------
-        ingredient_name_tokens : list[str]
+        ingredient_tokens : list[str]
             Tokens for ingredient name.
-        fdc_ingredient_tokens : list[str]
+        fdc_tokens : list[str]
             Tokens for FDC ingredient description.
+        ingredient_vectors : np.ndarray
+            Embedding vectors for ingredient tokens.
+        fdc_vectors : np.ndarray
+            Embedding vectors for FDC tokens.
 
         Returns
         -------
@@ -138,6 +85,20 @@ class FuzzyEmbeddingMatcher:
             Fuzzy document distance.
             Smaller values mean closer match.
         """
+        # Pre-calculate distances between all pairs of ingredient and fdc token vectors.
+        # This is a matrix with shape (len(ingredient_tokens), len(fdc_tokens)).
+        distances = np.linalg.norm(
+            ingredient_vectors[:, np.newaxis, :] - fdc_vectors[np.newaxis, :, :], axis=2
+        )
+
+        # Apply sigmoid transformation, forcing a value of 1 where the distance = 0, to
+        # get the similarity scores between all pairs of ingredient and fdc tokens.
+        # This is a matrix with shape (len(ingredient_tokens), len(fdc_tokens)).
+        with np.errstate(divide="ignore"):
+            similarities = np.where(
+                distances == 0, 1.0, 1 / (1 + np.exp(-1 / distances))
+            )
+
         # Calculate fuzzy intersection from the tokens that are similar in both the
         # ingredient and FDC ingredient name, to the tokens that are similar to only
         # one of the ingredient or FDC name.
@@ -145,14 +106,26 @@ class FuzzyEmbeddingMatcher:
         ingred_membership = 0.0
         fdc_membership = 0.0
 
-        token_union = set(ingredient_name_tokens) | set(fdc_ingredient_tokens)
+        token_union = set(ingredient_tokens) | set(fdc_tokens)
         for token in token_union:
-            token_ingred_score = self._max_token_similarity(
-                token, tuple(ingredient_name_tokens)
-            )
-            token_fdc_score = self._max_token_similarity(
-                token, tuple(fdc_ingredient_tokens)
-            )
+            token_ingred_score = 0.0
+            token_fdc_score = 0.0
+            if token in ingredient_tokens and token in fdc_tokens:
+                # Exact match for token in both ingredient and FDC tokens.
+                token_ingred_score = 1.0
+                token_fdc_score = 1.0
+            elif token in ingredient_tokens and token not in fdc_tokens:
+                # Exact match for token in ingredient tokens.
+                token_ingred_score = 1.0
+                # Select the best match in the FDC tokens.
+                ingred_idx = [i for i, t in enumerate(ingredient_tokens) if t == token]
+                token_fdc_score = max(similarities[ingred_idx[0], :])
+            elif token not in ingredient_tokens and token in fdc_tokens:
+                # Exact match for token in FDC tokens.
+                token_fdc_score = 1.0
+                # Select the best match in the ingredient tokens.
+                fdc_idx = [i for i, t in enumerate(fdc_tokens) if t == token]
+                token_ingred_score = max(similarities[:, fdc_idx[0]])
 
             union_membership += token_ingred_score * token_fdc_score
             ingred_membership += token_ingred_score
@@ -168,9 +141,7 @@ class FuzzyEmbeddingMatcher:
 
         return 1 - res
 
-    def find_best_match(
-        self, ingredient_name_tokens: list[str], fdc_ingredients: list[FDCIngredient]
-    ) -> FDCIngredientMatch:
+    def score_matches(self, tokens: list[str]) -> list[FDCIngredientMatch]:
         """Find the FDC ingredient that best matches the ingredient name tokens from the
         list of FDC ingredients.
 
@@ -180,29 +151,25 @@ class FuzzyEmbeddingMatcher:
 
         Parameters
         ----------
-        ingredient_name_tokens : list[str]
+        tokens : list[str]
             Tokens for ingredient name, prepared for use with embeddings.
-        fdc_ingredients : list[FDCIngredient]
-            List of candidate FDC ingredients.
 
         Returns
         -------
         FDCIngredientMatch
             Best matching FDC ingredient.
         """
-        # Bias the results towards selecting the raw version of a FDC ingredient, but
-        # only if the ingredient name tokens don't already include a verb that indicates
-        # the food is not raw (e.g. cooked)
-        if len(set(ingredient_name_tokens) & NON_RAW_FOOD_VERB_STEMS) == 0:
-            ingredient_name_tokens.append("raw")
+        token_vectors = np.array([self._get_vector(t) for t in tokens])
 
-        scored: list[FDCIngredientMatch] = []
-        for fdc in fdc_ingredients:
-            score = self._fuzzy_document_distance(ingredient_name_tokens, fdc.tokens)
+        scored = []
+        for fdc in self.fdc_ingredients:
+            fdc_vectors = np.array([self._get_vector(t) for t in fdc.tokens])
+            score = self._fuzzy_document_distance(
+                tokens, fdc.tokens, token_vectors, fdc_vectors
+            )
             scored.append(FDCIngredientMatch(fdc=fdc, score=score))
 
-        sorted_matches = sorted(scored, key=lambda x: x.score)
-        return sorted_matches[0]
+        return sorted(scored, key=lambda x: x.score)
 
 
 @lru_cache
@@ -215,4 +182,5 @@ def get_fuzzy_matcher() -> FuzzyEmbeddingMatcher:
         Instantiation FuzzyEmbeddingMatcher object.
     """
     embeddings = load_embeddings_model()
-    return FuzzyEmbeddingMatcher(embeddings)
+    fdc_ingredients = load_fdc_ingredients()
+    return FuzzyEmbeddingMatcher(embeddings, fdc_ingredients)
