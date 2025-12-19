@@ -16,6 +16,7 @@ from ._ff_utils import (
     normalise_spelling,
     prepare_embeddings_tokens,
 )
+from ._fuzzy import get_fuzzy_matcher
 from ._usif import get_usif_matcher
 
 logger = logging.getLogger("ingredient-parser.foundation-foods")
@@ -76,25 +77,18 @@ def match_foundation_foods(tokens: list[str], name_idx: int) -> FoundationFood |
         logger.debug("No matching FDC ingredients found with uSIF matcher.")
         return None
 
-    print("uSIF matches:")
-    for m in usif_matches[:10]:
-        print(f"{m.score}: {m.fdc.description}")
-    print()
-
     bm25 = get_bm25_matcher()
     bm25_matches = bm25.score_matches(normalised_tokens)
 
-    print("BM25 matches:")
-    for m in bm25_matches[:10]:
-        print(f"{m.score}: {m.fdc.description}")
-    print()
+    fuzzy = get_fuzzy_matcher()
+    fuzzy_matches = fuzzy.score_matches(normalised_tokens)
 
-    fused_matches = dbsf(bm25_matches, usif_matches)
+    fused_matches = dbsf(bm25_matches, fuzzy_matches, usif_matches)
     best_match = fused_matches[0]
 
     print("Fused matches:")
     for m in fused_matches[:10]:
-        print(f"{m.score}: {m.fdc.description}")
+        print(f"{m.score}: {m.fdc.description} [{m.fdc.fdc_id}]")
     print()
 
     if best_match.score >= 0.4:
@@ -209,6 +203,7 @@ DATASET_PREFERENCE = [
 
 def dbsf(
     bm25_matches: list[FDCIngredientMatch],
+    fuzzy_matches: list[FDCIngredientMatch],
     usif_matches: list[FDCIngredientMatch],
     top_n: int = 100,
 ) -> list[FDCIngredientMatch]:
@@ -238,6 +233,8 @@ def dbsf(
     ----------
     bm25_matches : list[FDCIngredientMatch]
         List of FDCIngredientMatch from the BM25 matcher.
+    fuzzy_matches : list[FDCIngredientMatch]
+        List of FDCIngredientMatch from the Fuzzy matcher.
     usif_matches : list[FDCIngredientMatch]
         List of FDCIngredientMatch from the uSIF matcher.
     top_n : int, optional
@@ -252,30 +249,45 @@ def dbsf(
     # matches.
     bm25_matches = bm25_matches[:top_n]
     usif_matches = usif_matches[:top_n]
+    fuzzy_matches = fuzzy_matches[:top_n]
 
     # Estimate matcher confidences based on spread of (unnormalised) scores
     bm25_conf = estimate_matcher_confidence([m.score for m in bm25_matches])
+    fuzzy_conf = estimate_matcher_confidence([m.score for m in fuzzy_matches])
     usif_conf = estimate_matcher_confidence([m.score for m in usif_matches])
-    total_conf = bm25_conf + usif_conf
-    bm25_conf = bm25_conf / total_conf * 2
-    usif_conf = usif_conf / total_conf * 2
+    total_conf = bm25_conf + usif_conf + fuzzy_conf
+    bm25_conf = bm25_conf / total_conf * 3
+    fuzzy_conf = fuzzy_conf / total_conf * 3
+    usif_conf = usif_conf / total_conf * 3
+    print(f"{bm25_conf=}")
+    print(f"{fuzzy_conf=}")
+    print(f"{usif_conf=}")
 
     # Normalize both score distributions
     bm25_normalized = normalize_scores([m.score for m in bm25_matches])
-    print("BM25 normalised scores:")
-    for s in bm25_normalized[:10]:
-        print(f"{s}")
+    print("BM25 matches:")
+    for m, s in zip(bm25_matches[:10], bm25_normalized[:10]):
+        print(f"{m.score:.6f} ({s:.6f}): {m.fdc.description} [{m.fdc.fdc_id}]")
     print()
     usif_normalized = normalize_scores([m.score for m in usif_matches])
     print("uSIF normalised scores:")
-    for s in usif_normalized[:10]:
-        print(f"{1 - s}")
+    for m, s in zip(usif_matches[:10], usif_normalized[:10]):
+        print(f"{m.score:.6f} ({1 - s:.6f}): {m.fdc.description} [{m.fdc.fdc_id}]")
+    print()
+    fuzzy_normalized = normalize_scores([m.score for m in fuzzy_matches])
+    print("Fuzzy normalised scores:")
+    for m, s in zip(fuzzy_matches[:10], fuzzy_normalized[:10]):
+        print(f"{m.score:.6f} ({1 - s:.6f}): {m.fdc.description} [{m.fdc.fdc_id}]")
     print()
 
     # Create dict mapping fdc_id to normalized score
     usif_dict = {
         match.fdc.fdc_id: norm_score
         for match, norm_score in zip(usif_matches, usif_normalized)
+    }
+    fuzzy_dict = {
+        match.fdc.fdc_id: norm_score
+        for match, norm_score in zip(fuzzy_matches, fuzzy_normalized)
     }
     bm25_dict = {
         match.fdc.fdc_id: norm_score
@@ -289,9 +301,14 @@ def dbsf(
         # uSIF scores are inverted (i.e. smaller = better). Therefore, after
         # normalisation, subtract from one to make bigger = better.
         usif_norm_score = 1 - usif_dict.get(fdc.fdc_id, 1)
+        fuzzy_norm_score = 1 - fuzzy_dict.get(fdc.fdc_id, 1)
 
-        fused_score = bm25_conf * bm25_norm_score + usif_conf * usif_norm_score
-        fused_matches.append(FDCIngredientMatch(fdc=fdc, score=float(fused_score / 2)))
+        fused_score = (
+            bm25_conf * bm25_norm_score
+            + usif_conf * usif_norm_score
+            + fuzzy_conf * fuzzy_norm_score
+        )
+        fused_matches.append(FDCIngredientMatch(fdc=fdc, score=float(fused_score / 3)))
 
     # When resolving identical scores, use the preferred dataset.
     return sorted(
