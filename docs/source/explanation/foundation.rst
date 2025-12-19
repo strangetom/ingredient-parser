@@ -63,7 +63,7 @@ the :func:`parse_ingredient <ingredient_parser.parsers.parse_ingredient>` functi
 
 This functionality works entirely offline.
 A subset of the `full download <https://fdc.nal.usda.gov/download-datasets>`_ of the :abbr:`FDC (Food Data Central)` database is distributed with this library, which includes the foudation_food, sr_legacy_food and survey_fndds_food data sets.
-This data is used when matching an ingredient name to an `FDC (Food Data Central)` entry.
+This data is used when matching an ingredient name to an :abbr:`FDC (Food Data Central)` entry.
 
 Explanation
 ^^^^^^^^^^^
