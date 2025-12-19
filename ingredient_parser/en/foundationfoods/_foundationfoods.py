@@ -111,19 +111,16 @@ def match_foundation_foods(tokens: list[str], name_idx: int) -> FoundationFood |
     return None
 
 
-DATASET_PREFERENCE = [
-    "survey_fndds_food",
-    "sr_legacy_food",
-    "foundation_food",
-]
-
-
 def estimate_matcher_confidence(scores: list[float]) -> float:
     """Calculate confidence of a matcher function from the spread of scores.
 
     A larger gap between the best two scores indicates higher confidence. Beacuse the
-    difference between the best two scores is normalised to the best score, this
-    approach will work for scores that have an arbitrary scale.
+    difference between the best two scores is considered relative to the best score,
+    this approach will work for scores that have an arbitrary scale.
+
+    Additionally, lower variance in the non-top scores also indicates higher confidence.
+
+    The two metrics are combined to estimate the matcher confidence.
 
     Parameters
     ----------
@@ -138,48 +135,76 @@ def estimate_matcher_confidence(scores: list[float]) -> float:
     if len(scores) < 2:
         return 1.0
 
-    max_score = max(scores)
-    second_max = sorted(scores, reverse=True)[1]
-    spread = max_score - second_max
+    sorted_scores = sorted(scores, reverse=True)
+    max_score = sorted_scores[0]
+    second_max = sorted_scores[1]
 
-    if max_score > 0:
-        return 1.0 + (spread / max_score)
+    gap = max_score - second_max
+    relative_gap = gap / max_score
+
+    if len(scores) > 2:
+        # Calculate coefficient of variation for scores below top
+        remaining_scores = sorted_scores[1:]
+        remaining_std = np.std(remaining_scores)
+        remaining_mean = np.mean(remaining_scores)
+        if remaining_mean > 0:
+            cv = remaining_std / remaining_mean
+            # Lower CV = more concentrated = clearer winner
+            distribution_factor = 1.0 / (1.0 + cv)
+        else:
+            distribution_factor = 1.0
     else:
-        return 1.0
+        distribution_factor = 1.0
+
+    # Combine gap and distribution (weighted average)
+    confidence = 0.7 * relative_gap + 0.3 * distribution_factor
+    return float(confidence)
 
 
 def normalize_scores(scores: list[float]) -> list[float]:
-    """
-    DBSF normalization: Use mean and 3-sigma to normalize scores to [0, 1]
+    """Normalize list of scores.
 
-    Formula: normalized = (score - (μ - 3σ)) / (6σ)
-    Then clip to [0, 1]
+    Parameters
+    ----------
+    scores : list[float]
+        List of scores to normalize.
+
+    Returns
+    -------
+    list[float]
+        Normalized scores.
     """
-    if not scores or len(scores) == 0:
+    if not scores:
         return []
 
     scores_array = np.array(scores)
-    mu = np.mean(scores_array)
-    sigma = np.std(scores_array)
 
-    # Handle edge case where all scores are identical
-    if sigma == 0:
+    # Handle case where all scores are identical
+    if np.all(scores_array == scores_array[0]):
         return [0.5] * len(scores)
 
-    # DBSF normalization formula
-    lower_bound = mu - 3 * sigma
-    upper_bound = mu + 3 * sigma
-    range_val = upper_bound - lower_bound
+    # Use 5th and 95th percentiles to calculate normalization interval.
+    min_ = min(scores_array)
+    max_ = max(scores_array)
+    # Ensure that the range is never 0
+    range_val = max(max_ - min_, 1e-9)
 
     normalized = []
     for score in scores_array:
-        # Normalize to [0, 1] range
-        norm_score = (score - lower_bound) / range_val
-        # Clip to ensure [0, 1]
+        norm_score = (score - min_) / range_val
+        # Clip to [0, 1] to handle cases where range_val is really small.
         norm_score = max(0.0, min(1.0, norm_score))
         normalized.append(norm_score)
 
     return normalized
+
+
+# List of FDC data preferences, least preferred to most preferred.
+DATASET_PREFERENCE = [
+    "survey_fndds_food",
+    "sr_legacy_food",
+    "foundation_food",
+]
 
 
 def dbsf(
@@ -223,6 +248,8 @@ def dbsf(
     list[FDCIngredientMatch]
         List of FDCIngredientMatch ordered best to worse.
     """
+    # Limit to best `top_n` results to prevent the normalisation being dominated by poor
+    # matches.
     bm25_matches = bm25_matches[:top_n]
     usif_matches = usif_matches[:top_n]
 
@@ -266,7 +293,7 @@ def dbsf(
         fused_score = bm25_conf * bm25_norm_score + usif_conf * usif_norm_score
         fused_matches.append(FDCIngredientMatch(fdc=fdc, score=float(fused_score / 2)))
 
-    # When resolving identical scores, prefer the ingredient with the word "raw" in it.
+    # When resolving identical scores, use the preferred dataset.
     return sorted(
         fused_matches,
         key=lambda x: (x.score, DATASET_PREFERENCE.index(x.fdc.data_type)),
