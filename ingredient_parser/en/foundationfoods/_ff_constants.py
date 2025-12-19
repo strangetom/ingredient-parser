@@ -49,11 +49,11 @@ FOUNDATION_FOOD_OVERRIDES: dict[tuple[str, ...], FoundationFood] = {
         0,
     ),
     ("all-purpos", "flour"): FoundationFood(
-        "Mayonnaise, regular",
+        "Flour, wheat, all-purpose, unenriched, unbleached",
         1,
-        2710204,
-        "Mayonnaise",
-        "survey_fndds_food",
+        790018,
+        "Cereal Grains and Pasta",
+        "foundation_food",
         0,
     ),
     ("all", "purpos", "flour"): FoundationFood(
