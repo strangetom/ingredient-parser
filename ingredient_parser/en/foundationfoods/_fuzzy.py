@@ -40,6 +40,14 @@ class FuzzyEmbeddingMatcher:
         self.embeddings = embeddings
         self.fdc_ingredients = fdc_ingredients
 
+        # Pre-cache FDC token embedding so they aren't regenerated every time
+        # `score_matches` is called.
+        self.fdc_vector_cache = {}
+        for fdc in fdc_ingredients:
+            self.fdc_vector_cache[fdc.fdc_id] = np.array(
+                [self._get_vector(t) for t in fdc.tokens]
+            )
+
     @lru_cache
     def _get_vector(self, token: str) -> np.ndarray:
         """Get embedding vector for token.
@@ -163,7 +171,7 @@ class FuzzyEmbeddingMatcher:
 
         scored = []
         for fdc in self.fdc_ingredients:
-            fdc_vectors = np.array([self._get_vector(t) for t in fdc.tokens])
+            fdc_vectors = self.fdc_vector_cache[fdc.fdc_id]
             score = self._fuzzy_document_distance(
                 tokens, fdc.tokens, token_vectors, fdc_vectors
             )
