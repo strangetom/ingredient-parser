@@ -129,3 +129,11 @@ NON_RAW_FOOD_VERB_STEMS.add("raw")
 # Tokens that indicated following words are negated.
 # NS = not specified.
 NEGATION_TOKENS = {"no", "not", "without", "NS"}
+
+# Ambiguous ingredient name adjectives
+AMBIGUOUS_ADJECTIVES = [
+    "hot",  # temperature/spiciness
+    "cool",  # temperature/taste (e.g. cool mint)
+    "strong"  # concentration (e.g. coffee)/gluten content (e.g. strong bread flour)
+    "hard",  # texture (e.g. cheese)/alocholic (e.g. hard cider)
+]

@@ -11,7 +11,7 @@ from itertools import groupby
 from ..._common import consume
 from .._loaders import load_embeddings_model
 from .._utils import stem, tokenize
-from ._ff_constants import NEGATION_TOKENS
+from ._ff_constants import AMBIGUOUS_ADJECTIVES, NEGATION_TOKENS
 from ._ff_dataclasses import FDCIngredient
 
 logger = logging.getLogger("ingredient-parser.foundation-foods")
@@ -235,3 +235,48 @@ def tokenize_fdc_description(description: str) -> list[tuple[str, float]]:
         phrase_count += 1
 
     return list(zip(prepared_tokens, weights))
+
+
+def strip_ambiguous_leading_adjectives(
+    tokens: list[str], pos_tags: list[str]
+) -> list[str]:
+    """Strip ambiguous leading adjectives from list of tokens.
+
+    Ambiguous adjectives are adjectives like "hot" which could refer to temperature or
+    spiciness. In this example, when referring to temperature the matchers will confuse
+    it with the spiciness meaning and return incorrect matches.
+
+    If all tokens are ambiguous adjectives, return original list rather than return
+    an empty list.
+
+    Parameters
+    ----------
+    tokens : list[str]
+        List of tokens.
+    pos_tags : list[str]
+        List of POS tags for tokens.
+
+    Returns
+    -------
+    list[str]
+        List of tokens.
+
+    Examples
+    --------
+    >>> strip_ambiguous_leading_adjectives(
+        ["hot", "chicken", "stock"], ["JJ", "NN", "NN"]
+    )
+    ["chicken", "stock"]
+    """
+    original_tokens = tokens
+    while pos_tags[0].startswith("J") and tokens[0] in AMBIGUOUS_ADJECTIVES:
+        tokens = tokens[1:]
+        pos_tags = pos_tags[1:]
+
+        if not tokens:
+            break
+
+    if not tokens:
+        return original_tokens
+
+    return tokens

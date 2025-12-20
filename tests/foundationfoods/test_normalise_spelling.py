@@ -1,4 +1,4 @@
-from ingredient_parser.en.foundationfoods._foundationfoods import normalise_spelling
+from ingredient_parser.en.foundationfoods._ff_utils import normalise_spelling
 
 
 class TestNormaliseSpelling:
