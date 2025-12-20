@@ -42,7 +42,6 @@ class BM25:
         fdc_ingredients: list[FDCIngredient],
         k1: float,
         b: float,
-        alpha: float = 1,
     ):
         """
         Parameters
@@ -62,13 +61,9 @@ class BM25:
             experiments suggest that 0.5 < b < 0.8 yields reasonably good results,
             although the optimal value depends on factors such as the type of documents
             or queries.
-        alpha : float
-            IDF cutoff, terms with a lower idf score than alpha will be dropped. A
-            higher alpha will lower the accuracy of BM25 but increase performance
         """
         self.k1 = k1
         self.b = b
-        self.alpha = alpha
 
         self.avgdl = 0
         self.t2d = {}
@@ -96,23 +91,12 @@ class BM25:
 
         self.avgdl = mean(self.doc_len)
 
-        to_delete = []
         for token, ingredients in self.t2d.items():
             idf = math.log(
                 (self.corpus_size - len(ingredients) + 0.5) / (len(ingredients) + 0.5)
                 + 1
             )
-
-            # Only store the idf score if it's above the threshold
-            if idf > self.alpha:
-                self.idf[token] = idf
-            else:
-                to_delete.append(token)
-
-        logger.debug(f"Dropping {len(to_delete)} terms.")
-        for token in to_delete:
-            logger.debug(f"Deleting {token} from model.")
-            del self.t2d[token]
+            self.idf[token] = idf
 
         self.average_idf = sum(self.idf.values()) / len(self.idf)
 
@@ -163,4 +147,4 @@ def get_bm25_matcher() -> BM25:
         Instantiation uSIF object.
     """
     fdc_ingredients = load_fdc_ingredients()
-    return BM25(fdc_ingredients, 1.5, 0.75, 1)
+    return BM25(fdc_ingredients, k1=1.5, b=0.75)
