@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import logging
 from collections import defaultdict
 from dataclasses import dataclass
 from functools import lru_cache
@@ -10,6 +11,8 @@ from .._embeddings import GloVeModel
 from .._loaders import load_embeddings_model
 from ._ff_dataclasses import FDCIngredient, FDCIngredientMatch
 from ._ff_utils import load_fdc_ingredients, prepare_embeddings_tokens
+
+logger = logging.getLogger("ingredient-parser.foundation-foods.usif")
 
 
 @dataclass
@@ -222,8 +225,7 @@ class uSIF:
         return 1 - float(np.dot(vec1.vec, vec2.vec) / (vec1.norm * vec2.norm))
 
     def score_matches(self, tokens: list[str]) -> list[FDCIngredientMatch]:
-        """Find best candidate matches between input token and FDC ingredients with a
-        cosine similarity of no more than cutoff.
+        """Score FDC Ingredients according to closest match to tokens.
 
         Parameters
         ----------
@@ -233,7 +235,7 @@ class uSIF:
         Returns
         -------
         list[FDCIngredientMatch]
-            List of best n candidate matching FDC ingredients.
+            Scored FDC ingredients, sorted by best first.
         """
         prepared_tokens = prepare_embeddings_tokens(tuple(tokens))
         vec = self._embed(prepared_tokens, [1] * len(prepared_tokens))
@@ -262,6 +264,7 @@ def get_usif_matcher() -> uSIF:
     uSIF
         Instantiation uSIF object.
     """
+    logger.debug("Initializing uSIF matcher.")
     embeddings = load_embeddings_model()
     fdc_ingredients = load_fdc_ingredients()
     return uSIF(embeddings, fdc_ingredients)

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import logging
 from functools import lru_cache
 
 import numpy as np
@@ -8,6 +9,8 @@ from .._embeddings import GloVeModel
 from .._loaders import load_embeddings_model
 from ._ff_dataclasses import FDCIngredient, FDCIngredientMatch
 from ._ff_utils import load_fdc_ingredients
+
+logger = logging.getLogger("ingredient-parser.foundation-foods.fuzzy")
 
 
 class FuzzyEmbeddingMatcher:
@@ -93,14 +96,14 @@ class FuzzyEmbeddingMatcher:
             Fuzzy document distance.
             Smaller values mean closer match.
         """
-        # Pre-calculate distances between all pairs of ingredient and fdc token vectors.
+        # Pre-calculate distances between all pairs of ingredient and FDC token vectors.
         # This is a matrix with shape (len(ingredient_tokens), len(fdc_tokens)).
         distances = np.linalg.norm(
             ingredient_vectors[:, np.newaxis, :] - fdc_vectors[np.newaxis, :, :], axis=2
         )
 
         # Apply sigmoid transformation, forcing a value of 1 where the distance = 0, to
-        # get the similarity scores between all pairs of ingredient and fdc tokens.
+        # get the similarity scores between all pairs of ingredient and FDC tokens.
         # This is a matrix with shape (len(ingredient_tokens), len(fdc_tokens)).
         with np.errstate(divide="ignore"):
             similarities = np.where(
@@ -150,12 +153,7 @@ class FuzzyEmbeddingMatcher:
         return 1 - res
 
     def score_matches(self, tokens: list[str]) -> list[FDCIngredientMatch]:
-        """Find the FDC ingredient that best matches the ingredient name tokens from the
-        list of FDC ingredients.
-
-        If the ingredient name tokens do not contain a verb indicating that the
-        ingredient name is not raw (e.g. cooked), then the token "raw" is added as an
-        additional token to bias the results towards a "raw" FDC ingredient.
+        """Score FDC Ingredients according to closest match to tokens.
 
         Parameters
         ----------
@@ -165,7 +163,7 @@ class FuzzyEmbeddingMatcher:
         Returns
         -------
         FDCIngredientMatch
-            Best matching FDC ingredient.
+            Scored FDC ingredients, sorted by best first.
         """
         token_vectors = np.array([self._get_vector(t) for t in tokens])
 
@@ -189,6 +187,7 @@ def get_fuzzy_matcher() -> FuzzyEmbeddingMatcher:
     FuzzyEmbeddingMatcher
         Instantiation FuzzyEmbeddingMatcher object.
     """
+    logger.debug("Initializing Fuzzy matcher.")
     embeddings = load_embeddings_model()
     fdc_ingredients = load_fdc_ingredients()
     return FuzzyEmbeddingMatcher(embeddings, fdc_ingredients)

@@ -58,7 +58,7 @@ def normalise_spelling(tokens: list[str]) -> list[str]:
     """Normalise spelling in `tokens` to standard spellings used in FDC ingredient
     descriptions.
 
-    This also include subtitution of certain ingredients to use the FDC version e.g.
+    This also include substitution of certain ingredients to use the FDC version e.g.
     courgette -> zucchini; coriander -> cilantro.
 
     Parameters
@@ -102,7 +102,7 @@ def normalise_spelling(tokens: list[str]) -> list[str]:
 def prepare_embeddings_tokens(tokens: tuple[str, ...]) -> list[str]:
     """Prepare tokens for use with embeddings model.
 
-    This involves obtaning the stem for the token and discarding tokens which are
+    This involves obtaining the stem for the token and discarding tokens which are
     numeric, which are punctuation, or which are in STOP_WORDS.
 
     Parameters
@@ -149,6 +149,8 @@ def load_fdc_ingredients() -> list[FDCIngredient]:
     list[FDCIngredient]
         List of FDC ingredients.
     """
+    logger = logging.getLogger("ingredient-parser.fdc")
+
     foundation_foods = []
     with as_file(files(__package__).joinpath("..", "data/fdc_ingredients.csv.gz")) as p:
         with gzip.open(p, "rt") as f:
@@ -180,14 +182,14 @@ def load_fdc_ingredients() -> list[FDCIngredient]:
 def tokenize_fdc_description(description: str) -> list[tuple[str, float]]:
     """Tokenize FDC ingredient description, returning tokens and weight for each token.
 
-    Tokens that are not compatible with the embedddings are discarded.
+    Tokens that are not compatible with the embeddings are discarded.
 
-    Weights are calculated using a 1/x decay based on the number of phrases in
+    Weights are calculated using a 1e-3 subtraction based on the number of phrases in
     the description. Each phrase is determined by the position of commas and later
-    phrases have lower weights. Fo example
+    phrases have lower weights. For example
 
     Oil, olive, extra light
-    1     1/2    1/3   1/3
+    1    1-1e3  1-2e3 1-2e3
 
     Negated tokens are given a weight of 0. These are tokens that occur in a phrase
     after a token such as "no", "not", "without".

@@ -101,7 +101,7 @@ class BM25:
         self.average_idf = sum(self.idf.values()) / len(self.idf)
 
     def score_matches(self, tokens: list[str]) -> list[FDCIngredientMatch]:
-        """Score matching FDC Ingredients to tokens.
+        """Score FDC Ingredients according to closest match to tokens.
 
         Parameters
         ----------
@@ -113,7 +113,7 @@ class BM25:
         Returns
         -------
         list[FDCIngredientMatch]
-            Ordered list of matches.
+            Scored FDC ingredients, sorted by best first.
         """
         scores = defaultdict(float)
         for token in tokens:
@@ -146,5 +146,6 @@ def get_bm25_matcher() -> BM25:
     uSIF
         Instantiation uSIF object.
     """
+    logger.debug("Initializing BM25 matcher.")
     fdc_ingredients = load_fdc_ingredients()
     return BM25(fdc_ingredients, k1=1.5, b=0.75)

@@ -221,7 +221,7 @@ def dbsf(
 
     The provided `bm25_matches` and `usif_matches` lists contain the raw scores for all
     possible FDC ingredients. We only consider the `top_n` of these to avoid the
-    distribution statistics being skewed by the poor matches. This is beacuse there are
+    distribution statistics being skewed by the poor matches. This is because there are
     far more poor matches than there are good matches.
 
     The fusing of the normalised scores for a match is weighted by the confidence of
@@ -257,7 +257,7 @@ def dbsf(
     usif_matches = usif_matches[:top_n]
     fuzzy_matches = fuzzy_matches[:top_n]
 
-    # Estimate matcher confidences based on spread of (unnormalised) scores
+    # Estimate matcher confidences based on spread of (un-normalised) scores
     bm25_conf = estimate_matcher_confidence([m.score for m in bm25_matches])
     fuzzy_conf = estimate_matcher_confidence([m.score for m in fuzzy_matches])
     usif_conf = estimate_matcher_confidence([m.score for m in usif_matches])
@@ -265,6 +265,9 @@ def dbsf(
     bm25_conf = bm25_conf / total_conf * 3
     fuzzy_conf = fuzzy_conf / total_conf * 3
     usif_conf = usif_conf / total_conf * 3
+    logger.debug(
+        f"Matcher confidences: {bm25_conf=:.4f}, {usif_conf=:.4f}, {fuzzy_conf=:.4f}."
+    )
     print(f"{bm25_conf=}")
     print(f"{fuzzy_conf=}")
     print(f"{usif_conf=}")
