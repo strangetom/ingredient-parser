@@ -257,21 +257,6 @@ def dbsf(
     usif_matches = usif_matches[:top_n]
     fuzzy_matches = fuzzy_matches[:top_n]
 
-    # Estimate matcher confidences based on spread of (un-normalised) scores
-    bm25_conf = estimate_matcher_confidence([m.score for m in bm25_matches])
-    fuzzy_conf = estimate_matcher_confidence([m.score for m in fuzzy_matches])
-    usif_conf = estimate_matcher_confidence([m.score for m in usif_matches])
-    total_conf = bm25_conf + usif_conf + fuzzy_conf
-    bm25_conf = bm25_conf / total_conf * 3
-    fuzzy_conf = fuzzy_conf / total_conf * 3
-    usif_conf = usif_conf / total_conf * 3
-    logger.debug(
-        f"Matcher confidences: {bm25_conf=:.4f}, {usif_conf=:.4f}, {fuzzy_conf=:.4f}."
-    )
-    print(f"{bm25_conf=}")
-    print(f"{fuzzy_conf=}")
-    print(f"{usif_conf=}")
-
     # Normalize both score distributions
     bm25_normalized = normalize_scores([m.score for m in bm25_matches])
     print("BM25 matches:")
@@ -302,6 +287,21 @@ def dbsf(
         match.fdc.fdc_id: norm_score
         for match, norm_score in zip(bm25_matches, bm25_normalized)
     }
+
+    # Estimate matcher confidences based on spread of normalised scores.
+    bm25_conf = estimate_matcher_confidence(bm25_normalized)
+    fuzzy_conf = estimate_matcher_confidence(fuzzy_normalized)
+    usif_conf = estimate_matcher_confidence(usif_normalized)
+    total_conf = bm25_conf + usif_conf + fuzzy_conf
+    bm25_conf = bm25_conf / total_conf * 3
+    fuzzy_conf = fuzzy_conf / total_conf * 3
+    usif_conf = usif_conf / total_conf * 3
+    logger.debug(
+        f"Matcher confidences: {bm25_conf=:.4f}, {usif_conf=:.4f}, {fuzzy_conf=:.4f}."
+    )
+    print(f"{bm25_conf=}")
+    print(f"{fuzzy_conf=}")
+    print(f"{usif_conf=}")
 
     fused_matches = []
     fdc_entries = set(m.fdc for m in bm25_matches) | set(m.fdc for m in usif_matches)
