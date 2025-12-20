@@ -13,7 +13,7 @@ logger = logging.getLogger("ingredient-parser.foundation-foods.bm25")
 
 
 class BM25:
-    """Fast Implementation of Best Matching 25 ranking function.
+    """Fast Implementation of Best Matching 25 ranking function [1]_.
 
     References
     ----------

@@ -86,8 +86,12 @@ def match_foundation_foods(
     bm25 = get_bm25_matcher()
     bm25_matches = bm25.score_matches(normalised_tokens)
 
-    fuzzy = get_fuzzy_matcher()
-    fuzzy_matches = fuzzy.score_matches(normalised_tokens)
+    fuzzy_matches = []
+    agreement = bm25_usif_agreement(bm25_matches, usif_matches)
+    print(f"Rank agreement: {agreement:.4f}")
+    if agreement < 0.2:
+        fuzzy = get_fuzzy_matcher()
+        fuzzy_matches = fuzzy.score_matches(normalised_tokens)
 
     fused_matches = dbsf(bm25_matches, fuzzy_matches, usif_matches)
     best_match = fused_matches[0]
@@ -109,6 +113,69 @@ def match_foundation_foods(
 
     logger.debug("No FDC ingredients found with good enough match.")
     return None
+
+
+def bm25_usif_agreement(
+    bm25_matches: list[FDCIngredientMatch],
+    usif_matches: list[FDCIngredientMatch],
+    p: float = 0.95,
+) -> float:
+    """Check the agreement between the BM25 and uSIF matches.
+
+    If the agreement is poor, return True else return False.
+
+    Rank Biased Overlap [1]_ is used to calculate a metric quantifying the overlap as a
+    score between 0 and 1. A score less than 0.5 is used to indicate poor alignment.
+
+    The parameter p determines how steep the decline in weights is: the smaller p, the
+    more top-weighted the metric is. In the limit, when p = 0, only the top-ranked item
+    is considered, and the RBO score is either zero or one. On the other hand, as p
+    approaches arbitrarily close to 1, the weights become arbitrarily flat, and the
+    evaluation becomes arbitrarily deep.
+
+    References
+    ----------
+    .. [1] W. Webber, A. Moffat, and J. Zobel, ‘A similarity measure for indefinite
+           rankings’, ACM Trans. Inf. Syst., vol. 28, no. 4, pp. 1–38, Nov. 2010,
+           doi: 10.1145/1852102.1852106.
+
+    Parameters
+    ----------
+    bm25_matches : list[FDCIngredientMatch]
+        List of ordered matches from BM25 matcher.
+    usif_matches : list[FDCIngredientMatch]
+        List of ordered matches from uSIF matcher.
+
+    Returns
+    -------
+    float
+        Agreement score, between 0 and 1, where 1 is exact agreement.
+    """
+    bm25_ids = [m.fdc.fdc_id for m in bm25_matches[:100]]
+    usif_ids = [m.fdc.fdc_id for m in usif_matches[:100]]
+
+    overlap = 0
+    res = 0
+    bm25_set = set()
+    usif_set = set()
+
+    for i in range(len(bm25_ids)):
+        bm25_set.add(bm25_ids[i])
+        usif_set.add(usif_ids[i])
+
+        if bm25_ids[i] == usif_ids[i]:
+            overlap += 1
+        elif bm25_ids[i] in usif_set:
+            overlap += 1
+        elif usif_ids[i] in bm25_set:
+            overlap += 1
+
+        # Agreement at depth d = i + 1
+        agreement = overlap / (i + 1)
+        res += agreement * (p**i)
+
+    # This provides the base RBO for the common length
+    return (1 - p) * res
 
 
 def estimate_matcher_confidence(scores: list[float]) -> float:
@@ -133,7 +200,7 @@ def estimate_matcher_confidence(scores: list[float]) -> float:
         Description
     """
     if len(scores) < 2:
-        return 1.0
+        return 0
 
     sorted_scores = sorted(scores, reverse=True)
     max_score = sorted_scores[0]
