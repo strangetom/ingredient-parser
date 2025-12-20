@@ -93,7 +93,7 @@ def normalise_spelling(tokens: list[str]) -> list[str]:
             normalised_tokens.append(token)
 
     if normalised_tokens != tokens:
-        logger.debug(f"Normalised tokens: {normalised_tokens}.")
+        logger.debug(f"Normalised '{tokens}' to '{normalised_tokens}'.")
 
     return normalised_tokens
 

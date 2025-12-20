@@ -22,7 +22,9 @@ from ._usif import get_usif_matcher
 logger = logging.getLogger("ingredient-parser.foundation-foods")
 
 
-def match_foundation_foods(tokens: list[str], name_idx: int) -> FoundationFood | None:
+def match_foundation_foods(
+    tokens: list[str], pos_tags: list[str], name_idx: int
+) -> FoundationFood | None:
     """Match ingredient name to foundation foods from FDC ingredient.
 
     This is done in three stages.
@@ -42,6 +44,8 @@ def match_foundation_foods(tokens: list[str], name_idx: int) -> FoundationFood |
     ----------
     tokens : list[str]
         Ingredient name tokens.
+    pos_tags : list[str]
+        POS tags for tokens.
     name_idx : int
         Index of corresponding name in ParsedIngredient.names list.
 
@@ -49,6 +53,7 @@ def match_foundation_foods(tokens: list[str], name_idx: int) -> FoundationFood |
     -------
     FoundationFood | None
     """
+    tokens = strip_leading_adjectives(tokens, pos_tags)
     logger.debug(f"Matching FDC ingredient for ingredient name tokens: {tokens}")
     prepared_tokens = prepare_embeddings_tokens(tuple(tokens))
     logger.debug(f"Prepared tokens: {prepared_tokens}.")
@@ -103,6 +108,39 @@ def match_foundation_foods(tokens: list[str], name_idx: int) -> FoundationFood |
 
     logger.debug("No FDC ingredients found with good enough match.")
     return None
+
+
+def strip_leading_adjectives(tokens: list[str], pos_tags: list[str]) -> list[str]:
+    """Strip leading adjectives from list of tokens.
+
+    If all tokens are adjectives, return original list rather than return nothing.
+
+    Parameters
+    ----------
+    tokens : list[str]
+        List of tokens.
+    pos_tags : list[str]
+        List of POS tags for tokens.
+
+    Returns
+    -------
+    list[str]
+        List of tokens.
+
+    Examples
+    --------
+    >>> strip_leading_adjectives(["hot", "chicken", "stock"], ["JJ", "NN", "NN"])
+    ["chicken", "stock"]
+    """
+    original_tokens = tokens
+    while pos_tags[0].startswith("J"):
+        tokens = tokens[1:]
+        pos_tags = pos_tags[1:]
+
+    if not tokens:
+        return original_tokens
+
+    return tokens
 
 
 def estimate_matcher_confidence(scores: list[float]) -> float:

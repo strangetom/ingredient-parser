@@ -204,12 +204,17 @@ class PostProcessor:
                 if self.foundation_foods:
                     # Extract name tokens. We can only return a single foundation food,
                     # but we still need to return a list.
-                    name_tokens = [
-                        token
-                        for token, label in zip(self.tokens, self.labels)
+                    name_pos = [
+                        (token, pos_tag)
+                        for token, pos_tag, label in zip(
+                            self.tokens, self.pos_tags, self.labels
+                        )
                         if label == "NAME"
                     ]
-                    if ff := match_foundation_foods(name_tokens, 0):
+                    name_tokens, pos_tags = zip(*name_pos)
+                    if ff := match_foundation_foods(
+                        list(name_tokens), list(pos_tags), 0
+                    ):
                         foundationfoods = [ff]
             else:
                 name = []
@@ -557,7 +562,8 @@ class PostProcessor:
                     # will have already found any match for the first instance of the
                     # name.
                     tokens = [self.tokens[i] for i in token_idx]
-                    if ff := match_foundation_foods(tokens, len(names) - 1):
+                    pos_tags = [self.pos_tags[i] for i in token_idx]
+                    if ff := match_foundation_foods(tokens, pos_tags, len(names) - 1):
                         foundation_foods.append(ff)
 
         return names, foundation_foods
