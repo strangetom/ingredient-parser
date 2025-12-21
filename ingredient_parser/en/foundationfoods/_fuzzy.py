@@ -159,7 +159,7 @@ class FuzzyEmbeddingMatcher:
         return 1 - res
 
     def score_matches(
-        self, tokens: list[str], fdc_ids: set[int] | None
+        self, tokens: list[str], fdc_ids: set[int] | None = None
     ) -> list[FDCIngredientMatch]:
         """Score FDC Ingredients according to closest match to tokens.
 
@@ -167,6 +167,9 @@ class FuzzyEmbeddingMatcher:
         ----------
         tokens : list[str]
             Tokens for ingredient name, prepared for use with embeddings.
+        fdc_ids : set[int] | None, optional
+            Optional list of FDC IDs to limit the scoring to.
+            If not provided, all FDC ingredients are scored.
 
         Returns
         -------
