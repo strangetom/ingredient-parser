@@ -48,9 +48,9 @@ if __name__ == "__main__":
                 sent, expect_name_in_output=True, foundation_foods=args.foundationfoods
             )
 
-    total_sentences = args.iterations * len(sentences)
     duration = time.time() - start
+    total_sentences = args.iterations * len(sentences)
     print(f"Elapsed time: {duration:.2f} s.")
-    print(f"{len(sentences) * args.iterations} total iterations.")
+    print(f"{total_sentences} total iterations.")
     print(f"{1e6 * duration / total_sentences:.2f} us/sentence.")
     print(f"{total_sentences / duration:.2f} sentences/second.")
