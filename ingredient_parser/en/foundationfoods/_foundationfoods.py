@@ -131,18 +131,19 @@ def bm25_usif_agreement(
     usif_matches: list[FDCIngredientMatch],
     p: float = 0.95,
 ) -> float:
-    """Check the agreement between the BM25 and uSIF matches.
-
-    If the agreement is poor, return True else return False.
+    """Calculate the agreement between the BM25 and uSIF matches.
 
     Rank Biased Overlap [1]_ is used to calculate a metric quantifying the overlap as a
-    score between 0 and 1. A score less than 0.5 is used to indicate poor alignment.
+    score between 0 and 1.
 
     The parameter p determines how steep the decline in weights is: the smaller p, the
     more top-weighted the metric is. In the limit, when p = 0, only the top-ranked item
     is considered, and the RBO score is either zero or one. On the other hand, as p
     approaches arbitrarily close to 1, the weights become arbitrarily flat, and the
     evaluation becomes arbitrarily deep.
+
+    This implementation assumes that both input lists are the same length. If they
+    aren't then this function isn't appropriate and RBO_EXT should be considered.
 
     References
     ----------
@@ -156,37 +157,37 @@ def bm25_usif_agreement(
         List of ordered matches from BM25 matcher.
     usif_matches : list[FDCIngredientMatch]
         List of ordered matches from uSIF matcher.
+    p : float
+        Persistence parameter (0 < p < 1).
+        The expected depth is given by 1/(1 - p).
+        Default is 0.95 -> expected depth ~20.
 
     Returns
     -------
     float
         Agreement score, between 0 and 1, where 1 is exact agreement.
     """
+    if p < 0 or p > 1:
+        raise ValueError(f"p should be between 0 and 1. Provided value is {p}.")
+
     bm25_ids = [m.fdc.fdc_id for m in bm25_matches[:TOP_K]]
     usif_ids = [m.fdc.fdc_id for m in usif_matches[:TOP_K]]
 
-    overlap = 0
-    res = 0
     bm25_set = set()
     usif_set = set()
+    rbo_sum = 0
+    for depth in range(1, len(bm25_ids) + 1):
+        bm25_set.add(bm25_ids[depth - 1])
+        usif_set.add(usif_ids[depth - 1])
 
-    for i in range(len(bm25_ids)):
-        bm25_set.add(bm25_ids[i])
-        usif_set.add(usif_ids[i])
+        # Calculate overlap at current depth.
+        overlap = len(bm25_set & usif_set)
 
-        if bm25_ids[i] == usif_ids[i]:
-            overlap += 1
-        elif bm25_ids[i] in usif_set:
-            overlap += 1
-        elif usif_ids[i] in bm25_set:
-            overlap += 1
-
-        # Agreement at depth d = i + 1
-        agreement = overlap / (i + 1)
-        res += agreement * (p**i)
+        agreement = overlap / depth
+        rbo_sum += agreement * (p**depth)
 
     # This provides the base RBO for the common length
-    return (1 - p) * res
+    return (1 - p) * rbo_sum
 
 
 def estimate_matcher_confidence(scores: list[float]) -> float:
