@@ -22,6 +22,9 @@ from ._usif import get_usif_matcher
 
 logger = logging.getLogger("ingredient-parser.foundation-foods")
 
+# Constant defining the top k matches to use wherever we limit the matches considered.
+TOP_K = 100
+
 
 def match_foundation_foods(
     tokens: list[str], pos_tags: list[str], name_idx: int
@@ -75,25 +78,33 @@ def match_foundation_foods(
     # the food is not raw (e.g. cooked)
     if len(set(normalised_tokens) & NON_RAW_FOOD_VERB_STEMS) == 0:
         normalised_tokens.append("raw")
-    print(normalised_tokens)
 
     u = get_usif_matcher()
     usif_matches = u.score_matches(normalised_tokens)
-    if not usif_matches:
-        logger.debug("No matching FDC ingredients found with uSIF matcher.")
-        return None
 
     bm25 = get_bm25_matcher()
     bm25_matches = bm25.score_matches(normalised_tokens)
 
     fuzzy_matches = []
     agreement = bm25_usif_agreement(bm25_matches, usif_matches)
-    print(f"Rank agreement: {agreement:.4f}")
     if agreement < 0.2:
-        fuzzy = get_fuzzy_matcher()
-        fuzzy_matches = fuzzy.score_matches(normalised_tokens)
+        # Get all FDC IDs for BM25 and uSIF matches
+        # We'll only use the fuzzy matcher on these, instead of the whole FDC set.
+        candidate_fdc_ids = {m.fdc.fdc_id for m in usif_matches[:TOP_K]} | {
+            m.fdc.fdc_id for m in bm25_matches[:TOP_K]
+        }
+        logger.debug(f"BM25 and uSIF match alignment is < 0.2 ({agreement:.4f}).")
+        logger.debug(
+            (
+                f"Using FuzzyMatcher on {TOP_K} matches from "
+                "BM25 and uSIF to help arbitrate."
+            )
+        )
 
-    fused_matches = dbsf(bm25_matches, fuzzy_matches, usif_matches)
+        fuzzy = get_fuzzy_matcher()
+        fuzzy_matches = fuzzy.score_matches(normalised_tokens, candidate_fdc_ids)
+
+    fused_matches = dbsf(bm25_matches, fuzzy_matches, usif_matches, top_n=TOP_K)
     best_match = fused_matches[0]
 
     print("Fused matches:")
@@ -151,8 +162,8 @@ def bm25_usif_agreement(
     float
         Agreement score, between 0 and 1, where 1 is exact agreement.
     """
-    bm25_ids = [m.fdc.fdc_id for m in bm25_matches[:100]]
-    usif_ids = [m.fdc.fdc_id for m in usif_matches[:100]]
+    bm25_ids = [m.fdc.fdc_id for m in bm25_matches[:TOP_K]]
+    usif_ids = [m.fdc.fdc_id for m in usif_matches[:TOP_K]]
 
     overlap = 0
     res = 0
@@ -326,20 +337,8 @@ def dbsf(
 
     # Normalize both score distributions
     bm25_normalized = normalize_scores([m.score for m in bm25_matches])
-    print("BM25 matches:")
-    for m, s in zip(bm25_matches[:10], bm25_normalized[:10]):
-        print(f"{m.score:.6f} ({s:.6f}): {m.fdc.description} [{m.fdc.fdc_id}]")
-    print()
     usif_normalized = normalize_scores([m.score for m in usif_matches])
-    print("uSIF normalised scores:")
-    for m, s in zip(usif_matches[:10], usif_normalized[:10]):
-        print(f"{m.score:.6f} ({1 - s:.6f}): {m.fdc.description} [{m.fdc.fdc_id}]")
-    print()
     fuzzy_normalized = normalize_scores([m.score for m in fuzzy_matches])
-    print("Fuzzy normalised scores:")
-    for m, s in zip(fuzzy_matches[:10], fuzzy_normalized[:10]):
-        print(f"{m.score:.6f} ({1 - s:.6f}): {m.fdc.description} [{m.fdc.fdc_id}]")
-    print()
 
     # Create dict mapping fdc_id to normalized score
     usif_dict = {
@@ -364,17 +363,19 @@ def dbsf(
     fuzzy_conf = fuzzy_conf / total_conf * 3
     usif_conf = usif_conf / total_conf * 3
     logger.debug(
-        f"Matcher confidences: {bm25_conf=:.4f}, {usif_conf=:.4f}, {fuzzy_conf=:.4f}."
+        (
+            f"Matcher confidences: "
+            f"BM25={bm25_conf:.4f}, "
+            f"uSIF={usif_conf:.4f}, "
+            f"Fuzzy={fuzzy_conf:.4f}."
+        )
     )
-    print(f"{bm25_conf=}")
-    print(f"{fuzzy_conf=}")
-    print(f"{usif_conf=}")
 
     fused_matches = []
     fdc_entries = set(m.fdc for m in bm25_matches) | set(m.fdc for m in usif_matches)
     for fdc in fdc_entries:
         bm25_norm_score = bm25_dict.get(fdc.fdc_id, 0)
-        # uSIF scores are inverted (i.e. smaller = better). Therefore, after
+        # uSIF and Fuzzy scores are inverted (i.e. smaller = better). Therefore, after
         # normalisation, subtract from one to make bigger = better.
         usif_norm_score = 1 - usif_dict.get(fdc.fdc_id, 1)
         fuzzy_norm_score = 1 - fuzzy_dict.get(fdc.fdc_id, 1)

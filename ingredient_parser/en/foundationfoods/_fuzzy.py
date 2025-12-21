@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import logging
+from dataclasses import dataclass
 from functools import lru_cache
 
 import numpy as np
@@ -11,6 +12,12 @@ from ._ff_dataclasses import FDCIngredient, FDCIngredientMatch
 from ._ff_utils import load_fdc_ingredients
 
 logger = logging.getLogger("ingredient-parser.foundation-foods.fuzzy")
+
+
+@dataclass
+class FDCIngredientEmbedding:
+    fdc: FDCIngredient
+    vectors: np.ndarray
 
 
 class FuzzyEmbeddingMatcher:
@@ -41,14 +48,13 @@ class FuzzyEmbeddingMatcher:
             GloVe embeddings model.
         """
         self.embeddings = embeddings
-        self.fdc_ingredients = fdc_ingredients
 
         # Pre-cache FDC token embedding so they aren't regenerated every time
         # `score_matches` is called.
         self.fdc_vector_cache = {}
         for fdc in fdc_ingredients:
-            self.fdc_vector_cache[fdc.fdc_id] = np.array(
-                [self._get_vector(t) for t in fdc.tokens]
+            self.fdc_vector_cache[fdc.fdc_id] = FDCIngredientEmbedding(
+                fdc=fdc, vectors=np.array([self._get_vector(t) for t in fdc.tokens])
             )
 
     @lru_cache
@@ -152,7 +158,9 @@ class FuzzyEmbeddingMatcher:
 
         return 1 - res
 
-    def score_matches(self, tokens: list[str]) -> list[FDCIngredientMatch]:
+    def score_matches(
+        self, tokens: list[str], fdc_ids: set[int] | None
+    ) -> list[FDCIngredientMatch]:
         """Score FDC Ingredients according to closest match to tokens.
 
         Parameters
@@ -167,13 +175,19 @@ class FuzzyEmbeddingMatcher:
         """
         token_vectors = np.array([self._get_vector(t) for t in tokens])
 
+        if fdc_ids is None:
+            fdc_ids = set(self.fdc_vector_cache.keys())
+
         scored = []
-        for fdc in self.fdc_ingredients:
-            fdc_vectors = self.fdc_vector_cache[fdc.fdc_id]
+        for fdc_id in fdc_ids:
+            fdc_embedding = self.fdc_vector_cache[fdc_id]
             score = self._fuzzy_document_distance(
-                tokens, fdc.tokens, token_vectors, fdc_vectors
+                tokens,
+                fdc_embedding.fdc.tokens,
+                token_vectors,
+                fdc_embedding.vectors,
             )
-            scored.append(FDCIngredientMatch(fdc=fdc, score=score))
+            scored.append(FDCIngredientMatch(fdc=fdc_embedding.fdc, score=score))
 
         return sorted(scored, key=lambda x: x.score)
 
