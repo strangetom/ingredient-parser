@@ -39,6 +39,7 @@ FDC_TOKEN_SUBSTITUTIONS: dict[str, str] = {
     "courgett": "zucchini",
     "gherkin": "pickl",
     "mangetout": "snowpea",
+    "mint": "spearmint",
     "prawn": "shrimp",
     "rocket": "arugula",
     "swede": "rutabaga",
