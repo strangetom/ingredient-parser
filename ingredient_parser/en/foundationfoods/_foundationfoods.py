@@ -104,7 +104,7 @@ def match_foundation_foods(
         fuzzy = get_fuzzy_ranker()
         fuzzy_matches = fuzzy.rank_matches(normalised_tokens, candidate_fdc_ids)
 
-    fused_matches = dbsf(bm25_matches, fuzzy_matches, usif_matches, top_n=TOP_K)
+    fused_matches = fuse_results(bm25_matches, fuzzy_matches, usif_matches, top_n=TOP_K)
 
     # If the there is less than 1% difference in score between the best two fused
     # matches, then assume we can't identify a suitable match.
@@ -312,7 +312,7 @@ DATASET_PREFERENCE = [
 ]
 
 
-def dbsf(
+def fuse_results(
     bm25_matches: list[FDCIngredientMatch],
     fuzzy_matches: list[FDCIngredientMatch],
     usif_matches: list[FDCIngredientMatch],

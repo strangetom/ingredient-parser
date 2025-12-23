@@ -65,6 +65,11 @@ This functionality works entirely offline.
 A subset of the `full download <https://fdc.nal.usda.gov/download-datasets>`_ of the :abbr:`FDC (Food Data Central)` database is distributed with this library, which includes the foudation_food, sr_legacy_food and survey_fndds_food data sets.
 This data is used when matching an ingredient name to an :abbr:`FDC (Food Data Central)` entry.
 
+.. caution::
+
+    Enabling this functionality is much slower than when not enabled.
+    When enabled, parsing a sentence is roughly 22x slower than if disabled, but the actual slow down depends on the sentence.
+
 Explanation
 ^^^^^^^^^^^
 
@@ -257,20 +262,34 @@ Ranker confidence can be estimated in two ways:
 
 Both of these methods are considered and used to estimate a relative confidence for each ranker, which is used to influence the :abbr:`DBSF (Distribution-Based Score Fusion)` result.
 
+From an efficient implementation perspective, only the top 100 results are considered.
+This helps avoid the really poorly matching :abbr:`FDC (Food Data Central)` entries affecting the score distribution statistics (because every :abbr:`FDC (Food Data Central)` entry gets a score even if the match is terrible).
+
+.. code:: python
+
+    >>> fused_rankings = fuse_results(bm25_matches, fuzzy_matches, usif_matches, top_n=100)
+    # Ranker confidences: BM25=1.2587, uSIF=1.7413, Fuzzy=0.0000
+    >>> for rank in fused_rankings[:5]:
+            print(f"{rank.score:.4f}: {rank.fdc.description}")
+
+    1.0000: Peppers, bell, red, raw
+    0.9914: Peppers, sweet, red, raw
+    0.8617: Peppers, red, cooked
+    0.7392: Peppers, hot chili, red, raw
+    0.6994: Peppers, sweet, red, sauteed
+
+.. hint::
+
+    Note how the :abbr:`uSIF (Unsupervised Smooth Inverse Frequency)` ranker is given higher confidence than BM25.
+    This is because the BM25 ranker gave the same score to the top two results, where the :abbr:`uSIF (Unsupervised Smooth Inverse Frequency)` ranker did not.
+
+    In the example, because the :abbr:`uSIF (Unsupervised Smooth Inverse Frequency)` and BM25 rankers had good alignment, the fuzzy document distance ranker was not used (and therefore has a confidence of 0).
+
 
 8. Check if the best result is significant
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Limitations
-^^^^^^^^^^^
-
-The current implementation has a some limitations.
-
-#. The fuzzy distance scoring will sometimes result in returning an :abbr:`FDC (Food Data Central)` entry that has a good score but is not a good match.
-   Work is ongoing to improve this, and suggestions and contributions are welcome.
-
-#. Enabling this functionality is much slower than when not enabled.
-   When enabled, parsing a sentence is roughly 75x slower than if disabled .
+blah blah blah
 
 References
 ^^^^^^^^^^
