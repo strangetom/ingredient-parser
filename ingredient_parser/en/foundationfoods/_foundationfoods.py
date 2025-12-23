@@ -106,9 +106,14 @@ def match_foundation_foods(
 
     fused_matches = dbsf(bm25_matches, fuzzy_matches, usif_matches, top_n=TOP_K)
 
-    # If the there is less than 5% difference in score between the best two fused
+    # If the there is less than 1% difference in score between the best two fused
     # matches, then assume we can't identify a suitable match.
-    if percent_difference(fused_matches[0].score, fused_matches[1].score) <= 0.05:
+    # Only do this if the best fused score is less than 0.95 so we don't discard good
+    # matches.
+    if (
+        fused_matches[0].score < 0.95
+        and percent_difference(fused_matches[0].score, fused_matches[1].score) <= 0.01
+    ):
         logger.debug("No FDC ingredients found with good enough match.")
         return None
 
