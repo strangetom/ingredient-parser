@@ -224,8 +224,8 @@ class uSIF:
         """
         return 1 - float(np.dot(vec1.vec, vec2.vec) / (vec1.norm * vec2.norm))
 
-    def score_matches(self, tokens: list[str]) -> list[FDCIngredientMatch]:
-        """Score FDC Ingredients according to closest match to tokens.
+    def rank_matches(self, tokens: list[str]) -> list[FDCIngredientMatch]:
+        """Rank and score FDC Ingredients according to closest match to tokens.
 
         Parameters
         ----------
@@ -256,7 +256,7 @@ class uSIF:
 
 
 @lru_cache
-def get_usif_matcher() -> uSIF:
+def get_usif_ranker() -> uSIF:
     """Cached function for returning instantiated uSIF object.
 
     Returns
@@ -264,7 +264,7 @@ def get_usif_matcher() -> uSIF:
     uSIF
         Instantiation uSIF object.
     """
-    logger.debug("Initializing uSIF matcher.")
+    logger.debug("Initializing uSIF ranker.")
     embeddings = load_embeddings_model()
     fdc_ingredients = load_fdc_ingredients()
     return uSIF(embeddings, fdc_ingredients)

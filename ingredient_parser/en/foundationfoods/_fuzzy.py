@@ -158,10 +158,10 @@ class FuzzyEmbeddingMatcher:
 
         return 1 - res
 
-    def score_matches(
+    def rank_matches(
         self, tokens: list[str], fdc_ids: set[int] | None = None
     ) -> list[FDCIngredientMatch]:
-        """Score FDC Ingredients according to closest match to tokens.
+        """Rank and score FDC Ingredients according to closest match to tokens.
 
         Parameters
         ----------
@@ -196,7 +196,7 @@ class FuzzyEmbeddingMatcher:
 
 
 @lru_cache
-def get_fuzzy_matcher() -> FuzzyEmbeddingMatcher:
+def get_fuzzy_ranker() -> FuzzyEmbeddingMatcher:
     """Cached function for returning instantiated FuzzyEmbeddingMatcher object.
 
     Returns
@@ -204,7 +204,7 @@ def get_fuzzy_matcher() -> FuzzyEmbeddingMatcher:
     FuzzyEmbeddingMatcher
         Instantiation FuzzyEmbeddingMatcher object.
     """
-    logger.debug("Initializing Fuzzy matcher.")
+    logger.debug("Initializing Fuzzy ranker.")
     embeddings = load_embeddings_model()
     fdc_ingredients = load_fdc_ingredients()
     return FuzzyEmbeddingMatcher(embeddings, fdc_ingredients)

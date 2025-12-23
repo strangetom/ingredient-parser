@@ -100,8 +100,8 @@ class BM25:
 
         self.average_idf = sum(self.idf.values()) / len(self.idf)
 
-    def score_matches(self, tokens: list[str]) -> list[FDCIngredientMatch]:
-        """Score FDC Ingredients according to closest match to tokens.
+    def rank_matches(self, tokens: list[str]) -> list[FDCIngredientMatch]:
+        """Rank and score FDC Ingredients according to closest match to tokens.
 
         Parameters
         ----------
@@ -138,14 +138,14 @@ class BM25:
 
 
 @lru_cache
-def get_bm25_matcher() -> BM25:
+def get_bm25_ranker() -> BM25:
     """Cached function for returning instantiated BM25 object.
 
     Returns
     -------
     uSIF
-        Instantiation uSIF object.
+        Instantiation BM25 object.
     """
-    logger.debug("Initializing BM25 matcher.")
+    logger.debug("Initializing BM25 ranker.")
     fdc_ingredients = load_fdc_ingredients()
     return BM25(fdc_ingredients, k1=1.5, b=0.75)

@@ -10,15 +10,15 @@ from ingredient_parser.en.foundationfoods._ff_dataclasses import (
 )
 
 from ...dataclasses import FoundationFood
-from ._bm25 import get_bm25_matcher
+from ._bm25 import get_bm25_ranker
 from ._ff_constants import FOUNDATION_FOOD_OVERRIDES, NON_RAW_FOOD_VERB_STEMS
 from ._ff_utils import (
     normalise_spelling,
     prepare_embeddings_tokens,
     strip_ambiguous_leading_adjectives,
 )
-from ._fuzzy import get_fuzzy_matcher
-from ._usif import get_usif_matcher
+from ._fuzzy import get_fuzzy_ranker
+from ._usif import get_usif_ranker
 
 logger = logging.getLogger("ingredient-parser.foundation-foods")
 
@@ -79,21 +79,21 @@ def match_foundation_foods(
     if len(set(normalised_tokens) & NON_RAW_FOOD_VERB_STEMS) == 0:
         normalised_tokens.append("raw")
 
-    u = get_usif_matcher()
-    usif_matches = u.score_matches(normalised_tokens)
+    u = get_usif_ranker()
+    usif_matches = u.rank_matches(normalised_tokens)
 
-    bm25 = get_bm25_matcher()
-    bm25_matches = bm25.score_matches(normalised_tokens)
+    bm25 = get_bm25_ranker()
+    bm25_matches = bm25.rank_matches(normalised_tokens)
 
     fuzzy_matches = []
     agreement = bm25_usif_agreement(bm25_matches, usif_matches)
     if agreement < 0.2:
         # Get all FDC IDs for BM25 and uSIF matches
-        # We'll only use the fuzzy matcher on these, instead of the whole FDC set.
+        # We'll only use the fuzzy ranker on these, instead of the whole FDC set.
         candidate_fdc_ids = {m.fdc.fdc_id for m in usif_matches[:TOP_K]} | {
             m.fdc.fdc_id for m in bm25_matches[:TOP_K]
         }
-        logger.debug(f"BM25 and uSIF match alignment is < 0.2 ({agreement:.4f}).")
+        logger.debug(f"BM25 and uSIF ranker alignment is < 0.2 ({agreement:.4f}).")
         logger.debug(
             (
                 f"Using FuzzyMatcher on {TOP_K} matches from "
@@ -101,8 +101,8 @@ def match_foundation_foods(
             )
         )
 
-        fuzzy = get_fuzzy_matcher()
-        fuzzy_matches = fuzzy.score_matches(normalised_tokens, candidate_fdc_ids)
+        fuzzy = get_fuzzy_ranker()
+        fuzzy_matches = fuzzy.rank_matches(normalised_tokens, candidate_fdc_ids)
 
     fused_matches = dbsf(bm25_matches, fuzzy_matches, usif_matches, top_n=TOP_K)
 
@@ -180,9 +180,9 @@ def bm25_usif_agreement(
     Parameters
     ----------
     bm25_matches : list[FDCIngredientMatch]
-        List of ordered matches from BM25 matcher.
+        List of ordered matches from BM25 ranker.
     usif_matches : list[FDCIngredientMatch]
-        List of ordered matches from uSIF matcher.
+        List of ordered matches from uSIF ranker.
     p : float
         Persistence parameter (0 < p < 1).
         The expected depth is given by 1/(1 - p).
@@ -216,8 +216,8 @@ def bm25_usif_agreement(
     return (1 - p) * rbo_sum
 
 
-def estimate_matcher_confidence(scores: list[float]) -> float:
-    """Calculate confidence of a matcher function from the spread of scores.
+def estimate_ranker_confidence(scores: list[float]) -> float:
+    """Calculate confidence of a ranker function from the spread of scores.
 
     A larger gap between the best two scores indicates higher confidence. Because the
     difference between the best two scores is considered relative to the best score,
@@ -225,12 +225,12 @@ def estimate_matcher_confidence(scores: list[float]) -> float:
 
     Additionally, lower variance in the non-top scores also indicates higher confidence.
 
-    The two metrics are combined to estimate the matcher confidence.
+    The two metrics are combined to estimate the ranker confidence.
 
     Parameters
     ----------
     scores : list[float]
-        List of matcher scores.
+        List of ranker scores.
 
     Returns
     -------
@@ -320,7 +320,7 @@ def dbsf(
 ) -> list[FDCIngredientMatch]:
     """Distribution-based score fusion of BM25 and uSIF match results.
 
-    Fuse the matches from BM25 matcher and uSIF matcher by normalising their scores
+    Fuse the matches from BM25 ranker and uSIF ranker by normalising their scores
     based on the score distribution statistics and summing the normalised scores for
     each match.
 
@@ -330,9 +330,9 @@ def dbsf(
     far more poor matches than there are good matches.
 
     The fusing of the normalised scores for a match is weighted by the confidence of
-    each matcher. If a matcher has one score significantly higher than all others, then
+    each ranker. If a ranker has one score significantly higher than all others, then
     it is more confidence and we account for that be increasing the confidence in that
-    matcher.
+    ranker.
 
     References
     ----------
@@ -343,11 +343,11 @@ def dbsf(
     Parameters
     ----------
     bm25_matches : list[FDCIngredientMatch]
-        List of FDCIngredientMatch from the BM25 matcher.
+        List of FDCIngredientMatch from the BM25 ranker.
     fuzzy_matches : list[FDCIngredientMatch]
-        List of FDCIngredientMatch from the Fuzzy matcher.
+        List of FDCIngredientMatch from the Fuzzy ranker.
     usif_matches : list[FDCIngredientMatch]
-        List of FDCIngredientMatch from the uSIF matcher.
+        List of FDCIngredientMatch from the uSIF ranker.
     top_n : int, optional
         Number of top matches to consider.
 
@@ -381,17 +381,17 @@ def dbsf(
         for match, norm_score in zip(bm25_matches, bm25_normalized)
     }
 
-    # Estimate matcher confidences based on spread of normalised scores.
-    bm25_conf = estimate_matcher_confidence(bm25_normalized)
-    fuzzy_conf = estimate_matcher_confidence(fuzzy_normalized)
-    usif_conf = estimate_matcher_confidence(usif_normalized)
+    # Estimate ranker confidences based on spread of normalised scores.
+    bm25_conf = estimate_ranker_confidence(bm25_normalized)
+    fuzzy_conf = estimate_ranker_confidence(fuzzy_normalized)
+    usif_conf = estimate_ranker_confidence(usif_normalized)
     total_conf = bm25_conf + usif_conf + fuzzy_conf
     bm25_conf = bm25_conf / total_conf * 3
     fuzzy_conf = fuzzy_conf / total_conf * 3
     usif_conf = usif_conf / total_conf * 3
     logger.debug(
         (
-            f"Matcher confidences: "
+            f"Ranker confidences: "
             f"BM25={bm25_conf:.4f}, "
             f"uSIF={usif_conf:.4f}, "
             f"Fuzzy={fuzzy_conf:.4f}."
