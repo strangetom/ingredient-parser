@@ -194,10 +194,14 @@ def tokenize_fdc_description(description: str) -> list[tuple[str, float]]:
     phrases have lower weights. For example
 
     Oil, olive, extra light
-    1    1-1e3  1-2e3 1-2e3
+    1   1-1e-3 1-2e-3 1-2e-3
 
     Negated tokens are given a weight of 0. These are tokens that occur in a phrase
     after a token such as "no", "not", "without".
+
+    Tokens with reduced relevant have their weight reduced by 0.5. These are tokens that
+    occur in a phrase after a token such as "with", indicating that they are not the
+    main ingredient the description is referring to.
 
     Parameters
     ----------

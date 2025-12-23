@@ -105,25 +105,46 @@ def match_foundation_foods(
         fuzzy_matches = fuzzy.score_matches(normalised_tokens, candidate_fdc_ids)
 
     fused_matches = dbsf(bm25_matches, fuzzy_matches, usif_matches, top_n=TOP_K)
+
+    # If the there is less than 5% difference in score between the best two fused
+    # matches, then assume we can't identify a suitable match.
+    if percent_difference(fused_matches[0].score, fused_matches[1].score) <= 0.05:
+        logger.debug("No FDC ingredients found with good enough match.")
+        return None
+
     best_match = fused_matches[0]
+    return FoundationFood(
+        text=best_match.fdc.description,
+        confidence=round(best_match.score, 6),
+        fdc_id=best_match.fdc.fdc_id,
+        category=best_match.fdc.category,
+        data_type=best_match.fdc.data_type,
+        name_index=name_idx,
+    )
 
-    print("Fused matches:")
-    for m in fused_matches[:10]:
-        print(f"{m.score}: {m.fdc.description} [{m.fdc.fdc_id}]")
-    print()
 
-    if best_match.score >= 0.4:
-        return FoundationFood(
-            text=best_match.fdc.description,
-            confidence=round(best_match.score, 6),
-            fdc_id=best_match.fdc.fdc_id,
-            category=best_match.fdc.category,
-            data_type=best_match.fdc.data_type,
-            name_index=name_idx,
-        )
+def percent_difference(score1: float, score2: float) -> float:
+    """Calculate the percentage difference between two scores.
 
-    logger.debug("No FDC ingredients found with good enough match.")
-    return None
+    Parameters
+    ----------
+    score1 : float
+        First score.
+    score2 : float
+        Second score
+
+    Returns
+    -------
+    float
+        Percentage difference score, [0 1].
+    """
+    if score1 == score2:
+        return 0
+
+    max_score = max(score1, score2)
+    min_score = min(score1, score2)
+    delta = max_score - min_score
+    return delta / max_score
 
 
 def bm25_usif_agreement(
