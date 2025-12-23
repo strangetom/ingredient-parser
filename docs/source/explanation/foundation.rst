@@ -108,6 +108,11 @@ It is removed to prevent ingredients with a hot temperature being confusing with
 
     The same normalization process is also applied to the :abbr:`FDC (Food Data Central)` entry descriptions.
 
+
+Additional tokens may be added to the ingredient name at this point to help bias the results towards more relevant :abbr:`FDC (Food Data Central)` entries.
+For example, most :abbr:`FDC (Food Data Central)` entries explicitly state if the item is raw, however ingredient sentences commonly do not.
+If the ingredient name does not contain any tokens that indicate it is not raw, the token ``raw`` is added to the name.
+
 2. Check overrides
 ~~~~~~~~~~~~~~~~~~
 
@@ -115,43 +120,59 @@ The foundation food matching process can sometimes struggle with simple ingredie
 
 A list of overrides that map simple of ingredient names to the relevant :abbr:`FDC (Food Data Central)` entry is used to ensure a correct match for these cases.
 
-3. Score using :abbr:`uSIF (Unsupervised Smooth Inverse Frequency)` matcher
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3. Rank using :abbr:`uSIF (Unsupervised Smooth Inverse Frequency)` matcher
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The technique is called Unsupervised Smooth Inverse Frequency (uSIF) [#Ethayarajh]_.
-This technique calculates an embedding vector for a sentence from the weighted vectors of the words, where the weight is related to the probability of encountering the word (related to the inverse frequency of the word).
-The technique also removes common components in the word vectors, although this is not implemented here (primarily due to not wanting to include a further runtime dependency of sklearn - this may change in the future if it proves to be helpful).
+A semantic ranking technique called Unsupervised Smooth Inverse Frequency (uSIF) [#Ethayarajh]_ is used to rank the :abbr:`FDC (Food Data Central)` entries in order of relevance.
+This technique calculates an embedding vector for a sentence from the weighted vectors of the words, where the weight is proportional to the probability of encountering the word (related to the inverse frequency of the word).
+This is done for each :abbr:`FDC (Food Data Central)` entry and the ingredient name, and cosine similarity is used to rank the :abbr:`FDC (Food Data Central)` entries according to best matching.
 
-This approach is applied to the descriptions for each of the :abbr:`FDC (Food Data Central)` entries and ingredient name we are trying to find the closest match to.
-Rankings are obtained by calculating the cosine similarity between the ingredient name vector and each :abbr:`FDC (Food Data Central)` description vector.
+.. note::
+
+    The technique described in [#Ethayarajh]_ also removes common components in the word vectors.
+    This is not implemented here (primarily due to not wanting to include a further runtime dependency of sklearn - this may change in the future if it proves to be helpful).
 
 In practice, this technique is generally pretty good at finding a reasonable matching :abbr:`FDC (Food Data Central)` entry.
 However, in some cases the match with the best score is not an appropriate match.
 The reason for this is likely due to limitations in the quality of the embeddings used.
 
-.. hint::
+This approach has been extended to introduce additional token weights for the :abbr:`FDC (Food Data Central)` entries based on the phrase position in the description.
+These weights are specific to each :abbr:`FDC (Food Data Central)` entry and are based on the following
 
-    Add explanation of the phrase weighting scheme, assuming it's provably useful.
+* The phrase position: the further the phrase is from the start of the description, the less relevant it is.
+* Negative tokens: tokens within a phrase that follow a negative token (e.g. no, without) are given a weight of 0 so they are ignored.
+
+  This helps avoid confusion where the presence of a token in the sentence results in a similar vector despite being used in a negative context.
+
+* Reduced relevance tokens: tokens within a phrase that follow a token indicating reduced relevance have their weight reduced.
+
+  As an example, in the description **Chicken, canned, with broth**, the token **with** indicates the following tokens (i.e. broth) are less relevant to the ingredient the description is for.
+
 
 .. code:: python
 
-    >>> from ingredient_parser.en.foundationfoods._usif import get_usif_matcher
-    >>> usif = get_usif_matcher()
-    >>> rankings = usif.score_matches(["red", "pepper"])
+    >>> from ingredient_parser.en.foundationfoods._usif import get_usif_ranker
+    >>> usif = get_usif_ranker()
+    >>> rankings = usif.rank_matches(["red", "pepper"])
     >>> for rank in rankings[:5]:
             print(f"{rank.score:.4f}: {rank.fdc.description}")
 
-    0.0320: Peppers, red, cooked
-    0.1057: Peppers, bell, red, raw
-    0.1172: Peppers, sweet, red, sauteed
-    0.1326: Peppers, green, cooked
-    0.1673: Peppers and onions, cooked, no added fat
+    0.0840: Peppers, bell, red, raw
+    0.0870: Peppers, sweet, red, raw
+    0.1079: Peppers, red, cooked
+    0.1096: Peppers, sweet, green, raw
+    0.1113: Onions, red, raw
+
+.. hint::
+
+    :abbr:`uSIF (Unsupervised Smooth Inverse Frequency)` uses cosine similarity for scoring.
+    Each score is a value between 0 and 1, where a smaller number means more similar.
 
 
-4. Score using BM25 matcher
+4. Rank using BM25 matcher
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The technique is called Best Matching 25 [#Robertson]_.
+Another technique called Best Matching 25 [#Robertson]_ is used rank the :abbr:`FDC (Food Data Central)` entries in order of relevance.
 This technique calculates a similarity score between a query and a document and uses the term frequency and inverse document frequency to estimate the relative importance of each token.
 
 This approach is generally very effective, however it relies on the same words used in the ingredient name and :abbr:`FDC (Food Data Central)` description.
@@ -159,59 +180,82 @@ Since this is not always the case, we combine it with the :abbr:`uSIF (Unsupervi
 
 .. code:: python
 
-    >>> from ingredient_parser.en.foundationfoods._bm25 import get_bm25_matcher
-    >>> BM25 = get_bm25_matcher()
-    >>> rankings = BM25.score_matches(["red", "pepper"])
+    >>> from ingredient_parser.en.foundationfoods._bm25 import get_bm25_ranker
+    >>> BM25 = get_bm25_ranker()
+    >>> rankings = BM25.rank_matches(["red", "pepper"])
     >>> for rank in rankings[:5]:
             print(f"{rank.score:.4f}: {rank.fdc.description}")
 
+    14.4585: Peppers, sweet, red, raw
+    14.4585: Peppers, bell, red, raw
+    13.3526: Peppers, hot chili, red, raw
     12.9365: Peppers, red, cooked
     11.8650: Peppers, sweet, red, sauteed
-    11.8650: Peppers, sweet, red, raw
-    11.8650: Spices, pepper, red or cayenne
-    11.8650: Peppers, bell, red, raw
+
+.. hint::
+
+    The scores produced by BM25 have an arbitrary value, where a bigger number means more similar.
+    This means that scores cannot be compared between different sets of rankings, only the relative values within a ranking are meaningful.
+
+.. tip::
+
+  The difference between the :abbr:`uSIF (Unsupervised Smooth Inverse Frequency)` can be seen in the example here.
+  BM25 gives the first two result equal scores because neither **bell** nor **sweet** were specified, where the :abbr:`uSIF (Unsupervised Smooth Inverse Frequency)` ranker ranked ``Peppers, bell, red, raw`` higher because the embeddings showed a higher similarity with the ingredient name.
 
 
 5. Check :abbr:`uSIF (Unsupervised Smooth Inverse Frequency)` and BM25 alignment
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The Fuzzy technique described below is another semantic ranking technique, but it has the downside of being computationally expensive and therefore slow.
+The fuzzy document distance technique described below is another semantic ranking technique, but it has the downside of being significantly more computationally expensive and therefore slow than the :abbr:`uSIF (Unsupervised Smooth Inverse Frequency)` and BM25 techniques.
 
 To avoid always having this slow down, the decision of when to use this is based on how well aligned the results from the :abbr:`uSIF (Unsupervised Smooth Inverse Frequency)` and BM25 matchers are.
-If :abbr:`uSIF (Unsupervised Smooth Inverse Frequency)` and BM25 produce well aligned results (that is, a similar set of :abbr:`FDC (Food Data Central)` entries ranked in a similar order), then we do not need to use the Fuzzy matcher.
-If the :abbr:`uSIF (Unsupervised Smooth Inverse Frequency)` and BM25 results are not well aligned, then we will use the Fuzzy matcher on the union of the top results from each matcher to provide another source of rankings for the results fusion later.
+If :abbr:`uSIF (Unsupervised Smooth Inverse Frequency)` and BM25 produce well aligned results (that is, a similar set of :abbr:`FDC (Food Data Central)` entries ranked in a similar order), then we do not need to use the fuzzy document distance technique.
+If the :abbr:`uSIF (Unsupervised Smooth Inverse Frequency)` and BM25 results are not well aligned, then we will use the fuzzy document distance technique on the union of the top results from each matcher to provide another source of rankings for the results fusion later.
 
 The alignment of the :abbr:`uSIF (Unsupervised Smooth Inverse Frequency)` and BM25 results is quantified using rank-biased overlap ([#Webber]_).
 This calculates a score between 1 (identical rankings) and 0 (disjoint rankings).
-A score below the set threshold triggers the use of the Fuzzy matcher.
+A score below the set threshold triggers the use of the fuzzy document distance ranker.
 
-6. Score using Fuzzy matcher
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6. Score using Fuzzy ranker
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The fuzzy document distance metric is described in [#Morales]_.
-Each sentence is considered as a set of tokens, and the distance is calculated from the Euclidean distance between tokens in two sentences being compared.
-By considering the embedding vector for each token individually, this metric yields different results to :abbr:`uSIF (Unsupervised Smooth Inverse Frequency)` but is quote effective nonetheless.
+The fuzzy document distance metric is described in [#Morales]_ and is also used rank the :abbr:`FDC (Food Data Central)` entries in order of relevance.
+Each sentence is considered as an unordered set of tokens, and the distance is calculated from the Euclidean distance between tokens in two sentences being compared.
+By considering the embedding vector for each token individually, this technique can yield different results to :abbr:`uSIF (Unsupervised Smooth Inverse Frequency)` but is quite effective nonetheless.
 
-The results using this approach are more explainable than the result from :abbr:`uSIF (Unsupervised Smooth Inverse Frequency)`, however the implementation of this metric has the downside of being significantly slower.
+The results using this approach are easier to reason about than the result from :abbr:`uSIF (Unsupervised Smooth Inverse Frequency)`, however the implementation of this metric has the downside of being significantly slower.
 
 .. code:: python
 
-    >>> from ingredient_parser.en.foundationfoods._fuzzy import get_fuzzy_matcher
-    >>> fuzzy = get_fuzzy_matcher()
-    >>> rankings = fuzzy.score_matches(["red", "pepper"])
+    >>> from ingredient_parser.en.foundationfoods._fuzzy import get_fuzzy_ranker
+    >>> fuzzy = get_fuzzy_ranker()
+    >>> rankings = fuzzy.rank_matches(["red", "pepper"])
     >>> for rank in rankings[:5]:
             print(f"{rank.score:.4f}: {rank.fdc.description}")
 
-    0.1411: Peppers, red, cooked
-    0.1994: Spices, pepper, red or cayenne
-    0.2026: Peppers, sweet, red, sauteed
-    0.2082: Peppers, bell, red, raw
-    0.2085: Peppers, sweet, red, raw
+    0.0998: Peppers, bell, red, raw
+    0.1002: Peppers, sweet, red, raw
+    0.1687: Peppers, hot chili, red, raw
+    0.1848: Onions, red, raw
+    0.2068: Peppers, jalapeno, raw
 
+.. hint::
 
+    Each score for the fuzzy document distance is a value between 0 and 1, where a smaller number means more similar.
 
 7. Fuse results
 ~~~~~~~~~~~~~~~
+
+To obtain the best matching :abbr:`FDC (Food Data Central)` entry, the rankings from the two (or three) ranking techniques are fused together using Distribution-Based Score Fusion [#Mazzeschi]_.
+This fusion algorithm considers both the ranking of each :abbr:`FDC (Food Data Central)` entry and it's normalised score to determine an overall ranking.
+
+This technique has been extended to also consider the confidence of each ranking technique used.
+Ranker confidence can be estimated in two ways:
+
+#. The relative gap between the scores of two highest ranked items: a larger gap indicates higher confidence.
+#. The variance in the non-top scores: a smaller variance indicates higher confidence.
+
+Both of these methods are considered and used to estimate a relative confidence for each ranker, which is used to influence the :abbr:`DBSF (Distribution-Based Score Fusion)` result.
 
 
 8. Check if the best result is significant
@@ -238,3 +282,5 @@ References
 .. [#Webber] W.\ Webber, A. Moffat, and J. Zobel, ‘A similarity measure for indefinite rankings’, ACM Trans. Inf. Syst., vol. 28, no. 4, pp. 1–38, Nov. 2010, doi: 10.1145/1852102.1852106.
 
 .. [#Morales] Morales-Garzón, A., Gómez-Romero, J., Martin-Bautista, M.J. (2020). A Word Embedding Model for Mapping Food Composition Databases Using Fuzzy Logic. In: Lesot, MJ., et al. Information Processing and Management of Uncertainty in Knowledge-Based Systems. IPMU 2020. Communications in Computer and Information Science, vol 1238. Springer, Cham. https://doi.org/10.1007/978-3-030-50143-3_50
+
+.. [#Mazzeschi] https://medium.com/plain-simple-software/distribution-based-score-fusion-dbsf-a-new-approach-to-vector-search-ranking-f87c37488b18
