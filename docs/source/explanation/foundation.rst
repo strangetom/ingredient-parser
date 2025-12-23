@@ -83,7 +83,9 @@ For the semantic raking functions, a `GloVe <https://nlp.stanford.edu/projects/g
 
 The flow chart below outlines the process of matching an :abbr:`FDC (Food Data Central)` ingredient to an ingredient name.
 
-.. figure:: /_static/diagrams/ff_search.svg
+.. figure:: /_static/diagrams/ff_search.png
+  :class: dark-light
+  :width: 400
   :alt: Foundation food matching process.
 
   Foundation food matching process.
@@ -211,6 +213,9 @@ The results using this approach are more explainable than the result from :abbr:
 7. Fuse results
 ~~~~~~~~~~~~~~~
 
+
+8. Check if the best result is significant
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Limitations
 ^^^^^^^^^^^
