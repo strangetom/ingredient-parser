@@ -110,9 +110,12 @@ NON_RAW_FOOD_VERB_STEMS = {
 # Also include "raw" so we don't add if again if already present
 NON_RAW_FOOD_VERB_STEMS.add("raw")
 
-# Tokens that indicated following words are negated.
+# Tokens that indicate following words are negated.
 # NS = not specified.
 NEGATION_TOKENS = {"no", "not", "without", "NS"}
+
+# Tokens that indicate following words have reduced relevance to the ingredient
+REDUCED_RELEVANCE_TOKENS = {"with"}
 
 # Ambiguous ingredient name adjectives
 AMBIGUOUS_ADJECTIVES = [

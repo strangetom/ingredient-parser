@@ -11,7 +11,11 @@ from itertools import groupby
 from ..._common import consume
 from .._loaders import load_embeddings_model
 from .._utils import stem, tokenize
-from ._ff_constants import AMBIGUOUS_ADJECTIVES, NEGATION_TOKENS
+from ._ff_constants import (
+    AMBIGUOUS_ADJECTIVES,
+    NEGATION_TOKENS,
+    REDUCED_RELEVANCE_TOKENS,
+)
 from ._ff_dataclasses import FDCIngredient
 
 logger = logging.getLogger("ingredient-parser.foundation-foods")
@@ -227,11 +231,16 @@ def tokenize_fdc_description(description: str) -> list[tuple[str, float]]:
         # Check for negated tokens and set weight to 0.
         for neg in NEGATION_TOKENS:
             if neg in phrase:
-                neg_idx = phrase.index(neg)
                 # Include negation token negated_tokens set since it won't hold any
                 # further relevant semantic information.
                 for neg_idx in range(phrase.index(neg), len(phrase)):
                     phrase_weights[neg_idx] = 0
+
+        # Check for tokens that indicate reduced relevance and reduce their weight
+        for rr in REDUCED_RELEVANCE_TOKENS:
+            if rr in phrase:
+                for rr_idx in range(phrase.index(rr), len(phrase)):
+                    phrase_weights[rr_idx] = max(phrase_weights[rr_idx] - 0.5, 0)
 
         prepared_tokens.extend(phrase)
         weights.extend(phrase_weights)
