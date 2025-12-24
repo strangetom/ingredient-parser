@@ -27,3 +27,13 @@ class FDCIngredientMatch:
 
     fdc: FDCIngredient
     score: float
+
+    def __eq__(self, other):
+        return (
+            isinstance(other, FDCIngredientMatch)
+            and self.score == other.score
+            and self.fdc.fdc_id == other.fdc.fdc_id
+        )
+
+    def __hash__(self):
+        return hash((self.score, self.fdc.fdc_id))

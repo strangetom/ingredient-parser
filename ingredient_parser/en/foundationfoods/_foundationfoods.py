@@ -6,6 +6,7 @@ import logging
 import numpy as np
 
 from ingredient_parser.en.foundationfoods._ff_dataclasses import (
+    FDCIngredient,
     FDCIngredientMatch,
 )
 
@@ -85,6 +86,19 @@ def match_foundation_foods(
     bm25 = get_bm25_ranker()
     bm25_matches = bm25.rank_matches(normalised_tokens)
 
+    # Check if both BM25 and uSIF agree on the top result. If they do, return that and
+    # avoid any further processing.
+    if fdc := consistent_top_result(bm25_matches, usif_matches):
+        logger.debug(f"BM25 and uSIF rankers agree on best match: {fdc.fdc_id=}")
+        return FoundationFood(
+            text=fdc.description,
+            confidence=1.0,
+            fdc_id=fdc.fdc_id,
+            category=fdc.category,
+            data_type=fdc.data_type,
+            name_index=name_idx,
+        )
+
     fuzzy_matches = []
     agreement = bm25_usif_agreement(bm25_matches, usif_matches)
     if agreement < 0.2:
@@ -126,6 +140,54 @@ def match_foundation_foods(
         data_type=best_match.fdc.data_type,
         name_index=name_idx,
     )
+
+
+def consistent_top_result(
+    bm25_matches: list[FDCIngredientMatch], usif_matches: list[FDCIngredientMatch]
+) -> FDCIngredient | None:
+    """If the BM25 and uSIF matches have a single consistent best match, return it.
+    Otherwise return None.
+
+    It is possible (particularly for BM25) for there to be more than one best match with
+    the same score, so this function accounts for that.
+
+    Parameters
+    ----------
+    bm25_matches : list[FDCIngredientMatch]
+        List of FDCIngredientMatch from the BM25 ranker.
+    usif_matches : list[FDCIngredientMatch]
+        List of FDCIngredientMatch from the uSIF ranker.
+
+    Returns
+    -------
+    FDCIngredient | None
+    """
+    best_matches = set()
+
+    # Because bm25_matches and usif_matches are ordered, we want to stop iterating over
+    # them as soon as we encounter a score that is different from the best score.
+    best_matches.add(bm25_matches[0].fdc)
+    best_score = bm25_matches[0].score
+    for m in bm25_matches[1:]:
+        if m.score == best_score:
+            best_matches.add(m.fdc)
+        else:
+            break
+
+    best_matches.add(usif_matches[0].fdc)
+    best_score = usif_matches[0].score
+    for m in usif_matches[1:]:
+        if m.score == best_score:
+            best_matches.add(m.fdc)
+        else:
+            break
+
+    if len(best_matches) == 1:
+        # If there is exactly one FDC Ingredient in the intersection, return it.
+        return best_matches.pop()
+
+    # If there are no items in the intersection, or more than one, return None.
+    return None
 
 
 def percent_difference(score1: float, score2: float) -> float:
