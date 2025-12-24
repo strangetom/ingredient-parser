@@ -17,7 +17,7 @@ class BM25:
 
     References
     ----------
-    .. [1] Trotman, A., Jia, X.F., Crane, M.: Towards an eﬃcient and eﬀective search
+    .. [1] Trotman, A., Jia, X.F., Crane, M.: Towards an efficient and effective search
            engine. In: SIGIR 2012 Workshop on Open Source Information Retrieval,
            pp. 40–47, Portland (2012)
 

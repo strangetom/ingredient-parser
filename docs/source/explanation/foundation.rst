@@ -103,6 +103,7 @@ The ingredient name tokens are normalized by taking the following steps:
 * Splitting tokens containing hyphens into separate tokens.
 * Discarding tokens that are numbers, white space or only a single character.
 * Stemming the remaining tokens.
+* Discarding tokens that are not in the embeddings model.
 
 In addition, any ambiguous adjectives that occur at the start of the ingredient name are removed.
 Ambiguous adjectives are those that have multiple meaning which can cause confusion in the subsequent scoring steps.
@@ -207,8 +208,19 @@ Since this is not always the case, we combine it with the :abbr:`uSIF (Unsupervi
   The difference between the :abbr:`uSIF (Unsupervised Smooth Inverse Frequency)` can be seen in the example here.
   BM25 gives the first two result equal scores because neither **bell** nor **sweet** were specified, where the :abbr:`uSIF (Unsupervised Smooth Inverse Frequency)` ranker ranked ``Peppers, bell, red, raw`` higher because the embeddings showed a higher similarity with the ingredient name.
 
+5. Check for agreement of best result
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-5. Check :abbr:`uSIF (Unsupervised Smooth Inverse Frequency)` and BM25 alignment
+To avoid the further computation of the score fusion (and potentially another ranking technique), the top result from the BM25 and :abbr:`uSIF (Unsupervised Smooth Inverse Frequency)` rankers are checked to see if they are the same.
+If they are the same, then that top result is returned and the remaining processing is skipped.
+
+.. tip::
+
+    When we check the agreement of the top results, we need to consider that each ranker may have more than result with the same score as the top score.
+    This is particularly likely for the BM25 ranker, as seen above.
+
+
+6. Check :abbr:`uSIF (Unsupervised Smooth Inverse Frequency)` and BM25 alignment
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The fuzzy document distance technique described below is another semantic ranking technique, but it has the downside of being significantly more computationally expensive and therefore slow than the :abbr:`uSIF (Unsupervised Smooth Inverse Frequency)` and BM25 techniques.
@@ -221,7 +233,7 @@ The alignment of the :abbr:`uSIF (Unsupervised Smooth Inverse Frequency)` and BM
 This calculates a score between 1 (identical rankings) and 0 (disjoint rankings).
 A score below the set threshold triggers the use of the fuzzy document distance ranker.
 
-6. Score using Fuzzy ranker
+7. Score using Fuzzy ranker
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The fuzzy document distance metric is described in [#Morales]_ and is also used rank the :abbr:`FDC (Food Data Central)` entries in order of relevance.
@@ -248,7 +260,7 @@ The results using this approach are easier to reason about than the result from 
 
     Each score for the fuzzy document distance is a value between 0 and 1, where a smaller number means more similar.
 
-7. Fuse results
+8. Fuse results
 ~~~~~~~~~~~~~~~
 
 To obtain the best matching :abbr:`FDC (Food Data Central)` entry, the rankings from the two (or three) ranking techniques are fused together using Distribution-Based Score Fusion [#Mazzeschi]_.
@@ -286,7 +298,7 @@ This helps avoid the really poorly matching :abbr:`FDC (Food Data Central)` entr
     In the example, because the :abbr:`uSIF (Unsupervised Smooth Inverse Frequency)` and BM25 rankers had good alignment, the fuzzy document distance ranker was not used (and therefore has a confidence of 0).
 
 
-8. Check if the best result is significant
+9. Check if the best result is significant
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 blah blah blah
@@ -294,7 +306,7 @@ blah blah blah
 References
 ^^^^^^^^^^
 
-.. [#Robertson] S.\ E. Robertson, S. Walker, S. Jones, M. Hancock-Beaulieu, and M. Gatford, ‘Okapi at TREC-3’, in Text Retrieval Conference, 1994.
+.. [#Robertson] Trotman, A., Jia, X.F., Crane, M.: Towards an efficient and effective search engine. In: SIGIR 2012 Workshop on Open Source Information Retrieval, pp. 40–47, Portland (2012)
 
 .. [#Ethayarajh] Kawin Ethayarajh. 2018. Unsupervised Random Walk Sentence Embeddings: A Strong but Simple Baseline. In Proceedings of the Third Workshop on Representation Learning for NLP, pages 91–100, Melbourne, Australia. Association for Computational Linguistics. https://aclanthology.org/W18-3012/
 
