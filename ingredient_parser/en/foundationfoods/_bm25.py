@@ -13,12 +13,13 @@ logger = logging.getLogger("ingredient-parser.foundation-foods.bm25")
 
 
 class BM25:
-    """Fast Implementation of Best Matching 25 ranking function [1]_.
+    """Implementation of ATIRE BM25 ranking function [1]_.
 
     References
     ----------
-    .. [1] S. E. Robertson, S. Walker, S. Jones, M. Hancock-Beaulieu, and M. Gatford,
-           ‘Okapi at TREC-3’, in Text Retrieval Conference, 1994.
+    .. [1] Trotman, A., Jia, X.F., Crane, M.: Towards an eﬃcient and eﬀective search
+           engine. In: SIGIR 2012 Workshop on Open Source Information Retrieval,
+           pp. 40–47, Portland (2012)
 
     Attributes
     ----------
@@ -92,13 +93,7 @@ class BM25:
         self.avgdl = mean(self.doc_len)
 
         for token, ingredients in self.t2d.items():
-            idf = math.log(
-                (self.corpus_size - len(ingredients) + 0.5) / (len(ingredients) + 0.5)
-                + 1
-            )
-            self.idf[token] = idf
-
-        self.average_idf = sum(self.idf.values()) / len(self.idf)
+            self.idf[token] = math.log(self.corpus_size / len(ingredients))
 
     def rank_matches(self, tokens: list[str]) -> list[FDCIngredientMatch]:
         """Rank and score FDC Ingredients according to closest match to tokens.
@@ -107,8 +102,6 @@ class BM25:
         ----------
         tokens : list[str]
             List of tokens.
-        n: int
-            The number of documents to return
 
         Returns
         -------
@@ -119,11 +112,11 @@ class BM25:
         for token in tokens:
             if token in self.t2d:
                 for index, freq in self.t2d[token].items():
-                    denom_cst = self.k1 * (
+                    denom_constant = self.k1 * (
                         1 - self.b + self.b * self.doc_len[index] / self.avgdl
                     )
                     scores[index] += (
-                        self.idf[token] * freq * (self.k1 + 1) / (freq + denom_cst)
+                        self.idf[token] * freq * (self.k1 + 1) / (denom_constant + freq)
                     )
 
         matches = []
