@@ -24,7 +24,7 @@ from ._usif import get_usif_ranker
 logger = logging.getLogger("ingredient-parser.foundation-foods")
 
 # Constant defining the top k matches to use wherever we limit the matches considered.
-TOP_K = 100
+TOP_K = 50
 
 
 def match_foundation_foods(
@@ -101,7 +101,7 @@ def match_foundation_foods(
 
     fuzzy_matches = []
     agreement = bm25_usif_agreement(bm25_matches, usif_matches)
-    if agreement < 0.2:
+    if agreement < 0.25:
         # Get all FDC IDs for BM25 and uSIF matches
         # We'll only use the fuzzy ranker on these, instead of the whole FDC set.
         candidate_fdc_ids = {m.fdc.fdc_id for m in usif_matches[:TOP_K]} | {

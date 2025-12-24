@@ -230,7 +230,7 @@ def tokenize_fdc_description(description: str) -> list[tuple[str, float]]:
             continue
 
         phrase = list(prepare_embeddings_tokens(tuple(phrase)))
-        phrase_weights = [1 - phrase_count * 1e-3] * len(phrase)
+        phrase_weights = [1.0 - phrase_count * 1e-3] * len(phrase)
 
         # Check for negated tokens and set weight to 0.
         for neg in NEGATION_TOKENS:
