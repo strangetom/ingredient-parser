@@ -301,7 +301,13 @@ This helps avoid the really poorly matching :abbr:`FDC (Food Data Central)` entr
 9. Check if the best result is significant
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-blah blah blah
+To avoid return an :abbr:`FDC (Food Data Central)` entry that is in reality a poor match but the processing described considers a good match, the significance of the confidence is checked.
+If the confidence of the best match is < 0.95 and there is less than a 1% difference in confidence score between the best and second best match, the best match is considered not significant enough and no matching :abbr:`FDC (Food Data Central)` entry is returned.
+
+.. warning::
+
+    This significance heuristic is based on manual testing and is unlikely to be perfect.
+    Improvements will made in future releases.
 
 References
 ^^^^^^^^^^
