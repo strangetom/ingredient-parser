@@ -56,6 +56,7 @@ FDC_TOKEN_TO_PHRASE_SUBSTITUTIONS: dict[str, list[str]] = {
     "medium-grain": ["medium", "grain"],
     "short-grain": ["short", "grain"],
     "bone-in": ["bone", "in"],
+    "water": ["tap", "water"],
 }
 
 

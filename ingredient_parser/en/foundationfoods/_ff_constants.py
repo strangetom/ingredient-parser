@@ -8,17 +8,17 @@ from ...dataclasses import FoundationFood
 # The tokens in the dict keys are stemmed.
 FOUNDATION_FOOD_OVERRIDES: dict[tuple[str, ...], FoundationFood] = {
     ("salt",): FoundationFood(
-        "Salt, table, iodized", 1, 746775, "Spices and Herbs", "foundation_food", 0
+        "Salt, table, iodized", 1.0, 746775, "Spices and Herbs", "foundation_food", 0
     ),
     (
         "sea",
         "salt",
     ): FoundationFood(
-        "Salt, table, iodized", 1, 746775, "Spices and Herbs", "foundation_food", 0
+        "Salt, table, iodized", 1.0, 746775, "Spices and Herbs", "foundation_food", 0
     ),
     ("egg",): FoundationFood(
         "Eggs, Grade A, Large, egg whole",
-        1,
+        1.0,
         748967,
         "Dairy and Egg Products",
         "foundation_food",
@@ -26,7 +26,7 @@ FOUNDATION_FOOD_OVERRIDES: dict[tuple[str, ...], FoundationFood] = {
     ),
     ("butter",): FoundationFood(
         "Butter, stick, unsalted",
-        1,
+        1.0,
         789828,
         "Dairy and Egg Products",
         "foundation_food",
@@ -34,7 +34,7 @@ FOUNDATION_FOOD_OVERRIDES: dict[tuple[str, ...], FoundationFood] = {
     ),
     ("all-purpos", "flour"): FoundationFood(
         "Flour, wheat, all-purpose, unenriched, unbleached",
-        1,
+        1.0,
         790018,
         "Cereal Grains and Pasta",
         "foundation_food",
@@ -42,7 +42,7 @@ FOUNDATION_FOOD_OVERRIDES: dict[tuple[str, ...], FoundationFood] = {
     ),
     ("all", "purpos", "flour"): FoundationFood(
         "Flour, wheat, all-purpose, unenriched, unbleached",
-        1,
+        1.0,
         790018,
         "Cereal Grains and Pasta",
         "foundation_food",
