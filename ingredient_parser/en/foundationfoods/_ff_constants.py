@@ -8,17 +8,17 @@ from ...dataclasses import FoundationFood
 # The tokens in the dict keys are stemmed.
 FOUNDATION_FOOD_OVERRIDES: dict[tuple[str, ...], FoundationFood] = {
     ("salt",): FoundationFood(
-        "Salt, table, iodized", 1, 746775, "Spices and Herbs", "foundation_food", 0
+        "Salt, table, iodized", 1.0, 746775, "Spices and Herbs", "foundation_food", 0
     ),
     (
         "sea",
         "salt",
     ): FoundationFood(
-        "Salt, table, iodized", 1, 746775, "Spices and Herbs", "foundation_food", 0
+        "Salt, table, iodized", 1.0, 746775, "Spices and Herbs", "foundation_food", 0
     ),
     ("egg",): FoundationFood(
         "Eggs, Grade A, Large, egg whole",
-        1,
+        1.0,
         748967,
         "Dairy and Egg Products",
         "foundation_food",
@@ -26,39 +26,23 @@ FOUNDATION_FOOD_OVERRIDES: dict[tuple[str, ...], FoundationFood] = {
     ),
     ("butter",): FoundationFood(
         "Butter, stick, unsalted",
-        1,
+        1.0,
         789828,
         "Dairy and Egg Products",
         "foundation_food",
         0,
     ),
-    ("garlic",): FoundationFood(
-        "Garlic, raw",
-        1,
-        1104647,
-        "Vegetables and Vegetable Products",
-        "foundation_food",
-        0,
-    ),
-    ("mayonnais",): FoundationFood(
-        "Mayonnaise, regular",
-        1,
-        2710204,
-        "Mayonnaise",
-        "survey_fndds_food",
-        0,
-    ),
     ("all-purpos", "flour"): FoundationFood(
-        "Mayonnaise, regular",
-        1,
-        2710204,
-        "Mayonnaise",
-        "survey_fndds_food",
+        "Flour, wheat, all-purpose, unenriched, unbleached",
+        1.0,
+        790018,
+        "Cereal Grains and Pasta",
+        "foundation_food",
         0,
     ),
     ("all", "purpos", "flour"): FoundationFood(
         "Flour, wheat, all-purpose, unenriched, unbleached",
-        1,
+        1.0,
         790018,
         "Cereal Grains and Pasta",
         "foundation_food",
@@ -125,3 +109,18 @@ NON_RAW_FOOD_VERB_STEMS = {
 }
 # Also include "raw" so we don't add if again if already present
 NON_RAW_FOOD_VERB_STEMS.add("raw")
+
+# Tokens that indicate following words are negated.
+# NS = not specified.
+NEGATION_TOKENS = {"no", "not", "without", "NS"}
+
+# Tokens that indicate following words have reduced relevance to the ingredient
+REDUCED_RELEVANCE_TOKENS = {"with"}
+
+# Ambiguous ingredient name adjectives
+AMBIGUOUS_ADJECTIVES = [
+    "hot",  # temperature/spiciness
+    "cool",  # temperature/taste (e.g. cool mint)
+    "strong"  # concentration (e.g. coffee)/gluten content (e.g. strong bread flour)
+    "hard",  # texture (e.g. cheese)/alocholic (e.g. hard cider)
+]

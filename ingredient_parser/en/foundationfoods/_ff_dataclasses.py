@@ -12,6 +12,13 @@ class FDCIngredient:
     description: str
     category: str
     tokens: list[str]
+    weights: list[float]
+
+    def __eq__(self, other):
+        return isinstance(other, FDCIngredient) and self.fdc_id == other.fdc_id
+
+    def __hash__(self):
+        return hash(self.fdc_id)
 
 
 @dataclass
@@ -20,3 +27,13 @@ class FDCIngredientMatch:
 
     fdc: FDCIngredient
     score: float
+
+    def __eq__(self, other):
+        return (
+            isinstance(other, FDCIngredientMatch)
+            and self.score == other.score
+            and self.fdc.fdc_id == other.fdc.fdc_id
+        )
+
+    def __hash__(self):
+        return hash((self.score, self.fdc.fdc_id))

@@ -69,7 +69,7 @@ class Token:
         Token text used for feature generation.
     pos_tag : str
         Part of speech tag for token.
-    feature : TokenFeatures
+    features : TokenFeatures
         Common features for token.
     """
 

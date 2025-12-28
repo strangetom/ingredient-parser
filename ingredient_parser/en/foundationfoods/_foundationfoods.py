@@ -2,468 +2,34 @@
 
 
 import logging
-from collections import defaultdict
-from functools import lru_cache
 
 import numpy as np
 
+from ingredient_parser.en.foundationfoods._ff_dataclasses import (
+    FDCIngredient,
+    FDCIngredientMatch,
+)
+
 from ...dataclasses import FoundationFood
-from .._embeddings import GloVeModel
-from .._loaders import load_embeddings_model
-from .._utils import prepare_embeddings_tokens
+from ._bm25 import get_bm25_ranker
 from ._ff_constants import FOUNDATION_FOOD_OVERRIDES, NON_RAW_FOOD_VERB_STEMS
-from ._ff_dataclasses import FDCIngredient, FDCIngredientMatch
-from ._ff_utils import load_fdc_ingredients, normalise_spelling
+from ._ff_utils import (
+    normalise_spelling,
+    prepare_embeddings_tokens,
+    strip_ambiguous_leading_adjectives,
+)
+from ._fuzzy import get_fuzzy_ranker
+from ._usif import get_usif_ranker
 
 logger = logging.getLogger("ingredient-parser.foundation-foods")
 
+# Constant defining the top k matches to use wherever we limit the matches considered.
+TOP_K = 50
 
-class uSIF:
-    """Modified implementation of Unsupervised Smooth Inverse Frequency [1]_ weighting
-    scheme for calculation of sentence embedding vectors.
 
-    This implementation is modified from the reference to not implement the piecewise
-    common component removal, primarily to avoid introducing a new dependency.
-
-    References
-    ----------
-    .. [1] Kawin Ethayarajh. 2018. Unsupervised Random Walk Sentence Embeddings: A
-       Strong but Simple Baseline. In Proceedings of the Third Workshop on
-       Representation Learning for NLP, pages 91–100, Melbourne, Australia. Association
-       for Computational Linguistics. https://aclanthology.org/W18-3012/
-
-    Attributes
-    ----------
-    a : float
-        'a' parameter.
-    embeddings : GloVeModel
-        GloVe embeddings model.
-    embeddings_dimension : int
-        Dimension of embeddings model.
-    fdc_ingredients : dict[str, list[FDCIngredient]]
-        Lists of FDC ingredients.
-    fdc_vectors : dict[str, list[FDCIngredient]]
-        Lists of embedding vectors for FDC ingredients, grouped by data type.
-    min_prob : float
-        Minimum token probability.
-    token_prob : dict[str, float]
-        Dictionary of token probabilities.
-    """
-
-    def __init__(self, embeddings: GloVeModel, fdc_ingredients: list[FDCIngredient]):
-        """Initialize.
-
-        Parameters
-        ----------
-        embeddings : GloVeModel
-            GloVe embeddings model.
-        fdc_ingredients : list[FDCIngredient]
-            List of FDC ingredients.
-        """
-        self.embeddings = embeddings
-        self.embeddings_dimension: int = embeddings.dimension
-
-        self.fdc_ingredients: list[FDCIngredient] = fdc_ingredients
-        self.token_prob: dict[str, float] = self._estimate_token_probability(
-            self.fdc_ingredients
-        )
-        self.min_prob: float = min(self.token_prob.values())
-        self.a: float = self._calculate_a_factor()
-
-        self.fdc_vectors = self._embed_fdc_ingredients()
-
-    def _estimate_token_probability(
-        self, fdc_ingredients: list[FDCIngredient]
-    ) -> dict[str, float]:
-        """Estimate word probability from the frequency of occurrence of token in FDC
-        ingredient descriptions.
-
-        Parameters
-        ----------
-        fdc_ingredients : list[FDCIngredient]
-            List of FDC ingredient objects.
-
-        Returns
-        -------
-        dict[str, float]
-            Dict of token: probability.
-        """
-        token_counts = defaultdict(int)
-        for ingredient in fdc_ingredients:
-            for token in ingredient.tokens:
-                token_counts[token] += 1
-
-        total = sum(token_counts.values())
-        return {token: count / total for token, count in token_counts.items()}
-
-    def _average_sentence_length(self) -> int:
-        """Calculate average sentence length for FDC ingredient descriptions.
-
-        Returns
-        -------
-        int
-            Average sentence length.
-        """
-        token_count = 0
-        sentence_count = 0
-        for fdc in self.fdc_ingredients:
-            token_count += len(fdc.tokens)
-            sentence_count += 1
-
-        return int(token_count / sentence_count)
-
-    def _calculate_a_factor(self) -> float:
-        """Calculate 'a' factor used in token weight calculations.
-
-        Returns
-        -------
-        float
-            'a' factor.
-        """
-        average_sentence_length = self._average_sentence_length()
-
-        vocab_size = float(len(self.token_prob))
-        threshold = 1 - (1 - 1 / vocab_size) ** average_sentence_length
-        alpha = (
-            len([token for token, prob in self.token_prob.items() if prob > threshold])
-            / vocab_size
-        )
-        Z = 0.5 * vocab_size
-        return (1 - alpha) / (alpha * Z)
-
-    def _weight(self, token: str) -> float:
-        """Return weight for token.
-
-        Parameters
-        ----------
-        token : str
-            Token.
-
-        Returns
-        -------
-        float
-            Token weight.
-        """
-        return self.a / (0.5 * self.a + self.token_prob.get(token, self.min_prob))
-
-    def _embed_fdc_ingredients(self) -> list[np.ndarray]:
-        """Calculate embedding vectors for all FDC ingredients.
-
-        Returns
-        -------
-        list[np.ndarray]
-            List of embedding vectors for FDC ingredients.
-        """
-        return [self._embed(fdc.tokens) for fdc in self.fdc_ingredients]
-
-    def _embed(self, tokens: list[str]) -> np.ndarray:
-        """Return single embedding vector for input tokens calculated from the weighted
-        mean of the embeddings for each token.
-
-        Parameters
-        ----------
-        tokens : list[str]
-            List of input tokens.
-
-        Returns
-        -------
-        np.ndarray
-            Embedding vector for input.
-        """
-        tokens_in_vocab = [t for t in tokens if t in self.embeddings]
-
-        if not tokens_in_vocab:
-            return np.zeros(self.embeddings_dimension) + self.a
-        else:
-            token_vectors = np.array(
-                [self.embeddings[token] for token in tokens_in_vocab]
-            )
-            normalised = token_vectors * (1.0 / np.linalg.norm(token_vectors, axis=0))
-            weighted = np.array(
-                [
-                    self._weight(token) * normalised[i, :]
-                    for i, token in enumerate(tokens_in_vocab)
-                ]
-            )
-            return np.mean(weighted, axis=0)
-
-    def _cosine_similarity(self, vec1: np.ndarray, vec2: np.ndarray) -> float:
-        """Return cosine similarity score for input vectors.
-
-        Parameters
-        ----------
-        vec1 : np.ndarray
-            Input vector 1.
-        vec2 : np.ndarray
-            Input vector 2.
-
-        Returns
-        -------
-        float
-            Cosine similarity score.
-        """
-        return 1 - float(
-            np.dot(vec1, vec2) / (np.linalg.norm(vec1) * np.linalg.norm(vec2))
-        )
-
-    def find_candidate_matches(
-        self, tokens: list[str], n: int
-    ) -> list[FDCIngredientMatch]:
-        """Find best candidate matches between input token and FDC ingredients with a
-        cosine similarity of no more than cutoff.
-
-        Parameters
-        ----------
-        tokens : list[str]
-            List of tokens.
-        n : int
-            Number of matches to return, sorted by best score.
-
-        Returns
-        -------
-        list[FDCIngredientMatch]
-            List of best n candidate matching FDC ingredients.
-        """
-        prepared_tokens = prepare_embeddings_tokens(tuple(tokens))
-        input_token_vector = self._embed(prepared_tokens)
-
-        candidates = []
-        for idx, vec in enumerate(self.fdc_vectors):
-            score = self._cosine_similarity(input_token_vector, vec)
-            candidates.append(
-                FDCIngredientMatch(
-                    fdc=self.fdc_ingredients[idx],
-                    score=score,
-                )
-            )
-
-        sorted_candidates = sorted(candidates, key=lambda x: x.score)
-        return sorted_candidates[:n]
-
-
-class FuzzyEmbeddingMatcher:
-    """Implementation of fuzzy document distance metric [1]_ used to determine the most
-    similar FDC ingredient to a given ingredient name.
-
-    References
-    ----------
-    .. [1] Morales-Garzón, A., Gómez-Romero, J., Martin-Bautista, M.J. (2020). A Word
-           Embedding Model for Mapping Food Composition Databases Using Fuzzy Logic. In:
-           Lesot, MJ., et al. Information Processing and Management of Uncertainty in
-           Knowledge-Based Systems. IPMU 2020. Communications in Computer and
-           Information Science, vol 1238. Springer, Cham.
-           https://doi.org/10.1007/978-3-030-50143-3_50
-
-    Attributes
-    ----------
-    embeddings : GloVeModel
-        GloVe embeddings model.
-    """
-
-    def __init__(self, embeddings: GloVeModel):
-        """Initialize.
-
-        Parameters
-        ----------
-        embeddings : GloVeModel
-            GloVe embeddings model.
-        """
-        self.embeddings = embeddings
-
-    @lru_cache
-    def _get_vector(self, token: str) -> np.ndarray:
-        """Get embedding vector for token.
-
-        This function exists solely so this operation can be LRU cached.
-
-        Parameters
-        ----------
-        token : str
-            Token to return embedding vector for.
-
-        Returns
-        -------
-        np.ndarray
-            Embedding vector for token.
-        """
-        return self.embeddings[token]
-
-    @lru_cache(maxsize=512)
-    def _token_similarity(self, token1: str, token2: str) -> float:
-        """Calculate similarity between two word embeddings.
-
-        This uses the reciprocal euclidean distance transformed by a sigmoid function to
-        return a value between 0 and 1.
-        1 indicates an exact match (i.e. token1 and token2 are the same).
-        0 indicates no match whatsoever.
-
-        Parameters
-        ----------
-        token1 : str
-            First token.
-        token2 : str
-            Second token.
-
-        Returns
-        -------
-        float
-            Value between 0 and 1.
-        """
-        euclidean_dist = np.linalg.norm(
-            self._get_vector(token1) - self._get_vector(token2)
-        )
-
-        if euclidean_dist == 0:
-            return 1
-        elif euclidean_dist == np.inf:
-            return 0
-        else:
-            sigmoid = 1 / (1 + np.exp(-1 / euclidean_dist))
-            return float(sigmoid)
-
-    @lru_cache(maxsize=512)
-    def _max_token_similarity(
-        self, token: str, fdc_ingredient_tokens: tuple[str, ...]
-    ) -> float:
-        """Calculate the maximum similarity of token to FDC ingredient description
-        tokens.
-
-        Similarity score is calculated from the euclidean distance between token and
-        all tokens that make up the FDC ingredient description.
-        The reciprocal of this distance if transformed using a sigmoid function to
-        return the score between 0 and 1.
-        A score of 1 indicates that token is found exactly in fdc_ingredient.
-
-        Parameters
-        ----------
-        token : str
-            Token to calculate similarity of.
-        fdc_ingredient_tokens : tuple[str, ...]
-            FDC ingredient description tokens to calculate maximum token similarity to.
-
-        Returns
-        -------
-        float
-            Membership score between 0 and 1, where 1 indicates exact match.
-        """
-        return max(self._token_similarity(token, t) for t in fdc_ingredient_tokens)
-
-    def _fuzzy_document_distance(
-        self,
-        ingredient_name_tokens: list[str],
-        fdc_ingredient_tokens: list[str],
-    ) -> float:
-        """Calculate fuzzy document distance metric between ingredient name and FDC
-        ingredient description.
-
-        Parameters
-        ----------
-        ingredient_name_tokens : list[str]
-            Tokens for ingredient name.
-        fdc_ingredient_tokens : list[str]
-            Tokens for FDC ingredient description.
-
-        Returns
-        -------
-        float
-            Fuzzy document distance.
-            Smaller values mean closer match.
-        """
-        # Calculate fuzzy intersection from the tokens that are similar in both the
-        # ingredient and FDC ingredient name, to the tokens that are similar to only
-        # one of the ingredient or FDC name.
-        union_membership = 0.0
-        ingred_membership = 0.0
-        fdc_membership = 0.0
-
-        token_union = set(ingredient_name_tokens) | set(fdc_ingredient_tokens)
-        for token in token_union:
-            token_ingred_score = self._max_token_similarity(
-                token, tuple(ingredient_name_tokens)
-            )
-            token_fdc_score = self._max_token_similarity(
-                token, tuple(fdc_ingredient_tokens)
-            )
-
-            union_membership += token_ingred_score * token_fdc_score
-            ingred_membership += token_ingred_score
-            fdc_membership += token_fdc_score
-
-        # Protect against divide by zero errors
-        if (ingred_membership + fdc_membership - union_membership) > 0:
-            res = union_membership / (
-                ingred_membership + fdc_membership - union_membership
-            )
-        else:
-            res = 0
-
-        return 1 - res
-
-    def find_best_match(
-        self, ingredient_name_tokens: list[str], fdc_ingredients: list[FDCIngredient]
-    ) -> FDCIngredientMatch:
-        """Find the FDC ingredient that best matches the ingredient name tokens from the
-        list of FDC ingredients.
-
-        If the ingredient name tokens do not contain a verb indicating that the
-        ingredient name is not raw (e.g. cooked), then the token "raw" is added as an
-        additional token to bias the results towards a "raw" FDC ingredient.
-
-        Parameters
-        ----------
-        ingredient_name_tokens : list[str]
-            Tokens for ingredient name, prepared for use with embeddings.
-        fdc_ingredients : list[FDCIngredient]
-            List of candidate FDC ingredients.
-
-        Returns
-        -------
-        FDCIngredientMatch
-            Best matching FDC ingredient.
-        """
-        # Bias the results towards selecting the raw version of a FDC ingredient, but
-        # only if the ingredient name tokens don't already include a verb that indicates
-        # the food is not raw (e.g. cooked)
-        if len(set(ingredient_name_tokens) & NON_RAW_FOOD_VERB_STEMS) == 0:
-            ingredient_name_tokens.append("raw")
-
-        scored: list[FDCIngredientMatch] = []
-        for fdc in fdc_ingredients:
-            score = self._fuzzy_document_distance(ingredient_name_tokens, fdc.tokens)
-            scored.append(FDCIngredientMatch(fdc=fdc, score=score))
-
-        sorted_matches = sorted(scored, key=lambda x: x.score)
-        return sorted_matches[0]
-
-
-@lru_cache
-def get_usif_matcher() -> uSIF:
-    """Cached function for returning instantiated uSIF object.
-
-    Returns
-    -------
-    uSIF
-        Instantiation uSIF object.
-    """
-    embeddings = load_embeddings_model()
-    fdc_ingredients = load_fdc_ingredients()
-    return uSIF(embeddings, fdc_ingredients)
-
-
-@lru_cache
-def get_fuzzy_matcher() -> FuzzyEmbeddingMatcher:
-    """Cached function for returning instantiated FuzzyEmbeddingMatcher object.
-
-    Returns
-    -------
-    FuzzyEmbeddingMatcher
-        Instantiation FuzzyEmbeddingMatcher object.
-    """
-    embeddings = load_embeddings_model()
-    return FuzzyEmbeddingMatcher(embeddings)
-
-
-def match_foundation_foods(tokens: list[str], name_idx: int) -> FoundationFood | None:
+def match_foundation_foods(
+    tokens: list[str], pos_tags: list[str], name_idx: int
+) -> FoundationFood | None:
     """Match ingredient name to foundation foods from FDC ingredient.
 
     This is done in three stages.
@@ -483,6 +49,8 @@ def match_foundation_foods(tokens: list[str], name_idx: int) -> FoundationFood |
     ----------
     tokens : list[str]
         Ingredient name tokens.
+    pos_tags : list[str]
+        POS tags for tokens.
     name_idx : int
         Index of corresponding name in ParsedIngredient.names list.
 
@@ -490,6 +58,7 @@ def match_foundation_foods(tokens: list[str], name_idx: int) -> FoundationFood |
     -------
     FoundationFood | None
     """
+    tokens = strip_ambiguous_leading_adjectives(tokens, pos_tags)
     logger.debug(f"Matching FDC ingredient for ingredient name tokens: {tokens}")
     prepared_tokens = prepare_embeddings_tokens(tuple(tokens))
     logger.debug(f"Prepared tokens: {prepared_tokens}.")
@@ -505,26 +74,411 @@ def match_foundation_foods(tokens: list[str], name_idx: int) -> FoundationFood |
         match.name_index = name_idx
         return match
 
-    u = get_usif_matcher()
-    candidate_matches = u.find_candidate_matches(normalised_tokens, n=50)
-    if not candidate_matches:
-        logger.debug("No matching FDC ingredients found with uSIF matcher.")
-        return None
+    # Bias the results towards selecting the raw version of a FDC ingredient, but
+    # only if the ingredient name tokens don't already include a verb that indicates
+    # the food is not raw (e.g. cooked)
+    if len(set(normalised_tokens) & NON_RAW_FOOD_VERB_STEMS) == 0:
+        normalised_tokens.append("raw")
 
-    fuzzy = get_fuzzy_matcher()
-    best_match = fuzzy.find_best_match(
-        normalised_tokens, [m.fdc for m in candidate_matches]
-    )
+    u = get_usif_ranker()
+    usif_matches = u.rank_matches(normalised_tokens)
 
-    if best_match.score <= 0.4:
+    bm25 = get_bm25_ranker()
+    bm25_matches = bm25.rank_matches(normalised_tokens)
+
+    # Check if both BM25 and uSIF agree on the top result. If they do, return that and
+    # avoid any further processing.
+    if fdc := consistent_top_result(bm25_matches, usif_matches):
+        logger.debug(f"BM25 and uSIF rankers agree on best match: {fdc.fdc_id=}")
         return FoundationFood(
-            text=best_match.fdc.description,
-            confidence=round(1 - best_match.score, 6),
-            fdc_id=best_match.fdc.fdc_id,
-            category=best_match.fdc.category,
-            data_type=best_match.fdc.data_type,
+            text=fdc.description,
+            confidence=1.0,
+            fdc_id=fdc.fdc_id,
+            category=fdc.category,
+            data_type=fdc.data_type,
             name_index=name_idx,
         )
 
-    logger.debug("No FDC ingredients found with good enough match.")
+    fuzzy_matches = []
+    agreement = bm25_usif_agreement(bm25_matches, usif_matches)
+    if agreement < 0.25:
+        # Get all FDC IDs for BM25 and uSIF matches
+        # We'll only use the fuzzy ranker on these, instead of the whole FDC set.
+        candidate_fdc_ids = {m.fdc.fdc_id for m in usif_matches[:TOP_K]} | {
+            m.fdc.fdc_id for m in bm25_matches[:TOP_K]
+        }
+        logger.debug(f"BM25 and uSIF ranker alignment is < 0.2 ({agreement:.4f}).")
+        logger.debug(
+            (
+                f"Using FuzzyMatcher on {TOP_K} matches from "
+                "BM25 and uSIF to help arbitrate."
+            )
+        )
+
+        fuzzy = get_fuzzy_ranker()
+        fuzzy_matches = fuzzy.rank_matches(normalised_tokens, candidate_fdc_ids)
+
+    fused_matches = fuse_results(bm25_matches, fuzzy_matches, usif_matches, top_n=TOP_K)
+
+    # If the there is less than 1% difference in score between the best two fused
+    # matches, then assume we can't identify a suitable match.
+    # Only do this if the best fused score is less than 0.95 so we don't discard good
+    # matches.
+    if (
+        fused_matches[0].score < 0.95
+        and percent_difference(fused_matches[0].score, fused_matches[1].score) <= 0.01
+    ):
+        logger.debug("No FDC ingredients found with good enough match.")
+        return None
+
+    best_match = fused_matches[0]
+    return FoundationFood(
+        text=best_match.fdc.description,
+        confidence=round(best_match.score, 6),
+        fdc_id=best_match.fdc.fdc_id,
+        category=best_match.fdc.category,
+        data_type=best_match.fdc.data_type,
+        name_index=name_idx,
+    )
+
+
+def consistent_top_result(
+    bm25_matches: list[FDCIngredientMatch], usif_matches: list[FDCIngredientMatch]
+) -> FDCIngredient | None:
+    """If the BM25 and uSIF matches have a single consistent best match, return it.
+    Otherwise return None.
+
+    It is possible (particularly for BM25) for there to be more than one best match with
+    the same score, so this function accounts for that.
+
+    Parameters
+    ----------
+    bm25_matches : list[FDCIngredientMatch]
+        List of FDCIngredientMatch from the BM25 ranker.
+    usif_matches : list[FDCIngredientMatch]
+        List of FDCIngredientMatch from the uSIF ranker.
+
+    Returns
+    -------
+    FDCIngredient | None
+    """
+    best_matches = set()
+
+    # Because bm25_matches and usif_matches are ordered, we want to stop iterating over
+    # them as soon as we encounter a score that is different from the best score.
+    best_matches.add(bm25_matches[0].fdc)
+    best_score = bm25_matches[0].score
+    for m in bm25_matches[1:]:
+        if m.score == best_score:
+            best_matches.add(m.fdc)
+        else:
+            break
+
+    best_matches.add(usif_matches[0].fdc)
+    best_score = usif_matches[0].score
+    for m in usif_matches[1:]:
+        if m.score == best_score:
+            best_matches.add(m.fdc)
+        else:
+            break
+
+    if len(best_matches) == 1:
+        # If there is exactly one FDC Ingredient in the intersection, return it.
+        return best_matches.pop()
+
+    # If there are no items in the intersection, or more than one, return None.
     return None
+
+
+def percent_difference(score1: float, score2: float) -> float:
+    """Calculate the percentage difference between two scores.
+
+    Parameters
+    ----------
+    score1 : float
+        First score.
+    score2 : float
+        Second score
+
+    Returns
+    -------
+    float
+        Percentage difference score, [0 1].
+    """
+    if score1 == score2:
+        return 0
+
+    max_score = max(score1, score2)
+    min_score = min(score1, score2)
+    delta = max_score - min_score
+    return delta / max_score
+
+
+def bm25_usif_agreement(
+    bm25_matches: list[FDCIngredientMatch],
+    usif_matches: list[FDCIngredientMatch],
+    p: float = 0.95,
+) -> float:
+    """Calculate the agreement between the BM25 and uSIF matches.
+
+    Rank Biased Overlap [1]_ is used to calculate a metric quantifying the overlap as a
+    score between 0 and 1.
+
+    The parameter p determines how steep the decline in weights is: the smaller p, the
+    more top-weighted the metric is. In the limit, when p = 0, only the top-ranked item
+    is considered, and the RBO score is either zero or one. On the other hand, as p
+    approaches arbitrarily close to 1, the weights become arbitrarily flat, and the
+    evaluation becomes arbitrarily deep.
+
+    This implementation assumes that both input lists are the same length. If they
+    aren't then this function isn't appropriate and RBO_EXT should be considered.
+
+    References
+    ----------
+    .. [1] W. Webber, A. Moffat, and J. Zobel, ‘A similarity measure for indefinite
+           rankings’, ACM Trans. Inf. Syst., vol. 28, no. 4, pp. 1–38, Nov. 2010,
+           doi: 10.1145/1852102.1852106.
+
+    Parameters
+    ----------
+    bm25_matches : list[FDCIngredientMatch]
+        List of ordered matches from BM25 ranker.
+    usif_matches : list[FDCIngredientMatch]
+        List of ordered matches from uSIF ranker.
+    p : float
+        Persistence parameter (0 < p < 1).
+        The expected depth is given by 1/(1 - p).
+        Default is 0.95 -> expected depth ~20.
+
+    Returns
+    -------
+    float
+        Agreement score, between 0 and 1, where 1 is exact agreement.
+    """
+    if p < 0 or p > 1:
+        raise ValueError(f"p should be between 0 and 1. Provided value is {p}.")
+
+    bm25_ids = [m.fdc.fdc_id for m in bm25_matches[:TOP_K]]
+    usif_ids = [m.fdc.fdc_id for m in usif_matches[:TOP_K]]
+
+    bm25_set = set()
+    usif_set = set()
+    rbo_sum = 0
+    for depth in range(1, len(bm25_ids) + 1):
+        bm25_set.add(bm25_ids[depth - 1])
+        usif_set.add(usif_ids[depth - 1])
+
+        # Calculate overlap at current depth.
+        overlap = len(bm25_set & usif_set)
+
+        agreement = overlap / depth
+        rbo_sum += agreement * (p**depth)
+
+    # This provides the base RBO for the common length
+    return (1 - p) * rbo_sum
+
+
+def estimate_ranker_confidence(scores: list[float]) -> float:
+    """Calculate confidence of a ranker function from the spread of scores.
+
+    A larger gap between the best two scores indicates higher confidence. Because the
+    difference between the best two scores is considered relative to the best score,
+    this approach will work for scores that have an arbitrary scale.
+
+    Additionally, lower variance in the non-top scores also indicates higher confidence.
+
+    The two metrics are combined to estimate the ranker confidence.
+
+    Parameters
+    ----------
+    scores : list[float]
+        List of ranker scores.
+
+    Returns
+    -------
+    float
+        Description
+    """
+    if len(scores) < 2:
+        return 0
+
+    sorted_scores = sorted(scores, reverse=True)
+    max_score = sorted_scores[0]
+    second_max = sorted_scores[1]
+
+    gap = max_score - second_max
+    relative_gap = gap / max_score
+
+    if len(scores) > 2:
+        # Calculate coefficient of variation for scores below top
+        remaining_scores = sorted_scores[1:]
+        remaining_std = np.std(remaining_scores)
+        remaining_mean = np.mean(remaining_scores)
+        if remaining_mean > 0:
+            cv = remaining_std / remaining_mean
+            # Lower CV = more concentrated = clearer winner
+            distribution_factor = 1.0 / (1.0 + cv)
+        else:
+            distribution_factor = 1.0
+    else:
+        distribution_factor = 1.0
+
+    # Combine gap and distribution (weighted average)
+    confidence = 0.7 * relative_gap + 0.3 * distribution_factor
+    return float(confidence)
+
+
+def normalize_scores(scores: list[float]) -> list[float]:
+    """Normalize list of scores.
+
+    Parameters
+    ----------
+    scores : list[float]
+        List of scores to normalize.
+
+    Returns
+    -------
+    list[float]
+        Normalized scores.
+    """
+    if not scores:
+        return []
+
+    scores_array = np.array(scores)
+
+    # Handle case where all scores are identical
+    if np.all(scores_array == scores_array[0]):
+        return [0.5] * len(scores)
+
+    # Use 5th and 95th percentiles to calculate normalization interval.
+    min_ = min(scores_array)
+    max_ = max(scores_array)
+    # Ensure that the range is never 0
+    range_val = max(max_ - min_, 1e-9)
+
+    normalized = []
+    for score in scores_array:
+        norm_score = (score - min_) / range_val
+        # Clip to [0, 1] to handle cases where range_val is really small.
+        norm_score = max(0.0, min(1.0, norm_score))
+        normalized.append(norm_score)
+
+    return normalized
+
+
+# List of FDC data preferences, least preferred to most preferred.
+DATASET_PREFERENCE = [
+    "survey_fndds_food",
+    "sr_legacy_food",
+    "foundation_food",
+]
+
+
+def fuse_results(
+    bm25_matches: list[FDCIngredientMatch],
+    fuzzy_matches: list[FDCIngredientMatch],
+    usif_matches: list[FDCIngredientMatch],
+    top_n: int = 100,
+) -> list[FDCIngredientMatch]:
+    """Distribution-based score fusion of BM25 and uSIF match results.
+
+    Fuse the matches from BM25 ranker and uSIF ranker by normalising their scores
+    based on the score distribution statistics and summing the normalised scores for
+    each match.
+
+    The provided `bm25_matches` and `usif_matches` lists contain the raw scores for all
+    possible FDC ingredients. We only consider the `top_n` of these to avoid the
+    distribution statistics being skewed by the poor matches. This is because there are
+    far more poor matches than there are good matches.
+
+    The fusing of the normalised scores for a match is weighted by the confidence of
+    each ranker. If a ranker has one score significantly higher than all others, then
+    it is more confidence and we account for that be increasing the confidence in that
+    ranker.
+
+    References
+    ----------
+    .. [1] D. Kim, B. Kim, D. Han, and M. Eibich, ‘AutoRAG: Automated Framework for
+    optimization of Retrieval Augmented Generation Pipeline’, Oct. 28, 2024,
+    arXiv: arXiv:2410.20878. doi: 10.48550/arXiv.2410.20878.
+
+    Parameters
+    ----------
+    bm25_matches : list[FDCIngredientMatch]
+        List of FDCIngredientMatch from the BM25 ranker.
+    fuzzy_matches : list[FDCIngredientMatch]
+        List of FDCIngredientMatch from the Fuzzy ranker.
+    usif_matches : list[FDCIngredientMatch]
+        List of FDCIngredientMatch from the uSIF ranker.
+    top_n : int, optional
+        Number of top matches to consider.
+
+    Returns
+    -------
+    list[FDCIngredientMatch]
+        List of FDCIngredientMatch ordered best to worse.
+    """
+    # Limit to best `top_n` results to prevent the normalisation being dominated by poor
+    # matches.
+    bm25_matches = bm25_matches[:top_n]
+    usif_matches = usif_matches[:top_n]
+    fuzzy_matches = fuzzy_matches[:top_n]
+
+    # Normalize both score distributions
+    bm25_normalized = normalize_scores([m.score for m in bm25_matches])
+    usif_normalized = normalize_scores([m.score for m in usif_matches])
+    fuzzy_normalized = normalize_scores([m.score for m in fuzzy_matches])
+
+    # Create dict mapping fdc_id to normalized score
+    usif_dict = {
+        match.fdc.fdc_id: norm_score
+        for match, norm_score in zip(usif_matches, usif_normalized)
+    }
+    fuzzy_dict = {
+        match.fdc.fdc_id: norm_score
+        for match, norm_score in zip(fuzzy_matches, fuzzy_normalized)
+    }
+    bm25_dict = {
+        match.fdc.fdc_id: norm_score
+        for match, norm_score in zip(bm25_matches, bm25_normalized)
+    }
+
+    # Estimate ranker confidences based on spread of normalised scores.
+    bm25_conf = estimate_ranker_confidence(bm25_normalized)
+    fuzzy_conf = estimate_ranker_confidence(fuzzy_normalized)
+    usif_conf = estimate_ranker_confidence(usif_normalized)
+    total_conf = bm25_conf + usif_conf + fuzzy_conf
+    bm25_conf = bm25_conf / total_conf * 3
+    fuzzy_conf = fuzzy_conf / total_conf * 3
+    usif_conf = usif_conf / total_conf * 3
+    logger.debug(
+        (
+            f"Ranker confidences: "
+            f"BM25={bm25_conf:.4f}, "
+            f"uSIF={usif_conf:.4f}, "
+            f"Fuzzy={fuzzy_conf:.4f}."
+        )
+    )
+
+    fused_matches = []
+    fdc_entries = set(m.fdc for m in bm25_matches) | set(m.fdc for m in usif_matches)
+    for fdc in fdc_entries:
+        bm25_norm_score = bm25_dict.get(fdc.fdc_id, 0)
+        # uSIF and Fuzzy scores are inverted (i.e. smaller = better). Therefore, after
+        # normalisation, subtract from one to make bigger = better.
+        usif_norm_score = 1 - usif_dict.get(fdc.fdc_id, 1)
+        fuzzy_norm_score = 1 - fuzzy_dict.get(fdc.fdc_id, 1)
+
+        fused_score = (
+            bm25_conf * bm25_norm_score
+            + usif_conf * usif_norm_score
+            + fuzzy_conf * fuzzy_norm_score
+        )
+        fused_matches.append(FDCIngredientMatch(fdc=fdc, score=float(fused_score / 3)))
+
+    # When resolving identical scores, use the preferred dataset.
+    return sorted(
+        fused_matches,
+        key=lambda x: (x.score, DATASET_PREFERENCE.index(x.fdc.data_type)),
+        reverse=True,
+    )
