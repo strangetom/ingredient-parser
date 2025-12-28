@@ -18,9 +18,16 @@
 
   * This customised units registry includes additional units relevant to cooking, such as metric cups and tablespoons, japanese cups, australian tablespoons.
 
-* Fix exception be raised if quantity range ended with `x`  (e.g. `3-4x`).
+* Fix exception being raised if quantity range ended with `x`  (e.g. `3-4x`).
 
 * If an amount has `MULTIPLIER=True`, set `SINGULAR=True` for any immediately subsequent amounts.
+
+### Foundation foods
+
+* Improve token normalisation, including replacement tokens for terms used in the FDC ingredients.
+* Rewrite the FDC ingredient matching functionality to return better matches and be about twice as fast as before.
+  * See https://ingredient-parser.readthedocs.io/en/latest/explanation/foundation.html for an explanation of how this works.
+
 
 
 ## 2.4.0
