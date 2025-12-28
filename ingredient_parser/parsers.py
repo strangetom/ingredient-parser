@@ -63,6 +63,11 @@ def parse_ingredient(
         for the the following units: fluid ounce, cup, pint, quart, gallon.
         Default is False, which results in US customary units being used.
         This has no effect if string_units=True.
+
+        .. deprecated:: v2.5.0
+
+            Use ``volumetric_units_system="imperial"`` for the same functionality.
+
     volumetric_units_system : str, optional
         Sets the units system for volumetric measurements, like "cup" or "tablespoon".
         Available options are "us_customary" (default), "imperial", "metric",
@@ -86,7 +91,7 @@ def parse_ingredient(
         warnings.warn(
             (
                 "imperial_units=True argument is deprecated. "
-                "Use volumetric_units_system='imperal'"
+                "Use volumetric_units_system='imperial'"
             ),
             DeprecationWarning,
             stacklevel=2,
@@ -163,6 +168,11 @@ def parse_multiple_ingredients(
         for the the following units: fluid ounce, cup, pint, quart, gallon.
         Default is False, which results in US customary units being used.
         This has no effect if string_units=True.
+
+        .. deprecated:: v2.5.0
+
+            Use ``volumetric_units_system="imperial"`` for the same functionality.
+
     volumetric_units_system : str, optional
         Sets the units system for volumetric measurements, like "cup" or "tablespoon".
         Available options are "us_customary" (default), "imperial", "metric",
@@ -239,6 +249,11 @@ def inspect_parser(
         for the the following units: fluid ounce, cup, pint, quart, gallon.
         Default is False, which results in US customary units being used.
         This has no effect if string_units=True.
+
+        .. deprecated:: v2.5.0
+
+            Use ``volumetric_units_system="imperial"`` for the same functionality.
+
     volumetric_units_system : str, optional
         Sets the units system for volumetric measurements, like "cup" or "tablespoon".
         Available options are "us_customary" (default), "imperial", "metric",

@@ -68,7 +68,7 @@ This data is used when matching an ingredient name to an :abbr:`FDC (Food Data C
 .. caution::
 
     Enabling this functionality is much slower than when not enabled.
-    When enabled, parsing a sentence is roughly 22x slower than if disabled, but the actual slow down depends on the sentence.
+    When enabled, parsing a sentence is roughly 20x slower than if disabled, but the actual slow down depends on the sentence.
 
 Explanation
 ^^^^^^^^^^^
