@@ -5,8 +5,8 @@ from fractions import Fraction
 from functools import lru_cache
 from itertools import chain
 
-import nltk.stem.porter as nsp
 import pint
+from nltk.stem.porter import PorterStemmer
 from nltk.tag import _get_tagger, _pos_tag
 
 from ingredient_parser.en._loaders import load_ingredient_tagdict
@@ -111,7 +111,7 @@ UNIT_REPLACEMENTS = [
 ]
 
 download_nltk_resources()
-STEMMER = nsp.PorterStemmer()
+STEMMER = PorterStemmer()
 
 # Define regular expressions used by tokenizer.
 # Matches one or more whitespace characters

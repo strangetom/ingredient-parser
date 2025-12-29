@@ -11,8 +11,9 @@ from itertools import groupby, islice
 from operator import itemgetter
 from typing import Generator, Iterator
 
-import nltk
 import pint
+from nltk.data import find as nltk_find
+from nltk.downloader import download as nltk_download
 
 UREG = pint.UnitRegistry()
 with as_file(files(__package__) / "pint_extensions.txt") as p:
@@ -121,18 +122,18 @@ def show_model_card(lang: str = "en") -> None:
 def download_nltk_resources() -> None:
     """Check if required nltk resources can be found and if not, download them."""
     try:
-        nltk.data.find(
+        nltk_find(
             "taggers/averaged_perceptron_tagger_eng/averaged_perceptron_tagger_eng.classes.json"
         )
-        nltk.data.find(
+        nltk_find(
             "taggers/averaged_perceptron_tagger_eng/averaged_perceptron_tagger_eng.tagdict.json"
         )
-        nltk.data.find(
+        nltk_find(
             "taggers/averaged_perceptron_tagger_eng/averaged_perceptron_tagger_eng.weights.json"
         )
     except LookupError:
         print("Downloading required NLTK resource: averaged_perceptron_tagger_eng")
-        nltk.download("averaged_perceptron_tagger_eng")
+        nltk_download("averaged_perceptron_tagger_eng")
 
 
 def is_float(value: str) -> bool:
