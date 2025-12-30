@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import warnings
+from typing import Iterable
 
 from ingredient_parser.en import inspect_parser_en, parse_ingredient_en
 
@@ -122,7 +123,7 @@ def parse_ingredient(
 
 
 def parse_multiple_ingredients(
-    sentences: list[str],
+    sentences: Iterable[str],
     lang: str = "en",
     separate_names: bool = True,
     discard_isolated_stop_words: bool = True,
@@ -142,8 +143,8 @@ def parse_multiple_ingredients(
 
     Parameters
     ----------
-    sentences : list[str]
-        List of sentences to parse.
+    sentences : Iterable[str]
+        Iterable of sentences to parse.
     lang : str
         Language of sentence.
         Currently supported options are: en.
