@@ -6,7 +6,7 @@ from functools import lru_cache
 from itertools import chain
 
 import pint
-from nltk.stem.porter import PorterStemmer
+from nltk.stem.snowball import EnglishStemmer
 from nltk.tag import _get_tagger, _pos_tag
 
 from ingredient_parser.en._loaders import load_ingredient_tagdict
@@ -111,7 +111,7 @@ UNIT_REPLACEMENTS = [
 ]
 
 download_nltk_resources()
-STEMMER = PorterStemmer()
+STEMMER = EnglishStemmer()
 
 # Define regular expressions used by tokenizer.
 # Matches one or more whitespace characters
@@ -244,7 +244,7 @@ def combine_and_or(tokens: list[str]) -> list[str]:
 def stem(token: str) -> str:
     """Stem function with cache to improve performance.
 
-    The stem of a word output by the PorterStemmer is always the same, so we can
+    The stem of a word output by the stemmer is always the same, so we can
     cache the result the first time and return that for subsequent future calls
     without the need to do all the processing again.
 
