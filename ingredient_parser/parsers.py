@@ -73,6 +73,9 @@ def parse_ingredient(
         Available options are "us_customary" (default), "imperial", "metric",
         "australian", "japanese".
         This has no effect if string_units=True.
+
+        .. versionadded:: v2.5.0
+
     foundation_foods : bool, optional
         If True, extract foundation foods from ingredient name. Foundation foods are
         the fundamental foods without any descriptive terms, e.g. 'cucumber' instead
@@ -178,6 +181,9 @@ def parse_multiple_ingredients(
         Available options are "us_customary" (default), "imperial", "metric",
         "australian", "japanese".
         This has no effect if string_units=True.
+
+        .. versionadded:: v2.5.0
+
     foundation_foods : bool, optional
         If True, extract foundation foods from ingredient name. Foundation foods are
         the fundamental foods without any descriptive terms, e.g. 'cucumber' instead
@@ -259,6 +265,9 @@ def inspect_parser(
         Available options are "us_customary" (default), "imperial", "metric",
         "australian", "japanese".
         This has no effect if string_units=True.
+
+        .. versionadded:: v2.5.0
+
     foundation_foods : bool, optional
         If True, extract foundation foods from ingredient name. Foundation foods are
         the fundamental foods without any descriptive terms, e.g. 'cucumber' instead

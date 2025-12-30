@@ -2,6 +2,12 @@
 
 ## develop
 
+> [!WARNING]
+>
+> The `imperial_units` keyword argument for `parse_ingredient` is deprecated and will be removed at the next major release.
+>
+> Use the new `volumetric_units_system="imperial"` keyword argument for the same functionality.
+
 ### Processing
 
 * Add `unit_system` attribute to `IngredientAmount` and `CompositeIngredientAmount` to indicate which unit system the amount uses e.g. metric, US customary, imperial etc.
