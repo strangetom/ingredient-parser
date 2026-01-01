@@ -24,6 +24,8 @@ logger = logging.getLogger("ingredient-parser.foundation-foods")
 # spellings used in the FDC ingredient descriptions.
 # All tokens in these dicts are stemmed and lower case.
 FDC_PHRASE_SUBSTITUTIONS: dict[tuple[str, ...], list[str]] = {
+    # Prevent "cilantro" replacing "coriander" in the context of "coriander seeds".
+    ("coriand", "seed"): ["coriand", "seed"],
     ("doubl", "cream"): ["heavi", "cream"],
     ("glac", "cherri"): ["maraschino", "cherri"],
     ("ice", "sugar"): ["powder", "sugar"],
