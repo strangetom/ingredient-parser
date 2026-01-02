@@ -16,6 +16,12 @@ FOUNDATION_FOOD_OVERRIDES: dict[tuple[str, ...], FoundationFood] = {
     ): FoundationFood(
         "Salt, table, iodized", 1.0, 746775, "Spices and Herbs", "foundation_food", 0
     ),
+    ("pepper",): FoundationFood(
+        "Spices, pepper, black", 1.0, 170931, "Spices and Herbs", "sr_legacy_food", 0
+    ),
+    ("white", "pepper"): FoundationFood(
+        "Spices, pepper, white", 1.0, 170933, "Spices and Herbs", "sr_legacy_food", 0
+    ),
     ("egg",): FoundationFood(
         "Eggs, Grade A, Large, egg whole",
         1.0,
@@ -46,6 +52,38 @@ FOUNDATION_FOOD_OVERRIDES: dict[tuple[str, ...], FoundationFood] = {
         790018,
         "Cereal Grains and Pasta",
         "foundation_food",
+        0,
+    ),
+    ("sugar",): FoundationFood(
+        "Sugar, NFS",
+        1.0,
+        2710257,
+        "Sugars and honey",
+        "survey_fndds_food",
+        0,
+    ),
+    ("caster", "sugar"): FoundationFood(
+        "Sugar, NFS",
+        1.0,
+        2710257,
+        "Sugars and honey",
+        "survey_fndds_food",
+        0,
+    ),
+    ("rice",): FoundationFood(
+        "Rice, cooked, NFS",
+        1.0,
+        2708402,
+        "Rice",
+        "survey_fndds_food",
+        0,
+    ),
+    ("dill",): FoundationFood(
+        "Dill weed, fresh",
+        1.0,
+        172233,
+        "Spices and Herbs",
+        "sr_legacy_food",
         0,
     ),
 }
@@ -120,7 +158,7 @@ NON_RAW_FOOD_NOUN_STEMS = {
     "custard",
     "milk",
     "salt",
-    "stock",    
+    "stock",
 }
 
 # Tokens that indicate following words are negated.

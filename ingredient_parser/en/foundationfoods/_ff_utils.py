@@ -27,12 +27,16 @@ FDC_PHRASE_SUBSTITUTIONS: dict[tuple[str, ...], list[str]] = {
     # Prevent "cilantro" replacing "coriander" in the context of "coriander seeds".
     ("coriand", "seed"): ["coriand", "seed"],
     ("doubl", "cream"): ["heavi", "cream"],
+    ("garlic", "granul"): ["garlic", "powder"],
+    ("onion", "granul"): ["onion", "powder"],
     ("glac", "cherri"): ["maraschino", "cherri"],
     ("ice", "sugar"): ["powder", "sugar"],
     ("mang", "tout"): ["snow", "pea"],
     ("plain", "flour"): ["all", "purpos", "flour"],
     ("singl", "cream"): ["light", "cream"],
     ("haa", "avocado"): ["hass", "avocado"],
+    ("broad", "bean"): ["fava", "bean"],
+    ("self", "rais"): ["self", "rise"],
 }
 FDC_TOKEN_SUBSTITUTIONS: dict[str, str] = {
     "aubergin": "eggplant",
@@ -43,13 +47,16 @@ FDC_TOKEN_SUBSTITUTIONS: dict[str, str] = {
     "coriand": "cilantro",
     "cornflour": "cornstarch",
     "courgett": "zucchini",
+    "filo": "phyllo",
     "gherkin": "pickl",
     "mangetout": "snowpea",
     "mint": "spearmint",
     "prawn": "shrimp",
+    "puré": "puree",
     "rocket": "arugula",
     "swede": "rutabaga",
     "yoghurt": "yogurt",
+    "demerara": "turbinado",  # i.e. sugar
 }
 FDC_TOKEN_TO_PHRASE_SUBSTITUTIONS: dict[str, list[str]] = {
     "lemongrass": ["lemon", "grass"],
@@ -59,6 +66,8 @@ FDC_TOKEN_TO_PHRASE_SUBSTITUTIONS: dict[str, list[str]] = {
     "short-grain": ["short", "grain"],
     "bone-in": ["bone", "in"],
     "water": ["tap", "water"],
+    "beansprout": ["bean", "sprout"],
+    "breadcrumb": ["bread", "crumb"],
 }
 
 
