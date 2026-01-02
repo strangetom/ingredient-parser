@@ -107,7 +107,7 @@ def match_foundation_foods(
         candidate_fdc_ids = {m.fdc.fdc_id for m in usif_matches[:TOP_K]} | {
             m.fdc.fdc_id for m in bm25_matches[:TOP_K]
         }
-        logger.debug(f"BM25 and uSIF ranker alignment is < 0.2 ({agreement:.4f}).")
+        logger.debug(f"BM25 and uSIF ranker alignment is < 0.25 ({agreement:.4f}).")
         logger.debug(
             (
                 f"Using FuzzyMatcher on {TOP_K} matches from "
@@ -285,6 +285,13 @@ def estimate_ranker_confidence(scores: list[float]) -> float:
     difference between the best two scores is considered relative to the best score,
     this approach will work for scores that have an arbitrary scale.
 
+    .. note::
+
+      We use the top two *different* scores, not the top two scores.
+      If there is more than one result with the same top score, we shouldn't take that
+      to mean low confidence because that will result in down-weighting potentially good
+      matches.
+
     Additionally, lower variance in the non-top scores also indicates higher confidence.
 
     The two metrics are combined to estimate the ranker confidence.
@@ -304,7 +311,10 @@ def estimate_ranker_confidence(scores: list[float]) -> float:
 
     sorted_scores = sorted(scores, reverse=True)
     max_score = sorted_scores[0]
-    second_max = sorted_scores[1]
+    second_max = 0
+    for score in scores:
+        if score != max_score:
+            second_max = score
 
     gap = max_score - second_max
     relative_gap = gap / max_score
