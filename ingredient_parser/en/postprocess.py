@@ -784,6 +784,7 @@ class PostProcessor:
             "/",
             "*",
             "--",
+            "+",
         ]:
             idx = idx[:-1]
 
