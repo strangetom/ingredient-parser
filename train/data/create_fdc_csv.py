@@ -144,12 +144,23 @@ if __name__ == "__main__":
             ):
                 continue
 
+            category = category_map[row["food_category_id"]]
+            # Discard baby/infant formula and baby food entries
+            if "baby" in category.lower() or "formula" in category.lower():
+                continue
+
+            # Discard whole meals or dishes
+            if "dishes" in category.lower() or "sandwich" in category.lower():
+                continue
+            if category in {"Restaurant Foods", "Pizza", "Burgers"}:
+                continue
+
             fdc = FDCIngredient(
                 fdc_id=row["fdc_id"],
                 data_type=row["data_type"],
                 description=row["description"],
                 publication_date=datetime.date.fromisoformat(row["publication_date"]),
-                category=category_map[row["food_category_id"]],
+                category=category,
             )
 
             # If there are duplicate descriptions, only keep the preferred one
