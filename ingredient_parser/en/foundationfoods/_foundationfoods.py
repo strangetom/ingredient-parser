@@ -12,7 +12,11 @@ from ingredient_parser.en.foundationfoods._ff_dataclasses import (
 
 from ...dataclasses import FoundationFood
 from ._bm25 import get_bm25_ranker
-from ._ff_constants import FOUNDATION_FOOD_OVERRIDES, NON_RAW_FOOD_VERB_STEMS
+from ._ff_constants import (
+    FOUNDATION_FOOD_OVERRIDES,
+    NON_RAW_FOOD_NOUN_STEMS,
+    NON_RAW_FOOD_VERB_STEMS,
+)
 from ._ff_utils import (
     normalise_spelling,
     prepare_embeddings_tokens,
@@ -75,9 +79,13 @@ def match_foundation_foods(
         return match
 
     # Bias the results towards selecting the raw version of a FDC ingredient, but
-    # only if the ingredient name tokens don't already include a verb that indicates
-    # the food is not raw (e.g. cooked)
-    if len(set(normalised_tokens) & NON_RAW_FOOD_VERB_STEMS) == 0:
+    # only if the ingredient name tokens don't already include a verb or noun that
+    # indicates the food is not raw (e.g. cooked)
+    if (
+        len(set(normalised_tokens) & NON_RAW_FOOD_VERB_STEMS) == 0
+        and len(set(normalised_tokens) & NON_RAW_FOOD_NOUN_STEMS) == 0
+    ):
+        logger.debug("Biasing tokens towards raw FDC ingredients.")
         normalised_tokens.append("raw")
 
     u = get_usif_ranker()

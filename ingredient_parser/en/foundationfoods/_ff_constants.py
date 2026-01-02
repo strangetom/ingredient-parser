@@ -110,12 +110,25 @@ NON_RAW_FOOD_VERB_STEMS = {
 # Also include "raw" so we don't add if again if already present
 NON_RAW_FOOD_VERB_STEMS.add("raw")
 
+# Noun stems, for foods that are implicitly not raw and therefore should not be biased
+# towards a raw food.
+NON_RAW_FOOD_NOUN_STEMS = {
+    "bread",
+    "broth",
+    "butter",
+    "cream",
+    "custard",
+    "milk",
+    "salt",
+    "stock",    
+}
+
 # Tokens that indicate following words are negated.
 # NS = not specified.
 NEGATION_TOKENS = {"no", "not", "without", "NS"}
 
 # Tokens that indicate following words have reduced relevance to the ingredient
-REDUCED_RELEVANCE_TOKENS = {"with"}
+REDUCED_RELEVANCE_TOKENS = {"with", "on"}
 
 # Ambiguous ingredient name adjectives
 AMBIGUOUS_ADJECTIVES = [
