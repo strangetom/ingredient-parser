@@ -157,7 +157,7 @@ def match_foundation_foods(
         if matches_with_top_score > len(DATASET_PREFERENCE):
             logger.debug(
                 (
-                    "Top score shared by {matches_with_top_score} FDC entries "
+                    f"Top score shared by {matches_with_top_score} FDC entries "
                     "therefore cannot determine suitable match."
                 )
             )
