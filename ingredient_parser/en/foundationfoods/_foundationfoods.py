@@ -502,13 +502,14 @@ def fuse_results(
         usif_norm_score = 1 - usif_dict.get(fdc.fdc_id, 1)
         fuzzy_norm_score = 1 - fuzzy_dict.get(fdc.fdc_id, 1)
 
-        fused_score = round(
+        fused_score = (
             bm25_conf * bm25_norm_score
             + usif_conf * usif_norm_score
-            + fuzzy_conf * fuzzy_norm_score,
-            6,
+            + fuzzy_conf * fuzzy_norm_score
         )
-        fused_matches.append(FDCIngredientMatch(fdc=fdc, score=float(fused_score / 3)))
+        fused_matches.append(
+            FDCIngredientMatch(fdc=fdc, score=float(round(fused_score / 3, 6)))
+        )
 
     # When resolving identical scores, use the preferred dataset.
     return sorted(
