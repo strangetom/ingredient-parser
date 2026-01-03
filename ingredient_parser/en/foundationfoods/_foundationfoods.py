@@ -30,6 +30,13 @@ logger = logging.getLogger("ingredient-parser.foundation-foods")
 # Constant defining the top k matches to use wherever we limit the matches considered.
 TOP_K = 50
 
+# List of FDC data preferences, least preferred to most preferred.
+DATASET_PREFERENCE = [
+    "survey_fndds_food",
+    "sr_legacy_food",
+    "foundation_food",
+]
+
 
 def match_foundation_foods(
     tokens: list[str], pos_tags: list[str], name_idx: int
@@ -127,22 +134,38 @@ def match_foundation_foods(
         fuzzy_matches = fuzzy.rank_matches(normalised_tokens, candidate_fdc_ids)
 
     fused_matches = fuse_results(bm25_matches, fuzzy_matches, usif_matches, top_n=TOP_K)
+    best_match = fused_matches[0]
 
     # If the there is less than 1% difference in score between the best two fused
     # matches, then assume we can't identify a suitable match.
     # Only do this if the best fused score is less than 0.95 so we don't discard good
     # matches.
-    if (
-        fused_matches[0].score < 0.95
-        and percent_difference(fused_matches[0].score, fused_matches[1].score) <= 0.01
-    ):
+    # However, if there is a 0% difference in score (i.e. same score), then we just
+    # select the first because fused_matches are already sorted in order of preferred
+    # dataset.
+    top_pc_diff = percent_difference(fused_matches[0].score, fused_matches[1].score)
+    if best_match.score < 0.95 and 0 < top_pc_diff <= 0.01:
         logger.debug("No FDC ingredients found with good enough match.")
         return None
 
-    best_match = fused_matches[0]
+    if top_pc_diff == 0:
+        # Check how many results have the same top score. If it's more than 3 (i.e. more
+        # than one from each data set) then we have no idea.
+        matches_with_top_score = sum(
+            1 for m in fused_matches if m.score == best_match.score
+        )
+        if matches_with_top_score > len(DATASET_PREFERENCE):
+            logger.debug(
+                (
+                    "Top score shared by {matches_with_top_score} FDC entries "
+                    "therefore cannot determine suitable match."
+                )
+            )
+            return None
+
     return FoundationFood(
         text=best_match.fdc.description,
-        confidence=round(best_match.score, 6),
+        confidence=best_match.score,  # Note: already rounded by fuse_results
         fdc_id=best_match.fdc.fdc_id,
         category=best_match.fdc.category,
         data_type=best_match.fdc.data_type,
@@ -384,14 +407,6 @@ def normalize_scores(scores: list[float]) -> list[float]:
     return normalized
 
 
-# List of FDC data preferences, least preferred to most preferred.
-DATASET_PREFERENCE = [
-    "survey_fndds_food",
-    "sr_legacy_food",
-    "foundation_food",
-]
-
-
 def fuse_results(
     bm25_matches: list[FDCIngredientMatch],
     fuzzy_matches: list[FDCIngredientMatch],
@@ -487,10 +502,11 @@ def fuse_results(
         usif_norm_score = 1 - usif_dict.get(fdc.fdc_id, 1)
         fuzzy_norm_score = 1 - fuzzy_dict.get(fdc.fdc_id, 1)
 
-        fused_score = (
+        fused_score = round(
             bm25_conf * bm25_norm_score
             + usif_conf * usif_norm_score
-            + fuzzy_conf * fuzzy_norm_score
+            + fuzzy_conf * fuzzy_norm_score,
+            6,
         )
         fused_matches.append(FDCIngredientMatch(fdc=fdc, score=float(fused_score / 3)))
 
