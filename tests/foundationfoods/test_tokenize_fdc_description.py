@@ -1,4 +1,5 @@
 from ingredient_parser.en.foundationfoods._ff_utils import (
+    TokenizedFDCDescription,
     tokenize_fdc_description,
 )
 
@@ -12,8 +13,10 @@ class TestTokenizeFDCDescription:
 
         expected_tokens = ["veget", "chip"]
         expected_weights = [1.0, 1.0]
-        assert tokenize_fdc_description(description) == list(
-            zip(expected_tokens, expected_weights)
+        assert tokenize_fdc_description(description) == TokenizedFDCDescription(
+            tokens=expected_tokens,
+            embedding_tokens=expected_tokens,
+            embedding_weights=expected_weights,
         )
 
     def test_multiple_phrase_weights(self):
@@ -31,8 +34,10 @@ class TestTokenizeFDCDescription:
             1.0 - 2e-3,
             1.0 - 3e-3,
         ]
-        assert tokenize_fdc_description(description) == list(
-            zip(expected_tokens, expected_weights)
+        assert tokenize_fdc_description(description) == TokenizedFDCDescription(
+            tokens=expected_tokens,
+            embedding_tokens=expected_tokens,
+            embedding_weights=expected_weights,
         )
 
     def test_negated_tokens(self):
@@ -44,8 +49,10 @@ class TestTokenizeFDCDescription:
 
         expected_tokens = ["chicken", "can", "no", "broth"]
         expected_weights = [1.0, 1.0 - 1e-3, 0, 0]
-        assert tokenize_fdc_description(description) == list(
-            zip(expected_tokens, expected_weights)
+        assert tokenize_fdc_description(description) == TokenizedFDCDescription(
+            tokens=expected_tokens,
+            embedding_tokens=expected_tokens,
+            embedding_weights=expected_weights,
         )
 
     def test_reduced_relevance_tokens(self):
@@ -57,6 +64,8 @@ class TestTokenizeFDCDescription:
 
         expected_tokens = ["chicken", "can", "with", "broth"]
         expected_weights = [1.0, 1.0 - 1e-3, 1 - 0.5 - 2e-3, 1 - 0.5 - 2e-3]
-        assert tokenize_fdc_description(description) == list(
-            zip(expected_tokens, expected_weights)
+        assert tokenize_fdc_description(description) == TokenizedFDCDescription(
+            tokens=expected_tokens,
+            embedding_tokens=expected_tokens,
+            embedding_weights=expected_weights,
         )

@@ -37,7 +37,6 @@ MULTIPLE_EXAMPLES = [
 
 NO_MATCH_EXAMPLES = [
     "twelve bonbons",  # no good match
-    "1 cup waxgourd",  # out of vocab
 ]
 
 

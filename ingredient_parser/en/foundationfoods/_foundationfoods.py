@@ -97,7 +97,7 @@ def match_foundation_foods(
         logger.debug(
             (
                 "Skipping semantic rankers (uSIF, Fuzzy) because ingredient name "
-                "does not contain any tokens in present in the embeddings model."
+                "does not contain any tokens present in the embeddings model."
             )
         )
 
