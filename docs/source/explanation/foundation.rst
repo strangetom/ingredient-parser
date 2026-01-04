@@ -86,6 +86,11 @@ The different search engine ranking function have different characteristics:
 
 For the semantic raking functions, a `GloVe <https://nlp.stanford.edu/projects/glove/>`_ embeddings model trained on text from a large corpus of recipes is used to provide the information for the semantic similarity techniques.
 
+.. important::
+
+  The semantic ranking function can only be used where the ingredient name contains tokens that are in the embeddings model.
+  Where the ingredient name does not contain any tokens in the embeddings model, only BM25 is used.
+
 The flow chart below outlines the process of matching an :abbr:`FDC (Food Data Central)` ingredient to an ingredient name.
 
 .. figure:: /_static/diagrams/ff_search.png
@@ -126,7 +131,35 @@ The foundation food matching process can sometimes struggle with simple ingredie
 
 A list of overrides that map simple of ingredient names to the relevant :abbr:`FDC (Food Data Central)` entry is used to ensure a correct match for these cases.
 
-3. Rank using :abbr:`uSIF (Unsupervised Smooth Inverse Frequency)` matcher
+3. Rank using BM25 matcher
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A ranking technique called Best Matching 25 [#Robertson]_ is used rank the :abbr:`FDC (Food Data Central)` entries in order of relevance.
+This technique calculates a similarity score between a query and a document and uses the term frequency and inverse document frequency to estimate the relative importance of each token.
+
+This approach is generally very effective, however it relies on the same words used in the ingredient name and :abbr:`FDC (Food Data Central)` description.
+Since this is not always the case, we can combine it with the :abbr:`uSIF (Unsupervised Smooth Inverse Frequency)` ranker to handle cases where different words are used to refer to the same ingredient.
+
+.. code:: python
+
+    >>> from ingredient_parser.en.foundationfoods._bm25 import get_bm25_ranker
+    >>> BM25 = get_bm25_ranker()
+    >>> rankings = BM25.rank_matches(["red", "pepper"])
+    >>> for rank in rankings[:5]:
+            print(f"{rank.score:.4f}: {rank.fdc.description}")
+
+    14.4585: Peppers, sweet, red, raw
+    14.4585: Peppers, bell, red, raw
+    13.3526: Peppers, hot chili, red, raw
+    12.9365: Peppers, red, cooked
+    11.8650: Peppers, sweet, red, sauteed
+
+.. hint::
+
+    The scores produced by BM25 have an arbitrary value, where a bigger number means more similar.
+    This means that scores cannot be compared between different sets of rankings, only the relative values within a ranking are meaningful.
+
+4. Rank using :abbr:`uSIF (Unsupervised Smooth Inverse Frequency)` matcher
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 A semantic ranking technique called Unsupervised Smooth Inverse Frequency (uSIF) [#Ethayarajh]_ is used to rank the :abbr:`FDC (Food Data Central)` entries in order of relevance.
@@ -169,44 +202,16 @@ These weights are specific to each :abbr:`FDC (Food Data Central)` entry and are
     0.1096: Peppers, sweet, green, raw
     0.1113: Onions, red, raw
 
+.. tip::
+
+  The difference between the BM25 ranker can be seen in the example here.
+  BM25 gives the first two result equal scores because neither **bell** nor **sweet** were specified, where the :abbr:`uSIF (Unsupervised Smooth Inverse Frequency)` ranker ranked ``Peppers, bell, red, raw`` higher because the embeddings showed a higher similarity with the ingredient name.
+
 .. hint::
 
     :abbr:`uSIF (Unsupervised Smooth Inverse Frequency)` uses cosine similarity for scoring.
     Each score is a value between 0 and 1, where a smaller number means more similar.
 
-
-4. Rank using BM25 matcher
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Another technique called Best Matching 25 [#Robertson]_ is used rank the :abbr:`FDC (Food Data Central)` entries in order of relevance.
-This technique calculates a similarity score between a query and a document and uses the term frequency and inverse document frequency to estimate the relative importance of each token.
-
-This approach is generally very effective, however it relies on the same words used in the ingredient name and :abbr:`FDC (Food Data Central)` description.
-Since this is not always the case, we combine it with the :abbr:`uSIF (Unsupervised Smooth Inverse Frequency)` matcher to handle cases where different words are used to refer to the same ingredient.
-
-.. code:: python
-
-    >>> from ingredient_parser.en.foundationfoods._bm25 import get_bm25_ranker
-    >>> BM25 = get_bm25_ranker()
-    >>> rankings = BM25.rank_matches(["red", "pepper"])
-    >>> for rank in rankings[:5]:
-            print(f"{rank.score:.4f}: {rank.fdc.description}")
-
-    14.4585: Peppers, sweet, red, raw
-    14.4585: Peppers, bell, red, raw
-    13.3526: Peppers, hot chili, red, raw
-    12.9365: Peppers, red, cooked
-    11.8650: Peppers, sweet, red, sauteed
-
-.. hint::
-
-    The scores produced by BM25 have an arbitrary value, where a bigger number means more similar.
-    This means that scores cannot be compared between different sets of rankings, only the relative values within a ranking are meaningful.
-
-.. tip::
-
-  The difference between the :abbr:`uSIF (Unsupervised Smooth Inverse Frequency)` can be seen in the example here.
-  BM25 gives the first two result equal scores because neither **bell** nor **sweet** were specified, where the :abbr:`uSIF (Unsupervised Smooth Inverse Frequency)` ranker ranked ``Peppers, bell, red, raw`` higher because the embeddings showed a higher similarity with the ingredient name.
 
 5. Check for agreement of best result
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

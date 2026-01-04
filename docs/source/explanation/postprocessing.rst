@@ -46,7 +46,8 @@ Name
 
 The post-processing to obtain the ingredient names is similar to above, but with a couple of extra steps before the steps listed above used to identify the different ingredient names.
 
-.. figure:: /_static/diagrams/name_postprocessing.svg
+.. figure:: /_static/diagrams/name_postprocessing.png
+  :class: dark-light
   :alt: Ingredient name post-processing steps.
 
 The first three steps are unique to the post-processing of ingredient names and are described in more detail below.
