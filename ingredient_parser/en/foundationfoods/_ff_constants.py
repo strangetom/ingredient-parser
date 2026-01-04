@@ -156,7 +156,10 @@ NON_RAW_FOOD_NOUN_STEMS = {
     "butter",
     "cream",
     "custard",
+    "fat",
+    "mayonnais",
     "milk",
+    "oliv",
     "salt",
     "stock",
 }

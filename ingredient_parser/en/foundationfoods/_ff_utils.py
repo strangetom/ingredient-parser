@@ -46,6 +46,7 @@ FDC_PHRASE_SUBSTITUTIONS: dict[tuple[str, ...], list[str]] = {
     ("haa", "avocado"): ["hass", "avocado"],
     ("broad", "bean"): ["fava", "bean"],
     ("self", "rais"): ["self", "rise"],
+    ("appl", "sauc"): ["applesauc"],
 }
 FDC_TOKEN_SUBSTITUTIONS: dict[str, str] = {
     "aubergin": "eggplant",
@@ -66,6 +67,7 @@ FDC_TOKEN_SUBSTITUTIONS: dict[str, str] = {
     "swede": "rutabaga",
     "yoghurt": "yogurt",
     "demerara": "turbinado",  # i.e. sugar
+    "gruyèr": "gruyer",  # Gruyère cheese
 }
 FDC_TOKEN_TO_PHRASE_SUBSTITUTIONS: dict[str, list[str]] = {
     "lemongrass": ["lemon", "grass"],
