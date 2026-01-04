@@ -81,6 +81,32 @@ FDC_TOKEN_TO_PHRASE_SUBSTITUTIONS: dict[str, list[str]] = {
     "breadcrumb": ["bread", "crumb"],
 }
 
+# Types of pasta that should be normalised to "pasta, dry". The names are stemmed.
+# Note that spaghetti is excluded because it can also refer to a type of squash.
+PASTA_TYPES = [
+    "bucatini",
+    "conchigli",  # conchiglie
+    "ditalini",
+    "farfall"  # farfalle
+    "fettuccin",  # fettuccine
+    "fusilli",
+    "gemelli",
+    "lasagn",  # lasagne
+    "linguin",  # linguine
+    "macaroni",
+    "orecchiett",  # orecchiette
+    "orzo",
+    "paccheri",
+    "pappardell",  # pappardelle
+    "penn",  # penne
+    "rigatoni",
+    "rotini",
+    "stellin",  # stelline
+    "tagliatell",  # tagliatelle
+]
+for type_ in PASTA_TYPES:
+    FDC_TOKEN_TO_PHRASE_SUBSTITUTIONS[type_] = ["pasta", "dri"]
+
 
 def normalise_spelling(tokens: list[str]) -> list[str]:
     """Normalise spelling in `tokens` to standard spellings used in FDC ingredient

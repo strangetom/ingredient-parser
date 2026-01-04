@@ -162,6 +162,7 @@ NON_RAW_FOOD_NOUN_STEMS = {
     "oliv",
     "salt",
     "stock",
+    "pasta",
 }
 
 # Tokens that indicate following words are negated.
