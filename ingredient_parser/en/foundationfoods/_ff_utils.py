@@ -4,6 +4,7 @@ import csv
 import gzip
 import logging
 import string
+from dataclasses import dataclass
 from functools import lru_cache
 from importlib.resources import as_file, files
 from itertools import groupby
@@ -19,6 +20,14 @@ from ._ff_constants import (
 from ._ff_dataclasses import FDCIngredient
 
 logger = logging.getLogger("ingredient-parser.foundation-foods")
+
+
+@dataclass
+class TokenizedFDCDescription:
+    tokens: list[str]
+    embedding_tokens: list[str]
+    embedding_weights: list[float]
+
 
 # Phrase and token substitutions to normalise spelling of ingredient name tokens to the
 # spellings used in the FDC ingredient descriptions.
@@ -116,7 +125,7 @@ def normalise_spelling(tokens: list[str]) -> list[str]:
 
 
 @lru_cache(maxsize=512)
-def prepare_embeddings_tokens(tokens: tuple[str, ...]) -> list[str]:
+def prepare_tokens(tokens: tuple[str, ...]) -> list[str]:
     """Prepare tokens for use with embeddings model.
 
     This involves obtaining the stem for the token and discarding tokens which are
@@ -151,10 +160,7 @@ def prepare_embeddings_tokens(tokens: tuple[str, ...]) -> list[str]:
         and len(token) > 1
     ]
 
-    normalised_tokens = normalise_spelling(stemmed_tokens)
-
-    embeddings = load_embeddings_model()
-    return [token for token in normalised_tokens if token in embeddings]
+    return normalise_spelling(stemmed_tokens)
 
 
 @lru_cache
@@ -174,21 +180,21 @@ def load_fdc_ingredients() -> list[FDCIngredient]:
             logger.debug("Loading FDC ingredients: 'fdc_ingredients.csv.gz'.")
             reader = csv.DictReader(f)
             for row in reader:
-                tokens_weights = tokenize_fdc_description(row["description"])
-                if not tokens_weights:
+                tokenized_description = tokenize_fdc_description(row["description"])
+                if not tokenized_description.embedding_tokens:
                     logger.debug(
                         f"'{row['description']}' has no tokens in embedding vocabulary."
                     )
                     continue
-                tokens, weights = zip(*tokens_weights)
                 foundation_foods.append(
                     FDCIngredient(
                         fdc_id=int(row["fdc_id"]),
                         data_type=row["data_type"],
                         description=row["description"],
                         category=row["category"],
-                        tokens=list(tokens),
-                        weights=list(weights),
+                        tokens=tokenized_description.tokens,
+                        embedding_tokens=tokenized_description.embedding_tokens,
+                        embedding_weights=tokenized_description.embedding_weights,
                     )
                 )
 
@@ -196,7 +202,7 @@ def load_fdc_ingredients() -> list[FDCIngredient]:
     return foundation_foods
 
 
-def tokenize_fdc_description(description: str) -> list[tuple[str, float]]:
+def tokenize_fdc_description(description: str) -> TokenizedFDCDescription:
     """Tokenize FDC ingredient description, returning tokens and weight for each token.
 
     Tokens that are not compatible with the embeddings are discarded.
@@ -205,8 +211,8 @@ def tokenize_fdc_description(description: str) -> list[tuple[str, float]]:
     the description. Each phrase is determined by the position of commas and later
     phrases have lower weights. For example
 
-    Oil, olive, extra light
-    1   1-1e-3 1-2e-3 1-2e-3
+    Oil,   olive,    extra   light
+    1     1-(1e-3) 1-(2e-3) 1-(2e-3)
 
     Negated tokens are given a weight of 0. These are tokens that occur in a phrase
     after a token such as "no", "not", "without".
@@ -222,14 +228,14 @@ def tokenize_fdc_description(description: str) -> list[tuple[str, float]]:
 
     Returns
     -------
-    list[tuple[str, float]]
-        List of (token, weight) tuples.
+    TokenizedFDCDescription
     """
     embeddings = load_embeddings_model()
     tokens = tokenize(description.lower())
+    prepared_tokens = prepare_tokens(tuple(tokens))
 
-    weights = []
-    prepared_tokens = []
+    embedding_weights = []
+    prepared_embedding_tokens = []
     phrase_count = 0
     for is_phrase, phrase in groupby(tokens, lambda x: x != ","):
         if not is_phrase:
@@ -237,11 +243,11 @@ def tokenize_fdc_description(description: str) -> list[tuple[str, float]]:
             # These tokens will be discarded later anyway.
             for token in phrase:
                 if token in embeddings:
-                    prepared_tokens.append(phrase)
-                    weights.append(0.0)
+                    prepared_embedding_tokens.append(phrase)
+                    embedding_weights.append(0.0)
             continue
 
-        phrase = list(prepare_embeddings_tokens(tuple(phrase)))
+        phrase = [tok for tok in prepare_tokens(tuple(phrase)) if tok in embeddings]
         phrase_weights = [1.0 - phrase_count * 1e-3] * len(phrase)
 
         # Check for negated tokens and set weight to 0.
@@ -258,11 +264,15 @@ def tokenize_fdc_description(description: str) -> list[tuple[str, float]]:
                 for rr_idx in range(phrase.index(rr), len(phrase)):
                     phrase_weights[rr_idx] = max(phrase_weights[rr_idx] - 0.5, 0)
 
-        prepared_tokens.extend(phrase)
-        weights.extend(phrase_weights)
+        prepared_embedding_tokens.extend(phrase)
+        embedding_weights.extend(phrase_weights)
         phrase_count += 1
 
-    return list(zip(prepared_tokens, weights))
+    return TokenizedFDCDescription(
+        tokens=prepared_tokens,
+        embedding_tokens=prepared_embedding_tokens,
+        embedding_weights=embedding_weights,
+    )
 
 
 def strip_ambiguous_leading_adjectives(

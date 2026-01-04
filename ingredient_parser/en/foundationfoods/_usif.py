@@ -10,7 +10,7 @@ import numpy as np
 from .._embeddings import GloVeModel
 from .._loaders import load_embeddings_model
 from ._ff_dataclasses import FDCIngredient, FDCIngredientMatch
-from ._ff_utils import load_fdc_ingredients, prepare_embeddings_tokens
+from ._ff_utils import load_fdc_ingredients
 
 logger = logging.getLogger("ingredient-parser.foundation-foods.usif")
 
@@ -95,7 +95,7 @@ class uSIF:
         """
         token_counts = defaultdict(int)
         for ingredient in fdc_ingredients:
-            for token in ingredient.tokens:
+            for token in ingredient.embedding_tokens:
                 token_counts[token] += 1
 
         total = sum(token_counts.values())
@@ -112,7 +112,7 @@ class uSIF:
         token_count = 0
         sentence_count = 0
         for fdc in self.fdc_ingredients:
-            token_count += len(fdc.tokens)
+            token_count += len(fdc.embedding_tokens)
             sentence_count += 1
 
         return int(token_count / sentence_count)
@@ -161,7 +161,7 @@ class uSIF:
         """
         embedded = []
         for fdc in self.fdc_ingredients:
-            vec = self._embed(fdc.tokens, fdc.weights)
+            vec = self._embed(fdc.embedding_tokens, fdc.embedding_weights)
             norm = np.linalg.norm(vec)
             embedded.append(
                 Embedding(
@@ -237,8 +237,7 @@ class uSIF:
         list[FDCIngredientMatch]
             Scored FDC ingredients, sorted by best first.
         """
-        prepared_tokens = prepare_embeddings_tokens(tuple(tokens))
-        vec = self._embed(prepared_tokens, [1] * len(prepared_tokens))
+        vec = self._embed(tokens, [1] * len(tokens))
         input_token_vector = Embedding(vec=vec, norm=np.linalg.norm(vec))
 
         candidates = []

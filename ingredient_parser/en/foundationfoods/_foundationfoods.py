@@ -5,6 +5,7 @@ import logging
 
 import numpy as np
 
+from ingredient_parser.en._loaders import load_embeddings_model
 from ingredient_parser.en.foundationfoods._ff_dataclasses import (
     FDCIngredient,
     FDCIngredientMatch,
@@ -19,7 +20,7 @@ from ._ff_constants import (
 )
 from ._ff_utils import (
     normalise_spelling,
-    prepare_embeddings_tokens,
+    prepare_tokens,
     strip_ambiguous_leading_adjectives,
 )
 from ._fuzzy import get_fuzzy_ranker
@@ -71,10 +72,10 @@ def match_foundation_foods(
     """
     tokens = strip_ambiguous_leading_adjectives(tokens, pos_tags)
     logger.debug(f"Matching FDC ingredient for ingredient name tokens: {tokens}")
-    prepared_tokens = prepare_embeddings_tokens(tuple(tokens))
+    prepared_tokens = prepare_tokens(tuple(tokens))
     logger.debug(f"Prepared tokens: {prepared_tokens}.")
     if not prepared_tokens:
-        logger.debug("Ingredient name has no tokens in embedding vocabulary.")
+        logger.debug("Ingredient name has no tokens valid for matching.")
         return None
 
     normalised_tokens = normalise_spelling(prepared_tokens)
@@ -85,6 +86,21 @@ def match_foundation_foods(
         match.name_index = name_idx
         return match
 
+    # Determine if there any of the normalised tokens are in the embeddings model.
+    # If not, we will skip the semantic (embeddings based) rankers.
+    embeddings = load_embeddings_model()
+    normalised_embeddings_tokens = [
+        token for token in normalised_tokens if token in embeddings
+    ]
+    has_tokens_in_embeddings = len(normalised_embeddings_tokens) > 0
+    if not has_tokens_in_embeddings:
+        logger.debug(
+            (
+                "Skipping semantic rankers (uSIF, Fuzzy) because ingredient name "
+                "does not contain any tokens in present in the embeddings model."
+            )
+        )
+
     # Bias the results towards selecting the raw version of a FDC ingredient, but
     # only if the ingredient name tokens don't already include a verb or noun that
     # indicates the food is not raw (e.g. cooked)
@@ -94,12 +110,27 @@ def match_foundation_foods(
     ):
         logger.debug("Biasing tokens towards raw FDC ingredients.")
         normalised_tokens.append("raw")
-
-    u = get_usif_ranker()
-    usif_matches = u.rank_matches(normalised_tokens)
+        normalised_embeddings_tokens.append("raw")
 
     bm25 = get_bm25_ranker()
     bm25_matches = bm25.rank_matches(normalised_tokens)
+
+    if not has_tokens_in_embeddings:
+        # No other possible matching techniques, so just pick the best from BM25.
+        best_match = bm25_matches[0]
+        return FoundationFood(
+            text=best_match.fdc.description,
+            confidence=1.0,
+            fdc_id=best_match.fdc.fdc_id,
+            category=best_match.fdc.category,
+            data_type=best_match.fdc.data_type,
+            name_index=name_idx,
+        )
+
+    usif_matches = []
+    if has_tokens_in_embeddings:
+        u = get_usif_ranker()
+        usif_matches = u.rank_matches(normalised_embeddings_tokens)
 
     # Check if both BM25 and uSIF agree on the top result. If they do, return that and
     # avoid any further processing.
@@ -116,7 +147,7 @@ def match_foundation_foods(
 
     fuzzy_matches = []
     agreement = bm25_usif_agreement(bm25_matches, usif_matches)
-    if agreement < 0.25:
+    if has_tokens_in_embeddings and agreement < 0.25:
         # Get all FDC IDs for BM25 and uSIF matches
         # We'll only use the fuzzy ranker on these, instead of the whole FDC set.
         candidate_fdc_ids = {m.fdc.fdc_id for m in usif_matches[:TOP_K]} | {
@@ -131,7 +162,9 @@ def match_foundation_foods(
         )
 
         fuzzy = get_fuzzy_ranker()
-        fuzzy_matches = fuzzy.rank_matches(normalised_tokens, candidate_fdc_ids)
+        fuzzy_matches = fuzzy.rank_matches(
+            normalised_embeddings_tokens, candidate_fdc_ids
+        )
 
     fused_matches = fuse_results(bm25_matches, fuzzy_matches, usif_matches, top_n=TOP_K)
     best_match = fused_matches[0]

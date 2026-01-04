@@ -12,7 +12,8 @@ class FDCIngredient:
     description: str
     category: str
     tokens: list[str]
-    weights: list[float]
+    embedding_tokens: list[str]
+    embedding_weights: list[float]
 
     def __eq__(self, other):
         return isinstance(other, FDCIngredient) and self.fdc_id == other.fdc_id
