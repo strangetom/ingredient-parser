@@ -507,9 +507,11 @@ def grid_search(args: argparse.Namespace):
             logger.info(f"{convert_num_ordinal(idx + 1)} algorithm completed")
             eval_results.append(future.result())
 
-    # Sort with highest sentence accuracy first
+    # Sort with highest sentence accuracy first, then highest token accuracy
     eval_results = sorted(
-        eval_results, key=lambda x: x["stats"].sentence.accuracy, reverse=True
+        eval_results,
+        key=lambda x: (x["stats"].sentence.accuracy, x["stats"].token.accuracy),
+        reverse=True,
     )
 
     headers = [
