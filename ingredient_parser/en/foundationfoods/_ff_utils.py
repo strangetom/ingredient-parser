@@ -62,7 +62,7 @@ FDC_TOKEN_SUBSTITUTIONS: dict[str, str] = {
     "mangetout": "snowpea",
     "mint": "spearmint",
     "prawn": "shrimp",
-    "puré": "puree",
+    "puré": "pure",
     "rocket": "arugula",
     "swede": "rutabaga",
     "yoghurt": "yogurt",
