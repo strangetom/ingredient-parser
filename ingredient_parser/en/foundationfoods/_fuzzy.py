@@ -191,7 +191,7 @@ class FuzzyEmbeddingMatcher:
                 token_vectors,
                 fdc_embedding.vectors,
             )
-            scored.append(FDCIngredientMatch(fdc=fdc_embedding.fdc, score=score))
+            scored.append(FDCIngredientMatch(fdc=fdc_embedding.fdc, score=float(score)))
 
         return sorted(scored, key=lambda x: x.score)
 
