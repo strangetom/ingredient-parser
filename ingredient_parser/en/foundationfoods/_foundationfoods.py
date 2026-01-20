@@ -109,8 +109,8 @@ def match_foundation_foods(
     # only if the ingredient name tokens don't already include a verb or noun that
     # indicates the food is not raw (e.g. cooked)
     if (
-        len(set(normalised_tokens) & NON_RAW_FOOD_VERB_STEMS) == 0
-        and len(set(normalised_tokens) & NON_RAW_FOOD_NOUN_STEMS) == 0
+        len({t.token for t in normalised_tokens} & NON_RAW_FOOD_VERB_STEMS) == 0
+        and len({t.token for t in normalised_tokens} & NON_RAW_FOOD_NOUN_STEMS) == 0
     ):
         logger.debug("Biasing tokens towards raw FDC ingredients.")
         normalised_tokens.append(IngredientToken("raw", "JJ"))
