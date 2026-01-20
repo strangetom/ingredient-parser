@@ -17,7 +17,7 @@ from ._ff_constants import (
     NEGATION_TOKENS,
     REDUCED_RELEVANCE_TOKENS,
 )
-from ._ff_dataclasses import FDCIngredient
+from ._ff_dataclasses import FDCIngredient, IngredientToken
 
 logger = logging.getLogger("ingredient-parser.foundation-foods")
 
@@ -108,7 +108,7 @@ for type_ in PASTA_TYPES:
     FDC_TOKEN_TO_PHRASE_SUBSTITUTIONS[type_] = ["pasta", "dri"]
 
 
-def normalise_spelling(tokens: list[str]) -> list[str]:
+def normalise_spelling(tokens: list[IngredientToken]) -> list[IngredientToken]:
     """Normalise spelling in `tokens` to standard spellings used in FDC ingredient
     descriptions.
 
@@ -117,34 +117,46 @@ def normalise_spelling(tokens: list[str]) -> list[str]:
 
     Parameters
     ----------
-    tokens : list[str]
+    tokens : list[IngredientToken]
         List of stemmed tokens.
 
     Returns
     -------
-    list[str]
+    list[IngredientToken]
         List of tokens with spelling normalised.
     """
     itokens = iter(tokens)
 
     normalised_tokens = []
-    for i, token in enumerate(itokens):
-        token = token.lower()
+    for i, ing_token in enumerate(itokens):
+        token = ing_token.token.lower()
         if i < len(tokens) - 1:
-            next_token = tokens[i + 1].lower()
+            next_token = tokens[i + 1].token.lower()
         else:
             next_token = ""
 
         if (token, next_token) in FDC_PHRASE_SUBSTITUTIONS:
-            normalised_tokens.extend(FDC_PHRASE_SUBSTITUTIONS[(token, next_token)])
+            normalised_tokens.extend(
+                [
+                    IngredientToken(t, ing_token.pos_tag)
+                    for t in FDC_PHRASE_SUBSTITUTIONS[(token, next_token)]
+                ]
+            )
             # Jump forward to avoid processing next_token again.
             consume(itokens, 1)
         elif token in FDC_TOKEN_TO_PHRASE_SUBSTITUTIONS:
-            normalised_tokens.extend(FDC_TOKEN_TO_PHRASE_SUBSTITUTIONS[token])
+            normalised_tokens.extend(
+                [
+                    IngredientToken(t, ing_token.pos_tag)
+                    for t in FDC_TOKEN_TO_PHRASE_SUBSTITUTIONS[token]
+                ]
+            )
         elif token in FDC_TOKEN_SUBSTITUTIONS:
-            normalised_tokens.append(FDC_TOKEN_SUBSTITUTIONS[token])
+            normalised_tokens.append(
+                IngredientToken(FDC_TOKEN_SUBSTITUTIONS[token], ing_token.pos_tag)
+            )
         else:
-            normalised_tokens.append(token)
+            normalised_tokens.append(ing_token)
 
     if normalised_tokens != tokens:
         logger.debug(f"Normalised '{tokens}' to '{normalised_tokens}'.")
@@ -153,7 +165,7 @@ def normalise_spelling(tokens: list[str]) -> list[str]:
 
 
 @lru_cache(maxsize=512)
-def prepare_tokens(tokens: tuple[str, ...]) -> list[str]:
+def prepare_tokens(tokens: tuple[IngredientToken, ...]) -> list[IngredientToken]:
     """Prepare tokens for use with embeddings model.
 
     This involves obtaining the stem for the token and discarding tokens which are
@@ -161,31 +173,34 @@ def prepare_tokens(tokens: tuple[str, ...]) -> list[str]:
 
     Parameters
     ----------
-    tokens : tuple[str, ...]
+    tokens : tuple[IngredientToken, ...]
         Tuple of tokens.
 
     Returns
     -------
-    list[str]
+    list[IngredientToken]
         Prepared tokens.
     """
     # Split tokens on hyphens
     split_tokens = []
-    for token in tokens:
-        if "-" in token:
-            split_tokens.extend([t for t in token.split("-") if t])
+    for ing_token in tokens:
+        if "-" in ing_token.token:
+            token_parts = [t for t in ing_token.token.split("-") if t]
+            split_tokens.extend(
+                [IngredientToken(p, ing_token.pos_tag) for p in token_parts]
+            )
         else:
-            split_tokens.append(token)
+            split_tokens.append(ing_token)
 
     stemmed_tokens = [
-        stem(token.lower())
-        for token in split_tokens
-        if not token.isnumeric()
-        and not token.isdigit()
-        and not token.isdecimal()
-        and not token.isspace()
-        and token not in string.punctuation
-        and len(token) > 1
+        IngredientToken(stem(ing_token.token.lower()), ing_token.pos_tag)
+        for ing_token in split_tokens
+        if not ing_token.token.isnumeric()
+        and not ing_token.token.isdigit()
+        and not ing_token.token.isdecimal()
+        and not ing_token.token.isspace()
+        and ing_token.token not in string.punctuation
+        and len(ing_token.token) > 1
     ]
 
     return normalise_spelling(stemmed_tokens)
@@ -260,7 +275,7 @@ def tokenize_fdc_description(description: str) -> TokenizedFDCDescription:
     """
     embeddings = load_embeddings_model()
     tokens = tokenize(description.lower())
-    prepared_tokens = prepare_tokens(tuple(tokens))
+    prepared_tokens = prepare_tokens(tuple(IngredientToken(t, "") for t in tokens))
 
     embedding_weights = []
     prepared_embedding_tokens = []
@@ -275,7 +290,11 @@ def tokenize_fdc_description(description: str) -> TokenizedFDCDescription:
                     embedding_weights.append(0.0)
             continue
 
-        phrase = [tok for tok in prepare_tokens(tuple(phrase)) if tok in embeddings]
+        phrase = [
+            tok.token
+            for tok in prepare_tokens(tuple(IngredientToken(t, "") for t in phrase))
+            if tok.token in embeddings
+        ]
         phrase_weights = [1.0 - phrase_count * 1e-3] * len(phrase)
 
         # Check for negated tokens and set weight to 0.
@@ -297,15 +316,15 @@ def tokenize_fdc_description(description: str) -> TokenizedFDCDescription:
         phrase_count += 1
 
     return TokenizedFDCDescription(
-        tokens=prepared_tokens,
+        tokens=[t.token for t in prepared_tokens],
         embedding_tokens=prepared_embedding_tokens,
         embedding_weights=embedding_weights,
     )
 
 
 def strip_ambiguous_leading_adjectives(
-    tokens: list[str], pos_tags: list[str]
-) -> list[str]:
+    tokens: list[IngredientToken],
+) -> list[IngredientToken]:
     """Strip ambiguous leading adjectives from list of tokens.
 
     Ambiguous adjectives are adjectives like "hot" which could refer to temperature or
@@ -317,14 +336,12 @@ def strip_ambiguous_leading_adjectives(
 
     Parameters
     ----------
-    tokens : list[str]
+    tokens : list[IngredientToken]
         List of tokens.
-    pos_tags : list[str]
-        List of POS tags for tokens.
 
     Returns
     -------
-    list[str]
+    list[IngredientToken]
         List of tokens.
 
     Examples
@@ -335,9 +352,8 @@ def strip_ambiguous_leading_adjectives(
     ["chicken", "stock"]
     """
     original_tokens = tokens
-    while pos_tags[0].startswith("J") and tokens[0] in AMBIGUOUS_ADJECTIVES:
+    while tokens[0].pos_tag.startswith("J") and tokens[0].token in AMBIGUOUS_ADJECTIVES:
         tokens = tokens[1:]
-        pos_tags = pos_tags[1:]
 
         if not tokens:
             break

@@ -1,3 +1,4 @@
+from ingredient_parser.en.foundationfoods._ff_dataclasses import IngredientToken
 from ingredient_parser.en.foundationfoods._ff_utils import (
     strip_ambiguous_leading_adjectives,
 )
@@ -10,7 +11,8 @@ class TestStripAmbiguousLeadingAdjectievs:
         """
         tokens = ["hot", "chicken", "stock"]
         pos_tags = ["JJ", "NN", "NN"]
-        assert strip_ambiguous_leading_adjectives(tokens, pos_tags) == tokens[1:]
+        ing_tokens = [IngredientToken(t, p) for t, p in zip(tokens, pos_tags)]
+        assert strip_ambiguous_leading_adjectives(ing_tokens) == ing_tokens[1:]
 
     def test_ambiguous_adjective_but_not_first(self):
         """
@@ -18,7 +20,8 @@ class TestStripAmbiguousLeadingAdjectievs:
         """
         tokens = ["red", "hot", "chilli"]
         pos_tags = ["JJ", "JJ", "NN"]
-        assert strip_ambiguous_leading_adjectives(tokens, pos_tags) == tokens
+        ing_tokens = [IngredientToken(t, p) for t, p in zip(tokens, pos_tags)]
+        assert strip_ambiguous_leading_adjectives(ing_tokens) == ing_tokens
 
     def test_all_ambiguous_adjectives(self):
         """
@@ -27,4 +30,5 @@ class TestStripAmbiguousLeadingAdjectievs:
         """
         tokens = ["hot", "hot", "hot"]
         pos_tags = ["JJ", "JJ", "JJ"]
-        assert strip_ambiguous_leading_adjectives(tokens, pos_tags) == tokens
+        ing_tokens = [IngredientToken(t, p) for t, p in zip(tokens, pos_tags)]
+        assert strip_ambiguous_leading_adjectives(ing_tokens) == ing_tokens

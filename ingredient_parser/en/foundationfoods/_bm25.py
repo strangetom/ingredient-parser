@@ -6,7 +6,7 @@ from collections import defaultdict
 from functools import lru_cache
 from statistics import mean
 
-from ._ff_dataclasses import FDCIngredient, FDCIngredientMatch
+from ._ff_dataclasses import FDCIngredient, FDCIngredientMatch, IngredientToken
 from ._ff_utils import load_fdc_ingredients
 
 logger = logging.getLogger("ingredient-parser.foundation-foods.bm25")
@@ -95,12 +95,12 @@ class BM25:
         for token, ingredients in self.t2d.items():
             self.idf[token] = math.log(self.corpus_size / len(ingredients))
 
-    def rank_matches(self, tokens: list[str]) -> list[FDCIngredientMatch]:
+    def rank_matches(self, tokens: list[IngredientToken]) -> list[FDCIngredientMatch]:
         """Rank and score FDC Ingredients according to closest match to tokens.
 
         Parameters
         ----------
-        tokens : list[str]
+        tokens : list[IngredientToken]
             List of tokens.
 
         Returns
@@ -109,14 +109,17 @@ class BM25:
             Scored FDC ingredients, sorted by best first.
         """
         scores = defaultdict(float)
-        for token in tokens:
-            if token in self.t2d:
-                for index, freq in self.t2d[token].items():
+        for ing_token in tokens:
+            if ing_token.token in self.t2d:
+                for index, freq in self.t2d[ing_token.token].items():
                     denom_constant = self.k1 * (
                         1 - self.b + self.b * self.doc_len[index] / self.avgdl
                     )
                     scores[index] += (
-                        self.idf[token] * freq * (self.k1 + 1) / (denom_constant + freq)
+                        self.idf[ing_token.token]
+                        * freq
+                        * (self.k1 + 1)
+                        / (denom_constant + freq)
                     )
 
         matches = []

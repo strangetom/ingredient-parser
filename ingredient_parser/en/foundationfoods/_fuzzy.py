@@ -8,7 +8,7 @@ import numpy as np
 
 from .._embeddings import GloVeModel
 from .._loaders import load_embeddings_model
-from ._ff_dataclasses import FDCIngredient, FDCIngredientMatch
+from ._ff_dataclasses import FDCIngredient, FDCIngredientMatch, IngredientToken
 from ._ff_utils import load_fdc_ingredients
 
 logger = logging.getLogger("ingredient-parser.foundation-foods.fuzzy")
@@ -160,13 +160,13 @@ class FuzzyEmbeddingMatcher:
         return 1 - res
 
     def rank_matches(
-        self, tokens: list[str], fdc_ids: set[int] | None = None
+        self, tokens: list[IngredientToken], fdc_ids: set[int] | None = None
     ) -> list[FDCIngredientMatch]:
         """Rank and score FDC Ingredients according to closest match to tokens.
 
         Parameters
         ----------
-        tokens : list[str]
+        tokens : list[IngredientToken]
             Tokens for ingredient name, prepared for use with embeddings.
         fdc_ids : set[int] | None, optional
             Optional list of FDC IDs to limit the scoring to.
@@ -180,13 +180,13 @@ class FuzzyEmbeddingMatcher:
         if fdc_ids is None:
             fdc_ids = set(self.fdc_vector_cache.keys())
 
-        token_vectors = np.array([self._get_vector(t) for t in tokens])
+        token_vectors = np.array([self._get_vector(t.token) for t in tokens])
 
         scored = []
         for fdc_id in fdc_ids:
             fdc_embedding = self.fdc_vector_cache[fdc_id]
             score = self._fuzzy_document_distance(
-                tokens,
+                [t.token for t in tokens],
                 fdc_embedding.fdc.embedding_tokens,
                 token_vectors,
                 fdc_embedding.vectors,

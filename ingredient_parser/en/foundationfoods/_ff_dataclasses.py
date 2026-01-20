@@ -1,6 +1,12 @@
 #!/usr/bin/env python3
 
 from dataclasses import dataclass
+from typing import NamedTuple
+
+
+class IngredientToken(NamedTuple):
+    token: str
+    pos_tag: str
 
 
 @dataclass

@@ -9,7 +9,7 @@ import numpy as np
 
 from .._embeddings import GloVeModel
 from .._loaders import load_embeddings_model
-from ._ff_dataclasses import FDCIngredient, FDCIngredientMatch
+from ._ff_dataclasses import FDCIngredient, FDCIngredientMatch, IngredientToken
 from ._ff_utils import load_fdc_ingredients
 
 logger = logging.getLogger("ingredient-parser.foundation-foods.usif")
@@ -224,7 +224,7 @@ class uSIF:
         """
         return 1 - float(np.dot(vec1.vec, vec2.vec) / (vec1.norm * vec2.norm))
 
-    def rank_matches(self, tokens: list[str]) -> list[FDCIngredientMatch]:
+    def rank_matches(self, tokens: list[IngredientToken]) -> list[FDCIngredientMatch]:
         """Rank and score FDC Ingredients according to closest match to tokens.
 
         Parameters
@@ -237,7 +237,7 @@ class uSIF:
         list[FDCIngredientMatch]
             Scored FDC ingredients, sorted by best first.
         """
-        vec = self._embed(tokens, [1] * len(tokens))
+        vec = self._embed([t.token for t in tokens], [1] * len(tokens))
         input_token_vector = Embedding(vec=vec, norm=np.linalg.norm(vec))
 
         candidates = []
