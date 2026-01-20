@@ -158,7 +158,7 @@ if __name__ == "__main__":
             fdc = FDCIngredient(
                 fdc_id=row["fdc_id"],
                 data_type=row["data_type"],
-                description=row["description"],
+                description=row["description"].replace("\xa0", " "),
                 publication_date=datetime.date.fromisoformat(row["publication_date"]),
                 category=category,
             )
