@@ -246,7 +246,7 @@ class uSIF:
             candidates.append(
                 FDCIngredientMatch(
                     fdc=self.fdc_ingredients[idx],
-                    score=score,
+                    score=float(score),
                 )
             )
 
