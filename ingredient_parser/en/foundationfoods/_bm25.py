@@ -108,6 +108,8 @@ class BM25:
         list[FDCIngredientMatch]
             Scored FDC ingredients, sorted by best first.
         """
+        ingredient_nouns = {t.token for t in tokens if t.pos_tag.startswith("N")}
+
         scores = defaultdict(float)
         for ing_token in tokens:
             if ing_token.token in self.t2d:
@@ -124,9 +126,15 @@ class BM25:
 
         matches = []
         for index, score in sorted(scores.items(), key=lambda x: x[1], reverse=True):
+            fdc = self.corpus[index]
+            if len(ingredient_nouns & set(fdc.tokens)) == 0:
+                # Skip any FDC entries that don't share any nouns with the ingredient
+                # name tokens.
+                continue
+
             matches.append(
                 FDCIngredientMatch(
-                    fdc=self.corpus[index],
+                    fdc=fdc,
                     score=score,
                 )
             )

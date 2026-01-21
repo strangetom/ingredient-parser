@@ -246,6 +246,9 @@ def consistent_top_result(
     -------
     FDCIngredient | None
     """
+    if not bm25_matches or not usif_matches:
+        return None
+
     best_matches = set()
 
     # Because bm25_matches and usif_matches are ordered, we want to stop iterating over
