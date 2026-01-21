@@ -124,6 +124,9 @@ def match_foundation_foods(
     print()
 
     if not has_tokens_in_embeddings:
+        if not bm25_matches:
+            return None
+
         # No other possible matching techniques, so just pick the best from BM25.
         best_match = bm25_matches[0]
         return FoundationFood(
