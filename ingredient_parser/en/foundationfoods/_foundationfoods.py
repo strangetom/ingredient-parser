@@ -402,9 +402,10 @@ def estimate_ranker_confidence(scores: list[float]) -> float:
     sorted_scores = sorted(scores, reverse=True)
     max_score = sorted_scores[0]
     second_max = 0
-    for score in scores:
+    for score in sorted_scores:
         if score != max_score:
             second_max = score
+            break
 
     gap = max_score - second_max
     relative_gap = gap / max_score
@@ -450,7 +451,7 @@ def normalize_scores(scores: list[float]) -> list[float]:
     if np.all(scores_array == scores_array[0]):
         return [0.5] * len(scores)
 
-    # Use 5th and 95th percentiles to calculate normalization interval.
+    # Calculate normalization interval.
     min_ = min(scores_array)
     max_ = max(scores_array)
     # Ensure that the range is never 0
