@@ -159,7 +159,8 @@ def normalise_spelling(tokens: list[IngredientToken]) -> list[IngredientToken]:
             normalised_tokens.append(ing_token)
 
     if normalised_tokens != tokens:
-        logger.debug(f"Normalised '{tokens}' to '{normalised_tokens}'.")
+        norm_tokens = [t.token for t in normalised_tokens]
+        logger.debug(f"Normalised '{[t.token for t in tokens]}' to '{norm_tokens}'.")
 
     return normalised_tokens
 
