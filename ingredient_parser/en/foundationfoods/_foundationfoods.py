@@ -154,10 +154,8 @@ def match_foundation_foods(
             name_index=name_idx,
         )
 
-    usif_matches = []
-    if has_token_in_embeddings:
-        u = get_usif_ranker()
-        usif_matches = u.rank_matches(normalised_embeddings_tokens)
+    u = get_usif_ranker()
+    usif_matches = u.rank_matches(normalised_embeddings_tokens)
 
     # Check if both BM25 and uSIF agree on the top result. If they do, return that and
     # avoid any further processing.
