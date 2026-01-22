@@ -157,15 +157,17 @@ NON_RAW_FOOD_NOUN_STEMS = {
     "cream",
     "custard",
     "fat",
+    "ketchup",
     "mayonnais",
     "milk",
     "oliv",
+    "pasta",
+    "pure",  # puree/purée
     "salt",
+    "sauce",
     "stock",
     "sugar",
     "syrup",
-    "pasta",
-    "pure",  # puree/purée
 }
 
 # Tokens that indicate following words are negated.
