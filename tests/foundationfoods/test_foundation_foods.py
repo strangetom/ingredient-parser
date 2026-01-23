@@ -35,8 +35,12 @@ MULTIPLE_EXAMPLES = [
     ("250 ml hot beef or chicken stock", (172883, 172884)),
 ]
 
-NO_MATCH_EXAMPLES = [
-    "twelve bonbons",  # no good match
+NO_MATCH_EXAMPLES = ["twelve bonbons"]
+
+NO_EMBEDDING_TOKENS = [
+    ("1 waxgourd", 170069),  # not in embeddings, but has FDC match
+    ("200 g lionfish", None),  # not in embeddings and no FDC match
+    ("1 cup x", None),  # no valid ingredient name tokens
 ]
 
 
@@ -96,3 +100,15 @@ class TestPostProcessor_match_foundation_foods:
         """
         p = parse_ingredient(sentence, foundation_foods=True)
         assert p.foundation_foods == []
+
+    @pytest.mark.parametrize(("sentence", "fdc_id"), NO_EMBEDDING_TOKENS)
+    def test_match_foundation_foods_no_embeddings(self, sentence, fdc_id):
+        """
+        Test that each example sentence returns no foundation food.
+        """
+        p = parse_ingredient(sentence, foundation_foods=True)
+        if fdc_id:
+            assert p.foundation_foods != []
+            assert p.foundation_foods[0].fdc_id == fdc_id
+        else:
+            assert p.foundation_foods == []

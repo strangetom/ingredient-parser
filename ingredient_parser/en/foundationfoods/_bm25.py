@@ -6,7 +6,7 @@ from collections import defaultdict
 from functools import lru_cache
 from statistics import mean
 
-from ._ff_dataclasses import FDCIngredient, FDCIngredientMatch
+from ._ff_dataclasses import FDCIngredient, FDCIngredientMatch, IngredientToken
 from ._ff_utils import load_fdc_ingredients
 
 logger = logging.getLogger("ingredient-parser.foundation-foods.bm25")
@@ -95,12 +95,12 @@ class BM25:
         for token, ingredients in self.t2d.items():
             self.idf[token] = math.log(self.corpus_size / len(ingredients))
 
-    def rank_matches(self, tokens: list[str]) -> list[FDCIngredientMatch]:
+    def rank_matches(self, tokens: list[IngredientToken]) -> list[FDCIngredientMatch]:
         """Rank and score FDC Ingredients according to closest match to tokens.
 
         Parameters
         ----------
-        tokens : list[str]
+        tokens : list[IngredientToken]
             List of tokens.
 
         Returns
@@ -108,25 +108,45 @@ class BM25:
         list[FDCIngredientMatch]
             Scored FDC ingredients, sorted by best first.
         """
+        ingredient_nouns = {t.token for t in tokens if t.pos_tag.startswith("N")}
+
         scores = defaultdict(float)
-        for token in tokens:
-            if token in self.t2d:
-                for index, freq in self.t2d[token].items():
+        for ing_token in tokens:
+            if ing_token.token in self.t2d:
+                for index, freq in self.t2d[ing_token.token].items():
                     denom_constant = self.k1 * (
                         1 - self.b + self.b * self.doc_len[index] / self.avgdl
                     )
                     scores[index] += (
-                        self.idf[token] * freq * (self.k1 + 1) / (denom_constant + freq)
+                        self.idf[ing_token.token]
+                        * freq
+                        * (self.k1 + 1)
+                        / (denom_constant + freq)
                     )
 
         matches = []
         for index, score in sorted(scores.items(), key=lambda x: x[1], reverse=True):
+            fdc = self.corpus[index]
+            if len(ingredient_nouns & set(fdc.tokens)) == 0:
+                # Skip any FDC entries that don't share any nouns with the ingredient
+                # name tokens.
+                continue
+
             matches.append(
                 FDCIngredientMatch(
-                    fdc=self.corpus[index],
+                    fdc=fdc,
                     score=score,
                 )
             )
+
+        if not matches:
+            logger.debug(
+                (
+                    "BM25 ranker found no FDC entries that had a noun "
+                    "common with the ingredient name."
+                )
+            )
+
         return matches
 
 
