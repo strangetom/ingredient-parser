@@ -40,6 +40,7 @@ NO_MATCH_EXAMPLES = ["twelve bonbons"]
 NO_EMBEDDING_TOKENS = [
     ("1 waxgourd", 170069),  # not in embeddings, but has FDC match
     ("200 g lionfish", None),  # not in embeddings and no FDC match
+    ("1 cup x", None),  # no valid ingredient name tokens
 ]
 
 
