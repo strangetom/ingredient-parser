@@ -154,6 +154,8 @@ Since this is not always the case, we can combine it with the :abbr:`uSIF (Unsup
     12.9365: Peppers, red, cooked
     11.8650: Peppers, sweet, red, sauteed
 
+To avoid BM25 ranking :abbr:`FDC (Food Data Central)` entries highly where they do not truly match the ingredient name, :abbr:`FDC (Food Data Central)` entries that do not share a common token with the nouns in the ingredient name are filtered out from the rankings.
+
 .. hint::
 
     The scores produced by BM25 have an arbitrary value, where a bigger number means more similar.
