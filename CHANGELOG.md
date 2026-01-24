@@ -8,33 +8,30 @@
 >
 > Use the new `volumetric_units_system="imperial"` keyword argument for the same functionality.
 
-### Processing
+* Improve execution and accuracy performance of the foundation foods matching functionality.
 
-* Add `unit_system` attribute to `IngredientAmount` and `CompositeIngredientAmount` to indicate which unit system the amount uses e.g. metric, US customary, imperial etc.
+  * See the docs [here](https://ingredient-parser.readthedocs.io/en/latest/explanation/foundation.html ) for details on how this now works.
 
-* Replace `imperial_units` keyword argument with `volumetric_unit_system` which allows for specifying unit system that will be used to volumetric units like cup, tablespoon etc. where there can are multiple options with slight differences in the volumes.
+  * The execution performance is ~2.5x faster than in version 2.4.0.
+
+* Add `unit_system` attribute to `IngredientAmount` and `CompositeIngredientAmount` to indicate which unit system the amount uses. 
+
+  * This values this enumeration can take are: METRIC, US_CUSTOMARY, IMPERIAL, AUSTRALIAN, JAPANESE, OTHER, NONE.
+
+* Add `volumetric_unit_system` keyword argument for `parse_ingredient` which allows for specifying unit system that will be used to volumetric units like cup, tablespoon etc. where there can are multiple options with slight differences in the volumes.
+  
+  * This replaced the `imperial_units` argument which will removed in a future release.
   * Supported options are `us_customary` (default), `imperial`, `metric` (for metric tablespoon, teaspoon definitions) , `australian` (for Australian pints, tablespoons), `japanese` (for Japanese cups).
-  * See [docs](https://ingredient-parser.readthedocs.io/en/latest/tutorials/options.html#volumetric-units-system) for specific details.
-
-* Make customised units registry (`UREG`) easily importable.
-
+  * See the docs [here](https://ingredient-parser.readthedocs.io/en/latest/tutorials/options.html#volumetric-units-system) for specific details.
+  * The customised Pint units registry (`UREG`) that contains additional units relevant to cooking (such as metric cups and tablespoons, Japanese cups etc.) is also more easily importable.
+  
   ```py
   from ingredient_parser import UREG
   ```
 
-  * This customised units registry includes additional units relevant to cooking, such as metric cups and tablespoons, japanese cups, australian tablespoons.
-
-* Fix exception being raised if quantity range ended with `x`  (e.g. `3-4x`).
+* Fix a bug where an exception was raised if quantity range ended with `x`  (e.g. `3-4x`).
 
 * If an amount has `MULTIPLIER=True`, set `SINGULAR=True` for any immediately subsequent amounts.
-
-### Foundation foods
-
-* Improve token normalisation, including replacement tokens for terms used in the FDC ingredients.
-* Rewrite the FDC ingredient matching functionality to return better matches and be about twice as fast as before.
-  * See https://ingredient-parser.readthedocs.io/en/latest/explanation/foundation.html for an explanation of how this works.
-
-
 
 ## 2.4.0
 
