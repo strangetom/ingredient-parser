@@ -10,7 +10,7 @@ import sys
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = "Ingredient Parser"
-copyright = "2025, Tom Strange"
+copyright = "2026, Tom Strange"
 author = "Tom Strange"
 
 # -- General configuration ---------------------------------------------------
