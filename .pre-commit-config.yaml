@@ -40,7 +40,7 @@ repos:
     hooks:
       - id: biome-check-ts-js
         name: (webtools:repo) biome check typescript/javascript
-        entry: npx @biomejs/biome check --write ./webtools/src --config-path=./webtools/biome.json --files-ignore-unknown=true --no-errors-on-unmatched
+        entry: npx --offline --prefix webtools biome check --write ./webtools/src --config-path=./webtools/biome.json --files-ignore-unknown=true --no-errors-on-unmatched
         language: node
         types: [text]
         files: "\\.(jsx?|tsx?|c(js|ts)|m(js|ts)|d\\.(ts|cts|mts)|jsonc?)$"
@@ -48,7 +48,7 @@ repos:
         require_serial: true
       - id: biome-check-css
         name: (webtools:repo) biome check css
-        entry: npx @biomejs/biome check --write ./webtools/src --config-path=./webtools/biome.json --files-ignore-unknown=true --no-errors-on-unmatched
+        entry: npx --offline --prefix webtools biome check --write ./webtools/src --config-path=./webtools/biome.json --files-ignore-unknown=true --no-errors-on-unmatched
         language: node
         types: [text]
         files: "\\.(css?)$"
