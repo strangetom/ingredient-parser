@@ -141,10 +141,8 @@ class BM25:
 
         if not matches:
             logger.debug(
-                (
-                    "BM25 ranker found no FDC entries that had a noun "
-                    "common with the ingredient name."
-                )
+                "BM25 ranker found no FDC entries that had a noun "
+                "common with the ingredient name."
             )
 
         return matches

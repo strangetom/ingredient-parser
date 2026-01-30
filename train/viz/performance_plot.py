@@ -25,7 +25,7 @@ def load_data() -> tuple[tuple[str], list[float], list[float]]:
         sentence is a list of floats
         word is a list of floats
     """
-    with open("train/performance_history.csv", "r") as f:
+    with open("train/performance_history.csv") as f:
         reader = csv.reader(f)
         # Skip first row because it contains column headings
         data = list(reader)[1:]

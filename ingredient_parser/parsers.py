@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import warnings
-from typing import Iterable
+from collections.abc import Iterable
 
 from ingredient_parser.en import inspect_parser_en, parse_ingredient_en
 

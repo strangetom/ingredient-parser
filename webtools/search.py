@@ -4,8 +4,9 @@
 import json
 import logging
 import sqlite3
+from collections.abc import Generator, Iterable
 from itertools import islice
-from typing import Generator, Iterable, TypeVar
+from typing import TypeVar
 
 from _globals import SQL3_DATABASE, SQL3_DATABASE_TABLE
 

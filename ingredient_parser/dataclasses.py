@@ -382,10 +382,8 @@ class CompositeIngredientAmount:
                 q_type = type(amount.quantity).__name__
                 u_type = type(amount.unit).__name__
                 raise TypeError(
-                    (
-                        f"Incompatible quantity <{q_type}> "
-                        f"and unit <{u_type}> for combining."
-                    )
+                    f"Incompatible quantity <{q_type}> "
+                    f"and unit <{u_type}> for combining."
                 )
 
         if self.subtractive:

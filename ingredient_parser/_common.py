@@ -6,10 +6,10 @@ import os
 import platform
 import re
 import subprocess
+from collections.abc import Generator, Iterator
 from importlib.resources import as_file, files
 from itertools import groupby, islice
 from operator import itemgetter
-from typing import Generator, Iterator
 
 import pint
 from nltk.data import find as nltk_find

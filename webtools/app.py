@@ -7,7 +7,7 @@ import traceback
 from fractions import Fraction
 from http import HTTPStatus
 from importlib.metadata import PackageNotFoundError, distribution
-from typing import Any, List, Union
+from typing import Any
 
 from _globals import (
     MODEL_REQUIREMENTS,
@@ -67,7 +67,7 @@ def is_valid_dotnum_range(value: str) -> bool:
 
 def jsonify_error(
     status: int,
-    exception: Union[Exception, None] = None,
+    exception: Exception | None = None,
 ):
     """Boilerplate json response for all HTTP errors
 
@@ -152,8 +152,8 @@ def get_all_marginals(parser_info: ParserDebugInfo) -> list[dict[str, float]]:
 
 
 def amount_resolver(
-    amounts: List[Union[CompositeIngredientAmount, IngredientAmount]],
-) -> List[Union[IngredientAmount, List[IngredientAmount]]]:
+    amounts: list[CompositeIngredientAmount | IngredientAmount],
+) -> list[IngredientAmount | list[IngredientAmount]]:
     """
     Iterates over a polymorphic list of ingredient amounts
 
@@ -513,7 +513,7 @@ def pre_check():
     checks = {"passed": [], "failed": []}
     satisfied = True
 
-    with open(MODEL_REQUIREMENTS, "r") as file:
+    with open(MODEL_REQUIREMENTS) as file:
         requirements = file.readlines()
 
     requirements = [

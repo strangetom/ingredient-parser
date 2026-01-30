@@ -119,10 +119,8 @@ def match_foundation_foods(
     has_token_in_embeddings = len(normalised_embeddings_tokens) > 0
     if not has_token_in_embeddings:
         logger.debug(
-            (
-                "Skipping semantic rankers (uSIF, Fuzzy) because ingredient name "
-                "does not contain any tokens present in the embeddings model."
-            )
+            "Skipping semantic rankers (uSIF, Fuzzy) because ingredient name "
+            "does not contain any tokens present in the embeddings model."
         )
 
     # Bias the results towards selecting the raw version of a FDC ingredient, but
@@ -179,16 +177,12 @@ def match_foundation_foods(
             m.fdc.fdc_id for m in bm25_matches[:TOP_K]
         }
         logger.debug(
-            (
-                f"BM25 and uSIF ranker alignment is below threshold "
-                f"({bm25_usif_agreement=:.4f} < {BM25_USIF_AGREENMENT_THRESHOLD=})."
-            )
+            f"BM25 and uSIF ranker alignment is below threshold "
+            f"({bm25_usif_agreement=:.4f} < {BM25_USIF_AGREENMENT_THRESHOLD=})."
         )
         logger.debug(
-            (
-                f"Using FuzzyMatcher on top {TOP_K} matches from "
-                "BM25 and uSIF to help arbitrate."
-            )
+            f"Using FuzzyMatcher on top {TOP_K} matches from "
+            "BM25 and uSIF to help arbitrate."
         )
 
         fuzzy = get_fuzzy_ranker()
@@ -219,20 +213,16 @@ def match_foundation_foods(
         )
         if matches_with_top_score > len(DATASET_PREFERENCE):
             logger.debug(
-                (
-                    f"Top score shared by {matches_with_top_score} FDC entries "
-                    "therefore cannot determine suitable match."
-                )
+                f"Top score shared by {matches_with_top_score} FDC entries "
+                "therefore cannot determine suitable match."
             )
             return None
 
     match_quality = determine_match_quality(best_match, usif_matches, fuzzy_matches)
     if match_quality.quality == "poor":
         logger.debug(
-            (
-                f"Rejected best match of '{best_match.fdc.description}' because "
-                f"{match_quality.reason}."
-            )
+            f"Rejected best match of '{best_match.fdc.description}' because "
+            f"{match_quality.reason}."
         )
         return None
 
@@ -562,16 +552,14 @@ def fuse_results(
     fuzzy_conf = fuzzy_conf / total_conf * 3
     usif_conf = usif_conf / total_conf * 3
     logger.debug(
-        (
-            f"Ranker confidences: "
-            f"BM25={bm25_conf:.4f}, "
-            f"uSIF={usif_conf:.4f}, "
-            f"Fuzzy={fuzzy_conf:.4f}."
-        )
+        f"Ranker confidences: "
+        f"BM25={bm25_conf:.4f}, "
+        f"uSIF={usif_conf:.4f}, "
+        f"Fuzzy={fuzzy_conf:.4f}."
     )
 
     fused_matches = []
-    fdc_entries = set(m.fdc for m in bm25_matches) | set(m.fdc for m in usif_matches)
+    fdc_entries = {m.fdc for m in bm25_matches} | {m.fdc for m in usif_matches}
     for fdc in fdc_entries:
         bm25_norm_score = bm25_dict.get(fdc.fdc_id, 0)
         # uSIF and Fuzzy scores are inverted (i.e. smaller = better). Therefore, after
