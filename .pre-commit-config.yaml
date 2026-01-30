@@ -36,20 +36,19 @@ repos:
       - id: sphinx-lint
         name: (docs:repo) sphinx-lint
         stages: [pre-commit]
-  - repo: local
+  - repo: https://github.com/biomejs/pre-commit
+    rev: v2.3.13
     hooks:
-      - id: biome-check-ts-js
+      - id: biome-check
         name: (webtools:repo) biome check typescript/javascript
-        entry: npx --offline --prefix webtools biome check --write ./webtools/src --config-path=./webtools/biome.json --files-ignore-unknown=true --no-errors-on-unmatched
-        language: node
-        types: [text]
+        args: ["./webtools/src", "--config-path=./webtools/biome.json"]
         files: "\\.(jsx?|tsx?|c(js|ts)|m(js|ts)|d\\.(ts|cts|mts)|jsonc?)$"
         exclude: ^docs/
         require_serial: true
-      - id: biome-check-css
+        stages: [pre-commit]
+      - id: biome-check
         name: (webtools:repo) biome check css
-        entry: npx --offline --prefix webtools biome check --write ./webtools/src --config-path=./webtools/biome.json --files-ignore-unknown=true --no-errors-on-unmatched
-        language: node
+        args: ["./webtools/src", "--config-path=./webtools/biome.json"]
         types: [text]
         files: "\\.(css?)$"
         exclude: ^docs/
