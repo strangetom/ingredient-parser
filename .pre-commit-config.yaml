@@ -21,7 +21,7 @@ repos:
         name: (base:repo) debug-statements
         stages: [pre-commit]
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.14.0
+    rev: v0.14.14
     hooks:
       - id: ruff
         name: (base:repo) ruff
@@ -31,7 +31,7 @@ repos:
         name: (base:repo) ruff-format
         stages: [pre-commit]
   - repo: https://github.com/sphinx-contrib/sphinx-lint
-    rev: v1.0.0
+    rev: v1.0.2
     hooks:
       - id: sphinx-lint
         name: (docs:repo) sphinx-lint
