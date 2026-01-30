@@ -21,6 +21,13 @@ jobs:
       uses: actions/setup-python@v6
       with:
         python-version: ${{ matrix.python-version }}
+    - name: Cache
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cache/pre-commit
+          ~/.cache/pip
+        key: pre-commit-${{ matrix.python-version }}-${{ hashFiles('.pre-commit-config.yaml') }}
     - name: Run pre-commit checks on all files
       run: |
         python -m pip install --upgrade pip
