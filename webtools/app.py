@@ -190,7 +190,7 @@ def parser():
             discard_isolated_stop_words = data.get("discard_isolated_stop_words", True)
             expect_name_in_output = data.get("expect_name_in_output", True)
             string_units = data.get("string_units", False)
-            imperial_units = data.get("imperial_units", False)
+            volumetric_units = data.get("volumetric_units", "us_customary")
             foundation_foods = data.get("foundation_foods", True)
             optimistic_cache_reset = data.get("optimistic_cache_reset", False)
             separate_names = data.get("separate_names", True)
@@ -203,7 +203,7 @@ def parser():
                 discard_isolated_stop_words=discard_isolated_stop_words,
                 expect_name_in_output=expect_name_in_output,
                 string_units=string_units,
-                imperial_units=imperial_units,
+                volumetric_units_system=volumetric_units,
                 foundation_foods=foundation_foods,
                 separate_names=separate_names,
             )
