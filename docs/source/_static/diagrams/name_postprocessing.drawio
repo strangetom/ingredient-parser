@@ -1,0 +1,51 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (X11; Linux x86_64; rv:146.0) Gecko/20100101 Firefox/146.0" version="29.2.9">
+  <diagram name="pipelines" id="58cdce13-f638-feb5-8d6f-7d28b1aa9fa0">
+    <mxGraphModel dx="873" dy="474" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="850" background="#32302F" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="MJA81eZ-Jpp3-eZPRiix-2" edge="1" parent="1" source="382b91b5511bd0f7-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#d3869b;" target="382b91b5511bd0f7-7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="382b91b5511bd0f7-6" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=24;fillColor=#3C3836;strokeColor=#d3869b;shadow=0;comic=0;labelBackgroundColor=none;fontFamily=Verdana;fontSize=12;fontColor=#fbf1c7;align=center;" value="Extract NAME labels" vertex="1">
+          <mxGeometry height="60" width="120" x="190" y="210" as="geometry" />
+        </mxCell>
+        <mxCell id="6Yc8xQDDTODfYml4aMpA-3" edge="1" parent="1" source="382b91b5511bd0f7-7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#D3869B;" target="6Yc8xQDDTODfYml4aMpA-1" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="382b91b5511bd0f7-7" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=24;fillColor=#3C3836;strokeColor=#d3869b;shadow=0;comic=0;labelBackgroundColor=none;fontFamily=Verdana;fontSize=12;fontColor=#fbf1c7;align=center;" value="Group tokens by NAME label" vertex="1">
+          <mxGeometry height="60" width="120" x="350" y="210" as="geometry" />
+        </mxCell>
+        <mxCell id="MJA81eZ-Jpp3-eZPRiix-6" parent="1" style="swimlane;rounded=1;fillColor=#b16286;strokeColor=#B16286;fontColor=#fbf1c7;" value="Ingredient name post-processing" vertex="1">
+          <mxGeometry height="130" width="640" x="170" y="170" as="geometry" />
+        </mxCell>
+        <mxCell id="6Yc8xQDDTODfYml4aMpA-4" edge="1" parent="MJA81eZ-Jpp3-eZPRiix-6" source="6Yc8xQDDTODfYml4aMpA-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#D3869B;" target="6Yc8xQDDTODfYml4aMpA-2" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="6Yc8xQDDTODfYml4aMpA-1" parent="MJA81eZ-Jpp3-eZPRiix-6" style="rounded=1;whiteSpace=wrap;html=1;arcSize=24;fillColor=#3C3836;strokeColor=#d3869b;shadow=0;comic=0;labelBackgroundColor=none;fontFamily=Verdana;fontSize=12;fontColor=#fbf1c7;align=center;" value="Construct names from NAME groups" vertex="1">
+          <mxGeometry height="60" width="120" x="340" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="6Yc8xQDDTODfYml4aMpA-2" parent="MJA81eZ-Jpp3-eZPRiix-6" style="rounded=1;whiteSpace=wrap;html=1;arcSize=24;fillColor=#3C3836;strokeColor=#d3869b;shadow=0;comic=0;labelBackgroundColor=none;fontFamily=Verdana;fontSize=12;fontColor=#fbf1c7;align=center;" value="Create IngredientText objects" vertex="1">
+          <mxGeometry height="60" width="120" x="500" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="MJA81eZ-Jpp3-eZPRiix-15" parent="1" style="ellipse;html=1;shape=startState;fillColor=#3C3836;strokeColor=#d3869b;shadow=0;" value="" vertex="1">
+          <mxGeometry height="30" width="30" x="100" y="225" as="geometry" />
+        </mxCell>
+        <mxCell id="MJA81eZ-Jpp3-eZPRiix-16" edge="1" parent="1" source="MJA81eZ-Jpp3-eZPRiix-15" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#d3869b;rounded=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="382b91b5511bd0f7-6" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="105" y="310" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="MJA81eZ-Jpp3-eZPRiix-19" edge="1" parent="1" source="6Yc8xQDDTODfYml4aMpA-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;strokeColor=#d3869b;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" target="MJA81eZ-Jpp3-eZPRiix-22">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="880" y="110" as="sourcePoint" />
+            <mxPoint x="919.9999999999998" y="110" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="MJA81eZ-Jpp3-eZPRiix-22" parent="1" style="html=1;shape=mxgraph.sysml.flowFinal;strokeWidth=2;verticalLabelPosition=bottom;verticalAlignment=top;strokeColor=#d3869b;fillColor=#3C3836;" value="" vertex="1">
+          <mxGeometry height="30" width="30" x="850" y="225" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

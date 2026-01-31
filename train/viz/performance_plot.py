@@ -11,8 +11,8 @@ mpl.rcParams["text.color"] = "#ebdbb2"
 mpl.rcParams["xtick.color"] = "#ebdbb2"
 mpl.rcParams["ytick.color"] = "#ebdbb2"
 mpl.rcParams["axes.labelcolor"] = "#ebdbb2"
-mpl.rcParams["axes.facecolor"] = "#1d2021"
-mpl.rcParams["figure.facecolor"] = "#1d2021"
+mpl.rcParams["axes.facecolor"] = "#32302f"
+mpl.rcParams["figure.facecolor"] = "#32302f"
 
 
 def load_data() -> tuple[tuple[str], list[float], list[float]]:
@@ -25,7 +25,7 @@ def load_data() -> tuple[tuple[str], list[float], list[float]]:
         sentence is a list of floats
         word is a list of floats
     """
-    with open("train/performance_history.csv", "r") as f:
+    with open("train/performance_history.csv") as f:
         reader = csv.reader(f)
         # Skip first row because it contains column headings
         data = list(reader)[1:]

@@ -89,3 +89,31 @@ class TestPostProcessor_distribute_related_flags:
 
         assert [a.APPROXIMATE for a in outputs] == [False, True, True]
         assert [a.SINGULAR for a in outputs] == [False, True, True]
+
+    def test_singular_after_multiplier(self, p):
+        """
+        Test that all related amounts after the amount with a multiplier quantity
+        (i.e. ends with "x") have SINGULAR set True.
+        """
+        amounts = [
+            _PartialIngredientAmount("2x", [""], [0], 0),
+            _PartialIngredientAmount("", [""], [0], 0, related_to_previous=True),
+            _PartialIngredientAmount("", [""], [0], 0, related_to_previous=True),
+        ]
+        outputs = p._distribute_related_flags(amounts)
+
+        assert [a.SINGULAR for a in outputs] == [False, True, True]
+
+    def test_singular_after_multiplier_only_related(self, p):
+        """
+        Test that all related amounts after the amount with a multiplier quantity
+        (i.e. ends with "x") have SINGULAR set True.
+        """
+        amounts = [
+            _PartialIngredientAmount("2x", [""], [0], 0),
+            _PartialIngredientAmount("", [""], [0], 0, related_to_previous=True),
+            _PartialIngredientAmount("", [""], [0], 0, related_to_previous=False),
+        ]
+        outputs = p._distribute_related_flags(amounts)
+
+        assert [a.SINGULAR for a in outputs] == [False, True, False]

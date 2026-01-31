@@ -71,6 +71,7 @@ This function takes a single ingredient sentence and returns a :class:`ParsedIng
                                  text='3 pounds',
                                  confidence=0.999829,
                                  starting_index=0,
+                                 unit_system=<UnitSystem.US_CUSTOMARY: 'us_customary'>,
                                  APPROXIMATE=False,
                                  SINGULAR=False,
                                  RANGE=False,

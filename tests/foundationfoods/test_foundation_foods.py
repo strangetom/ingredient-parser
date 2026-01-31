@@ -19,7 +19,7 @@ SIMPLE_EXAMPLES = [
     ("2 large red onions, sliced", 790577),
     ("3 skinless, boneless chicken breasts, chopped into 2 cm cubes", 2646170),
     ("200 g canned chopped tomatoes", 2685581),
-    ("4 tbsp sour cream", 2705614),
+    ("4 tbsp tomato ketchup", 2709733),
     ("small handful fresh parsley, leaves picked and chopped", 170416),
 ]
 
@@ -35,9 +35,12 @@ MULTIPLE_EXAMPLES = [
     ("250 ml hot beef or chicken stock", (172883, 172884)),
 ]
 
-NO_MATCH_EXAMPLES = [
-    "twelve bonbons",  # no good match
-    "1 cup waxgourd",  # out of vocab
+NO_MATCH_EXAMPLES = ["twelve bonbons"]
+
+NO_EMBEDDING_TOKENS = [
+    ("1 waxgourd", 170069),  # not in embeddings, but has FDC match
+    ("200 g lionfish", None),  # not in embeddings and no FDC match
+    ("1 cup x", None),  # no valid ingredient name tokens
 ]
 
 
@@ -58,6 +61,15 @@ class TestPostProcessor_match_foundation_foods:
         Test that each example sentence returns the correct foundation food.
         """
         p = parse_ingredient(sentence, foundation_foods=True)
+        assert p.foundation_foods != []
+        assert p.foundation_foods[0].fdc_id == fdc_id
+
+    @pytest.mark.parametrize(("sentence", "fdc_id"), SIMPLE_EXAMPLES)
+    def test_match_foundation_foods_simple_combined_names(self, sentence, fdc_id):
+        """
+        Test that each example sentence returns the correct foundation food.
+        """
+        p = parse_ingredient(sentence, separate_names=False, foundation_foods=True)
         assert p.foundation_foods != []
         assert p.foundation_foods[0].fdc_id == fdc_id
 
@@ -88,3 +100,15 @@ class TestPostProcessor_match_foundation_foods:
         """
         p = parse_ingredient(sentence, foundation_foods=True)
         assert p.foundation_foods == []
+
+    @pytest.mark.parametrize(("sentence", "fdc_id"), NO_EMBEDDING_TOKENS)
+    def test_match_foundation_foods_no_embeddings(self, sentence, fdc_id):
+        """
+        Test that each example sentence returns no foundation food.
+        """
+        p = parse_ingredient(sentence, foundation_foods=True)
+        if fdc_id:
+            assert p.foundation_foods != []
+            assert p.foundation_foods[0].fdc_id == fdc_id
+        else:
+            assert p.foundation_foods == []

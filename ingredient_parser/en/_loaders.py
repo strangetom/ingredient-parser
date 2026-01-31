@@ -44,8 +44,8 @@ def load_embeddings_model() -> GloVeModel:  # type: ignore
     GloVeModel
         Embeddings model.
     """
-    logger.debug("Loading embeddings model: 'ingredient_embeddings.25d.glove.txt.gz'.")
-    return GloVeModel("data/ingredient_embeddings.25d.glove.txt.gz")
+    logger.debug("Loading embeddings model: 'ingredient_embeddings.35d.glove.txt.gz'.")
+    return GloVeModel("data/ingredient_embeddings.35d.glove.txt.gz")
 
 
 @lru_cache

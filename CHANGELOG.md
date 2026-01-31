@@ -1,5 +1,37 @@
 # Changelog
 
+## 2.5.0
+
+> [!WARNING]
+>
+> The `imperial_units` keyword argument for `parse_ingredient` is deprecated and will be removed at the next major release.
+>
+> Use the new `volumetric_units_system="imperial"` keyword argument for the same functionality.
+
+* Improve execution and accuracy performance of the foundation foods matching functionality.
+
+  * See the docs [here](https://ingredient-parser.readthedocs.io/en/latest/explanation/foundation.html ) for details on how this now works.
+
+  * The execution performance is ~2.5x faster than in version 2.4.0.
+
+* Add `volumetric_unit_system` keyword argument for `parse_ingredient` which allows for specifying unit system that will be used to volumetric units like cup, tablespoon etc. where there can are multiple options with slight differences in the volumes.
+  
+  * This replaced the `imperial_units` argument which will removed in a future release.
+  * Supported options are `us_customary` (default), `imperial`, `metric` (for metric tablespoon, teaspoon definitions) , `australian` (for Australian pints, tablespoons), `japanese` (for Japanese cups).
+  * See the docs [here](https://ingredient-parser.readthedocs.io/en/latest/tutorials/options.html#volumetric-units-system) for specific details.
+  * The customised Pint units registry (`UREG`) that contains additional units relevant to cooking (such as metric cups and tablespoons, Japanese cups etc.) is also more easily importable.
+  
+  ```py
+  from ingredient_parser import UREG
+  ```
+* Add `unit_system` attribute to `IngredientAmount` and `CompositeIngredientAmount` to indicate which unit system the amount uses. 
+
+  * This is an Enum with the following values: METRIC, US_CUSTOMARY, IMPERIAL, AUSTRALIAN, JAPANESE, OTHER, NONE.
+
+* Fix a bug where an exception was raised if quantity range ended with `x`  (e.g. `3-4x`).
+
+* If an amount has `MULTIPLIER=True`, set `SINGULAR=True` for any immediately subsequent amounts.
+
 ## 2.4.0
 
 ### General
@@ -26,13 +58,13 @@
 >
 > This release only contains changes related to the development tools for this library. There are no changes to the functionality of the library.
 
-### Development tools
+### Development Tools
 
-* Replace the labeller and webapp tools with a new tool ("webtools") written in react. Many thanks to @[mcioffi](https://github.com/mcioffi) for this contribution. Key functionality:
+* Replace the labeler and webapp tools with a new tool ("webtools") written in react. Many thanks to @[mcioffi](https://github.com/mcioffi) for this contribution. Key functionality:
 
   * Parser, to display to parsed output of an input ingredient sentence.
 
-  * Labeller, to edit the labelled training data or add new training data.
+  * Labeler, to edit the labelled training data or add new training data.
 
   * Trainer, to initiate training of models.
 
@@ -42,7 +74,7 @@
 
 ## 2.2.0
 
-### Foundation foods:
+### Foundation Foods:
 
 * Bias foundation food matching to prefer "raw" FDC ingredients, but only if the ingredient name does not include any verbs that indicate the ingredient is not raw (e.g. "cooked").
 * Normalise spelling of tokens in ingredient names to align with spelling used in FDC ingredient descriptions.
@@ -68,13 +100,13 @@
 
 > [!WARNING]
 >
-> This version replaces the floret dependency with numpy.
+> This version replaces the floret dependency with NumPy.
 > 
-> Numpy was already a dependency of floret, so if you are upgrading from v2.0.0 there should be little impact.
+> NumPy was already a dependency of floret, so if you are upgrading from v2.0.0 there should be little impact.
 
-* This release overhauls the foundation foods functionality so that ingredient names are matched to entries in the [FoodData Central](https://fdc.nal.usda.gov/) (FDC) database.
+* This release overhauls the foundation foods functionality so that ingredient names are matched to entries in the [Food Data Central](https://fdc.nal.usda.gov/) (FDC) database.
 
-  * This update does not change the API. It adds additional fields to `FoundationFood` objects for FDC ID, category and data type. The `text` field now returns the description for the matching FDC entry.
+  * This update does not change the API. It adds additional fields to `FoundationFood` objects for FDC ID, category, and data type. The `text` field now returns the description for the matching FDC entry.
 
   * Beware that enabling this functionality causes the `parse_ingredient` function to be much slower than when disabled (default).
 
@@ -179,7 +211,7 @@
 
 * Various minor improvements to feature generation.
 
-* Add PREPARED_INGREDIENT flag to IngredientAmount objects. This is used to indicate if the amount refers to the prepared ingredient (`PREPARED_INGREDIENT=True`) or the unpreprared ingredient (`PREPARED_INGREDIENT=False`).
+* Add PREPARED_INGREDIENT flag to IngredientAmount objects. This is used to indicate if the amount refers to the prepared ingredient (`PREPARED_INGREDIENT=True`) or the unprepared ingredient (`PREPARED_INGREDIENT=False`).
 
 * Add `starting_index` attribute to IngredientText objects, indicating the index of the token that starts the IngredientText. 
 
@@ -245,7 +277,7 @@ Require NLTK >= 3.8.2 due to change in POS tagger weights format.
 
 ### Processing
 
-* Change processing of numbers written as words (e.g. 'one', 'two' ). If the token is labelled as QTY, then the number will converted to a digit (i.e. 'one' -> 1) or collapsed into a range (i.e. 'one or two' -> 1-2), otherwise the token is left unchanged.
+* Change processing of numbers written as words (e.g. 'one', 'two' ). If the token is labelled as QTY, then the number will be converted to a digit (i.e. 'one' -> 1) or collapsed into a range (i.e. 'one or two' -> 1-2), otherwise the token is left unchanged.
 
 ## 1.0.1
 
@@ -253,7 +285,7 @@ Require NLTK >= 3.8.2 due to change in POS tagger weights format.
 >
 > This version requires NLTK >=3.8.2
 
-NLTK 3.8.2 changes the file format (from pickle to json) of the weights used by the part of speech tagger used in this project, to address some security concerns. This patch updates the NLTK resource checks performed when `ingredient-parser` is imported to check for the new json files, and downloads them if they are not present. 
+NLTK 3.8.2 changes the file format (from pickle to json) of the weights used by the part of speech tagger used in this project, to address some security concerns. This patch updates the NLTK resource checks performed when `ingredient-parser` is imported to check for the new JSON files, and downloads them if they are not present. 
 
 This version requires NLTK>=3.8.2.
 
@@ -285,7 +317,7 @@ This version requires NLTK>=3.8.2.
 ### Processing
 
 * Various bug fixes to post-processing of tokens with labels NAME, COMMENT, PREP, PURPOSE, SIZE to correct punctuation and confidence calculations.
-* Modification of tokeniser to split full stops from the end of tokens. This helps to model avoid treating "`token.`" and "`token`" as different cases to learn.
+* Modification of tokenizer to split full stops from the end of tokens. This helps to model avoid treating "`token.`" and "`token`" as different cases to learn.
 * Add fallback functionality to `parse_ingredient` for cases where none of the tokens are labelled as NAME. This will select name as the token with the highest confidence of being labelled NAME, even though a different label has a high confidence for that token. This can be disabled by setting `expect_name_in_output=False` in `parse_ingredient`.
 
 ## 0.1.0-beta10
@@ -298,14 +330,14 @@ Fix incorrect python version specifier in package which was preventing pip in Py
 
 ### General
 
-- Add github actions to run tests (#7, @boxydog)
+- Add GitHub actions to run tests (#7, @boxydog)
 
 - Add pre-commit for use with development  (#10, @boxydog)
 
 ### Model 
 
 - Add additional model performance metrics.
-- Add model hyper-parameter tuning functionality with `python train.py gridsearch` to iterate over specified training algorithms and hyper-parameters.
+- Add model hyperparameter tuning functionality with `python train.py gridsearch` to iterate over specified training algorithms and hyperparameters.
 - Add `--detailed` argument to output detailed information about model performance on test data.  (#9, @boxydog)
 - Change model labels to treat label all punctuation as PUNC - this resolves some of the ambiguity in token labeling
 - Introduce SIZE label for tokens that modify the size of the ingredient. Note that his only applies to size modifiers of the ingredient. Size modifiers of the unit will remain part of the unit e.g. large clove.
@@ -316,7 +348,7 @@ Fix incorrect python version specifier in package which was preventing pip in Py
 
   - By default, units in `IngredientAmount` object will be returned as `pint.Unit` objects (where possible). This enables the easy conversion of amounts between different units. This can be disabled by setting `string_units=True` in the `parse_ingredient` function calls.
 
-  - For units that have US customary and Imperial version with the same name (e.g, cup), setting `imperial_units=True` in the `parse_ingredient` function calls will return the imperial version. The default is US customary.
+  - For units that have US customary and Imperial version with the same name (e.g., cup), setting `imperial_units=True` in the `parse_ingredient` function calls will return the imperial version. The default is US customary.
   - This only applies to units in `pint`'s unit registry (basically all common, standardised units). If the unit can't be found, then the string is returned as previously.
 
 - Additions to `IngredientAmount` object:
@@ -326,7 +358,7 @@ Fix incorrect python version specifier in package which was preventing pip in Py
     - RANGE is set to True for quantity ranges e.g. `1-2`
     - MULTIPLIER is set to True for quantities like `1x`
   - Conversion of quantity field to `float` where possible
-- PreProcessor improvements 
+- `PreProcessor` improvements 
   - Be less aggressive about replacing written numbers (e.g. one) with the digit version. For example, in sentences like `1 tsp Chinese five-spice`, `five-spice` is now kept as written instead of being replaced by two tokens: `5 spice`.
   - Improve handling of ranges that duplicate the units e.g. `1 pound to 2 pound` is now returned as `1-2 pound`
 
@@ -340,26 +372,26 @@ Fix incorrect python version specifier in package which was preventing pip in Py
 ### Model
 
 - Include more training data, expanding the Cookstr and BBC data by 5,000 additional sentences each
-- Change how the training data is stored. An SQLite database is now used to store the sentences and their tokens and labels. This fixes a long standing bug where tokens in the training data would be assigned the wrong label. csv exports are still available.
+- Change how the training data is stored. An SQLite database is now used to store the sentences and their tokens and labels. This fixes a long standing bug where tokens in the training data would be assigned the wrong label. CSV exports are still available.
 - Discard any sentences containing OTHER label prior to training model, so a parsed ingredient sentence can never contain anything labelled OTHER.
 
 ### Processing
 
 - Remove `other` field from `ParsedIngredient` return from `parse_ingredient` function.
 
-- Added `text` field to `IngredientAmount`. This is auto-generated on when the object is created and proves a human readable string for the amount e.g. "100 g"
+- Added `text` field to `IngredientAmount`. This is autogenerated on when the object is created and proves a human readable string for the amount e.g. "100 g"
 
 - Allow SINGULAR flag to be set if the amount it's being applied to is in brackets
 
 - Where a sentence has multiple related amounts e.g. `14 ounce (400 g)` , any flags set for one of the related amounts are applied to all the related amounts
 
-- Rewrite the tokeniser so it doesn't require all handled characters to be explicitly stated
+- Rewrite the tokenizer so it doesn't require all handled characters to be explicitly stated
 
-- Add an option to `parse_ingredient` to discard isolated stop words that appear in the name, comment and preparation fields.
+- Add an option to `parse_ingredient` to discard isolated stop words that appear in the name, comment, and preparation fields.
 
 - `IngredientAmount.amount` elements are now ordered to match the order in which they appear in the sentence.
 
-- Initial support for composite ingredient amounts e.g. `1 lb 2 oz`  is now consider to be a single `CompositeIngredientAmount`  instead of two separate `IngredientAmount`.
+- Initial support for composite ingredient amounts e.g. `1 lb 2 oz` is now consider to be a single `CompositeIngredientAmount` instead of two separate `IngredientAmount`.
 
   - Further work required to handle other cases such `1 tablespoon plus 1 teaspoon`.
   - This solution may change as it develops
@@ -376,7 +408,7 @@ Fix incorrect python version specifier in package which was preventing pip in Py
 - Removal of StrangerFoods dataset from model training due to lack of PREP labels
 - Addition of a BBC Food dataset in the model training
   - 10,000 additional ingredient sentences from the archive of 10599 recipes found at https://archive.org/details/recipes-en-201706
-- Miscellaneous bug fixes to the preprocessing steps to resolve reported issues
+- Miscellaneous bugfixes to the preprocessing steps to resolve reported issues
   - Handling of fractions with the format: 1 and 1/2
   - Handling of amounts followed by 'x' e.g. 1x can
   - Handling of ranges where the units were duplicated: 100g - 200g
@@ -386,7 +418,7 @@ Fix incorrect python version specifier in package which was preventing pip in Py
 - Support the extraction of multiple amounts from the input sentence.
 - Change output dataclass to put confidence values with each field.
   - The name, comment, other fields are output as an `IngredientText` object containing the text and confidence
-  - The amounts are output as an `IngredientAmount` object containing the quantity, unit, confidence and flags for whether the amount is approximate or for a singular item of the ingredient.
+  - The amounts are output as an `IngredientAmount` object containing the quantity, unit, confidence, and flags for whether the amount is approximate or for a singular item of the ingredient.
 - Rewrite post-processing functionality to make it more maintainable and extensible in the future.
 - Add a [model card](https://github.com/strangetom/ingredient-parser/blob/master/ingredient_parser/ModelCard.md), which provides information about the data used to train and evaluate the model, the purpose of the model and it's limitations.
 - Increase l1 regularisation during model training.

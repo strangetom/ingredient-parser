@@ -387,6 +387,33 @@ def p_split_name():
     )
 
 
+@pytest.fixture
+def p_multiplier_range_amount():
+    """Define a PostProcessor object for sentence with a multiplier range.
+    i.e. "3-4x".
+    """
+    sentence = "3 - 4 x 15ml tablespoons olive oil"
+    tokens = ["3-4x", "15", "ml", "tablespoon", "olive", "oil"]
+    pos_tags = ["CD", "CD", "NN", "NNS", "JJ", "NN"]
+    labels = ["QTY", "QTY", "UNIT", "UNIT", "B_NAME_TOK", "I_NAME_TOK"]
+    scores = [
+        0.9999535063384082,
+        0.9997353684954745,
+        0.9999941074194176,
+        0.999910213422632,
+        0.9994944350996183,
+        0.9995007468043913,
+    ]
+
+    return PostProcessor(
+        sentence,
+        tokens,
+        pos_tags,
+        labels,
+        scores,
+    )
+
+
 class TestPostProcessor__builtins__:
     def test__str__(self, p):
         """
@@ -694,3 +721,41 @@ class TestPostProcessor_parsed:
         )
 
         assert p_split_name.parsed == expected
+
+    def test_multiplier_range(self, p_multiplier_range_amount):
+        """
+        Test fixture returns expected ParsedIngredient object, where the first amount
+        is marked as MULTIPLIER=True and RANGE=TRUE.
+        """
+        expected = ParsedIngredient(
+            name=[
+                IngredientText(text="olive oil", confidence=0.999498, starting_index=4)
+            ],
+            size=None,
+            amount=[
+                ingredient_amount_factory(
+                    quantity="3-4x",
+                    unit="",
+                    text="3-4x",
+                    confidence=0.999954,
+                    starting_index=0,
+                ),
+                ingredient_amount_factory(
+                    quantity="15",
+                    unit="ml tablespoons",
+                    text="15 ml tablespoon",
+                    confidence=0.99988,
+                    starting_index=1,
+                    SINGULAR=True,
+                ),
+            ],
+            preparation=None,
+            comment=None,
+            purpose=None,
+            foundation_foods=[],
+            sentence="3 - 4 x 15ml tablespoons olive oil",
+        )
+
+        assert p_multiplier_range_amount.parsed == expected
+        assert expected.amount[0].MULTIPLIER
+        assert expected.amount[0].RANGE

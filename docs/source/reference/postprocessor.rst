@@ -1,6 +1,6 @@
 .. _reference-api-postprocess:
 
-PostProcess
+Postprocess
 ===========
 
 .. automodule:: ingredient_parser.en.postprocess

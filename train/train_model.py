@@ -4,11 +4,12 @@ import argparse
 import concurrent.futures as cf
 import logging
 import os
+from collections.abc import Generator
 from contextlib import contextmanager
 from pathlib import Path
 from random import randint
 from statistics import mean, stdev
-from typing import Generator, TextIO
+from typing import TextIO
 from uuid import uuid4
 
 import pycrfsuite

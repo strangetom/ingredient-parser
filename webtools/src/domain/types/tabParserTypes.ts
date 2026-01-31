@@ -5,7 +5,7 @@ export interface InputTabParser {
 	discard_isolated_stop_words: boolean;
 	expect_name_in_output: boolean;
 	string_units: boolean;
-	imperial_units: boolean;
+	volumetric_units: string;
 	foundation_foods: boolean;
 	separate_names: boolean;
 }

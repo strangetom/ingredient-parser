@@ -14,7 +14,7 @@ from io import StringIO
 from pathlib import Path
 from random import randint
 from threading import Event, Lock, Thread
-from typing import Any, Dict, TextIO
+from typing import Any, TextIO
 
 # {{FLASK|SOCKETS}}
 from flask import Flask
@@ -62,7 +62,7 @@ thread_lock = Lock()
 thread_event = Event()
 
 
-def safe_json_load(json_string: str) -> Dict[str, Any]:
+def safe_json_load(json_string: str) -> dict[str, Any]:
     """
     Safely loads a JSON string and returns the JSON dictionary
     """
@@ -232,7 +232,7 @@ def background_thread(thread_event, input_data):
             {
                 "data": [],
                 "indicator": "Error",
-                "message": "Training round encountered an issue. {}".format(str(e)),
+                "message": f"Training round encountered an issue. {e!s}",
             },
         )
 

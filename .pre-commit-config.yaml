@@ -21,7 +21,7 @@ repos:
         name: (base:repo) debug-statements
         stages: [pre-commit]
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.14.0
+    rev: v0.14.14
     hooks:
       - id: ruff
         name: (base:repo) ruff
@@ -31,25 +31,24 @@ repos:
         name: (base:repo) ruff-format
         stages: [pre-commit]
   - repo: https://github.com/sphinx-contrib/sphinx-lint
-    rev: v1.0.0
+    rev: v1.0.2
     hooks:
       - id: sphinx-lint
         name: (docs:repo) sphinx-lint
         stages: [pre-commit]
-  - repo: local
+  - repo: https://github.com/biomejs/pre-commit
+    rev: v2.3.13
     hooks:
-      - id: biome-check-ts-js
+      - id: biome-check
         name: (webtools:repo) biome check typescript/javascript
-        entry: npx @biomejs/biome check --write ./webtools/src --config-path=./webtools/biome.json --files-ignore-unknown=true --no-errors-on-unmatched
-        language: node
-        types: [text]
+        args: ["./webtools/src", "--config-path=./webtools/biome.json"]
         files: "\\.(jsx?|tsx?|c(js|ts)|m(js|ts)|d\\.(ts|cts|mts)|jsonc?)$"
         exclude: ^docs/
         require_serial: true
-      - id: biome-check-css
+        stages: [pre-commit]
+      - id: biome-check
         name: (webtools:repo) biome check css
-        entry: npx @biomejs/biome check --write ./webtools/src --config-path=./webtools/biome.json --files-ignore-unknown=true --no-errors-on-unmatched
-        language: node
+        args: ["./webtools/src", "--config-path=./webtools/biome.json"]
         types: [text]
         files: "\\.(css?)$"
         exclude: ^docs/

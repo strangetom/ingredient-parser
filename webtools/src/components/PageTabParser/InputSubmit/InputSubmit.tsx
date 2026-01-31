@@ -12,6 +12,7 @@ import {
 	Indicator,
 	Menu,
 	ScrollArea,
+	Select,
 	Switch,
 	TextInput,
 	type TextInputProps,
@@ -166,13 +167,14 @@ function ActionIconFilter(props: ActionIconProps) {
 		/>
 	);
 
-	const imperialUnitsInput = (
-		<Switch
-			defaultChecked
-			checked={input.imperial_units}
+	const volumetricUnitsSystemInput = (
+		<Select
+			defaultValue={input.volumetric_units}
+			data={["us_customary", "metric", "imperial", "australian", "japanese"]}
+			autoSelectOnBlur
 			label={
 				<Flex gap="xs" justify="flex-start">
-					<div>Imperial units</div>
+					<div>Volumetric units system</div>
 					<PopoverQuestionMark>
 						Some units have have multiple definitions versions with the same
 						name but representing different quantities, such as fluid ounces,
@@ -180,9 +182,9 @@ function ActionIconFilter(props: ActionIconProps) {
 					</PopoverQuestionMark>
 				</Flex>
 			}
-			name="imperial_units"
-			onChange={(event) =>
-				updateInput({ imperial_units: event.target.checked })
+			name="volumetric_units"
+			onChange={(value_, opts) =>
+				updateInput({ volumetric_units: value_ || undefined })
 			}
 			style={{ width: "100%" }}
 		/>
@@ -227,6 +229,10 @@ function ActionIconFilter(props: ActionIconProps) {
 
 			<Menu.Dropdown>
 				<Box py="xs" px="sm">
+					{volumetricUnitsSystemInput}
+				</Box>
+				<Menu.Divider />
+				<Box py="xs" px="sm">
 					{foundationFoodsInput}
 				</Box>
 				<Menu.Divider />
@@ -240,10 +246,6 @@ function ActionIconFilter(props: ActionIconProps) {
 				<Menu.Divider />
 				<Box py="xs" px="sm">
 					{expectNameInput}
-				</Box>
-				<Menu.Divider />
-				<Box py="xs" px="sm">
-					{imperialUnitsInput}
 				</Box>
 				<Menu.Divider />
 				<Box py="xs" px="sm">

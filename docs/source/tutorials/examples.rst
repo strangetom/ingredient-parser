@@ -26,6 +26,7 @@ A basic example to show the full output from :func:`parse_ingredient`.
                                               text='1',
                                               confidence=0.999933,
                                               starting_index=0,
+                                              unit_system=<UnitSystem.NONE: 'none'>,
                                               APPROXIMATE=False,
                                               SINGULAR=False,
                                               RANGE=False,
@@ -42,7 +43,7 @@ A basic example to show the full output from :func:`parse_ingredient`.
 Multiple amounts
 ~~~~~~~~~~~~~~~~
 
-A common pattern used in ingredient sentences is to specifiy amounts in terms of a fixed size item, e.g. **2 28 ounce cans**.
+A common pattern used in ingredient sentences is to specify amounts in terms of a fixed size item, e.g. **2 28 ounce cans**.
 In these cases, the outer amount (2 cans) and inner amount (28 ounce) are separated.
 The inner amount has the ``SINGULAR`` flag set to True to indicate that it applies to a singular item of the outer amount.
 
@@ -59,6 +60,7 @@ The inner amount has the ``SINGULAR`` flag set to True to indicate that it appli
                                               text='2 cans',
                                               confidence=0.999825,
                                               starting_index=0,
+                                              unit_system=<UnitSystem.OTHER: 'other'>,
                                               APPROXIMATE=False,
                                               SINGULAR=False,
                                               RANGE=False,
@@ -70,6 +72,7 @@ The inner amount has the ``SINGULAR`` flag set to True to indicate that it appli
                                               text='28 ounces',
                                               confidence=0.999437,
                                               starting_index=1,
+                                              unit_system=<UnitSystem.US_CUSTOMARY: 'us_customary'>,
                                               APPROXIMATE=False,
                                               SINGULAR=True,
                                               RANGE=False,
@@ -99,6 +102,7 @@ Approximate amounts, indicate by the use of words like `approximately`, `about`,
                                               text='4',
                                               confidence=0.999876,
                                               starting_index=0,
+                                              unit_system=<UnitSystem.NONE: 'none'>,
                                               APPROXIMATE=False,
                                               SINGULAR=False,
                                               RANGE=False,
@@ -110,6 +114,7 @@ Approximate amounts, indicate by the use of words like `approximately`, `about`,
                                               text='400 g',
                                               confidence=0.995449,
                                               starting_index=5,
+                                              unit_system=<UnitSystem.METRIC: 'metric'>,
                                               APPROXIMATE=True,
                                               SINGULAR=True,
                                               RANGE=False,
@@ -143,6 +148,7 @@ For this second case, the ``PREPARED_INGREDIENT`` flag will be set to True.
                                               text='1 cup',
                                               confidence=0.999959,
                                               starting_index=0,
+                                              unit_system=<UnitSystem.US_CUSTOMARY: 'us_customary'>,
                                               APPROXIMATE=False,
                                               SINGULAR=False,
                                               RANGE=False,
@@ -167,6 +173,7 @@ For this second case, the ``PREPARED_INGREDIENT`` flag will be set to True.
                                               text='1 cup',
                                               confidence=0.99918,
                                               starting_index=0,
+                                              unit_system=<UnitSystem.US_CUSTOMARY: 'us_customary'>,
                                               APPROXIMATE=False,
                                               SINGULAR=False,
                                               RANGE=False,
@@ -203,6 +210,7 @@ The library attempts to ensure that each of the identified ingredient names make
                                               text='2 tbsps',
                                               confidence=0.999819,
                                               starting_index=0,
+                                              unit_system=<UnitSystem.US_CUSTOMARY: 'us_customary'>,
                                               APPROXIMATE=False,
                                               SINGULAR=False,
                                               RANGE=False,
@@ -221,9 +229,9 @@ Sometimes a single ingredient sentence will contain multiple phrases, each speci
 
 .. admonition:: Limitation
 
-    This library assumes an ingredient sentence does not contain different ingredient with different amounts.
+    This library assumes an ingredient sentence does not contain different ingredients with different amounts.
 
-    For cases where the sentence contains multiple phrases, specifiying different ingredients in different amounts, everything after the first phrase will be returned in the comment field.
+    For cases where the sentence contains multiple phrases, specifying different ingredients in different amounts, everything after the first phrase will be returned in the comment field.
 
 .. code:: python
 
@@ -238,6 +246,7 @@ Sometimes a single ingredient sentence will contain multiple phrases, each speci
                                           text='1 cup',
                                           confidence=0.999549,
                                           starting_index=0,
+                                          unit_system=<UnitSystem.US_CUSTOMARY: 'us_customary'>,
                                           APPROXIMATE=False,
                                           SINGULAR=False,
                                           RANGE=False,
@@ -249,6 +258,7 @@ Sometimes a single ingredient sentence will contain multiple phrases, each speci
                                           text='20',
                                           confidence=0.887524,
                                           starting_index=9,
+                                          unit_system=<UnitSystem.NONE: 'none'>,
                                           APPROXIMATE=True,
                                           SINGULAR=False,
                                           RANGE=False,
@@ -266,14 +276,78 @@ Sometimes a single ingredient sentence will contain multiple phrases, each speci
                  sentence='1 cup peeled and cooked fresh chestnuts (about 20), '
                           'or 1 cup canned, unsweetened chestnuts')
 
-Foundation foods
-~~~~~~~~~~~~~~~~
+Alternative unit systems
+~~~~~~~~~~~~~~~~~~~~~~~~
 
-A basic example to show the full output from parse_ingredient() when ``foundation_foods=True``.
+Volumetric units can vary in different parts of the world, for example the volume of a "cup" is different in the USA, UK and other countries.
+
+When handling volumetric units, US customary units are assumed by default but this can be changed to a different volumetric unit system.
 
 .. code:: python
 
-    >>> parse_ingredient("1 large red onion, finely diced")
+    >>> parse_ingredient("2 cups boiled water")
+    ParsedIngredient(name=[IngredientText(text='water',
+                                          confidence=0.823288,
+                                          starting_index=3)],
+                     size=None,
+                     amount=[IngredientAmount(quantity=Fraction(2, 1),
+                                              quantity_max=Fraction(2, 1),
+                                              unit=<Unit('cup')>,
+                                              text='2 cups',
+                                              confidence=0.999709,
+                                              starting_index=0,
+                                              unit_system=<UnitSystem.US_CUSTOMARY: 'us_customary'>,
+                                              APPROXIMATE=False,
+                                              SINGULAR=False,
+                                              RANGE=False,
+                                              MULTIPLIER=False,
+                                              PREPARED_INGREDIENT=True)],
+                     preparation=IngredientText(text='boiled',
+                                                confidence=0.833938,
+                                                starting_index=2),
+                     comment=None,
+                     purpose=None,
+                     foundation_foods=[],
+                     sentence='2 cups boiled water')
+
+    >>> parse_ingredient("2 cups boiled water", volumetric_units_system="imperial")
+    ParsedIngredient(name=[IngredientText(text='water',
+                                          confidence=0.823288,
+                                          starting_index=3)],
+                     size=None,
+                     amount=[IngredientAmount(quantity=Fraction(2, 1),
+                                              quantity_max=Fraction(2, 1),
+                                              unit=<Unit('imperial_cup')>,
+                                              text='2 cups',
+                                              confidence=0.999709,
+                                              starting_index=0,
+                                              unit_system=<UnitSystem.IMPERIAL: 'imperial'>,
+                                              APPROXIMATE=False,
+                                              SINGULAR=False,
+                                              RANGE=False,
+                                              MULTIPLIER=False,
+                                              PREPARED_INGREDIENT=True)],
+                     preparation=IngredientText(text='boiled',
+                                                confidence=0.833938,
+                                                starting_index=2),
+                     comment=None,
+                     purpose=None,
+                     foundation_foods=[],
+                     sentence='2 cups boiled water')
+
+.. admonition:: Limitation
+
+    This library only handles individual ingredient sentences, which means there will not ever be a way to automatically detect the correct volumetric unit system.
+
+
+Foundation foods
+~~~~~~~~~~~~~~~~
+
+A basic example to show the full output from :func:`parse_ingredient <ingredient_parser.parsers.parse_ingredient>` when ``foundation_foods=True``.
+
+.. code:: python
+
+    >>> parse_ingredient("1 large red onion, finely diced", foundation_foods=True)
     ParsedIngredient(name=[IngredientText(text='red onion',
                                           confidence=0.994235,
                                           starting_index=2)],
@@ -286,6 +360,7 @@ A basic example to show the full output from parse_ingredient() when ``foundatio
                                               text='1',
                                               confidence=0.999933,
                                               starting_index=0,
+                                              unit_system=<UnitSystem.NONE: 'none'>,
                                               APPROXIMATE=False,
                                               SINGULAR=False,
                                               RANGE=False,
@@ -302,6 +377,7 @@ A basic example to show the full output from parse_ingredient() when ``foundatio
                                        fdc_id=790577,
                                        category='Vegetables and Vegetable Products',
                                        data_type='foundation_food',
-                                       url='https://fdc.nal.usda.gov/food-details/790577/nutrients')
+                                       url='https://fdc.nal.usda.gov/food-details/790577/nutrients',
+                                       name_index=0)
                      ],
                      sentence='1 large red onion, finely diced')

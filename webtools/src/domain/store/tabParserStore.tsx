@@ -46,7 +46,7 @@ export const useTabParserStore = create(
 					discard_isolated_stop_words: true,
 					expect_name_in_output: true,
 					string_units: false,
-					imperial_units: false,
+					volumetric_units: "us_customary",
 					foundation_foods: true,
 					separate_names: true,
 				},

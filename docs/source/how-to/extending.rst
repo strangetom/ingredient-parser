@@ -105,7 +105,8 @@ There will be a separate model for each language.
 
 The training pipeline (shown below) is agnostic of the target language, so we will take each step in turn and list the likely modifications that would be needed.
 
-.. image:: /_static/diagrams/pipelines.svg
+.. image:: /_static/diagrams/pipelines.png
+  :class: dark-light
   :alt: Training and parsing pipelines.
 
 0. Prepare data

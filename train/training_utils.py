@@ -4,10 +4,11 @@ import concurrent.futures as cf
 import json
 import logging
 import sqlite3
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from functools import partial
 from itertools import chain, islice
-from typing import Any, Callable, Iterable
+from typing import Any
 
 import matplotlib
 
@@ -327,11 +328,9 @@ def process_sentences(
         # Ensure length of tokens and length of labels are the same
         if len(p.tokenized_sentence) != len(entry["labels"]):
             raise ValueError(
-                (
-                    f'"{entry["sentence"]}" (ID: {entry["id"]}) has '
-                    f"{len(p.tokenized_sentence)} tokens "
-                    f"but {len(entry['labels'])} labels."
-                )
+                f'"{entry["sentence"]}" (ID: {entry["id"]}) has '
+                f"{len(p.tokenized_sentence)} tokens "
+                f"but {len(entry['labels'])} labels."
             )
 
     return DataVectors(sentences, features, tokens, labels, source, uids, discarded)

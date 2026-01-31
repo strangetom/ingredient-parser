@@ -1,22 +1,20 @@
 #!/usr/bin/env python3
 
 import re
-import string
 from fractions import Fraction
 from functools import lru_cache
 from itertools import chain
 
-import nltk.stem.porter as nsp
 import pint
+from nltk.stem.snowball import EnglishStemmer
 from nltk.tag import _get_tagger, _pos_tag
 
-from ingredient_parser.en._loaders import load_embeddings_model, load_ingredient_tagdict
+from ingredient_parser.en._loaders import load_ingredient_tagdict
 
 from .._common import UREG, consume, download_nltk_resources, is_float, is_range
 from ..dataclasses import IngredientAmount
 from ._constants import (
     FLATTENED_UNITS_LIST,
-    STOP_WORDS,
     UNIT_SYNONYMS,
     UNITS,
 )
@@ -26,14 +24,54 @@ from ._regex import (
     STRING_RANGE_PATTERN,
 )
 
-# Dict mapping certain units to their imperial version in pint
-IMPERIAL_UNITS = {
-    "cup": "imperial_cup",
-    "floz": "imperial_floz",
-    "fluid_ounce": "imperial_fluid_ounce",
-    "quart": "imperial_quart",
-    "pint": "imperial_pint",
-    "gallon": "imperial_gallon",
+# List of volumetric units that have different country versions.
+VOLUMETRIC_UNITS_W_ALTERNATIVES = {
+    "cup": {
+        "imperial": "imperial_cup",
+        "japanese": "jp_cup",
+        "australian": "metric_cup",
+        "metric": "metric_cup",
+    },
+    "floz": {
+        "imperial": "imperial_fluid_ounce",
+    },
+    "fluid_ounce": {
+        "imperial": "imperial_fluid_ounce",
+    },
+    "quart": {
+        "imperial": "imperial_quart",
+    },
+    "pint": {
+        "imperial": "imperial_pint",
+        "australian": "aus_pint",
+    },
+    "gallon": {
+        "imperial": "imperial_gallon",
+    },
+    "tablespoon": {
+        "imperial": "imperial_tablespoon",
+        "japanese": "metric_tablespoon",
+        "australian": "aus_tablespoon",
+        "metric": "metric_tablespoon",
+    },
+    "tbsp": {
+        "imperial": "imperial_tablespoon",
+        "japanese": "metric_tablespoon",
+        "australian": "aus_tablespoon",
+        "metric": "metric_tablespoon",
+    },
+    "teaspoon": {
+        "imperial": "imperial_teaspoon",
+        "japanese": "metric_teaspoon",
+        "australian": "metric_teaspoon",
+        "metric": "metric_teaspoon",
+    },
+    "tsp": {
+        "imperial": "imperial_teaspoon",
+        "japanese": "metric_teaspoon",
+        "australian": "metric_teaspoon",
+        "metric": "metric_teaspoon",
+    },
 }
 
 # List of units that pint interprets as incorrect unit
@@ -73,7 +111,7 @@ UNIT_REPLACEMENTS = [
 ]
 
 download_nltk_resources()
-STEMMER = nsp.PorterStemmer()
+STEMMER = EnglishStemmer()
 
 # Define regular expressions used by tokenizer.
 # Matches one or more whitespace characters
@@ -206,7 +244,7 @@ def combine_and_or(tokens: list[str]) -> list[str]:
 def stem(token: str) -> str:
     """Stem function with cache to improve performance.
 
-    The stem of a word output by the PorterStemmer is always the same, so we can
+    The stem of a word output by the stemmer is always the same, so we can
     cache the result the first time and return that for subsequent future calls
     without the need to do all the processing again.
 
@@ -258,7 +296,9 @@ def pluralise_units(sentence: str) -> str:
 
 
 @lru_cache(maxsize=512)
-def convert_to_pint_unit(unit: str, imperial_units: bool = False) -> str | pint.Unit:
+def convert_to_pint_unit(
+    unit: str, volumetric_units_system: str = "us_customary"
+) -> str | pint.Unit:
     """Convert a unit to a pint.Unit object, if possible.
 
     If the unit is not found in the pint Unit Registry, just return the input unit.
@@ -267,10 +307,9 @@ def convert_to_pint_unit(unit: str, imperial_units: bool = False) -> str | pint.
     ----------
     unit : str
         Unit to find in pint Unit Registry.
-    imperial_units : bool, optional
-        If True, use imperial units instead of US customary units for the following:
-        fluid ounce, cup, pint, quart, gallon.
-        Default is False, which results in US customary units being used.
+    volumetric_units_system : str, optional
+        Sets the units system for volumetric measurements, like "cup" or "tablespoon".
+        Default is "us_customary".
 
     Returns
     -------
@@ -289,7 +328,7 @@ def convert_to_pint_unit(unit: str, imperial_units: bool = False) -> str | pint.
     >>> convert_to_pint_unit("fl oz")
     <Unit('fluid_ounce')>
 
-    >>> convert_to_pint_unit("cup", imperial_units=True)
+    >>> convert_to_pint_unit("cup", volumetric_units_system="imperial")
     <Unit('imperial_cup')>
     """
     if "-" in unit:
@@ -308,9 +347,14 @@ def convert_to_pint_unit(unit: str, imperial_units: bool = False) -> str | pint.
     for regex, replacement in UNIT_REPLACEMENTS:
         unit = regex.sub(replacement, unit)
 
-    if imperial_units:
-        for original, replacement in IMPERIAL_UNITS.items():
-            unit = unit.replace(original, replacement)
+    if (
+        unit in VOLUMETRIC_UNITS_W_ALTERNATIVES
+        and volumetric_units_system != "us_customary"
+    ):
+        # Convert unit to country specific version e.g. cups -> imperial_cup if a
+        # replacement is defined.
+        if alt := VOLUMETRIC_UNITS_W_ALTERNATIVES[unit].get(volumetric_units_system):
+            unit = unit.replace(unit, alt)
 
     # If unit not empty string and found in Unit Registry,
     # return pint.Unit object for unit
@@ -352,11 +396,8 @@ def is_unit_synonym(unit1: str, unit2: str) -> bool:
         return False
 
     # Make singular if plural
-    if unit1 in UNITS.keys():
-        unit1 = UNITS[unit1]
-
-    if unit2 in UNITS.keys():
-        unit2 = UNITS[unit2]
+    unit1 = UNITS.get(unit1, unit1)
+    unit2 = UNITS.get(unit2, unit2)
 
     for synonyms in UNIT_SYNONYMS:
         if unit1 in synonyms and unit2 in synonyms:
@@ -457,7 +498,7 @@ def ingredient_amount_factory(
     SINGULAR: bool = False,
     PREPARED_INGREDIENT: bool = False,
     string_units: bool = False,
-    imperial_units: bool = False,
+    volumetric_units_system: str = "us_customary",
 ) -> IngredientAmount:
     """Create ingredient amount object from parts.
 
@@ -494,11 +535,9 @@ def ingredient_amount_factory(
         If True, return all IngredientAmount units as strings.
         If False, convert IngredientAmount units to pint.Unit objects where possible.
         Default is False.
-    imperial_units : bool, optional
-        If True, use imperial units instead of US customary units for pint.Unit objects
-        for the the following units: fluid ounce, cup, pint, quart, gallon.
-        Default is False, which results in US customary units being used.
-        This has no effect if string_units=True.
+    volumetric_units_system : str, optional
+        Set the country standard for volumetric units such as cups, tablespoon.
+        This has no effect is string_units=True.
 
     Returns
     -------
@@ -507,6 +546,13 @@ def ingredient_amount_factory(
     """
     RANGE = False
     MULTIPLIER = False
+
+    if quantity.endswith("x"):
+        # If multiplier, set MULTIPLER flag then strip "x" suffix and process quantity
+        # as normal.
+        MULTIPLIER = True
+        quantity = quantity.removesuffix("x")
+
     if is_range(quantity):
         # If range, set quantity to min of range, set quantity_max to max
         # of range, set RANGE flag to True
@@ -518,12 +564,6 @@ def ingredient_amount_factory(
         # If float or fraction, set quantity_max = quantity
         _quantity = to_frac(quantity)
         quantity_max = _quantity
-    elif quantity.endswith("x"):
-        # If multiplier, set quantity and quantity_max to value without 'x', and
-        # set MULTIPLER flag.
-        _quantity = to_frac(quantity[:-1])
-        quantity_max = _quantity
-        MULTIPLIER = True
     else:
         _quantity = quantity
         # Fallback to setting quantity_max to quantity
@@ -536,7 +576,7 @@ def ingredient_amount_factory(
         # a pint.Unit object instead of a string. This has the benefit
         # of simplifying alternative unit representations into a single
         # common representation
-        _unit = convert_to_pint_unit(_unit, imperial_units)
+        _unit = convert_to_pint_unit(_unit, volumetric_units_system)
 
     # Pluralise unit as necessary
     if _quantity != 1 and _quantity != "" and not RANGE:
@@ -564,36 +604,3 @@ def ingredient_amount_factory(
         MULTIPLIER=MULTIPLIER,
         PREPARED_INGREDIENT=PREPARED_INGREDIENT,
     )
-
-
-@lru_cache(maxsize=512)
-def prepare_embeddings_tokens(tokens: tuple[str, ...]) -> list[str]:
-    """Prepare tokens for use with embeddings model.
-
-    This involves obtaning the stem for the token and discarding tokens which are
-    numeric, which are punctuation, or which are in STOP_WORDS.
-
-    Parameters
-    ----------
-    tokens : tuple[str, ...]
-        Tuple of tokens.
-
-    Returns
-    -------
-    list[str]
-        Prepared tokens.
-    """
-    embeddings = load_embeddings_model()
-
-    return [
-        stem(token.lower())
-        for token in tokens
-        if stem(token.lower()) in embeddings
-        and not token.isnumeric()
-        and not token.isdigit()
-        and not token.isdecimal()
-        and not token.isspace()
-        and token not in string.punctuation
-        and token not in STOP_WORDS
-        and len(token) > 1
-    ]

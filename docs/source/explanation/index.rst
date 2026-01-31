@@ -9,7 +9,8 @@ Post-processing of the sequence of labels and tokens is then used to populate th
 
 The figure below shows the processing pipelines used for training the model and parsing a sentence.
 
-.. figure:: /_static/diagrams/pipelines.svg
+.. figure:: /_static/diagrams/pipelines.png
+  :class: dark-light
   :alt: Training and parsing pipelines.
 
   Training and parsing pipelines.

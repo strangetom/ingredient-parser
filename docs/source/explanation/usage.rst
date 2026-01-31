@@ -6,7 +6,8 @@ Model Usage
 With a model trained, it can be used to label the tokens of an ingredient sentence.
 The process is shown in the figure below, taking the lower **Parsing** branch of the diagram.
 
-.. figure:: /_static/diagrams/pipelines.svg
+.. figure:: /_static/diagrams/pipelines.png
+  :class: dark-light
   :alt: Training and parsing pipelines.
 
   Training and parsing pipelines.
