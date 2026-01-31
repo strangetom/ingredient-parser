@@ -40,7 +40,7 @@ Source = "https://github.com/strangetom/ingredient-parser"
 Changelog = "https://github.com/strangetom/ingredient-parser/blob/master/CHANGELOG.md"
 
 [tool.setuptools]
-packages = ["ingredient_parser", "ingredient_parser.en"]
+packages = ["ingredient_parser", "ingredient_parser.en", "ingredient_parser.en.foundationfoods"]
 
 [tool.setuptools.dynamic]
 version =  {attr = "ingredient_parser.__version__"}
