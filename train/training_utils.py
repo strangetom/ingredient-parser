@@ -200,8 +200,7 @@ def load_datasets(
         Name of database table containing training data.
     datasets : list[str]
         List of data source to include.
-        Valid options are: nyt, cookstr, bbc, cookstr, tc.
-        Default is PARSER.
+        Valid options are: nyt, cookstr, bbc, allrecipes, tc.
     discard_other : bool, optional
         If True, discard sentences containing tokens with OTHER label.
     combine_name_labels :  bool, optional
