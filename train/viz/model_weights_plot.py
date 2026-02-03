@@ -57,7 +57,7 @@ LABEL_OFFSET = {
 FeatureWeights = dict[str, dict[str, list[float]]]
 
 
-def plot(features: FeatureWeights, output: pathlib.Path) -> str:
+def plot(features: FeatureWeights, output: pathlib.Path) -> pathlib.Path:
     """Plot figure showing distribution of weights for each label for each feature.
 
     Parameters
@@ -69,7 +69,7 @@ def plot(features: FeatureWeights, output: pathlib.Path) -> str:
 
     Returns
     -------
-    str
+    pathlib.Path
         Path to saved file.
     """
     fig, ax = plt.subplots(1, 1, figsize=(10, 100))
@@ -88,8 +88,8 @@ def plot(features: FeatureWeights, output: pathlib.Path) -> str:
         "SIZE",
         "PUNC",
     }
-    for i, (feat, weights) in enumerate(features.items()):
-        for label, weights in weights.items():
+    for i, (_, feat_weights) in enumerate(sorted(features.items(), key=lambda x: x[0])):
+        for label, weights in feat_weights.items():
             y = [i + LABEL_OFFSET[label]] * len(weights)
 
             label_prefix = "" if label in unlabelled_lines else "_"
@@ -102,7 +102,7 @@ def plot(features: FeatureWeights, output: pathlib.Path) -> str:
         ax.hlines(i + 0.5, x_min, x_max, color="#7c6f64")
 
     ax.set_yticks(list(range(len(features))))
-    ax.set_yticklabels(list(features.keys()))
+    ax.set_yticklabels(list(sorted(features.keys())))
     ax.set_ylim((-0.5, len(features) - 0.5))
     ax.set_xlim((x_min, x_max))
     ax.grid(True, axis="x")
@@ -128,11 +128,11 @@ def load_model_features(model_path: str) -> FeatureWeights:
     FeatureWeights
         Weights for each feature.
     """
-    tagger = pycrfsuite.Tagger()
+    tagger = pycrfsuite.Tagger()  # type: ignore
     tagger.open(str(model_path))
 
     tagger_features = tagger.info()
-    features = defaultdict(lambda: defaultdict(list))
+    features: FeatureWeights = defaultdict(lambda: defaultdict(list))
     for (feature, label), weight in tagger_features.state_features.items():
         feature_name = feature.split(":", 1)[0]
         features[feature_name][label].append(weight)
