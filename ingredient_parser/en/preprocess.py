@@ -113,7 +113,7 @@ class PreProcessor:
         Tokenised ingredient sentence.
     """
 
-    def __init__(self, input_sentence: str):
+    def __init__(self, input_sentence: str, custom_units: dict[str, str]):
         """Initialise.
 
         Parameters
@@ -124,6 +124,8 @@ class PreProcessor:
         self.input: str = input_sentence
         self.sentence: str = self._normalise(input_sentence)
         logger.debug(f'Normalised sentence: "{self.sentence}".')
+
+        self._units = UNITS | custom_units
 
         self.singularised_indices = []
         self.tokenized_sentence = self._calculate_tokens(self.sentence)
@@ -552,7 +554,7 @@ class PreProcessor:
             # Convert tokens:
             # * Singularise units, keeping track of indices of singularised tokens
             # * Replace numeric token with "!num"
-            if singular := UNITS.get(text):
+            if singular := self._units.get(text):
                 self.singularised_indices.append(i)
                 feat_text = singular
                 text = singular
@@ -622,7 +624,7 @@ class PreProcessor:
         >>> p._is_unit("beef")
         False
         """
-        return token.lower() in UNITS.values()
+        return token.lower() in self._units.values()
 
     def _is_punc(self, token: str) -> bool:
         """Return True if token is a punctuation mark.

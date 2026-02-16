@@ -97,6 +97,8 @@ class PostProcessor:
         List of labels for tokens.
     scores : list[float]
         Confidence associated with the label for each token.
+    custom_units : dict[str, str]
+        Dict of custom units as plural: singular pairs.
     separate_names : bool, optional
         If True and the sentence contains multiple alternative ingredients, return an
         IngredientText object for each ingredient name, otherwise return a single
@@ -129,6 +131,7 @@ class PostProcessor:
         pos_tags: list[str],
         labels: list[str],
         scores: list[float],
+        custom_units: dict[str, str],
         separate_names: bool = True,
         discard_isolated_stop_words: bool = True,
         string_units: bool = False,
@@ -140,6 +143,7 @@ class PostProcessor:
         self.pos_tags = pos_tags
         self.labels = labels
         self.scores = scores
+        self.custom_units = custom_units
         self.separate_names = separate_names
         self.discard_isolated_stop_words = discard_isolated_stop_words
         self.string_units = string_units
@@ -1070,6 +1074,7 @@ class PostProcessor:
                         APPROXIMATE=self._is_approximate(match[0], tokens, labels, idx),
                         string_units=self.string_units,
                         volumetric_units_system=self.volumetric_units_system,
+                        custom_units=self.custom_units,
                     )
                     amounts.append(first)
                     # Pop the first and last items from the list of matching indices
@@ -1096,6 +1101,7 @@ class PostProcessor:
                             APPROXIMATE=first.APPROXIMATE,
                             string_units=self.string_units,
                             volumetric_units_system=self.volumetric_units_system,
+                            custom_units=self.custom_units,
                         )
                         amounts.append(amount)
 
@@ -1268,6 +1274,7 @@ class PostProcessor:
                     starting_index=idx[mstart1],
                     string_units=self.string_units,
                     volumetric_units_system=self.volumetric_units_system,
+                    custom_units=self.custom_units,
                 )
 
                 # Second amount
@@ -1285,6 +1292,7 @@ class PostProcessor:
                     starting_index=idx[mstart2],
                     string_units=self.string_units,
                     volumetric_units_system=self.volumetric_units_system,
+                    custom_units=self.custom_units,
                 )
 
                 # Check if flags should be set and make sure both IngredientAmounts get
@@ -1534,6 +1542,7 @@ class PostProcessor:
                     PREPARED_INGREDIENT=amount.PREPARED_INGREDIENT,
                     string_units=self.string_units,
                     volumetric_units_system=self.volumetric_units_system,
+                    custom_units=self.custom_units,
                 )
             )
 
