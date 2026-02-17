@@ -12,7 +12,9 @@ class TestPostProcessor_is_prepared:
         labels = ["COMMENT", "COMMENT", "QTY", "UNIT", "B_NAME_TOK", "I_NAME_TOK"]
         idx = [0, 1, 2, 3, 4, 5]
 
-        p = PostProcessor(sentence, tokens, pos_tags, labels, [0] * len(tokens))
+        p = PostProcessor(
+            sentence, tokens, pos_tags, labels, [0] * len(tokens), custom_units={}
+        )
         assert p._is_prepared(2, tokens, labels, idx)
         assert p.consumed == [1, 0]
 
@@ -26,7 +28,9 @@ class TestPostProcessor_is_prepared:
         labels = ["COMMENT", "COMMENT", "QTY", "UNIT", "B_NAME_TOK", "I_NAME_TOK"]
         idx = [0, 1, 2, 3, 4, 5]
 
-        p = PostProcessor(sentence, tokens, pos_tags, labels, [0] * len(tokens))
+        p = PostProcessor(
+            sentence, tokens, pos_tags, labels, [0] * len(tokens), custom_units={}
+        )
         assert p._is_prepared(2, tokens, labels, idx)
         assert p.consumed == [1, 0]
 
@@ -40,6 +44,8 @@ class TestPostProcessor_is_prepared:
         labels = ["COMMENT", "COMMENT", "COMMENT", "QTY", "UNIT"]
         idx = [0, 1, 2, 3, 4, 5]
 
-        p = PostProcessor(sentence, tokens, pos_tags, labels, [0] * len(tokens))
+        p = PostProcessor(
+            sentence, tokens, pos_tags, labels, [0] * len(tokens), custom_units={}
+        )
         assert p._is_prepared(3, tokens, labels, idx)
         assert p.consumed == [1, 0]

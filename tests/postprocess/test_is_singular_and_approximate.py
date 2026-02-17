@@ -12,7 +12,9 @@ class TestPostProcessor_is_singular_and_approximate:
         labels = ["COMMENT", "COMMENT", "QTY", "UNIT"]
         idx = [0, 1, 2, 3]
 
-        p = PostProcessor(sentence, tokens, pos_tags, labels, [0] * len(tokens))
+        p = PostProcessor(
+            sentence, tokens, pos_tags, labels, [0] * len(tokens), custom_units={}
+        )
         assert p._is_singular_and_approximate(2, tokens, labels, idx)
         assert p.consumed == [1, 0]
 
@@ -26,6 +28,8 @@ class TestPostProcessor_is_singular_and_approximate:
         labels = ["COMMENT", "COMMENT", "QTY", "UNIT"]
         idx = [0, 1, 2, 3]
 
-        p = PostProcessor(sentence, tokens, pos_tags, labels, [0] * len(tokens))
+        p = PostProcessor(
+            sentence, tokens, pos_tags, labels, [0] * len(tokens), custom_units={}
+        )
         assert not p._is_singular_and_approximate(2, tokens, labels, idx)
         assert p.consumed == []

@@ -165,3 +165,44 @@ If enabled, the ingredient names are matched to entries in the :abbr:`FDC (Food 
 See the :doc:`Foundation Foods </explanation/foundation>` page for more details.
 
 This is disabled by default and the ``foundation_foods`` field is an empty list.
+
+``custom_units``
+^^^^^^^^^^^^^^^^
+
+Default: **None**
+
+Custom units can be provided to aid the underlying model in identifying units.
+The custom units should be provided as a ``dict`` of plural-singular form pairs, for example
+
+.. code:: python
+
+    my_units = {
+        "tablespoons": "tablespoon",
+    }
+
+The provided units should not start with a capital letter (the capitalized version of the words are generated automatically), but may include capital letters in any other position.
+
+.. topic:: Example
+
+    .. code:: python
+
+        >>> parse_ingredient("1 barrel sausages", custom_units={"barrels": "barrel"}).amount[0].unit
+        ''
+
+        >>> parse_ingredient("1 barrel sausages", custom_units={"barrels": "barrel"}).amount[0].unit
+        <Unit('barrel')>
+
+.. important::
+
+  Using a custom units dictionary does not guarantee that the word will be identified as a unit.
+  The underlying model uses a number of features of each word and the surround context to determine the appropriate label.
+  There may be cases where the model weight determine a different label is more appropriate for a word, despite the word being in the custom units dictionary.
+
+  That being said, adding words to this dictionary will significantly increase the likelihood of a word being identified as a unit.
+
+.. tip::
+
+  By default, :class:`pint.Unit` objects are returned for units if there is a match in the Pint units registry.
+  If there is any chance that a custom unit could be interpreted in a way that matches an entry in the Pint units registry, the results may be unexpected.
+
+  You may wish to consider using the ``string_units=True`` option to prevent this.

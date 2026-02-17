@@ -261,8 +261,7 @@ def stem(token: str) -> str:
     return STEMMER.stem(token)
 
 
-@lru_cache(maxsize=512)
-def pluralise_units(sentence: str) -> str:
+def pluralise_units(sentence: str, custom_units: dict[str, str]) -> str:
     """Pluralise units in the sentence.
 
     Use the same UNITS dictionary as PreProcessor to make any units in sentence plural
@@ -271,6 +270,8 @@ def pluralise_units(sentence: str) -> str:
     ----------
     sentence : str
         Input sentence.
+    custom_units : dict[str, str]
+        Dict of custom plural: singular pairs of units
 
     Returns
     -------
@@ -289,7 +290,8 @@ def pluralise_units(sentence: str) -> str:
     >>> pluralise_units("1.5 loaf bread")
     '1.5 loaves bread'
     """
-    for plural, singular in UNITS.items():
+    units = UNITS | custom_units
+    for plural, singular in units.items():
         sentence = re.sub(rf"\b({singular})\b", f"{plural}", sentence)
 
     return sentence
@@ -499,6 +501,7 @@ def ingredient_amount_factory(
     PREPARED_INGREDIENT: bool = False,
     string_units: bool = False,
     volumetric_units_system: str = "us_customary",
+    custom_units: dict[str, str] = {},
 ) -> IngredientAmount:
     """Create ingredient amount object from parts.
 
@@ -580,9 +583,9 @@ def ingredient_amount_factory(
 
     # Pluralise unit as necessary
     if _quantity != 1 and _quantity != "" and not RANGE:
-        text = pluralise_units(text)
+        text = pluralise_units(text, custom_units)
         if isinstance(_unit, str):
-            _unit = pluralise_units(_unit)
+            _unit = pluralise_units(_unit, custom_units)
 
     # Fix up text:
     # 1. Replace intermediate fractions with text fraction

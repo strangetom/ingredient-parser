@@ -29,6 +29,7 @@ def p_mulitple_names():
         pos_tags,
         labels,
         scores,
+        custom_units={},
         discard_isolated_stop_words=False,
         foundation_foods=True,
     )
