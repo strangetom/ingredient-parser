@@ -53,7 +53,7 @@ class TestPostProcessor_sizable_unit_pattern:
         ]
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
-        p = PostProcessor(sentence, tokens, pos_tags, labels, scores)
+        p = PostProcessor(sentence, tokens, pos_tags, labels, scores, custom_units={})
 
         expected = [
             ingredient_amount_factory(
@@ -126,7 +126,7 @@ class TestPostProcessor_sizable_unit_pattern:
         ]
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
-        p = PostProcessor(sentence, tokens, pos_tags, labels, scores)
+        p = PostProcessor(sentence, tokens, pos_tags, labels, scores, custom_units={})
 
         expected = [
             ingredient_amount_factory(
@@ -183,7 +183,7 @@ class TestPostProcessor_sizable_unit_pattern:
         ]
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
-        p = PostProcessor(sentence, tokens, pos_tags, labels, scores)
+        p = PostProcessor(sentence, tokens, pos_tags, labels, scores, custom_units={})
 
         expected = [
             ingredient_amount_factory(
@@ -219,7 +219,7 @@ class TestPostProcessor_sizable_unit_pattern:
         labels = ["QTY", "UNIT", "NAME", "NAME", "NAME", "NAME"]
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
-        p = PostProcessor(sentence, tokens, pos_tags, labels, scores)
+        p = PostProcessor(sentence, tokens, pos_tags, labels, scores, custom_units={})
 
         # Don't check scores
         assert p._sizable_unit_pattern(idx, tokens, labels, scores) == []
@@ -235,7 +235,7 @@ class TestPostProcessor_sizable_unit_pattern:
         labels = ["QTY", "UNIT", "COMMENT", "QTY", "QTY", "UNIT", "UNIT", "NAME"]
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
-        p = PostProcessor(sentence, tokens, pos_tags, labels, scores)
+        p = PostProcessor(sentence, tokens, pos_tags, labels, scores, custom_units={})
 
         expected = [
             ingredient_amount_factory(
@@ -280,6 +280,7 @@ class TestPostProcessor_sizable_unit_pattern:
             pos_tags,
             labels,
             scores,
+            custom_units={},
             volumetric_units_system="imperial",
         )
 
@@ -321,7 +322,15 @@ class TestPostProcessor_sizable_unit_pattern:
         labels = ["QTY", "UNIT", "COMMENT", "QTY", "QTY", "UNIT", "UNIT", "NAME"]
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
-        p = PostProcessor(sentence, tokens, pos_tags, labels, scores, string_units=True)
+        p = PostProcessor(
+            sentence,
+            tokens,
+            pos_tags,
+            labels,
+            scores,
+            custom_units={},
+            string_units=True,
+        )
 
         expected = [
             ingredient_amount_factory(

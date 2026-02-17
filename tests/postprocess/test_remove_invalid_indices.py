@@ -56,7 +56,7 @@ def p():
     ]
     scores = [0.0] * len(labels)
 
-    return PostProcessor(sentence, tokens, pos_tags, labels, scores)
+    return PostProcessor(sentence, tokens, pos_tags, labels, scores, custom_units={})
 
 
 class TestPostProcessor_fix_punctuation:

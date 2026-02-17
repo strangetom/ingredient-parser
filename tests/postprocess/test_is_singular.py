@@ -12,7 +12,9 @@ class TestPostProcessor_is_singular:
         labels = ["QTY", "B_NAME_TOK", "I_NAME_TOK", "QTY", "UNIT", "COMMENT"]
         idx = [0, 1, 2, 3, 4, 5]
 
-        p = PostProcessor(sentence, tokens, pos_tags, labels, [0] * len(tokens))
+        p = PostProcessor(
+            sentence, tokens, pos_tags, labels, [0] * len(tokens), custom_units={}
+        )
         assert p._is_singular(4, tokens, labels, idx)
         assert p.consumed == [5]
 
@@ -37,7 +39,9 @@ class TestPostProcessor_is_singular:
         ]
         idx = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 
-        p = PostProcessor(sentence, tokens, pos_tags, labels, [0] * len(tokens))
+        p = PostProcessor(
+            sentence, tokens, pos_tags, labels, [0] * len(tokens), custom_units={}
+        )
         assert p._is_singular(7, tokens, labels, idx)
         assert p.consumed == [9]
 
@@ -51,6 +55,8 @@ class TestPostProcessor_is_singular:
         labels = ["QTY", "B_NAME_TOK", "I_NAME_TOK", "QTY", "UNIT", "COMMENT"]
         idx = [0, 1, 2, 3, 4, 5]
 
-        p = PostProcessor(sentence, tokens, pos_tags, labels, [0] * len(tokens))
+        p = PostProcessor(
+            sentence, tokens, pos_tags, labels, [0] * len(tokens), custom_units={}
+        )
         assert not p._is_singular(4, tokens, labels, idx)
         assert p.consumed == []

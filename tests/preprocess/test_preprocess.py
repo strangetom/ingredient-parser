@@ -8,7 +8,7 @@ class TestPreProcessor__builtins__:
         """
         Test PreProcessor __str__
         """
-        p = PreProcessor("1/2 cup chicken broth")
+        p = PreProcessor("1/2 cup chicken broth", custom_units={})
         truth = """Pre-processed recipe ingredient sentence
 \t  Input: 1/2 cup chicken broth
 \tCleaned: #1$2 cup chicken broth
@@ -19,7 +19,7 @@ class TestPreProcessor__builtins__:
         """
         Test PreProessor __repr__
         """
-        p = PreProcessor("1/2 cup chicken broth")
+        p = PreProcessor("1/2 cup chicken broth", custom_units={})
         assert repr(p) == 'PreProcessor("1/2 cup chicken broth")'
 
 
@@ -75,13 +75,13 @@ class TestPreProcessor_normalise:
         Test that each example sentence is normalised correctly
         """
         input_sentence, normalised = testcase
-        p = PreProcessor(input_sentence)
+        p = PreProcessor(input_sentence, custom_units={})
         assert p.sentence == normalised
 
 
 class TestPreProcessor_sentence_features:
     def test(self):
-        p = PreProcessor("1/2 cup chicken broth")
+        p = PreProcessor("1/2 cup chicken broth", custom_units={})
         expected = [
             {
                 "bias": "",

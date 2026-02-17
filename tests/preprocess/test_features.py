@@ -8,7 +8,7 @@ def p():
     """Define an empty PreProcessor object to use for testing the PreProcessor
     class methods.
     """
-    return PreProcessor(".")
+    return PreProcessor(".", custom_units={})
 
 
 class TestPreProcessor_is_unit:
@@ -121,7 +121,7 @@ class TestPreProcessor_is_inside_parentheses:
         Token index is inside parens
         """
         input_sentence = "8-10 teaspoons pine nuts (ground), toasted"
-        p = PreProcessor(input_sentence)
+        p = PreProcessor(input_sentence, custom_units={})
         assert p._is_inside_parentheses(5)
 
     def test_before(self):
@@ -129,7 +129,7 @@ class TestPreProcessor_is_inside_parentheses:
         Token index is before parens
         """
         input_sentence = "8-10 teaspoons pine nuts (ground), toasted"
-        p = PreProcessor(input_sentence)
+        p = PreProcessor(input_sentence, custom_units={})
         assert not p._is_inside_parentheses(2)
 
     def test_after(self):
@@ -137,7 +137,7 @@ class TestPreProcessor_is_inside_parentheses:
         Token index is before parens
         """
         input_sentence = "8-10 teaspoons pine nuts (ground), toasted"
-        p = PreProcessor(input_sentence)
+        p = PreProcessor(input_sentence, custom_units={})
         assert not p._is_inside_parentheses(7)
 
     def test_open_parens(self):
@@ -145,7 +145,7 @@ class TestPreProcessor_is_inside_parentheses:
         Token index is (
         """
         input_sentence = "8-10 teaspoons pine nuts (ground), toasted"
-        p = PreProcessor(input_sentence)
+        p = PreProcessor(input_sentence, custom_units={})
         assert p._is_inside_parentheses(4)
 
     def test_close_parens(self):
@@ -153,12 +153,12 @@ class TestPreProcessor_is_inside_parentheses:
         Token index is (
         """
         input_sentence = "8-10 teaspoons pine nuts (ground), toasted"
-        p = PreProcessor(input_sentence)
+        p = PreProcessor(input_sentence, custom_units={})
         assert p._is_inside_parentheses(6)
 
     def test_multiple_parens(self):
         input_sentence = "8-10 teaspoons (10 ml) pine nuts (ground), toasted"
-        p = PreProcessor(input_sentence)
+        p = PreProcessor(input_sentence, custom_units={})
         assert p._is_inside_parentheses(3)
         assert not p._is_inside_parentheses(6)
         assert p._is_inside_parentheses(9)
@@ -170,7 +170,7 @@ class TestPreProcess_follows_plus:
         No "plus" in input
         """
         input_sentence = "freshly ground black pepper"
-        p = PreProcessor(input_sentence)
+        p = PreProcessor(input_sentence, custom_units={})
         assert not p._follows_plus(2)
 
     def test_before_plus(self):
@@ -178,7 +178,7 @@ class TestPreProcess_follows_plus:
         Token index is before "plus"
         """
         input_sentence = "freshly ground black pepper, plus more to taste"
-        p = PreProcessor(input_sentence)
+        p = PreProcessor(input_sentence, custom_units={})
         assert not p._follows_plus(1)
 
     def test_after_plus(self):
@@ -186,7 +186,7 @@ class TestPreProcess_follows_plus:
         Token index is after "plus"
         """
         input_sentence = "freshly ground black pepper, plus more to taste"
-        p = PreProcessor(input_sentence)
+        p = PreProcessor(input_sentence, custom_units={})
         assert p._follows_plus(7)
 
     def test_index_is_plus(self):
@@ -194,7 +194,7 @@ class TestPreProcess_follows_plus:
         Token at index is "plus"
         """
         input_sentence = "freshly ground black pepper, plus more to taste"
-        p = PreProcessor(input_sentence)
+        p = PreProcessor(input_sentence, custom_units={})
         assert not p._follows_plus(5)
 
     def test_index_is_plus_and_follows_plus(self):
@@ -204,7 +204,7 @@ class TestPreProcess_follows_plus:
         input_sentence = (
             "freshly ground black pepper, plus white pepper, plus more to taste"
         )
-        p = PreProcessor(input_sentence)
+        p = PreProcessor(input_sentence, custom_units={})
         assert p._follows_plus(9)
 
 
@@ -214,7 +214,7 @@ class TestPreProcess_follows_comma:
         No comma in input
         """
         input_sentence = "freshly ground black pepper"
-        p = PreProcessor(input_sentence)
+        p = PreProcessor(input_sentence, custom_units={})
         assert not p._follows_comma(2)
 
     def test_before_comma(self):
@@ -222,7 +222,7 @@ class TestPreProcess_follows_comma:
         Token index is before comma
         """
         input_sentence = "freshly ground black pepper, to taste"
-        p = PreProcessor(input_sentence)
+        p = PreProcessor(input_sentence, custom_units={})
         assert not p._follows_comma(1)
 
     def test_after_comma(self):
@@ -230,7 +230,7 @@ class TestPreProcess_follows_comma:
         Token index is after comma
         """
         input_sentence = "freshly ground black pepper, to taste"
-        p = PreProcessor(input_sentence)
+        p = PreProcessor(input_sentence, custom_units={})
         assert p._follows_comma(5)
 
     def test_index_is_comma(self):
@@ -238,7 +238,7 @@ class TestPreProcess_follows_comma:
         Token at index is comma
         """
         input_sentence = "freshly ground black pepper, to taste"
-        p = PreProcessor(input_sentence)
+        p = PreProcessor(input_sentence, custom_units={})
         assert not p._follows_comma(4)
 
     def test_index_is_comma_and_follows_comma(self):
@@ -246,7 +246,7 @@ class TestPreProcess_follows_comma:
         Token at index is comma and follows another comma
         """
         input_sentence = "freshly ground black pepper, or white pepper, to taste"
-        p = PreProcessor(input_sentence)
+        p = PreProcessor(input_sentence, custom_units={})
         assert p._follows_comma(8)
 
 

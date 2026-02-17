@@ -17,7 +17,7 @@ class TestPostProcessor_postprocess_names:
             IngredientText(text="coconut milk", confidence=0, starting_index=5),
         ]
 
-        p = PostProcessor(sentence, tokens, pos_tags, labels, scores)
+        p = PostProcessor(sentence, tokens, pos_tags, labels, scores, custom_units={})
         names, _ = p._postprocess_names()
         assert names == expected
 
@@ -36,7 +36,7 @@ class TestPostProcessor_postprocess_names:
             IngredientText(text="olive oil", confidence=0, starting_index=4),
         ]
 
-        p = PostProcessor(sentence, tokens, pos_tags, labels, scores)
+        p = PostProcessor(sentence, tokens, pos_tags, labels, scores, custom_units={})
         names, _ = p._postprocess_names()
         assert names == expected
 
@@ -55,7 +55,7 @@ class TestPostProcessor_postprocess_names:
             IngredientText(text="vegetable stock", confidence=0, starting_index=4),
         ]
 
-        p = PostProcessor(sentence, tokens, pos_tags, labels, scores)
+        p = PostProcessor(sentence, tokens, pos_tags, labels, scores, custom_units={})
         names, _ = p._postprocess_names()
         assert names == expected
 
@@ -82,7 +82,7 @@ class TestPostProcessor_postprocess_names:
             IngredientText(text="fresh coriander", confidence=0, starting_index=3),
         ]
 
-        p = PostProcessor(sentence, tokens, pos_tags, labels, scores)
+        p = PostProcessor(sentence, tokens, pos_tags, labels, scores, custom_units={})
         names, _ = p._postprocess_names()
         assert names == expected
 
@@ -109,7 +109,7 @@ class TestPostProcessor_postprocess_names:
             IngredientText(text="hot vegetable stock", confidence=0, starting_index=2),
         ]
 
-        p = PostProcessor(sentence, tokens, pos_tags, labels, scores)
+        p = PostProcessor(sentence, tokens, pos_tags, labels, scores, custom_units={})
         names, _ = p._postprocess_names()
         assert names == expected
 
@@ -127,6 +127,6 @@ class TestPostProcessor_postprocess_names:
             IngredientText(text="sugar", confidence=0, starting_index=2),
         ]
 
-        p = PostProcessor(sentence, tokens, pos_tags, labels, scores)
+        p = PostProcessor(sentence, tokens, pos_tags, labels, scores, custom_units={})
         names, _ = p._postprocess_names()
         assert names == expected

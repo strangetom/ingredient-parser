@@ -22,7 +22,7 @@ def p():
         0.9969237827902526,
     ]
 
-    return PostProcessor(sentence, tokens, pos_tags, labels, scores)
+    return PostProcessor(sentence, tokens, pos_tags, labels, scores, custom_units={})
 
 
 class TestPostProcessor_fallback_pattern:
@@ -72,7 +72,9 @@ class TestPostProcessor_fallback_pattern:
         """
         Test that imperial units are returned for 'cup'
         """
-        p = PostProcessor("", [], [], [], [], volumetric_units_system="imperial")
+        p = PostProcessor(
+            "", [], [], [], [], custom_units={}, volumetric_units_system="imperial"
+        )
         tokens = ["About", "2", "cup", "flour"]
         labels = ["COMMENT", "QTY", "UNIT", "B_NAME_TOK"]
         scores = [0.0] * len(tokens)
@@ -96,7 +98,7 @@ class TestPostProcessor_fallback_pattern:
         """
         Test that the returned unit is 'cups'
         """
-        p = PostProcessor("", [], [], [], [], string_units=True)
+        p = PostProcessor("", [], [], [], [], custom_units={}, string_units=True)
         tokens = ["About", "2", "cup", "flour"]
         labels = ["COMMENT", "QTY", "UNIT", "B_NAME_TOK"]
         scores = [0.0] * len(tokens)

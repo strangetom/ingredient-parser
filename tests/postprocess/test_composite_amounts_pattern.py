@@ -67,7 +67,7 @@ class TestPostProcessor_composite_amounts_pattern:
         ]
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
-        p = PostProcessor(sentence, tokens, pos_tags, labels, scores)
+        p = PostProcessor(sentence, tokens, pos_tags, labels, scores, custom_units={})
 
         expected = [
             CompositeIngredientAmount(
@@ -122,7 +122,7 @@ class TestPostProcessor_composite_amounts_pattern:
         ]
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
-        p = PostProcessor(sentence, tokens, pos_tags, labels, scores)
+        p = PostProcessor(sentence, tokens, pos_tags, labels, scores, custom_units={})
 
         expected = [
             CompositeIngredientAmount(
@@ -184,6 +184,7 @@ class TestPostProcessor_composite_amounts_pattern:
             pos_tags,
             labels,
             scores,
+            custom_units={},
             volumetric_units_system="imperial",
         )
 
@@ -242,7 +243,15 @@ class TestPostProcessor_composite_amounts_pattern:
         ]
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
-        p = PostProcessor(sentence, tokens, pos_tags, labels, scores, string_units=True)
+        p = PostProcessor(
+            sentence,
+            tokens,
+            pos_tags,
+            labels,
+            scores,
+            custom_units={},
+            string_units=True,
+        )
 
         expected = [
             CompositeIngredientAmount(
@@ -330,7 +339,7 @@ class TestPostProcessor_composite_amounts_pattern:
         ]
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
-        p = PostProcessor(sentence, tokens, pos_tags, labels, scores)
+        p = PostProcessor(sentence, tokens, pos_tags, labels, scores, custom_units={})
 
         expected = [
             CompositeIngredientAmount(
@@ -414,7 +423,7 @@ class TestPostProcessor_composite_amounts_pattern:
         ]
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
-        p = PostProcessor(sentence, tokens, pos_tags, labels, scores)
+        p = PostProcessor(sentence, tokens, pos_tags, labels, scores, custom_units={})
 
         expected = [
             CompositeIngredientAmount(
@@ -498,7 +507,7 @@ class TestPostProcessor_composite_amounts_pattern:
         ]
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
-        p = PostProcessor(sentence, tokens, pos_tags, labels, scores)
+        p = PostProcessor(sentence, tokens, pos_tags, labels, scores, custom_units={})
 
         expected = [
             CompositeIngredientAmount(
@@ -582,7 +591,7 @@ class TestPostProcessor_composite_amounts_pattern:
         ]
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
-        p = PostProcessor(sentence, tokens, pos_tags, labels, scores)
+        p = PostProcessor(sentence, tokens, pos_tags, labels, scores, custom_units={})
 
         expected = [
             CompositeIngredientAmount(
@@ -635,7 +644,7 @@ class TestPostProcessor_composite_amounts_pattern:
         ]
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
-        p = PostProcessor(sentence, tokens, pos_tags, labels, scores)
+        p = PostProcessor(sentence, tokens, pos_tags, labels, scores, custom_units={})
 
         # Don't check scores
         output = p._composite_amounts_pattern(idx, tokens, labels, scores)
@@ -693,7 +702,7 @@ class TestPostProcessor_composite_amounts_pattern:
         ]
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
-        p = PostProcessor(sentence, tokens, pos_tags, labels, scores)
+        p = PostProcessor(sentence, tokens, pos_tags, labels, scores, custom_units={})
 
         expected = [
             CompositeIngredientAmount(
@@ -783,7 +792,7 @@ class TestPostProcessor_composite_amounts_pattern:
         ]
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
-        p = PostProcessor(sentence, tokens, pos_tags, labels, scores)
+        p = PostProcessor(sentence, tokens, pos_tags, labels, scores, custom_units={})
 
         expected = [
             CompositeIngredientAmount(
@@ -855,7 +864,7 @@ class TestPostProcessor_composite_amounts_pattern:
         ]
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
-        p = PostProcessor(sentence, tokens, pos_tags, labels, scores)
+        p = PostProcessor(sentence, tokens, pos_tags, labels, scores, custom_units={})
 
         expected = [
             CompositeIngredientAmount(
@@ -929,7 +938,7 @@ class TestPostProcessor_composite_amounts_pattern:
         ]
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
-        p = PostProcessor(sentence, tokens, pos_tags, labels, scores)
+        p = PostProcessor(sentence, tokens, pos_tags, labels, scores, custom_units={})
 
         expected = [
             CompositeIngredientAmount(
@@ -1022,7 +1031,7 @@ class TestPostProcessor_composite_amounts_pattern:
         ]
         scores = [0.0] * len(tokens)
         idx = list(range(len(tokens)))
-        p = PostProcessor(sentence, tokens, pos_tags, labels, scores)
+        p = PostProcessor(sentence, tokens, pos_tags, labels, scores, custom_units={})
 
         expected = [
             CompositeIngredientAmount(
