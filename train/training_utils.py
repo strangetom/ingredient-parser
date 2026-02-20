@@ -308,7 +308,7 @@ def process_sentences(
 
         source.append(entry["source"])
         sentences.append(entry["sentence"])
-        p = PreProcessor(entry["sentence"])
+        p = PreProcessor(entry["sentence"], custom_units={})
         uids.append(entry["id"])
         features.append(p.sentence_features())
         tokens.append([t.text for t in p.tokenized_sentence])
