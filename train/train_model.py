@@ -191,6 +191,8 @@ def train_parser_model(
             "max_linesearch": 5,
             "num_memories": 3,
             "period": 10,
+            "max_iterations": 1500,
+            "delta": 5e-5,
         }
     )
     for X, y in zip(features_train, truth_train):
