@@ -182,11 +182,15 @@ The custom units should be provided as a ``dict`` of plural-singular form pairs,
 
 The provided units should not start with a capital letter (the capitalized version of the words are generated automatically), but may include capital letters in any other position.
 
+The provided units should comprise a single word for both the plural and singular forms.
+Units containing spaces are not currently supported.
+
+
 .. topic:: Example
 
     .. code:: python
 
-        >>> parse_ingredient("1 barrel sausages", custom_units={"barrels": "barrel"}).amount[0].unit
+        >>> parse_ingredient("1 barrel sausages").amount[0].unit
         ''
 
         >>> parse_ingredient("1 barrel sausages", custom_units={"barrels": "barrel"}).amount[0].unit
