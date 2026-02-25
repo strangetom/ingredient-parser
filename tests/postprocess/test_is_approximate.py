@@ -82,6 +82,22 @@ class TestPostProcessor_is_approximate:
         assert p._is_approximate(1, tokens, labels, idx)
         assert p.consumed == [0]
 
+    def test_is_approximate_generous(self):
+        """
+        Test that QTY at index is indicated as approximate
+        """
+        sentence = "6 generous cups orange juice"
+        tokens = ["6", "generous", "cups", "orange", "juice"]
+        pos_tags = ["CD", "JJ", "NNS", "NN", "NN"]
+        labels = ["QTY", "UNIT", "UNIT", "B_NAME_TOK", "I_NAME_TOK"]
+        idx = [0, 1, 2, 3, 4]
+
+        p = PostProcessor(
+            sentence, tokens, pos_tags, labels, [0] * len(tokens), custom_units={}
+        )
+        assert p._is_approximate(2, tokens, labels, idx)
+        assert p.consumed == [1]
+
     def test_not_approximate(self):
         """
         Test that QTY at index is not indicated as approximate

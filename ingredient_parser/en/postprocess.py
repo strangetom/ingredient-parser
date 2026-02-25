@@ -1551,7 +1551,7 @@ class PostProcessor:
     def _is_approximate(
         self, i: int, tokens: list[str], labels: list[str], idx: list[int]
     ) -> bool:
-        """Return True is token at current index is approximate.
+        """Return True if token at current index is approximate.
 
         This is determined by the token label being QTY and the previous token being in
         a list of approximate tokens.
@@ -1610,6 +1610,11 @@ class PostProcessor:
             # Mark i - 1 and i - 2 elements as consumed
             self.consumed.append(idx[i - 1])
             self.consumed.append(idx[i - 2])
+            return True
+        elif labels[i] == "UNIT" and tokens[i - 1].lower() in APPROXIMATE_TOKENS:
+            # For cases like "2 generous cups"
+            # Mark i - 1 element as consumed
+            self.consumed.append(idx[i - 1])
             return True
 
         return False
