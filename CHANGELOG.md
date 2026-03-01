@@ -3,6 +3,7 @@
 ## develop
 
 * Add `custom_units` keyword argument to ``parse_ingredient`` that allow a dict of custom units to be provided to aid in identifying units. See the [docs](https://ingredient-parser.readthedocs.io/en/develop/tutorials/options.html#custom-units) for more details.
+* Mark amounts described as "generous" as `APPROXIMATE=True` e.g. 6 generous cups water.
 
 ## 2.5.0
 
