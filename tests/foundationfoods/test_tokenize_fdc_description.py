@@ -12,10 +12,13 @@ class TestTokenizeFDCDescription:
         description = "Vegetable chips"
 
         expected_tokens = ["veget", "chip"]
+        expected_pos_tags = ["JJ", "NNS"]
         expected_weights = [1.0, 1.0]
         assert tokenize_fdc_description(description) == TokenizedFDCDescription(
             tokens=expected_tokens,
+            pos_tags=expected_pos_tags,
             embedding_tokens=expected_tokens,
+            embedding_pos_tags=expected_pos_tags,
             embedding_weights=expected_weights,
         )
 
@@ -26,6 +29,7 @@ class TestTokenizeFDCDescription:
         description = "Chicken, thigh, meat and skin, raw"
 
         expected_tokens = ["chicken", "thigh", "meat", "and", "skin", "raw"]
+        expected_pos_tags = ["NN", "NN", "NN", "CC", "NN", "JJ"]
         expected_weights = [
             1.0,
             1.0 - 1e-3,
@@ -36,7 +40,9 @@ class TestTokenizeFDCDescription:
         ]
         assert tokenize_fdc_description(description) == TokenizedFDCDescription(
             tokens=expected_tokens,
+            pos_tags=expected_pos_tags,
             embedding_tokens=expected_tokens,
+            embedding_pos_tags=expected_pos_tags,
             embedding_weights=expected_weights,
         )
 
@@ -48,10 +54,13 @@ class TestTokenizeFDCDescription:
         description = "Chicken, canned, no broth"
 
         expected_tokens = ["chicken", "can", "no", "broth"]
+        expected_pos_tags = ["NN", "VBD", "DT", "NN"]
         expected_weights = [1.0, 1.0 - 1e-3, 0, 0]
         assert tokenize_fdc_description(description) == TokenizedFDCDescription(
             tokens=expected_tokens,
+            pos_tags=expected_pos_tags,
             embedding_tokens=expected_tokens,
+            embedding_pos_tags=expected_pos_tags,
             embedding_weights=expected_weights,
         )
 
@@ -63,9 +72,12 @@ class TestTokenizeFDCDescription:
         description = "Chicken, canned, with broth"
 
         expected_tokens = ["chicken", "can", "with", "broth"]
+        expected_pos_tags = ["NN", "VBD", "IN", "NN"]
         expected_weights = [1.0, 1.0 - 1e-3, 1 - 0.5 - 2e-3, 1 - 0.5 - 2e-3]
         assert tokenize_fdc_description(description) == TokenizedFDCDescription(
             tokens=expected_tokens,
+            pos_tags=expected_pos_tags,
             embedding_tokens=expected_tokens,
+            embedding_pos_tags=expected_pos_tags,
             embedding_weights=expected_weights,
         )
