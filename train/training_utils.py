@@ -200,8 +200,7 @@ def load_datasets(
         Name of database table containing training data.
     datasets : list[str]
         List of data source to include.
-        Valid options are: nyt, cookstr, bbc, cookstr, tc.
-        Default is PARSER.
+        Valid options are: nyt, cookstr, bbc, allrecipes, tc.
     discard_other : bool, optional
         If True, discard sentences containing tokens with OTHER label.
     combine_name_labels :  bool, optional
@@ -309,7 +308,7 @@ def process_sentences(
 
         source.append(entry["source"])
         sentences.append(entry["sentence"])
-        p = PreProcessor(entry["sentence"])
+        p = PreProcessor(entry["sentence"], custom_units={})
         uids.append(entry["id"])
         features.append(p.sentence_features())
         tokens.append([t.text for t in p.tokenized_sentence])

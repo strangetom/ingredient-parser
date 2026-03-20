@@ -1,0 +1,17 @@
+{
+	"feature.minfreq": 0.0,
+	"feature.possible_states": true,
+	"feature.possible_transitions": true,
+	"c1": 0.6,
+	"c2": 0.5,
+	"max_iterations": 1500,
+	"num_memories": 3,
+	"epsilon": 1e-5,
+	"period": 10,
+	"delta": 5e-5,
+	"linesearch": "MoreThuente",
+	"max_linesearch": 5,
+	"datetime": "2026-02-22T15:39:40.595741",
+	"stopping_reason": "L-BFGS terminated with the stopping criteria",
+	"sha256": "acc85f0ec9572ca59c7e6b23e8a75938b30ea8eb8546cea9be719a614b15e138"
+}

@@ -40,16 +40,7 @@ repos:
     rev: v2.3.13
     hooks:
       - id: biome-check
-        name: (webtools:repo) biome check typescript/javascript
+        name: (webtools:repo) biome-check
         args: ["./webtools/src", "--config-path=./webtools/biome.json"]
-        files: "\\.(jsx?|tsx?|c(js|ts)|m(js|ts)|d\\.(ts|cts|mts)|jsonc?)$"
-        exclude: ^docs/
-        require_serial: true
+        exclude: "^docs/"
         stages: [pre-commit]
-      - id: biome-check
-        name: (webtools:repo) biome check css
-        args: ["./webtools/src", "--config-path=./webtools/biome.json"]
-        types: [text]
-        files: "\\.(css?)$"
-        exclude: ^docs/
-        require_serial: true

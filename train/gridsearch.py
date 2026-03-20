@@ -15,6 +15,7 @@ from sklearn.model_selection import train_test_split
 from tabulate import tabulate
 
 from .train_model import DEFAULT_MODEL_LOCATION
+from .trainers import IngredientParserTrainer
 from .training_utils import (
     DataVectors,
     convert_num_ordinal,
@@ -440,12 +441,14 @@ def train_model_grid_search(
     save_model_path = Path(save_model).with_stem("model-" + str(uuid4()))
 
     # Train model
-    trainer = pycrfsuite.Trainer(algo, verbose=False)  # type: ignore
+    trainer = IngredientParserTrainer(algorithm=algo, verbose=True)
     # Set parameters
     trainer.set_params(parameters)
     for X, y in zip(features_train, truth_train):
         trainer.append(X, y)
     trainer.train(str(save_model_path))
+    config_file = trainer.write_model_config(save_model_path)
+
     # Get model size, in MB
     model_size = os.path.getsize(save_model_path) / 1024**2
 
@@ -457,6 +460,7 @@ def train_model_grid_search(
 
     if not keep_model:
         save_model_path.unlink(missing_ok=True)
+        config_file.unlink(missing_ok=True)
 
     return {
         "algo": algo,

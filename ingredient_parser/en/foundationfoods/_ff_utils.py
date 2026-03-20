@@ -11,7 +11,7 @@ from itertools import groupby
 
 from ..._common import consume
 from .._loaders import load_embeddings_model
-from .._utils import stem, tokenize
+from .._utils import pos_tag, stem, tokenize
 from ._ff_constants import (
     AMBIGUOUS_ADJECTIVES,
     NEGATION_TOKENS,
@@ -25,7 +25,9 @@ logger = logging.getLogger("ingredient-parser.foundation-foods")
 @dataclass
 class TokenizedFDCDescription:
     tokens: list[str]
+    pos_tags: list[str]
     embedding_tokens: list[str]
+    embedding_pos_tags: list[str]
     embedding_weights: list[float]
 
 
@@ -237,7 +239,9 @@ def load_fdc_ingredients() -> list[FDCIngredient]:
                         description=row["description"],
                         category=row["category"],
                         tokens=tokenized_description.tokens,
+                        pos_tags=tokenized_description.pos_tags,
                         embedding_tokens=tokenized_description.embedding_tokens,
+                        embedding_pos_tags=tokenized_description.pos_tags,
                         embedding_weights=tokenized_description.embedding_weights,
                     )
                 )
@@ -276,24 +280,39 @@ def tokenize_fdc_description(description: str) -> TokenizedFDCDescription:
     """
     embeddings = load_embeddings_model()
     tokens = tokenize(description.lower())
-    prepared_tokens = prepare_tokens(tuple(IngredientToken(t, "") for t in tokens))
+    _, pos_tags = list(zip(*pos_tag(tokens)))
+    prepared_tokens = prepare_tokens(
+        tuple(IngredientToken(tok, tag) for tok, tag in zip(tokens, pos_tags))
+    )
 
     embedding_weights = []
     prepared_embedding_tokens = []
+    prepared_embedding_pos_tags = []
     phrase_count = 0
-    for is_phrase, phrase in groupby(tokens, lambda x: x != ","):
+    for is_phrase, phrase in groupby(zip(tokens, pos_tags), lambda x: x[0] != ","):
         if not is_phrase:
             # If not phrase (i.e. is the comma), set weight to 0 if token is in vocab.
             # These tokens will be discarded later anyway.
-            for token in phrase:
+            for token, _ in phrase:
                 if token in embeddings:
-                    prepared_embedding_tokens.append(phrase)
+                    prepared_embedding_tokens.append([tok for tok, _ in phrase])
+                    prepared_embedding_pos_tags.append([tag for _, tag in phrase])
                     embedding_weights.append(0.0)
             continue
 
+        phrase = list(phrase)
+        phrase_tags = [
+            tok.pos_tag
+            for tok in prepare_tokens(
+                tuple(IngredientToken(t, tag) for t, tag in phrase)
+            )
+            if tok.token in embeddings
+        ]
         phrase = [
             tok.token
-            for tok in prepare_tokens(tuple(IngredientToken(t, "") for t in phrase))
+            for tok in prepare_tokens(
+                tuple(IngredientToken(t, tag) for t, tag in phrase)
+            )
             if tok.token in embeddings
         ]
         phrase_weights = [1.0 - phrase_count * 1e-3] * len(phrase)
@@ -313,12 +332,15 @@ def tokenize_fdc_description(description: str) -> TokenizedFDCDescription:
                     phrase_weights[rr_idx] = max(phrase_weights[rr_idx] - 0.5, 0)
 
         prepared_embedding_tokens.extend(phrase)
+        prepared_embedding_pos_tags.extend(phrase_tags)
         embedding_weights.extend(phrase_weights)
         phrase_count += 1
 
     return TokenizedFDCDescription(
         tokens=[t.token for t in prepared_tokens],
+        pos_tags=[t.pos_tag for t in prepared_tokens],
         embedding_tokens=prepared_embedding_tokens,
+        embedding_pos_tags=prepared_embedding_pos_tags,
         embedding_weights=embedding_weights,
     )
 

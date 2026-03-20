@@ -18,7 +18,9 @@ class FDCIngredient:
     description: str
     category: str
     tokens: list[str]
+    pos_tags: list[str]
     embedding_tokens: list[str]
+    embedding_pos_tags: list[str]
     embedding_weights: list[float]
 
     def __eq__(self, other):

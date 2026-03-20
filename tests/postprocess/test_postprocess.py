@@ -33,6 +33,7 @@ def p():
         pos_tags,
         labels,
         scores,
+        custom_units={},
         discard_isolated_stop_words=True,
     )
 
@@ -89,6 +90,7 @@ def p_string_numbers():
         pos_tags,
         labels,
         scores,
+        custom_units={},
         discard_isolated_stop_words=True,
     )
 
@@ -145,6 +147,7 @@ def p_string_numbers_range():
         pos_tags,
         labels,
         scores,
+        custom_units={},
         discard_isolated_stop_words=True,
     )
 
@@ -173,6 +176,7 @@ def p_postprep():
         pos_tags,
         labels,
         scores,
+        custom_units={},
         discard_isolated_stop_words=False,
     )
 
@@ -202,6 +206,7 @@ def p_no_discard():
         pos_tags,
         labels,
         scores,
+        custom_units={},
         discard_isolated_stop_words=False,
     )
 
@@ -279,7 +284,7 @@ def p_fraction_in_prep():
         0.660356736493678,
     ]
 
-    return PostProcessor(sentence, tokens, pos_tags, labels, scores)
+    return PostProcessor(sentence, tokens, pos_tags, labels, scores, custom_units={})
 
 
 @pytest.fixture
@@ -355,7 +360,7 @@ def p_fraction_range_in_prep():
         0.660356736493678,
     ]
 
-    return PostProcessor(sentence, tokens, pos_tags, labels, scores)
+    return PostProcessor(sentence, tokens, pos_tags, labels, scores, custom_units={})
 
 
 @pytest.fixture
@@ -383,6 +388,7 @@ def p_split_name():
         pos_tags,
         labels,
         scores,
+        custom_units={},
         discard_isolated_stop_words=False,
     )
 
@@ -411,6 +417,7 @@ def p_multiplier_range_amount():
         pos_tags,
         labels,
         scores,
+        custom_units={},
     )
 
 

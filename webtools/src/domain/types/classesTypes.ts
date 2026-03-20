@@ -38,6 +38,7 @@ export type Amount = {
 	quantity: number;
 	quantity_max: number;
 	unit: string;
+	unit_system: string;
 } & Confidence;
 
 export type FoundationFood = {

@@ -22,7 +22,7 @@ def p():
         0.9969237827902526,
     ]
 
-    return PostProcessor(sentence, tokens, pos_tags, labels, scores)
+    return PostProcessor(sentence, tokens, pos_tags, labels, scores, custom_units={})
 
 
 class TestPostProcessor_distribute_related_flags:

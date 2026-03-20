@@ -18,6 +18,7 @@ from tabulate import tabulate
 
 from .test_results_to_detailed_results import test_results_to_detailed_results
 from .test_results_to_html import test_results_to_html
+from .trainers import IngredientParserTrainer
 from .training_utils import (
     DEFAULT_MODEL_LOCATION,
     DataVectors,
@@ -179,8 +180,7 @@ def train_parser_model(
     logger.info(f"{len(features_train):,} training vectors.")
     logger.info(f"{len(features_test):,} testing vectors.")
 
-    logger.info("Training model with training data.")
-    trainer = pycrfsuite.Trainer(verbose=False)  # type: ignore
+    trainer = IngredientParserTrainer(verbose=True)
     trainer.set_params(
         {
             "feature.minfreq": 0,
@@ -191,11 +191,14 @@ def train_parser_model(
             "max_linesearch": 5,
             "num_memories": 3,
             "period": 10,
+            "max_iterations": 1500,
+            "delta": 5e-5,
         }
     )
     for X, y in zip(features_train, truth_train):
         trainer.append(X, y)
     trainer.train(str(save_model))
+    config_file = trainer.write_model_config(save_model)
 
     logger.info("Evaluating model with test data.")
     tagger = pycrfsuite.Tagger()  # type: ignore
@@ -236,6 +239,7 @@ def train_parser_model(
 
     if not keep_model:
         save_model.unlink(missing_ok=True)
+        config_file.unlink(missing_ok=True)
 
     return stats
 

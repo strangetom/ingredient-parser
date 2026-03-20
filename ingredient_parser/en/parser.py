@@ -20,6 +20,7 @@ def parse_ingredient_en(
     string_units: bool = False,
     volumetric_units_system: str = "us_customary",
     foundation_foods: bool = False,
+    custom_units: dict[str, str] | None = None,
 ) -> ParsedIngredient:
     """Parse an English language ingredient sentence to return structured data.
 
@@ -56,6 +57,12 @@ def parse_ingredient_en(
         the fundamental foods without any descriptive terms, e.g. 'cucumber' instead
         of 'organic cucumber'.
         Default is False.
+    custom_units : dict[str, str] | None, optional
+        Provide custom units to aid the parser in identifying units.
+        The custom units should be provided as a dict of plural: singular pairs.
+        If a unit does not have a plural form, provide the singular form as the key.
+        The units should not start with a capital letter, but may contain capital
+        letters at other positions.
 
     Returns
     -------
@@ -65,7 +72,16 @@ def parse_ingredient_en(
     logger.debug(f'Parsing sentence "{sentence}" using "en" parser.')
     TAGGER = load_parser_model()
 
-    processed_sentence = PreProcessor(sentence)
+    if custom_units is None:
+        custom_units = {}
+
+    # Generate capitalized version of each entry in the custom units dictionary
+    _capitalized_units = {}
+    for plural, singular in custom_units.items():
+        _capitalized_units[plural.capitalize()] = singular.capitalize()
+    custom_units = custom_units | _capitalized_units
+
+    processed_sentence = PreProcessor(sentence, custom_units=custom_units)
     tokens = [t.text for t in processed_sentence.tokenized_sentence]
     pos_tags = [t.pos_tag for t in processed_sentence.tokenized_sentence]
     features = processed_sentence.sentence_features()
@@ -84,7 +100,7 @@ def parse_ingredient_en(
         token = tokens[idx]
         label = labels[idx]
         if label != "UNIT":
-            tokens[idx] = pluralise_units(token)
+            tokens[idx] = pluralise_units(token, custom_units)
 
     postprocessed_sentence = PostProcessor(
         sentence,
@@ -92,6 +108,7 @@ def parse_ingredient_en(
         pos_tags,
         labels,
         scores,
+        custom_units=custom_units,
         separate_names=separate_names,
         discard_isolated_stop_words=discard_isolated_stop_words,
         string_units=string_units,
@@ -109,8 +126,9 @@ def inspect_parser_en(
     discard_isolated_stop_words: bool = True,
     expect_name_in_output: bool = True,
     string_units: bool = False,
-    volumetric_units_system: str = "us",
+    volumetric_units_system: str = "us_customary",
     foundation_foods: bool = False,
+    custom_units: dict[str, str] | None = None,
 ) -> ParserDebugInfo:
     """Return intermediate objects generated during parsing for inspection.
 
@@ -147,6 +165,12 @@ def inspect_parser_en(
         the fundamental foods without any descriptive terms, e.g. 'cucumber' instead
         of 'organic cucumber'.
         Default is False.
+    custom_units : dict[str, str] | None, optional
+        Provide custom units to aid the parser in identifying units.
+        The custom units should be provided as a dict of plural: singular pairs.
+        If a unit does not have a plural form, provide the singular form as the key.
+        The units should not start with a capital letter, but may contain capital
+        letters at other positions.
 
     Returns
     -------
@@ -157,7 +181,16 @@ def inspect_parser_en(
     logger.debug(f'Parsing sentence "{sentence}" using "en" parser.')
     TAGGER = load_parser_model()
 
-    processed_sentence = PreProcessor(sentence)
+    if custom_units is None:
+        custom_units = {}
+
+    # Generate capitalized version of each entry in the custom units dictionary
+    _capitalized_units = {}
+    for plural, singular in custom_units.items():
+        _capitalized_units[plural.capitalize()] = singular.capitalize()
+    custom_units = custom_units | _capitalized_units
+
+    processed_sentence = PreProcessor(sentence, custom_units=custom_units)
     tokens = [t.text for t in processed_sentence.tokenized_sentence]
     pos_tags = [t.pos_tag for t in processed_sentence.tokenized_sentence]
     features = processed_sentence.sentence_features()
@@ -175,7 +208,7 @@ def inspect_parser_en(
         token = tokens[idx]
         label = labels[idx]
         if label != "UNIT":
-            tokens[idx] = pluralise_units(token)
+            tokens[idx] = pluralise_units(token, custom_units)
 
     postprocessed_sentence = PostProcessor(
         sentence,
@@ -183,6 +216,7 @@ def inspect_parser_en(
         pos_tags,
         labels,
         scores,
+        custom_units=custom_units,
         separate_names=separate_names,
         discard_isolated_stop_words=discard_isolated_stop_words,
         string_units=string_units,

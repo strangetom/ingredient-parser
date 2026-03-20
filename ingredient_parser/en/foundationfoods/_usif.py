@@ -136,20 +136,41 @@ class uSIF:
         Z = 0.5 * vocab_size
         return (1 - alpha) / (alpha * Z)
 
-    def _weight(self, token: str) -> float:
+    def _weight(self, token: str, pos_tag: str) -> float:
         """Return weight for token.
+
+        This calculation is modified from the original papers [1]_ to add a multiplier
+        to the weight based on the part of speech tag.
+        The weight of a token is related to it's frequency in the corpus used to
+        calculate the "a" factor - the idea being that more frequent tokens convey less
+        useful meaning than lower frequency tokens.
+        In this particular application, that isn't stictly true. The name of an
+        ingredient conveys a lot of meaning but often occurs frequently in multiple
+        entries in the FDC data. Therefore, we include a multiplier to the weight to
+        increase the weight for nouns (i.e. ingredient names) and decrease it for verbs
+        and adjectives (i.e. descriptive tokens).
 
         Parameters
         ----------
         token : str
             Token.
+        pos_tag : str
+            Part of speech of token.
 
         Returns
         -------
         float
             Token weight.
         """
-        return self.a / (0.5 * self.a + self.token_prob.get(token, self.min_prob))
+        weight = self.a / (0.5 * self.a + self.token_prob.get(token, self.min_prob))
+        if pos_tag.startswith("NN"):
+            return 1.2 * weight
+        elif pos_tag.startswith("JJ"):
+            return 1.05 * weight
+        elif pos_tag.startswith("VB"):
+            return 0.7 * weight
+        else:
+            return weight
 
     def _embed_fdc_ingredients(self) -> list[Embedding]:
         """Calculate embedding vectors for all FDC ingredients.
@@ -161,7 +182,9 @@ class uSIF:
         """
         embedded = []
         for fdc in self.fdc_ingredients:
-            vec = self._embed(fdc.embedding_tokens, fdc.embedding_weights)
+            vec = self._embed(
+                fdc.embedding_tokens, fdc.embedding_pos_tags, fdc.embedding_weights
+            )
             norm = np.linalg.norm(vec)
             embedded.append(
                 Embedding(
@@ -172,7 +195,9 @@ class uSIF:
 
         return embedded
 
-    def _embed(self, tokens: list[str], phrase_weight: list[float]) -> np.ndarray:
+    def _embed(
+        self, tokens: list[str], pos_tags: list[str], phrase_weight: list[float]
+    ) -> np.ndarray:
         """Return single embedding vector for input tokens calculated from the weighted
         mean of the embeddings for each token.
 
@@ -180,6 +205,8 @@ class uSIF:
         ----------
         tokens : list[str]
             List of input tokens.
+        pos_tags : list[str]
+            List of part of speech tags for tokens.
         phrase_weight : list[float]
             List of weight based on phrase position.
 
@@ -189,20 +216,22 @@ class uSIF:
             Embedding vector for input.
         """
         tokens_in_vocab = [
-            (t, w) for t, w in zip(tokens, phrase_weight) if t in self.embeddings
+            (t, p, w)
+            for t, p, w in zip(tokens, pos_tags, phrase_weight)
+            if t in self.embeddings
         ]
 
         if not tokens_in_vocab:
             return np.zeros(self.embeddings_dimension) + self.a
         else:
             token_vectors = np.array(
-                [self.embeddings[token] for token, _ in tokens_in_vocab]
+                [self.embeddings[token] for token, _, _ in tokens_in_vocab]
             )
             normalised = token_vectors * (1.0 / np.linalg.norm(token_vectors, axis=0))
             weighted = np.array(
                 [
-                    phrase_weight * self._weight(token) * normalised[i, :]
-                    for i, (token, phrase_weight) in enumerate(tokens_in_vocab)
+                    phrase_weight * self._weight(token, pos_tag) * normalised[i, :]
+                    for i, (token, pos_tag, phrase_weight) in enumerate(tokens_in_vocab)
                 ]
             )
             return np.mean(weighted, axis=0)
@@ -237,7 +266,9 @@ class uSIF:
         list[FDCIngredientMatch]
             Scored FDC ingredients, sorted by best first.
         """
-        vec = self._embed([t.token for t in tokens], [1] * len(tokens))
+        vec = self._embed(
+            [t.token for t in tokens], [t.pos_tag for t in tokens], [1] * len(tokens)
+        )
         input_token_vector = Embedding(vec=vec, norm=np.linalg.norm(vec))
 
         candidates = []

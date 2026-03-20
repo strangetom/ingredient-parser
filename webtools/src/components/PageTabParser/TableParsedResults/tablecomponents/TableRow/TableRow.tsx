@@ -53,8 +53,14 @@ function TableRowLineItem({
 	lineItem,
 	...others
 }: TableRowLineItemProps) {
-	const { text, confidence, APPROXIMATE, SINGULAR, PREPARED_INGREDIENT } =
-		lineItem;
+	const {
+		text,
+		unit_system,
+		confidence,
+		APPROXIMATE,
+		SINGULAR,
+		PREPARED_INGREDIENT,
+	} = lineItem;
 
 	return (
 		<Flex justify="flex-start" align="center" fz="md" {...others}>
@@ -63,6 +69,13 @@ function TableRowLineItem({
 				<TableRowTooltip label="Composite Ingredient">
 					<Badge style={{ cursor: "help" }} ml={6}>
 						C
+					</Badge>
+				</TableRowTooltip>
+			)}
+			{unit_system && (
+				<TableRowTooltip label="Unit System">
+					<Badge style={{ cursor: "help" }} ml={6}>
+						{unit_system}
 					</Badge>
 				</TableRowTooltip>
 			)}

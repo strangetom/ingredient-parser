@@ -8,7 +8,7 @@ def p():
     """Define an empty PreProcessor object to use for testing the PreProcessor
     class methods.
     """
-    return PreProcessor(".")
+    return PreProcessor(".", custom_units={})
 
 
 class TestPreProcessor_replace_html_fractions:
