@@ -95,7 +95,9 @@ class BM25:
         for token, ingredients in self.t2d.items():
             self.idf[token] = math.log(self.corpus_size / len(ingredients))
 
-    def rank_matches(self, tokens: list[IngredientToken]) -> list[FDCIngredientMatch]:
+    def rank_matches(
+        self, tokens: list[IngredientToken], incompatible_fdc_ids: set[int]
+    ) -> list[FDCIngredientMatch]:
         """Rank and score FDC Ingredients according to closest match to tokens.
 
         Parameters
@@ -130,6 +132,10 @@ class BM25:
             if len(ingredient_nouns & set(fdc.tokens)) == 0:
                 # Skip any FDC entries that don't share any nouns with the ingredient
                 # name tokens.
+                continue
+
+            if fdc.fdc_id in incompatible_fdc_ids:
+                # Skip FDC entries in incompatible list.
                 continue
 
             matches.append(

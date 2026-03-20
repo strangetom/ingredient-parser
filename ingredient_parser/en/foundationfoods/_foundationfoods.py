@@ -22,6 +22,7 @@ from ._ff_constants import (
 )
 from ._ff_dataclasses import IngredientToken
 from ._ff_utils import (
+    find_incompatible_foundation_foods,
     normalise_spelling,
     prepare_tokens,
     strip_ambiguous_leading_adjectives,
@@ -37,7 +38,7 @@ TOP_K = 50
 # Constant defining the minimum agreement between BM25 and uSIF rankings
 BM25_USIF_AGREENMENT_THRESHOLD = 0.25
 
-# Constant defining the minimum percetage difference between top ranked results to
+# Constant defining the minimum percentage difference between top ranked results to
 # be confident in the top ranked result.
 TOP_PC_DIFF_THRESHOLD = 0.01
 
@@ -110,6 +111,8 @@ def match_foundation_foods(
         match.name_index = name_idx
         return match
 
+    incompatible_fdc_ids = find_incompatible_foundation_foods(normalised_tokens)
+
     # Determine if there any of the normalised tokens are in the embeddings model.
     # If not, we will skip the semantic (embeddings based) rankers.
     embeddings = load_embeddings_model()
@@ -135,7 +138,11 @@ def match_foundation_foods(
         normalised_embeddings_tokens.append(IngredientToken("raw", "JJ"))
 
     bm25 = get_bm25_ranker()
-    bm25_matches = bm25.rank_matches(normalised_tokens)
+    bm25_matches = bm25.rank_matches(normalised_tokens, incompatible_fdc_ids)
+    print("BM25 results:")
+    for m in bm25_matches[:10]:
+        print(f"{m.score:.4f}: {m.fdc.description}")
+    print()
 
     if not has_token_in_embeddings:
         if not bm25_matches:
@@ -153,7 +160,11 @@ def match_foundation_foods(
         )
 
     u = get_usif_ranker()
-    usif_matches = u.rank_matches(normalised_embeddings_tokens)
+    usif_matches = u.rank_matches(normalised_embeddings_tokens, incompatible_fdc_ids)
+    print("uSIF results:")
+    for m in usif_matches[:20]:
+        print(f"{m.score:.4f}: {m.fdc.description}")
+    print()
 
     # Check if both BM25 and uSIF agree on the top result. If they do, return that and
     # avoid any further processing.
@@ -189,9 +200,17 @@ def match_foundation_foods(
         fuzzy_matches = fuzzy.rank_matches(
             normalised_embeddings_tokens, candidate_fdc_ids
         )
+        print("Fuzzy results:")
+        for m in fuzzy_matches[:10]:
+            print(f"{m.score:.4f}: {m.fdc.description}")
+        print()
 
     fused_matches = fuse_results(bm25_matches, fuzzy_matches, usif_matches, top_n=TOP_K)
     best_match = fused_matches[0]
+    print("Fused results:")
+    for m in fused_matches[:10]:
+        print(f"{m.score:.4f}: {m.fdc.description}")
+    print()
 
     # If the there is less than 1% difference in score between the best two fused
     # matches, then assume we can't identify a suitable match.

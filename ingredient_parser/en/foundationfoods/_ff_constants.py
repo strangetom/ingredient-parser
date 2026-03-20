@@ -184,3 +184,15 @@ AMBIGUOUS_ADJECTIVES = [
     "strong"  # concentration (e.g. coffee)/gluten content (e.g. strong bread flour)
     "hard",  # texture (e.g. cheese)/alocholic (e.g. hard cider)
 ]
+
+# Sets of incompatible adjectives. An adjective in one set of each pair is not
+# compatible with an adjective in the other set of the pair.
+# The adjectives are stemmed.
+ADJECTIVE_CONFLICT_MATRIX = [
+    ({"fresh", "raw"}, {"dehydr", "dri", "flour", "freeze-dri", "powder"}),
+    ({"fresh", "raw"}, {"can", "jar", "pickl", "syrup"}),
+    ({"fresh", "raw"}, {"bake", "boil", "cook", "fri", "roast", "steam"}),
+    ({"full fat", "whole"}, {"1%", "2%", "fat fre", "low fat", "nonfat", "skim"}),
+    ({"no sugar", "unsweeten"}, {"honey-co", "sweeten", "syrup"}),
+    ({"no salt", "unsalt"}, {"brine", "pickl", "salt"}),
+]

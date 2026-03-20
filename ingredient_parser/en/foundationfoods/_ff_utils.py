@@ -13,6 +13,7 @@ from ..._common import consume
 from .._loaders import load_embeddings_model
 from .._utils import pos_tag, stem, tokenize
 from ._ff_constants import (
+    ADJECTIVE_CONFLICT_MATRIX,
     AMBIGUOUS_ADJECTIVES,
     NEGATION_TOKENS,
     REDUCED_RELEVANCE_TOKENS,
@@ -385,3 +386,35 @@ def strip_ambiguous_leading_adjectives(
         return original_tokens
 
     return tokens
+
+
+def find_incompatible_foundation_foods(tokens: list[IngredientToken]) -> set[int]:
+    """Summary
+
+    Parameters
+    ----------
+    tokens : list[IngredientToken]
+        Ingredient name tokens.
+
+    Returns
+    -------
+    set[int]
+        Set of FDC IDs for FDC entries that contain incompatible adjectives with
+        ingredient tokens.
+    """
+    forbidden_set = set()
+    for token in tokens:
+        # This doesn't handle multi-word tokens yet.
+        for group_a, group_b in ADJECTIVE_CONFLICT_MATRIX:
+            if token.token in group_a:
+                forbidden_set.update(group_b)
+            elif token.token in group_b:
+                forbidden_set.update(group_a)
+
+    incompatible_fdc_ids = set()
+    for fdc in load_fdc_ingredients():
+        fdc_tokens = set(fdc.tokens)
+        if len(fdc_tokens & forbidden_set) > 0:
+            incompatible_fdc_ids.add(fdc.fdc_id)
+
+    return incompatible_fdc_ids

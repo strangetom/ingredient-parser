@@ -253,7 +253,9 @@ class uSIF:
         """
         return 1 - float(np.dot(vec1.vec, vec2.vec) / (vec1.norm * vec2.norm))
 
-    def rank_matches(self, tokens: list[IngredientToken]) -> list[FDCIngredientMatch]:
+    def rank_matches(
+        self, tokens: list[IngredientToken], incompatible_fdc_ids: set[int]
+    ) -> list[FDCIngredientMatch]:
         """Rank and score FDC Ingredients according to closest match to tokens.
 
         Parameters
@@ -274,6 +276,11 @@ class uSIF:
         candidates = []
         for idx, vec in enumerate(self.fdc_vectors):
             score = self._cosine_similarity(input_token_vector, vec)
+            fdc = self.fdc_ingredients[idx]
+
+            if fdc.fdc_id in incompatible_fdc_ids:
+                continue
+
             candidates.append(
                 FDCIngredientMatch(
                     fdc=self.fdc_ingredients[idx],
