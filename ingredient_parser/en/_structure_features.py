@@ -61,7 +61,7 @@ class SentenceStrucureFeatures:
     # A sequence of nouns or adjectives, optionally followed by a comma, repeating zero
     # or more times.
     # Followed by an optional conjunction or determinant.
-    # Followed by an optional sequeunce nouns or adjectives.
+    # Followed by an optional sequence nouns or adjectives.
     # Followed by a noun.
     example_parser = nltk.RegexpParser(r"""
         NP: {(<NN.*|JJ.*>+<,>?)*<CC|DT>?<NN.*|JJ.*>*<NN.*>}

@@ -156,7 +156,7 @@ def chunked(iterable: Iterable, n: int) -> Iterable:
 
 
 def select_preprocessor(lang: str) -> Any:
-    """Select appropraite PreProcessor class for given language.
+    """Select appropriate PreProcessor class for given language.
 
     Parameters
     ----------
@@ -171,7 +171,7 @@ def select_preprocessor(lang: str) -> Any:
     Raises
     ------
     ValueError
-        Selected langauage not supported
+        Selected language not supported
     """
     if lang not in SUPPORTED_LANGUAGES:
         raise ValueError(f'Unsupported language "{lang}"')
