@@ -1,12 +1,7 @@
 #!/usr/bin/env python3
 
-import sys
 import xml.etree.ElementTree as ET
 from collections import Counter
-from pathlib import Path
-
-# Ensure the local ingredient_parser package can be found
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 
 def test_results_to_html(
