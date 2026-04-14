@@ -990,12 +990,26 @@ class PostProcessor:
         * 1 28 ounce can
         * 2 17.3 oz (484g) package
 
+        This also handles the case where there is no leading count, e.g.
+
+        * 15 ounce can
+        * 12-ounce jar
+
+        In this case, the container unit gets an implied quantity of 1 and the
+        weight quantity-unit pair is returned as a secondary amount.
+
         Return the correct sets of quantities and units, or an empty list.
 
         For example, for the sentence: 1 28 ounce can; the correct amounts are:
         [
             IngredientAmount(quantity=Fraction(1, 1), unit="can", score=0.x...),
             IngredientAmount(quantity=Fraction(28, 1), unit="ounce", score=0.x...),
+        ]
+
+        For the sentence: 15 ounce can; the correct amounts are:
+        [
+            IngredientAmount(quantity=Fraction(1, 1), unit="can", score=0.x...),
+            IngredientAmount(quantity=Fraction(15, 1), unit="ounce", score=0.x...),
         ]
 
         Parameters
@@ -1020,6 +1034,7 @@ class PostProcessor:
             ["QTY", "QTY", "UNIT", "QTY", "UNIT", "QTY", "UNIT", "UNIT"],
             ["QTY", "QTY", "UNIT", "QTY", "UNIT", "UNIT"],
             ["QTY", "QTY", "UNIT", "UNIT"],
+            ["QTY", "UNIT", "UNIT"],
         ]
 
         # List of possible units at end of pattern that constitute a match
@@ -1046,6 +1061,12 @@ class PostProcessor:
         amounts = []
         for pattern in patterns:
             for match in self._match_pattern(labels, pattern, ignore_other_labels=True):
+                # The [QTY, UNIT, UNIT] pattern can match the tail end of a
+                # longer pattern like [QTY, QTY, UNIT, UNIT]. Skip matches
+                # whose indices were already consumed by a longer pattern.
+                if any(idx[i] in self.consumed for i in match):
+                    continue
+
                 # If the pattern ends with one of end_units, we have found a match for
                 # this pattern!
                 if tokens[match[-1]] in end_units:
@@ -1057,40 +1078,63 @@ class PostProcessor:
                     # again elsewhere
                     self.consumed.extend([idx[i] for i in match])
 
-                    # The first amount is made up of the first and last items
-                    # Note that this cannot be singular, but may be approximate
-                    quantity = matching_tokens.pop(0)
-                    unit = matching_tokens.pop(-1)
-                    text = " ".join((quantity, unit)).strip()
+                    if pattern == patterns[3]:  # ["QTY", "UNIT", "UNIT"]
+                        # No explicit count in pattern.
+                        # E.g., "15 ounce can" -> first amount: 1 can
+                        unit = matching_tokens.pop(-1)
+                        first = ingredient_amount_factory(
+                            quantity="1",
+                            unit=unit,
+                            text="1 " + unit,
+                            confidence=matching_scores.pop(-1),
+                            starting_index=idx[match[0]],
+                            APPROXIMATE=self._is_approximate(
+                                match[0], tokens, labels, idx
+                            ),
+                            string_units=self.string_units,
+                            volumetric_units_system=self.volumetric_units_system,
+                            custom_units=self.custom_units,
+                        )
+                        amounts.append(first)
+                        _ = match.pop(-1)
+                    else:
+                        # The first amount is made up of the first and last items
+                        # Note that this cannot be singular, but may be approximate
+                        quantity = matching_tokens.pop(0)
+                        unit = matching_tokens.pop(-1)
+                        text = " ".join((quantity, unit)).strip()
 
-                    first = ingredient_amount_factory(
-                        quantity=quantity,
-                        unit=unit,
-                        text=text,
-                        confidence=mean(
-                            [matching_scores.pop(0), matching_scores.pop(-1)]
-                        ),
-                        starting_index=idx[match[0]],
-                        APPROXIMATE=self._is_approximate(match[0], tokens, labels, idx),
-                        string_units=self.string_units,
-                        volumetric_units_system=self.volumetric_units_system,
-                        custom_units=self.custom_units,
-                    )
-                    amounts.append(first)
-                    # Pop the first and last items from the list of matching indices
-                    _ = match.pop(0)
-                    _ = match.pop(-1)
+                        first = ingredient_amount_factory(
+                            quantity=quantity,
+                            unit=unit,
+                            text=text,
+                            confidence=mean(
+                                [matching_scores.pop(0), matching_scores.pop(-1)]
+                            ),
+                            starting_index=idx[match[0]],
+                            APPROXIMATE=self._is_approximate(
+                                match[0], tokens, labels, idx
+                            ),
+                            string_units=self.string_units,
+                            volumetric_units_system=self.volumetric_units_system,
+                            custom_units=self.custom_units,
+                        )
+                        amounts.append(first)
+                        # Pop the first and last items from the list of matching
+                        # indices
+                        _ = match.pop(0)
+                        _ = match.pop(-1)
 
-                    # Now create the IngredientAmount objects for the pairs in between
-                    # the first and last items
+                    # Create IngredientAmount objects for the remaining
+                    # quantity-unit pairs
                     for i in range(0, len(matching_tokens), 2):
                         quantity = matching_tokens[i]
                         unit = matching_tokens[i + 1]
                         text = " ".join((quantity, unit)).strip()
                         confidence = mean(matching_scores[i : i + 1])
 
-                        # If the first amount (e.g. 1 can) is approximate, so are all
-                        # the pairs in between
+                        # If the first amount (e.g. 1 can) is approximate,
+                        # so are all the pairs in between
                         amount = ingredient_amount_factory(
                             quantity=quantity,
                             unit=unit,
