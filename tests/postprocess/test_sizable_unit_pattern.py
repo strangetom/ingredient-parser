@@ -356,3 +356,56 @@ class TestPostProcessor_sizable_unit_pattern:
             assert out.starting_index == expected.starting_index
             assert out.SINGULAR == expected.SINGULAR
             assert out.APPROXIMATE == expected.APPROXIMATE
+
+    def test_no_count_pattern(self):
+        """
+        Test [QTY, UNIT, UNIT] pattern where there is no leading count.
+        E.g., "15 ounce can chickpeas" should produce an implied-count
+        container amount and a weight amount.
+        """
+        sentence = "15 ounce can chickpeas"
+        tokens = ["15", "ounce", "can", "chickpeas"]
+        pos_tags = ["CD", "NN", "MD", "VB"]
+        labels = ["QTY", "UNIT", "UNIT", "B_NAME_TOK"]
+        scores = [0.0] * len(tokens)
+        idx = list(range(len(tokens)))
+        p = PostProcessor(sentence, tokens, pos_tags, labels, scores, custom_units={})
+
+        expected = [
+            ingredient_amount_factory(
+                quantity="1", unit="can", text="1 can", confidence=0, starting_index=0
+            ),
+            ingredient_amount_factory(
+                quantity="15",
+                unit="ounce",
+                text="15 ounces",
+                confidence=0,
+                starting_index=0,
+                SINGULAR=True,
+            ),
+        ]
+
+        output = p._sizable_unit_pattern(idx, tokens, labels, scores)
+        assert len(output) == len(expected)
+        for out, exp in zip(output, expected):
+            assert out.quantity == exp.quantity
+            assert out.unit == exp.unit
+            assert out.text == exp.text
+            assert out.starting_index == exp.starting_index
+            assert out.SINGULAR == exp.SINGULAR
+            assert out.APPROXIMATE == exp.APPROXIMATE
+
+    def test_no_count_pattern_non_container_end(self):
+        """
+        Test that [QTY, UNIT, UNIT] does not match when the end unit is not
+        in the end_units list (e.g., "cup" is not a container).
+        """
+        sentence = "15 ounce cup chickpeas"
+        tokens = ["15", "ounce", "cup", "chickpeas"]
+        pos_tags = ["CD", "NN", "NN", "NNS"]
+        labels = ["QTY", "UNIT", "UNIT", "B_NAME_TOK"]
+        scores = [0.0] * len(tokens)
+        idx = list(range(len(tokens)))
+        p = PostProcessor(sentence, tokens, pos_tags, labels, scores, custom_units={})
+
+        assert p._sizable_unit_pattern(idx, tokens, labels, scores) == []
