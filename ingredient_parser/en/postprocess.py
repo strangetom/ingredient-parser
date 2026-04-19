@@ -21,6 +21,7 @@ from ..dataclasses import (
 )
 from ._constants import (
     APPROXIMATE_TOKENS,
+    DIMENSIONAL_SIZE_UNIT_WORDS,
     PREPARED_INGREDIENT_TOKENS,
     SINGULAR_TOKENS,
     STOP_WORDS,
@@ -185,6 +186,7 @@ class PostProcessor:
             Object containing structured data from sentence.
         """
         amounts = self._postprocess_amounts()
+        amounts, dimensional_size = self._extract_dimensional_size(amounts)
 
         foundationfoods = []
         if self.separate_names:
@@ -224,6 +226,17 @@ class PostProcessor:
                 name = []
 
         size = self._postprocess("SIZE")
+        if dimensional_size is not None:
+            if size is None:
+                size = dimensional_size
+            else:
+                size = IngredientText(
+                    text=f"{size.text}, {dimensional_size.text}",
+                    confidence=(size.confidence + dimensional_size.confidence) / 2,
+                    starting_index=min(
+                        size.starting_index, dimensional_size.starting_index
+                    ),
+                )
         preparation = self._postprocess("PREP")
         comment = self._postprocess("COMMENT")
         purpose = self._postprocess("PURPOSE")
@@ -723,6 +736,105 @@ class PostProcessor:
             amounts.extend(parsed_amounts)
 
         return sorted(amounts, key=lambda x: x.starting_index)
+
+    # Pluralised dimensional form with a space (e.g. "12 inches cheesecloth")
+    # typically indicates a primary length measurement, not an adjectival size.
+    _PLURAL_DIMENSIONAL_RE = re.compile(
+        r"\b\d+\s+(inches|centimeters|millimeters)\b",
+        re.IGNORECASE,
+    )
+
+    def _is_dimensional_size_amount(
+        self, amt: IngredientAmount | CompositeIngredientAmount
+    ) -> bool:
+        """Return True if *amt* is an :class:`IngredientAmount` whose unit
+        begins with a dimensional size word (inch, centimeter, etc.)."""
+        if isinstance(amt, CompositeIngredientAmount):
+            return False
+
+        unit_str = str(amt.unit).strip().lower()
+        if not unit_str:
+            return False
+
+        return unit_str.split(maxsplit=1)[0] in DIMENSIONAL_SIZE_UNIT_WORDS
+
+    def _extract_dimensional_size(
+        self, amounts: list[IngredientAmount | CompositeIngredientAmount]
+    ) -> tuple[
+        list[IngredientAmount | CompositeIngredientAmount], IngredientText | None
+    ]:
+        """Transform amounts whose unit is a dimensional measurement (inch,
+        centimeter, etc.) into a size descriptor.
+
+        Handles two patterns where the dimensional measurement is semantically
+        the size of a countable ingredient rather than a primary measurement:
+
+        * No leading count (e.g. "6-inch tortilla") -- the dimensional amount
+          is replaced by an implied count of 1 and the dimensional info
+          becomes the size.
+        * Leading count (e.g. "2 6-inch flour tortillas", "1 3-inch piece
+          fresh ginger") -- the count (and any container unit like "piece")
+          is kept as the primary amount and the dimensional component moves
+          to the size.
+
+        Skipped when the sentence uses a pluralised form with a space
+        ("12 inches cheesecloth"), when no NAME token is present, or when
+        no dimensional amount is found.
+
+        Parameters
+        ----------
+        amounts : list[IngredientAmount | CompositeIngredientAmount]
+            Amounts produced by :meth:`_postprocess_amounts`.
+
+        Returns
+        -------
+        tuple
+            ``(modified_amounts, dimensional_size)`` -- a possibly-modified
+            amounts list and an optional size :class:`IngredientText`.
+        """
+        if not amounts:
+            return amounts, None
+
+        if self._PLURAL_DIMENSIONAL_RE.search(self.sentence):
+            return amounts, None
+
+        if not any("NAME" in label for label in self.labels):
+            return amounts, None
+
+        dim_amounts: list[IngredientAmount] = []
+        other_amounts: list[IngredientAmount | CompositeIngredientAmount] = []
+        for amt in amounts:
+            if self._is_dimensional_size_amount(amt):
+                dim_amounts.append(amt)
+            else:
+                other_amounts.append(amt)
+
+        if not dim_amounts:
+            return amounts, None
+
+        size = IngredientText(
+            text=", ".join(a.text for a in dim_amounts),
+            confidence=mean(a.confidence for a in dim_amounts),
+            starting_index=min(a.starting_index for a in dim_amounts),
+        )
+
+        if other_amounts:
+            return other_amounts, size
+
+        first_dim = dim_amounts[0]
+        implied = ingredient_amount_factory(
+            quantity="1",
+            unit="",
+            text="1",
+            confidence=first_dim.confidence,
+            starting_index=first_dim.starting_index,
+            APPROXIMATE=first_dim.APPROXIMATE,
+            string_units=self.string_units,
+            volumetric_units_system=self.volumetric_units_system,
+            custom_units=self.custom_units,
+        )
+
+        return [implied], size
 
     def _unconsumed(self, list_: list[Any]) -> list[Any]:
         """Return elements from list whose index is not in the list of consumed indices.

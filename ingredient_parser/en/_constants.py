@@ -182,6 +182,21 @@ SIZES = [
     "tiny",
 ]
 
+# Unit words treated as adjectival size descriptors (not primary measurements)
+# when they appear as the unit of a sole amount in an ingredient.
+DIMENSIONAL_SIZE_UNIT_WORDS = frozenset(
+    {
+        "inch",
+        "inches",
+        "centimeter",
+        "centimeters",
+        "cm",
+        "millimeter",
+        "millimeters",
+        "mm",
+    }
+)
+
 
 # Strings and their numeric representation
 STRING_NUMBERS = {
