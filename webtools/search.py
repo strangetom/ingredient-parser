@@ -120,7 +120,9 @@ def string_search(
     list
         List of matching database entries.
     """
-    search_tokens = [t.text for t in PreProcessor(sentence).tokenized_sentence]
+    search_tokens = [
+        t.text for t in PreProcessor(sentence, custom_units={}).tokenized_sentence
+    ]
     search_tokens_len = len(search_tokens)
 
     matches = []
