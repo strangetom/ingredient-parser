@@ -456,8 +456,12 @@ LENGTH_UNITS = [
 
 DIMENSIONS = [
     "diameter",
+    "inch-long",
     "inch-thick",
+    "length",
     "long",
     "thick",
+    "thickness",
     "wide",
+    "width",
 ]
