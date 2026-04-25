@@ -27,7 +27,7 @@ UNITS = {
     "counts": "count",
     "cl": "cl",
     "cL": "cL",
-    "cm": "cm",
+    # "cm": "cm",
     "cubes": "cube",
     "cups": "cup",
     "cutlets": "cutlet",
@@ -49,7 +49,7 @@ UNITS = {
     "grinds": "grind",
     "handfuls": "handful",
     "heads": "head",
-    "inches": "inch",
+    # "inches": "inch",
     "jars": "jar",
     "jiggers": "jigger",
     "kg": "kg",
@@ -68,7 +68,7 @@ UNITS = {
     "millilitres": "millilitre",
     "ml": "ml",
     "mL": "mL",
-    "mm": "mm",
+    # "mm": "mm",
     "mugs": "mug",
     "ounces": "ounce",
     "oz": "oz",
@@ -76,7 +76,7 @@ UNITS = {
     "packages": "package",
     "packets": "packet",
     "pairs": "pair",
-    "pieces": "piece",
+    # "pieces": "piece",
     "pinches": "pinch",
     "pints": "pint",
     "pods": "pod",
@@ -440,4 +440,24 @@ UNIT_SYNONYMS = [
     {"quart", "qt"},
     {"tablespoon", "tbsp", "tbs", "tb"},
     {"teaspoon", "tsp"},
+]
+
+LENGTH_UNITS = [
+    "centimeter",
+    "centimetre",
+    "cm",
+    "in",
+    "inch",
+    "inches",
+    "millimeter",
+    "millimetre",
+    "mm",
+]
+
+DIMENSIONS = [
+    "diameter",
+    "inch-thick",
+    "long",
+    "thick",
+    "wide",
 ]

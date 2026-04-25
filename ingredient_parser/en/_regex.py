@@ -2,7 +2,7 @@
 
 import re
 
-from ._constants import FLATTENED_UNITS_LIST, STRING_NUMBERS
+from ._constants import FLATTENED_UNITS_LIST, LENGTH_UNITS, STRING_NUMBERS
 
 # Regex pattern for fraction parts.
 # Matches 0+ numbers followed by 0+ white space characters followed by a number then
@@ -15,7 +15,7 @@ CAPITALISED_PATTERN = re.compile(r"^[A-Z]")
 # Regex pattern for finding quantity and units without space between them.
 # Add additional strings to units set that aren't necessarily units, but we want to
 # treat them like units for the purposes of splitting quantities from units.
-units_list = FLATTENED_UNITS_LIST | {"in", "x"}
+units_list = FLATTENED_UNITS_LIST | {"x", "piece"} | set(LENGTH_UNITS)
 # The negative lookahead at the end of QUANTITY_UNITS_PATTERN is there specifically
 # to handle units like 'c' where it could be the start of another word. We have to
 # check that the next character after the unit is *not* another letter in order
