@@ -2,6 +2,7 @@
 
 import xml.etree.ElementTree as ET
 from collections import Counter
+from itertools import chain
 
 
 def test_results_to_html(
@@ -102,6 +103,7 @@ def test_results_to_html(
     body.append(heading)
 
     incorrect = []
+    label_errors = []
     mismatch_counts = set()
     # Sort by sentence sort
     for src, sentence, tokens, truth, prediction, scores in sorted(
@@ -119,6 +121,11 @@ def test_results_to_html(
             mismatches = sum(i != j for i, j in zip(truth, prediction))
             if mismatches > 0:
                 mismatch_counts.add(mismatches)
+                sentence_label_errors = list(
+                    chain.from_iterable(
+                        [{i, j} for i, j in zip(truth, prediction) if i != j]
+                    )
+                )
                 table = create_html_table(tokens, truth, prediction, scores)
                 div = ET.Element("div")
                 p = ET.Element("p")
@@ -134,6 +141,7 @@ def test_results_to_html(
                         "class": "wrapper hidden",
                         "data-mismatches": str(mismatches),
                         "data-src": src,
+                        "data-errors": ",".join(sentence_label_errors),
                     },
                 )
                 wrapper.append(div)
@@ -141,6 +149,7 @@ def test_results_to_html(
                 body.append(wrapper)
 
                 incorrect.append(src)
+                label_errors.extend(sentence_label_errors)
 
     total_count = Counter(sentence_sources)
     incorrect_count = Counter(incorrect)
@@ -151,7 +160,12 @@ def test_results_to_html(
         ]
     )
 
-    body.insert(1, create_filter_elements(mismatch_counts, set(sentence_sources)))
+    body.insert(
+        1,
+        create_filter_elements(
+            mismatch_counts, set(sentence_sources), set(label_errors)
+        ),
+    )
 
     heading2 = ET.Element("h2")
     heading2.text = f"{len(incorrect):,} incorrect sentences. [{src_count_str}]"
@@ -178,9 +192,16 @@ def test_results_to_html(
         let src_filters = [...document.querySelectorAll("input.src")]
             .filter(el => el.checked)
             .map(el => el.dataset.value);
+        let error_filters = [...document.querySelectorAll("input.error")]
+            .filter(el => el.checked)
+            .map(el => el.dataset.value);
+        error_filters = new Set(error_filters);
         sentences.forEach((sent) => {
+            let errors = new Set(sent.dataset.errors.split(","));
             if (mismatch_filters.includes(sent.dataset.mismatches) &&
-                src_filters.includes(sent.dataset.src)) {
+                src_filters.includes(sent.dataset.src) && 
+                errors.intersection(error_filters).size > 0)
+                {
                 sent.classList.remove("hidden");
                 if (filtered_src[sent.dataset.src] == undefined){
                     filtered_src[sent.dataset.src] = 1;
@@ -284,21 +305,25 @@ def create_html_table(
     return table
 
 
-def create_filter_elements(mismatch_counts: set[int], sources: set[str]) -> ET.Element:
+def create_filter_elements(
+    mismatch_counts: set[int], sources: set[str], label_errors: set[str]
+) -> ET.Element:
     """Create div element containing checkboxes for filter incorrect sentences by
-    numbers of incorrect tokens and by source.
+    numbers of incorrect tokens, sentence source and label error.
 
     Parameters
     ----------
     mismatch_counts : set[int]
-        Filter options for mismatches
+        Filter options for mismatches.
     sources : set[str]
-        Filter options for sources
+        Filter options for sources.
+    label_errors : set[str]
+        Filter options for label errors.
 
     Returns
     -------
     ET.Element
-        Elelemt to insert into test results HTML
+        Element to insert into test results HTML
     """
     div = ET.Element("div")
 
@@ -344,7 +369,26 @@ def create_filter_elements(mismatch_counts: set[int], sources: set[str]) -> ET.E
         div_src_filters.append(inp)
         div_src_filters.append(label)
 
+    div_label_filters = ET.Element("div")
+    for lab in sorted(label_errors):
+        inp = ET.Element(
+            "input",
+            attrib={
+                "type": "checkbox",
+                "class": "error",
+                "name": f"filter-{lab}",
+                "id": f"filter-{lab}",
+                "data-value": f"{lab}",
+            },
+        )
+        label = ET.Element("label", attrib={"for": f"filter-{lab}"})
+        label.text = f"{lab}"
+
+        div_label_filters.append(inp)
+        div_label_filters.append(label)
+
     div.append(div_mismatch_filters)
     div.append(div_src_filters)
+    div.append(div_label_filters)
 
     return div
