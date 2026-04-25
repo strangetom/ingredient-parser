@@ -271,6 +271,8 @@ class IngredientAmount:
                 "tablespoon",
                 "pt",
                 "pint",
+                "in",
+                "inch",
             }:
                 if imperial_unit:
                     return UnitSystem.IMPERIAL
