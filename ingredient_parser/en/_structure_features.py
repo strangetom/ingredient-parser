@@ -3,7 +3,7 @@
 import nltk
 
 from ..dataclasses import Token
-from ._constants import FLATTENED_UNITS_LIST, SIZES
+from ._constants import DIMENSIONS, FLATTENED_UNITS_LIST, LENGTH_UNITS, SIZES
 
 # Lists of (token, pos) pairs for identifying the start of example phrases.
 # For example phrases starting with an preposition/subordinating conjunction (IN)
@@ -36,6 +36,10 @@ class SentenceStrucureFeatures:
       Phrases that give more specific examples of the ingredient. For example
         * 1kg floury potatoes, such as King Edward or Maris Piper, peeled
                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    * Dimensional phrases
+      Phrases that describe the dimension of the ingredient. For example
+        * 1 2 inch long piece of ginger
+            ^^^^^^^^^^^
     """
 
     # RegexpParser to detect multi-ingredient phrases.
@@ -68,6 +72,15 @@ class SentenceStrucureFeatures:
         EX: {<JJ.*>?<IN><NP>}
     """)
 
+    # RegexpParser to detect dimensional phrases.
+    # Each phrase comprises a number followed by a length unit followed a dimension.
+    # There can optionally be a preposition prior to the dimension.
+    # Examples: 1 inch thick, 2 cm in diameter, 1 inch (2 cm) long
+    dimensional_phrase_parser = nltk.RegexpParser(r"""
+        LENGTH: {<CD><LEN>}
+        DP: {<LENGTH>(<\(><LENGTH><\)>)?<IN>?<DIM>+}
+    """)
+
     def __init__(self, tokenized_sentence: list[Token]):
         """Initialize.
 
@@ -80,6 +93,7 @@ class SentenceStrucureFeatures:
         self.mip_phrases = self.detect_mip_phrases(tokenized_sentence)
         self.sentence_splits = self.detect_sentences_splits(tokenized_sentence)
         self.example_phrases = self.detect_examples(tokenized_sentence)
+        self.dimensional_phrases = self.detect_dimensional_phrases(tokenized_sentence)
 
     def __repr__(self) -> str:
         return (
@@ -215,6 +229,7 @@ class SentenceStrucureFeatures:
                 pos = t.pos_tag
 
             text_pos.append((t.feat_text, pos))
+
         parsed = self.compound_parser.parse(text_pos)
         for subtree in parsed.subtrees(filter=lambda t: t.label() == "CS"):  #  type: ignore
             indices = self._get_subtree_indices(parsed, subtree)  #  type: ignore
@@ -276,6 +291,47 @@ class SentenceStrucureFeatures:
 
         return examples
 
+    def detect_dimensional_phrases(
+        self, tokenized_sentence: list[Token]
+    ) -> list[list[int]]:
+        """Detect dimensional phrases in tokenized sentence.
+
+        Dimensional phrases are phrases the describe the dimension of the ingredient,
+        for example:
+            1 mm wide
+            2 inch long
+            10 in diameter
+
+        Parameters
+        ----------
+        tokenized_sentence : list[Token]
+            Tokenized sentence to detect phrases within.
+
+        Returns
+        -------
+        list[list[int]]
+            List of phrases. Each phrase is specified by the indices of the tokens in
+            the tokenized sentence.
+        """
+        dimensional_phrases = []
+
+        text_pos = []
+        for t in tokenized_sentence:
+            if t.text.lower() in LENGTH_UNITS:
+                pos = "LEN"
+            elif t.text.lower() in DIMENSIONS:
+                pos = "DIM"
+            else:
+                pos = t.pos_tag
+
+            text_pos.append((t.feat_text, pos))
+
+        parsed = self.dimensional_phrase_parser.parse(text_pos)
+        for subtree in parsed.subtrees(filter=lambda t: t.label() == "DP"):  #  type: ignore
+            indices = self._get_subtree_indices(parsed, subtree)  #  type: ignore
+            dimensional_phrases.append(indices)
+        return dimensional_phrases
+
     def token_features(self, index: int, prefix: str) -> dict[str, bool]:
         """Return dict of features for token at index.
 
@@ -320,5 +376,9 @@ class SentenceStrucureFeatures:
         for phrase in self.example_phrases:
             if index in phrase:
                 features[prefix + "example_phrase"] = True
+
+        for phrase in self.dimensional_phrases:
+            if index in phrase:
+                features[prefix + "dimensional_phrase"] = True
 
         return features
