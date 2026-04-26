@@ -183,6 +183,15 @@ def test_results_to_html(
             navigator.clipboard.writeText(text);
         });
     });
+    let selectAllButtons = document.querySelectorAll("button.select-all");
+    selectAllButtons.forEach(button => {
+        button.addEventListener("click", (e) => {
+            let parent = e.target.parentElement;
+            let checkboxes = parent.querySelectorAll("input[type='checkbox']");
+            checkboxes.forEach(box => box.checked = true);
+            applyFilter();
+        });
+    });
     function applyFilter() {
         let filtered_src = {};
         let sentences = document.querySelectorAll(".wrapper");
@@ -353,6 +362,7 @@ def create_filter_elements(
 
         div_mismatch_filters.append(inp)
         div_mismatch_filters.append(label)
+    div_mismatch_filters.append(create_select_all_button())
 
     div_src_filters = ET.Element("div")
     for src in sorted(sources):
@@ -371,6 +381,7 @@ def create_filter_elements(
 
         div_src_filters.append(inp)
         div_src_filters.append(label)
+    div_src_filters.append(create_select_all_button())
 
     div_label_filters = ET.Element("div")
     for lab in sorted(label_errors):
@@ -389,9 +400,30 @@ def create_filter_elements(
 
         div_label_filters.append(inp)
         div_label_filters.append(label)
+    div_label_filters.append(create_select_all_button())
 
     div.append(div_mismatch_filters)
     div.append(div_src_filters)
     div.append(div_label_filters)
 
     return div
+
+
+def create_select_all_button() -> ET.Element:
+    """Return HTML Button element
+
+    Returns
+    -------
+    ET.Element
+        Button HTML Element
+    """
+    button = ET.Element(
+        "button",
+        attrib={
+            "type": "button",
+            "class": "select-all",
+        },
+    )
+    button.text = "Select all"
+    return button
+    button
