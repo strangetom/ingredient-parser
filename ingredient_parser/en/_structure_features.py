@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+import logging
+
 import nltk
 
 from ..dataclasses import Token
@@ -10,6 +12,9 @@ from ._constants import DIMENSIONS, FLATTENED_UNITS_LIST, LENGTH_UNITS, SIZES
 EXAMPLE_PHRASE_START_IN = [("AS", "IN"), ("LIKE", "IN"), ("E.G.", "IN")]
 # For example phrase starting with a JJ-IN pair
 EXAMPLE_PHRASE_START_JJ = [[("SUCH", "JJ"), ("AS", "IN")]]
+
+
+logger = logging.getLogger("ingredient-parser.preprocess._structure_features")
 
 
 class SentenceStrucureFeatures:
@@ -75,10 +80,13 @@ class SentenceStrucureFeatures:
     # RegexpParser to detect dimensional phrases.
     # Each phrase comprises a number followed by a length unit followed a dimension.
     # There can optionally be a preposition prior to the dimension.
-    # Examples: 1 inch thick, 2 cm in diameter, 1 inch (2 cm) long
+    # LEN and DIM are custom tags based on the LENGTH_UNIT and DIMENSIONS constants.
+    # Examples: 1 inch thick, 2 cm in diameter, 1 inch (2 cm) long, ¼ in / 5 mm thick
     dimensional_phrase_parser = nltk.RegexpParser(r"""
         LENGTH: {<CD><LEN>}
-        DP: {<LENGTH>(<\(><LENGTH><\)>)?<IN>?<DIM>+}
+        PLENGTH: {<\(><LENGTH><\)>}  # LENGTH in parentheses
+        SLENGTH: {<SYM><LENGTH>}  # LENGTH following forward slash
+        DP: {<LENGTH><SLENGTH|PLENGTH>?<IN>?<DIM>*}
     """)
 
     def __init__(self, tokenized_sentence: list[Token]):
@@ -100,7 +108,8 @@ class SentenceStrucureFeatures:
             "SentenceStrucureFeatures("
             + f"mip_phrases: {self.mip_phrases}, "
             + f"sentence_splits: {self.sentence_splits}, "
-            + f"example_phrases: {self.example_phrases})"
+            + f"example_phrases: {self.example_phrases}), "
+            + f"dimensional_phrases: {self.dimensional_phrases})"
         )
 
     def _get_subtree_indices(
@@ -179,6 +188,7 @@ class SentenceStrucureFeatures:
 
         text_pos = [(token.text, token.pos_tag) for token in self.tokenized_sentence]
         parsed = self.mip_parser.parse(text_pos)
+        logger.debug(f"MIP parser: \n{parsed}")
         for subtree in parsed.subtrees(filter=lambda t: t.label() in ["EMIP", "MIP"]):  #  type: ignore
             indices = self._get_subtree_indices(parsed, subtree)  #  type: ignore
             # If the conjunction is not "or", skip
@@ -231,6 +241,7 @@ class SentenceStrucureFeatures:
             text_pos.append((t.feat_text, pos))
 
         parsed = self.compound_parser.parse(text_pos)
+        logger.debug(f"Sentence split parser: \n{parsed}")
         for subtree in parsed.subtrees(filter=lambda t: t.label() == "CS"):  #  type: ignore
             indices = self._get_subtree_indices(parsed, subtree)  #  type: ignore
             # If the conjunction is not "or", skip
@@ -263,6 +274,7 @@ class SentenceStrucureFeatures:
 
         text_pos = [(token.text, token.pos_tag) for token in self.tokenized_sentence]
         parsed = self.example_parser.parse(text_pos)
+        logger.debug(f"Example parser: \n{parsed}")
         for subtree in parsed.subtrees(filter=lambda t: t.label() == "EX"):  #  type: ignore
             indices = self._get_subtree_indices(parsed, subtree)  #  type: ignore
             phrase_text_pos = [
@@ -327,6 +339,7 @@ class SentenceStrucureFeatures:
             text_pos.append((t.feat_text, pos))
 
         parsed = self.dimensional_phrase_parser.parse(text_pos)
+        logger.debug(f"Dimensional phrase parser: \n{parsed}")
         for subtree in parsed.subtrees(filter=lambda t: t.label() == "DP"):  #  type: ignore
             indices = self._get_subtree_indices(parsed, subtree)  #  type: ignore
             dimensional_phrases.append(indices)

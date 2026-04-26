@@ -565,19 +565,22 @@ class PreProcessor:
             else:
                 feat_text = text
 
-            # Get part of speech tag, with overrides for certain tokens
+            # Get part of speech tag, with overrides for certain tokens.
             if self._is_numeric(text):
                 pos = "CD"
             elif text.lower() in ["c", "g"]:
-                # Special cases for c (cup) and g (gram)
+                # Special cases for c (cup) and g (gram).
                 pos = "NN"
             elif text.lower() in ["and/or", "or", "and"]:
-                # Force 'and/or' tag to conjunction
-                # Force OR tag to conjunction
+                # Force 'and/or' tag to conjunction.
+                # Force OR tag to conjunction.
                 pos = "CC"
             elif text.lower() == "e.g.":
-                # Force "e.g." tag to preposition/coordinating subjunction
+                # Force "e.g." tag to preposition/subordinating conjunction .
                 pos = "IN"
+            elif text.lower() == "/":
+                # Force "/" to have SYM tag.
+                pos = "SYM"
 
             features = TokenFeatures(
                 stem=stem(feat_text),
