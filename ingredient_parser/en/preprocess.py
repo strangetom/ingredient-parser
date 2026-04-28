@@ -665,8 +665,8 @@ class PreProcessor:
     def _is_length_unit(self, index: int) -> bool:
         """Return True if token at index is a length unit.
 
-        For the token "in", this function also checks part of speech and previous token
-        to ensure it return False when "in" does not mean "inch".
+        For the token "in", this function also checks previous token to ensure it return
+        False when "in" does not mean "inch".
 
         Parameters
         ----------

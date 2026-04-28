@@ -439,6 +439,7 @@ UNIT_SYNONYMS = [
     {"teaspoon", "tsp"},
 ]
 
+# Set of units that refer to lengths.
 LENGTH_UNITS = {
     "centimeter",
     "centimetre",
@@ -451,6 +452,7 @@ LENGTH_UNITS = {
     "mm",
 }
 
+# Set of tokens that refer to the physical dimensions of an ingredient.
 DIMENSIONS = {
     "diameter",
     "inch-long",
