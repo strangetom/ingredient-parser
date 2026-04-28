@@ -314,10 +314,6 @@ class SentenceStrucureFeatures:
             2 inch long
             10 in diameter
 
-        Any phrases that start at the beginning of the sentence are excluded. This is
-        because this feature is intended to aid with SIZE labelling and a dimensional
-        phrase at the start of a sentence generally should by labelled with QTY/UNIT.
-
         Parameters
         ----------
         tokenized_sentence : list[Token]
@@ -346,10 +342,7 @@ class SentenceStrucureFeatures:
         logger.debug(f"Dimensional phrase parser: \n{parsed}")
         for subtree in parsed.subtrees(filter=lambda t: t.label() == "DP"):  #  type: ignore
             indices = self._get_subtree_indices(parsed, subtree)  #  type: ignore
-            if indices[0] > 0:
-                # Only include phrases that do not start at the beginning of the
-                # sentence.
-                dimensional_phrases.append(indices)
+            dimensional_phrases.append(indices)
         return dimensional_phrases
 
     def token_features(self, index: int, prefix: str) -> dict[str, bool]:
