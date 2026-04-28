@@ -3,7 +3,7 @@
 import re
 from itertools import chain
 
-# Plural and singular units
+# Plural and singular units. Length units are excluded.
 UNITS = {
     "balls": "ball",
     "bags": "bag",
@@ -27,7 +27,6 @@ UNITS = {
     "counts": "count",
     "cl": "cl",
     "cL": "cL",
-    # "cm": "cm",
     "cubes": "cube",
     "cups": "cup",
     "cutlets": "cutlet",
@@ -49,7 +48,6 @@ UNITS = {
     "grinds": "grind",
     "handfuls": "handful",
     "heads": "head",
-    # "inches": "inch",
     "jars": "jar",
     "jiggers": "jigger",
     "kg": "kg",
@@ -68,7 +66,6 @@ UNITS = {
     "millilitres": "millilitre",
     "ml": "ml",
     "mL": "mL",
-    # "mm": "mm",
     "mugs": "mug",
     "ounces": "ounce",
     "oz": "oz",
@@ -76,7 +73,7 @@ UNITS = {
     "packages": "package",
     "packets": "packet",
     "pairs": "pair",
-    # "pieces": "piece",
+    "pieces": "piece",
     "pinches": "pinch",
     "pints": "pint",
     "pods": "pod",
@@ -442,7 +439,7 @@ UNIT_SYNONYMS = [
     {"teaspoon", "tsp"},
 ]
 
-LENGTH_UNITS = [
+LENGTH_UNITS = {
     "centimeter",
     "centimetre",
     "cm",
@@ -452,9 +449,9 @@ LENGTH_UNITS = [
     "millimeter",
     "millimetre",
     "mm",
-]
+}
 
-DIMENSIONS = [
+DIMENSIONS = {
     "diameter",
     "inch-long",
     "inch-thick",
@@ -464,4 +461,4 @@ DIMENSIONS = [
     "thickness",
     "wide",
     "width",
-]
+}
