@@ -629,7 +629,9 @@ class PreProcessor:
         >>> p._is_unit("beef")
         False
         """
-        return token.lower() in self._units.values()
+        return (
+            token.lower() in self._units.values() and token.lower() not in LENGTH_UNITS
+        )
 
     def _is_dimension(self, token: str) -> bool:
         """Return True if token is a dimension.

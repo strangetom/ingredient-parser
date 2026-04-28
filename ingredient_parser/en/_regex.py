@@ -15,7 +15,7 @@ CAPITALISED_PATTERN = re.compile(r"^[A-Z]")
 # Regex pattern for finding quantity and units without space between them.
 # Add additional strings to units set that aren't necessarily units, but we want to
 # treat them like units for the purposes of splitting quantities from units.
-units_list = FLATTENED_UNITS_LIST | {"x", "piece"} | set(LENGTH_UNITS)
+units_list = FLATTENED_UNITS_LIST | {"x"} | LENGTH_UNITS
 # The negative lookahead at the end of QUANTITY_UNITS_PATTERN is there specifically
 # to handle units like 'c' where it could be the start of another word. We have to
 # check that the next character after the unit is *not* another letter in order
