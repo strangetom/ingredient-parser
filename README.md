@@ -58,10 +58,10 @@ The model has the following accuracy on a test data set of 20% of the total data
 ╒══════════════════════════╤══════════════════════════╕
 │ Sentence-level results   │ Word-level results       │
 ╞══════════════════════════╪══════════════════════════╡
-│ Accuracy: 95.25%         │ Accuracy: 98.09%         │
-│                          │ Precision (micro) 98.07% │
-│                          │ Recall (micro) 98.09%    │
-│                          │ F1 score (micro) 98.08%  │
+│ Accuracy: 95.26%         │ Accuracy: 98.14%         │
+│                          │ Precision (micro) 98.12% │
+│                          │ Recall (micro) 98.14%    │
+│                          │ F1 score (micro) 98.13%  │
 ╘══════════════════════════╧══════════════════════════╛
 ```
 
