@@ -151,24 +151,18 @@ def test_results_to_html(
                 incorrect.append(src)
                 label_errors.extend(sentence_label_errors)
 
-    total_count = Counter(sentence_sources)
-    incorrect_count = Counter(incorrect)
-    src_count_str = "".join(
-        [
-            f"{k.upper()}: {v} ({100 * v / total_count[k]:.2f}%), "
-            for k, v in incorrect_count.items()
-        ]
-    )
-
     body.insert(
         1,
         create_filter_elements(
-            mismatch_counts, set(sentence_sources), set(label_errors)
+            mismatch_counts,
+            Counter(incorrect),
+            Counter(sentence_sources),
+            Counter(label_errors),
         ),
     )
 
     heading2 = ET.Element("h2")
-    heading2.text = f"{len(incorrect):,} incorrect sentences. [{src_count_str}]"
+    heading2.text = f"{len(incorrect)} incorrect sentences."
     body.insert(1, heading2)
 
     # Script to add "click" event listener to all copy buttons
@@ -318,7 +312,10 @@ def create_html_table(
 
 
 def create_filter_elements(
-    mismatch_counts: set[int], sources: set[str], label_errors: set[str]
+    mismatch_counts: set[int],
+    incorrect_source: Counter,
+    total_source: Counter,
+    label_errors: Counter,
 ) -> ET.Element:
     """Create div element containing checkboxes for filter incorrect sentences by
     numbers of incorrect tokens, sentence source and label error.
@@ -327,13 +324,20 @@ def create_filter_elements(
     ----------
     mismatch_counts : set[int]
         Filter options for mismatches.
+    incorrect_source : Counter
+        Counter object detailing number of errors for each source.
+    total_source : Counter
+        Counter object detailing number of test sentences for each source.
+    label_errors : Counter
+        Counter object detailing number of errors for each label.
+
+    Deleted Parameters
+    ------------------
     sources : set[str]
         Filter options for sources.
-    label_errors : set[str]
-        Filter options for label errors.
 
-    Returns
-    -------
+    No Longer Returned
+    ------------------
     ET.Element
         Element to insert into test results HTML
     """
@@ -365,7 +369,7 @@ def create_filter_elements(
     div_mismatch_filters.append(create_select_all_button())
 
     div_src_filters = ET.Element("div")
-    for src in sorted(sources):
+    for src, count in sorted(incorrect_source.items(), key=lambda x: x[0]):
         inp = ET.Element(
             "input",
             attrib={
@@ -377,14 +381,14 @@ def create_filter_elements(
             },
         )
         label = ET.Element("label", attrib={"for": f"filter-{src}"})
-        label.text = f"{src}"
+        label.text = f"{src} ({count} = {100 * count / total_source[src]:.2f}%)"
 
         div_src_filters.append(inp)
         div_src_filters.append(label)
     div_src_filters.append(create_select_all_button())
 
     div_label_filters = ET.Element("div")
-    for lab in sorted(label_errors):
+    for lab, count in sorted(label_errors.items(), key=lambda x: x[0]):
         inp = ET.Element(
             "input",
             attrib={
@@ -396,7 +400,7 @@ def create_filter_elements(
             },
         )
         label = ET.Element("label", attrib={"for": f"filter-{lab}"})
-        label.text = f"{lab}"
+        label.text = f"{lab} ({count})"
 
         div_label_filters.append(inp)
         div_label_filters.append(label)
