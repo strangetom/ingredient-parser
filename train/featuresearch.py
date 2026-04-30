@@ -225,7 +225,9 @@ def feature_search(args: argparse.Namespace):
 
     # Sort with highest sentence accuracy first
     eval_results = sorted(
-        eval_results, key=lambda x: x["stats"].sentence.accuracy, reverse=True
+        eval_results,
+        key=lambda x: (x["stats"].sentence.accuracy, x["stats"].token.accuracy),
+        reverse=True,
     )
 
     headers = [
