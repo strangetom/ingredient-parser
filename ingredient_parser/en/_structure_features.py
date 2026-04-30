@@ -329,7 +329,9 @@ class SentenceStrucureFeatures:
 
         text_pos = []
         for t in tokenized_sentence:
-            if t.text.lower() in LENGTH_UNITS:
+            if t.text.lower() in LENGTH_UNITS and t.pos_tag != "IN":
+                # We need to check the POS tag so we don't confuse "in" (preposition)
+                # with "in" (abbreviation of inch).
                 pos = "LEN"
             elif t.text.lower() in DIMENSIONS:
                 pos = "DIM"

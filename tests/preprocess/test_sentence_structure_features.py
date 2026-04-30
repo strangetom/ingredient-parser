@@ -195,3 +195,42 @@ class Test_example_phrase_features:
                 assert token_features.get("example_phrase", False)
             else:
                 assert not token_features.get("example_phrase", False)
+
+
+class Test_dimensional_phrase_features:
+    def test_dimensional_phrase_detection(self):
+        """
+        Test dimensional phrase comprising number-unit-dimension is detected.
+        """
+        p = PreProcessor("1 2 in thick piece of steak", custom_units={})
+        assert p.sentence_structure.dimensional_phrases == [[1, 2, 3]]
+
+    def test_dimensional_phrase_no_dimension(self):
+        """
+        Test dimensional phrase comprising number-unit is detected.
+        """
+        p = PreProcessor("2in/5cm piece of ginger", custom_units={})
+        assert p.sentence_structure.dimensional_phrases == [[0, 1, 2, 3, 4]]
+
+    def test_dimensional_phrase_with_parenthesis(self):
+        """
+        Test dimensional phrase comprising two pair of number-unit, with the second pair
+        in parentheses, followed by a dimension is detected.
+        """
+        p = PreProcessor("1 2 in (5 cm) long piece of steak", custom_units={})
+        assert p.sentence_structure.dimensional_phrases == [[1, 2, 3, 4, 5, 6, 7]]
+
+    def test_dimensional_phrase_with_slash(self):
+        """
+        Test dimensional phrase comprising two pair of number-unit, with the second pair
+        after a forward slash, followed by a dimension is detected.
+        """
+        p = PreProcessor("1 2 in / 5 cm wide piece of steak", custom_units={})
+        assert p.sentence_structure.dimensional_phrases == [[1, 2, 3, 4, 5, 6]]
+
+    def test_dimensional_phrase_with_preposition(self):
+        """
+        Test dimensional phrase comprising number-unit-"in"-dimension is detected.
+        """
+        p = PreProcessor("1 potato, 3 inches in diameter", custom_units={})
+        assert p.sentence_structure.dimensional_phrases == [[3, 4, 5, 6]]

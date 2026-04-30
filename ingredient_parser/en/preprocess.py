@@ -581,6 +581,11 @@ class PreProcessor:
             elif text.lower() == "/":
                 # Force "/" to have SYM tag.
                 pos = "SYM"
+            elif text == "in" and i > 0 and tokens[i - 1].feat_text == "!num":
+                # If the text is "in" and the previous token is a number then this is
+                # mostly likely to be the abbreviation of inches rather than the
+                # preposition.
+                pos = "NN"
 
             features = TokenFeatures(
                 stem=stem(feat_text),
