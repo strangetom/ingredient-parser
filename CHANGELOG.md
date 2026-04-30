@@ -3,6 +3,7 @@
 ### develop
 
 * Handle "X ounce can" compound unit pattern without leading count (@[MaximusClub](https://github.com/MaximusCub))
+* Label length/dimensions as SIZE instead of a mixture of QTY/UNIT and COMMENT e.g. 6-inch tortillas will return a size of "6 inch" instead of an amount.
 
 ## 2.6.0
 
