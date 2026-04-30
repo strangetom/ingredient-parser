@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 class IngredientParserTrainer(pycrfsuite.Trainer):  # type: ignore
-    """Custom modifcation of the pycrfsuite.Trainer class to provide more useful
+    """Custom modification of the pycrfsuite.Trainer class to provide more useful
     logging.
     """
 

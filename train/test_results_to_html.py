@@ -2,6 +2,7 @@
 
 import xml.etree.ElementTree as ET
 from collections import Counter
+from itertools import chain
 
 
 def test_results_to_html(
@@ -102,6 +103,7 @@ def test_results_to_html(
     body.append(heading)
 
     incorrect = []
+    label_errors = []
     mismatch_counts = set()
     # Sort by sentence sort
     for src, sentence, tokens, truth, prediction, scores in sorted(
@@ -119,6 +121,11 @@ def test_results_to_html(
             mismatches = sum(i != j for i, j in zip(truth, prediction))
             if mismatches > 0:
                 mismatch_counts.add(mismatches)
+                sentence_label_errors = list(
+                    chain.from_iterable(
+                        [{i, j} for i, j in zip(truth, prediction) if i != j]
+                    )
+                )
                 table = create_html_table(tokens, truth, prediction, scores)
                 div = ET.Element("div")
                 p = ET.Element("p")
@@ -134,6 +141,7 @@ def test_results_to_html(
                         "class": "wrapper hidden",
                         "data-mismatches": str(mismatches),
                         "data-src": src,
+                        "data-errors": ",".join(sentence_label_errors),
                     },
                 )
                 wrapper.append(div)
@@ -141,20 +149,20 @@ def test_results_to_html(
                 body.append(wrapper)
 
                 incorrect.append(src)
+                label_errors.extend(sentence_label_errors)
 
-    total_count = Counter(sentence_sources)
-    incorrect_count = Counter(incorrect)
-    src_count_str = "".join(
-        [
-            f"{k.upper()}: {v} ({100 * v / total_count[k]:.2f}%), "
-            for k, v in incorrect_count.items()
-        ]
+    body.insert(
+        1,
+        create_filter_elements(
+            mismatch_counts,
+            Counter(incorrect),
+            Counter(sentence_sources),
+            Counter(label_errors),
+        ),
     )
 
-    body.insert(1, create_filter_elements(mismatch_counts, set(sentence_sources)))
-
     heading2 = ET.Element("h2")
-    heading2.text = f"{len(incorrect):,} incorrect sentences. [{src_count_str}]"
+    heading2.text = f"{len(incorrect)} incorrect sentences."
     body.insert(1, heading2)
 
     # Script to add "click" event listener to all copy buttons
@@ -169,6 +177,15 @@ def test_results_to_html(
             navigator.clipboard.writeText(text);
         });
     });
+    let selectAllButtons = document.querySelectorAll("button.select-all");
+    selectAllButtons.forEach(button => {
+        button.addEventListener("click", (e) => {
+            let parent = e.target.parentElement;
+            let checkboxes = parent.querySelectorAll("input[type='checkbox']");
+            checkboxes.forEach(box => box.checked = true);
+            applyFilter();
+        });
+    });
     function applyFilter() {
         let filtered_src = {};
         let sentences = document.querySelectorAll(".wrapper");
@@ -178,9 +195,16 @@ def test_results_to_html(
         let src_filters = [...document.querySelectorAll("input.src")]
             .filter(el => el.checked)
             .map(el => el.dataset.value);
+        let error_filters = [...document.querySelectorAll("input.error")]
+            .filter(el => el.checked)
+            .map(el => el.dataset.value);
+        error_filters = new Set(error_filters);
         sentences.forEach((sent) => {
+            let errors = new Set(sent.dataset.errors.split(","));
             if (mismatch_filters.includes(sent.dataset.mismatches) &&
-                src_filters.includes(sent.dataset.src)) {
+                src_filters.includes(sent.dataset.src) && 
+                errors.intersection(error_filters).size > 0)
+                {
                 sent.classList.remove("hidden");
                 if (filtered_src[sent.dataset.src] == undefined){
                     filtered_src[sent.dataset.src] = 1;
@@ -192,11 +216,14 @@ def test_results_to_html(
             }
         })
         let filter_counts = []
+        let total = 0
         for (const [k, v] of Object.entries(filtered_src)) {
             filter_counts.push(`${k.toUpperCase()}: ${v}, `);
+            total += v;
         };
         let filter_count_el = document.querySelector("#filter-counts");
-        filter_count_el.innerText = " [" + filter_counts.join("") + "]";
+        let filter_text = " [" + filter_counts.join("") + "] (" + total + " total)"
+        filter_count_el.innerText = filter_text;
     };
     let filterInputs = document.querySelectorAll("input[type='checkbox']");
     filterInputs.forEach((input) => {
@@ -284,26 +311,40 @@ def create_html_table(
     return table
 
 
-def create_filter_elements(mismatch_counts: set[int], sources: set[str]) -> ET.Element:
+def create_filter_elements(
+    mismatch_counts: set[int],
+    incorrect_source: Counter,
+    total_source: Counter,
+    label_errors: Counter,
+) -> ET.Element:
     """Create div element containing checkboxes for filter incorrect sentences by
-    numbers of incorrect tokens and by source.
+    numbers of incorrect tokens, sentence source and label error.
 
     Parameters
     ----------
     mismatch_counts : set[int]
-        Filter options for mismatches
-    sources : set[str]
-        Filter options for sources
+        Filter options for mismatches.
+    incorrect_source : Counter
+        Counter object detailing number of errors for each source.
+    total_source : Counter
+        Counter object detailing number of test sentences for each source.
+    label_errors : Counter
+        Counter object detailing number of errors for each label.
 
-    Returns
-    -------
+    Deleted Parameters
+    ------------------
+    sources : set[str]
+        Filter options for sources.
+
+    No Longer Returned
+    ------------------
     ET.Element
-        Elelemt to insert into test results HTML
+        Element to insert into test results HTML
     """
     div = ET.Element("div")
 
     h4 = ET.Element("h4")
-    h4.text = "Filter by number of mismatches."
+    h4.text = "Filter by number of mismatches, source and label error."
     span = ET.Element("span", attrib={"id": "filter-counts"})
     h4.append(span)
     div.append(h4)
@@ -325,9 +366,10 @@ def create_filter_elements(mismatch_counts: set[int], sources: set[str]) -> ET.E
 
         div_mismatch_filters.append(inp)
         div_mismatch_filters.append(label)
+    div_mismatch_filters.append(create_select_all_button())
 
     div_src_filters = ET.Element("div")
-    for src in sorted(sources):
+    for src, count in sorted(incorrect_source.items(), key=lambda x: x[0]):
         inp = ET.Element(
             "input",
             attrib={
@@ -339,12 +381,53 @@ def create_filter_elements(mismatch_counts: set[int], sources: set[str]) -> ET.E
             },
         )
         label = ET.Element("label", attrib={"for": f"filter-{src}"})
-        label.text = f"{src}"
+        label.text = f"{src} ({count} = {100 * count / total_source[src]:.2f}%)"
 
         div_src_filters.append(inp)
         div_src_filters.append(label)
+    div_src_filters.append(create_select_all_button())
+
+    div_label_filters = ET.Element("div")
+    for lab, count in sorted(label_errors.items(), key=lambda x: x[0]):
+        inp = ET.Element(
+            "input",
+            attrib={
+                "type": "checkbox",
+                "class": "error",
+                "name": f"filter-{lab}",
+                "id": f"filter-{lab}",
+                "data-value": f"{lab}",
+            },
+        )
+        label = ET.Element("label", attrib={"for": f"filter-{lab}"})
+        label.text = f"{lab} ({count})"
+
+        div_label_filters.append(inp)
+        div_label_filters.append(label)
+    div_label_filters.append(create_select_all_button())
 
     div.append(div_mismatch_filters)
     div.append(div_src_filters)
+    div.append(div_label_filters)
 
     return div
+
+
+def create_select_all_button() -> ET.Element:
+    """Return HTML Button element
+
+    Returns
+    -------
+    ET.Element
+        Button HTML Element
+    """
+    button = ET.Element(
+        "button",
+        attrib={
+            "type": "button",
+            "class": "select-all",
+        },
+    )
+    button.text = "Select all"
+    return button
+    button

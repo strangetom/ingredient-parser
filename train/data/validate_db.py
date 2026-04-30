@@ -173,7 +173,7 @@ if __name__ == "__main__":
     bio_errors = 0
 
     for row in rows:
-        p = PreProcessor(row["sentence"])
+        p = PreProcessor(row["sentence"], {})
         if not validate_tokens([t.text for t in p.tokenized_sentence], row):
             token_errors += 1
         if not validate_token_label_length([t.text for t in p.tokenized_sentence], row):
