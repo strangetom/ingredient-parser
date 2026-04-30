@@ -12,7 +12,7 @@ The following parts of an ingredient sentence can be extracted:
 +======================+======================================================================================================================================================================+
 | **name**             | The name of the ingredient, or names if multiple names are given.                                                                                                    |
 +----------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| **size**             | A size modifier for the ingredient, such as small or large.                                                                                                          |
+| **size**             | A size modifier for the ingredient, such as small or large, or the length or dimension of the ingredient, such as 6-inch.                                            |
 |                      |                                                                                                                                                                      |
 |                      | This size modifier only applies to the ingredient name, not the unit.                                                                                                |
 +----------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------+

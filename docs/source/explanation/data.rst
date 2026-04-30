@@ -49,7 +49,7 @@ The model uses the following labels:
 +------------+-----------------------------------------------------------------------------------------------+
 | UNIT       | Unit of a quantity for the ingredient.                                                        |
 +------------+-----------------------------------------------------------------------------------------------+
-| SIZE       | Physical size of the ingredient (e.g. large, small).                                          |
+| SIZE       | Physical size of the ingredient (e.g. large, small, or expressed as a length or dimension).   |
 |            |                                                                                               |
 |            | This is not used to label the size of the unit, these are given the UNIT label.               |
 +------------+-----------------------------------------------------------------------------------------------+
