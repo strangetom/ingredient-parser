@@ -1244,8 +1244,8 @@ class PostProcessor:
             ):
                 # Check if match fits with "ptfloz" or "lboz" pattern constraints
                 if pattern_name in ["ptfloz", "lboz"]:
-                    first_unit = tokens[match[start1 + 1]]
-                    last_unit = tokens[match[-1]]
+                    first_unit = tokens[match[start1 + 1]].text
+                    last_unit = tokens[match[-1]].text
                     if (
                         first_unit not in valid_first_units
                         or last_unit not in valid_last_units
@@ -1264,8 +1264,8 @@ class PostProcessor:
 
                 # First amount
                 mstart1 = match[start1]  # Index of start of 1st part in full sentence.
-                quantity_1 = tokens[mstart1]
-                unit_1 = tokens[match[start1 + 1]]
+                quantity_1 = tokens[mstart1].text
+                unit_1 = tokens[match[start1 + 1]].text
                 score_1 = mean(tokens[i].score for i in match[start1 : start1 + 2])
                 text_1 = " ".join((quantity_1, unit_1)).strip()
 
@@ -1282,7 +1282,7 @@ class PostProcessor:
 
                 # Second amount
                 mstart2 = match[start2]  # Index of start of 2nd part in full sentence.
-                quantity_2 = tokens[mstart2]
+                quantity_2 = tokens[mstart2].text
                 unit_2 = " ".join([tokens[i].text for i in match[start2 + 1 :]])
                 score_2 = mean(tokens[i].score for i in match[start2:])
                 text_2 = " ".join((quantity_2, unit_2)).strip()
@@ -1451,7 +1451,7 @@ class PostProcessor:
             if token.label == "QTY":
                 # Whenever we come across a new QTY, create new IngredientAmount with
                 # some exceptions.
-                if token == "dozen" and tokens[i - 1].label == "QTY":
+                if token.text == "dozen" and tokens[i - 1].label == "QTY":
                     # If the token is "dozen" and the previous label was QTY, in which
                     # case we modify the quantity of the previous amount.
                     amounts[-1].quantity = amounts[-1].quantity + " dozen"
