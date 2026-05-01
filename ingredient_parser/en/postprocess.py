@@ -31,6 +31,7 @@ from ._regex import FRACTION_TOKEN_PATTERN
 from ._utils import (
     combine_quantities_split_by_and,
     ingredient_amount_factory,
+    pluralise_units,
     replace_string_range,
 )
 
@@ -662,6 +663,7 @@ class PostProcessor:
         else:
             text = ", ".join(parts)
         text = self._fix_punctuation(text)
+        text = pluralise_units(text, self.custom_units)
 
         if len(parts) == 0:
             return None
