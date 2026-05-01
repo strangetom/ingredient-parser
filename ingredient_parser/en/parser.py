@@ -5,7 +5,6 @@ import logging
 from .._common import group_consecutive_idx
 from ..dataclasses import LabelledToken, ParsedIngredient, ParserDebugInfo
 from ._loaders import load_parser_model
-from ._utils import pluralise_units
 from .postprocess import PostProcessor
 from .preprocess import PreProcessor
 
@@ -192,8 +191,6 @@ def inspect_parser_en(
     custom_units = custom_units | _capitalized_units
 
     processed_sentence = PreProcessor(sentence, custom_units=custom_units)
-    tokens = [t.text for t in processed_sentence.tokenized_sentence]
-    pos_tags = [t.pos_tag for t in processed_sentence.tokenized_sentence]
     features = processed_sentence.sentence_features()
     labels = TAGGER.tag(features)
     scores = [TAGGER.marginal(label, i) for i, label in enumerate(labels)]
@@ -203,20 +200,23 @@ def inspect_parser_en(
         logger.debug("No tokens found where name is most likely label.")
         labels, scores = guess_ingredient_name(TAGGER, labels, scores)
 
-    # Re-plurise tokens that were singularised if the label isn't UNIT
-    # For tokens with UNIT label, we'll deal with them below
-    for idx in processed_sentence.singularised_indices:
-        token = tokens[idx]
-        label = labels[idx]
-        if label != "UNIT":
-            tokens[idx] = pluralise_units(token, custom_units)
+    labelled_tokens = [
+        LabelledToken(
+            index=token.index,
+            text=token.text,
+            pos_tag=token.pos_tag,
+            label=label,
+            score=score,
+            plural=token.index in processed_sentence.singularised_indices,
+        )
+        for token, label, score in zip(
+            processed_sentence.tokenized_sentence, labels, scores
+        )
+    ]
 
     postprocessed_sentence = PostProcessor(
         sentence,
-        tokens,
-        pos_tags,
-        labels,
-        scores,
+        labelled_tokens,
         custom_units=custom_units,
         separate_names=separate_names,
         discard_isolated_stop_words=discard_isolated_stop_words,
