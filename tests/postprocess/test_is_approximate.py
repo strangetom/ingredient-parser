@@ -98,6 +98,47 @@ class TestPostProcessor_is_approximate:
         assert p._is_approximate(2, tokens, labels, idx)
         assert p.consumed == [1]
 
+    def test_is_approximate_or_so_quantity(self):
+        """
+        Test that QTY at index is indicated as approximate
+        """
+        sentence = "48 or so small black and green olives"
+        tokens = ["48", "or", "so", "small", "black", "and", "green", "olives"]
+        pos_tags = ["CD", "CC", "RB", "JJ", "JJ", "CC", "JJ", "NNS"]
+        labels = [
+            "QTY",
+            "COMMENT",
+            "COMMENT",
+            "SIZE",
+            "NAME_VAR",
+            "NAME_SEP",
+            "NAME_VAR",
+            "B_NAME_TOK",
+        ]
+        idx = [0, 1, 2, 3, 4, 5, 6, 7]
+
+        p = PostProcessor(
+            sentence, tokens, pos_tags, labels, [0] * len(tokens), custom_units={}
+        )
+        assert p._is_approximate(0, tokens, labels, idx)
+        assert p.consumed == [1, 2]
+
+    def test_is_approximate_or_so_unit(self):
+        """
+        Test that QTY at index is indicated as approximate
+        """
+        sentence = "2/3 cup or so low-fat milk"
+        tokens = ["#2$3", "cup", "or", "so", "low-fat", "milk"]
+        pos_tags = ["CD", "NN", "CC", "RB", "JJ", "NN"]
+        labels = ["QTY", "UNIT", "COMMENT", "COMMENT", "B_NAME_TOK", "I_NAME_TOK"]
+        idx = [0, 1, 2, 3, 4, 5]
+
+        p = PostProcessor(
+            sentence, tokens, pos_tags, labels, [0] * len(tokens), custom_units={}
+        )
+        assert p._is_approximate(1, tokens, labels, idx)
+        assert p.consumed == [2, 3]
+
     def test_not_approximate(self):
         """
         Test that QTY at index is not indicated as approximate

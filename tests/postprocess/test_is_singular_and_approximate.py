@@ -18,6 +18,22 @@ class TestPostProcessor_is_singular_and_approximate:
         assert p._is_singular_and_approximate(2, tokens, labels, idx)
         assert p.consumed == [1, 0]
 
+    def test_is_singular_and_approximate_or_so(self):
+        """
+        Test that QTY at index is indicated as approximate and singular
+        """
+        sentence = "2 kg or so each"
+        tokens = ["2", "kg", "or", "so", "each"]
+        pos_tags = ["CD", "ND", "CC", "RB", "DT"]
+        labels = ["QTY", "UNIT", "COMMENT", "COMMENT", "COMMENT"]
+        idx = [0, 1, 2, 3, 4]
+
+        p = PostProcessor(
+            sentence, tokens, pos_tags, labels, [0] * len(tokens), custom_units={}
+        )
+        assert p._is_singular_and_approximate(1, tokens, labels, idx)
+        assert p.consumed == [2, 3, 4]
+
     def test_not_singular_and_approximate(self):
         """
         Test that QTY at index is not indicated as approximate and singular

@@ -20,7 +20,8 @@ from ..dataclasses import (
     ParsedIngredient,
 )
 from ._constants import (
-    APPROXIMATE_TOKENS,
+    APPROXIMATE_PREFIXES,
+    APPROXIMATE_SUFFIXES,
     PREPARED_INGREDIENT_TOKENS,
     SINGULAR_TOKENS,
     STOP_WORDS,
@@ -1638,27 +1639,43 @@ class PostProcessor:
         )
         True
         """
-        if i == 0:
-            return False
-
-        if labels[i] == "QTY" and tokens[i - 1].lower() in APPROXIMATE_TOKENS:
-            # Mark i - 1 element as consumed
+        if (
+            labels[i] == "QTY"
+            and i > 0
+            and tokens[i - 1].lower() in APPROXIMATE_PREFIXES
+        ):
+            # Mark i - 1 element as consumed.
             self.consumed.append(idx[i - 1])
             return True
         elif (
             labels[i] == "QTY"
+            and i > 1
             and tokens[i - 1] == "."
-            and tokens[i - 2].lower() in APPROXIMATE_TOKENS
+            and tokens[i - 2].lower() in APPROXIMATE_PREFIXES
         ):
             # Special case for "approx."
-            # Mark i - 1 and i - 2 elements as consumed
+            # Mark i - 1 and i - 2 elements as consumed.
             self.consumed.append(idx[i - 1])
             self.consumed.append(idx[i - 2])
             return True
-        elif labels[i] == "UNIT" and tokens[i - 1].lower() in APPROXIMATE_TOKENS:
+        elif (
+            labels[i] == "UNIT"
+            and i > 0
+            and tokens[i - 1].lower() in APPROXIMATE_PREFIXES
+        ):
             # For cases like "2 generous cups"
-            # Mark i - 1 element as consumed
+            # Mark i - 1 element as consumed.
             self.consumed.append(idx[i - 1])
+            return True
+        elif (
+            labels[i] in ["UNIT", "QTY"]
+            and i < len(self.tokens) - 2
+            and [t.lower() for t in tokens[i + 1 : i + 3]] in APPROXIMATE_SUFFIXES
+        ):
+            # For cases like "2/3 cup or so", "12 or so" etc.
+            # Mark i + 1 element as consumed.
+            self.consumed.append(idx[i + 1])
+            self.consumed.append(idx[i + 2])
             return True
 
         return False
@@ -1728,13 +1745,20 @@ class PostProcessor:
     ) -> bool:
         """Return True if the current token is approximate and singular.
 
-        This is determined by the token label being QTY and is preceded by a token in
-        a list of singular tokens, then token in a list of approximate tokens.
+        There are two cases:
+            1. The token label at the given index is QTY and is preceded by a token in
+               a list of singular tokens, then token in a list of approximate prefixes.
+               e.g. "each nearly 200 g"
+            2. The token label at the given index is UNIT and is followed by a sequence
+               of tokens in the approximate suffixes then a token in the list of
+               singular tokens.
+               e.g. "5 lbs or so each"
 
-        If returning True, also add index of i - 1 and i - 2 tokens to
-        self.consumed list.
+        If returning True, also mark the indices of the singular and approximate tokens
+        as consumed.
 
-        e.g. each nearly 3 ...
+        Note: This doesn't handle the case of "each 1 lb or so" but I've not seen that
+        in the wild.
 
         Parameters
         ----------
@@ -1756,24 +1780,42 @@ class PostProcessor:
         --------
         >>> p = PostProcessor("", [], [], [])
         >>> p._is_approximate(
-            1,
+            2,
             ["each", nearly", "3", "oz"],
             ["COMMENT", "COMMENT", "QTY", "UNIT"],
             [0, 1, 2, 3]
         )
         True
-        """
-        if i < 2:
-            return False
 
+        >>> p = PostProcessor("", [], [], [])
+        >>> p._is_approximate(
+            1,
+            ["2", lbs", "or", "so", "each"],
+            ["QTY", "UNIT", "COMMENT", "COMMENT", "COMMENT"],
+            [0, 1, 2, 3, 4]
+        )
+        True
+        """
         if (
             labels[i] == "QTY"
-            and tokens[i - 1].lower() in APPROXIMATE_TOKENS
+            and i > 1
+            and tokens[i - 1].lower() in APPROXIMATE_PREFIXES
             and tokens[i - 2].lower() in SINGULAR_TOKENS
         ):
             # Mark i - 1 and i - 2 elements as consumed
             self.consumed.append(idx[i - 1])
             self.consumed.append(idx[i - 2])
+            return True
+        elif (
+            labels[i] == "UNIT"
+            and i < len(self.tokens) - 3
+            and [t.lower() for t in tokens[i + 1 : i + 3]] in APPROXIMATE_SUFFIXES
+            and tokens[i + 3] in SINGULAR_TOKENS
+        ):
+            # e.g. "2 pounds or so each"
+            self.consumed.append(idx[i + 1])
+            self.consumed.append(idx[i + 2])
+            self.consumed.append(idx[i + 3])
             return True
 
         return False
@@ -1785,7 +1827,7 @@ class PostProcessor:
 
         This is determined by the token label being QTY and the previous tokens being in
         a list of prepared tokens.
-        If the QTY is preceded by a token in APPROXIMATE_TOKENS, then the tokens prior
+        If the QTY is preceded by a token in APPROXIMATE_PREFIXES, then the tokens prior
         to that are checked for matches against the prepared tokens list.
 
         If returning True, also add index of tokens from prepared token list to
@@ -1842,7 +1884,7 @@ class PostProcessor:
                 return True
             elif (
                 i > 2
-                and tokens[i - 1] in APPROXIMATE_TOKENS
+                and tokens[i - 1] in APPROXIMATE_PREFIXES
                 and [t.lower() for t in tokens[i - 3 : i - 1]] == pattern
             ):
                 # Mark i - 2 and i - 3 elements as consumed

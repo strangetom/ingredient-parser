@@ -408,8 +408,8 @@ STOP_WORDS = {
     "wouldn't",
 }
 
-# Tokens that indicate an quantity is approximate
-APPROXIMATE_TOKENS = [
+# Tokens that indicate a quantity is approximate
+APPROXIMATE_PREFIXES = [
     "about",
     "approx",
     "approximately",
@@ -418,6 +418,7 @@ APPROXIMATE_TOKENS = [
     "~",
     "generous",
 ]
+APPROXIMATE_SUFFIXES = [["or", "so"]]
 # Tokens that indicate an amount is singular
 SINGULAR_TOKENS = ["each"]
 # Tokens that indicate an amount refers to the prepared ingredient
