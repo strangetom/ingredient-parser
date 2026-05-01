@@ -2,6 +2,7 @@ import pytest
 
 from ingredient_parser.dataclasses import (
     IngredientText,
+    LabelledToken,
     ParsedIngredient,
 )
 from ingredient_parser.en import PostProcessor
@@ -26,13 +27,18 @@ def p():
         0.9907929042080257,
         0.9954196827665529,
     ]
+    labelled_tokens = [
+        LabelledToken(
+            index=i, text=text, pos_tag=tag, label=label, score=score, plural=False
+        )
+        for i, (text, tag, label, score) in enumerate(
+            zip(tokens, pos_tags, labels, scores)
+        )
+    ]
 
     return PostProcessor(
         sentence,
-        tokens,
-        pos_tags,
-        labels,
-        scores,
+        labelled_tokens,
         custom_units={},
         discard_isolated_stop_words=True,
     )
@@ -83,13 +89,18 @@ def p_string_numbers():
         0.7810746702425934,
         0.9447105511029686,
     ]
+    labelled_tokens = [
+        LabelledToken(
+            index=i, text=text, pos_tag=tag, label=label, score=score, plural=False
+        )
+        for i, (text, tag, label, score) in enumerate(
+            zip(tokens, pos_tags, labels, scores)
+        )
+    ]
 
     return PostProcessor(
         sentence,
-        tokens,
-        pos_tags,
-        labels,
-        scores,
+        labelled_tokens,
         custom_units={},
         discard_isolated_stop_words=True,
     )
@@ -140,13 +151,18 @@ def p_string_numbers_range():
         0.7810746702425934,
         0.9447105511029686,
     ]
+    labelled_tokens = [
+        LabelledToken(
+            index=i, text=text, pos_tag=tag, label=label, score=score, plural=False
+        )
+        for i, (text, tag, label, score) in enumerate(
+            zip(tokens, pos_tags, labels, scores)
+        )
+    ]
 
     return PostProcessor(
         sentence,
-        tokens,
-        pos_tags,
-        labels,
-        scores,
+        labelled_tokens,
         custom_units={},
         discard_isolated_stop_words=True,
     )
@@ -169,13 +185,18 @@ def p_postprep():
         0.9936702913782429,
         0.9988409678348467,
     ]
+    labelled_tokens = [
+        LabelledToken(
+            index=i, text=text, pos_tag=tag, label=label, score=score, plural=False
+        )
+        for i, (text, tag, label, score) in enumerate(
+            zip(tokens, pos_tags, labels, scores)
+        )
+    ]
 
     return PostProcessor(
         sentence,
-        tokens,
-        pos_tags,
-        labels,
-        scores,
+        labelled_tokens,
         custom_units={},
         discard_isolated_stop_words=False,
     )
@@ -199,13 +220,18 @@ def p_no_discard():
         0.9907929042080257,
         0.9954196827665529,
     ]
+    labelled_tokens = [
+        LabelledToken(
+            index=i, text=text, pos_tag=tag, label=label, score=score, plural=False
+        )
+        for i, (text, tag, label, score) in enumerate(
+            zip(tokens, pos_tags, labels, scores)
+        )
+    ]
 
     return PostProcessor(
         sentence,
-        tokens,
-        pos_tags,
-        labels,
-        scores,
+        labelled_tokens,
         custom_units={},
         discard_isolated_stop_words=False,
     )
@@ -283,8 +309,16 @@ def p_fraction_in_prep():
         0.9992304409607873,
         0.660356736493678,
     ]
+    labelled_tokens = [
+        LabelledToken(
+            index=i, text=text, pos_tag=tag, label=label, score=score, plural=False
+        )
+        for i, (text, tag, label, score) in enumerate(
+            zip(tokens, pos_tags, labels, scores)
+        )
+    ]
 
-    return PostProcessor(sentence, tokens, pos_tags, labels, scores, custom_units={})
+    return PostProcessor(sentence, labelled_tokens, custom_units={})
 
 
 @pytest.fixture
@@ -359,8 +393,16 @@ def p_fraction_range_in_prep():
         0.9992304409607873,
         0.660356736493678,
     ]
+    labelled_tokens = [
+        LabelledToken(
+            index=i, text=text, pos_tag=tag, label=label, score=score, plural=False
+        )
+        for i, (text, tag, label, score) in enumerate(
+            zip(tokens, pos_tags, labels, scores)
+        )
+    ]
 
-    return PostProcessor(sentence, tokens, pos_tags, labels, scores, custom_units={})
+    return PostProcessor(sentence, labelled_tokens, custom_units={})
 
 
 @pytest.fixture
@@ -381,13 +423,18 @@ def p_split_name():
         0.5092435116086577,
         0.9877923155569212,
     ]
+    labelled_tokens = [
+        LabelledToken(
+            index=i, text=text, pos_tag=tag, label=label, score=score, plural=False
+        )
+        for i, (text, tag, label, score) in enumerate(
+            zip(tokens, pos_tags, labels, scores)
+        )
+    ]
 
     return PostProcessor(
         sentence,
-        tokens,
-        pos_tags,
-        labels,
-        scores,
+        labelled_tokens,
         custom_units={},
         discard_isolated_stop_words=False,
     )
@@ -410,13 +457,18 @@ def p_multiplier_range_amount():
         0.9994944350996183,
         0.9995007468043913,
     ]
+    labelled_tokens = [
+        LabelledToken(
+            index=i, text=text, pos_tag=tag, label=label, score=score, plural=False
+        )
+        for i, (text, tag, label, score) in enumerate(
+            zip(tokens, pos_tags, labels, scores)
+        )
+    ]
 
     return PostProcessor(
         sentence,
-        tokens,
-        pos_tags,
-        labels,
-        scores,
+        labelled_tokens,
         custom_units={},
     )
 

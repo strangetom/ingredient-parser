@@ -1,5 +1,6 @@
 import pytest
 
+from ingredient_parser.dataclasses import LabelledToken
 from ingredient_parser.en import PostProcessor
 
 
@@ -22,13 +23,18 @@ def p_mulitple_names():
         0.9649807293441203,
         0.9668959628659927,
     ]
+    labelled_tokens = [
+        LabelledToken(
+            index=i, text=text, pos_tag=tag, label=label, score=score, plural=False
+        )
+        for i, (text, tag, label, score) in enumerate(
+            zip(tokens, pos_tags, labels, scores)
+        )
+    ]
 
     return PostProcessor(
         sentence,
-        tokens,
-        pos_tags,
-        labels,
-        scores,
+        labelled_tokens,
         custom_units={},
         discard_isolated_stop_words=False,
         foundation_foods=True,

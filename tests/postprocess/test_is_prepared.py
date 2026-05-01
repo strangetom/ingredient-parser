@@ -1,3 +1,4 @@
+from ingredient_parser.dataclasses import LabelledToken
 from ingredient_parser.en import PostProcessor
 
 
@@ -10,12 +11,15 @@ class TestPostProcessor_is_prepared:
         tokens = ["to", "make", "5", "cups", "orange", "juice"]
         pos_tags = ["TO", "VB", "CD", "NNS", "NN", "NN"]
         labels = ["COMMENT", "COMMENT", "QTY", "UNIT", "B_NAME_TOK", "I_NAME_TOK"]
-        idx = [0, 1, 2, 3, 4, 5]
+        labelled_tokens = [
+            LabelledToken(
+                index=i, text=text, pos_tag=tag, label=label, score=0, plural=False
+            )
+            for i, (text, tag, label) in enumerate(zip(tokens, pos_tags, labels))
+        ]
 
-        p = PostProcessor(
-            sentence, tokens, pos_tags, labels, [0] * len(tokens), custom_units={}
-        )
-        assert p._is_prepared(2, tokens, labels, idx)
+        p = PostProcessor(sentence, labelled_tokens, custom_units={})
+        assert p._is_prepared(2, labelled_tokens)
         assert p.consumed == [1, 0]
 
     def test_is_prepared_to_yield(self):
@@ -26,12 +30,15 @@ class TestPostProcessor_is_prepared:
         tokens = ["to", "yield", "5", "cups", "orange", "juice"]
         pos_tags = ["TO", "VB", "CD", "NNS", "NN", "NN"]
         labels = ["COMMENT", "COMMENT", "QTY", "UNIT", "B_NAME_TOK", "I_NAME_TOK"]
-        idx = [0, 1, 2, 3, 4, 5]
+        labelled_tokens = [
+            LabelledToken(
+                index=i, text=text, pos_tag=tag, label=label, score=0, plural=False
+            )
+            for i, (text, tag, label) in enumerate(zip(tokens, pos_tags, labels))
+        ]
 
-        p = PostProcessor(
-            sentence, tokens, pos_tags, labels, [0] * len(tokens), custom_units={}
-        )
-        assert p._is_prepared(2, tokens, labels, idx)
+        p = PostProcessor(sentence, labelled_tokens, custom_units={})
+        assert p._is_prepared(2, labelled_tokens)
         assert p.consumed == [1, 0]
 
     def test_is_prepared_and_approximate(self):
@@ -42,10 +49,13 @@ class TestPostProcessor_is_prepared:
         tokens = ["to", "yield", "about", "250", "g"]
         pos_tags = ["TO", "VB", "RB", "CD", "NNS"]
         labels = ["COMMENT", "COMMENT", "COMMENT", "QTY", "UNIT"]
-        idx = [0, 1, 2, 3, 4, 5]
+        labelled_tokens = [
+            LabelledToken(
+                index=i, text=text, pos_tag=tag, label=label, score=0, plural=False
+            )
+            for i, (text, tag, label) in enumerate(zip(tokens, pos_tags, labels))
+        ]
 
-        p = PostProcessor(
-            sentence, tokens, pos_tags, labels, [0] * len(tokens), custom_units={}
-        )
-        assert p._is_prepared(3, tokens, labels, idx)
+        p = PostProcessor(sentence, labelled_tokens, custom_units={})
+        assert p._is_prepared(3, labelled_tokens)
         assert p.consumed == [1, 0]

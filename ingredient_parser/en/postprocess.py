@@ -158,9 +158,10 @@ class PostProcessor:
         str
             Human readable string representation of object.
         """
+        tokens_labels = [(t.text, t.label) for t in self.tokens]
         _str = [
             "Post-processed recipe ingredient sentence",
-            f"\t{list(zip(self.tokens, self.labels))}",
+            f"\t{tokens_labels}",
         ]
         return "\n".join(_str)
 
@@ -181,14 +182,15 @@ class PostProcessor:
         else:
             # Replace all labels containing NAME with "NAME"
             name_replaced_labels = []
-            for label in self.labels:
-                if "NAME" in label:
-                    name_replaced_labels.append("NAME")
-                else:
-                    name_replaced_labels.append(label)
+            for t in self.tokens:
+                if "NAME" in t.label:
+                    t.label = "NAME"
             self.labels = name_replaced_labels
             logger.debug(
-                f"Relabelled tokens to {self.labels} because seperate_name=False."
+                (
+                    f"Relabelled tokens to {name_replaced_labels} ",
+                    "because seperate_name=False.",
+                )
             )
 
             # Process NAME labels as any other label, but return as a list
