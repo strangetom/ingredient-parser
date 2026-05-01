@@ -107,8 +107,8 @@ To simplify the number features that the model has to learn, all tokens that are
 
 .. _structural-features:
 
-Structual features
-~~~~~~~~~~~~~~~~~~
+Structural features
+~~~~~~~~~~~~~~~~~~~
 
 Structural features are determined from the structure of the sentence.
 These are based on identifying particular phrase patterns that are common in recipe ingredient sentence.
@@ -123,6 +123,10 @@ These are based on identifying particular phrase patterns that are common in rec
 | Example phrase          | Example phrases are where specific example of an ingredient is given, e.g. **such as parsley**.                            |
 |                         |                                                                                                                            |
 |                         | The generated feature is a boolean indicating if the token is part of an example phrase.                                   |
++-------------------------+----------------------------------------------------------------------------------------------------------------------------+
+| Dimensional phrase      | Dimensional phrase describe the physical dimensions of the ingredient, e.g. **2 inch thick**, **1 cm in diameter**.        |
+|                         |                                                                                                                            |
+|                         | The generated feature is a boolean indicating if the token is part of an dimensional phrase.                               |
 +-------------------------+----------------------------------------------------------------------------------------------------------------------------+
 | Compound sentence split | Some ingredient sentence are compound sentences, listing different (often alternative) ingredients with different amounts. |
 |                         | For example, **1 tablespoon chopped fresh basil or 1 teaspoon dried**, where *or* separates the clauses.                   |
