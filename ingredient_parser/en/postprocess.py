@@ -1072,6 +1072,8 @@ class PostProcessor:
                         )
                         amounts.append(first)
                         _ = match.pop(-1)
+
+                        logger.debug(f"Implicit quantity of '1' applied to '1 {unit}'.")
                     else:
                         # The first amount is made up of the first and last items
                         # Note that this cannot be singular, but may be approximate
@@ -1572,6 +1574,11 @@ class PostProcessor:
                     custom_units=self.custom_units,
                 )
             )
+
+            if amount.implicit_quantity:
+                logger.debug(
+                    f"Implicit quantity of '{amount.quantity}' applied to '{text}'."
+                )
 
         return processed_amounts
 
