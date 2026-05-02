@@ -22,6 +22,7 @@ from ..dataclasses import (
 from ._constants import (
     APPROXIMATE_PREFIXES,
     APPROXIMATE_SUFFIXES,
+    INDEFINITE_QUANTIFIERS,
     PREPARED_INGREDIENT_TOKENS,
     SINGULAR_TOKENS,
     STOP_WORDS,
@@ -68,6 +69,11 @@ class _PartialIngredientAmount:
         When True, indicates the amount applies to the prepared ingredient.
         When False, indicates the amount applies to the ingredient before preparation.
         Default is False.
+    implicit_quantity : bool, optional
+        When True, indicates that the quantity is implicit rather than explicit. This
+        is used to keep track of implicit quantities so that they can be reverted if
+        we later encounter a plural unit when constructing the amount.
+        Default is False.
     """
 
     quantity: str
@@ -78,6 +84,7 @@ class _PartialIngredientAmount:
     APPROXIMATE: bool = False
     SINGULAR: bool = False
     PREPARED_INGREDIENT = False
+    implicit_quantity: bool = False
 
 
 class PostProcessor:
@@ -1487,12 +1494,24 @@ class PostProcessor:
             if token.label == "UNIT":
                 if amounts == []:
                     # Not come across a QTY yet, so create IngredientAmount
+                    implicit_quantity = False
+                    quantity = ""
+                    if not token.plural and not (
+                        INDEFINITE_QUANTIFIERS & {t.text.lower() for t in tokens[:i]}
+                    ):
+                        # If the token is not plural and the sentence does not contain
+                        # an indefinite quantifier prior to this token, assume a
+                        # quantity of 1.
+                        quantity = "1"
+                        implicit_quantity = True
+
                     amounts.append(
                         _PartialIngredientAmount(
-                            quantity="",
+                            quantity=quantity,
                             unit=[],
                             confidence=[token.score],
                             starting_index=token.index,
+                            implicit_quantity=implicit_quantity,
                         )
                     )
 
@@ -1500,6 +1519,13 @@ class PostProcessor:
                 text = token.text
                 if token.plural:
                     text = pluralise_units(token.text, self.custom_units)
+
+                    if amounts[-1].implicit_quantity:
+                        # If this token is plural and the current amount has an implicit
+                        # quantity, revert the implicit quantity.
+                        amounts[-1].quantity = ""
+                        amounts[-1].implicit_quantity = False
+
                 amounts[-1].unit.append(text)
                 amounts[-1].confidence.append(token.score)
 

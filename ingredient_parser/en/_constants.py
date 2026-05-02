@@ -465,3 +465,13 @@ DIMENSIONS = {
     "wide",
     "width",
 }
+
+INDEFINITE_QUANTIFIERS = {
+    "couple",
+    "few",
+    "many",
+    "plenty",
+    "more",
+    "several",
+    "some",
+}

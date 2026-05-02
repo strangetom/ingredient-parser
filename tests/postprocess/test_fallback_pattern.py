@@ -63,30 +63,6 @@ class TestPostProcessor_fallback_pattern:
 
         assert p._fallback_pattern(labelled_tokens) == expected
 
-    def test_no_quantity(self, p):
-        """
-        Test that a single IngredientAmount object with no quantity and
-        unit "bunch" is returned.
-        """
-
-        tokens = ["bunch", "of", "basil", "leaves"]
-        labels = ["UNIT", "COMMENT", "B_NAME_TOK", "I_NAME_TOK"]
-        scores = [0.0] * len(tokens)
-        labelled_tokens = [
-            LabelledToken(
-                index=i, text=text, pos_tag="", label=label, score=score, plural=False
-            )
-            for i, (text, label, score) in enumerate(zip(tokens, labels, scores))
-        ]
-
-        expected = [
-            ingredient_amount_factory(
-                quantity="", unit="bunch", text="bunch", confidence=0, starting_index=0
-            )
-        ]
-
-        assert p._fallback_pattern(labelled_tokens) == expected
-
     def test_imperial(self):
         """
         Test that imperial units are returned for 'cup'
@@ -423,3 +399,117 @@ class TestPostProcessor_fallback_pattern:
         assert actual == expected
         assert actual[0].MULTIPLIER
         assert actual[0].quantity == 1
+
+    def test_implicit_quantity(self, p):
+        """
+        Test that the amount is given an implicit quantity of 1.
+        """
+        tokens = ["#1$4", "inch", "piece", "of", "ginger"]
+        labels = ["SIZE", "SIZE", "UNIT", "COMMENT", "B_NAME_TOK"]
+        labelled_tokens = [
+            LabelledToken(
+                index=i, text=text, pos_tag="", label=label, score=0, plural=False
+            )
+            for i, (text, label) in enumerate(zip(tokens, labels))
+        ]
+
+        expected = [
+            ingredient_amount_factory(
+                quantity="1",
+                unit="piece",
+                text="1 piece",
+                confidence=0,
+                starting_index=2,
+            ),
+        ]
+
+        actual = p._fallback_pattern(labelled_tokens)
+        assert actual == expected
+        assert actual[0].quantity == 1
+
+    def test_no_implicit_quantity_plural(self, p):
+        """
+        Test that the amount has no quantity because the unit is plural.
+        """
+        tokens = ["Chervil", "sprig", "(", "optional", ")"]
+        labels = ["B_NAME_TOK", "UNIT", "PUNC", "COMMENT", "PUNC"]
+        plurals = [False, True, False, False, False]
+        labelled_tokens = [
+            LabelledToken(
+                index=i, text=text, pos_tag="", label=label, score=0, plural=plural
+            )
+            for i, (text, label, plural) in enumerate(zip(tokens, labels, plurals))
+        ]
+
+        expected = [
+            ingredient_amount_factory(
+                quantity="",
+                unit="sprigs",
+                text="sprigs",
+                confidence=0,
+                starting_index=1,
+            ),
+        ]
+
+        actual = p._fallback_pattern(labelled_tokens)
+        assert actual == expected
+        assert actual[0].quantity == ""
+
+    def test_no_implicit_quantity_multiple_units(self, p):
+        """
+        Test that the amount has no quantity because the second unit token is plural.
+        """
+        tokens = ["Thin", "slice", "peach"]
+        labels = ["UNIT", "UNIT", "B_NAME_TOK"]
+        plurals = [False, True, False]
+        labelled_tokens = [
+            LabelledToken(
+                index=i, text=text, pos_tag="", label=label, score=0, plural=plural
+            )
+            for i, (text, label, plural) in enumerate(zip(tokens, labels, plurals))
+        ]
+
+        expected = [
+            ingredient_amount_factory(
+                quantity="",
+                unit="Thin slices",
+                text="Thin slices",
+                confidence=0,
+                starting_index=0,
+            ),
+        ]
+
+        actual = p._fallback_pattern(labelled_tokens)
+        assert actual == expected
+        assert actual[0].quantity == ""
+
+    def test_no_implicit_quantity_indefinite_quantifier(self, p):
+        """
+        Test that the amount has no quantity because the sentence contains an indefinite
+        quantifier prior to the unit.
+        """
+        tokens = ["Several", "sprig", "fresh", "rosemary"]
+        labels = ["COMMENT", "UNIT", "B_NAME_TOK", "I_NAME_TOK"]
+        # Note that we've set the plural flag for "sprigs" to False to test the
+        # indefinite quantifier behaviour, even through it's actually plural.
+        plurals = [False, False, False, False]
+        labelled_tokens = [
+            LabelledToken(
+                index=i, text=text, pos_tag="", label=label, score=0, plural=plural
+            )
+            for i, (text, label, plural) in enumerate(zip(tokens, labels, plurals))
+        ]
+
+        expected = [
+            ingredient_amount_factory(
+                quantity="",
+                unit="sprig",
+                text="sprig",
+                confidence=0,
+                starting_index=1,
+            ),
+        ]
+
+        actual = p._fallback_pattern(labelled_tokens)
+        assert actual == expected
+        assert actual[0].quantity == ""
