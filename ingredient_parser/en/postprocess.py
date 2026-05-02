@@ -1497,7 +1497,10 @@ class PostProcessor:
                     )
 
                 # Append token and score for unit to last IngredientAmount
-                amounts[-1].unit.append(token.text)
+                text = token.text
+                if token.plural:
+                    text = pluralise_units(token.text, self.custom_units)
+                amounts[-1].unit.append(text)
                 amounts[-1].confidence.append(token.score)
 
             # Check if any flags should be set
