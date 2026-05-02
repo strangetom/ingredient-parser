@@ -213,8 +213,8 @@ def parser():
             data_response = {
                 "tokens": list(
                     zip(
-                        parser_info.PostProcessor.tokens,
-                        parser_info.PostProcessor.labels,
+                        [t.text for t in parser_info.PostProcessor.tokens],
+                        [t.label for t in parser_info.PostProcessor.tokens],
                         marginals,
                     )
                 ),
