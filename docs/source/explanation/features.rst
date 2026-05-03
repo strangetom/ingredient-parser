@@ -40,7 +40,7 @@ The steps of the tokenizer are as follows:
 
     >>> from Preprocess import PreProcessor
     >>> p = PreProcessor("1/2 cup orange juice, freshly squeezed")
-    >>> p.tokenised_sentence
+    >>> [t.text for t in p.tokenized_sentence]
     ['#1$2', 'cup', 'orange', 'juice', ',', 'freshly', 'squeezed']
 
 
