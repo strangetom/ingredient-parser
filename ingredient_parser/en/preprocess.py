@@ -101,6 +101,8 @@ class PreProcessor:
     ----------
     input_sentence : str
         Input ingredient sentence.
+    custom_units : dict[str, str] | None, optional
+        Dict of plural-singular pairs of custom units.
 
     Attributes
     ----------
@@ -115,7 +117,7 @@ class PreProcessor:
         Tokenised ingredient sentence.
     """
 
-    def __init__(self, input_sentence: str, custom_units: dict[str, str]):
+    def __init__(self, input_sentence: str, custom_units: dict[str, str] | None = None):
         """Initialise.
 
         Parameters
@@ -127,7 +129,10 @@ class PreProcessor:
         self.sentence: str = self._normalise(input_sentence)
         logger.debug(f'Normalised sentence: "{self.sentence}".')
 
-        self._units = UNITS | custom_units
+        if custom_units is not None:
+            self._units = UNITS | custom_units
+        else:
+            self._units = UNITS
 
         self.singularised_indices = []
         self.tokenized_sentence = self._calculate_tokens(self.sentence)
