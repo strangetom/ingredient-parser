@@ -4,6 +4,7 @@
 
 * Handle "X ounce can" compound unit pattern without leading count (@[MaximusClub](https://github.com/MaximusCub))
 * Label length/dimensions as SIZE instead of a mixture of QTY/UNIT and COMMENT e.g. 6-inch tortillas will return a size of "6 inch" instead of an amount.
+* Where an unit in a sentence does not have a quantity, assign a quantity of 1 where reasonable to do so (i.e. the unit is singular and the sentence does not contain any indefinite quantifiers, such as "few", "some"). This is also applied to the sentences that follow the sizeable unit pattern but don't have a leading quantity (e.g. "15 oz can beans" will have the quantity of can set to 1).
 
 ## 2.6.0
 
