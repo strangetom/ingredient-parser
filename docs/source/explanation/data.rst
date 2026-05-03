@@ -87,6 +87,10 @@ The model uses the following labels:
 |            | correctly.                                                                                    |
 +------------+-----------------------------------------------------------------------------------------------+
 
+.. note::
+
+    Trailing state-modifiers (``raw``, ``cooked``, ``melted``, ``softened``, ``uncooked``) at the end of a sentence after a comma are labelled as ``PREP`` examples - for example, "93% lean ground beef, raw".
+
 The descriptions in the table above for most of the labels should be sufficient to understand, however the different labels used to label tokens in ingredient names requires further explanation.
 
 The library has the goal of being able to identify separate ingredient names where they are given.
