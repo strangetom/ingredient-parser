@@ -1,5 +1,6 @@
 import pytest
 
+from ingredient_parser.dataclasses import LabelledToken
 from ingredient_parser.en import PostProcessor
 from ingredient_parser.en.postprocess import _PartialIngredientAmount
 
@@ -21,8 +22,15 @@ def p():
         0.9886087821704076,
         0.9969237827902526,
     ]
-
-    return PostProcessor(sentence, tokens, pos_tags, labels, scores, custom_units={})
+    labelled_tokens = [
+        LabelledToken(
+            index=i, text=text, pos_tag=tag, label=label, score=score, plural=False
+        )
+        for i, (text, tag, label, score) in enumerate(
+            zip(tokens, pos_tags, labels, scores)
+        )
+    ]
+    return PostProcessor(sentence, labelled_tokens, custom_units={})
 
 
 class TestPostProcessor_distribute_related_flags:

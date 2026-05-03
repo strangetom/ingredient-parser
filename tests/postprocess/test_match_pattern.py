@@ -1,3 +1,4 @@
+from ingredient_parser.dataclasses import LabelledToken
 from ingredient_parser.en import PostProcessor
 
 
@@ -20,9 +21,20 @@ class TestPostProcessor_match_pattern:
             "UNIT",
             "UNIT",
         ]
-        p = PostProcessor("", [], [], [], [], custom_units={})
+        labelled_tokens = [
+            LabelledToken(
+                index=i,
+                text="",
+                pos_tag="",
+                label=label,
+                score=0,
+                plural=False,
+            )
+            for i, label in enumerate(token_labels)
+        ]
+        p = PostProcessor("", [], custom_units={})
 
-        assert p._match_pattern(token_labels, pattern, ignore_other_labels=True) == [
+        assert p._match_pattern(labelled_tokens, pattern, ignore_other_labels=True) == [
             [2, 3, 4, 5, 6, 7, 8, 9]
         ]
 
@@ -41,9 +53,20 @@ class TestPostProcessor_match_pattern:
             "UNIT",
             "UNIT",
         ]
-        p = PostProcessor("", [], [], [], [], custom_units={})
+        labelled_tokens = [
+            LabelledToken(
+                index=i,
+                text="",
+                pos_tag="",
+                label=label,
+                score=0,
+                plural=False,
+            )
+            for i, label in enumerate(token_labels)
+        ]
+        p = PostProcessor("", [], custom_units={})
 
-        assert p._match_pattern(token_labels, pattern, ignore_other_labels=True) == [
+        assert p._match_pattern(labelled_tokens, pattern, ignore_other_labels=True) == [
             [0, 1, 2, 3, 4, 5]
         ]
 
@@ -64,9 +87,20 @@ class TestPostProcessor_match_pattern:
             "UNIT",
             "UNIT",
         ]
-        p = PostProcessor("", [], [], [], [], custom_units={})
+        labelled_tokens = [
+            LabelledToken(
+                index=i,
+                text="",
+                pos_tag="",
+                label=label,
+                score=0,
+                plural=False,
+            )
+            for i, label in enumerate(token_labels)
+        ]
+        p = PostProcessor("", [], custom_units={})
 
-        assert p._match_pattern(token_labels, pattern, ignore_other_labels=True) == [
+        assert p._match_pattern(labelled_tokens, pattern, ignore_other_labels=True) == [
             [2, 3, 4, 5]
         ]
 
@@ -83,9 +117,22 @@ class TestPostProcessor_match_pattern:
             "UNIT",
             "UNIT",
         ]
-        p = PostProcessor("", [], [], [], [], custom_units={})
+        labelled_tokens = [
+            LabelledToken(
+                index=i,
+                text="",
+                pos_tag="",
+                label=label,
+                score=0,
+                plural=False,
+            )
+            for i, label in enumerate(token_labels)
+        ]
+        p = PostProcessor("", [], custom_units={})
 
-        assert p._match_pattern(token_labels, pattern, ignore_other_labels=True) == []
+        assert (
+            p._match_pattern(labelled_tokens, pattern, ignore_other_labels=True) == []
+        )
 
     def test_multiple_non_consecutive_matches(self):
         """
@@ -104,9 +151,20 @@ class TestPostProcessor_match_pattern:
             "UNIT",
             "UNIT",
         ]
-        p = PostProcessor("", [], [], [], [], custom_units={})
+        labelled_tokens = [
+            LabelledToken(
+                index=i,
+                text="",
+                pos_tag="",
+                label=label,
+                score=0,
+                plural=False,
+            )
+            for i, label in enumerate(token_labels)
+        ]
+        p = PostProcessor("", [], custom_units={})
 
-        assert p._match_pattern(token_labels, pattern, ignore_other_labels=True) == [
+        assert p._match_pattern(labelled_tokens, pattern, ignore_other_labels=True) == [
             [0, 1, 2, 3],
             [5, 6, 7, 8],
         ]
@@ -127,9 +185,20 @@ class TestPostProcessor_match_pattern:
             "UNIT",
             "UNIT",
         ]
-        p = PostProcessor("", [], [], [], [], custom_units={})
+        labelled_tokens = [
+            LabelledToken(
+                index=i,
+                text="",
+                pos_tag="",
+                label=label,
+                score=0,
+                plural=False,
+            )
+            for i, label in enumerate(token_labels)
+        ]
+        p = PostProcessor("", [], custom_units={})
 
-        assert p._match_pattern(token_labels, pattern, ignore_other_labels=True) == [
+        assert p._match_pattern(labelled_tokens, pattern, ignore_other_labels=True) == [
             [0, 1, 2, 3],
             [4, 5, 6, 7],
         ]
@@ -147,9 +216,22 @@ class TestPostProcessor_match_pattern:
             "UNIT",
             "UNIT",
         ]
-        p = PostProcessor("", [], [], [], [], custom_units={})
+        labelled_tokens = [
+            LabelledToken(
+                index=i,
+                text="",
+                pos_tag="",
+                label=label,
+                score=0,
+                plural=False,
+            )
+            for i, label in enumerate(token_labels)
+        ]
+        p = PostProcessor("", [], custom_units={})
 
-        assert p._match_pattern(token_labels, pattern, ignore_other_labels=False) == []
+        assert (
+            p._match_pattern(labelled_tokens, pattern, ignore_other_labels=False) == []
+        )
 
     def test_interrupted_pattern_with_ignore(self):
         """
@@ -164,8 +246,19 @@ class TestPostProcessor_match_pattern:
             "UNIT",
             "UNIT",
         ]
-        p = PostProcessor("", [], [], [], [], custom_units={})
+        labelled_tokens = [
+            LabelledToken(
+                index=i,
+                text="",
+                pos_tag="",
+                label=label,
+                score=0,
+                plural=False,
+            )
+            for i, label in enumerate(token_labels)
+        ]
+        p = PostProcessor("", [], custom_units={})
 
-        assert p._match_pattern(token_labels, pattern, ignore_other_labels=True) == [
+        assert p._match_pattern(labelled_tokens, pattern, ignore_other_labels=True) == [
             [0, 1, 3, 4]
         ]

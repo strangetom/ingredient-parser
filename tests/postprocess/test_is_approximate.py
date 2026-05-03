@@ -1,3 +1,4 @@
+from ingredient_parser.dataclasses import LabelledToken
 from ingredient_parser.en import PostProcessor
 
 
@@ -10,12 +11,15 @@ class TestPostProcessor_is_approximate:
         tokens = ["about", "5", "cups", "orange", "juice"]
         pos_tags = ["IN", "CD", "NNS", "NN", "NN"]
         labels = ["COMMENT", "QTY", "UNIT", "B_NAME_TOK", "I_NAME_TOK"]
-        idx = [0, 1, 2, 3, 4]
+        labelled_tokens = [
+            LabelledToken(
+                index=i, text=text, pos_tag=tag, label=label, score=0, plural=False
+            )
+            for i, (text, tag, label) in enumerate(zip(tokens, pos_tags, labels))
+        ]
 
-        p = PostProcessor(
-            sentence, tokens, pos_tags, labels, [0] * len(tokens), custom_units={}
-        )
-        assert p._is_approximate(1, tokens, labels, idx)
+        p = PostProcessor(sentence, labelled_tokens, custom_units={})
+        assert p._is_approximate(1, labelled_tokens)
         assert p.consumed == [0]
 
     def test_is_approximate_approx_period(self):
@@ -26,12 +30,15 @@ class TestPostProcessor_is_approximate:
         tokens = ["approx", ".", "5", "cups", "orange", "juice"]
         pos_tags = ["NN", ".", "CD", "NNS", "NN", "NN"]
         labels = ["COMMENT", "PUNC", "QTY", "UNIT", "B_NAME_TOK", "I_NAME_TOK"]
-        idx = [0, 1, 2, 3, 4, 5]
+        labelled_tokens = [
+            LabelledToken(
+                index=i, text=text, pos_tag=tag, label=label, score=0, plural=False
+            )
+            for i, (text, tag, label) in enumerate(zip(tokens, pos_tags, labels))
+        ]
 
-        p = PostProcessor(
-            sentence, tokens, pos_tags, labels, [0] * len(tokens), custom_units={}
-        )
-        assert p._is_approximate(2, tokens, labels, idx)
+        p = PostProcessor(sentence, labelled_tokens, custom_units={})
+        assert p._is_approximate(2, labelled_tokens)
         assert p.consumed == [1, 0]
 
     def test_is_approximate_approx(self):
@@ -42,12 +49,15 @@ class TestPostProcessor_is_approximate:
         tokens = ["approx", "5", "cups", "orange", "juice"]
         pos_tags = ["RB", "CD", "NNS", "NN", "NN"]
         labels = ["COMMENT", "QTY", "UNIT", "B_NAME_TOK", "I_NAME_TOK"]
-        idx = [0, 1, 2, 3, 4]
+        labelled_tokens = [
+            LabelledToken(
+                index=i, text=text, pos_tag=tag, label=label, score=0, plural=False
+            )
+            for i, (text, tag, label) in enumerate(zip(tokens, pos_tags, labels))
+        ]
 
-        p = PostProcessor(
-            sentence, tokens, pos_tags, labels, [0] * len(tokens), custom_units={}
-        )
-        assert p._is_approximate(1, tokens, labels, idx)
+        p = PostProcessor(sentence, labelled_tokens, custom_units={})
+        assert p._is_approximate(1, labelled_tokens)
         assert p.consumed == [0]
 
     def test_is_approximate_approximately(self):
@@ -58,12 +68,15 @@ class TestPostProcessor_is_approximate:
         tokens = ["approximately", "5", "cups", "orange", "juice"]
         pos_tags = ["RB", "CD", "NNS", "NN", "NN"]
         labels = ["COMMENT", "QTY", "UNIT", "B_NAME_TOK", "I_NAME_TOK"]
-        idx = [0, 1, 2, 3, 4]
+        labelled_tokens = [
+            LabelledToken(
+                index=i, text=text, pos_tag=tag, label=label, score=0, plural=False
+            )
+            for i, (text, tag, label) in enumerate(zip(tokens, pos_tags, labels))
+        ]
 
-        p = PostProcessor(
-            sentence, tokens, pos_tags, labels, [0] * len(tokens), custom_units={}
-        )
-        assert p._is_approximate(1, tokens, labels, idx)
+        p = PostProcessor(sentence, labelled_tokens, custom_units={})
+        assert p._is_approximate(1, labelled_tokens)
         assert p.consumed == [0]
 
     def test_is_approximate_nearly(self):
@@ -74,12 +87,15 @@ class TestPostProcessor_is_approximate:
         tokens = ["nearly", "5", "cups", "orange", "juice"]
         pos_tags = ["RB", "CD", "NNS", "NN", "NN"]
         labels = ["COMMENT", "QTY", "UNIT", "B_NAME_TOK", "I_NAME_TOK"]
-        idx = [0, 1, 2, 3, 4]
+        labelled_tokens = [
+            LabelledToken(
+                index=i, text=text, pos_tag=tag, label=label, score=0, plural=False
+            )
+            for i, (text, tag, label) in enumerate(zip(tokens, pos_tags, labels))
+        ]
 
-        p = PostProcessor(
-            sentence, tokens, pos_tags, labels, [0] * len(tokens), custom_units={}
-        )
-        assert p._is_approximate(1, tokens, labels, idx)
+        p = PostProcessor(sentence, labelled_tokens, custom_units={})
+        assert p._is_approximate(1, labelled_tokens)
         assert p.consumed == [0]
 
     def test_is_approximate_generous(self):
@@ -90,12 +106,15 @@ class TestPostProcessor_is_approximate:
         tokens = ["6", "generous", "cups", "orange", "juice"]
         pos_tags = ["CD", "JJ", "NNS", "NN", "NN"]
         labels = ["QTY", "UNIT", "UNIT", "B_NAME_TOK", "I_NAME_TOK"]
-        idx = [0, 1, 2, 3, 4]
+        labelled_tokens = [
+            LabelledToken(
+                index=i, text=text, pos_tag=tag, label=label, score=0, plural=False
+            )
+            for i, (text, tag, label) in enumerate(zip(tokens, pos_tags, labels))
+        ]
 
-        p = PostProcessor(
-            sentence, tokens, pos_tags, labels, [0] * len(tokens), custom_units={}
-        )
-        assert p._is_approximate(2, tokens, labels, idx)
+        p = PostProcessor(sentence, labelled_tokens, custom_units={})
+        assert p._is_approximate(2, labelled_tokens)
         assert p.consumed == [1]
 
     def test_is_approximate_or_so_quantity(self):
@@ -115,12 +134,15 @@ class TestPostProcessor_is_approximate:
             "NAME_VAR",
             "B_NAME_TOK",
         ]
-        idx = [0, 1, 2, 3, 4, 5, 6, 7]
+        labelled_tokens = [
+            LabelledToken(
+                index=i, text=text, pos_tag=tag, label=label, score=0, plural=False
+            )
+            for i, (text, tag, label) in enumerate(zip(tokens, pos_tags, labels))
+        ]
 
-        p = PostProcessor(
-            sentence, tokens, pos_tags, labels, [0] * len(tokens), custom_units={}
-        )
-        assert p._is_approximate(0, tokens, labels, idx)
+        p = PostProcessor(sentence, labelled_tokens, custom_units={})
+        assert p._is_approximate(0, labelled_tokens)
         assert p.consumed == [1, 2]
 
     def test_is_approximate_or_so_unit(self):
@@ -131,12 +153,15 @@ class TestPostProcessor_is_approximate:
         tokens = ["#2$3", "cup", "or", "so", "low-fat", "milk"]
         pos_tags = ["CD", "NN", "CC", "RB", "JJ", "NN"]
         labels = ["QTY", "UNIT", "COMMENT", "COMMENT", "B_NAME_TOK", "I_NAME_TOK"]
-        idx = [0, 1, 2, 3, 4, 5]
+        labelled_tokens = [
+            LabelledToken(
+                index=i, text=text, pos_tag=tag, label=label, score=0, plural=False
+            )
+            for i, (text, tag, label) in enumerate(zip(tokens, pos_tags, labels))
+        ]
 
-        p = PostProcessor(
-            sentence, tokens, pos_tags, labels, [0] * len(tokens), custom_units={}
-        )
-        assert p._is_approximate(1, tokens, labels, idx)
+        p = PostProcessor(sentence, labelled_tokens, custom_units={})
+        assert p._is_approximate(1, labelled_tokens)
         assert p.consumed == [2, 3]
 
     def test_not_approximate(self):
@@ -147,10 +172,13 @@ class TestPostProcessor_is_approximate:
         tokens = ["maximum", "5", "cups", "orange", "juice"]
         pos_tags = ["JJ", "CD", "NNS", "NN", "NN"]
         labels = ["COMMENT", "QTY", "UNIT", "B_NAME_TOK", "I_NAME_TOK"]
-        idx = [0, 1, 2, 3, 4]
+        labelled_tokens = [
+            LabelledToken(
+                index=i, text=text, pos_tag=tag, label=label, score=0, plural=False
+            )
+            for i, (text, tag, label) in enumerate(zip(tokens, pos_tags, labels))
+        ]
 
-        p = PostProcessor(
-            sentence, tokens, pos_tags, labels, [0] * len(tokens), custom_units={}
-        )
-        assert not p._is_approximate(1, tokens, labels, idx)
+        p = PostProcessor(sentence, labelled_tokens, custom_units={})
+        assert not p._is_approximate(1, labelled_tokens)
         assert p.consumed == []
