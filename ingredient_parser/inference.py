@@ -7,9 +7,10 @@ import mimetypes
 
 import numpy as np
 
-from .en import FeatureDict, PreProcessor
-
 logger = logging.getLogger(__name__)
+
+# Type alias for dict of token features.
+FeatureDict = dict[str, str | bool]
 
 
 class NumpyCRFInference:
@@ -36,36 +37,9 @@ class NumpyCRFInference:
     def __repr__(self):
         return "CRFInference()"
 
-    def tag(self, sentence: str) -> list[tuple[str, str]]:
-        """Tag a sentence with labels using model.
-
-        Parameters
-        ----------
-        sentence : str
-            Sentence to tag tokens of.
-
-        Returns
-        -------
-        list[tuple[str, str]]
-            List of (token, label) tuples.
-        """
-        if (
-            self.model.emission_weights.size == 0
-            or self.model.transition_weights.size == 0
-        ):
-            raise ValueError("NumpyViterbiInference model does not have any weights.")
-
-        p = PreProcessor(sentence, custom_units={})
-        features = [self._convert_features(f) for f in p.sentence_features()]
-        predicted_labels = self.model.predict_sequence(features)
-
-        labels = [
-            (token.text, label)
-            for token, label in zip(p.tokenized_sentence, predicted_labels)
-        ]
-        return labels
-
-    def tag_from_features(self, sentence_features: list[FeatureDict]) -> list[str]:
+    def tag_from_features(
+        self, sentence_features: list[FeatureDict]
+    ) -> list[tuple[str, float]]:
         """Tag a sentence with labels using model.
 
         This function accepts a list of features for each token, rather than
@@ -122,6 +96,35 @@ class NumpyCRFInference:
                 converted.add(key + ":" + str(value))
 
         return converted
+
+    def marginal(self, label: str, position: int) -> float:
+        """Return the probability of label, label, at position, position, for the most
+        recent sequence passed to predict_sequence.
+
+        Parameters
+        ----------
+        label : str
+            Label at position.
+        index : int
+            Position in sequence.
+
+        Returns
+        -------
+        float
+            Description
+
+        Raises
+        ------
+        ValueError
+            Description
+        """
+        if self.model.marginals.size == 0:
+            raise ValueError(
+                "Cannot return marginals until predict_sequence() has been called."
+            )
+
+        label_idx = self.model.label_to_idx[label]
+        return float(self.model.marginals[position, label_idx])
 
     def load(self, path: str) -> None:
         """Load saved model at given path.
@@ -194,6 +197,10 @@ class NumpyViterbiInference:
             current_label_idx = self.label_to_idx[current_label]
             self.transition_weights[prev_label_idx, current_label_idx] = weight
 
+        # Attribute to store marginals matrix once labels have been predicted for a
+        # sequence.
+        self.marginals = np.array([])
+
     def __repr__(self):
         return f"NumpyViterbiInference(labels={sorted(self.label_to_idx.keys())})"
 
@@ -218,7 +225,7 @@ class NumpyViterbiInference:
             ]
         )
 
-    def predict_sequence(self, features_seq: list[set[str]]) -> list[str]:
+    def predict_sequence(self, features_seq: list[set[str]]) -> list[tuple[str, float]]:
         """Predict the label sequence using Viterbi algorithm for a sequence of tokens
         described by sequence of features sets.
 
@@ -229,8 +236,8 @@ class NumpyViterbiInference:
 
         Returns
         -------
-        list[str]
-            List of labels for sequence.
+        list[tuple[str, float]]
+            List of (label, confidence) tuples for the sequence.
         """
         seq_len = len(features_seq)
 
@@ -279,15 +286,68 @@ class NumpyViterbiInference:
             backpointers[t] = np.argmax(candidates, axis=0)
 
         # Back tracking through the lattice to find the best scoring sequence.
-        label_seq = []
+        label_indices = [0] * seq_len
         # Find the best label for the last element of the lattice, since there isn't a
         # backpointer for this.
-        backpointer = int(np.argmax(lattice_scores[-1]))
+        label_indices[-1] = int(np.argmax(lattice_scores[-1]))
         # Iterate backwards through the lattice.
         # At each step, append the backpointer that yielded the best score to the label
         # sequence. Note the the resultant label sequence will be in reverse.
-        for t in range(seq_len - 1, -1, -1):
-            label_seq.append(self.idx_to_label[backpointer])
-            backpointer = int(backpointers[t, backpointer])
+        for t in range(seq_len - 2, -1, -1):
+            label_indices[t] = int(backpointers[t + 1, label_indices[t + 1]])
 
-        return list(reversed(label_seq))
+        predicted_labels = [self.idx_to_label[idx] for idx in label_indices]
+
+        # Compute marginals using Log-Sum-Exp for numerical stability
+        # The marginal is calculated as
+        #        P(y_t = i| x) = \frac{\alpha_{t, i} \cdot \beta_{t, i}}{Z}
+        # Where P is the probability of the label at position t having the value i given
+        # the sequence x.
+        # \alpha{t, i} is the sum of the scores for all possible paths from the start of
+        # the sequence to position t that end with label i.
+        # \beta{t, i} is the sum of the scores for all possible paths from position t
+        # with label i to the end of the sequence.
+        # Z is the partition function, a normalisation term that is the total score of
+        # all possible paths through the sequence.
+        #
+        # The calculation is more straight forward and stable to implement as logs:
+        #     log(P) = log(\alpha_{t, i}) + log(\beta_{t, i}) - log(Z)
+        log_alpha = np.full((seq_len, self.n_labels), -np.inf)
+        log_beta = np.full((seq_len, self.n_labels), -np.inf)
+
+        # Forward pass
+        log_alpha[0] = state_scores[0]
+        for t in range(1, seq_len):
+            # logsumexp(prev_alpha + transitions) + current_emissions
+            # Get the scores for each label from the previous row of log_alpha.
+            # [:, np.newaxis] rotates this into a column vector because this is the
+            # previous label to the current label, so we need to broadcast across the
+            # rows of the transition matrix.
+            log_alpha[t] = (
+                np.logaddexp.reduce(
+                    log_alpha[t - 1][:, np.newaxis] + self.transition_weights, axis=0
+                )
+                + state_scores[t]
+            )
+
+        # Backward pass
+        log_beta[-1] = 0.0  # log(1)
+        for t in range(seq_len - 2, -1, -1):
+            # logsumexp(transitions + next_emissions + next_beta)
+            log_beta[t] = np.logaddexp.reduce(
+                self.transition_weights + state_scores[t + 1] + log_beta[t + 1], axis=1
+            )
+
+        # Log partition function Z
+        log_z = np.logaddexp.reduce(log_alpha[-1])
+
+        # Marginal Probabilities P(y_t | x) = exp(log_alpha + log_beta - log_z)
+        log_marginals = log_alpha + log_beta - log_z
+        self.marginals = np.exp(log_marginals)
+
+        # Extract the confidence for the specific labels chosen by Viterbi
+        confidences = [
+            float(self.marginals[t, idx]) for t, idx in enumerate(label_indices)
+        ]
+
+        return list(zip(predicted_labels, confidences))
