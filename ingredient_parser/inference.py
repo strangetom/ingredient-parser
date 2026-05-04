@@ -70,8 +70,6 @@ class NumpyCRFInference:
         The model weights use the features as keys, so they need to be a string rather
         than a key: value pair.
         For string features, the string is prepared by joining the key and value by ":".
-        For int and float features, the string is prepared by joining the key and value
-        by "L".
         For boolean features, the string is prepared just using the key if the boolean
         value is True.
 
@@ -85,17 +83,11 @@ class NumpyCRFInference:
         set
             Set of features as strings
         """
-        converted = set()
-        for key, value in features.items():
-            if isinstance(value, bool):
-                if value:
-                    converted.add(key)
-            elif isinstance(value, str):
-                converted.add(key + ":" + value)
-            elif isinstance(value, (int, float)):
-                converted.add(key + ":" + str(value))
-
-        return converted
+        return {
+            key if isinstance(value, bool) else f"{key}:{value}"
+            for key, value in features.items()
+            if value is not False  # Skip False booleans
+        }
 
     def marginal(self, label: str, position: int) -> float:
         """Return the probability of label, label, at position, position, for the most
