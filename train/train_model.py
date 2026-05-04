@@ -16,6 +16,7 @@ import pycrfsuite
 from sklearn.model_selection import train_test_split
 from tabulate import tabulate
 
+from .export import export_crfsuite_to_json
 from .test_results_to_detailed_results import test_results_to_detailed_results
 from .test_results_to_html import test_results_to_html
 from .trainers import IngredientParserTrainer
@@ -203,6 +204,7 @@ def train_parser_model(
     logger.info("Evaluating model with test data.")
     tagger = pycrfsuite.Tagger()  # type: ignore
     tagger.open(str(save_model))
+    export_crfsuite_to_json(tagger, save_model)
 
     labels_pred, scores_pred = [], []
     for X in features_test:
