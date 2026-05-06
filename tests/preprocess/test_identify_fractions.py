@@ -104,10 +104,7 @@ class TestPreProcessor_identify_fractions:
         a simpler discriminator (n <= d) that would have broken these rows.
         """
         input_sentence = "11/2 teaspoons sea salt"
-        assert (
-            p._identify_fractions(input_sentence)
-            == "#11$2 teaspoons sea salt"
-        )
+        assert p._identify_fractions(input_sentence) == "#11$2 teaspoons sea salt"
 
     def test_compound_no_space_thirteen_quarters(self, p):
         """
