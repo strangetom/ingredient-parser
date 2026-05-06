@@ -308,6 +308,20 @@ class PreProcessor:
         matches.sort(key=len, reverse=True)
 
         for match in matches:
+            # Skip percentage-breakdown ratios like 80/20 (lean-to-fat grades on
+            # ground meat). These look like fractions to the regex but aren't:
+            # treating them as such collapses the ratio into a single token where
+            # it semantically belongs as part of the ingredient name. The
+            # discriminator only fires on bare X/Y where X+Y==100; compound forms
+            # like "3 1/2" are always kept as fractions.
+            if " " not in match:
+                try:
+                    n_str, d_str = match.split("/")
+                    if int(n_str) + int(d_str) == 100:
+                        continue
+                except (ValueError, IndexError):
+                    pass
+
             # Replace / with $
             replacement = match.replace("/", "$")
             # If there's a space in the match, replace with #, otherwise prepend #

@@ -2,6 +2,7 @@
 
 ### develop
 
+* Bugfix: `PreProcessor` no longer treats lean-grade percentage ratios (e.g. `80/20`, `85/15`, `93/7`; all sum to 100) as fractions. They now pass through tokenization as separate tokens (`80`, `/`, `20`) rather than being collapsed into a single `#X$Y` form. (@[MaximusCub](https://github.com/MaximusCub))
 * Label trailing "raw" tokens after a comma as preparation instructions instead of part of the ingredient name. Affects USDA-style descriptions like "93% lean ground beef, raw". (@[MaximusCub](https://github.com/MaximusCub))
 * Handle "X ounce can" compound unit pattern without leading count (@[MaximusClub](https://github.com/MaximusCub))
 * Label length/dimensions as SIZE instead of a mixture of QTY/UNIT and COMMENT e.g. 6-inch tortillas will return a size of "6 inch" instead of an amount.
