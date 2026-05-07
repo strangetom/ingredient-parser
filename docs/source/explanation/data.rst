@@ -18,6 +18,8 @@ Training data has been sourced from the following places:
 +------------+-----------+-----------------------------------------------------------------------------------+
 | cookstr    | 15,000    | https://archive.org/details/recipes-en-201706                                     |
 +------------+-----------+-----------------------------------------------------------------------------------+
+| manual     | 28        | https://github.com/strangetom/ingredient-parser/pull/52                           |
++------------+-----------+-----------------------------------------------------------------------------------+
 | nyt        | 30,000    | https://github.com/NYTimes/ingredient-phrase-tagger                               |
 +------------+-----------+-----------------------------------------------------------------------------------+
 | tc         | 6,318     | https://github.com/strangetom/ingredient-parser/issues/21#issuecomment-2361461401 |
@@ -25,7 +27,7 @@ Training data has been sourced from the following places:
 
 .. note::
 
-    With the exception of the TC dataset, each complete dataset contains more than the listed number of sentences. The number refers to the number of sentences that have been labelled for training the model.
+    With the exception of the TC and manual datasets, each complete dataset contains more than the listed number of sentences. The number refers to the number of sentences that have been labelled for training the model.
 
 The sentences in the different datasets have different characteristics, which should help the model generalise to be able to handle the majority of ingredient sentences.
 Some of the different characteristics that are worth highlighting are
@@ -86,6 +88,10 @@ The model uses the following labels:
 |            | The sentences are kept because the pre-processing steps should eventually handle them         |
 |            | correctly.                                                                                    |
 +------------+-----------------------------------------------------------------------------------------------+
+
+.. note::
+
+    Trailing state-modifiers (``raw``, ``cooked``, ``melted``, ``softened``, ``uncooked``) at the end of a sentence after a comma are labelled as ``PREP`` examples - for example, "93% lean ground beef, raw".
 
 The descriptions in the table above for most of the labels should be sufficient to understand, however the different labels used to label tokens in ingredient names requires further explanation.
 

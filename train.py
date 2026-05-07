@@ -59,7 +59,7 @@ if __name__ == "__main__":
         help="Datasets to use in training and evaluating the model",
         dest="datasets",
         nargs="*",
-        default=["bbc", "cookstr", "nyt", "allrecipes", "tc"],
+        default=["bbc", "cookstr", "nyt", "allrecipes", "tc", "manual"],
     )
     train_parser.add_argument(
         "--split",
@@ -127,7 +127,7 @@ if __name__ == "__main__":
         help="Datasets to use in training and evaluating the model",
         dest="datasets",
         nargs="*",
-        default=["bbc", "cookstr", "nyt", "allrecipes", "tc"],
+        default=["bbc", "cookstr", "nyt", "allrecipes", "tc", "manual"],
     )
     multiple_parser.add_argument(
         "--split",
@@ -205,7 +205,7 @@ if __name__ == "__main__":
         help="Datasets to use in training and evaluating the model",
         dest="datasets",
         nargs="*",
-        default=["bbc", "cookstr", "nyt", "allrecipes", "tc"],
+        default=["bbc", "cookstr", "nyt", "allrecipes", "tc", "manual"],
     )
     gridsearch_parser.add_argument(
         "--split",
@@ -323,7 +323,7 @@ if __name__ == "__main__":
         help="Datasets to use in training and evaluating the model",
         dest="datasets",
         nargs="*",
-        default=["bbc", "cookstr", "nyt", "allrecipes", "tc"],
+        default=["bbc", "cookstr", "nyt", "allrecipes", "tc", "manual"],
     )
     featuresearch_parser.add_argument(
         "--split",
@@ -394,7 +394,7 @@ if __name__ == "__main__":
         help="Datasets to use in training and evaluating the model",
         dest="datasets",
         nargs="*",
-        default=["bbc", "cookstr", "nyt", "allrecipes", "tc"],
+        default=["bbc", "cookstr", "nyt", "allrecipes", "tc", "manual"],
     )
     utility_parser.add_argument(
         "-v",
