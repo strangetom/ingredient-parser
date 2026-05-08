@@ -427,6 +427,63 @@ PREPARED_INGREDIENT_TOKENS = [
     ["to", "make"],
 ]
 
+# Action verbs that irreversibly transform an ingredient's physical form
+# such that pre-prep volumetric measurement is impossible (you cannot
+# measure a cup of an unchopped onion or unshredded cheese block). When a
+# sentence contains a PREP-labelled token from this set and the amount
+# unit is volumetric, the PREPARED_INGREDIENT flag is forced True
+# regardless of the syntactic position of the preparation. Excludes
+# reversible-order verbs like "sifted" and "packed" where pre-prep
+# measurement is genuinely possible, and excludes state adjectives like
+# "frozen" or "dried" that describe procurement form rather than a
+# post-measurement action.
+IRREVERSIBLE_PREP_VERBS = {
+    "chopped",
+    "cored",
+    "crumbled",
+    "crushed",
+    "cubed",
+    "deveined",
+    "diced",
+    "drained",
+    "grated",
+    "ground",
+    "halved",
+    "hulled",
+    "julienned",
+    "mashed",
+    "minced",
+    "pitted",
+    "pureed",
+    "quartered",
+    "seeded",
+    "shredded",
+    "sliced",
+    "slivered",
+    "smashed",
+    "snipped",
+}
+
+# Volumetric units that exclusively measure liquids in cooking contexts.
+# Pint dimensionality lumps liquid and dry volumes together, but for the
+# IRREVERSIBLE_PREP_VERBS override we only want to fire on units where
+# pre-prep volumetric measurement is genuinely impossible (the
+# physically-can't-cup-measure-unchopped-cheese case). For strictly
+# liquid units, the unprepped form is just as measurable as the prepped
+# form, the workflow reading "measure first then prep" is the natural
+# interpretation of comma-trailing prep, and the volume is preserved
+# through prep so the flag value is informationally minor anyway.
+# Excluding these keeps the override scoped to the cases where it
+# materially changes downstream density-conversion correctness.
+LIQUID_ONLY_UNIT_NAMES = {
+    "centiliter",
+    "deciliter",
+    "fluid_ounce",
+    "liter",
+    "milliliter",
+}
+
+
 # List of sets, where each set contains the synonyms that represent the same unit.
 UNIT_SYNONYMS = [
     {"cup", "c"},

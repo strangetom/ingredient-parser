@@ -2,6 +2,7 @@
 
 ### develop
 
+* Improve `PREPARED_INGREDIENT` accuracy for irreversible-prep verbs at volumetric amounts. Sentences like `1 cup carrots, diced` or `1 cup pecans, halved` now correctly set `PREPARED_INGREDIENT=True`. The syntactic rule (preparation position relative to amount and name) previously produced `False` for the post-comma form regardless of verb, but pre-prep volumetric measurement is physically impossible for irreversible action verbs (chopped, sliced, diced, minced, grated, shredded, etc.). The override only fires for non-liquid-only volumetric units (cup, tbsp, tsp, pint, quart, gallon) where prep changes the measurable volume; it does not fire for count or mass units, strict-liquid units (ml, cl, dl, l, fl oz), or for reversible-order verbs like `sifted` and `packed` where the syntactic rule remains correct. (@[MaximusCub](https://github.com/MaximusCub))
 * Bugfix: `PreProcessor` no longer treats lean-grade percentage ratios (e.g. `80/20`, `85/15`, `93/7`; all sum to 100) as fractions. They now pass through tokenization as separate tokens (`80`, `/`, `20`) rather than being collapsed into a single `#X$Y` form. (@[MaximusCub](https://github.com/MaximusCub))
 * Label trailing "raw" tokens after a comma as preparation instructions instead of part of the ingredient name. Affects USDA-style descriptions like "93% lean ground beef, raw". (@[MaximusCub](https://github.com/MaximusCub))
 * Handle "X ounce can" compound unit pattern without leading count (@[MaximusClub](https://github.com/MaximusCub))

@@ -301,8 +301,17 @@ IngredientAmount flags
 +-------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------+
 | **PREPARED_INGREDIENT** | This is set to True when the amount refers to the ingredient after any preparation instructions in the ingredient sentence have been followed.      |
 |                         |                                                                                                                                                     |
-|                         | For example in the sentence **1 tbsp chopped nuts**, we would want 1 tablespoon of nuts, measured after they have been chopped.                     |
-|                         | If the sentence was **1 tbsp nuts, chopped**, we would want to chop the nuts after we have measured 1 tablespoon.                                   |
+|                         | The flag is determined by two heuristics. The primary rule is syntactic: when the preparation appears between the amount and the name               |
+|                         | (e.g. **1 cup sifted flour**) the amount measures the prepared form and the flag is True; when the preparation trails the name                      |
+|                         | (e.g. **1 cup flour, sifted**) the amount measures the unprepared form and the flag is False.                                                       |
+|                         |                                                                                                                                                     |
+|                         | The syntactic rule is overridden for irreversible action verbs (chopped, sliced, diced, minced, grated, shredded, etc.) when the amount unit         |
+|                         | is volumetric (cup, tbsp, tsp, pint, quart, gallon). For these combinations pre-prep volumetric measurement is physically impossible                |
+|                         | (you cannot cup-measure unchopped onion or unshredded cheese), so the amount must measure the prepared form and the flag is forced True             |
+|                         | regardless of preparation position. The override does not fire for strict-liquid units (ml, cl, dl, l, fl oz) where volume is preserved             |
+|                         | through preparation, nor for count or mass units where the measurement is invariant under preparation.                                              |
+|                         |                                                                                                                                                     |
+|                         | The full set of irreversible verbs is defined in ``ingredient_parser.en._constants.IRREVERSIBLE_PREP_VERBS``.                                       |
 +-------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------+
 
 

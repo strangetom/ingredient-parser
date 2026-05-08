@@ -23,6 +23,7 @@ from ._constants import (
     APPROXIMATE_PREFIXES,
     APPROXIMATE_SUFFIXES,
     INDEFINITE_QUANTIFIERS,
+    IRREVERSIBLE_PREP_VERBS,
     PREPARED_INGREDIENT_TOKENS,
     SINGULAR_TOKENS,
     STOP_WORDS,
@@ -32,6 +33,8 @@ from ._regex import FRACTION_TOKEN_PATTERN
 from ._utils import (
     combine_quantities_split_by_and,
     ingredient_amount_factory,
+    is_liquid_only_unit,
+    is_volumetric_unit,
     pluralise_units,
     replace_string_range,
 )
@@ -1346,6 +1349,18 @@ class PostProcessor:
                 if prepared:
                     first_amount.PREPARED_INGREDIENT = True
                     second_amount.PREPARED_INGREDIENT = True
+                elif self._has_irreversible_prep_verb() and (
+                    (
+                        is_volumetric_unit(first_amount.unit)
+                        and not is_liquid_only_unit(first_amount.unit)
+                    )
+                    or (
+                        is_volumetric_unit(second_amount.unit)
+                        and not is_liquid_only_unit(second_amount.unit)
+                    )
+                ):
+                    first_amount.PREPARED_INGREDIENT = True
+                    second_amount.PREPARED_INGREDIENT = True
 
                 composite_amounts.append(
                     CompositeIngredientAmount(
@@ -1544,6 +1559,29 @@ class PostProcessor:
 
             if self._is_prepared(i, tokens):
                 amounts[-1].PREPARED_INGREDIENT = True
+
+        # Verb-class override: when the sentence contains an irreversible
+        # action prep verb (chopped, sliced, etc.) and the amount unit is
+        # volumetric but not strictly liquid-only (ml/cl/dl/l/fl_oz),
+        # force PREPARED_INGREDIENT True regardless of the syntactic
+        # position of the preparation. The syntactic rule in
+        # ParsedIngredient.set_prepared_flag handles reversible-order
+        # verbs like "sifted" correctly, but produces False for
+        # irreversible verbs in the `1 cup carrots, diced` shape where
+        # pre-prep volumetric measurement is physically impossible.
+        # Strict-liquid units are excluded because pre-prep measurement
+        # is physically possible for liquids and volume is preserved
+        # through prep, so the workflow reading dominates. This
+        # refinement only flips False to True; it never overrides an
+        # existing True.
+        if self._has_irreversible_prep_verb():
+            for amount in amounts:
+                if (
+                    not amount.PREPARED_INGREDIENT
+                    and is_volumetric_unit(amount.unit)
+                    and not is_liquid_only_unit(amount.unit)
+                ):
+                    amount.PREPARED_INGREDIENT = True
 
         # Set APPROXIMATE, SINGULAR and PREPARED_INGREDIENT flags to be the same for all
         # related amounts.
@@ -1857,6 +1895,30 @@ class PostProcessor:
                 self.consumed.append(tokens[i - 3].index)
                 return True
 
+        return False
+
+    def _has_irreversible_prep_verb(self) -> bool:
+        """Return True if any PREP-labelled token in the sentence is an
+        irreversible action verb (chopped, sliced, diced, etc.) — one
+        that physically transforms the ingredient such that pre-prep
+        volumetric measurement is impossible.
+
+        Multi-word PREP tokens are split on whitespace and hyphens so
+        that compound forms like "thinly-sliced" or "finely chopped"
+        register as containing the irreversible head verb.
+
+        Returns
+        -------
+        bool
+            True if any PREP token contains an irreversible action verb.
+        """
+        for tok in self.tokens:
+            if tok.label != "PREP":
+                continue
+            for part in re.split(r"[\s\-]+", tok.text.lower()):
+                cleaned = part.strip(".,;:()'\"")
+                if cleaned in IRREVERSIBLE_PREP_VERBS:
+                    return True
         return False
 
     def _distribute_related_flags(
