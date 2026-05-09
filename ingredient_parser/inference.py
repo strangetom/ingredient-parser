@@ -290,20 +290,42 @@ class NumpyViterbiInference:
 
         predicted_labels = [self.idx_to_label[idx] for idx in label_indices]
 
-        # Compute marginals using Log-Sum-Exp for numerical stability
-        # The marginal is calculated as
-        #        P(y_t = i| x) = \frac{\alpha_{t, i} \cdot \beta_{t, i}}{Z}
-        # Where P is the probability of the label at position t having the value i given
-        # the sequence x.
-        # \alpha{t, i} is the sum of the scores for all possible paths from the start of
-        # the sequence to position t that end with label i.
-        # \beta{t, i} is the sum of the scores for all possible paths from position t
-        # with label i to the end of the sequence.
-        # Z is the partition function, a normalisation term that is the total score of
-        # all possible paths through the sequence.
-        #
-        # The calculation is more straight forward and stable to implement as logs:
-        #     log(P) = log(\alpha_{t, i}) + log(\beta_{t, i}) - log(Z)
+        self.marginals = self._compute_marginals(seq_len, state_scores)
+        # Extract the confidence for the specific labels chosen by Viterbi
+        confidences = [
+            float(self.marginals[t, idx]) for t, idx in enumerate(label_indices)
+        ]
+
+        return list(zip(predicted_labels, confidences))
+
+    def _compute_marginals(self, seq_len: int, state_scores: np.ndarray) -> np.ndarray:
+        """Compute marginals using Log-Sum-Exp for numerical stability
+
+        The marginal is calculated as
+            P(y_t = i| x) = \frac{\alpha_{t, i} \cdot \beta_{t, i}}{Z}
+        Where P is the probability of the label at position t having the value i given
+        the sequence x.
+        \alpha{t, i} is the sum of the scores for all possible paths from the start of
+        the sequence to position t that end with label i.
+        \beta{t, i} is the sum of the scores for all possible paths from position t
+        with label i to the end of the sequence.
+        Z is the partition function, a normalisation term that is the total score of
+        all possible paths through the sequence.
+        The calculation is more straight forward and stable to implement as logs:
+            log(P) = log(\alpha_{t, i}) + log(\beta_{t, i}) - log(Z)
+
+        Parameters
+        ----------
+        seq_len : int
+            Sequence length.
+        state_scores : np.ndarray
+            State score matrix.
+
+        Returns
+        -------
+        np.ndarray
+            Marginal probability matrix for each label at each position in the sequence.
+        """
         log_alpha = np.full((seq_len, self.n_labels), -np.inf)
         log_beta = np.full((seq_len, self.n_labels), -np.inf)
 
@@ -335,11 +357,4 @@ class NumpyViterbiInference:
 
         # Marginal Probabilities P(y_t | x) = exp(log_alpha + log_beta - log_z)
         log_marginals = log_alpha + log_beta - log_z
-        self.marginals = np.exp(log_marginals)
-
-        # Extract the confidence for the specific labels chosen by Viterbi
-        confidences = [
-            float(self.marginals[t, idx]) for t, idx in enumerate(label_indices)
-        ]
-
-        return list(zip(predicted_labels, confidences))
+        return np.exp(log_marginals)
