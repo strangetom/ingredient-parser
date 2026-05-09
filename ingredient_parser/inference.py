@@ -73,6 +73,15 @@ class NumpyCRFInference:
         For boolean features, the string is prepared just using the key if the boolean
         value is True.
 
+        This only support features that are strings or booleans, which is fine because
+        the PreProcessor only outputs features that are string of booleans.
+        To support continuous features (float, int) in the future the output of this
+        function should be converted to dict[str, float | int] where the key is the
+        feature string and the value is a weight that is used to multiply the learned
+        model weight for the feature. For string features, the weight would always be 1.
+        For boolean features the weight would 1 for True and 0 for False (i.e. the
+        feature is ignored by multiplying the learned weight by 0).
+
         Parameters
         ----------
         features : FeatureDict
@@ -217,14 +226,24 @@ class NumpyViterbiInference:
             ]
         )
 
-    def predict_sequence(self, features_seq: list[set[str]]) -> list[tuple[str, float]]:
+    def predict_sequence(
+        self, features_seq: list[set[str]], constrain_transitions: bool = True
+    ) -> list[tuple[str, float]]:
         """Predict the label sequence using Viterbi algorithm for a sequence of tokens
         described by sequence of features sets.
+
+        If constrain_transitions is True, then transitions that are not allowed by the
+        labelling scheme are enforced.
+        Specifically this means that I_NAME_TOK is prohibited if B_NAME_TOK has not
+        occurred since the start of the sentence or since the last NAME_SEP label.
 
         Parameters
         ----------
         features_seq : list[set[str]]
             List of sets of features for tokens in sequence.
+        constrain_transitions : bool, optional
+            If True, enforce label transition constraints.
+            Default is True.
 
         Returns
         -------
@@ -244,6 +263,16 @@ class NumpyViterbiInference:
                 # to the correct row of the emission_scores matrix.
                 state_scores[t] = self.emission_weights[indices].sum(axis=0)
 
+        # Get indices for constraint-specific labels
+        b_name_idx = self.label_to_idx.get("B_NAME_TOK")
+        i_name_idx = self.label_to_idx.get("I_NAME_TOK")
+        name_sep_idx = self.label_to_idx.get("NAME_SEP")
+        # Auxiliary matrix to track if B_NAME_TOK has occurred in the best path
+        # for each label at each time step since the beginning or last NAME_SEP.
+        # Rows: sequence elements
+        # Columns: labels
+        has_b_name = np.zeros((seq_len, self.n_labels), dtype=bool)
+
         # Initialize the Viterbi lattice as NumPy arrays.
         # One array for the scores, initialized to -inf. This is the best score for each
         # label given the previous label specified by the backpointers array.
@@ -255,6 +284,12 @@ class NumpyViterbiInference:
         # Deal with the first element of the sequence separately because the scores here
         # are only based on the emission features.
         lattice_scores[0] = state_scores[0]
+
+        # Apply initial constraints (i.e., I_NAME_TOK cannot be first)
+        if constrain_transitions:
+            lattice_scores[0, i_name_idx] = -np.inf
+            # Update has_b_name matrix for first sequence element
+            has_b_name[0, b_name_idx] = True
 
         # Forward pass, starting at t=1 because we've already initialised t=0
         for t in range(1, seq_len):
@@ -271,11 +306,29 @@ class NumpyViterbiInference:
             # with the sum of relevant weights for each label -> label transition.
             candidates = prev_el_scores + self.transition_weights + state_scores[t]
 
+            # Force the scores from constrained transitions to -inf
+            if constrain_transitions:
+                # Mask transitions to I_NAME_TOK from paths that lack a B_NAME_TOK
+                invalid_prev_paths = ~has_b_name[t - 1]
+                candidates[invalid_prev_paths, i_name_idx] = -np.inf
+
             # Find the best score in each column and the index of the best score in each
             # column and save to the lattice_scores and backpointers matrices
             # respectively.
             lattice_scores[t] = np.max(candidates, axis=0)
             backpointers[t] = np.argmax(candidates, axis=0)
+
+            # Update has_b_name matrix
+            if constrain_transitions:
+                # Inherit state from the best predecessor for each current label.
+                # We are setting the value of for each column to the value from the
+                # previous row (i.e. t-1) at the index given by backpointers[t] so that
+                # we inherit whether the best sequence has a B_NAME_TOk.
+                has_b_name[t] = has_b_name[t - 1, backpointers[t]]
+                # If current label is B_NAME_TOK, the path now has a B_NAME_TOK
+                has_b_name[t, b_name_idx] = True
+                # If current label is NAME_SEP, the B_NAME_TOK requirement resets
+                has_b_name[t, name_sep_idx] = False
 
         # Back tracking through the lattice to find the best scoring sequence.
         label_indices = [0] * seq_len
