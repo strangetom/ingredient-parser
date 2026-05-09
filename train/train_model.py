@@ -201,13 +201,15 @@ def train_parser_model(
     for X, y in zip(features_train, truth_train):
         trainer.append(X, y)
     trainer.train(str(save_model))
-    config_file = trainer.write_model_config(save_model)
 
-    logger.info("Evaluating model with test data.")
+    # Export to json.
     crfsuite_tagger = pycrfsuite.Tagger()  # type: ignore
     crfsuite_tagger.open(str(save_model))
     export_crfsuite_to_json(crfsuite_tagger, save_model)
+    config_file = trainer.write_model_config(save_model.with_suffix(".json.gz"))
+
     # Create NumpyCRFInference object for evaluation.
+    logger.info("Evaluating model with test data.")
     tagger = NumpyCRFInference(str(save_model.with_suffix(".json.gz")))
 
     labels_pred, scores_pred = [], []

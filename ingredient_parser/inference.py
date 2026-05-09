@@ -4,6 +4,7 @@ import gzip
 import json
 import logging
 import mimetypes
+from pathlib import Path
 
 import numpy as np
 
@@ -24,12 +25,12 @@ class NumpyCRFInference:
         Implementation of Viterbi for inference.
     """
 
-    def __init__(self, model_file: str):
+    def __init__(self, model_file: Path):
         """Initialise
 
         Parameters
         ----------
-        model_file : str
+        model_file : Path
             Path to model file.
         """
         self.load(model_file)
@@ -127,12 +128,12 @@ class NumpyCRFInference:
         label_idx = self.model.label_to_idx[label]
         return float(self.model.marginals[position, label_idx])
 
-    def load(self, path: str) -> None:
+    def load(self, path: Path) -> None:
         """Load saved model at given path.
 
         Parameters
         ----------
-        path : str
+        path : Path
             Path to model to load.
         """
         mimetype, encoding = mimetypes.guess_type(path)
@@ -355,17 +356,18 @@ class NumpyViterbiInference:
         """Compute marginals using Log-Sum-Exp for numerical stability
 
         The marginal is calculated as
-            P(y_t = i| x) = \frac{\alpha_{t, i} \cdot \beta_{t, i}}{Z}
+            `P(y_t = i| x) = alpha_{t, i} x beta_{t, i}}{Z}`
+
         Where P is the probability of the label at position t having the value i given
         the sequence x.
-        \alpha{t, i} is the sum of the scores for all possible paths from the start of
+        alpha{t, i} is the sum of the scores for all possible paths from the start of
         the sequence to position t that end with label i.
-        \beta{t, i} is the sum of the scores for all possible paths from position t
+        beta{t, i} is the sum of the scores for all possible paths from position t
         with label i to the end of the sequence.
         Z is the partition function, a normalisation term that is the total score of
         all possible paths through the sequence.
         The calculation is more straight forward and stable to implement as logs:
-            log(P) = log(\alpha_{t, i}) + log(\beta_{t, i}) - log(Z)
+            `log(P) = log(alpha_{t, i}) + log(beta_{t, i}) - log(Z)`
 
         Parameters
         ----------
