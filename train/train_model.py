@@ -206,7 +206,7 @@ def train_parser_model(
     crfsuite_tagger = pycrfsuite.Tagger()  # type: ignore
     crfsuite_tagger.open(str(save_model))
     export_crfsuite_to_json(crfsuite_tagger, save_model)
-    config_file = trainer.write_model_config(save_model.with_suffix(".json.gz"))
+    config_file = trainer.write_model_config(save_model)
 
     # Create NumpyCRFInference object for evaluation.
     logger.info("Evaluating model with test data.")
