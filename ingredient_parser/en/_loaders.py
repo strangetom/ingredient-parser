@@ -6,8 +6,6 @@ import logging
 from functools import lru_cache
 from importlib.resources import as_file, files
 
-import pycrfsuite
-
 from ..inference import NumpyCRFInference
 from ._embeddings import GloVeModel
 
@@ -15,7 +13,7 @@ logger = logging.getLogger("ingredient-parser")
 
 
 @lru_cache
-def load_parser_model() -> pycrfsuite.Tagger:  # type: ignore
+def load_parser_model() -> NumpyCRFInference:
     """Load parser model.
 
     This function is cached so that when the model has been loaded once, it does not
@@ -23,17 +21,17 @@ def load_parser_model() -> pycrfsuite.Tagger:  # type: ignore
 
     Returns
     -------
-    pycrfsuite.Tagger
+    NumpyCRFInference
         Parser model loaded into Tagger object.
     """
-    logger.debug("Loading parser model: 'model.en.crfsuite'")
+    logger.debug("Loading parser model: 'model.en.json.gz'")
     with as_file(files(__package__) / "data/model.en.json.gz") as p:
         tagger = NumpyCRFInference(p)
         return tagger
 
 
 @lru_cache
-def load_embeddings_model() -> GloVeModel:  # type: ignore
+def load_embeddings_model() -> GloVeModel:
     """Load embeddings model.
 
     This function is cached so that when the model has been loaded once, it does not

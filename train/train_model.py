@@ -210,7 +210,7 @@ def train_parser_model(
 
     # Create NumpyCRFInference object for evaluation.
     logger.info("Evaluating model with test data.")
-    tagger = NumpyCRFInference(str(save_model.with_suffix(".json.gz")))
+    tagger = NumpyCRFInference(save_model.with_suffix(".json.gz"))
 
     labels_pred, scores_pred = [], []
     for X in features_test:

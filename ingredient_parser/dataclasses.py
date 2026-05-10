@@ -10,9 +10,9 @@ from statistics import mean
 from typing import Any
 
 import pint
-import pycrfsuite
 
 from ._common import UREG
+from .inference import NumpyCRFInference
 
 
 class UnitSystem(enum.StrEnum):
@@ -616,11 +616,11 @@ class ParserDebugInfo:
     PostProcessor : PostProcessor
         PostProcessor object created using tokens, labels and scores from
         input sentence.
-    Tagger : pycrfsuite.Tagger
+    Tagger : NumpyCRFInference
         CRF model tagger object.
     """
 
     sentence: str
     PreProcessor: Any
     PostProcessor: Any
-    tagger: pycrfsuite.Tagger  # type: ignore
+    tagger: NumpyCRFInference
