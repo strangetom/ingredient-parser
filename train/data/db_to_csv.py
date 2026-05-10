@@ -21,7 +21,7 @@ def load_from_db(source: str) -> list[dict[str, str]]:
     Parameters
     ----------
     source : str
-        "nyt", "cookstr", "bbc"
+        "nyt", "cookstr", "bbc", "allrecipes", "tc", "manual".
 
     Returns
     -------
@@ -120,6 +120,9 @@ def write_csv(path: str, csv_rows: list[dict]) -> None:
 
 
 if __name__ == "__main__":
+    # The "manual" source is intentionally absent from this dict: hand-labelled
+    # rows (added directly to the database, not scraped from a parent corpus)
+    # have no CSV counterpart, so this script just skips them.
     source_csv = {
         "bbc": BBC_CSV,
         "cookstr": COOKSTR_CSV,

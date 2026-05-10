@@ -57,6 +57,18 @@ def test_results_to_html(
       display: flex;
       align-items: center;
     }
+    div.filters {
+      display: flex;
+      gap: 1rem;
+    }
+    div.filter-options {
+      display: flex;
+      flex-direction: column;
+      width: 23ch;
+      border: 1px solid black;
+      border-radius: .25rem;
+      padding: .5rem;
+    }
     .mismatch {
       font-weight: 700;
       background-color: #CC6666;
@@ -69,11 +81,13 @@ def test_results_to_html(
       font-style: italic;
       background-color: #ddd;
     }
+    h4, h5 {
+      margin: 0;
+    }
     h4 {
-      margin-bottom: 0;
+      display: inline;
     }
     label {
-      margin-right: 1rem;
       text-transform: uppercase;
     }
     .copy {
@@ -189,22 +203,41 @@ def test_results_to_html(
     function applyFilter() {
         let filtered_src = {};
         let sentences = document.querySelectorAll(".wrapper");
+
         let mismatch_filters = [...document.querySelectorAll("input.mismatch")]
             .filter(el => el.checked)
             .map(el => el.dataset.value);
+
         let src_filters = [...document.querySelectorAll("input.src")]
             .filter(el => el.checked)
             .map(el => el.dataset.value);
+
         let error_filters = [...document.querySelectorAll("input.error")]
             .filter(el => el.checked)
             .map(el => el.dataset.value);
         error_filters = new Set(error_filters);
+
+        let token_filters = document.querySelector("#token-filter").value.split(" ")
+            .map(token => token.toLowerCase());
+        if (token_filters == "") {
+            token_filters = new Set();
+        }else{
+            token_filters = new Set(token_filters);
+        }
+
         sentences.forEach((sent) => {
+            let sentence_tokens = [...sent.querySelectorAll("tr:first-of-type > td")]
+                .map(td => td.innerText.toLowerCase());
+            sent_tokens = new Set(sentence_tokens);
+            
             let errors = new Set(sent.dataset.errors.split(","));
             if (mismatch_filters.includes(sent.dataset.mismatches) &&
                 src_filters.includes(sent.dataset.src) && 
-                errors.intersection(error_filters).size > 0)
-                {
+                errors.intersection(error_filters).size > 0 && 
+                (
+                  token_filters.size == 0 || 
+                  sent_tokens.intersection(token_filters).size == token_filters.size)
+                ) {
                 sent.classList.remove("hidden");
                 if (filtered_src[sent.dataset.src] == undefined){
                     filtered_src[sent.dataset.src] = 1;
@@ -341,15 +374,24 @@ def create_filter_elements(
     ET.Element
         Element to insert into test results HTML
     """
-    div = ET.Element("div")
+    details = ET.Element("details")
 
+    summary = ET.Element("summary")
     h4 = ET.Element("h4")
     h4.text = "Filter by number of mismatches, source and label error."
     span = ET.Element("span", attrib={"id": "filter-counts"})
     h4.append(span)
-    div.append(h4)
+    summary.append(h4)
+    details.append(summary)
 
-    div_mismatch_filters = ET.Element("div")
+    div_filter_optons = ET.Element("div", attrib={"class": "filters"})
+    details.append(div_filter_optons)
+
+    div_mismatch_filters = ET.Element("div", attrib={"class": "filter-options"})
+    h5_mismatch_filters = ET.Element("h5")
+    h5_mismatch_filters.text = "Number of errors"
+    div_mismatch_filters.append(h5_mismatch_filters)
+    div_mismatch_filters.append(create_select_all_button())
     for count in mismatch_counts:
         inp = ET.Element(
             "input",
@@ -363,12 +405,15 @@ def create_filter_elements(
         )
         label = ET.Element("label", attrib={"for": f"filter-{count}"})
         label.text = f"{count}"
+        label.append(inp)
 
-        div_mismatch_filters.append(inp)
         div_mismatch_filters.append(label)
-    div_mismatch_filters.append(create_select_all_button())
 
-    div_src_filters = ET.Element("div")
+    div_src_filters = ET.Element("div", attrib={"class": "filter-options"})
+    h5_src_filters = ET.Element("h5")
+    h5_src_filters.text = "Source"
+    div_src_filters.append(h5_src_filters)
+    div_src_filters.append(create_select_all_button())
     for src, count in sorted(incorrect_source.items(), key=lambda x: x[0]):
         inp = ET.Element(
             "input",
@@ -381,13 +426,16 @@ def create_filter_elements(
             },
         )
         label = ET.Element("label", attrib={"for": f"filter-{src}"})
-        label.text = f"{src} ({count} = {100 * count / total_source[src]:.2f}%)"
+        label.text = f"{src} ({count} = {100 * count / total_source[src]:.1f}%)"
+        label.append(inp)
 
-        div_src_filters.append(inp)
         div_src_filters.append(label)
-    div_src_filters.append(create_select_all_button())
 
-    div_label_filters = ET.Element("div")
+    div_label_filters = ET.Element("div", attrib={"class": "filter-options"})
+    h5_label_filters = ET.Element("h5")
+    h5_label_filters.text = "Label error"
+    div_label_filters.append(h5_label_filters)
+    div_label_filters.append(create_select_all_button())
     for lab, count in sorted(label_errors.items(), key=lambda x: x[0]):
         inp = ET.Element(
             "input",
@@ -401,16 +449,39 @@ def create_filter_elements(
         )
         label = ET.Element("label", attrib={"for": f"filter-{lab}"})
         label.text = f"{lab} ({count})"
+        label.append(inp)
 
-        div_label_filters.append(inp)
         div_label_filters.append(label)
-    div_label_filters.append(create_select_all_button())
 
-    div.append(div_mismatch_filters)
-    div.append(div_src_filters)
-    div.append(div_label_filters)
+    div_token_filter = ET.Element("div", attrib={"class": "filter-options"})
+    h5_token_filters = ET.Element("h5")
+    h5_token_filters.text = "Filter by token"
+    div_token_filter.append(h5_token_filters)
+    filter_input = ET.Element(
+        "input",
+        attrib={
+            "type": "search",
+            "id": "token-filter",
+            "name": "token-filter",
+        },
+    )
+    token_filter_button = ET.Element(
+        "button",
+        attrib={
+            "type": "button",
+            "class": "select-all",
+        },
+    )
+    token_filter_button.text = "Filter by tokens"
+    div_token_filter.append(filter_input)
+    div_token_filter.append(token_filter_button)
 
-    return div
+    div_filter_optons.append(div_mismatch_filters)
+    div_filter_optons.append(div_src_filters)
+    div_filter_optons.append(div_label_filters)
+    div_filter_optons.append(div_token_filter)
+
+    return details
 
 
 def create_select_all_button() -> ET.Element:
