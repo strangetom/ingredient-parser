@@ -180,6 +180,7 @@ def train_parser_model(
         stratify=vectors.source,
         random_state=seed,
     )
+
     logger.info(f"{len(features_train):,} training vectors.")
     logger.info(f"{len(features_test):,} testing vectors.")
 
@@ -210,7 +211,7 @@ def train_parser_model(
 
     # Create NumpyCRFInference object for evaluation.
     logger.info("Evaluating model with test data.")
-    tagger = NumpyCRFInference(save_model.with_suffix(".json.gz"))
+    tagger = NumpyCRFInference(save_model.with_suffix(".json.gz"), combine_name_labels)
 
     labels_pred, scores_pred = [], []
     for X in features_test:

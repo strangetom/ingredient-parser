@@ -25,15 +25,18 @@ class NumpyCRFInference:
         Implementation of Viterbi for inference.
     """
 
-    def __init__(self, model_file: Path):
+    def __init__(self, model_file: Path, combined_name_labels: bool = False):
         """Initialise
 
         Parameters
         ----------
         model_file : Path
             Path to model file.
+        combined_name_labels : bool, optional
+            If True, name labels are considered combined into a single NAME label.
         """
         self.load(model_file)
+        self.combined_name_labels = combined_name_labels
 
     def __repr__(self):
         return "CRFInference()"
@@ -45,6 +48,9 @@ class NumpyCRFInference:
 
         This function accepts a list of features for each token, rather than
         calculating the features from the tokens.
+
+        If self.combined_name_labels=True, then we cannot apply transition constraints
+        because they only apply to I_NAME_TOK.
 
         Parameters
         ----------
@@ -63,7 +69,9 @@ class NumpyCRFInference:
             raise ValueError("NumpyViterbiInference model does not have any weights.")
 
         features = [self._convert_features(f) for f in sentence_features]
-        return self.model.predict_sequence(features)
+        return self.model.predict_sequence(
+            features, constrain_transitions=not self.combined_name_labels
+        )
 
     def _convert_features(self, features: FeatureDict) -> set[str]:
         """Convert features dict to set of strings.
@@ -308,7 +316,7 @@ class NumpyViterbiInference:
             candidates = prev_el_scores + self.transition_weights + state_scores[t]
 
             # Force the scores from constrained transitions to -inf
-            if constrain_transitions:
+            if constrain_transitions and b_name_idx:
                 # Mask transitions to I_NAME_TOK from paths that lack a B_NAME_TOK
                 invalid_prev_paths = ~has_b_name[t - 1]
                 candidates[invalid_prev_paths, i_name_idx] = -np.inf
@@ -320,7 +328,7 @@ class NumpyViterbiInference:
             backpointers[t] = np.argmax(candidates, axis=0)
 
             # Update has_b_name matrix
-            if constrain_transitions:
+            if constrain_transitions and b_name_idx:
                 # Inherit state from the best predecessor for each current label.
                 # We are setting the value of for each column to the value from the
                 # previous row (i.e. t-1) at the index given by backpointers[t] so that
