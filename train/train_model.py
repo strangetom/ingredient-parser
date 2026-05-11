@@ -351,7 +351,7 @@ def train_multiple(args: argparse.Namespace) -> None:
         (
             vectors,
             args.split,
-            Path(save_model).with_stem("model-" + str(uuid4())),
+            Path(save_model).with_stem("model-" + str(uuid4()) + ".json"),
             None,  # Seed
             args.html,
             args.detailed,

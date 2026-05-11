@@ -124,7 +124,7 @@ class IngredientParserTrainer(pycrfsuite.Trainer):  # type: ignore
         Path
             Config file path.
         """
-        if model_file.suffix == ".gz":
+        if model_file.suffix == ".gz" and model_file.stem.endswith(".json"):
             # Strip suffix (to remove '.gz').
             config_file = model_file.with_suffix("")
         else:
