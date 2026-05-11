@@ -47,7 +47,7 @@ def export_crfsuite_to_json(model: pycrfsuite.Tagger, path: Path) -> None:
     # We use gzip.GzipFile and io.TextIOWrapper so that we can set mtime=0 for the gzip.
     # This removes the timestamp from the output file meaning it is always identical
     # for the same set of model weights.
-    with gzip.GzipFile(path.with_suffix(".json.gz"), mode="wb", mtime=0) as gz:
+    with gzip.GzipFile(path, mode="wb", mtime=0) as gz:
         with io.TextIOWrapper(gz, encoding="utf-8") as f:
             json.dump(j, f)
 

@@ -201,17 +201,18 @@ def train_parser_model(
     )
     for X, y in zip(features_train, truth_train):
         trainer.append(X, y)
-    trainer.train(str(save_model))
+    crfsuite_model_path = save_model.parent / (save_model.stem + ".crfsuite")
+    trainer.train(str(crfsuite_model_path))
 
     # Export to json.
     crfsuite_tagger = pycrfsuite.Tagger()  # type: ignore
-    crfsuite_tagger.open(str(save_model))
+    crfsuite_tagger.open(str(crfsuite_model_path))
     export_crfsuite_to_json(crfsuite_tagger, save_model)
     config_file = trainer.write_model_config(save_model)
 
     # Create NumpyCRFInference object for evaluation.
     logger.info("Evaluating model with test data.")
-    tagger = NumpyCRFInference(save_model.with_suffix(".json.gz"), combine_name_labels)
+    tagger = NumpyCRFInference(save_model, combine_name_labels)
 
     labels_pred, scores_pred = [], []
     for X in features_test:
@@ -244,6 +245,8 @@ def train_parser_model(
 
     stats = evaluate(labels_pred, truth_test, seed, combine_name_labels)
 
+    # We don't need to keep the crfsuite model.
+    crfsuite_model_path.unlink(missing_ok=True)
     if not keep_model:
         save_model.unlink(missing_ok=True)
         config_file.unlink(missing_ok=True)

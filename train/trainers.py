@@ -124,13 +124,17 @@ class IngredientParserTrainer(pycrfsuite.Trainer):  # type: ignore
         Path
             Config file path.
         """
-        config_file = model_file.with_suffix(".json")
+        if model_file.suffix == ".gz":
+            # Strip suffix (to remove '.gz').
+            config_file = model_file.with_suffix("")
+        else:
+            config_file = model_file.with_suffix(".json")
 
         config = self.get_params()
         config["datetime"] = datetime.now().isoformat()
         config["stopping_reason"] = self.stopping_reason
 
-        with open(model_file.with_suffix(".json.gz"), "rb", buffering=0) as f:
+        with open(model_file, "rb", buffering=0) as f:
             config["sha256"] = hashlib.file_digest(f, "sha256").hexdigest()
 
         with open(config_file, "w") as f:
