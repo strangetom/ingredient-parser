@@ -160,6 +160,8 @@ class NumpyCRFInference:
             labels=data["labels"],
             feature_weights=data["state_features"],
             transition_weights=data["transitions"],
+            scale_factor=data["quantization_scale"],
+            zero_offset=data["quantization_zero_offset"],
         )
 
 
@@ -170,6 +172,8 @@ class NumpyViterbiInference:
         labels: dict[str, int],
         feature_weights: dict[str, float],
         transition_weights: dict[str, float],
+        scale_factor: float,
+        zero_offset: float,
     ) -> None:
         """
         Parameters
@@ -182,12 +186,18 @@ class NumpyViterbiInference:
             Dict of weights for each feature-label combination.
         transition_weights : dict[str, float]
             Dict of weights for each label-label transition.
+        scale_factor : float
+            Quantization scale factor.
+        zero_offset : float
+            Quantization zero offset.
         """
         self.label_to_idx = labels
         self.idx_to_label = {idx: label for label, idx in self.label_to_idx.items()}
         self.n_labels = len(labels)
         self.features_to_idx = features
         self.n_features = len(features)
+        self.scale_factor = scale_factor
+        self.zero_offset = zero_offset
 
         # Create a NumPy matrix with size (n_features, n_labels) and populate with the
         # weights.
@@ -211,12 +221,32 @@ class NumpyViterbiInference:
             current_label_idx = self.label_to_idx[current_label]
             self.transition_weights[prev_label_idx, current_label_idx] = weight
 
+        # Calculate the de-quantized transition weights now because these do not change.
+        self.dq_transition_weights = self._dequantize_affine(self.transition_weights)
+
         # Attribute to store marginals matrix once labels have been predicted for a
         # sequence.
         self.marginals = np.array([])
 
     def __repr__(self):
         return f"NumpyViterbiInference(labels={sorted(self.label_to_idx.keys())})"
+
+    def _dequantize_affine(self, weights: np.ndarray) -> np.ndarray:
+        """Restores the float values from quantized weights by reversing affine scaling.
+
+        w = (w_q - zero_offset) * scale
+
+        Parameters
+        ----------
+        weights : np.ndarray
+            Weights to de-quantize.
+
+        Returns
+        -------
+        np.ndarray
+            De-quantized weights.
+        """
+        return (weights.astype(np.float32) - self.zero_offset) / self.scale_factor
 
     def _features_to_idx_array(self, features: set[str]) -> np.ndarray:
         """Map set of feature strings to row indices in emission matrix.
@@ -393,6 +423,9 @@ class NumpyViterbiInference:
         np.ndarray
             Marginal probability matrix for each label at each position in the sequence.
         """
+        # De-quantize state scores for marginal calculations.
+        state_scores = self._dequantize_affine(state_scores)
+
         log_alpha = np.full((seq_len, self.n_labels), -np.inf)
         log_beta = np.full((seq_len, self.n_labels), -np.inf)
 
@@ -406,7 +439,7 @@ class NumpyViterbiInference:
             # rows of the transition matrix.
             log_alpha[t] = (
                 np.logaddexp.reduce(
-                    log_alpha[t - 1][:, np.newaxis] + self.transition_weights, axis=0
+                    log_alpha[t - 1][:, np.newaxis] + self.dq_transition_weights, axis=0
                 )
                 + state_scores[t]
             )
@@ -416,7 +449,8 @@ class NumpyViterbiInference:
         for t in range(seq_len - 2, -1, -1):
             # logsumexp(transitions + next_emissions + next_beta)
             log_beta[t] = np.logaddexp.reduce(
-                self.transition_weights + state_scores[t + 1] + log_beta[t + 1], axis=1
+                self.dq_transition_weights + state_scores[t + 1] + log_beta[t + 1],
+                axis=1,
             )
 
         # Log partition function Z

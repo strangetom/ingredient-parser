@@ -13,8 +13,10 @@ import pycrfsuite
 class CRFModelParameters:
     attributes: dict[str, int]
     labels: dict[str, int]
-    state_features: dict[str, float]
-    transitions: dict[str, float]
+    state_features: dict[str, float | int]
+    transitions: dict[str, float | int]
+    quantization_scale: float
+    quantization_zero_offset: int
 
 
 def export_crfsuite_to_json(
@@ -59,6 +61,8 @@ def export_crfsuite_to_json(
         labels={k: int(v) for k, v in info.labels.items()},
         state_features={k[0] + "|" + k[1]: v for k, v in info.state_features.items()},
         transitions={k[0] + "|" + k[1]: v for k, v in info.transitions.items()},
+        quantization_scale=1.0,
+        quantization_zero_offset=0,
     )
 
     if min_abs_weight is not None:
@@ -94,9 +98,11 @@ def quantize(params: CRFModelParameters, nbits: int) -> CRFModelParameters:
     CRFModelParameters
         Model parameters with quantized state_features and transitions.
     """
-    max_weight = max(
-        max(params.state_features.values()), max(params.transitions.values())
-    )
+    max_weight = 0
+    for w in params.state_features.values():
+        max_weight = max(max_weight, abs(w))
+    for w in params.transitions.values():
+        max_weight = max(max_weight, abs(w))
     scale = (2 ** (nbits - 1) - 1) / max_weight
 
     quantized_state_features = {}
@@ -113,6 +119,7 @@ def quantize(params: CRFModelParameters, nbits: int) -> CRFModelParameters:
 
     params.state_features = quantized_state_features
     params.transitions = quantized_transitions
+    params.quantization_scale = scale
     return params
 
 
