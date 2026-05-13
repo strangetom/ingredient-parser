@@ -204,11 +204,26 @@ def train_parser_model(
     crfsuite_model_path = save_model.parent / (save_model.stem + ".crfsuite")
     trainer.train(str(crfsuite_model_path))
 
+    # Post-training hyperparameters
+    quantize_bits = None
+    min_abs_weight = None
+
     # Export to json.
     crfsuite_tagger = pycrfsuite.Tagger()  # type: ignore
     crfsuite_tagger.open(str(crfsuite_model_path))
-    export_crfsuite_to_json(crfsuite_tagger, save_model)
-    config_file = trainer.write_model_config(save_model)
+    export_crfsuite_to_json(
+        crfsuite_tagger,
+        save_model,
+        quantize_bits=quantize_bits,
+        min_abs_weight=min_abs_weight,
+    )
+    config_file = trainer.write_model_config(
+        save_model,
+        extra_parameters={
+            "quantize_bits": quantize_bits,
+            "min_abs_weight": min_abs_weight,
+        },
+    )
 
     # Create NumpyCRFInference object for evaluation.
     logger.info("Evaluating model with test data.")

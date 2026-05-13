@@ -111,13 +111,18 @@ class IngredientParserTrainer(pycrfsuite.Trainer):  # type: ignore
         logger.info(f"Model trained in {elapsed_time}.")
         logger.info(f"Stopped after {self._iterations} iterations.")
 
-    def write_model_config(self, model_file: Path) -> Path:
+    def write_model_config(
+        self, model_file: Path, extra_parameters: dict[str, None | int | float | bool]
+    ) -> Path:
         """Write configuration JSON file detail model parameters.
 
         Parameters
         ----------
         model_file : Path
             Path to model file to generate config for.
+        extra_parameters : dict[str, None | int | float | bool]
+            Dict of extra model hyperparameters to include in config.
+
 
         Returns
         -------
@@ -133,6 +138,8 @@ class IngredientParserTrainer(pycrfsuite.Trainer):  # type: ignore
         config = self.get_params()
         config["datetime"] = datetime.now().isoformat()
         config["stopping_reason"] = self.stopping_reason
+
+        config.update(extra_parameters)
 
         with open(model_file, "rb", buffering=0) as f:
             config["sha256"] = hashlib.file_digest(f, "sha256").hexdigest()

@@ -364,7 +364,7 @@ class NumpyViterbiInference:
         """Compute marginals using Log-Sum-Exp for numerical stability
 
         The marginal is calculated as
-            `P(y_t = i| x) = alpha_{t, i} x beta_{t, i}}{Z}`
+            `P(y_t = i| x) = alpha_{t, i} x beta_{t, i} / Z`
 
         Where P is the probability of the label at position t having the value i given
         the sequence x.
