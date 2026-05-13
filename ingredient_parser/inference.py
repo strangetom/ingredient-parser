@@ -199,11 +199,15 @@ class NumpyViterbiInference:
         self.scale_factor = scale_factor
         self.zero_offset = zero_offset
 
+        # Determine data type for weights
+        if isinstance(next(iter(feature_weights.values())), int):
+            dtype = np.int32
+        else:
+            dtype = np.float32
+
         # Create a NumPy matrix with size (n_features, n_labels) and populate with the
         # weights.
-        self.emission_weights = np.zeros(
-            (self.n_features, self.n_labels), dtype=np.float32
-        )
+        self.emission_weights = np.zeros((self.n_features, self.n_labels), dtype=dtype)
         for feat, weight in feature_weights.items():
             feature, label = feat.split("|")
             feature_idx = self.features_to_idx[feature]
@@ -212,9 +216,7 @@ class NumpyViterbiInference:
 
         # Create a NumPy matrix with size (n_labels, n_labels) and populate with the
         # weights.
-        self.transition_weights = np.zeros(
-            (self.n_labels, self.n_labels), dtype=np.float32
-        )
+        self.transition_weights = np.zeros((self.n_labels, self.n_labels), dtype=dtype)
         for feat, weight in transition_weights.items():
             prev_label, current_label = feat.split("|")
             prev_label_idx = self.label_to_idx[prev_label]
