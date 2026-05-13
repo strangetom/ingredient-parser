@@ -35,11 +35,15 @@ class NumpyCRFInference:
         combined_name_labels : bool, optional
             If True, name labels are considered combined into a single NAME label.
         """
+        self.model_file = model_file
         self.load(model_file)
         self.combined_name_labels = combined_name_labels
 
     def __repr__(self):
-        return "CRFInference()"
+        return (
+            f"NumpyCRFInference(model_file='{self.model_file}', "
+            f"combined_name_labels={self.combined_name_labels})"
+        )
 
     def tag_from_features(
         self, sentence_features: list[FeatureDict]
