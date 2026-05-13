@@ -293,6 +293,14 @@ if __name__ == "__main__":
         default=dict(),
     )
     gridsearch_parser.add_argument(
+        "--pt-params",
+        help="""Post training parameters, applicable to all algorithms, as JSON. 
+        The values for each parameter should be a list.
+        Any parameters not given will take their default value.""",
+        action=ParseJsonArg,
+        default=dict(),
+    )
+    gridsearch_parser.add_argument(
         "-v",
         help="Enable verbose output.",
         action="count",
