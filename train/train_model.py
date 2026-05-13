@@ -205,7 +205,7 @@ def train_parser_model(
     trainer.train(str(crfsuite_model_path))
 
     # Post-training hyperparameters
-    quantize_bits = 16
+    quantize_bits = None
     min_abs_weight = None
 
     # Export to json.

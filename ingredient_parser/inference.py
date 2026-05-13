@@ -35,15 +35,11 @@ class NumpyCRFInference:
         combined_name_labels : bool, optional
             If True, name labels are considered combined into a single NAME label.
         """
-        self.model_file = model_file
         self.load(model_file)
         self.combined_name_labels = combined_name_labels
 
     def __repr__(self):
-        return (
-            f"NumpyCRFInference(model_file='{self.model_file}', "
-            f"combined_name_labels={self.combined_name_labels})"
-        )
+        return "CRFInference()"
 
     def tag_from_features(
         self, sentence_features: list[FeatureDict]
@@ -189,15 +185,11 @@ class NumpyViterbiInference:
         self.features_to_idx = features
         self.n_features = len(features)
 
-        # Determine data type for weights
-        if isinstance(next(iter(feature_weights.values())), int):
-            dtype = np.int32
-        else:
-            dtype = np.float32
-
         # Create a NumPy matrix with size (n_features, n_labels) and populate with the
         # weights.
-        self.emission_weights = np.zeros((self.n_features, self.n_labels), dtype=dtype)
+        self.emission_weights = np.zeros(
+            (self.n_features, self.n_labels), dtype=np.float32
+        )
         for feat, weight in feature_weights.items():
             feature, label = feat.split("|")
             feature_idx = self.features_to_idx[feature]
@@ -206,7 +198,9 @@ class NumpyViterbiInference:
 
         # Create a NumPy matrix with size (n_labels, n_labels) and populate with the
         # weights.
-        self.transition_weights = np.zeros((self.n_labels, self.n_labels), dtype=dtype)
+        self.transition_weights = np.zeros(
+            (self.n_labels, self.n_labels), dtype=np.float32
+        )
         for feat, weight in transition_weights.items():
             prev_label, current_label = feat.split("|")
             prev_label_idx = self.label_to_idx[prev_label]
