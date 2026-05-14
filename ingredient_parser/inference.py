@@ -23,6 +23,9 @@ class NumpyCRFInference:
     ----------
     model : NumpyViterbiInference
         Implementation of Viterbi for inference.
+    combined_name_labels : bool
+        Set to True if there only a single NAME label present in the weights.
+        Set to False otherwise.
     """
 
     def __init__(self, model_file: Path, combined_name_labels: bool = False):
@@ -382,7 +385,7 @@ class NumpyViterbiInference:
         label_indices[-1] = int(np.argmax(lattice_scores[-1]))
         # Iterate backwards through the lattice.
         # At each step, append the backpointer that yielded the best score to the label
-        # sequence. Note the the resultant label sequence will be in reverse.
+        # sequence.
         for t in range(seq_len - 2, -1, -1):
             label_indices[t] = int(backpointers[t + 1, label_indices[t + 1]])
 
