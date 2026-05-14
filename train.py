@@ -5,6 +5,7 @@ import json
 import logging
 import os
 import sys
+from pathlib import Path
 from random import randint
 
 from train import (
@@ -301,6 +302,11 @@ if __name__ == "__main__":
         default=dict(),
     )
     gridsearch_parser.add_argument(
+        "--params-from-json",
+        help="Specify algorithm, global and post-training parameters via a JSON file.",
+        type=Path,
+    )
+    gridsearch_parser.add_argument(
         "-v",
         help="Enable verbose output.",
         action="count",
@@ -425,6 +431,17 @@ if __name__ == "__main__":
     elif args.command == "multiple":
         train_multiple(args)
     elif args.command == "gridsearch":
+        if args.params_from_json:
+            # Read parameters from file and set the values on the args object.
+            with open(args.params_from_json) as f:
+                params = json.load(f)
+
+            for argument, value in params.items():
+                if hasattr(args, argument):
+                    setattr(args, argument, value)
+                else:
+                    raise ValueError(f"{argument} is not a valid argument.")
+
         grid_search(args)
     elif args.command == "featuresearch":
         feature_search(args)
