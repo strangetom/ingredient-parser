@@ -9,3 +9,4 @@ This appendix to the model guide contains additional details that I thought were
    :maxdepth: 1
 
    Improved part of speech tags <pos-tags>
+   NumPy based inference <numpy-inference>

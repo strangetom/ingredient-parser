@@ -16,6 +16,9 @@ import pycrfsuite
 from sklearn.model_selection import train_test_split
 from tabulate import tabulate
 
+from ingredient_parser.inference import NumpyCRFInference
+
+from .export import export_crfsuite_to_json
 from .test_results_to_detailed_results import test_results_to_detailed_results
 from .test_results_to_html import test_results_to_html
 from .trainers import IngredientParserTrainer
@@ -130,7 +133,7 @@ def train_parser_model(
         If True, write html file of incorrect evaluation sentences
         and print out details about OTHER labels.
     detailed_results : bool
-        If True, write output files with details about how labeling performed on
+        If True, write output files with details about how labelling performed on
         the test set.
     plot_confusion_matrix : bool
         If True, plot a confusion matrix of the token labels.
@@ -153,7 +156,7 @@ def train_parser_model(
     logger.info(f"{seed} is the random seed used for the train/test split.")
 
     # Split data into train and test sets
-    # The stratify argument means that each dataset is represented proprtionally
+    # The stratify argument means that each dataset is represented proportionally
     # in the train and tests sets, avoiding the possibility that train or tests sets
     # contain data from one dataset disproportionally.
     (
@@ -177,6 +180,7 @@ def train_parser_model(
         stratify=vectors.source,
         random_state=seed,
     )
+
     logger.info(f"{len(features_train):,} training vectors.")
     logger.info(f"{len(features_test):,} testing vectors.")
 
@@ -197,20 +201,39 @@ def train_parser_model(
     )
     for X, y in zip(features_train, truth_train):
         trainer.append(X, y)
-    trainer.train(str(save_model))
-    config_file = trainer.write_model_config(save_model)
+    crfsuite_model_path = save_model.parent / (save_model.stem + ".crfsuite")
+    trainer.train(str(crfsuite_model_path))
 
+    # Post-training hyperparameters
+    quantize_bits = 16
+    min_abs_weight = None
+
+    # Export to json.
+    crfsuite_tagger = pycrfsuite.Tagger()  # type: ignore
+    crfsuite_tagger.open(str(crfsuite_model_path))
+    export_crfsuite_to_json(
+        crfsuite_tagger,
+        save_model,
+        quantize_bits=quantize_bits,
+        min_abs_weight=min_abs_weight,
+    )
+    config_file = trainer.write_model_config(
+        save_model,
+        extra_parameters={
+            "quantize_bits": quantize_bits,
+            "min_abs_weight": min_abs_weight,
+        },
+    )
+
+    # Create NumpyCRFInference object for evaluation.
     logger.info("Evaluating model with test data.")
-    tagger = pycrfsuite.Tagger()  # type: ignore
-    tagger.open(str(save_model))
+    tagger = NumpyCRFInference(save_model, combine_name_labels)
 
     labels_pred, scores_pred = [], []
     for X in features_test:
-        labels = tagger.tag(X)
-        labels_pred.append(labels)
-        scores_pred.append(
-            [tagger.marginal(label, i) for i, label in enumerate(labels)]
-        )
+        labels, scores = zip(*tagger.tag_from_features(X))
+        labels_pred.append(list(labels))
+        scores_pred.append(list(scores))
 
     if html:
         test_results_to_html(
@@ -237,6 +260,8 @@ def train_parser_model(
 
     stats = evaluate(labels_pred, truth_test, seed, combine_name_labels)
 
+    # We don't need to keep the crfsuite model.
+    crfsuite_model_path.unlink(missing_ok=True)
     if not keep_model:
         save_model.unlink(missing_ok=True)
         config_file.unlink(missing_ok=True)
@@ -341,7 +366,7 @@ def train_multiple(args: argparse.Namespace) -> None:
         (
             vectors,
             args.split,
-            Path(save_model).with_stem("model-" + str(uuid4())),
+            Path(save_model).with_stem("model-" + str(uuid4()) + ".json"),
             None,  # Seed
             args.html,
             args.detailed,

@@ -7,6 +7,7 @@ API Reference
    :maxdepth: 2
 
    parsers
+   inference
    preprocessor
    postprocessor
    common

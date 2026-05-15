@@ -171,6 +171,13 @@ To run a grid search over a number of different algorithms and hyper-parameters 
     # Train models using the LBFGS and AP algorithms, only varying the global hyper-parameters which apply to all models
     $ python train.py gridseach --model parser --database train/data/training.sqlite3 --algos lbfgs  ap --global-params '{"feature.minfreq":[0, 1, 5],"feature.possible_transitions":[true, false],"feature.possible_states":[true, false]}'
 
+.. code::
+
+    # Specify the parameters via a JSON file instead of as command line arguments.
+    # The JSON file uses the same command arguments (but replacing - with _).
+    # For example "--lbfgs-params" is changed to "lbfgs_params" in JSON.
+    $ python train.py gridseach --model parser --database train/data/training.sqlite3 --algos lbfgs  --params-from-json gridsearch_params.json
+
 When a grid search is performed, the same train/evaluation split of the data is used for every model, so the performances can be directly compared.
 Each model trained is given a random unique name.
 By default the models are deleted after their performance has been evaluated.
@@ -198,6 +205,15 @@ For example, to train models using each of the possible algorithms with their de
     └─────────────┴──────────────┴──────────────────┴─────────────────────┴─────────┴─────────────┘
 
 See the `CRFSuite documentation <https://www.chokkan.org/software/crfsuite/manual.html>`_ for details on the hyper-parameters for each algorithm.
+
+Post-training hyperparameters can also be specified using the ``--pt-params`` argument.
+The options are:
+
+* **quantize_bits**: an integer value which determines how many bits to quantize the weights using after training; or null to disable quantization.
+
+* **min_abs_weight**: a float value which determines the minimum absolute of weights to keep. Weights smaller than this are discarded. Use null to disable this.
+
+See :ref:`NumPy based inference <reference-explanation-appendix-numpy-inference>` for more details on these options.
 
 Model reproducibility
 ^^^^^^^^^^^^^^^^^^^^^
@@ -227,3 +243,9 @@ The figure below shows how the sentence- and word-level performance has changed 
 .. image:: /_static/diagrams/performance-history.svg
   :class: .dark-light
   :alt: Bar graph showing the model performance improving which each new release
+
+.. tip::
+
+    The reduction in performance seen between v1.3.0 and v2.0.0 is due to changing the labelling scheme to be able to separate the names of each ingredient in an ingredient sentence.
+
+    This is a more complex labelling scheme than previously and unfortunately does not perform quite as well, however this is continually being improved and the model accuracy is trending in the right direction.

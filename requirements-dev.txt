@@ -1,3 +1,4 @@
+python-crfsuite
 scikit-learn
 pyright
 ruff

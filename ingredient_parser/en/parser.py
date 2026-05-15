@@ -82,8 +82,9 @@ def parse_ingredient_en(
 
     processed_sentence = PreProcessor(sentence, custom_units=custom_units)
     features = processed_sentence.sentence_features()
-    labels = TAGGER.tag(features)
-    scores = [TAGGER.marginal(label, i) for i, label in enumerate(labels)]
+    labels, scores = zip(*TAGGER.tag_from_features(features))
+    labels = list(labels)
+    scores = list(scores)
     logger.debug(f"Sentence token labels: {labels}.")
 
     if expect_name_in_output and all("NAME" not in label for label in labels):
@@ -192,8 +193,10 @@ def inspect_parser_en(
 
     processed_sentence = PreProcessor(sentence, custom_units=custom_units)
     features = processed_sentence.sentence_features()
-    labels = TAGGER.tag(features)
-    scores = [TAGGER.marginal(label, i) for i, label in enumerate(labels)]
+    labels, scores = zip(*TAGGER.tag_from_features(features))
+    labels = list(labels)
+    scores = list(scores)
+    logger.debug(f"Sentence token labels: {labels}.")
 
     if expect_name_in_output and all("NAME" not in label for label in labels):
         # No tokens were assigned the NAME label, so guess if there's a name
