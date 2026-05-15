@@ -228,5 +228,104 @@ Post-training adjustments
 Post-training quantization
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+Quantization is a technique to reduce the computational and memory cost of running inference using a model by representing the weights with lower precision data types.
+
+The quantization technique described here is post training symmetric linear quantization. The weights are scaled linearly relative to the largest absolute weight value, which is mapped to the largest value representable by the chosen lower precision data type i.e.
+
+.. math::
+
+    [-w_{max}, w_{max}] \rightarrow [-q_{max}, q_{max}]
+
+The quantization is done such that an original weight of zero is mapped a quantized weight of zero.
+
+Quantization can be performed to an arbitrary level of precision.
+
+The function for quantizing the weights is quite straight forward:
+
+.. code:: python
+
+    def quantize(params: CRFModelParameters, nbits: int) -> CRFModelParameters:
+
+        # Determine the maximum absolute weight value
+        max_weight = 0
+        for w in params.state_features.values():
+            max_weight = max(max_weight, abs(w))
+        for w in params.transitions.values():
+            max_weight = max(max_weight, abs(w))
+
+        # Calculate the scale factor for the quantization to an integer
+        # with the selected number of bits
+        scale = (2 ** (nbits - 1) - 1) / max_weight
+
+        # Quantize the weights by scaling them.
+        # If a weight quantizes to zero, we can discard it.
+        quantized_state_features = {}
+        for feature, weight in params.state_features.items():
+            quantized_weight = round(weight * scale)
+            if quantized_weight != 0:
+                quantized_state_features[feature] = quantized_weight
+
+        quantized_transitions = {}
+        for feature, weight in params.transitions.items():
+            quantized_weight = round(weight * scale)
+            if quantized_weight != 0:
+                quantized_transitions[feature] = quantized_weight
+
+        params.state_features = quantized_state_features
+        params.transitions = quantized_transitions
+        params.quantization_scale = scale
+        return params
+
+Training the model at different levels of quantization shows the differences in model accuracy and size.
+
++--------------+-------------------+----------------+------------+
+| Data type    | Sentence accuracy | Token accuracy | Size (MB)  |
++==============+===================+================+============+
+| 32 bit float | 98.22%            | 95.42%         | 0.34       |
++--------------+-------------------+----------------+------------+
+| 16 bit int   | 98.22%            | 95.42%         | 0.28       |
++--------------+-------------------+----------------+------------+
+| 12 bit int   | 98.20%            | 95.38%         | 0.26       |
++--------------+-------------------+----------------+------------+
+| 8 bit int    | 98.18%            | 95.33%         | 0.21       |
++--------------+-------------------+----------------+------------+
+
+The table shows that quantizing to smaller data types reduces model accuracy and size.
+The int16 case shows a reduction in model size of 17% with no loss in accuracy.
+
 Weight pruning
 ~~~~~~~~~~~~~~
+
+Weight pruning is the process of removing weights where the absolute value is below a set threshold.
+The idea behind this is that smaller weights are more likely to represent over-fitting of the model to the training data and therefore by removing them, the model size is reduced and the model is made more general.
+The objective of the pruning process is to find the balance between reduction in model size and the decrease in model accuracy that eventually results from too much pruning.
+
+.. code:: python
+
+    def prune_weights(params: CRFModelParameters, min_abs_weight: float) -> CRFModelParameters:
+
+        params.state_features = {
+            feature: weight
+            for feature, weight in params.state_features.items()
+            if abs(weight) >= min_abs_weight
+        }
+        params.transitions = {
+            feature: weight
+            for feature, weight in params.transitions.items()
+            if abs(weight) >= min_abs_weight
+        }
+        return params
+
+The table below shows the effect of pruning weights below the listed threshold.
+
++------------------------+-------------------+----------------+------------+
+| Minimum absolute value | Sentence accuracy | Token accuracy | Size (MB)  |
++========================+===================+================+============+
+| 0                      | 98.22%            | 95.42%         | 0.34       |
++------------------------+-------------------+----------------+------------+
+| 0.01                   | 98.22%            | 95.42%         | 0.32       |
++------------------------+-------------------+----------------+------------+
+| 0.1                    | 98.15%            | 95.24%         | 0.25       |
++------------------------+-------------------+----------------+------------+
+| 0.5                    | 95.48%            | 89.27%         | 0.12       |
++------------------------+-------------------+----------------+------------+
