@@ -113,16 +113,16 @@ class SentenceStrucureFeatures:
         )
 
     def _get_subtree_indices(
-        self, parent_tree: nltk.Tree, subtree: nltk.Tree
-    ) -> list[int]:
+        self, parent_tree: nltk.Tree, labels: list[str]
+    ) -> list[list[int]]:
         """Get the indices of a subtree in the parent tree.
 
         Parameters
         ----------
         parent_tree : nltk.Tree
             Parent tree to find indices of subtree within.
-        subtree : nltk.Tree
-            Subtree to find within parent tree.
+        labels : list[str]
+            Labels of subtrees to find indices of.
 
         Returns
         -------
@@ -130,18 +130,21 @@ class SentenceStrucureFeatures:
             List of indices of subtree in parent tree.
             If not found, return empty list.
         """
-        parent_leaves = parent_tree.leaves()
-        subtree_leaves = subtree.leaves()
+        indices = []
+        leaf_idx = 0
+        for child in parent_tree:
+            if isinstance(child, nltk.Tree):
+                num_leaves = len(child.leaves())
+                if child.label() in labels:
+                    indices.append(list(range(leaf_idx, leaf_idx + num_leaves)))
 
-        subtree_len = len(subtree_leaves)
-        for i in range(len(parent_leaves) - subtree_len + 1):
-            if (
-                parent_leaves[i] == subtree_leaves[0]
-                and parent_leaves[i : i + subtree_len] == subtree_leaves
-            ):
-                return list(range(i, i + subtree_len))
+                # Jump leaf_idx forwards by num_leaves regardless of whether the child
+                # was a Tree we were looking for.
+                leaf_idx += num_leaves
+            else:
+                leaf_idx += 1
 
-        return []
+        return indices
 
     def _cc_is_not_or(
         self, text_pos: list[tuple[str, str]], indices: list[int]
@@ -189,8 +192,7 @@ class SentenceStrucureFeatures:
         text_pos = [(token.text, token.pos_tag) for token in self.tokenized_sentence]
         parsed = self.mip_parser.parse(text_pos)
         logger.debug(f"MIP parser: \n{parsed}")
-        for subtree in parsed.subtrees(filter=lambda t: t.label() in ["EMIP", "MIP"]):  #  type: ignore
-            indices = self._get_subtree_indices(parsed, subtree)  #  type: ignore
+        for indices in self._get_subtree_indices(parsed, ["EMIP", "MIP"]):  # type: ignore
             # If the conjunction is not "or", skip
             if self._cc_is_not_or(text_pos, indices):
                 continue
@@ -242,8 +244,7 @@ class SentenceStrucureFeatures:
 
         parsed = self.compound_parser.parse(text_pos)
         logger.debug(f"Sentence split parser: \n{parsed}")
-        for subtree in parsed.subtrees(filter=lambda t: t.label() == "CS"):  #  type: ignore
-            indices = self._get_subtree_indices(parsed, subtree)  #  type: ignore
+        for indices in self._get_subtree_indices(parsed, ["CS"]):  # type: ignore
             # If the conjunction is not "or", skip
             if self._cc_is_not_or(text_pos, indices):
                 continue
@@ -275,8 +276,7 @@ class SentenceStrucureFeatures:
         text_pos = [(token.text, token.pos_tag) for token in self.tokenized_sentence]
         parsed = self.example_parser.parse(text_pos)
         logger.debug(f"Example parser: \n{parsed}")
-        for subtree in parsed.subtrees(filter=lambda t: t.label() == "EX"):  #  type: ignore
-            indices = self._get_subtree_indices(parsed, subtree)  #  type: ignore
+        for indices in self._get_subtree_indices(parsed, ["EX"]):  #  type: ignore
             phrase_text_pos = [
                 (token.text.upper(), token.pos_tag)
                 for i, token in enumerate(self.tokenized_sentence)
@@ -296,7 +296,7 @@ class SentenceStrucureFeatures:
             ):
                 # The phrase starts with JJ+IN, but doesn't match any pairs in
                 # EXAMPLE_PHRASE_START_JJ.
-                # Check if it matches anything in EXAMPLE_PHRASE_START_IN is we ignore
+                # Check if it matches anything in EXAMPLE_PHRASE_START_IN if we ignore
                 # the first token.
                 examples.append(indices[1:])
                 continue
@@ -342,9 +342,7 @@ class SentenceStrucureFeatures:
 
         parsed = self.dimensional_phrase_parser.parse(text_pos)
         logger.debug(f"Dimensional phrase parser: \n{parsed}")
-        for subtree in parsed.subtrees(filter=lambda t: t.label() == "DP"):  #  type: ignore
-            indices = self._get_subtree_indices(parsed, subtree)  #  type: ignore
-            dimensional_phrases.append(indices)
+        dimensional_phrases = self._get_subtree_indices(parsed, ["DP"])
         return dimensional_phrases
 
     def token_features(self, index: int, prefix: str) -> dict[str, bool]:
