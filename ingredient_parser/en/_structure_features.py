@@ -342,7 +342,7 @@ class SentenceStrucureFeatures:
 
         parsed = self.dimensional_phrase_parser.parse(text_pos)
         logger.debug(f"Dimensional phrase parser: \n{parsed}")
-        dimensional_phrases = self._get_subtree_indices(parsed, ["DP"])
+        dimensional_phrases = self._get_subtree_indices(parsed, ["DP"])  # type: ignore
         return dimensional_phrases
 
     def token_features(self, index: int, prefix: str) -> dict[str, bool]:
