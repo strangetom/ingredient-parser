@@ -174,10 +174,20 @@ class Test_example_phrase_features:
 
     def test_example_phrase_detection_multiple_examples(self):
         """
-        Test phrase using "such as" is detected
+        Test both phrases using "like" are detected.
         """
         p = PreProcessor(
             "2 cups ale, like Boddingtons, or lager, like Carlsburg", custom_units={}
+        )
+        assert p.sentence_structure.example_phrases == [[4, 5], [10, 11]]
+
+    def test_example_phrase_detection_duplicate_examples(self):
+        """
+        Test phrase using "like" are detected when both phrases are identical (in both
+        token text and part of speech tag).
+        """
+        p = PreProcessor(
+            "2 cups ale, like Carlsburg, or lager, like Carlsburg", custom_units={}
         )
         assert p.sentence_structure.example_phrases == [[4, 5], [10, 11]]
 
