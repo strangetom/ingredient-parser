@@ -192,7 +192,7 @@ class SentenceStrucureFeatures:
         text_pos = [(token.text, token.pos_tag) for token in self.tokenized_sentence]
         parsed = self.mip_parser.parse(text_pos)
         logger.debug(f"MIP parser: \n{parsed}")
-        for indices in self._get_subtree_indices(parsed, ["EMIP", "MIP"]):
+        for indices in self._get_subtree_indices(parsed, ["EMIP", "MIP"]):  # type: ignore
             # If the conjunction is not "or", skip
             if self._cc_is_not_or(text_pos, indices):
                 continue
@@ -244,7 +244,7 @@ class SentenceStrucureFeatures:
 
         parsed = self.compound_parser.parse(text_pos)
         logger.debug(f"Sentence split parser: \n{parsed}")
-        for indices in self._get_subtree_indices(parsed, ["CS"]):
+        for indices in self._get_subtree_indices(parsed, ["CS"]):  # type: ignore
             # If the conjunction is not "or", skip
             if self._cc_is_not_or(text_pos, indices):
                 continue
@@ -276,7 +276,7 @@ class SentenceStrucureFeatures:
         text_pos = [(token.text, token.pos_tag) for token in self.tokenized_sentence]
         parsed = self.example_parser.parse(text_pos)
         logger.debug(f"Example parser: \n{parsed}")
-        for indices in self._get_subtree_indices(parsed, ["EX"]):
+        for indices in self._get_subtree_indices(parsed, ["EX"]):  #  type: ignore
             phrase_text_pos = [
                 (token.text.upper(), token.pos_tag)
                 for i, token in enumerate(self.tokenized_sentence)
