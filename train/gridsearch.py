@@ -453,7 +453,7 @@ def train_model_grid_search(
     start_time = time.monotonic()
 
     # Split data into train and test sets
-    # The stratify argument means that each dataset is represented proprtionally
+    # The stratify argument means that each dataset is represented proportionally
     # in the train and tests sets, avoiding the possibility that train or tests sets
     # contain data from one dataset disproportionally.
     (

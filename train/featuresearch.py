@@ -13,7 +13,11 @@ import pycrfsuite
 from sklearn.model_selection import train_test_split
 from tabulate import tabulate
 
+from ingredient_parser.inference import NumpyCRFInference
+
+from .export import export_crfsuite_to_json
 from .train_model import DEFAULT_MODEL_LOCATION
+from .trainers import IngredientParserTrainer
 from .training_utils import (
     DataVectors,
     convert_num_ordinal,
@@ -26,11 +30,13 @@ logger = logging.getLogger(__name__)
 DISCARDED_FEATURES = {
     0: [],
     1: [
-        "is_ambiguous",
-        "next_is_ambiguous",
-        "next_is_ambiguous2",
-        "prev_is_ambiguous",
-        "prev_is_ambiguous2",
+        "after_sentence_split",
+        "next_after_sentence_split",
+        "next2_after_sentence_split",
+        "next3_after_sentence_split",
+        "prev_after_sentence_split",
+        "prev2_after_sentence_split",
+        "prev3_after_sentence_split",
     ],
 }
 
@@ -105,7 +111,7 @@ def train_model_feature_search(
     start_time = time.monotonic()
 
     # Split data into train and test sets
-    # The stratify argument means that each dataset is represented proprtionally
+    # The stratify argument means that each dataset is represented proportionally
     # in the train and tests sets, avoiding the possibility that train or tests sets
     # contain data from one dataset disproportionally.
     (
@@ -133,10 +139,14 @@ def train_model_feature_search(
     features_test = select_features(features_test, discard_features)
 
     # Make model name unique
-    save_model_path = Path(save_model).with_stem("model-" + str(uuid4()))
+    save_model_path = Path(save_model).with_stem("model-" + str(uuid4()) + ".json")
+
+    # Post-training hyperparameters
+    quantize_bits = 16
+    min_abs_weight = None
 
     # Train model
-    trainer = pycrfsuite.Trainer(verbose=False)  # type: ignore
+    trainer = IngredientParserTrainer(verbose=True)
     # Set parameters
     trainer.set_params(
         {
@@ -148,22 +158,50 @@ def train_model_feature_search(
             "max_linesearch": 5,
             "num_memories": 3,
             "period": 10,
+            "max_iterations": 1500,
+            "delta": 5e-5,
         }
     )
     for X, y in zip(features_train, truth_train):
         trainer.append(X, y)
-    trainer.train(str(save_model_path))
+    crfsuite_model_path = save_model_path.parent / (save_model_path.stem + ".crfsuite")
+    trainer.train(str(crfsuite_model_path))
+
+    # Export to json.
+    crfsuite_tagger = pycrfsuite.Tagger()  # type: ignore
+    crfsuite_tagger.open(str(crfsuite_model_path))
+    export_crfsuite_to_json(
+        crfsuite_tagger,
+        save_model_path,
+        quantize_bits=quantize_bits,
+        min_abs_weight=min_abs_weight,
+    )
+    config_file = trainer.write_model_config(
+        save_model_path,
+        extra_parameters={
+            "quantize_bits": quantize_bits,
+            "min_abs_weight": min_abs_weight,
+        },
+    )
+
     # Get model size, in MB
     model_size = os.path.getsize(save_model_path) / 1024**2
 
     # Evaluate model
-    tagger = pycrfsuite.Tagger()  # type: ignore
-    tagger.open(str(save_model_path))
-    labels_pred = [tagger.tag(X) for X in features_test]
+    # Create NumpyCRFInference object for evaluation.
+    logger.info("Evaluating model with test data.")
+    tagger = NumpyCRFInference(save_model_path, combine_name_labels)
+    labels_pred = []
+    for X in features_test:
+        labels, _ = zip(*tagger.tag_from_features(X))
+        labels_pred.append(list(labels))
     stats = evaluate(labels_pred, truth_test, seed, combine_name_labels)
 
+    # We don't need to keep the crfsuite model.
+    crfsuite_model_path.unlink(missing_ok=True)
     if not keep_model:
         save_model_path.unlink(missing_ok=True)
+        config_file.unlink(missing_ok=True)
 
     return {
         "feature_set": feature_set,
