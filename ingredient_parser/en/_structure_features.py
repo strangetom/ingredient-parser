@@ -64,7 +64,11 @@ class SentenceStrucureFeatures:
     # RegexpParser to detect the start of new ingredient sentence in compound sentence.
     # UNIT and SIZE are custom tags, based on the FLATTENED_UNITS_LIST and SIZES
     # constants.
-    compound_parser = nltk.RegexpParser(r"CS: {<CC><CD>+<NN.*|JJ.*|UNIT|SIZE>}")
+    compound_parser = nltk.RegexpParser(r"""
+        CS_WU: {<CC><RB>?<CD|DT>+<RB>?<UNIT|SIZE>+} # with unit: quantity with unit/size
+        CS_NU: {<CC><CD|DT>+<NN.*|JJ.*>}  # no unit: quantity but no unit or size
+        CS_HALF: {<CC><HALF>} # "or half the", "or half that" etc.
+    """)
 
     # RegexpParser to detect phrases of examples of ingredients.
     # A sequence of nouns or adjectives, optionally followed by a comma, repeating zero
@@ -237,6 +241,8 @@ class SentenceStrucureFeatures:
                 pos = "UNIT"
             elif t.text.lower() in SIZES:
                 pos = "SIZE"
+            elif t.text.lower() == "half":
+                pos = "HALF"
             else:
                 pos = t.pos_tag
 
@@ -244,7 +250,7 @@ class SentenceStrucureFeatures:
 
         parsed = self.compound_parser.parse(text_pos)
         logger.debug(f"Sentence split parser: \n{parsed}")
-        for indices in self._get_subtree_indices(parsed, ["CS"]):  # type: ignore
+        for indices in self._get_subtree_indices(parsed, ["CS_WU", "CS_NU", "CS_HALF"]):  # type: ignore
             # If the conjunction is not "or", skip
             if self._cc_is_not_or(text_pos, indices):
                 continue
