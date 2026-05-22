@@ -89,7 +89,7 @@ PASTA_TYPES = [
     "bucatini",
     "conchigli",  # conchiglie
     "ditalini",
-    "farfall"  # farfalle
+    "farfall",  # farfalle
     "fettuccin",  # fettuccine
     "fusilli",
     "gemelli",
