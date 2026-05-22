@@ -87,25 +87,24 @@ FDC_TOKEN_TO_PHRASE_SUBSTITUTIONS: dict[str, list[str]] = {
 # Note that spaghetti is excluded because it can also refer to a type of squash.
 PASTA_TYPES = [
     "bucatini",
-    "conchiglie",
+    "conchigli",  # conchiglie
     "ditalini",
-    "farfalle",
-    "fettuccine",
+    "farfall",  # farfalle
+    "fettuccin",  # fettuccine
     "fusilli",
     "gemelli",
-    "lasagne",
-    "lasagna",
-    "linguine",
+    "lasagn",  # lasagne
+    "linguin",  # linguine
     "macaroni",
-    "orecchiette",
+    "orecchiett",  # orecchiette
     "orzo",
     "paccheri",
-    "pappardelle",
-    "penne",
+    "pappardell",  # pappardelle
+    "penn",  # penne
     "rigatoni",
     "rotini",
-    "stelline",
-    "tagliatelle",
+    "stellin",  # stelline
+    "tagliatell",  # tagliatelle
 ]
 for type_ in PASTA_TYPES:
     FDC_TOKEN_TO_PHRASE_SUBSTITUTIONS[type_] = ["pasta", "dri"]
