@@ -478,7 +478,7 @@ def labeller_search():
 
             elif reserved_char_match in ["**", "~~"]:
                 # Return all results
-                matches = list_all_entries()
+                matches = list_all_entries(sources)
 
             else:
                 # Search by user input string
