@@ -94,6 +94,7 @@ PASTA_TYPES = [
     "fusilli",
     "gemelli",
     "lasagn",  # lasagne
+    "lasagna",
     "linguin",  # linguine
     "macaroni",
     "orecchiett",  # orecchiette
