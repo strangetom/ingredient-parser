@@ -11,6 +11,7 @@ COOKSTR_CSV = "train/data/cookstr/cookstr-ingredients-snapshot-2017.csv"
 NYT_CSV = "train/data/nytimes/nyt-ingredients-snapshot-2015.csv"
 ALLRECIPES_CSV = "train/data/allrecipes/allrecipes-ingredients-snapshot-2017.csv"
 TC_CSV = "train/data/tastecooking/tastecooking-ingredients-snapshot-2024.csv"
+MANUAL_CSV = "train/data/manual/manual-ingredients.csv"
 
 DATABASE = "train/data/training.sqlite3"
 
@@ -129,6 +130,7 @@ if __name__ == "__main__":
         "nyt": NYT_CSV,
         "allrecipes": ALLRECIPES_CSV,
         "tc": TC_CSV,
+        "manual": MANUAL_CSV,
     }
 
     for source, csv_file in source_csv.items():

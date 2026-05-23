@@ -117,7 +117,7 @@ There are 6 datasets used to train and evaluate model performance.
 
 6. Manual
 
-   28 manually written sentences added to exhibit specific patterns.
+   31 manually written sentences added to exhibit specific patterns.
 
 
 All datasets have been through extensive cleaning to make the data consistent. The cleaned versions of the data are found in the repository for the ingredient_parser_nlp package: https://github.com/strangetom/ingredient-parser
