@@ -1,5 +1,5 @@
 // {{{EXTERNAL}}}
-import { Pagination } from "@mantine/core";
+import { Pagination, Text } from "@mantine/core";
 import { useShallow } from "zustand/react/shallow";
 // {{{INTERNAL}}}
 import { useTabLabellerStore } from "../../../domain";
@@ -40,6 +40,7 @@ export function ActionBarPaginator() {
 	return parsed && parsedSentences.length !== 0 ? (
 		<>
 			<SwitchEditMode />
+			<Text>{parsed.total} sentences</Text>
 			<Pagination
 				total={Math.ceil(parsed.total / 250)}
 				value={activePage}
