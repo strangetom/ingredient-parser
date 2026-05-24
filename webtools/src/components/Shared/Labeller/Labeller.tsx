@@ -108,7 +108,7 @@ export function Labeller({
 	if (editMode) {
 		const menuItems = labellers
 			.filter((item) =>
-				item.toLowerCase().includes(search.toLowerCase().trim()),
+				item.toLowerCase().startsWith(search.toLowerCase().trim()),
 			)
 			.map((labeller) => (
 				<Combobox.Option
