@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 
 import argparse
+import gzip
+import json
 import pathlib
 from collections import defaultdict
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-import pycrfsuite
 
 # Various formatting parameters
 mpl.rcParams["text.color"] = "#ebdbb2"
@@ -128,12 +129,12 @@ def load_model_features(model_path: str) -> FeatureWeights:
     FeatureWeights
         Weights for each feature.
     """
-    tagger = pycrfsuite.Tagger()  # type: ignore
-    tagger.open(str(model_path))
+    with gzip.open(model_path, "rt") as f:
+        model = json.load(f)
 
-    tagger_features = tagger.info()
     features: FeatureWeights = defaultdict(lambda: defaultdict(list))
-    for (feature, label), weight in tagger_features.state_features.items():
+    for feature_label, weight in model["state_features"].items():
+        feature, label = feature_label.split("|")
         feature_name = feature.split(":", 1)[0]
         features[feature_name][label].append(weight)
 
