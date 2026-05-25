@@ -1,3 +1,4 @@
+from ingredient_parser.dataclasses import LabelledToken
 from ingredient_parser.en import PostProcessor
 
 
@@ -10,12 +11,15 @@ class TestPostProcessor_is_singular:
         tokens = ["4", "salmon", "fillets", "2", "pounds", "each"]
         pos_tags = ["CD", "JJ", "NNS", "CD", "NNS", "DT"]
         labels = ["QTY", "B_NAME_TOK", "I_NAME_TOK", "QTY", "UNIT", "COMMENT"]
-        idx = [0, 1, 2, 3, 4, 5]
+        labelled_tokens = [
+            LabelledToken(
+                index=i, text=text, pos_tag=tag, label=label, score=0, plural=False
+            )
+            for i, (text, tag, label) in enumerate(zip(tokens, pos_tags, labels))
+        ]
 
-        p = PostProcessor(
-            sentence, tokens, pos_tags, labels, [0] * len(tokens), custom_units={}
-        )
-        assert p._is_singular(4, tokens, labels, idx)
+        p = PostProcessor(sentence, labelled_tokens, custom_units={})
+        assert p._is_singular(4, labelled_tokens)
         assert p.consumed == [5]
 
     def test_is_singular_in_brackets(self):
@@ -37,12 +41,15 @@ class TestPostProcessor_is_singular:
             "COMMENT",
             "COMMENT",
         ]
-        idx = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+        labelled_tokens = [
+            LabelledToken(
+                index=i, text=text, pos_tag=tag, label=label, score=0, plural=False
+            )
+            for i, (text, tag, label) in enumerate(zip(tokens, pos_tags, labels))
+        ]
 
-        p = PostProcessor(
-            sentence, tokens, pos_tags, labels, [0] * len(tokens), custom_units={}
-        )
-        assert p._is_singular(7, tokens, labels, idx)
+        p = PostProcessor(sentence, labelled_tokens, custom_units={})
+        assert p._is_singular(7, labelled_tokens)
         assert p.consumed == [9]
 
     def test_not_singular(self):
@@ -53,10 +60,13 @@ class TestPostProcessor_is_singular:
         tokens = ["4", "salmon", "fillets", "2", "pounds", "minimum"]
         pos_tags = ["CD", "JJ", "NNS", "CD", "NNS", "JJ"]
         labels = ["QTY", "B_NAME_TOK", "I_NAME_TOK", "QTY", "UNIT", "COMMENT"]
-        idx = [0, 1, 2, 3, 4, 5]
+        labelled_tokens = [
+            LabelledToken(
+                index=i, text=text, pos_tag=tag, label=label, score=0, plural=False
+            )
+            for i, (text, tag, label) in enumerate(zip(tokens, pos_tags, labels))
+        ]
 
-        p = PostProcessor(
-            sentence, tokens, pos_tags, labels, [0] * len(tokens), custom_units={}
-        )
-        assert not p._is_singular(4, tokens, labels, idx)
+        p = PostProcessor(sentence, labelled_tokens, custom_units={})
+        assert not p._is_singular(4, labelled_tokens)
         assert p.consumed == []

@@ -145,13 +145,10 @@ def parse_multiple_ingredients(
     foundation_foods: bool = False,
     custom_units: dict[str, str] | None = None,
 ) -> list[ParsedIngredient]:
-    """Parse multiple ingredient sentences in one go.
+    """Parse multiple ingredient sentences.
 
-    This function accepts a list of sentences, with element of the list representing
-    one ingredient sentence.
-    A list of dictionaries is returned, with optional confidence values.
-    This function is a simple for-loop that iterates through each element of the
-    input list.
+    This function accepts a list of sentences and returns a list of ParsedIngredient
+    objects.
 
     Parameters
     ----------

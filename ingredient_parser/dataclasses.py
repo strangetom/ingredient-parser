@@ -10,9 +10,9 @@ from statistics import mean
 from typing import Any
 
 import pint
-import pycrfsuite
 
 from ._common import UREG
+from .inference import NumpyCRFInference
 
 
 class UnitSystem(enum.StrEnum):
@@ -78,6 +78,34 @@ class Token:
     feat_text: str
     pos_tag: str
     features: TokenFeatures
+
+
+@dataclass
+class LabelledToken:
+    """Dataclass representing a labelled token from a ingredient sentence.
+
+    Attributes
+    ----------
+    index : int
+        Index of the token in the sentence.
+    text : str
+        Token text.
+    pos_tag : str
+        TPart of speech tag for token.
+    label : str
+        Label assigned to token.
+    score : float
+        Confidence of assigned label between 0 and 1.
+    plural : bool
+        True if token is plural.
+    """
+
+    index: int
+    text: str
+    pos_tag: str
+    label: str
+    score: float
+    plural: bool
 
 
 @dataclass
@@ -271,6 +299,8 @@ class IngredientAmount:
                 "tablespoon",
                 "pt",
                 "pint",
+                "in",
+                "inch",
             }:
                 if imperial_unit:
                     return UnitSystem.IMPERIAL
@@ -586,11 +616,11 @@ class ParserDebugInfo:
     PostProcessor : PostProcessor
         PostProcessor object created using tokens, labels and scores from
         input sentence.
-    Tagger : pycrfsuite.Tagger
+    Tagger : NumpyCRFInference
         CRF model tagger object.
     """
 
     sentence: str
     PreProcessor: Any
     PostProcessor: Any
-    tagger: pycrfsuite.Tagger  # type: ignore
+    tagger: NumpyCRFInference

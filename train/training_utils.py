@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 
 sqlite3.register_converter("json", json.loads)
 
-DEFAULT_MODEL_LOCATION = "ingredient_parser/en/data/model.en.crfsuite"
+DEFAULT_MODEL_LOCATION = "ingredient_parser/en/data/model.en.json.gz"
 
 
 @dataclass
@@ -156,7 +156,7 @@ def chunked(iterable: Iterable, n: int) -> Iterable:
 
 
 def select_preprocessor(lang: str) -> Any:
-    """Select appropraite PreProcessor class for given language.
+    """Select appropriate PreProcessor class for given language.
 
     Parameters
     ----------
@@ -171,7 +171,7 @@ def select_preprocessor(lang: str) -> Any:
     Raises
     ------
     ValueError
-        Selected langauage not supported
+        Selected language not supported
     """
     if lang not in SUPPORTED_LANGUAGES:
         raise ValueError(f'Unsupported language "{lang}"')
@@ -200,7 +200,7 @@ def load_datasets(
         Name of database table containing training data.
     datasets : list[str]
         List of data source to include.
-        Valid options are: nyt, cookstr, bbc, allrecipes, tc.
+        Valid options are: nyt, cookstr, bbc, allrecipes, tc, manual.
     discard_other : bool, optional
         If True, discard sentences containing tokens with OTHER label.
     combine_name_labels :  bool, optional

@@ -4,7 +4,9 @@ import argparse
 import xml.etree.ElementTree as ET
 from collections import Counter
 
+import numpy as np
 from sklearn.cluster import HDBSCAN
+from sklearn.decomposition import TruncatedSVD
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.pipeline import Pipeline
 
@@ -74,7 +76,7 @@ def create_html_table(indices: list[int], vectors: DataVectors) -> ET.Element:
 
         name_td = ET.Element("td", attrib={"class": "row NAME"})
         name_td.text = " ".join(
-            [tok for tok, label in zip(tokens, labels) if label == "NAME"]
+            [tok for tok, label in zip(tokens, labels) if "NAME" in label]
         )
         tr.append(name_td)
 
@@ -237,14 +239,30 @@ def check_label_consistency(args: argparse.Namespace) -> None:
 
     pipeline = Pipeline(
         steps=[
-            ("vectorize", TfidfVectorizer(tokenizer=tokenize, token_pattern="")),
+            (
+                "vectorize",
+                TfidfVectorizer(
+                    tokenizer=tokenize,
+                    dtype=np.float32,
+                    min_df=2,
+                    max_df=0.9,
+                ),
+            ),
+            (
+                "dimension_reduction",
+                TruncatedSVD(
+                    n_components=1000,
+                    random_state=42,
+                ),
+            ),
             (
                 "cluster",
                 HDBSCAN(
-                    min_cluster_size=15,
-                    cluster_selection_epsilon=0.3,
+                    min_cluster_size=5,
+                    cluster_selection_epsilon=0.4,
                     n_jobs=4,
                     cluster_selection_method="leaf",
+                    copy=False,
                 ),
             ),
         ],
@@ -263,3 +281,12 @@ def check_label_consistency(args: argparse.Namespace) -> None:
         similar.append(indices)
 
     results_to_html(similar, vectors)
+
+    print(f"Identified {len(label_counts)} clusters.")
+    n_sentences = len(vectors.sentences)
+    print(
+        (
+            f"{label_counts[-1]} ({100 * label_counts[-1] / n_sentences:.2f}%) "
+            "sentences did not match a cluster."
+        )
+    )

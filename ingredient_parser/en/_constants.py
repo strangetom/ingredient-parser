@@ -3,7 +3,7 @@
 import re
 from itertools import chain
 
-# Plural and singular units
+# Plural and singular units. Length units are excluded.
 UNITS = {
     "balls": "ball",
     "bags": "bag",
@@ -27,7 +27,6 @@ UNITS = {
     "counts": "count",
     "cl": "cl",
     "cL": "cL",
-    "cm": "cm",
     "cubes": "cube",
     "cups": "cup",
     "cutlets": "cutlet",
@@ -49,7 +48,6 @@ UNITS = {
     "grinds": "grind",
     "handfuls": "handful",
     "heads": "head",
-    "inches": "inch",
     "jars": "jar",
     "jiggers": "jigger",
     "kg": "kg",
@@ -68,7 +66,6 @@ UNITS = {
     "millilitres": "millilitre",
     "ml": "ml",
     "mL": "mL",
-    "mm": "mm",
     "mugs": "mug",
     "ounces": "ounce",
     "oz": "oz",
@@ -411,8 +408,8 @@ STOP_WORDS = {
     "wouldn't",
 }
 
-# Tokens that indicate an quantity is approximate
-APPROXIMATE_TOKENS = [
+# Tokens that indicate a quantity is approximate
+APPROXIMATE_PREFIXES = [
     "about",
     "approx",
     "approximately",
@@ -421,6 +418,7 @@ APPROXIMATE_TOKENS = [
     "~",
     "generous",
 ]
+APPROXIMATE_SUFFIXES = [["or", "so"]]
 # Tokens that indicate an amount is singular
 SINGULAR_TOKENS = ["each"]
 # Tokens that indicate an amount refers to the prepared ingredient
@@ -441,3 +439,39 @@ UNIT_SYNONYMS = [
     {"tablespoon", "tbsp", "tbs", "tb"},
     {"teaspoon", "tsp"},
 ]
+
+# Set of units that refer to lengths.
+LENGTH_UNITS = {
+    "centimeter",
+    "centimetre",
+    "cm",
+    "in",
+    "inch",
+    "inches",
+    "millimeter",
+    "millimetre",
+    "mm",
+}
+
+# Set of tokens that refer to the physical dimensions of an ingredient.
+DIMENSIONS = {
+    "diameter",
+    "inch-long",
+    "inch-thick",
+    "length",
+    "long",
+    "thick",
+    "thickness",
+    "wide",
+    "width",
+}
+
+INDEFINITE_QUANTIFIERS = {
+    "couple",
+    "few",
+    "many",
+    "plenty",
+    "more",
+    "several",
+    "some",
+}

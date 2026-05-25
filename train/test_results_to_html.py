@@ -1,12 +1,8 @@
 #!/usr/bin/env python3
 
-import sys
 import xml.etree.ElementTree as ET
 from collections import Counter
-from pathlib import Path
-
-# Ensure the local ingredient_parser package can be found
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from itertools import chain
 
 
 def test_results_to_html(
@@ -61,6 +57,18 @@ def test_results_to_html(
       display: flex;
       align-items: center;
     }
+    div.filters {
+      display: flex;
+      gap: 1rem;
+    }
+    div.filter-options {
+      display: flex;
+      flex-direction: column;
+      width: 23ch;
+      border: 1px solid black;
+      border-radius: .25rem;
+      padding: .5rem;
+    }
     .mismatch {
       font-weight: 700;
       background-color: #CC6666;
@@ -73,11 +81,13 @@ def test_results_to_html(
       font-style: italic;
       background-color: #ddd;
     }
+    h4, h5 {
+      margin: 0;
+    }
     h4 {
-      margin-bottom: 0;
+      display: inline;
     }
     label {
-      margin-right: 1rem;
       text-transform: uppercase;
     }
     .copy {
@@ -107,6 +117,7 @@ def test_results_to_html(
     body.append(heading)
 
     incorrect = []
+    label_errors = []
     mismatch_counts = set()
     # Sort by sentence sort
     for src, sentence, tokens, truth, prediction, scores in sorted(
@@ -124,6 +135,11 @@ def test_results_to_html(
             mismatches = sum(i != j for i, j in zip(truth, prediction))
             if mismatches > 0:
                 mismatch_counts.add(mismatches)
+                sentence_label_errors = list(
+                    chain.from_iterable(
+                        [{i, j} for i, j in zip(truth, prediction) if i != j]
+                    )
+                )
                 table = create_html_table(tokens, truth, prediction, scores)
                 div = ET.Element("div")
                 p = ET.Element("p")
@@ -139,6 +155,7 @@ def test_results_to_html(
                         "class": "wrapper hidden",
                         "data-mismatches": str(mismatches),
                         "data-src": src,
+                        "data-errors": ",".join(sentence_label_errors),
                     },
                 )
                 wrapper.append(div)
@@ -146,20 +163,20 @@ def test_results_to_html(
                 body.append(wrapper)
 
                 incorrect.append(src)
+                label_errors.extend(sentence_label_errors)
 
-    total_count = Counter(sentence_sources)
-    incorrect_count = Counter(incorrect)
-    src_count_str = "".join(
-        [
-            f"{k.upper()}: {v} ({100 * v / total_count[k]:.2f}%), "
-            for k, v in incorrect_count.items()
-        ]
+    body.insert(
+        1,
+        create_filter_elements(
+            mismatch_counts,
+            Counter(incorrect),
+            Counter(sentence_sources),
+            Counter(label_errors),
+        ),
     )
 
-    body.insert(1, create_filter_elements(mismatch_counts, set(sentence_sources)))
-
     heading2 = ET.Element("h2")
-    heading2.text = f"{len(incorrect):,} incorrect sentences. [{src_count_str}]"
+    heading2.text = f"{len(incorrect)} incorrect sentences."
     body.insert(1, heading2)
 
     # Script to add "click" event listener to all copy buttons
@@ -174,18 +191,53 @@ def test_results_to_html(
             navigator.clipboard.writeText(text);
         });
     });
+    let selectAllButtons = document.querySelectorAll("button.select-all");
+    selectAllButtons.forEach(button => {
+        button.addEventListener("click", (e) => {
+            let parent = e.target.parentElement;
+            let checkboxes = parent.querySelectorAll("input[type='checkbox']");
+            checkboxes.forEach(box => box.checked = true);
+            applyFilter();
+        });
+    });
     function applyFilter() {
         let filtered_src = {};
         let sentences = document.querySelectorAll(".wrapper");
+
         let mismatch_filters = [...document.querySelectorAll("input.mismatch")]
             .filter(el => el.checked)
             .map(el => el.dataset.value);
+
         let src_filters = [...document.querySelectorAll("input.src")]
             .filter(el => el.checked)
             .map(el => el.dataset.value);
+
+        let error_filters = [...document.querySelectorAll("input.error")]
+            .filter(el => el.checked)
+            .map(el => el.dataset.value);
+        error_filters = new Set(error_filters);
+
+        let token_filters = document.querySelector("#token-filter").value.split(" ")
+            .map(token => token.toLowerCase());
+        if (token_filters == "") {
+            token_filters = new Set();
+        }else{
+            token_filters = new Set(token_filters);
+        }
+
         sentences.forEach((sent) => {
+            let sentence_tokens = [...sent.querySelectorAll("tr:first-of-type > td")]
+                .map(td => td.innerText.toLowerCase());
+            sent_tokens = new Set(sentence_tokens);
+            
+            let errors = new Set(sent.dataset.errors.split(","));
             if (mismatch_filters.includes(sent.dataset.mismatches) &&
-                src_filters.includes(sent.dataset.src)) {
+                src_filters.includes(sent.dataset.src) && 
+                errors.intersection(error_filters).size > 0 && 
+                (
+                  token_filters.size == 0 || 
+                  sent_tokens.intersection(token_filters).size == token_filters.size)
+                ) {
                 sent.classList.remove("hidden");
                 if (filtered_src[sent.dataset.src] == undefined){
                     filtered_src[sent.dataset.src] = 1;
@@ -197,11 +249,14 @@ def test_results_to_html(
             }
         })
         let filter_counts = []
+        let total = 0
         for (const [k, v] of Object.entries(filtered_src)) {
             filter_counts.push(`${k.toUpperCase()}: ${v}, `);
+            total += v;
         };
         let filter_count_el = document.querySelector("#filter-counts");
-        filter_count_el.innerText = " [" + filter_counts.join("") + "]";
+        let filter_text = " [" + filter_counts.join("") + "] (" + total + " total)"
+        filter_count_el.innerText = filter_text;
     };
     let filterInputs = document.querySelectorAll("input[type='checkbox']");
     filterInputs.forEach((input) => {
@@ -289,31 +344,54 @@ def create_html_table(
     return table
 
 
-def create_filter_elements(mismatch_counts: set[int], sources: set[str]) -> ET.Element:
+def create_filter_elements(
+    mismatch_counts: set[int],
+    incorrect_source: Counter,
+    total_source: Counter,
+    label_errors: Counter,
+) -> ET.Element:
     """Create div element containing checkboxes for filter incorrect sentences by
-    numbers of incorrect tokens and by source.
+    numbers of incorrect tokens, sentence source and label error.
 
     Parameters
     ----------
     mismatch_counts : set[int]
-        Filter options for mismatches
+        Filter options for mismatches.
+    incorrect_source : Counter
+        Counter object detailing number of errors for each source.
+    total_source : Counter
+        Counter object detailing number of test sentences for each source.
+    label_errors : Counter
+        Counter object detailing number of errors for each label.
+
+    Deleted Parameters
+    ------------------
     sources : set[str]
-        Filter options for sources
+        Filter options for sources.
 
-    Returns
-    -------
+    No Longer Returned
+    ------------------
     ET.Element
-        Elelemt to insert into test results HTML
+        Element to insert into test results HTML
     """
-    div = ET.Element("div")
+    details = ET.Element("details")
 
+    summary = ET.Element("summary")
     h4 = ET.Element("h4")
-    h4.text = "Filter by number of mismatches."
+    h4.text = "Filter by number of mismatches, source and label error."
     span = ET.Element("span", attrib={"id": "filter-counts"})
     h4.append(span)
-    div.append(h4)
+    summary.append(h4)
+    details.append(summary)
 
-    div_mismatch_filters = ET.Element("div")
+    div_filter_optons = ET.Element("div", attrib={"class": "filters"})
+    details.append(div_filter_optons)
+
+    div_mismatch_filters = ET.Element("div", attrib={"class": "filter-options"})
+    h5_mismatch_filters = ET.Element("h5")
+    h5_mismatch_filters.text = "Number of errors"
+    div_mismatch_filters.append(h5_mismatch_filters)
+    div_mismatch_filters.append(create_select_all_button())
     for count in mismatch_counts:
         inp = ET.Element(
             "input",
@@ -327,12 +405,16 @@ def create_filter_elements(mismatch_counts: set[int], sources: set[str]) -> ET.E
         )
         label = ET.Element("label", attrib={"for": f"filter-{count}"})
         label.text = f"{count}"
+        label.append(inp)
 
-        div_mismatch_filters.append(inp)
         div_mismatch_filters.append(label)
 
-    div_src_filters = ET.Element("div")
-    for src in sorted(sources):
+    div_src_filters = ET.Element("div", attrib={"class": "filter-options"})
+    h5_src_filters = ET.Element("h5")
+    h5_src_filters.text = "Source"
+    div_src_filters.append(h5_src_filters)
+    div_src_filters.append(create_select_all_button())
+    for src, count in sorted(incorrect_source.items(), key=lambda x: x[0]):
         inp = ET.Element(
             "input",
             attrib={
@@ -344,12 +426,79 @@ def create_filter_elements(mismatch_counts: set[int], sources: set[str]) -> ET.E
             },
         )
         label = ET.Element("label", attrib={"for": f"filter-{src}"})
-        label.text = f"{src}"
+        label.text = f"{src} ({count} = {100 * count / total_source[src]:.1f}%)"
+        label.append(inp)
 
-        div_src_filters.append(inp)
         div_src_filters.append(label)
 
-    div.append(div_mismatch_filters)
-    div.append(div_src_filters)
+    div_label_filters = ET.Element("div", attrib={"class": "filter-options"})
+    h5_label_filters = ET.Element("h5")
+    h5_label_filters.text = "Label error"
+    div_label_filters.append(h5_label_filters)
+    div_label_filters.append(create_select_all_button())
+    for lab, count in sorted(label_errors.items(), key=lambda x: x[0]):
+        inp = ET.Element(
+            "input",
+            attrib={
+                "type": "checkbox",
+                "class": "error",
+                "name": f"filter-{lab}",
+                "id": f"filter-{lab}",
+                "data-value": f"{lab}",
+            },
+        )
+        label = ET.Element("label", attrib={"for": f"filter-{lab}"})
+        label.text = f"{lab} ({count})"
+        label.append(inp)
 
-    return div
+        div_label_filters.append(label)
+
+    div_token_filter = ET.Element("div", attrib={"class": "filter-options"})
+    h5_token_filters = ET.Element("h5")
+    h5_token_filters.text = "Filter by token"
+    div_token_filter.append(h5_token_filters)
+    filter_input = ET.Element(
+        "input",
+        attrib={
+            "type": "search",
+            "id": "token-filter",
+            "name": "token-filter",
+        },
+    )
+    token_filter_button = ET.Element(
+        "button",
+        attrib={
+            "type": "button",
+            "class": "select-all",
+        },
+    )
+    token_filter_button.text = "Filter by tokens"
+    div_token_filter.append(filter_input)
+    div_token_filter.append(token_filter_button)
+
+    div_filter_optons.append(div_mismatch_filters)
+    div_filter_optons.append(div_src_filters)
+    div_filter_optons.append(div_label_filters)
+    div_filter_optons.append(div_token_filter)
+
+    return details
+
+
+def create_select_all_button() -> ET.Element:
+    """Return HTML Button element
+
+    Returns
+    -------
+    ET.Element
+        Button HTML Element
+    """
+    button = ET.Element(
+        "button",
+        attrib={
+            "type": "button",
+            "class": "select-all",
+        },
+    )
+    button.text = "Select all"
+    return button
+    button

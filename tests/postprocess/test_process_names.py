@@ -1,4 +1,4 @@
-from ingredient_parser.dataclasses import IngredientText
+from ingredient_parser.dataclasses import IngredientText, LabelledToken
 from ingredient_parser.en import PostProcessor
 
 
@@ -11,13 +11,18 @@ class TestPostProcessor_postprocess_names:
         tokens = ["2", "14", "ounce", "can", "of", "coconut", "milk"]
         pos_tags = ["CD", "CD", "NN", "MD", "IN", "NN", "NN"]
         labels = ["QTY", "QTY", "UNIT", "UNIT", "COMMENT", "B_NAME_TOK", "I_NAME_TOK"]
-        scores = [0.0] * len(tokens)
+        labelled_tokens = [
+            LabelledToken(
+                index=i, text=text, pos_tag=tag, label=label, score=0, plural=False
+            )
+            for i, (text, tag, label) in enumerate(zip(tokens, pos_tags, labels))
+        ]
 
         expected = [
             IngredientText(text="coconut milk", confidence=0, starting_index=5),
         ]
 
-        p = PostProcessor(sentence, tokens, pos_tags, labels, scores, custom_units={})
+        p = PostProcessor(sentence, labelled_tokens, custom_units={})
         names, _ = p._postprocess_names()
         assert names == expected
 
@@ -29,14 +34,19 @@ class TestPostProcessor_postprocess_names:
         tokens = ["2", "tbsp", "butter", "or", "olive", "oil"]
         pos_tags = ["CD", "JJ", "NN", "CC", "JJ", "NN"]
         labels = ["QTY", "UNIT", "B_NAME_TOK", "NAME_SEP", "B_NAME_TOK", "I_NAME_TOK"]
-        scores = [0.0] * len(tokens)
+        labelled_tokens = [
+            LabelledToken(
+                index=i, text=text, pos_tag=tag, label=label, score=0, plural=False
+            )
+            for i, (text, tag, label) in enumerate(zip(tokens, pos_tags, labels))
+        ]
 
         expected = [
             IngredientText(text="butter", confidence=0, starting_index=2),
             IngredientText(text="olive oil", confidence=0, starting_index=4),
         ]
 
-        p = PostProcessor(sentence, tokens, pos_tags, labels, scores, custom_units={})
+        p = PostProcessor(sentence, labelled_tokens, custom_units={})
         names, _ = p._postprocess_names()
         assert names == expected
 
@@ -48,14 +58,19 @@ class TestPostProcessor_postprocess_names:
         tokens = ["2", "cup", "beef", "or", "vegetable", "stock"]
         pos_tags = ["CD", "NN", "NN", "CC", "JJ", "NN"]
         labels = ["QTY", "UNIT", "NAME_VAR", "NAME_SEP", "NAME_VAR", "B_NAME_TOK"]
-        scores = [0.0] * len(tokens)
+        labelled_tokens = [
+            LabelledToken(
+                index=i, text=text, pos_tag=tag, label=label, score=0, plural=False
+            )
+            for i, (text, tag, label) in enumerate(zip(tokens, pos_tags, labels))
+        ]
 
         expected = [
             IngredientText(text="beef stock", confidence=0, starting_index=2),
             IngredientText(text="vegetable stock", confidence=0, starting_index=4),
         ]
 
-        p = PostProcessor(sentence, tokens, pos_tags, labels, scores, custom_units={})
+        p = PostProcessor(sentence, labelled_tokens, custom_units={})
         names, _ = p._postprocess_names()
         assert names == expected
 
@@ -75,14 +90,19 @@ class TestPostProcessor_postprocess_names:
             "NAME_SEP",
             "B_NAME_TOK",
         ]
-        scores = [0.0] * len(tokens)
+        labelled_tokens = [
+            LabelledToken(
+                index=i, text=text, pos_tag=tag, label=label, score=0, plural=False
+            )
+            for i, (text, tag, label) in enumerate(zip(tokens, pos_tags, labels))
+        ]
 
         expected = [
             IngredientText(text="fresh basil", confidence=0, starting_index=3),
             IngredientText(text="fresh coriander", confidence=0, starting_index=3),
         ]
 
-        p = PostProcessor(sentence, tokens, pos_tags, labels, scores, custom_units={})
+        p = PostProcessor(sentence, labelled_tokens, custom_units={})
         names, _ = p._postprocess_names()
         assert names == expected
 
@@ -102,14 +122,19 @@ class TestPostProcessor_postprocess_names:
             "NAME_VAR",
             "B_NAME_TOK",
         ]
-        scores = [0.0] * len(tokens)
+        labelled_tokens = [
+            LabelledToken(
+                index=i, text=text, pos_tag=tag, label=label, score=0, plural=False
+            )
+            for i, (text, tag, label) in enumerate(zip(tokens, pos_tags, labels))
+        ]
 
         expected = [
             IngredientText(text="hot beef stock", confidence=0, starting_index=2),
             IngredientText(text="hot vegetable stock", confidence=0, starting_index=2),
         ]
 
-        p = PostProcessor(sentence, tokens, pos_tags, labels, scores, custom_units={})
+        p = PostProcessor(sentence, labelled_tokens, custom_units={})
         names, _ = p._postprocess_names()
         assert names == expected
 
@@ -121,12 +146,17 @@ class TestPostProcessor_postprocess_names:
         tokens = ["#1$2", "cup", "sugar", "plus", "1#1$2", "tablespoon", "sugar"]
         pos_tags = ["CD", "NN", "NN", "CC", "CD", "NN", "NN"]
         labels = ["QTY", "UNIT", "B_NAME_TOK", "COMMENT", "QTY", "UNIT", "B_NAME_TOK"]
-        scores = [0.0] * len(tokens)
+        labelled_tokens = [
+            LabelledToken(
+                index=i, text=text, pos_tag=tag, label=label, score=0, plural=False
+            )
+            for i, (text, tag, label) in enumerate(zip(tokens, pos_tags, labels))
+        ]
 
         expected = [
             IngredientText(text="sugar", confidence=0, starting_index=2),
         ]
 
-        p = PostProcessor(sentence, tokens, pos_tags, labels, scores, custom_units={})
+        p = PostProcessor(sentence, labelled_tokens, custom_units={})
         names, _ = p._postprocess_names()
         assert names == expected

@@ -50,7 +50,7 @@ Refer to the documentation [here](https://ingredient-parser.readthedocs.io/en/la
 
 ## Model
 
-The core of the library is a sequence labelling model that is used to label each token in the sentence with the part of the sentence it belongs to. A data set of 81,000 example sentences is used to train and evaluate the model. See the [Explanation](https://ingredient-parser.readthedocs.io/en/latest/explanation/index.html) section of the documentation for more details.
+The core of the library is a sequence labelling model that is used to label each token in the sentence with the part of the sentence it belongs to. A data set of over 81,000 example sentences is used to train and evaluate the model. See the [Explanation](https://ingredient-parser.readthedocs.io/en/latest/explanation/index.html) section of the documentation for more details.
 
 The model has the following accuracy on a test data set of 20% of the total data used:
 
@@ -58,10 +58,10 @@ The model has the following accuracy on a test data set of 20% of the total data
 ╒══════════════════════════╤══════════════════════════╕
 │ Sentence-level results   │ Word-level results       │
 ╞══════════════════════════╪══════════════════════════╡
-│ Accuracy: 95.25%         │ Accuracy: 98.09%         │
-│                          │ Precision (micro) 98.07% │
-│                          │ Recall (micro) 98.09%    │
-│                          │ F1 score (micro) 98.08%  │
+│ Accuracy: 95.62%         │ Accuracy: 98.26%         │
+│                          │ Precision (micro) 98.25% │
+│                          │ Recall (micro) 98.26%    │
+│                          │ F1 score (micro) 98.25%  │
 ╘══════════════════════════╧══════════════════════════╛
 ```
 
@@ -82,6 +82,20 @@ The ingredient parser library provides a convenient web interface that you can r
 **Documentation**
 
 The dependencies for building the documentation are in the `requirements-doc.txt` file.
+
+**Tests**
+
+The ingredient parser library has extensive test coverage. The [pytest](https://docs.pytest.org/en/stable/) framework is used for testing, and [coverage.py](https://coverage.readthedocs.io) is used to measure test coverage.
+
+```
+# Run the test suite
+$ pytest
+
+# Evaluate test coverage
+$ coverage run -m pytest
+# Generate coverage report
+$ coverage html
+````
 
 **Contribution**
 

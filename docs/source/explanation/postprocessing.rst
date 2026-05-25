@@ -32,6 +32,7 @@ The post-processing steps are as follows:
 #. Average the confidence scores for each the tokens in each group consecutive indices.
 #. Remove any isolated or invalid punctuation and any consecutive tokens that are identical.
 #. Join all the groups together with a comma and fix any weird punctuation this causes.
+#. Re-pluralise units that were made singular during pre-processing.
 #. Average the confidence scores across all groups.
 
 The output of this processing is an :class:`IngredientText` object for each label, which contains the text string, the confidence score, and the starting index of the string in the ingredient sentence.
@@ -146,10 +147,10 @@ For example:
 .. code:: python
 
     >>> p = PreProcessor("3/4 cup (170g) heavy cream")
-    >>> p.tokenized_sentence
-    ['0.75', 'cup', '(', '170', 'g', ')', 'heavy', 'cream']
+    >>> [t.text for t in p.tokenized_sentence]
+    ['#3$4', 'cup', '(', '170', 'g', ')', 'heavy', 'cream']
     ...
-    >>> parsed = PostProcessor(sentence, tokens, labels, scores).parsed()
+    >>> parsed = PostProcessor(sentence, labelled_tokens).parsed()
     >>> amounts = parsed.amount
     [
         IngredientAmount(quantity=Fraction(3, 4),
@@ -199,7 +200,17 @@ The replacements are predefined in the ``STRING_NUMBERS`` constant.
 For performance reasons, the regular expressions used to substitute the text with the number are pre-compiled and provided in the ``STRING_NUMBERS_REGEXES`` constant, which is a dictionary where the value is a tuple of (pre-compiled regular expression, substitute value).
 
 .. literalinclude:: ../../../ingredient_parser/en/_constants.py
-    :lines: 186-218
+    :lines: 183-215
+
+Implicit quantities
++++++++++++++++++++
+
+In some sentences, the quantity of the unit is not explicitly stated but is implied by the units in the sentence.
+For example in the sentence **15 oz can black beans**, there is implicitly 1 can of beans (that contains 15 oz).
+Another example commonly seen pattern is **Rosemary sprig (optional)**, where there is an implicit quantity of 1 due to "sprig" being singular.
+
+In these cases, the quantity is set explicitly to 1 in the :class:`IngredientAmount` object.
+To guard against incorrectly assigning the quantity, the unit is checked to make sure it is not plural and the sentence prior to the unit is checked to make sure that it does not include any indefinite quantifiers (e.g. few, some).
 
 Units
 ~~~~~

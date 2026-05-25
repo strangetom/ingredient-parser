@@ -213,8 +213,8 @@ def parser():
             data_response = {
                 "tokens": list(
                     zip(
-                        parser_info.PostProcessor.tokens,
-                        parser_info.PostProcessor.labels,
+                        [t.text for t in parser_info.PostProcessor.tokens],
+                        [t.label for t in parser_info.PostProcessor.tokens],
                         marginals,
                     )
                 ),
@@ -274,8 +274,8 @@ def preupload():
                         "sentence": sentence,
                         "tokens": list(
                             zip(
-                                parser_info.PostProcessor.tokens,
-                                parser_info.PostProcessor.labels,
+                                [t.text for t in parser_info.PostProcessor.tokens],
+                                [t.label for t in parser_info.PostProcessor.tokens],
                             )
                         ),
                     }
@@ -478,7 +478,7 @@ def labeller_search():
 
             elif reserved_char_match in ["**", "~~"]:
                 # Return all results
-                matches = list_all_entries()
+                matches = list_all_entries(sources)
 
             else:
                 # Search by user input string

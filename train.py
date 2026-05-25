@@ -5,6 +5,7 @@ import json
 import logging
 import os
 import sys
+from pathlib import Path
 from random import randint
 
 from train import (
@@ -59,7 +60,7 @@ if __name__ == "__main__":
         help="Datasets to use in training and evaluating the model",
         dest="datasets",
         nargs="*",
-        default=["bbc", "cookstr", "nyt", "allrecipes", "tc"],
+        default=["bbc", "cookstr", "nyt", "allrecipes", "tc", "manual"],
     )
     train_parser.add_argument(
         "--split",
@@ -127,7 +128,7 @@ if __name__ == "__main__":
         help="Datasets to use in training and evaluating the model",
         dest="datasets",
         nargs="*",
-        default=["bbc", "cookstr", "nyt", "allrecipes", "tc"],
+        default=["bbc", "cookstr", "nyt", "allrecipes", "tc", "manual"],
     )
     multiple_parser.add_argument(
         "--split",
@@ -205,7 +206,7 @@ if __name__ == "__main__":
         help="Datasets to use in training and evaluating the model",
         dest="datasets",
         nargs="*",
-        default=["bbc", "cookstr", "nyt", "allrecipes", "tc"],
+        default=["bbc", "cookstr", "nyt", "allrecipes", "tc", "manual"],
     )
     gridsearch_parser.add_argument(
         "--split",
@@ -293,6 +294,19 @@ if __name__ == "__main__":
         default=dict(),
     )
     gridsearch_parser.add_argument(
+        "--pt-params",
+        help="""Post training parameters, applicable to all algorithms, as JSON. 
+        The values for each parameter should be a list.
+        Any parameters not given will take their default value.""",
+        action=ParseJsonArg,
+        default=dict(),
+    )
+    gridsearch_parser.add_argument(
+        "--params-from-json",
+        help="Specify algorithm, global and post-training parameters via a JSON file.",
+        type=Path,
+    )
+    gridsearch_parser.add_argument(
         "-v",
         help="Enable verbose output.",
         action="count",
@@ -323,7 +337,7 @@ if __name__ == "__main__":
         help="Datasets to use in training and evaluating the model",
         dest="datasets",
         nargs="*",
-        default=["bbc", "cookstr", "nyt", "allrecipes", "tc"],
+        default=["bbc", "cookstr", "nyt", "allrecipes", "tc", "manual"],
     )
     featuresearch_parser.add_argument(
         "--split",
@@ -394,7 +408,7 @@ if __name__ == "__main__":
         help="Datasets to use in training and evaluating the model",
         dest="datasets",
         nargs="*",
-        default=["bbc", "cookstr", "nyt", "allrecipes", "tc"],
+        default=["bbc", "cookstr", "nyt", "allrecipes", "tc", "manual"],
     )
     utility_parser.add_argument(
         "-v",
@@ -417,6 +431,17 @@ if __name__ == "__main__":
     elif args.command == "multiple":
         train_multiple(args)
     elif args.command == "gridsearch":
+        if args.params_from_json:
+            # Read parameters from file and set the values on the args object.
+            with open(args.params_from_json) as f:
+                params = json.load(f)
+
+            for argument, value in params.items():
+                if hasattr(args, argument):
+                    setattr(args, argument, value)
+                else:
+                    raise ValueError(f"{argument} is not a valid argument.")
+
         grid_search(args)
     elif args.command == "featuresearch":
         feature_search(args)

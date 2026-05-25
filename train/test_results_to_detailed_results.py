@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import csv
 from collections import defaultdict
 from dataclasses import dataclass

@@ -1,6 +1,6 @@
 import pytest
 
-from ingredient_parser.dataclasses import CompositeIngredientAmount
+from ingredient_parser.dataclasses import CompositeIngredientAmount, LabelledToken
 from ingredient_parser.en import PostProcessor
 from ingredient_parser.en._utils import ingredient_amount_factory
 
@@ -66,8 +66,15 @@ class TestPostProcessor_composite_amounts_pattern:
             "COMMENT",
         ]
         scores = [0.0] * len(tokens)
-        idx = list(range(len(tokens)))
-        p = PostProcessor(sentence, tokens, pos_tags, labels, scores, custom_units={})
+        labelled_tokens = [
+            LabelledToken(
+                index=i, text=text, pos_tag=tag, label=label, score=score, plural=False
+            )
+            for i, (text, tag, label, score) in enumerate(
+                zip(tokens, pos_tags, labels, scores)
+            )
+        ]
+        p = PostProcessor(sentence, labelled_tokens, custom_units={})
 
         expected = [
             CompositeIngredientAmount(
@@ -93,7 +100,7 @@ class TestPostProcessor_composite_amounts_pattern:
         ]
 
         # Don't check scores
-        output = p._composite_amounts_pattern(idx, tokens, labels, scores)
+        output = p._composite_amounts_pattern(labelled_tokens)
         assert len(output) == len(expected)
         for out, expected in zip(output, expected):
             assert out.amounts == expected.amounts
@@ -121,8 +128,15 @@ class TestPostProcessor_composite_amounts_pattern:
             "B_NAME_TOK",
         ]
         scores = [0.0] * len(tokens)
-        idx = list(range(len(tokens)))
-        p = PostProcessor(sentence, tokens, pos_tags, labels, scores, custom_units={})
+        labelled_tokens = [
+            LabelledToken(
+                index=i, text=text, pos_tag=tag, label=label, score=score, plural=False
+            )
+            for i, (text, tag, label, score) in enumerate(
+                zip(tokens, pos_tags, labels, scores)
+            )
+        ]
+        p = PostProcessor(sentence, labelled_tokens, custom_units={})
 
         expected = [
             CompositeIngredientAmount(
@@ -148,7 +162,7 @@ class TestPostProcessor_composite_amounts_pattern:
         ]
 
         # Don't check scores
-        output = p._composite_amounts_pattern(idx, tokens, labels, scores)
+        output = p._composite_amounts_pattern(labelled_tokens)
         assert len(output) == len(expected)
         for out, expected in zip(output, expected):
             assert out.amounts == expected.amounts
@@ -177,13 +191,17 @@ class TestPostProcessor_composite_amounts_pattern:
             "B_NAME_TOK",
         ]
         scores = [0.0] * len(tokens)
-        idx = list(range(len(tokens)))
+        labelled_tokens = [
+            LabelledToken(
+                index=i, text=text, pos_tag=tag, label=label, score=score, plural=False
+            )
+            for i, (text, tag, label, score) in enumerate(
+                zip(tokens, pos_tags, labels, scores)
+            )
+        ]
         p = PostProcessor(
             sentence,
-            tokens,
-            pos_tags,
-            labels,
-            scores,
+            labelled_tokens,
             custom_units={},
             volumetric_units_system="imperial",
         )
@@ -214,7 +232,7 @@ class TestPostProcessor_composite_amounts_pattern:
         ]
 
         # Don't check scores
-        output = p._composite_amounts_pattern(idx, tokens, labels, scores)
+        output = p._composite_amounts_pattern(labelled_tokens)
         assert len(output) == len(expected)
         for out, expected in zip(output, expected):
             assert out.amounts == expected.amounts
@@ -242,16 +260,15 @@ class TestPostProcessor_composite_amounts_pattern:
             "B_NAME_TOK",
         ]
         scores = [0.0] * len(tokens)
-        idx = list(range(len(tokens)))
-        p = PostProcessor(
-            sentence,
-            tokens,
-            pos_tags,
-            labels,
-            scores,
-            custom_units={},
-            string_units=True,
-        )
+        labelled_tokens = [
+            LabelledToken(
+                index=i, text=text, pos_tag=tag, label=label, score=score, plural=False
+            )
+            for i, (text, tag, label, score) in enumerate(
+                zip(tokens, pos_tags, labels, scores)
+            )
+        ]
+        p = PostProcessor(sentence, labelled_tokens, custom_units={}, string_units=True)
 
         expected = [
             CompositeIngredientAmount(
@@ -279,7 +296,7 @@ class TestPostProcessor_composite_amounts_pattern:
         ]
 
         # Don't check scores
-        output = p._composite_amounts_pattern(idx, tokens, labels, scores)
+        output = p._composite_amounts_pattern(labelled_tokens)
         assert len(output) == len(expected)
         for out, expected in zip(output, expected):
             assert out.amounts == expected.amounts
@@ -338,8 +355,15 @@ class TestPostProcessor_composite_amounts_pattern:
             "I_NAME_TOK",
         ]
         scores = [0.0] * len(tokens)
-        idx = list(range(len(tokens)))
-        p = PostProcessor(sentence, tokens, pos_tags, labels, scores, custom_units={})
+        labelled_tokens = [
+            LabelledToken(
+                index=i, text=text, pos_tag=tag, label=label, score=score, plural=False
+            )
+            for i, (text, tag, label, score) in enumerate(
+                zip(tokens, pos_tags, labels, scores)
+            )
+        ]
+        p = PostProcessor(sentence, labelled_tokens, custom_units={})
 
         expected = [
             CompositeIngredientAmount(
@@ -365,7 +389,7 @@ class TestPostProcessor_composite_amounts_pattern:
         ]
 
         # Don't check scores
-        output = p._composite_amounts_pattern(idx, tokens, labels, scores)
+        output = p._composite_amounts_pattern(labelled_tokens)
         assert len(output) == len(expected)
         for out, expected in zip(output, expected):
             assert out.amounts == expected.amounts
@@ -422,8 +446,15 @@ class TestPostProcessor_composite_amounts_pattern:
             "I_NAME_TOK",
         ]
         scores = [0.0] * len(tokens)
-        idx = list(range(len(tokens)))
-        p = PostProcessor(sentence, tokens, pos_tags, labels, scores, custom_units={})
+        labelled_tokens = [
+            LabelledToken(
+                index=i, text=text, pos_tag=tag, label=label, score=score, plural=False
+            )
+            for i, (text, tag, label, score) in enumerate(
+                zip(tokens, pos_tags, labels, scores)
+            )
+        ]
+        p = PostProcessor(sentence, labelled_tokens, custom_units={})
 
         expected = [
             CompositeIngredientAmount(
@@ -449,7 +480,7 @@ class TestPostProcessor_composite_amounts_pattern:
         ]
 
         # Don't check scores
-        output = p._composite_amounts_pattern(idx, tokens, labels, scores)
+        output = p._composite_amounts_pattern(labelled_tokens)
         assert len(output) == len(expected)
         for out, expected in zip(output, expected):
             assert out.amounts == expected.amounts
@@ -506,8 +537,15 @@ class TestPostProcessor_composite_amounts_pattern:
             "I_NAME_TOK",
         ]
         scores = [0.0] * len(tokens)
-        idx = list(range(len(tokens)))
-        p = PostProcessor(sentence, tokens, pos_tags, labels, scores, custom_units={})
+        labelled_tokens = [
+            LabelledToken(
+                index=i, text=text, pos_tag=tag, label=label, score=score, plural=False
+            )
+            for i, (text, tag, label, score) in enumerate(
+                zip(tokens, pos_tags, labels, scores)
+            )
+        ]
+        p = PostProcessor(sentence, labelled_tokens, custom_units={})
 
         expected = [
             CompositeIngredientAmount(
@@ -533,7 +571,7 @@ class TestPostProcessor_composite_amounts_pattern:
         ]
 
         # Don't check scores
-        output = p._composite_amounts_pattern(idx, tokens, labels, scores)
+        output = p._composite_amounts_pattern(labelled_tokens)
         assert len(output) == len(expected)
         for out, expected in zip(output, expected):
             assert out.amounts == expected.amounts
@@ -590,8 +628,15 @@ class TestPostProcessor_composite_amounts_pattern:
             "I_NAME_TOK",
         ]
         scores = [0.0] * len(tokens)
-        idx = list(range(len(tokens)))
-        p = PostProcessor(sentence, tokens, pos_tags, labels, scores, custom_units={})
+        labelled_tokens = [
+            LabelledToken(
+                index=i, text=text, pos_tag=tag, label=label, score=score, plural=False
+            )
+            for i, (text, tag, label, score) in enumerate(
+                zip(tokens, pos_tags, labels, scores)
+            )
+        ]
+        p = PostProcessor(sentence, labelled_tokens, custom_units={})
 
         expected = [
             CompositeIngredientAmount(
@@ -617,7 +662,7 @@ class TestPostProcessor_composite_amounts_pattern:
         ]
 
         # Don't check scores
-        output = p._composite_amounts_pattern(idx, tokens, labels, scores)
+        output = p._composite_amounts_pattern(labelled_tokens)
         assert len(output) == len(expected)
         for out, expected in zip(output, expected):
             assert out.amounts == expected.amounts
@@ -630,7 +675,7 @@ class TestPostProcessor_composite_amounts_pattern:
         """
         Test that the no composite amounts are returned if the pattern is not matched
         """
-        sentence = "2 pints or  40 fl oz water"
+        sentence = "2 pints or 40 fl oz water"
         tokens = ["2", "pint", "or", "40", "fl", "oz", "water"]
         pos_tags = ["CD", "NN", "CC", "CD", "JJ", "JJ", "NN"]
         labels = [
@@ -643,11 +688,18 @@ class TestPostProcessor_composite_amounts_pattern:
             "B_NAME_TOK",
         ]
         scores = [0.0] * len(tokens)
-        idx = list(range(len(tokens)))
-        p = PostProcessor(sentence, tokens, pos_tags, labels, scores, custom_units={})
+        labelled_tokens = [
+            LabelledToken(
+                index=i, text=text, pos_tag=tag, label=label, score=score, plural=False
+            )
+            for i, (text, tag, label, score) in enumerate(
+                zip(tokens, pos_tags, labels, scores)
+            )
+        ]
+        p = PostProcessor(sentence, labelled_tokens, custom_units={})
 
         # Don't check scores
-        output = p._composite_amounts_pattern(idx, tokens, labels, scores)
+        output = p._composite_amounts_pattern(labelled_tokens)
         assert output == []
 
     def test_plus_punc_comment_pattern(self):
@@ -701,8 +753,15 @@ class TestPostProcessor_composite_amounts_pattern:
             "I_NAME_TOK",
         ]
         scores = [0.0] * len(tokens)
-        idx = list(range(len(tokens)))
-        p = PostProcessor(sentence, tokens, pos_tags, labels, scores, custom_units={})
+        labelled_tokens = [
+            LabelledToken(
+                index=i, text=text, pos_tag=tag, label=label, score=score, plural=False
+            )
+            for i, (text, tag, label, score) in enumerate(
+                zip(tokens, pos_tags, labels, scores)
+            )
+        ]
+        p = PostProcessor(sentence, labelled_tokens, custom_units={})
 
         expected = [
             CompositeIngredientAmount(
@@ -727,7 +786,7 @@ class TestPostProcessor_composite_amounts_pattern:
             )
         ]
         # Don't check scores
-        output = p._composite_amounts_pattern(idx, tokens, labels, scores)
+        output = p._composite_amounts_pattern(labelled_tokens)
         assert len(output) == len(expected)
         for out, expected in zip(output, expected):
             assert out.amounts == expected.amounts
@@ -791,8 +850,15 @@ class TestPostProcessor_composite_amounts_pattern:
             "COMMENT",
         ]
         scores = [0.0] * len(tokens)
-        idx = list(range(len(tokens)))
-        p = PostProcessor(sentence, tokens, pos_tags, labels, scores, custom_units={})
+        labelled_tokens = [
+            LabelledToken(
+                index=i, text=text, pos_tag=tag, label=label, score=score, plural=False
+            )
+            for i, (text, tag, label, score) in enumerate(
+                zip(tokens, pos_tags, labels, scores)
+            )
+        ]
+        p = PostProcessor(sentence, labelled_tokens, custom_units={})
 
         expected = [
             CompositeIngredientAmount(
@@ -820,7 +886,7 @@ class TestPostProcessor_composite_amounts_pattern:
         ]
 
         # Don't check scores
-        output = p._composite_amounts_pattern(idx, tokens, labels, scores)
+        output = p._composite_amounts_pattern(labelled_tokens)
         assert len(output) == len(expected)
         for out, expected in zip(output, expected):
             assert out.amounts == expected.amounts
@@ -863,8 +929,15 @@ class TestPostProcessor_composite_amounts_pattern:
             "I_NAME_TOK",
         ]
         scores = [0.0] * len(tokens)
-        idx = list(range(len(tokens)))
-        p = PostProcessor(sentence, tokens, pos_tags, labels, scores, custom_units={})
+        labelled_tokens = [
+            LabelledToken(
+                index=i, text=text, pos_tag=tag, label=label, score=score, plural=False
+            )
+            for i, (text, tag, label, score) in enumerate(
+                zip(tokens, pos_tags, labels, scores)
+            )
+        ]
+        p = PostProcessor(sentence, labelled_tokens, custom_units={})
 
         expected = [
             CompositeIngredientAmount(
@@ -892,7 +965,7 @@ class TestPostProcessor_composite_amounts_pattern:
         ]
 
         # Don't check scores
-        output = p._composite_amounts_pattern(idx, tokens, labels, scores)
+        output = p._composite_amounts_pattern(labelled_tokens)
         assert len(output) == len(expected)
         for out, expected in zip(output, expected):
             assert out.amounts == expected.amounts
@@ -937,8 +1010,15 @@ class TestPostProcessor_composite_amounts_pattern:
             "UNIT",
         ]
         scores = [0.0] * len(tokens)
-        idx = list(range(len(tokens)))
-        p = PostProcessor(sentence, tokens, pos_tags, labels, scores, custom_units={})
+        labelled_tokens = [
+            LabelledToken(
+                index=i, text=text, pos_tag=tag, label=label, score=score, plural=False
+            )
+            for i, (text, tag, label, score) in enumerate(
+                zip(tokens, pos_tags, labels, scores)
+            )
+        ]
+        p = PostProcessor(sentence, labelled_tokens, custom_units={})
 
         expected = [
             CompositeIngredientAmount(
@@ -968,7 +1048,7 @@ class TestPostProcessor_composite_amounts_pattern:
         ]
 
         # Don't check scores
-        output = p._composite_amounts_pattern(idx, tokens, labels, scores)
+        output = p._composite_amounts_pattern(labelled_tokens)
         assert len(output) == len(expected)
         for out, expected in zip(output, expected):
             assert out.amounts == expected.amounts
@@ -1030,8 +1110,15 @@ class TestPostProcessor_composite_amounts_pattern:
             "UNIT",
         ]
         scores = [0.0] * len(tokens)
-        idx = list(range(len(tokens)))
-        p = PostProcessor(sentence, tokens, pos_tags, labels, scores, custom_units={})
+        labelled_tokens = [
+            LabelledToken(
+                index=i, text=text, pos_tag=tag, label=label, score=score, plural=False
+            )
+            for i, (text, tag, label, score) in enumerate(
+                zip(tokens, pos_tags, labels, scores)
+            )
+        ]
+        p = PostProcessor(sentence, labelled_tokens, custom_units={})
 
         expected = [
             CompositeIngredientAmount(
@@ -1059,7 +1146,7 @@ class TestPostProcessor_composite_amounts_pattern:
         ]
 
         # Don't check scores
-        output = p._composite_amounts_pattern(idx, tokens, labels, scores)
+        output = p._composite_amounts_pattern(labelled_tokens)
         assert len(output) == len(expected)
         for out, expected in zip(output, expected):
             assert out.amounts == expected.amounts

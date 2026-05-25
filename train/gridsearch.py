@@ -14,6 +14,9 @@ import pycrfsuite
 from sklearn.model_selection import train_test_split
 from tabulate import tabulate
 
+from ingredient_parser.inference import NumpyCRFInference
+
+from .export import export_crfsuite_to_json
 from .train_model import DEFAULT_MODEL_LOCATION
 from .trainers import IngredientParserTrainer
 from .training_utils import (
@@ -82,6 +85,11 @@ VALID_GLOBAL_PARAMS = {
     "feature.possible_transitions": (bool,),
 }
 
+VALID_POST_TRAINING_PARAMS = {
+    "quantize_bits": (int, type(None)),
+    "min_abs_weight": (float, type(None)),
+}
+
 
 def validate_lbfgs_params(lbfgs_params: dict) -> None:
     """Validate LBFGS training algorithm parameters.
@@ -98,7 +106,7 @@ def validate_lbfgs_params(lbfgs_params: dict) -> None:
     Raises
     ------
     ValueError
-        Expection indicating invalid parameter.
+        Exception indicating invalid parameter.
     """
     for key, value in lbfgs_params.items():
         if key not in VALID_LBFGS_PARAMS.keys():
@@ -135,7 +143,7 @@ def validate_ap_params(ap_params: dict) -> None:
     Raises
     ------
     ValueError
-        Expection indicating invalid parameter.
+        Exception indicating invalid parameter.
     """
     for key, value in ap_params.items():
         if key not in VALID_AP_PARAMS.keys():
@@ -165,7 +173,7 @@ def validate_l2sgd_params(l2sgd_params: dict) -> None:
     Raises
     ------
     ValueError
-        Expection indicating invalid parameter.
+        Exception indicating invalid parameter.
     """
     for key, value in l2sgd_params.items():
         if key not in VALID_L2SGD_PARAMS.keys():
@@ -196,7 +204,7 @@ def validate_pa_params(pa_params: dict) -> None:
     Raises
     ------
     ValueError
-        Expection indicating invalid parameter.
+        Exception indicating invalid parameter.
     """
     for key, value in pa_params.items():
         if key not in VALID_PA_PARAMS.keys():
@@ -231,7 +239,7 @@ def validate_arow_params(arow_params: dict) -> None:
     Raises
     ------
     ValueError
-        Expection indicating invalid parameter.
+        Exception indicating invalid parameter.
     """
     for key, value in arow_params.items():
         if key not in VALID_AROW_PARAMS.keys():
@@ -261,13 +269,43 @@ def validate_global_params(global_params: dict) -> None:
     Raises
     ------
     ValueError
-        Expection indicating invalid parameter.
+        Exception indicating invalid parameter.
     """
     for key, value in global_params.items():
         if key not in VALID_GLOBAL_PARAMS.keys():
             raise ValueError(f"Unknown global parameter: {key}")
 
         type_ = VALID_GLOBAL_PARAMS[key]
+        type_str = f"list[{'|'.join(t.__name__ for t in type_)}]"
+        if not isinstance(value, list):
+            raise ValueError(f"Parameter values for {key} should be {type_str}")
+
+        for v in value:
+            if not isinstance(v, type_):
+                raise ValueError(f"Parameter values for {key} should be {type_str}")
+
+
+def validate_post_training_params(post_training_params: dict) -> None:
+    """Validate post training algorithm parameters, applicable to all algorithms
+
+    Check that the parameter names are valid.
+    Check that the parameter value types are valid.
+
+    Parameters
+    ----------
+    post_training_params : dict
+        dict of parameters and their values.
+
+    Raises
+    ------
+    ValueError
+        Exception indicating invalid parameter.
+    """
+    for key, value in post_training_params.items():
+        if key not in VALID_POST_TRAINING_PARAMS.keys():
+            raise ValueError(f"Unknown post training parameter: {key}")
+
+        type_ = VALID_POST_TRAINING_PARAMS[key]
         type_str = f"list[{'|'.join(t.__name__ for t in type_)}]"
         if not isinstance(value, list):
             raise ValueError(f"Parameter values for {key} should be {type_str}")
@@ -345,12 +383,12 @@ def generate_argument_sets(args: argparse.Namespace) -> list[list]:
         elif algo == "arow":
             params = args.arow_params
 
-        # Join alogithm specifc parameters with global parameters
+        # Join algorithm specific parameters with global and post training parameters
         if params is None:
             # No algorithm specific parameters set
-            params = args.global_params
+            params = args.global_params | args.pt_params
         else:
-            params = params | args.global_params
+            params = params | args.global_params | args.pt_params
 
         if args.save_model is None:
             save_model = DEFAULT_MODEL_LOCATION
@@ -415,7 +453,7 @@ def train_model_grid_search(
     start_time = time.monotonic()
 
     # Split data into train and test sets
-    # The stratify argument means that each dataset is represented proprtionally
+    # The stratify argument means that each dataset is represented proportionally
     # in the train and tests sets, avoiding the possibility that train or tests sets
     # contain data from one dataset disproportionally.
     (
@@ -438,7 +476,15 @@ def train_model_grid_search(
     )
 
     # Make model name unique
-    save_model_path = Path(save_model).with_stem("model-" + str(uuid4()))
+    save_model_path = Path(save_model).with_stem("model-" + str(uuid4()) + ".json")
+
+    # Remove post training parameters from parameters dict
+    post_training_parameters = {
+        "quantize_bits": parameters["quantize_bits"],
+        "min_abs_weight": parameters["min_abs_weight"],
+    }
+    del parameters["quantize_bits"]
+    del parameters["min_abs_weight"]
 
     # Train model
     trainer = IngredientParserTrainer(algorithm=algo, verbose=True)
@@ -446,18 +492,37 @@ def train_model_grid_search(
     trainer.set_params(parameters)
     for X, y in zip(features_train, truth_train):
         trainer.append(X, y)
-    trainer.train(str(save_model_path))
-    config_file = trainer.write_model_config(save_model_path)
+    crfsuite_model_path = save_model_path.parent / (save_model_path.stem + ".crfsuite")
+    trainer.train(str(crfsuite_model_path))
+
+    # Export to json.
+    crfsuite_tagger = pycrfsuite.Tagger()  # type: ignore
+    crfsuite_tagger.open(str(crfsuite_model_path))
+    export_crfsuite_to_json(
+        crfsuite_tagger,
+        save_model_path,
+        quantize_bits=post_training_parameters["quantize_bits"],
+        min_abs_weight=post_training_parameters["min_abs_weight"],
+    )
+    config_file = trainer.write_model_config(
+        save_model_path, extra_parameters=post_training_parameters
+    )
 
     # Get model size, in MB
     model_size = os.path.getsize(save_model_path) / 1024**2
 
     # Evaluate model
-    tagger = pycrfsuite.Tagger()  # type: ignore
-    tagger.open(str(save_model_path))
-    labels_pred = [tagger.tag(X) for X in features_test]
+    # Create NumpyCRFInference object for evaluation.
+    logger.info("Evaluating model with test data.")
+    tagger = NumpyCRFInference(save_model_path, combine_name_labels)
+    labels_pred = []
+    for X in features_test:
+        labels, _ = zip(*tagger.tag_from_features(X))
+        labels_pred.append(list(labels))
     stats = evaluate(labels_pred, truth_test, seed, combine_name_labels)
 
+    # We don't need to keep the crfsuite model.
+    crfsuite_model_path.unlink(missing_ok=True)
     if not keep_model:
         save_model_path.unlink(missing_ok=True)
         config_file.unlink(missing_ok=True)
@@ -465,7 +530,7 @@ def train_model_grid_search(
     return {
         "algo": algo,
         "model_size": model_size,
-        "params": parameters,
+        "params": parameters | post_training_parameters,
         "stats": stats,
         "time": time.monotonic() - start_time,
     }
@@ -497,6 +562,9 @@ def grid_search(args: argparse.Namespace):
 
     if args.global_params != dict():
         validate_global_params(args.global_params)
+
+    if args.pt_params != dict():
+        validate_post_training_params(args.pt_params)
 
     arguments = generate_argument_sets(args)
 

@@ -9,7 +9,9 @@ from html import unescape
 from ..dataclasses import Token, TokenFeatures
 from ._constants import (
     AMBIGUOUS_UNITS,
+    DIMENSIONS,
     FLATTENED_UNITS_LIST,
+    LENGTH_UNITS,
     STRING_NUMBERS,
     UNICODE_FRACTIONS,
     UNITS,
@@ -99,6 +101,8 @@ class PreProcessor:
     ----------
     input_sentence : str
         Input ingredient sentence.
+    custom_units : dict[str, str] | None, optional
+        Dict of plural-singular pairs of custom units.
 
     Attributes
     ----------
@@ -113,7 +117,7 @@ class PreProcessor:
         Tokenised ingredient sentence.
     """
 
-    def __init__(self, input_sentence: str, custom_units: dict[str, str]):
+    def __init__(self, input_sentence: str, custom_units: dict[str, str] | None = None):
         """Initialise.
 
         Parameters
@@ -125,7 +129,10 @@ class PreProcessor:
         self.sentence: str = self._normalise(input_sentence)
         logger.debug(f'Normalised sentence: "{self.sentence}".')
 
-        self._units = UNITS | custom_units
+        if custom_units is not None:
+            self._units = UNITS | custom_units
+        else:
+            self._units = UNITS
 
         self.singularised_indices = []
         self.tokenized_sentence = self._calculate_tokens(self.sentence)
@@ -306,6 +313,20 @@ class PreProcessor:
         matches.sort(key=len, reverse=True)
 
         for match in matches:
+            # Skip percentage-breakdown ratios like 80/20 (lean-to-fat grades on
+            # ground meat). These look like fractions to the regex but aren't:
+            # treating them as such collapses the ratio into a single token where
+            # it semantically belongs as part of the ingredient name. The
+            # discriminator only fires on bare X/Y where X+Y==100; compound forms
+            # like "3 1/2" are always kept as fractions.
+            if " " not in match:
+                try:
+                    n_str, d_str = match.split("/")
+                    if int(n_str) + int(d_str) == 100:
+                        continue
+                except (ValueError, IndexError):
+                    pass
+
             # Replace / with $
             replacement = match.replace("/", "$")
             # If there's a space in the match, replace with #, otherwise prepend #
@@ -475,7 +496,7 @@ class PreProcessor:
                 continue
 
             # If capture unit not in units list, abort
-            if unit1 not in FLATTENED_UNITS_LIST:
+            if unit1 not in FLATTENED_UNITS_LIST and unit1 not in LENGTH_UNITS:
                 continue
 
             sentence = sentence.replace(full_match, f"{quantity1}-{quantity2} {unit1}")
@@ -563,19 +584,27 @@ class PreProcessor:
             else:
                 feat_text = text
 
-            # Get part of speech tag, with overrides for certain tokens
+            # Get part of speech tag, with overrides for certain tokens.
             if self._is_numeric(text):
                 pos = "CD"
             elif text.lower() in ["c", "g"]:
-                # Special cases for c (cup) and g (gram)
+                # Special cases for c (cup) and g (gram).
                 pos = "NN"
             elif text.lower() in ["and/or", "or", "and"]:
-                # Force 'and/or' tag to conjunction
-                # Force OR tag to conjunction
+                # Force 'and/or' tag to conjunction.
+                # Force OR tag to conjunction.
                 pos = "CC"
             elif text.lower() == "e.g.":
-                # Force "e.g." tag to preposition/coordinating subjunction
+                # Force "e.g." tag to preposition/subordinating conjunction .
                 pos = "IN"
+            elif text.lower() == "/":
+                # Force "/" to have SYM tag.
+                pos = "SYM"
+            elif text == "in" and i > 0 and tokens[i - 1].feat_text == "!num":
+                # If the text is "in" and the previous token is a number then this is
+                # mostly likely to be the abbreviation of inches rather than the
+                # preposition.
+                pos = "NN"
 
             features = TokenFeatures(
                 stem=stem(feat_text),
@@ -624,7 +653,63 @@ class PreProcessor:
         >>> p._is_unit("beef")
         False
         """
-        return token.lower() in self._units.values()
+        return (
+            token.lower() in self._units.values() and token.lower() not in LENGTH_UNITS
+        )
+
+    def _is_dimension(self, token: str) -> bool:
+        """Return True if token is a dimension.
+
+        Parameters
+        ----------
+        token : str
+            Token to check.
+
+        Returns
+        -------
+        bool
+            True if token is a dimension, else False.
+
+        Examples
+        --------
+        >>> p = PreProcessor("")
+        >>> p._is_dimension("thick")
+        True
+
+        >>> p = PreProcessor("")
+        >>> p._is_dimension("long")
+        True
+
+        >>> p = PreProcessor("")
+        >>> p._is_dimension("cm")
+        False
+        """
+        return token.lower() in DIMENSIONS
+
+    def _is_length_unit(self, index: int) -> bool:
+        """Return True if token at index is a length unit.
+
+        For the token "in", this function also checks previous token to ensure it return
+        False when "in" does not mean "inch".
+
+        Parameters
+        ----------
+        index : int
+            Index of token to check.
+
+        Returns
+        -------
+        bool
+            True if token is a length unit, else False.
+        """
+        token = self.tokenized_sentence[index].feat_text
+        if token == "in":
+            if index > 0 and self.tokenized_sentence[index - 1].feat_text == "!num":
+                return True
+
+            return False
+
+        return token.lower() in LENGTH_UNITS
 
     def _is_punc(self, token: str) -> bool:
         """Return True if token is a punctuation mark.
@@ -931,6 +1016,8 @@ class PreProcessor:
             prefix + "is_after_comma": self._follows_comma(index),
             prefix + "is_after_plus": self._follows_plus(index),
             prefix + "word_shape": token.features.shape,
+            prefix + "is_length_unit": self._is_length_unit(index),
+            prefix + "is_dimension": self._is_dimension(token.feat_text),
         }
 
     def _ngram_features(self, token: str, prefix: str) -> dict[str, str]:

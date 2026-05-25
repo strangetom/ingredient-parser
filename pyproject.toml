@@ -28,7 +28,6 @@ classifiers = [
 ]
 dependencies = [
     "nltk>=3.9.1",
-    "python-crfsuite",
     "pint>=0.25.0",
     "numpy",
 ]
@@ -46,6 +45,9 @@ packages = ["ingredient_parser", "ingredient_parser.en", "ingredient_parser.en.f
 version =  {attr = "ingredient_parser.__version__"}
 
 [tool.pytest.ini_options]
+markers = [
+    "model_dependent: marks tests where the success is highly dependent on the trained model (deselect with '-m \"not model_dependent\"')",
+]
 minversion = "7.0"
 addopts = [
     "-ra",

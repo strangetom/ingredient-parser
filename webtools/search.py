@@ -120,7 +120,9 @@ def string_search(
     list
         List of matching database entries.
     """
-    search_tokens = [t.text for t in PreProcessor(sentence).tokenized_sentence]
+    search_tokens = [
+        t.text for t in PreProcessor(sentence, custom_units={}).tokenized_sentence
+    ]
     search_tokens_len = len(search_tokens)
 
     matches = []
@@ -229,19 +231,32 @@ def id_search(ids: list[int]) -> list:
     return matches
 
 
-def list_all_entries() -> list:
-    """List all entries in database.
+def list_all_entries(sources: list[str]) -> list:
+    """List all entries in database for given sources.
+
+    Parameters
+    ----------
+    sources : list[str]
+        List of sources.
 
     Returns
     -------
     list
         List of database entries.
+
     """
     matches = []
     with sqlite3.connect(SQL3_DATABASE, detect_types=sqlite3.PARSE_DECLTYPES) as conn:
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
-        cursor.execute(f"SELECT * FROM {SQL3_DATABASE_TABLE}")
+        cursor.execute(
+            f"""
+            SELECT *
+            FROM {SQL3_DATABASE_TABLE}
+            WHERE source in ({",".join("?" * len(sources))})
+            """,
+            sources,
+        )
         matches += cursor.fetchall()
 
     conn.close()

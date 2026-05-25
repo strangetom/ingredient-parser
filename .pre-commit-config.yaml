@@ -21,7 +21,7 @@ repos:
         name: (base:repo) debug-statements
         stages: [pre-commit]
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.14.14
+    rev: v0.15.9
     hooks:
       - id: ruff
         name: (base:repo) ruff
@@ -37,7 +37,7 @@ repos:
         name: (docs:repo) sphinx-lint
         stages: [pre-commit]
   - repo: https://github.com/biomejs/pre-commit
-    rev: v2.3.13
+    rev: v2.4.10
     hooks:
       - id: biome-check
         name: (webtools:repo) biome-check

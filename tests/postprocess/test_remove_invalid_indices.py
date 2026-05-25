@@ -1,5 +1,6 @@
 import pytest
 
+from ingredient_parser.dataclasses import LabelledToken
 from ingredient_parser.en import PostProcessor
 
 
@@ -54,9 +55,14 @@ def p():
         "COMMENT",
         "PUNC",
     ]
-    scores = [0.0] * len(labels)
+    labelled_tokens = [
+        LabelledToken(
+            index=i, text=text, pos_tag=tag, label=label, score=0, plural=False
+        )
+        for i, (text, tag, label) in enumerate(zip(tokens, pos_tags, labels))
+    ]
 
-    return PostProcessor(sentence, tokens, pos_tags, labels, scores, custom_units={})
+    return PostProcessor(sentence, labelled_tokens, custom_units={})
 
 
 class TestPostProcessor_fix_punctuation:

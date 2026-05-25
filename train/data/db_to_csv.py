@@ -11,6 +11,7 @@ COOKSTR_CSV = "train/data/cookstr/cookstr-ingredients-snapshot-2017.csv"
 NYT_CSV = "train/data/nytimes/nyt-ingredients-snapshot-2015.csv"
 ALLRECIPES_CSV = "train/data/allrecipes/allrecipes-ingredients-snapshot-2017.csv"
 TC_CSV = "train/data/tastecooking/tastecooking-ingredients-snapshot-2024.csv"
+MANUAL_CSV = "train/data/manual/manual-ingredients.csv"
 
 DATABASE = "train/data/training.sqlite3"
 
@@ -21,7 +22,7 @@ def load_from_db(source: str) -> list[dict[str, str]]:
     Parameters
     ----------
     source : str
-        "nyt", "cookstr", "bbc"
+        "nyt", "cookstr", "bbc", "allrecipes", "tc", "manual".
 
     Returns
     -------
@@ -120,12 +121,16 @@ def write_csv(path: str, csv_rows: list[dict]) -> None:
 
 
 if __name__ == "__main__":
+    # The "manual" source is intentionally absent from this dict: hand-labelled
+    # rows (added directly to the database, not scraped from a parent corpus)
+    # have no CSV counterpart, so this script just skips them.
     source_csv = {
         "bbc": BBC_CSV,
         "cookstr": COOKSTR_CSV,
         "nyt": NYT_CSV,
         "allrecipes": ALLRECIPES_CSV,
         "tc": TC_CSV,
+        "manual": MANUAL_CSV,
     }
 
     for source, csv_file in source_csv.items():
