@@ -11,9 +11,9 @@
 	"delta": 5e-5,
 	"linesearch": "MoreThuente",
 	"max_linesearch": 5,
-	"datetime": "2026-05-24T19:29:32.643688",
+	"datetime": "2026-05-25T15:05:24.991451",
 	"stopping_reason": "L-BFGS terminated with the stopping criteria",
 	"quantize_bits": 16,
 	"min_abs_weight": null,
-	"sha256": "25384b5f037e7880009ae601930e32fce7b763eb4e07b7cfa0e1d05ab727593c"
+	"sha256": "334f14a6a6d39c6eb1076b61091a9b2216567b2525e2991d5f8d1bd90e250bc2"
 }
