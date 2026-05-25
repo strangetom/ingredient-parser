@@ -9,8 +9,9 @@ Until v2.7.0, `python-crfsuite <https://github.com/scrapinghub/python-crfsuite>`
 
 There are a few reasons for doing this:
 
-#. Reduce the number of runtime dependencies
-#. Make the model weights more accessible by using a more generic format (JSON)
+#. Reduce the number of runtime dependencies.
+#. Make the model weights more accessible by using a more generic format (JSON).
+#. Enable implementation decoding constraints.
 #. Enable post-training adjustment of the weights.
 
 .. note::
@@ -178,6 +179,72 @@ The ``backpointers`` matrix tell us the previous label that resulted in that sco
             label_indices[t] = int(backpointers[t + 1, label_indices[t + 1]])
 
         predicted_labels = [self.idx_to_label[idx] for idx in label_indices]
+
+Decoding constraints
+~~~~~~~~~~~~~~~~~~~~
+
+The :ref:`labelling scheme <labelling-scheme>` for the tokens has constraints that means would not be valid for the labels to appear in any order.
+
+One of the key constraints is that B_NAME_TOK must always appear before I_NAME_TOK in the sentence. We can implement this constraint when performing inferences with the :abbr:`CRF (Conditional Random Fields)` to ensure that labels are always assigned in a valid order.
+
+For this constraint, we need to check whether the best path in the Viterbi lattice to the current token-label combination contains B_NAME_TOK.
+If it does not, then we prevent I_NAME_TOK from being assigned.
+In the code, this looks like the following:
+
+.. code:: python
+
+    # Auxiliary matrix to track if B_NAME_TOK has occurred in the best path
+    # for each label at each time step since the beginning or last NAME_SEP.
+    # Rows: sequence elements
+    # Columns: labels
+    has_b_name = np.zeros((seq_len, self.n_labels), dtype=bool)
+
+    # Apply initial constraints (i.e., I_NAME_TOK cannot be first)
+    if constrain_transitions:
+        lattice_scores[0, i_name_idx] = -np.inf
+        # Update has_b_name matrix for first sequence element
+        has_b_name[0, b_name_idx] = True
+
+    # Modify the forward pass
+    for t in range(1, seq_len):
+        # Determine previous element scores and candidate scores as before
+        prev_el_scores = lattice_scores[t - 1][:, np.newaxis]
+        candidates = prev_el_scores + self.transition_weights + state_scores[t]
+
+        # Force the scores from constrained transitions to -inf
+        if constrain_transitions and b_name_idx:
+            # Mask transitions to I_NAME_TOK from paths that lack a B_NAME_TOK
+            invalid_prev_paths = ~has_b_name[t - 1]
+            candidates[invalid_prev_paths, i_name_idx] = -np.inf
+
+        # Update the Viterbi lattice and backpointers matrices as before
+        lattice_scores[t] = np.max(candidates, axis=0)
+        backpointers[t] = np.argmax(candidates, axis=0)
+
+        # Update has_b_name matrix
+        if constrain_transitions and b_name_idx:
+            # Inherit state from the best predecessor for each current label.
+            # We are setting the value of for each column to the value from the
+            # previous row (i.e. t-1) at the index given by backpointers[t] so that
+            # we inherit whether the best sequence has a B_NAME_TOk.
+            has_b_name[t] = has_b_name[t - 1, backpointers[t]]
+            # If current label is B_NAME_TOK, the path now has a B_NAME_TOK
+            has_b_name[t, b_name_idx] = True
+            # If current label is NAME_SEP, the B_NAME_TOK requirement resets
+            has_b_name[t, name_sep_idx] = False
+
+.. important::
+
+    Decoding constraints cannot be applied during model training, only during inference.
+
+    If we were to attempt to apply the constraints during training, then we would mask the model from learning that certain features were unlikely to result in certain labels.
+    Overall, the model performance would suffer as a result.
+
+.. admonition:: Future work
+
+    Only the I_NAME_TOK constrained described above is implemented at the moment.
+
+    Future work will investigate if there are other constraints that can be applied, for example related the NAME_MOD or NAME_VAR labels, or based on the training data to determine if certain label transition should not be allowed.
 
 Marginal probabilities
 ~~~~~~~~~~~~~~~~~~~~~~

@@ -36,6 +36,8 @@ Some of the different characteristics that are worth highlighting are
 * Sentence complexity, e.g. sentences from cookstr tend to be long and include multiple ingredients and quantities
 * Use of brand names (allrecipes) or generic names
 
+.. _labelling-scheme:
+
 Labelling the data
 ^^^^^^^^^^^^^^^^^^
 
