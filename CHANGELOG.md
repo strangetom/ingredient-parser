@@ -1,12 +1,20 @@
 # Changelog
 
-### develop
+### 2.7.0
+
+> [!WARNING]
+>
+> This version drops python-crfsuite as a run-time dependency.
 
 * Bugfix: `PreProcessor` no longer treats lean-grade percentage ratios (e.g. `80/20`, `85/15`, `93/7`; all sum to 100) as fractions. They now pass through tokenization as separate tokens (`80`, `/`, `20`) rather than being collapsed into a single `#X$Y` form. (@[MaximusCub](https://github.com/MaximusCub))
 * Label trailing "raw" tokens after a comma as preparation instructions instead of part of the ingredient name. Affects USDA-style descriptions like "93% lean ground beef, raw". (@[MaximusCub](https://github.com/MaximusCub))
-* Handle "X ounce can" compound unit pattern without leading count (@[MaximusClub](https://github.com/MaximusCub))
 * Label length/dimensions as SIZE instead of a mixture of QTY/UNIT and COMMENT e.g. 6-inch tortillas will return a size of "6 inch" instead of an amount.
-* Where an unit in a sentence does not have a quantity, assign a quantity of 1 where reasonable to do so (i.e. the unit is singular and the sentence does not contain any indefinite quantifiers, such as "few", "some"). This is also applied to the sentences that follow the sizeable unit pattern but don't have a leading quantity (e.g. "15 oz can beans" will have the quantity of can set to 1).
+* Handle "X ounce can" compound unit pattern without leading count (@[MaximusClub](https://github.com/MaximusCub))
+* Where an unit in a sentence does not have an explicit quantity, assign a quantity of 1 where reasonable to do so (i.e. the unit is singular and the sentence does not contain any indefinite quantifiers, such as "few", "some"). This is also applied to the sentences that follow the sizeable unit pattern but don't have a leading quantity (e.g. "15 oz can beans" will have the quantity of can set to 1).
+* Ensure that `UnitSystem` is set to IMPERIAL for units of pounds, ounces when `volumetric_unit_system='imperial'`.
+* Drop python-crfsuite as a run-time dependency (still required for development, however) by implemented the model inference in NumPy. This comes with a minor decrease to execution performance (~6%) and a minor improvement to model accuracy (~0.05%).
+  * See the docs [here](https://ingredient-parser.readthedocs.io/en/latest/explanation/appendix/numpy-inference.html) for more details on the justification and the improvements this can enable.
+
 
 ## 2.6.0
 
