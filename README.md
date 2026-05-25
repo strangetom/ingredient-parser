@@ -83,6 +83,20 @@ The ingredient parser library provides a convenient web interface that you can r
 
 The dependencies for building the documentation are in the `requirements-doc.txt` file.
 
+**Tests**
+
+The ingredient parser library has extensive test coverage. The [pytest](https://docs.pytest.org/en/stable/) framework is used for testing, and [coverage.py](https://coverage.readthedocs.io) is used to measure test coverage.
+
+```
+# Run the test suite
+$ pytest
+
+# Evaluate test coverage
+$ coverage run -m pytest
+# Generate coverage report
+$ coverage html
+````
+
 **Contribution**
 
 Please target the **develop** branch for pull requests. The **main** branch is used for stable releases and hotfixes only.
