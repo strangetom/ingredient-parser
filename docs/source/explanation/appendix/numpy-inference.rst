@@ -11,7 +11,7 @@ There are a few reasons for doing this:
 
 #. Reduce the number of runtime dependencies.
 #. Make the model weights more accessible by using a more generic format (JSON).
-#. Enable implementation decoding constraints.
+#. Enable implementation of decoding constraints.
 #. Enable post-training adjustment of the weights.
 
 .. note::
