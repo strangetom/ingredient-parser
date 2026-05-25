@@ -1519,14 +1519,18 @@ class PostProcessor:
 
                 # Append token and score for unit to last IngredientAmount
                 text = token.text
-                if token.plural:
+                if token.plural and amounts[-1].implicit_quantity:
+                    # If this token is plural and the current amount has an implicit
+                    # quantity, revert the implicit quantity and re-pluralize the unit.
+                    amounts[-1].quantity = ""
+                    amounts[-1].implicit_quantity = False
                     text = pluralise_units(token.text, self.custom_units)
-
-                    if amounts[-1].implicit_quantity:
-                        # If this token is plural and the current amount has an implicit
-                        # quantity, revert the implicit quantity.
-                        amounts[-1].quantity = ""
-                        amounts[-1].implicit_quantity = False
+                elif token.plural and amounts[-1].quantity == "":
+                    # If this token is plural and there is no quantity,
+                    # re-pluralize it.
+                    # Note that is there was a quantity, the unit would be
+                    # pluralized within ingredient_amount_factory() as appropriate.
+                    text = pluralise_units(token.text, self.custom_units)
 
                 amounts[-1].unit.append(text)
                 amounts[-1].confidence.append(token.score)

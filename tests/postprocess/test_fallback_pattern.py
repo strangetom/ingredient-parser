@@ -43,19 +43,19 @@ class TestPostProcessor_fallback_pattern:
 
         tokens = ["3", "large", "handful", "cherry", "tomatoes"]
         labels = ["QTY", "UNIT", "UNIT", "B_NAME_TOK", "I_NAME_TOK"]
-        scores = [0.0] * len(tokens)
+        plurals = [False, False, True, False, False]
         labelled_tokens = [
             LabelledToken(
-                index=i, text=text, pos_tag="", label=label, score=score, plural=False
+                index=i, text=text, pos_tag="", label=label, score=0.0, plural=plural
             )
-            for i, (text, label, score) in enumerate(zip(tokens, labels, scores))
+            for i, (text, label, plural) in enumerate(zip(tokens, labels, plurals))
         ]
 
         expected = [
             ingredient_amount_factory(
                 quantity="3",
-                unit="large handfuls",
-                text="3 large handfuls",
+                unit="large handful",
+                text="3 large handful",
                 confidence=0,
                 starting_index=0,
             )
@@ -70,19 +70,19 @@ class TestPostProcessor_fallback_pattern:
         p = PostProcessor("", [], custom_units={}, volumetric_units_system="imperial")
         tokens = ["About", "2", "cup", "flour"]
         labels = ["COMMENT", "QTY", "UNIT", "B_NAME_TOK"]
-        scores = [0.0] * len(tokens)
+        plurals = [False, False, True, False]
         labelled_tokens = [
             LabelledToken(
-                index=i, text=text, pos_tag="", label=label, score=score, plural=False
+                index=i, text=text, pos_tag="", label=label, score=0.0, plural=plural
             )
-            for i, (text, label, score) in enumerate(zip(tokens, labels, scores))
+            for i, (text, label, plural) in enumerate(zip(tokens, labels, plurals))
         ]
 
         expected = [
             ingredient_amount_factory(
                 quantity="2",
                 unit="cup",
-                text="2 cups",
+                text="2 cup",
                 confidence=0,
                 starting_index=1,
                 APPROXIMATE=True,
@@ -99,19 +99,19 @@ class TestPostProcessor_fallback_pattern:
         p = PostProcessor("", [], custom_units={}, string_units=True)
         tokens = ["About", "2", "cup", "flour"]
         labels = ["COMMENT", "QTY", "UNIT", "B_NAME_TOK"]
-        scores = [0.0] * len(tokens)
+        plurals = [False, False, True, False]
         labelled_tokens = [
             LabelledToken(
-                index=i, text=text, pos_tag="", label=label, score=score, plural=False
+                index=i, text=text, pos_tag="", label=label, score=0.0, plural=plural
             )
-            for i, (text, label, score) in enumerate(zip(tokens, labels, scores))
+            for i, (text, label, plural) in enumerate(zip(tokens, labels, plurals))
         ]
 
         expected = [
             ingredient_amount_factory(
                 quantity="2",
                 unit="cup",
-                text="2 cups",
+                text="2 cup",
                 confidence=0,
                 starting_index=1,
                 APPROXIMATE=True,
@@ -128,19 +128,19 @@ class TestPostProcessor_fallback_pattern:
         """
         tokens = ["About", "2", "cup", "flour"]
         labels = ["COMMENT", "QTY", "UNIT", "B_NAME_TOK"]
-        scores = [0.0] * len(tokens)
+        plurals = [False, False, True, False]
         labelled_tokens = [
             LabelledToken(
-                index=i, text=text, pos_tag="", label=label, score=score, plural=False
+                index=i, text=text, pos_tag="", label=label, score=0.0, plural=plural
             )
-            for i, (text, label, score) in enumerate(zip(tokens, labels, scores))
+            for i, (text, label, plural) in enumerate(zip(tokens, labels, plurals))
         ]
 
         expected = [
             ingredient_amount_factory(
                 quantity="2",
                 unit="cup",
-                text="2 cups",
+                text="2 cup",
                 confidence=0,
                 starting_index=1,
                 APPROXIMATE=True,
@@ -156,12 +156,12 @@ class TestPostProcessor_fallback_pattern:
         """
         tokens = ["2", "bananas", ",", "4", "ounce", "each"]
         labels = ["QTY", "B_NAME_TOK", "PUNC", "QTY", "UNIT", "COMMENT"]
-        scores = [0.0] * len(tokens)
+        plurals = [False, False, False, False, True, False]
         labelled_tokens = [
             LabelledToken(
-                index=i, text=text, pos_tag="", label=label, score=score, plural=False
+                index=i, text=text, pos_tag="", label=label, score=0.0, plural=plural
             )
-            for i, (text, label, score) in enumerate(zip(tokens, labels, scores))
+            for i, (text, label, plural) in enumerate(zip(tokens, labels, plurals))
         ]
 
         p.consumed = [0, 1, 2, 3]
@@ -177,7 +177,7 @@ class TestPostProcessor_fallback_pattern:
             ingredient_amount_factory(
                 quantity="4",
                 unit="ounce",
-                text="4 ounces",
+                text="4 ounce",
                 confidence=0,
                 starting_index=3,
                 SINGULAR=True,
@@ -194,12 +194,12 @@ class TestPostProcessor_fallback_pattern:
         """
         tokens = ["2", "bananas", ",", "each", "about", "4", "ounce"]
         labels = ["QTY", "B_NAME_TOK", "PUNC", "COMMENT", "COMMENT", "QTY", "UNIT"]
-        scores = [0.0] * len(tokens)
+        plurals = [False, False, False, False, False, True, False]
         labelled_tokens = [
             LabelledToken(
-                index=i, text=text, pos_tag="", label=label, score=score, plural=False
+                index=i, text=text, pos_tag="", label=label, score=0.0, plural=plural
             )
-            for i, (text, label, score) in enumerate(zip(tokens, labels, scores))
+            for i, (text, label, plural) in enumerate(zip(tokens, labels, plurals))
         ]
 
         expected = [
@@ -213,7 +213,7 @@ class TestPostProcessor_fallback_pattern:
             ingredient_amount_factory(
                 quantity="4",
                 unit="ounce",
-                text="4 ounces",
+                text="4 ounce",
                 confidence=0,
                 starting_index=5,
                 SINGULAR=True,
@@ -258,12 +258,26 @@ class TestPostProcessor_fallback_pattern:
             "UNIT",
             "PUNC",
         ]
-        scores = [0.0] * len(tokens)
+        plurals = [
+            False,
+            False,
+            False,
+            False,
+            False,
+            False,
+            False,
+            False,
+            False,
+            False,
+            False,
+            False,
+            False,
+        ]
         labelled_tokens = [
             LabelledToken(
-                index=i, text=text, pos_tag="", label=label, score=score, plural=False
+                index=i, text=text, pos_tag="", label=label, score=0.0, plural=plural
             )
-            for i, (text, label, score) in enumerate(zip(tokens, labels, scores))
+            for i, (text, label, plural) in enumerate(zip(tokens, labels, plurals))
         ]
 
         expected = [
@@ -310,12 +324,12 @@ class TestPostProcessor_fallback_pattern:
             "QTY",
             "UNIT",
         ]
-        scores = [0.0] * len(tokens)
+        plurals = [False, False, False, False, False, False, False, True]
         labelled_tokens = [
             LabelledToken(
-                index=i, text=text, pos_tag="", label=label, score=score, plural=False
+                index=i, text=text, pos_tag="", label=label, score=0.0, plural=plural
             )
-            for i, (text, label, score) in enumerate(zip(tokens, labels, scores))
+            for i, (text, label, plural) in enumerate(zip(tokens, labels, plurals))
         ]
 
         expected = [
@@ -329,7 +343,7 @@ class TestPostProcessor_fallback_pattern:
             ingredient_amount_factory(
                 quantity="4",
                 unit="ounce",
-                text="4 ounces",
+                text="4 ounce",
                 confidence=0,
                 starting_index=6,
                 SINGULAR=True,
@@ -344,21 +358,21 @@ class TestPostProcessor_fallback_pattern:
         Test that the range 1-2 is correctly parsed to set the RANGE flag and
         quantity_max fields in the IngredientAmount object
         """
-        tokens = ["1-2", "tablespoons", "local", "honey"]
+        tokens = ["1-2", "tablespoon", "local", "honey"]
         labels = ["QTY", "UNIT", "B_NAME_TOK", "I_NAME_TOK"]
-        scores = [0.0] * len(tokens)
+        plurals = [False, True, False, False]
         labelled_tokens = [
             LabelledToken(
-                index=i, text=text, pos_tag="", label=label, score=score, plural=False
+                index=i, text=text, pos_tag="", label=label, score=0.0, plural=plural
             )
-            for i, (text, label, score) in enumerate(zip(tokens, labels, scores))
+            for i, (text, label, plural) in enumerate(zip(tokens, labels, plurals))
         ]
 
         expected = [
             ingredient_amount_factory(
                 quantity="1-2",
                 unit="tablespoon",
-                text="1-2 tablespoons",
+                text="1-2 tablespoon",
                 confidence=0,
                 starting_index=0,
             ),
@@ -377,12 +391,12 @@ class TestPostProcessor_fallback_pattern:
         """
         tokens = ["1x", "tin", "condensed", "milk"]
         labels = ["QTY", "UNIT", "B_NAME_TOK", "I_NAME_TOK"]
-        scores = [0.0] * len(tokens)
+        plurals = [False, False, False, False]
         labelled_tokens = [
             LabelledToken(
-                index=i, text=text, pos_tag="", label=label, score=score, plural=False
+                index=i, text=text, pos_tag="", label=label, score=0.0, plural=plural
             )
-            for i, (text, label, score) in enumerate(zip(tokens, labels, scores))
+            for i, (text, label, plural) in enumerate(zip(tokens, labels, plurals))
         ]
 
         expected = [
