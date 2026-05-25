@@ -72,6 +72,18 @@ VOLUMETRIC_UNITS_W_ALTERNATIVES = {
         "australian": "metric_teaspoon",
         "metric": "metric_teaspoon",
     },
+    "ounce": {
+        "imperial": "imperial_ounce",
+    },
+    "oz": {
+        "imperial": "imperial_ounce",
+    },
+    "pound": {
+        "imperial": "imperial_pound",
+    },
+    "lb": {
+        "imperial": "imperial_pound",
+    },
 }
 
 # List of units that pint interprets as incorrect unit
@@ -341,7 +353,7 @@ def convert_to_pint_unit(
         return unit
 
     if unit.lower() in MISINTERPRETED_UNITS:
-        # Special cases to prevent pint interprettng units incorrectly
+        # Special cases to prevent pint interpreting units incorrectly
         # e.g. pinch != pico-inch
         return unit
 
