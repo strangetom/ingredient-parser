@@ -43,7 +43,6 @@ You can install Ingredient Parser from PyPi with ``pip``:
 
 Ingredient Parser depends on the following
 
-* `python-crfsuite <https://python-crfsuite.readthedocs.io/en/latest/>`_
 * `NLTK <https://www.nltk.org/>`_
 * `Pint <https://pint.readthedocs.io/en/stable/>`_
 * `Numpy <https://numpy.org/>`_
