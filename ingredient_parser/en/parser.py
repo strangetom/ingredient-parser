@@ -2,7 +2,6 @@
 
 import logging
 
-from .._common import group_consecutive_idx
 from ..dataclasses import LabelledToken, ParsedIngredient, ParserDebugInfo
 from ._loaders import load_parser_model
 from .postprocess import PostProcessor
@@ -82,15 +81,10 @@ def parse_ingredient_en(
 
     processed_sentence = PreProcessor(sentence, custom_units=custom_units)
     features = processed_sentence.sentence_features()
-    labels, scores = zip(*TAGGER.tag_from_features(features))
+    labels, scores = zip(*TAGGER.tag_from_features(features, expect_name_in_output))
     labels = list(labels)
     scores = list(scores)
     logger.debug(f"Sentence token labels: {labels}.")
-
-    if expect_name_in_output and all("NAME" not in label for label in labels):
-        # No tokens were assigned the NAME label, so guess if there's a name
-        logger.debug("No tokens found where name is most probable label.")
-        labels, scores = guess_ingredient_name(TAGGER, labels, scores)
 
     labelled_tokens = [
         LabelledToken(
@@ -193,15 +187,10 @@ def inspect_parser_en(
 
     processed_sentence = PreProcessor(sentence, custom_units=custom_units)
     features = processed_sentence.sentence_features()
-    labels, scores = zip(*TAGGER.tag_from_features(features))
+    labels, scores = zip(*TAGGER.tag_from_features(features, expect_name_in_output))
     labels = list(labels)
     scores = list(scores)
     logger.debug(f"Sentence token labels: {labels}.")
-
-    if expect_name_in_output and all("NAME" not in label for label in labels):
-        # No tokens were assigned the NAME label, so guess if there's a name
-        logger.debug("No tokens found where name is most likely label.")
-        labels, scores = guess_ingredient_name(TAGGER, labels, scores)
 
     labelled_tokens = [
         LabelledToken(
@@ -234,73 +223,3 @@ def inspect_parser_en(
         PostProcessor=postprocessed_sentence,
         tagger=TAGGER,
     )
-
-
-def guess_ingredient_name(
-    TAGGER, labels: list[str], scores: list[float], min_score: float = 0.2
-) -> tuple[list[str], list[float]]:
-    """Guess ingredient name from list of labels and scores.
-
-    This only applies if the token labeling resulted in no tokens being assigned the
-    NAME label. When this happens, calculate the confidence of each token being NAME,
-    and select the most likely value where the confidence is greater than min_score.
-    If there are consecutive tokens that meet that criteria, give them all the NAME
-    label.
-
-    Parameters
-    ----------
-    TAGGER : pycrfsuite.Tagger
-        Tagger object for parser model.
-    labels : list[str]
-        List of token labels.
-    scores : list[float]
-        List of scores.
-    min_score : float
-        Minimum score to consider as candidate name.
-
-    Returns
-    -------
-    list[str], list[float]
-        Labels and scores, modified to assign a name if possible.
-    """
-    logger.debug(
-        "Attempting to guess name from tokens where name label is not most probable."
-    )
-    NAME_LABELS = [
-        "B_NAME_TOK",
-        "I_NAME_TOK",
-        "NAME_VAR",
-        "NAME_MOD",
-        "NAME_SEP",
-    ]
-
-    # For each element of the sequence, determine the most likely *NAME label whose
-    # score exceeds the minimum threshold.
-    # Store in a dict -> {element_index: (score, label)}
-    candidate_score_labels: dict[int, tuple[float, str]] = {}
-    for i, _ in enumerate(labels):
-        alt_label_scores = [(TAGGER.marginal(label, i), label) for label in NAME_LABELS]
-        max_score = max(alt_label_scores, key=lambda x: x[0])
-        if max_score[0] > min_score:
-            candidate_score_labels[i] = max_score
-
-    if len(candidate_score_labels) == 0:
-        logger.debug("No viable name tokens identified.")
-        return labels, scores
-
-    # Group element indices into groups of consecutive indices.
-    groups = [
-        list(group)
-        for group in group_consecutive_idx(list(candidate_score_labels.keys()))
-    ]
-
-    # Take longest group of consecutive indices and replace the labels and scores at
-    # these indices with the most likely *NAME labels and their score.
-    indices = sorted(groups, key=len, reverse=True)[0]
-    for token_index in indices:
-        new_score, new_label = candidate_score_labels[token_index]
-        labels[token_index] = new_label
-        scores[token_index] = new_score
-
-    logger.debug(f"Found alternative name at token indices: {indices}")
-    return labels, scores

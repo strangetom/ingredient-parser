@@ -8,6 +8,8 @@ from pathlib import Path
 
 import numpy as np
 
+from ._common import group_consecutive_idx
+
 logger = logging.getLogger(__name__)
 
 # Type alias for dict of token features.
@@ -49,7 +51,9 @@ class NumpyCRFInference:
         )
 
     def tag_from_features(
-        self, sentence_features: list[FeatureDict]
+        self,
+        sentence_features: list[FeatureDict],
+        expect_name_in_output: bool = True,
     ) -> list[tuple[str, float]]:
         """Tag a sentence with labels using model.
 
@@ -63,11 +67,17 @@ class NumpyCRFInference:
         ----------
         sentence_features : list[FeatureDict]
             List of feature dicts for each token.
+        expect_name_in_output : bool, optional
+            If True and the model doesn't label any words in the sentence as the name,
+            fallback to selecting the most likely name from any token even though the
+            model gives it a different label. Note that this does guarantee the output
+            contains a name.
+            Default is True.
 
         Returns
         -------
         list[tuple[str, float]]
-            List of labels.
+            List of (label, confidence) tuples.
         """
         if (
             self.model.emission_weights.size == 0
@@ -76,9 +86,16 @@ class NumpyCRFInference:
             raise ValueError("NumpyViterbiInference model does not have any weights.")
 
         features = [self._convert_features(f) for f in sentence_features]
-        return self.model.predict_sequence(
+        labels, scores = self.model.predict_sequence(
             features, constrain_transitions=not self.combined_name_labels
         )
+
+        if expect_name_in_output and all("NAME" not in label for label in labels):
+            # No tokens were assigned the NAME label, so guess if there's a name
+            logger.debug(f"No tokens found where name is most probable label: {labels}")
+            labels, scores = self._guess_ingredient_name(labels, scores)
+
+        return list(zip(labels, scores))
 
     def _convert_features(self, features: FeatureDict) -> set[str]:
         """Convert features dict to set of strings.
@@ -128,12 +145,12 @@ class NumpyCRFInference:
         Returns
         -------
         float
-            Description
+            Marginal probability of given label at given position.
 
         Raises
         ------
         ValueError
-            Description
+            Raised if marginals matrix does not exist.
         """
         if self.model.marginals.size == 0:
             raise ValueError(
@@ -166,6 +183,72 @@ class NumpyCRFInference:
             scale_factor=data["quantization_scale"],
             zero_offset=data["quantization_zero_offset"],
         )
+
+    def _guess_ingredient_name(
+        self, labels: list[str], scores: list[float], min_score: float = 0.2
+    ) -> tuple[list[str], list[float]]:
+        """Guess ingredient name from list of labels and scores.
+
+        This only applies if the token labelling resulted in no tokens being assigned
+        the NAME label. When this happens, calculate the confidence of each token being
+        NAME, and select the most likely value where the confidence is greater than
+        min_score.
+        If there are consecutive tokens that meet that criteria, give them all the NAME
+        label.
+
+        Parameters
+        ----------
+        labels : list[str]
+            List of token labels.
+        scores : list[float]
+            List of scores.
+        min_score : float
+            Minimum score to consider as candidate name.
+
+        Returns
+        -------
+        list[str], list[float]
+            Labels and scores, modified to assign a name if possible.
+        """
+        # For each element of the sequence, determine the most likely *NAME label whose
+        # score exceeds the minimum threshold.
+        # Store in a dict -> {element_index: (score, label)}
+        candidate_score_labels: dict[int, tuple[float, str]] = {}
+        for i, _ in enumerate(labels):
+            alt_label_scores = [
+                (self.marginal(label, i), label)
+                for label in [
+                    "B_NAME_TOK",
+                    "I_NAME_TOK",
+                    "NAME_VAR",
+                    "NAME_MOD",
+                    "NAME_SEP",
+                ]
+            ]
+            max_score = max(alt_label_scores, key=lambda x: x[0])
+            if max_score[0] > min_score:
+                candidate_score_labels[i] = max_score
+
+        if len(candidate_score_labels) == 0:
+            logger.debug("No viable name tokens identified.")
+            return labels, scores
+
+        # Group element indices into groups of consecutive indices.
+        groups = [
+            list(group)
+            for group in group_consecutive_idx(list(candidate_score_labels.keys()))
+        ]
+
+        # Take longest group of consecutive indices and replace the labels and scores at
+        # these indices with the most likely *NAME labels and their score.
+        indices = sorted(groups, key=len, reverse=True)[0]
+        for token_index in indices:
+            new_score, new_label = candidate_score_labels[token_index]
+            labels[token_index] = new_label
+            scores[token_index] = new_score
+
+        logger.debug(f"Found alternative name at token indices: {indices}")
+        return labels, scores
 
 
 class NumpyViterbiInference:
@@ -276,7 +359,7 @@ class NumpyViterbiInference:
 
     def predict_sequence(
         self, features_seq: list[set[str]], constrain_transitions: bool = True
-    ) -> list[tuple[str, float]]:
+    ) -> tuple[list[str], list[float]]:
         """Predict the label sequence using Viterbi algorithm for a sequence of tokens
         described by sequence of features sets.
 
@@ -295,8 +378,8 @@ class NumpyViterbiInference:
 
         Returns
         -------
-        list[tuple[str, float]]
-            List of (label, confidence) tuples for the sequence.
+        tuple[list[str], list[float]]
+            (List of labels, list of confidences) for the sequence.
         """
         seq_len = len(features_seq)
 
@@ -397,7 +480,7 @@ class NumpyViterbiInference:
             float(self.marginals[t, idx]) for t, idx in enumerate(label_indices)
         ]
 
-        return list(zip(predicted_labels, confidences))
+        return predicted_labels, confidences
 
     def _compute_marginals(self, seq_len: int, state_scores: np.ndarray) -> np.ndarray:
         """Compute marginals using Log-Sum-Exp for numerical stability
