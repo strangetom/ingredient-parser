@@ -5,12 +5,14 @@ import sqlite3
 import sys
 from collections import defaultdict
 from dataclasses import dataclass
+from itertools import pairwise
 from pathlib import Path
 
 # Ensure the local ingredient_parser package can be found
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from ingredient_parser.en import PreProcessor
+from ingredient_parser.inference import PROHIBITED_TRANSITIONS
 
 sqlite3.register_converter("json", json.loads)
 
@@ -259,12 +261,40 @@ def validiate_NAME_MOD(row: DBRow) -> bool:
     return True
 
 
+def validate_prohibited_transitions(row: DBRow) -> bool:
+    """Validate than none of the label transitions are in the PROHIBITED_TRANSITIONS.
+
+    !IMPORTANT!
+    A label transition that is found in the training data that is also in the
+    PROHIBITED_TRANSITIONS does not always mean the sentence is labelled incorrectly.
+    It could be that the PROHIBITED_TRANSITIONS is incorrect and needs updating.
+
+    Parameters
+    ----------
+    row : DBRow
+        Database row.
+
+    Returns
+    -------
+    bool
+        True if valid, else False.
+    """
+    for first, second in pairwise(row.labels):
+        if second in PROHIBITED_TRANSITIONS.get(first, set()):
+            print(f"[ERROR] ID: {row.id} [{row.source}]")
+            print(f"\tTransition from {first} → {second} is in PROHIBITED_TRANSITIONS.")
+            return False
+
+    return True
+
+
 if __name__ == "__main__":
     rows = load_from_db()
 
     token_errors = 0
     token_label_errors = 0
     name_errors = 0
+    transition_errors = 0
 
     for row in rows:
         p = PreProcessor(row.sentence, {})
@@ -274,17 +304,22 @@ if __name__ == "__main__":
             token_label_errors += 1
         if not validate_name_labels(row):
             name_errors += 1
+        if not validate_prohibited_transitions(row):
+            transition_errors += 1
 
-    duplicate_sentence_errors = validate_duplicate_sentences(rows)
+    dupe_sentence_errors = validate_duplicate_sentences(rows)
 
     if token_errors > 0:
-        print(f"{token_errors} token errors")
+        print(f"{token_errors} token errors.")
 
     if token_label_errors > 0:
-        print(f"{token_label_errors} token-label length mismatch errors")
+        print(f"{token_label_errors} token-label length mismatch errors.")
 
-    if duplicate_sentence_errors > 0:
-        print(f"{duplicate_sentence_errors} duplicate sentences with mismatched labels")
+    if dupe_sentence_errors > 0:
+        print(f"{dupe_sentence_errors} duplicate sentences with mismatched labels.")
 
     if name_errors > 0:
-        print(f"{name_errors} errors in name labels")
+        print(f"{name_errors} errors in name labels.")
+
+    if transition_errors > 0:
+        print(f"{transition_errors} errors in label transitions.")

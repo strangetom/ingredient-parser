@@ -16,6 +16,30 @@ logger = logging.getLogger(__name__)
 FeatureDict = dict[str, str | bool]
 
 
+# Prohibited transitions between labels.
+# These are based on the labelling scheme and confirmed as being not present in the
+# training data, rather than just being derived directly from the training data.
+PROHIBITED_TRANSITIONS = {
+    "B_NAME_TOK": {"NAME_MOD", "NAME_VAR"},
+    "I_NAME_TOK": {"NAME_MOD"},
+    "NAME_MOD": {"PURPOSE", "I_NAME_TOK", "UNIT", "QTY"},
+    "NAME_SEP": {"PURPOSE", "I_NAME_TOK", "NAME_SEP"},
+    "NAME_VAR": {"COMMENT", "PURPOSE", "I_NAME_TOK", "NAME_MOD", "UNIT", "QTY"},
+    "QTY": {"PURPOSE", "NAME_SEP"},
+    "PURPOSE": {
+        "SIZE",
+        "I_NAME_TOK",
+        "B_NAME_TOK",
+        "NAME_SEP",
+        "NAME_MOD",
+        "PREP",
+        "UNIT",
+        "NAME_VAR",
+        "QTY",
+    },
+}
+
+
 class NumpyCRFInference:
     """Class to performance inference using trained CRF model for ingredient sentence
     labelling.
@@ -285,6 +309,8 @@ class NumpyViterbiInference:
         self.scale_factor = scale_factor
         self.zero_offset = zero_offset
 
+        self.transition_constraint_mask = self._precompute_constraint_mask()
+
         # Determine data type for weights
         if isinstance(next(iter(feature_weights.values())), int):
             dtype = np.int32
@@ -356,6 +382,28 @@ class NumpyViterbiInference:
                 if feat in self.features_to_idx
             ]
         )
+
+    def _precompute_constraint_mask(self) -> np.ndarray:
+        """Compute constraint mask.
+
+        This is a boolean matrix of shape (n_labels, n_labels) where a value of 1 means
+        that the transition from previous label (row) to current label (column) is
+        forbidden.
+
+        Returns
+        -------
+        np.ndarray
+            Boolean matrix indicating forbidden transitions.
+
+        """
+        mask = np.zeros((self.n_labels, self.n_labels), dtype=np.bool_)
+
+        for prev_label, constrained_labels in PROHIBITED_TRANSITIONS.items():
+            prev_idx = self.label_to_idx[prev_label]
+            for idx in [self.label_to_idx[label] for label in constrained_labels]:
+                mask[prev_idx, idx] = 1
+
+        return mask
 
     def predict_sequence(
         self, features_seq: list[set[str]], constrain_transitions: bool = True
@@ -439,6 +487,7 @@ class NumpyViterbiInference:
 
             # Force the scores from constrained transitions to -inf
             if constrain_transitions and b_name_idx:
+                candidates[self.transition_constraint_mask] = -np.inf
                 # Mask transitions to I_NAME_TOK from paths that lack a B_NAME_TOK
                 invalid_prev_paths = ~has_b_name[t - 1]
                 candidates[invalid_prev_paths, i_name_idx] = -np.inf
