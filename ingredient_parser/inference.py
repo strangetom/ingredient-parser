@@ -4,6 +4,7 @@ import gzip
 import json
 import logging
 import mimetypes
+from itertools import pairwise
 from pathlib import Path
 
 import numpy as np
@@ -118,6 +119,8 @@ class NumpyCRFInference:
             # No tokens were assigned the NAME label, so guess if there's a name
             logger.debug(f"No tokens found where name is most probable label: {labels}")
             labels, scores = self._guess_ingredient_name(labels, scores)
+
+        self._detect_invalid_label_sequence(labels)
 
         return list(zip(labels, scores))
 
@@ -273,6 +276,92 @@ class NumpyCRFInference:
 
         logger.debug(f"Found alternative name at token indices: {indices}")
         return labels, scores
+
+    def _detect_invalid_label_sequence(self, labels: list[str]) -> None:
+        """Detect invalid label sequences in token labels.
+
+        Invalid label sequences are those that violate the labelling scheme. The current
+        list of checks are as follows:
+
+        NAME_VAR
+        * If there is a NAME_VAR label, there should be at least 2 groups of consecutive
+          NAME_VAR groups.
+        * The groups of consecutive NAME_VAR labels should be separated by NAME_SEP or
+          PUNC.
+
+        NAME_MOD
+        * If there is a NAME_MOD label, there should be either
+          * 2+ NAME_VARS and 1+ B_NAME_TOK
+          * 2+ B_NAME_TOK
+
+        The current implementation only outputs debug messages when invalid sequences
+        are detected. Future versions may attempt to fix the problems too.
+
+        Parameters
+        ----------
+        labels : list[str]
+            List of token labels.
+
+        Returns
+        -------
+        None
+        """
+
+        # NAME_VAR checks
+        name_var_idx = [i for i, label in enumerate(labels) if label == "NAME_VAR"]
+        name_var_groups = [list(g) for g in group_consecutive_idx(name_var_idx)]
+        if len(name_var_groups) == 1:
+            # There should be at least 2 groups of consecutive NAME_VAR labels.
+            logger.debug(
+                (
+                    "Invalid label sequence for NAME_VAR label: single NAME_VAR group. "
+                    "Parsed names may be incorrect."
+                )
+            )
+        elif len(name_var_groups) > 1:
+            for group1, group2 in pairwise(name_var_groups):
+                # Get indices between groups and check for NAME_SEP or PUNC.
+                inbetween_idx = list(range(group1[-1] + 1, group2[0]))
+                inbetween_labels = [labels[i] for i in inbetween_idx]
+                if not any(label in {"NAME_SEP", "PUNC"} for label in inbetween_labels):
+                    # Groups of consecutive NAME_VAR labels should be separated by a
+                    # PUNC or NAME_SEP label.
+                    logger.debug(
+                        (
+                            "Invalid label sequence for NAME_VAR label: "
+                            "NAME_VAR groups not separated by NAME_SEP or PUNC. "
+                            "Parsed names may be incorrect."
+                        )
+                    )
+
+        # NAME_MOD checks
+        name_mod_idx = [i for i, label in enumerate(labels) if label == "NAME_MOD"]
+        if name_mod_idx:
+            # Get index of last NAME_MOD label.
+            name_mod_idx = max(name_mod_idx)
+            # Count number of NAME_VAR and B_NAME_TOK labels that occur after the
+            # NAME_MOD label.
+            name_var_count = sum(
+                1 for label in labels[name_mod_idx:] if label == "NAME_VAR"
+            )
+            b_name_tok_count = sum(
+                1 for label in labels[name_mod_idx:] if label == "B_NAME_TOK"
+            )
+            if not (
+                b_name_tok_count >= 2 or (name_var_count >= 2 and b_name_tok_count >= 1)
+            ):
+                # NAME_MOD should be followed by at least 2 B_NAME_TOK or at least 2
+                # NAME_VAR and at least 1 B_NAME_TOK.
+                logger.debug(
+                    (
+                        "Invalid label sequence for NAME_MOD label: "
+                        "NAME_MOD is not followed by at least 2 NAME_VAR "
+                        "or 2 B_NAME_TOK. "
+                        "Parsed names may be incorrect."
+                    )
+                )
+
+        return None
 
 
 class NumpyViterbiInference:
