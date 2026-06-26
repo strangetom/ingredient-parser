@@ -612,7 +612,11 @@ class NumpyViterbiInference:
 
         predicted_labels = [self.idx_to_label[idx] for idx in label_indices]
 
-        self.marginals = self._compute_marginals(seq_len, state_scores)
+        # De-quantize state scores for marginal calculations.
+        dq_state_scores = self._dequantize_affine(state_scores)
+        _, _, _, self.marginals = self.compute_forward_backward(
+            dq_state_scores, self.dq_transition_weights
+        )
         # Extract the confidence for the specific labels chosen by Viterbi
         confidences = [
             float(self.marginals[t, idx]) for t, idx in enumerate(label_indices)
@@ -620,8 +624,51 @@ class NumpyViterbiInference:
 
         return predicted_labels, confidences
 
-    def _compute_marginals(self, seq_len: int, state_scores: np.ndarray) -> np.ndarray:
-        """Compute marginals using Log-Sum-Exp for numerical stability
+    @staticmethod
+    def forward_pass(
+        state_scores: np.ndarray, transition_weights: np.ndarray
+    ) -> np.ndarray:
+        """
+        Pure math log-space forward pass. Reusable for training and inference.
+        """
+        seq_len, n_labels = state_scores.shape
+        log_alpha = np.full((seq_len, n_labels), -np.inf)
+
+        log_alpha[0] = state_scores[0]
+        for t in range(1, seq_len):
+            log_alpha[t] = (
+                np.logaddexp.reduce(
+                    log_alpha[t - 1][:, np.newaxis] + transition_weights, axis=0
+                )
+                + state_scores[t]
+            )
+        return log_alpha
+
+    @staticmethod
+    def backward_pass(
+        state_scores: np.ndarray, transition_weights: np.ndarray
+    ) -> np.ndarray:
+        """
+        Pure math log-space backward pass. Reusable for training and inference.
+        """
+        seq_len, n_labels = state_scores.shape
+        log_beta = np.full((seq_len, n_labels), -np.inf)
+
+        log_beta[-1] = 0.0  # log(1)
+        for t in range(seq_len - 2, -1, -1):
+            log_beta[t] = np.logaddexp.reduce(
+                transition_weights + state_scores[t + 1] + log_beta[t + 1],
+                axis=1,
+            )
+        return log_beta
+
+    @staticmethod
+    def compute_forward_backward(
+        state_scores: np.ndarray, transition_weights: np.ndarray
+    ):
+        """
+        Executes forward and backwards passes, computes log_z, and extracts state
+        marginals.
 
         The marginal is calculated as
             `P(y_t = i| x) = alpha_{t, i} x beta_{t, i} / Z`
@@ -637,51 +684,14 @@ class NumpyViterbiInference:
         The calculation is more straight forward and stable to implement as logs:
             `log(P) = log(alpha_{t, i}) + log(beta_{t, i}) - log(Z)`
 
-        Parameters
-        ----------
-        seq_len : int
-            Sequence length.
-        state_scores : np.ndarray
-            State score matrix.
-
-        Returns
-        -------
-        np.ndarray
-            Marginal probability matrix for each label at each position in the sequence.
+        Returns:
+        --------
+        log_alpha, log_beta, log_z, marginals
         """
-        # De-quantize state scores for marginal calculations.
-        state_scores = self._dequantize_affine(state_scores)
+        log_alpha = NumpyViterbiInference.forward_pass(state_scores, transition_weights)
+        log_beta = NumpyViterbiInference.backward_pass(state_scores, transition_weights)
 
-        log_alpha = np.full((seq_len, self.n_labels), -np.inf)
-        log_beta = np.full((seq_len, self.n_labels), -np.inf)
-
-        # Forward pass
-        log_alpha[0] = state_scores[0]
-        for t in range(1, seq_len):
-            # logsumexp(prev_alpha + transitions) + current_emissions
-            # Get the scores for each label from the previous row of log_alpha.
-            # [:, np.newaxis] rotates this into a column vector because this is the
-            # previous label to the current label, so we need to broadcast across the
-            # rows of the transition matrix.
-            log_alpha[t] = (
-                np.logaddexp.reduce(
-                    log_alpha[t - 1][:, np.newaxis] + self.dq_transition_weights, axis=0
-                )
-                + state_scores[t]
-            )
-
-        # Backward pass
-        log_beta[-1] = 0.0  # log(1)
-        for t in range(seq_len - 2, -1, -1):
-            # logsumexp(transitions + next_emissions + next_beta)
-            log_beta[t] = np.logaddexp.reduce(
-                self.dq_transition_weights + state_scores[t + 1] + log_beta[t + 1],
-                axis=1,
-            )
-
-        # Log partition function Z
         log_z = np.logaddexp.reduce(log_alpha[-1])
-
-        # Marginal Probabilities P(y_t | x) = exp(log_alpha + log_beta - log_z)
         log_marginals = log_alpha + log_beta - log_z
-        return np.exp(log_marginals)
+
+        return log_alpha, log_beta, log_z, np.exp(log_marginals)
