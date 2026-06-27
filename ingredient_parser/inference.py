@@ -192,7 +192,7 @@ class NumpyCRFInference:
         """
         if self.model.marginals.size == 0:
             raise ValueError(
-                "Cannot return marginals until predict_sequence() has been called."
+                "Cannot return marginals until tag_from_features() has been called."
             )
 
         label_idx = self.model.label_to_idx[label]
