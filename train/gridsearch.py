@@ -88,6 +88,7 @@ VALID_GLOBAL_PARAMS = {
 VALID_POST_TRAINING_PARAMS = {
     "quantize_bits": (int, type(None)),
     "min_abs_weight": (float, type(None)),
+    "constrain_transitions": (bool,),
 }
 
 
@@ -482,9 +483,11 @@ def train_model_grid_search(
     post_training_parameters = {
         "quantize_bits": parameters["quantize_bits"],
         "min_abs_weight": parameters["min_abs_weight"],
+        "constrain_transitions": parameters["constrain_transitions"],
     }
     del parameters["quantize_bits"]
     del parameters["min_abs_weight"]
+    del parameters["constrain_transitions"]
 
     # Train model
     trainer = IngredientParserTrainer(algorithm=algo, verbose=True)
@@ -517,7 +520,12 @@ def train_model_grid_search(
     tagger = NumpyCRFInference(save_model_path, combine_name_labels)
     labels_pred = []
     for X in features_test:
-        labels, _ = zip(*tagger.tag_from_features(X))
+        labels, _ = zip(
+            *tagger.tag_from_features(
+                X,
+                constrain_transitions=post_training_parameters["constrain_transitions"],
+            )
+        )
         labels_pred.append(list(labels))
     stats = evaluate(labels_pred, truth_test, seed, combine_name_labels)
 

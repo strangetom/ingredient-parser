@@ -79,14 +79,15 @@ class NumpyCRFInference:
         self,
         sentence_features: list[FeatureDict],
         expect_name_in_output: bool = True,
+        constrain_transitions: bool = True,
     ) -> list[tuple[str, float]]:
         """Tag a sentence with labels using model.
 
         This function accepts a list of features for each token, rather than
         calculating the features from the tokens.
 
-        If self.combined_name_labels=True, then we cannot apply transition constraints
-        because they only apply to I_NAME_TOK.
+        If self.combined_name_labels=True, then we cannot apply label transition
+        constraints. In this case, constrain_transitions is forced to False.
 
         Parameters
         ----------
@@ -97,6 +98,10 @@ class NumpyCRFInference:
             fallback to selecting the most likely name from any token even though the
             model gives it a different label. Note that this does guarantee the output
             contains a name.
+            Default is True.
+        constrain_transitions : bool, optional
+            If True, constrain label transitions to prevent certain invalid label
+            sequences.
             Default is True.
 
         Returns
@@ -110,9 +115,15 @@ class NumpyCRFInference:
         ):
             raise ValueError("NumpyViterbiInference model does not have any weights.")
 
+        if self.combined_name_labels and constrain_transitions:
+            logger.debug(
+                "Ignoring constrain_transitions=True because combine_name_labels=True."
+            )
+            constrain_transitions = False
+
         features = [self._convert_features(f) for f in sentence_features]
         labels, scores = self.model.predict_sequence(
-            features, constrain_transitions=not self.combined_name_labels
+            features, constrain_transitions=constrain_transitions
         )
 
         if expect_name_in_output and all("NAME" not in label for label in labels):
