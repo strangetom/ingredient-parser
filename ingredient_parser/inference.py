@@ -121,7 +121,7 @@ class NumpyCRFInference:
             )
             constrain_transitions = False
 
-        features = [self._convert_features(f) for f in sentence_features]
+        features = [self.convert_features(f) for f in sentence_features]
         labels, scores = self.model.predict_sequence(
             features, constrain_transitions=constrain_transitions
         )
@@ -135,7 +135,8 @@ class NumpyCRFInference:
 
         return list(zip(labels, scores))
 
-    def _convert_features(self, features: FeatureDict) -> set[str]:
+    @staticmethod
+    def convert_features(features: FeatureDict) -> set[str]:
         """Convert features dict to set of strings.
 
         The model weights use the features as keys, so they need to be a string rather
