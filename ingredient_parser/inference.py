@@ -121,9 +121,8 @@ class NumpyCRFInference:
             )
             constrain_transitions = False
 
-        features = [self.convert_features(f) for f in sentence_features]
         labels, scores = self.model.predict_sequence(
-            features, constrain_transitions=constrain_transitions
+            sentence_features, constrain_transitions=constrain_transitions
         )
 
         if expect_name_in_output and all("NAME" not in label for label in labels):
@@ -134,41 +133,6 @@ class NumpyCRFInference:
         self._detect_invalid_label_sequence(labels)
 
         return list(zip(labels, scores))
-
-    @staticmethod
-    def convert_features(features: FeatureDict) -> set[str]:
-        """Convert features dict to set of strings.
-
-        The model weights use the features as keys, so they need to be a string rather
-        than a key: value pair.
-        For string features, the string is prepared by joining the key and value by ":".
-        For boolean features, the string is prepared just using the key if the boolean
-        value is True.
-
-        This only support features that are strings or booleans, which is fine because
-        the PreProcessor only outputs features that are string of booleans.
-        To support continuous features (float, int) in the future the output of this
-        function should be converted to dict[str, float | int] where the key is the
-        feature string and the value is a weight that is used to multiply the learned
-        model weight for the feature. For string features, the weight would always be 1.
-        For boolean features the weight would 1 for True and 0 for False (i.e. the
-        feature is ignored by multiplying the learned weight by 0).
-
-        Parameters
-        ----------
-        features : FeatureDict
-            Dictionary of token features token, obtained from PreProcessor.
-
-        Returns
-        -------
-        set
-            Set of features as strings
-        """
-        return {
-            key if isinstance(value, bool) else f"{key}:{value}"
-            for key, value in features.items()
-            if value is not False  # Skip False booleans
-        }
 
     def marginal(self, label: str, position: int) -> float:
         """Return the probability of label, label, at position, position, for the most
@@ -214,7 +178,7 @@ class NumpyCRFInference:
         with open(path, "rb") as f:
             data = json.loads(gzip.decompress(f.read()))
 
-        self.model = NumpyViterbiInference(
+        self.model = NumpyViterbi(
             features=data["attributes"],
             labels=data["labels"],
             feature_weights=data["state_features"],
@@ -376,7 +340,7 @@ class NumpyCRFInference:
         return None
 
 
-class NumpyViterbiInference:
+class NumpyViterbi:
     def __init__(
         self,
         features: dict[str, int],
@@ -507,7 +471,7 @@ class NumpyViterbiInference:
         return mask
 
     def predict_sequence(
-        self, features_seq: list[set[str]], constrain_transitions: bool = True
+        self, sentence_features: list[FeatureDict], constrain_transitions: bool = True
     ) -> tuple[list[str], list[float]]:
         """Predict the label sequence using Viterbi algorithm for a sequence of tokens
         described by sequence of features sets.
@@ -519,8 +483,8 @@ class NumpyViterbiInference:
 
         Parameters
         ----------
-        features_seq : list[set[str]]
-            List of sets of features for tokens in sequence.
+        sentence_features : list[FeatureDict]
+            List of FeatureDicts for tokens in sequence.
         constrain_transitions : bool, optional
             If True, enforce label transition constraints.
             Default is True.
@@ -530,6 +494,7 @@ class NumpyViterbiInference:
         tuple[list[str], list[float]]
             (List of labels, list of confidences) for the sequence.
         """
+        features_seq = [self.convert_features(f) for f in sentence_features]
         seq_len = len(features_seq)
 
         # Pre-compute state scores for all elements of sequence from emission matrix.
@@ -637,6 +602,41 @@ class NumpyViterbiInference:
         return predicted_labels, confidences
 
     @staticmethod
+    def convert_features(features: FeatureDict) -> set[str]:
+        """Convert features dict to set of strings.
+
+        The model weights use the features as keys, so they need to be a string rather
+        than a key: value pair.
+        For string features, the string is prepared by joining the key and value by ":".
+        For boolean features, the string is prepared just using the key if the boolean
+        value is True.
+
+        This only support features that are strings or booleans, which is fine because
+        the PreProcessor only outputs features that are string of booleans.
+        To support continuous features (float, int) in the future the output of this
+        function should be converted to dict[str, float | int] where the key is the
+        feature string and the value is a weight that is used to multiply the learned
+        model weight for the feature. For string features, the weight would always be 1.
+        For boolean features the weight would 1 for True and 0 for False (i.e. the
+        feature is ignored by multiplying the learned weight by 0).
+
+        Parameters
+        ----------
+        features : FeatureDict
+            Dictionary of token features token, obtained from PreProcessor.
+
+        Returns
+        -------
+        set
+            Set of features as strings
+        """
+        return {
+            key if isinstance(value, bool) else f"{key}:{value}"
+            for key, value in features.items()
+            if value is not False  # Skip False booleans
+        }
+
+    @staticmethod
     def forward_pass(
         state_scores: np.ndarray, transition_weights: np.ndarray
     ) -> np.ndarray:
@@ -700,8 +700,8 @@ class NumpyViterbiInference:
         --------
         log_alpha, log_beta, log_z, marginals
         """
-        log_alpha = NumpyViterbiInference.forward_pass(state_scores, transition_weights)
-        log_beta = NumpyViterbiInference.backward_pass(state_scores, transition_weights)
+        log_alpha = NumpyViterbi.forward_pass(state_scores, transition_weights)
+        log_beta = NumpyViterbi.backward_pass(state_scores, transition_weights)
 
         log_z = np.logaddexp.reduce(log_alpha[-1])
         log_marginals = log_alpha + log_beta - log_z

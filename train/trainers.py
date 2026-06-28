@@ -12,7 +12,7 @@ from typing import Any
 import numpy as np
 import pycrfsuite
 
-from ingredient_parser.inference import FeatureDict, NumpyCRFInference
+from ingredient_parser.inference import FeatureDict, NumpyViterbi
 
 logger = logging.getLogger(__name__)
 
@@ -193,9 +193,7 @@ class NumpyCRFTrainer:
         for sentence_features in training_sentence_features:
             converted_sentence_features: SentenceFeatures = []
             for token_features in sentence_features:
-                converted_token_feats = NumpyCRFInference.convert_features(
-                    token_features
-                )
+                converted_token_feats = NumpyViterbi.convert_features(token_features)
                 converted_sentence_features.append(converted_token_feats)
 
                 unique_features |= set(chain.from_iterable(token_features))
