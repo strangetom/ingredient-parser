@@ -5,10 +5,14 @@ import json
 import logging
 import time
 from datetime import datetime, timedelta
+from itertools import chain
 from pathlib import Path
 from typing import Any
 
+import numpy as np
 import pycrfsuite
+
+from ingredient_parser.inference import FeatureDict, NumpyCRFInference
 
 logger = logging.getLogger(__name__)
 
@@ -148,3 +152,140 @@ class IngredientParserTrainer(pycrfsuite.Trainer):  # type: ignore
             json.dump(config, f, indent=4)
 
         return config_file
+
+
+TokenFeatures = set[str]
+SentenceFeatures = list[TokenFeatures]
+
+
+class NumpyCRFTrainer:
+    def __init__(
+        self,
+        training_sentence_features: list[list[FeatureDict]],
+        training_sentence_labels: list[list[str]],
+    ) -> None:
+        self.true_sentence_labels = training_sentence_labels
+        self.training_sentences, self.feats_to_idx = self._generate_feature_index_map(
+            training_sentence_features
+        )
+        self.labels_to_idx = self._generate_label_index_map(training_sentence_labels)
+
+        self.observed_feature_counts = self.compute_observed_feature_counts(
+            self.training_sentences,
+            self.true_sentence_labels,
+            self.feats_to_idx,
+            self.labels_to_idx,
+        )
+
+    def _generate_feature_index_map(
+        self, training_sentence_features: list[list[FeatureDict]]
+    ) -> tuple[list[SentenceFeatures], dict[str, int]]:
+        """Convert FeatureDicts to set[str] and create dict mapping features to index.
+
+        Parameters
+        ----------
+        sentence_features: list[list[FeatureDict]]
+            List of FeatureDicts for each training sentence.
+        """
+        converted_training_sentences: list[SentenceFeatures] = []
+        unique_features = set()
+
+        for sentence_features in training_sentence_features:
+            converted_sentence_features: SentenceFeatures = []
+            for token_features in sentence_features:
+                converted_token_feats = NumpyCRFInference.convert_features(
+                    token_features
+                )
+                converted_sentence_features.append(converted_token_feats)
+
+                unique_features |= set(chain.from_iterable(token_features))
+
+            converted_training_sentences.append(converted_sentence_features)
+
+        feats_to_idx = {feat: i for i, feat in enumerate(unique_features)}
+        return converted_training_sentences, feats_to_idx
+
+    def _generate_label_index_map(
+        self, training_sentence_labels: list[list[str]]
+    ) -> dict[str, int]:
+        """Generate dict mapping label to index.
+
+        Parameters
+        ----------
+        training_sentence_labels : list[list[str]]
+            True labels for each sentence.
+
+        Returns
+        -------
+        dict[str, int]
+            Dict mapping label to index.
+        """
+        unique_labels = set()
+        for sentence_labels in training_sentence_labels:
+            unique_labels |= set(chain.from_iterable(sentence_labels))
+
+        return {feat: i for i, feat in enumerate(unique_labels)}
+
+    def compute_observed_feature_counts(
+        self,
+        training_sentence_features: list[list[set[str]]],
+        true_sentence_labels: list[list[str]],
+        feats_to_idx: dict[str, int],
+        labels_to_idx: dict[str, int],
+    ) -> np.ndarray:
+        """Compute the observed counts for each observed feature-label combination and
+        each previous label-label combination.
+
+        This is returned as a flattened array.
+
+        Parameters
+        ----------
+        training_data : list[tuple[list[set[str]], list[str]]]
+            Each training sentence is a tuple of the sentence features and true labels.
+            The sentences features are themselves a list of list[str], where the
+            list[str] are the list of features for each token in the sentence.
+        features_to_idx : dict[str, int]
+            Dict mapping feature to index.
+        labels_to_idx : dict[str, int]
+            Dict mapping label to index.
+
+        Returns
+        -------
+        np.ndarray
+            Flattened array of observed feature counts.
+        """
+        observed_emissions = np.zeros(
+            (len(feats_to_idx), len(labels_to_idx)), dtype=np.float64
+        )
+        observed_transitions = np.zeros(
+            (len(labels_to_idx), len(labels_to_idx)), dtype=np.float64
+        )
+
+        for sentence_features, sentence_labels in zip(
+            training_sentence_features, true_sentence_labels
+        ):
+            # Map labels to indices
+            label_indices = [labels_to_idx[label] for label in sentence_labels]
+
+            for t, (token_feats, label_idx) in enumerate(
+                zip(sentence_features, label_indices)
+            ):
+                # Map token features to indices
+                token_feat_indices = [
+                    feats_to_idx[feat] for feat in token_feats if feat in feats_to_idx
+                ]
+                # Increment count for each feature-label pair.
+                if token_feat_indices:
+                    observed_emissions[token_feat_indices, label_idx] += 1
+
+                # Transitions only exist for the 2nd token onwards.
+                if t > 0:
+                    prev_label_idx = label_indices[t - 1]
+                    # Increment count for each previous label-label pair.
+                    observed_transitions[prev_label_idx, label_idx] += 1
+
+        # Flatten, to support the format required by scipy.optimize.minimize when
+        # training.
+        return np.concatenate(
+            [observed_emissions.ravel(), observed_transitions.ravel()]
+        )
