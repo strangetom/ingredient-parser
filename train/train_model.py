@@ -231,7 +231,7 @@ def train_parser_model(
 
     labels_pred, scores_pred = [], []
     for X in features_test:
-        labels, scores = zip(*tagger.tag_from_features(X))
+        labels, scores = zip(*tagger.tag_from_features(X, expect_name_in_output=False))
         labels_pred.append(list(labels))
         scores_pred.append(list(scores))
 
