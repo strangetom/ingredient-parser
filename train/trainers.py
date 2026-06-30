@@ -331,10 +331,21 @@ class NumpyCRFTrainer:
         res = scipy.optimize.minimize(
             fun=crf_objective_function,  # Returns (loss, flat_gradient)
             x0=initial_weights,
-            args=(training_data, self.observed_feature_counts, n_features, n_labels),
+            args=(
+                training_data,
+                self.observed_feature_counts,
+                n_features,
+                n_labels,
+                0.5,
+            ),
             method="L-BFGS-B",
             jac=True,  # Tells scipy the function returns the gradient too
-            options={"maxiter": 1000},
+            options={
+                "maxiter": 1000,  # max_iterations in crfsuite
+                "maxls": 5,  # max_linesearch in crfsuite
+                "ftol": 5e-5,  # delta in crfsuite
+                "maxcor": 3,  # num_memories in crfsuite
+            },
         )
         optimised_weights = res.x
 
