@@ -306,8 +306,20 @@ class NumpyCRFTrainer:
             [observed_emissions.ravel(), observed_transitions.ravel()]
         )
 
-    def train(self):
-        """Train model to optimize weights."""
+    def train(
+        self, path: Path, quantize_bits: int | None, min_abs_weight: float = 0
+    ) -> None:
+        """Train model to optimize weights.
+
+        Parameters
+        ----------
+        path : Path
+            Path to save trained model to.
+        quantize_bits : int | None
+            Number of bits to quantize weights to, post training.
+        min_abs_weight : float, optional
+            Minimum absolute value of weight to keep.
+        """
         n_features = len(self.feats_to_idx)
         n_labels = len(self.labels_to_idx)
 
@@ -322,50 +334,77 @@ class NumpyCRFTrainer:
             args=(training_data, self.observed_feature_counts, n_features, n_labels),
             method="L-BFGS-B",
             jac=True,  # Tells scipy the function returns the gradient too
-            options={"maxiter": 100},
+            options={"maxiter": 1000},
         )
         optimised_weights = res.x
 
         split_point = n_features * n_labels
-        emission_weights = optimised_weights[:split_point].reshape(
+        self.emission_weights = optimised_weights[:split_point].reshape(
             (n_features, n_labels)
         )
-        transition_weights = optimised_weights[split_point:].reshape(
+        self.transition_weights = optimised_weights[split_point:].reshape(
             (n_labels, n_labels)
         )
 
-        self._save(Path("model.en.json.gz"), emission_weights, transition_weights)
+        # Post training modifications
+        self._prune_weights(min_abs_weight)
+        scale_factor = 1.0
+        if quantize_bits:
+            scale_factor = self._quantize(quantize_bits)
 
-    def _save(
-        self, path: Path, emission_weights: np.ndarray, transition_weights: np.ndarray
-    ):
-        """Save trained weights to gziped json.
+        self._simplify_weights()
+        self._save(path, scale_factor)
+
+        return res
+
+    def _save(self, path: Path, scale_factor: float):
+        """Save trained weights to gzipped json.
 
         Parameters
         ----------
         path : Path
             Path to save model to.
+        scale_factor : float
+            Description
+
+        Deleted Parameters
+        ------------------
         emission_weights : np.ndarray
             Trained emission weights.
         transition_weights : np.ndarray
             Trained transition weights.
         """
+
+        class NpEncoder(json.JSONEncoder):
+            def default(self, o):
+                if isinstance(o, np.integer):
+                    return int(o)
+                if isinstance(o, np.floating):
+                    return float(o)
+                if isinstance(o, np.ndarray):
+                    return o.tolist()
+                return super(NpEncoder, self).default(o)
+
         state_features = {}
         for feature, f_idx in self.feats_to_idx.items():
             for label, l_idx in self.labels_to_idx.items():
-                state_features[(feature, label)] = emission_weights[f_idx, l_idx]
+                weight = self.emission_weights[f_idx, l_idx]
+                if weight != 0:
+                    state_features[(feature, label)] = weight
 
         transitions = {}
         for prev_label, p_idx in self.labels_to_idx.items():
             for label, l_idx in self.labels_to_idx.items():
-                transitions[(prev_label, label)] = transition_weights[p_idx, l_idx]
+                weight = self.transition_weights[p_idx, l_idx]
+                if weight != 0:
+                    transitions[(prev_label, label)] = weight
 
         params = CRFModelParameters(
             attributes=self.feats_to_idx,
             labels=self.labels_to_idx,
             state_features={k[0] + "|" + k[1]: v for k, v in state_features.items()},
             transitions={k[0] + "|" + k[1]: v for k, v in transitions.items()},
-            quantization_scale=1.0,
+            quantization_scale=scale_factor,
             quantization_zero_offset=0,
         )
 
@@ -374,7 +413,101 @@ class NumpyCRFTrainer:
         # identical for the same set of model weights.
         with gzip.GzipFile(path, mode="wb", mtime=0) as gz:
             with io.TextIOWrapper(gz, encoding="utf-8") as f:
-                json.dump(asdict(params), f)
+                json.dump(asdict(params), f, cls=NpEncoder)
+
+    def _quantize(self, nbits: int) -> float:
+        """Quantize weights to nbit signed integer using linear scaling.
+
+        Because the model weights are only used additively during inference, and we only
+        consider the relative magnitudes of the weights, there is no need for keep the
+        scaling factor because it would just be a multiplier of all of the weights.
+
+        Parameters
+        ----------
+        nbits : int
+            Number of bits for integer scaling.
+            If None, no quantisation is performed.
+            Default is None.
+
+        Returns
+        -------
+        float
+            Description
+        """
+        # Choose an appropriate type to minimise model size.
+        if nbits <= 8:
+            type_ = np.int8
+        elif nbits <= 16:
+            type_ = np.int16
+        else:
+            type_ = np.int32
+
+        max_weight = max(np.max(self.emission_weights), np.max(self.transition_weights))
+        scale = (2 ** (nbits - 1) - 1) / max_weight
+        self.emission_weights = np.round(self.emission_weights * scale).astype(type_)
+        self.transition_weights = np.round(self.transition_weights * scale).astype(
+            type_
+        )
+        logger.debug(f"Quantized model weights using {nbits} bits of precision.")
+        return scale
+
+    def _prune_weights(self, min_abs_weight: float) -> None:
+        """Prune weights by removing weights smaller than min_abs_weight.
+
+        Parameters
+        ----------
+        min_abs_weight : float
+            Minimum absolute value of weight to keep.
+
+        Returns
+        -------
+        None
+            Description
+        """
+        if min_abs_weight == 0:
+            # Nothing to prune
+            return None
+
+        initial_weight_count = np.count_nonzero(
+            self.emission_weights
+        ) + np.count_nonzero(self.transition_weights)
+        self.emission_weights[np.abs(self.emission_weights) < min_abs_weight] = 0
+        self.transition_weights[np.abs(self.transition_weights) < min_abs_weight] = 0
+        remaining_count = np.count_nonzero(self.emission_weights) + np.count_nonzero(
+            self.transition_weights
+        )
+        pruned_pc = 100 * (1 - remaining_count / initial_weight_count)
+        logger.debug(
+            (
+                f"Pruned {pruned_pc:.2f}% of weights for having absolute "
+                f"values small than {min_abs_weight}."
+            )
+        )
+
+    def _simplify_weights(self) -> None:
+        """Simplify weights matrix by discarding any rows that are all zeros.
+
+        We also simplify the feature vocab to remove the entries corresponding to those
+        rows too.
+
+        We do not need to do this for the transition weights because the size of that
+        matrix is known ahead of time.
+        """
+        # Find row indices where absolute sum of weights is non zero. We keep these and
+        # discard the rest.
+        mask = np.abs(self.emission_weights).sum(axis=1) > 0
+        nonzero_idx = np.argwhere(mask)
+
+        new_feats_to_idx = {}
+        next_feature_index = 0
+        for feature, idx in sorted(self.feats_to_idx.items(), key=lambda x: x[1]):
+            if idx in nonzero_idx:
+                new_feats_to_idx[feature] = next_feature_index
+                next_feature_index += 1
+
+        self.feats_to_idx = new_feats_to_idx
+        # Can't use nonzero_idx to index here because it has the wrong dimensions.
+        self.emission_weights = self.emission_weights[mask]
 
 
 def crf_objective_function(
