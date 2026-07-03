@@ -309,8 +309,8 @@ class NumpyCRFTrainer:
         params = CRFModelParameters(
             attributes=self.feats_to_idx,
             labels=self.labels_to_idx,
-            state_features={k[0] + "|" + k[1]: v for k, v in state_features.items()},
-            transitions={k[0] + "|" + k[1]: v for k, v in transitions.items()},
+            state_features={"\u001f".join(k): v for k, v in state_features.items()},
+            transitions={"\u001f".join(k): v for k, v in transitions.items()},
             quantization_scale=scale_factor,
             quantization_zero_offset=0,
         )
