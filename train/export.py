@@ -35,7 +35,7 @@ def export_crfsuite_to_json(
       Name of each label (key) and their index (value).
     * state_features :  dict[str, float]
       The weights for each feature for each label.
-      The keys are the feature name and label joined with |.
+      The keys are the feature name and label joined with \u001f (ASCII unit separator).
       For example: bias:|QTY, where "bias:" is the feature name and "QTY" is the label.
     * transitions
       The weights for each label to label transition.
@@ -59,8 +59,8 @@ def export_crfsuite_to_json(
     params = CRFModelParameters(
         attributes={k: int(v) for k, v in info.attributes.items()},
         labels={k: int(v) for k, v in info.labels.items()},
-        state_features={k[0] + "|" + k[1]: v for k, v in info.state_features.items()},
-        transitions={k[0] + "|" + k[1]: v for k, v in info.transitions.items()},
+        state_features={"\u001f".join(k): v for k, v in info.state_features.items()},
+        transitions={"\u001f".join(k): v for k, v in info.transitions.items()},
         quantization_scale=1.0,
         quantization_zero_offset=0,
     )

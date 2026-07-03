@@ -421,7 +421,7 @@ class NumpyViterbiInference:
         # weights.
         self.emission_weights = np.zeros((self.n_features, self.n_labels), dtype=dtype)
         for feat, weight in feature_weights.items():
-            feature, label = feat.split("|")
+            feature, label = feat.split("\u001f")
             feature_idx = self.features_to_idx[feature]
             label_idx = self.label_to_idx[label]
             self.emission_weights[feature_idx, label_idx] = weight
@@ -430,7 +430,7 @@ class NumpyViterbiInference:
         # weights.
         self.transition_weights = np.zeros((self.n_labels, self.n_labels), dtype=dtype)
         for feat, weight in transition_weights.items():
-            prev_label, current_label = feat.split("|")
+            prev_label, current_label = feat.split("\u001f")
             prev_label_idx = self.label_to_idx[prev_label]
             current_label_idx = self.label_to_idx[current_label]
             self.transition_weights[prev_label_idx, current_label_idx] = weight
