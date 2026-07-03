@@ -6,7 +6,7 @@ import io
 import json
 import logging
 import time
-from dataclasses import asdict
+from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
@@ -162,7 +162,32 @@ TokenFeatureIndices = list[int]
 SentenceFeatures = list[TokenFeatureIndices]
 
 
+@dataclass
+class CRFHyperParameters:
+    optimizer: str
+    l2: float
+    maxiter: int  # max_iterations in crfsuite
+    maxls: int  # max_linesearch in crfsuite
+    ftol: float  # delta in crfsuite
+    maxcor: int  # num_memories in crfsuite
+    quantize_bits: int
+    min_abs_weight: float
+
+
 class NumpyCRFTrainer:
+    # Define default hyper parameters
+    hyperparameters = CRFHyperParameters(
+        optimizer="L-BFGS-B",
+        l2=0.5,
+        maxiter=1000,
+        maxls=5,
+        ftol=5e-5,
+        maxcor=3,
+        quantize_bits=8,
+        min_abs_weight=0.01,
+    )
+    result: scipy.optimize.OptimizeResult | None = None
+
     def __init__(
         self,
         training_sentence_features: list[list[FeatureDict]],
@@ -306,20 +331,16 @@ class NumpyCRFTrainer:
             [observed_emissions.ravel(), observed_transitions.ravel()]
         )
 
-    def train(
-        self, path: Path, quantize_bits: int | None, min_abs_weight: float = 0
-    ) -> None:
+    def train(self, path: Path) -> None:
         """Train model to optimize weights.
 
         Parameters
         ----------
         path : Path
             Path to save trained model to.
-        quantize_bits : int | None
-            Number of bits to quantize weights to, post training.
-        min_abs_weight : float, optional
-            Minimum absolute value of weight to keep.
         """
+        self.result = None
+
         n_features = len(self.feats_to_idx)
         n_labels = len(self.labels_to_idx)
 
@@ -336,17 +357,18 @@ class NumpyCRFTrainer:
                 self.observed_feature_counts,
                 n_features,
                 n_labels,
-                0.5,
+                self.hyperparameters.l2,
             ),
-            method="L-BFGS-B",
+            method=self.hyperparameters.optimizer,
             jac=True,  # Tells scipy the function returns the gradient too
             options={
-                "maxiter": 1000,  # max_iterations in crfsuite
-                "maxls": 5,  # max_linesearch in crfsuite
-                "ftol": 5e-5,  # delta in crfsuite
-                "maxcor": 3,  # num_memories in crfsuite
+                "maxiter": self.hyperparameters.maxiter,
+                "maxls": self.hyperparameters.maxls,
+                "ftol": self.hyperparameters.ftol,
+                "maxcor": self.hyperparameters.maxcor,
             },
         )
+        self.result = res
         optimised_weights = res.x
 
         split_point = n_features * n_labels
@@ -358,10 +380,10 @@ class NumpyCRFTrainer:
         )
 
         # Post training modifications
-        self._prune_weights(min_abs_weight)
+        self._prune_weights(self.hyperparameters.min_abs_weight)
         scale_factor = 1.0
-        if quantize_bits:
-            scale_factor = self._quantize(quantize_bits)
+        if self.hyperparameters.quantize_bits:
+            scale_factor = self._quantize(self.hyperparameters.quantize_bits)
 
         self._simplify_weights()
         self._save(path, scale_factor)
@@ -453,7 +475,14 @@ class NumpyCRFTrainer:
         else:
             type_ = np.int32
 
-        max_weight = max(np.max(self.emission_weights), np.max(self.transition_weights))
+        max_weight = max(
+            np.max(np.abs(self.emission_weights)),
+            np.max(np.abs(self.transition_weights)),
+        )
+
+        if max_weight == 0:
+            return 1.0
+
         scale = (2 ** (nbits - 1) - 1) / max_weight
         self.emission_weights = np.round(self.emission_weights * scale).astype(type_)
         self.transition_weights = np.round(self.transition_weights * scale).astype(
@@ -519,6 +548,46 @@ class NumpyCRFTrainer:
         self.feats_to_idx = new_feats_to_idx
         # Can't use nonzero_idx to index here because it has the wrong dimensions.
         self.emission_weights = self.emission_weights[mask]
+
+    def write_model_config(
+        self, model_file: Path, extra_parameters: dict[str, None | int | float | bool]
+    ) -> Path:
+        """Write configuration JSON file detail model parameters.
+
+        Parameters
+        ----------
+        model_file : Path
+            Path to model file to generate config for.
+        extra_parameters : dict[str, None | int | float | bool]
+            Dict of extra model hyperparameters to include in config.
+
+        Returns
+        -------
+        Path
+            Config file path.
+        """
+        if self.result is None:
+            raise ValueError("No training results. Run train() first.")
+
+        if model_file.suffix == ".gz" and model_file.stem.endswith(".json"):
+            # Strip suffix (to remove '.gz').
+            config_file = model_file.with_suffix("")
+        else:
+            config_file = model_file.with_suffix(".json")
+
+        config = asdict(self.hyperparameters)
+        config["datetime"] = datetime.now().isoformat()
+        config["stopping_reason"] = self.result.message
+
+        config.update(extra_parameters)
+
+        with open(model_file, "rb", buffering=0) as f:
+            config["sha256"] = hashlib.file_digest(f, "sha256").hexdigest()
+
+        with open(config_file, "w") as f:
+            json.dump(config, f, indent=4)
+
+        return config_file
 
 
 def crf_objective_function(
