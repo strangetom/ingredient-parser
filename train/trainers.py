@@ -104,7 +104,7 @@ class NumpyCRFTrainer:
             converted_sentence_features: SentenceFeatures = []
             for token_features in sentence_features:
                 converted_token_feats: list[int] = []
-                for feat in NumpyViterbi.convert_features(token_features):
+                for feat in sorted(NumpyViterbi.convert_features(token_features)):
                     if feat not in feats_to_idx:
                         feats_to_idx[feat] = next_feature_idx
                         next_feature_idx += 1

@@ -224,7 +224,10 @@ def load_datasets(
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
         c.execute(
-            f"SELECT * FROM {table} WHERE source IN ({','.join(['?'] * n)})",
+            (
+                f"SELECT * FROM {table} WHERE source IN ({','.join(['?'] * n)}) "
+                "ORDER BY id ASC"
+            ),
             datasets,
         )
         data = [dict(row) for row in c.fetchall()]
