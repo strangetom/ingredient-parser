@@ -184,8 +184,6 @@ def train_parser_model(
 
     trainer = NumpyCRFTrainer(features_train, truth_train)
     trainer.train(save_model)
-
-    # Export to json.
     config_file = trainer.write_model_config(save_model, extra_parameters={})
 
     # Create NumpyCRFInference object for evaluation.

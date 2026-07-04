@@ -244,54 +244,11 @@ if __name__ == "__main__":
         help="Combine labels containing 'NAME' into a single NAME label.",
     )
     gridsearch_parser.add_argument(
-        "--algos",
-        default=["lbfgs"],
-        choices=["lbfgs", "ap", "l2sgd", "pa", "arow"],
-        nargs="+",
-        help="CRF training algorithms to use.",
-    )
-    gridsearch_parser.add_argument(
-        "--lbfgs-params",
-        help="""LBFGS algorithm parameters as JSON. 
+        "--hyper-params",
+        help="""Hyper parameters as JSON. 
         The values for each parameter should be a list.
         Any parameters not given will take their default value.""",
         action=ParseJsonArg,
-    )
-    gridsearch_parser.add_argument(
-        "--ap-params",
-        help="""AP algorithm parameters as JSON. 
-        The values for each parameter should be a list.
-        Any parameters not given will take their default value.""",
-        action=ParseJsonArg,
-    )
-    gridsearch_parser.add_argument(
-        "--l2sgd-params",
-        help="""L2GSD algorithm parameters as JSON. 
-        The values for each parameter should be a list.
-        Any parameters not given will take their default value.""",
-        action=ParseJsonArg,
-    )
-    gridsearch_parser.add_argument(
-        "--pa-params",
-        help="""PA algorithm parameters as JSON. 
-        The values for each parameter should be a list.
-        Any parameters not given will take their default value.""",
-        action=ParseJsonArg,
-    )
-    gridsearch_parser.add_argument(
-        "--arow-params",
-        help="""AROW algorithm parameters as JSON. 
-        The values for each parameter should be a list.
-        Any parameters not given will take their default value.""",
-        action=ParseJsonArg,
-    )
-    gridsearch_parser.add_argument(
-        "--global-params",
-        help="""Global algorithm parameters, applicable to all algorithms, as JSON. 
-        The values for each parameter should be a list.
-        Any parameters not given will take their default value.""",
-        action=ParseJsonArg,
-        default=dict(),
     )
     gridsearch_parser.add_argument(
         "--pt-params",

@@ -10,15 +10,13 @@ from itertools import product
 from pathlib import Path
 from uuid import uuid4
 
-import pycrfsuite
 from sklearn.model_selection import train_test_split
 from tabulate import tabulate
 
 from ingredient_parser.inference import NumpyCRFInference
 
-from .export import export_crfsuite_to_json
 from .train_model import DEFAULT_MODEL_LOCATION
-from .trainers import IngredientParserTrainer
+from .trainers import CRFHyperParameters, NumpyCRFTrainer
 from .training_utils import (
     DataVectors,
     convert_num_ordinal,
@@ -28,80 +26,34 @@ from .training_utils import (
 
 logger = logging.getLogger(__name__)
 
-# Valid parameter options for LBFGS training algorithm and expected types
-VALID_LBFGS_PARAMS = {
-    "c1": (float, int),
-    "c2": (float, int),
-    "max_iterations": (int,),
-    "num_memories": (int,),
-    "period": (int,),  # stop in docs
-    "delta": (float, int),
-    "linesearch": (str,),
-    "max_linesearch": (int,),
+# Valid parameter options for trainer and expected types
+VALID_HYPER_PARAMS = {
+    "optimizer": (str,),
+    "l2": (float, int),
+    "maxiter": (int,),
+    "maxls": (int,),
+    "maxcor": (int,),
+    "ftol": (float, int),
+    "quantize_bits": (int, type(None)),
+    "min_abs_weight": (float, int),
 }
-VALID_LINESEARCH_OPTS = ["MoreThuente", "Backtracking", "StrongBacktracking"]
-
-# Valid parameter options for AP training algorithm and expected types
-VALID_AP_PARAMS = {
-    "max_iterations": (int,),
-    "epsilon": (float, int),
-}
-
-# Valid parameter options for L2SGD training algorithm and expected types
-VALID_L2SGD_PARAMS = {
-    "c2": (float, int),
-    "max_iterations": (int,),
-    "period": (int,),
-    "delta": (float,),
-    "calibration.eta": (float, int),
-    "calibration.rate": (float, int),
-    "calibration.samples": (int,),
-    "calibration.candidates": (int,),
-    "calibration.max_trials": (int,),
-}
-
-# Valid parameter options for PA training algorithm and expected types
-VALID_PA_PARAMS = {
-    "type": (int,),
-    "c": (float, int),
-    "error_sensitive": (bool,),
-    "averaging": (bool,),
-    "max_iterations": (int,),
-    "epsilon": (float, int),
-}
-
-# Valid parameter options for AROW training algorithm and expected types
-VALID_AROW_PARAMS = {
-    "variance": (float, int),
-    "gamma": (float, int),
-    "max_iterations": (int,),
-    "epsilon": (float, int),
-}
-
-# Valid parameter options for all training algorithms and expected types
-VALID_GLOBAL_PARAMS = {
-    "feature.minfreq": (int,),
-    "feature.possible_states": (bool,),
-    "feature.possible_transitions": (bool,),
-}
+VALID_OPTIMIZERS_CHOICES = ["L-BFGS-B"]
 
 VALID_POST_TRAINING_PARAMS = {
-    "quantize_bits": (int, type(None)),
-    "min_abs_weight": (float, type(None)),
     "constrain_transitions": (bool,),
+    "expect_name_in_output": (bool,),
 }
 
 
-def validate_lbfgs_params(lbfgs_params: dict) -> None:
-    """Validate LBFGS training algorithm parameters.
+def validate_hyper_params(hyper_params: dict) -> None:
+    """Validate training algorithm parameters.
 
     Check that the parameter names are valid.
     Check that the parameter value types are valid.
-    Check that the parameter values are valid for the linesearch parameter.
 
     Parameters
     ----------
-    lbfgs_params : dict
+    hyper_params : dict
         dict of parameters and their values.
 
     Raises
@@ -109,11 +61,11 @@ def validate_lbfgs_params(lbfgs_params: dict) -> None:
     ValueError
         Exception indicating invalid parameter.
     """
-    for key, value in lbfgs_params.items():
-        if key not in VALID_LBFGS_PARAMS.keys():
+    for key, value in hyper_params.items():
+        if key not in VALID_HYPER_PARAMS.keys():
             raise ValueError(f"Unknown parameter for LBFGS algorithm: {key}")
 
-        type_ = VALID_LBFGS_PARAMS[key]
+        type_ = VALID_HYPER_PARAMS[key]
         type_str = f"list[{'|'.join(t.__name__ for t in type_)}]"
         if not isinstance(value, list):
             raise ValueError(f"Parameter values for {key} should be {type_str}")
@@ -122,168 +74,12 @@ def validate_lbfgs_params(lbfgs_params: dict) -> None:
             if not isinstance(v, type_):
                 raise ValueError(f"Parameter values for {key} should be {type_str}")
 
-        if key == "linesearch":
+        if key == "optimizer":
             for v in value:
-                if v not in VALID_LINESEARCH_OPTS:
+                if v not in VALID_OPTIMIZERS_CHOICES:
                     raise ValueError(
-                        f"Linesearch values must be one of {VALID_LINESEARCH_OPTS}"
+                        f"Optimizer value must be one of {VALID_OPTIMIZERS_CHOICES}"
                     )
-
-
-def validate_ap_params(ap_params: dict) -> None:
-    """Validate AP training algorithm parameters.
-
-    Check that the parameter names are valid.
-    Check that the parameter value types are valid.
-
-    Parameters
-    ----------
-    ap_params : dict
-        dict of parameters and their values.
-
-    Raises
-    ------
-    ValueError
-        Exception indicating invalid parameter.
-    """
-    for key, value in ap_params.items():
-        if key not in VALID_AP_PARAMS.keys():
-            raise ValueError(f"Unknown parameter for AP algorithm: {key}")
-
-        type_ = VALID_AP_PARAMS[key]
-        type_str = f"list[{'|'.join(t.__name__ for t in type_)}]"
-        if not isinstance(value, list):
-            raise ValueError(f"Parameter values for {key} should be {type_str}")
-
-        for v in value:
-            if not isinstance(v, type_):
-                raise ValueError(f"Parameter values for {key} should be {type_str}")
-
-
-def validate_l2sgd_params(l2sgd_params: dict) -> None:
-    """Validate L2SGD training algorithm parameters.
-
-    Check that the parameter names are valid.
-    Check that the parameter value types are valid.
-
-    Parameters
-    ----------
-    l2sgd_params : dict
-        dict of parameters and their values.
-
-    Raises
-    ------
-    ValueError
-        Exception indicating invalid parameter.
-    """
-    for key, value in l2sgd_params.items():
-        if key not in VALID_L2SGD_PARAMS.keys():
-            raise ValueError(f"Unknown parameter for AP algorithm: {key}")
-
-        type_ = VALID_L2SGD_PARAMS[key]
-        type_str = f"list[{'|'.join(t.__name__ for t in type_)}]"
-        if not isinstance(value, list):
-            raise ValueError(f"Parameter values for {key} should be {type_str}")
-
-        for v in value:
-            if not isinstance(v, type_):
-                raise ValueError(f"Parameter values for {key} should be {type_str}")
-
-
-def validate_pa_params(pa_params: dict) -> None:
-    """Validate PA training algorithm parameters.
-
-    Check that the parameter names are valid.
-    Check that the parameter value types are valid.
-    Check that the 'type' has a value in (0,1,2)
-
-    Parameters
-    ----------
-    pa_params : dict
-        dict of parameters and their values.
-
-    Raises
-    ------
-    ValueError
-        Exception indicating invalid parameter.
-    """
-    for key, value in pa_params.items():
-        if key not in VALID_PA_PARAMS.keys():
-            raise ValueError(f"Unknown parameter for AP algorithm: {key}")
-
-        type_ = VALID_PA_PARAMS[key]
-        type_str = f"list[{'|'.join(t.__name__ for t in type_)}]"
-        if not isinstance(value, list):
-            raise ValueError(f"Parameter values for {key} should be {type_str}")
-
-        for v in value:
-            if not isinstance(v, type_):
-                raise ValueError(f"Parameter values for {key} should be {type_str}")
-
-        if key == "type":
-            for v in value:
-                if v not in (0, 1, 2):
-                    raise ValueError("Type value must be 0, 1 or 2")
-
-
-def validate_arow_params(arow_params: dict) -> None:
-    """Validate AROW training algorithm parameters.
-
-    Check that the parameter names are valid.
-    Check that the parameter value types are valid.
-
-    Parameters
-    ----------
-    arow_params : dict
-        dict of parameters and their values.
-
-    Raises
-    ------
-    ValueError
-        Exception indicating invalid parameter.
-    """
-    for key, value in arow_params.items():
-        if key not in VALID_AROW_PARAMS.keys():
-            raise ValueError(f"Unknown parameter for AP algorithm: {key}")
-
-        type_ = VALID_AROW_PARAMS[key]
-        type_str = f"list[{'|'.join(t.__name__ for t in type_)}]"
-        if not isinstance(value, list):
-            raise ValueError(f"Parameter values for {key} should be {type_str}")
-
-        for v in value:
-            if not isinstance(v, type_):
-                raise ValueError(f"Parameter values for {key} should be {type_str}")
-
-
-def validate_global_params(global_params: dict) -> None:
-    """Validate global training algorithm parameters, applicable to all algorithms
-
-    Check that the parameter names are valid.
-    Check that the parameter value types are valid.
-
-    Parameters
-    ----------
-    global_params : dict
-        dict of parameters and their values.
-
-    Raises
-    ------
-    ValueError
-        Exception indicating invalid parameter.
-    """
-    for key, value in global_params.items():
-        if key not in VALID_GLOBAL_PARAMS.keys():
-            raise ValueError(f"Unknown global parameter: {key}")
-
-        type_ = VALID_GLOBAL_PARAMS[key]
-        type_str = f"list[{'|'.join(t.__name__ for t in type_)}]"
-        if not isinstance(value, list):
-            raise ValueError(f"Parameter values for {key} should be {type_str}")
-
-        for v in value:
-            if not isinstance(v, type_):
-                raise ValueError(f"Parameter values for {key} should be {type_str}")
 
 
 def validate_post_training_params(post_training_params: dict) -> None:
@@ -316,13 +112,13 @@ def validate_post_training_params(post_training_params: dict) -> None:
                 raise ValueError(f"Parameter values for {key} should be {type_str}")
 
 
-def param_combos(params: dict) -> list[dict]:
+def param_combos(hyper_params: dict) -> list[dict]:
     """Generate list of dictionaries covering all possible combinations of parameters
     and their values given in the params input.
 
     Parameters
     ----------
-    params : dict
+    hyper_params : dict
         dict of parameters with list of values for each parameter
 
     Returns
@@ -332,8 +128,8 @@ def param_combos(params: dict) -> list[dict]:
         The dicts in the list cover all possible combinations of the input parameters.
     """
     combinations = []
-    for combo in product(*params.values()):
-        iteration = dict(zip(params.keys(), combo))
+    for combo in product(*hyper_params.values()):
+        iteration = dict(zip(hyper_params.keys(), combo))
         combinations.append(iteration)
 
     return combinations
@@ -371,54 +167,34 @@ def generate_argument_sets(args: argparse.Namespace) -> list[list]:
 
     # Generate list of arguments for all combinations parameters for each algorithm
     argument_sets = []
-    params = None
-    for algo in args.algos:
-        if algo == "lbfgs":
-            params = args.lbfgs_params
-        elif algo == "ap":
-            params = args.ap_params
-        elif algo == "l2sgd":
-            params = args.l2sgd_params
-        elif algo == "pa":
-            params = args.pa_params
-        elif algo == "arow":
-            params = args.arow_params
+    hyper_params = args.hyper_params | args.pt_params
 
-        # Join algorithm specific parameters with global and post training parameters
-        if params is None:
-            # No algorithm specific parameters set
-            params = args.global_params | args.pt_params
-        else:
-            params = params | args.global_params | args.pt_params
+    if args.save_model is None:
+        save_model = Path(DEFAULT_MODEL_LOCATION)
+    else:
+        save_model = Path(args.save_model)
 
-        if args.save_model is None:
-            save_model = DEFAULT_MODEL_LOCATION
-        else:
-            save_model = args.save_model
-
-        # Generate all combinations of parameters
-        for parameter_set in param_combos(params):
-            arguments = [
-                algo,
-                parameter_set,
-                vectors,
-                args.split,
-                save_model,
-                args.seed,
-                args.keep_models,
-                args.combine_name_labels,
-            ]
-            argument_sets.append(arguments)
+    # Generate all combinations of parameters
+    for parameter_set in param_combos(hyper_params):
+        arguments = [
+            parameter_set,
+            vectors,
+            args.split,
+            save_model,
+            args.seed,
+            args.keep_models,
+            args.combine_name_labels,
+        ]
+        argument_sets.append(arguments)
 
     return argument_sets
 
 
 def train_model_grid_search(
-    algo: str,
     parameters: dict,
     vectors: DataVectors,
     split: float,
-    save_model: str,
+    save_model: Path,
     seed: int,
     keep_model: bool,
     combine_name_labels: bool,
@@ -428,15 +204,13 @@ def train_model_grid_search(
 
     Parameters
     ----------
-    algo : str
-        Training algorithm
     parameters : dict
         Dict of global and training algorithm specific hyperparameters
     vectors : DataVectors
         Vectors loaded from training csv files
     split : float
         Fraction of vectors to use for evaluation.
-    save_model : str
+    save_model : Path
         Path to save trained model to.
     seed : int
         Integer used as seed for splitting the vectors between the training and
@@ -481,48 +255,34 @@ def train_model_grid_search(
 
     # Remove post training parameters from parameters dict
     post_training_parameters = {
-        "quantize_bits": parameters["quantize_bits"],
-        "min_abs_weight": parameters["min_abs_weight"],
         "constrain_transitions": parameters["constrain_transitions"],
+        "expect_name_in_output": parameters["expect_name_in_output"],
     }
-    del parameters["quantize_bits"]
-    del parameters["min_abs_weight"]
     del parameters["constrain_transitions"]
+    del parameters["expect_name_in_output"]
 
     # Train model
-    trainer = IngredientParserTrainer(algorithm=algo, verbose=True)
+    trainer = NumpyCRFTrainer(features_train, truth_train)
     # Set parameters
-    trainer.set_params(parameters)
-    for X, y in zip(features_train, truth_train):
-        trainer.append(X, y)
-    crfsuite_model_path = save_model_path.parent / (save_model_path.stem + ".crfsuite")
-    trainer.train(str(crfsuite_model_path))
-
-    # Export to json.
-    crfsuite_tagger = pycrfsuite.Tagger()  # type: ignore
-    crfsuite_tagger.open(str(crfsuite_model_path))
-    export_crfsuite_to_json(
-        crfsuite_tagger,
-        save_model_path,
-        quantize_bits=post_training_parameters["quantize_bits"],
-        min_abs_weight=post_training_parameters["min_abs_weight"],
-    )
+    trainer.hyperparameters = CRFHyperParameters(**parameters)
+    trainer.train(save_model_path)
     config_file = trainer.write_model_config(
         save_model_path, extra_parameters=post_training_parameters
     )
-
     # Get model size, in MB
     model_size = os.path.getsize(save_model_path) / 1024**2
 
     # Evaluate model
     # Create NumpyCRFInference object for evaluation.
     logger.info("Evaluating model with test data.")
-    tagger = NumpyCRFInference(save_model_path, combine_name_labels)
+    tagger = NumpyCRFInference(save_model, combine_name_labels)
+
     labels_pred = []
     for X in features_test:
         labels, _ = zip(
             *tagger.tag_from_features(
                 X,
+                expect_name_in_output=post_training_parameters["expect_name_in_output"],
                 constrain_transitions=post_training_parameters["constrain_transitions"],
             )
         )
@@ -530,13 +290,12 @@ def train_model_grid_search(
     stats = evaluate(labels_pred, truth_test, seed, combine_name_labels)
 
     # We don't need to keep the crfsuite model.
-    crfsuite_model_path.unlink(missing_ok=True)
     if not keep_model:
         save_model_path.unlink(missing_ok=True)
         config_file.unlink(missing_ok=True)
 
     return {
-        "algo": algo,
+        "algo": parameters["optimizer"],
         "model_size": model_size,
         "params": parameters | post_training_parameters,
         "stats": stats,
@@ -553,23 +312,8 @@ def grid_search(args: argparse.Namespace):
     args : argparse.Namespace
         Grid search configuration
     """
-    if args.lbfgs_params is not None:
-        validate_lbfgs_params(args.lbfgs_params)
-
-    if args.ap_params is not None:
-        validate_ap_params(args.ap_params)
-
-    if args.l2sgd_params is not None:
-        validate_l2sgd_params(args.l2sgd_params)
-
-    if args.pa_params is not None:
-        validate_pa_params(args.pa_params)
-
-    if args.arow_params is not None:
-        validate_arow_params(args.arow_params)
-
-    if args.global_params != dict():
-        validate_global_params(args.global_params)
+    if args.hyper_params is not None:
+        validate_hyper_params(args.hyper_params)
 
     if args.pt_params != dict():
         validate_post_training_params(args.pt_params)
@@ -582,7 +326,6 @@ def grid_search(args: argparse.Namespace):
     eval_results = []
     with cf.ProcessPoolExecutor(max_workers=args.processes) as executor:
         futures = [executor.submit(train_model_grid_search, *a) for a in arguments]
-        logger.info(f"Queued for separate runs against {len(args.algos)} algorithms")
         for idx, future in enumerate(cf.as_completed(futures)):
             logger.info(f"{convert_num_ordinal(idx + 1)} algorithm completed")
             eval_results.append(future.result())

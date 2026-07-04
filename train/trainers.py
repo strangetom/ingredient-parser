@@ -9,6 +9,7 @@ import time
 from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
+from typing import Literal
 
 import numpy as np
 import scipy
@@ -33,7 +34,7 @@ class CRFModelParameters:
 
 @dataclass
 class CRFHyperParameters:
-    optimizer: str
+    optimizer: Literal["L-BFGS-B"]
     l2: float
     maxiter: int  # max_iterations in crfsuite
     maxls: int  # max_linesearch in crfsuite
@@ -208,7 +209,7 @@ class NumpyCRFTrainer:
         path : Path
             Path to save trained model to.
         """
-        start_time = time.time()
+        start_time = time.monotonic()
         self.result = None
 
         n_features = len(self.feats_to_idx)
@@ -249,7 +250,7 @@ class NumpyCRFTrainer:
             (n_labels, n_labels)
         )
 
-        elapsed_time = timedelta(seconds=int(time.time() - start_time))
+        elapsed_time = timedelta(seconds=int(time.monotonic() - start_time))
         logger.info(f"Model trained in {elapsed_time}.")
         logger.info(f"Stopped after {res.nfev} iterations.")
 
