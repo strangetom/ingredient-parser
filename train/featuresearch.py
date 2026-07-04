@@ -9,15 +9,13 @@ from datetime import timedelta
 from pathlib import Path
 from uuid import uuid4
 
-import pycrfsuite
 from sklearn.model_selection import train_test_split
 from tabulate import tabulate
 
-from ingredient_parser.inference import NumpyCRFInference
+from ingredient_parser.inference import FeatureDict, NumpyCRFInference
 
-from .export import export_crfsuite_to_json
 from .train_model import DEFAULT_MODEL_LOCATION
-from .trainers import IngredientParserTrainer
+from .trainers import NumpyCRFTrainer
 from .training_utils import (
     DataVectors,
     convert_num_ordinal,
@@ -42,25 +40,25 @@ DISCARDED_FEATURES = {
 
 
 def select_features(
-    features_all: list[list[dict]], discard_features: list[str]
-) -> list[dict]:
+    features_all: list[list[FeatureDict]], discard_features: list[str]
+) -> list[list[FeatureDict]]:
     """Select specific features from full feature set.
 
     Parameters
     ----------
-    features_all : list[list[dict]]
+    features_all : list[list[FeatureDict]]
         List of sentence feature dicts containing all features.
     discard_features : list[str]
         List of feature names to discard.
 
     Returns
     -------
-    list[dict]
+    list[list[FeaturDict]]
         List of feature dicts, containing selected features.
     """
-    features_selected = []
+    features_selected: list[list[FeatureDict]] = []
     for sentence in features_all:
-        sentence_features = []
+        sentence_features: list[FeatureDict] = []
         for token in sentence:
             token_features = {}
             for key in token:
@@ -141,48 +139,10 @@ def train_model_feature_search(
     # Make model name unique
     save_model_path = Path(save_model).with_stem("model-" + str(uuid4()) + ".json")
 
-    # Post-training hyperparameters
-    quantize_bits = 16
-    min_abs_weight = None
-
     # Train model
-    trainer = IngredientParserTrainer(verbose=True)
-    # Set parameters
-    trainer.set_params(
-        {
-            "feature.minfreq": 0,
-            "feature.possible_states": True,
-            "feature.possible_transitions": True,
-            "c1": 0.6,
-            "c2": 0.5,
-            "max_linesearch": 5,
-            "num_memories": 3,
-            "period": 10,
-            "max_iterations": 1500,
-            "delta": 5e-5,
-        }
-    )
-    for X, y in zip(features_train, truth_train):
-        trainer.append(X, y)
-    crfsuite_model_path = save_model_path.parent / (save_model_path.stem + ".crfsuite")
-    trainer.train(str(crfsuite_model_path))
-
-    # Export to json.
-    crfsuite_tagger = pycrfsuite.Tagger()  # type: ignore
-    crfsuite_tagger.open(str(crfsuite_model_path))
-    export_crfsuite_to_json(
-        crfsuite_tagger,
-        save_model_path,
-        quantize_bits=quantize_bits,
-        min_abs_weight=min_abs_weight,
-    )
-    config_file = trainer.write_model_config(
-        save_model_path,
-        extra_parameters={
-            "quantize_bits": quantize_bits,
-            "min_abs_weight": min_abs_weight,
-        },
-    )
+    trainer = NumpyCRFTrainer(features_train, truth_train)
+    trainer.train(save_model_path)
+    config_file = trainer.write_model_config(save_model_path, extra_parameters={})
 
     # Get model size, in MB
     model_size = os.path.getsize(save_model_path) / 1024**2
@@ -198,7 +158,6 @@ def train_model_feature_search(
     stats = evaluate(labels_pred, truth_test, seed, combine_name_labels)
 
     # We don't need to keep the crfsuite model.
-    crfsuite_model_path.unlink(missing_ok=True)
     if not keep_model:
         save_model_path.unlink(missing_ok=True)
         config_file.unlink(missing_ok=True)
