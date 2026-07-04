@@ -275,7 +275,7 @@ def train_model_grid_search(
     # Evaluate model
     # Create NumpyCRFInference object for evaluation.
     logger.info("Evaluating model with test data.")
-    tagger = NumpyCRFInference(save_model, combine_name_labels)
+    tagger = NumpyCRFInference(save_model_path, combine_name_labels)
 
     labels_pred = []
     for X in features_test:
