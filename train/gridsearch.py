@@ -332,8 +332,14 @@ def grid_search(args: argparse.Namespace):
     with cf.ProcessPoolExecutor(max_workers=args.processes) as executor:
         futures = [executor.submit(train_model_grid_search, *a) for a in arguments]
         for idx, future in enumerate(cf.as_completed(futures)):
-            logger.info(f"{convert_num_ordinal(idx + 1)} algorithm completed")
-            eval_results.append(future.result())
+            if exception := future.exception():
+                logger.error(
+                    f"{convert_num_ordinal(idx + 1)} algorithm failed with exception:",
+                    exc_info=exception,
+                )
+            else:
+                logger.info(f"{convert_num_ordinal(idx + 1)} algorithm completed.")
+                eval_results.append(future.result())
 
     # Sort with highest sentence accuracy first, then highest token accuracy
     eval_results = sorted(
