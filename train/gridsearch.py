@@ -26,6 +26,9 @@ from .training_utils import (
 
 logger = logging.getLogger(__name__)
 
+HyperparameterGridDict = dict[str, list[int] | list[float] | list[str] | list[bool]]
+HyperparameterDict = dict[str, int | float | str | bool]
+
 # Valid parameter options for trainer and expected types
 VALID_HYPER_PARAMS = {
     "optimizer": (str,),
@@ -114,18 +117,18 @@ def validate_post_training_params(post_training_params: dict) -> None:
                 raise ValueError(f"Parameter values for {key} should be {type_str}")
 
 
-def param_combos(hyper_params: dict) -> list[dict]:
+def param_combos(hyper_params: HyperparameterGridDict) -> list[HyperparameterDict]:
     """Generate list of dictionaries covering all possible combinations of parameters
     and their values given in the params input.
 
     Parameters
     ----------
-    hyper_params : dict
+    hyper_params : HyperparameterGridDict
         dict of parameters with list of values for each parameter
 
     Returns
     -------
-    list[dict]
+    list[HyperparameterDict]
         list of dicts, where each dict has a single value for each parameter.
         The dicts in the list cover all possible combinations of the input parameters.
     """
@@ -169,7 +172,7 @@ def generate_argument_sets(args: argparse.Namespace) -> list[list]:
 
     # Generate list of arguments for all combinations parameters for each algorithm
     argument_sets = []
-    hyper_params = args.hyper_params | args.pt_params
+    hyper_params: HyperparameterGridDict = args.hyper_params | args.pt_params
 
     if args.save_model is None:
         save_model = Path(DEFAULT_MODEL_LOCATION)
