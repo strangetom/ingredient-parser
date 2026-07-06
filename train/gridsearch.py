@@ -28,6 +28,9 @@ from .training_utils import (
 
 logger = logging.getLogger(__name__)
 
+HyperparameterGridDict = dict[str, list[int] | list[float] | list[str] | list[bool]]
+HyperparameterDict = dict[str, int | float | str | bool]
+
 # Valid parameter options for LBFGS training algorithm and expected types
 VALID_LBFGS_PARAMS = {
     "c1": (float, int),
@@ -316,7 +319,7 @@ def validate_post_training_params(post_training_params: dict) -> None:
                 raise ValueError(f"Parameter values for {key} should be {type_str}")
 
 
-def param_combos(params: dict) -> list[dict]:
+def param_combos(params: HyperparameterGridDict) -> list[HyperparameterDict]:
     """Generate list of dictionaries covering all possible combinations of parameters
     and their values given in the params input.
 
