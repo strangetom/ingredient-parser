@@ -35,10 +35,12 @@ class CRFModelParameters:
 @dataclass
 class CRFHyperParameters:
     optimizer: Literal["L-BFGS-B"]
+    l1: float
     l2: float
     maxiter: int  # max_iterations in crfsuite
     maxls: int  # max_linesearch in crfsuite
     ftol: float  # delta in crfsuite
+    gtol: float  # delta in crfsuite
     maxcor: int  # num_memories in crfsuite
     quantize_bits: int
     min_abs_weight: float
@@ -48,13 +50,15 @@ class NumpyCRFTrainer:
     # Define default hyper parameters
     hyperparameters = CRFHyperParameters(
         optimizer="L-BFGS-B",
+        l1=0.1,
         l2=0.5,
-        maxiter=1000,
+        maxiter=500,
         maxls=5,
-        ftol=5e-5,
-        maxcor=3,
+        ftol=1e-6,
+        gtol=1e-6,
+        maxcor=10,
         quantize_bits=8,
-        min_abs_weight=0.01,
+        min_abs_weight=0,
     )
     result: scipy.optimize.OptimizeResult | None = None
 
@@ -228,6 +232,7 @@ class NumpyCRFTrainer:
                 self.observed_feature_counts,
                 n_features,
                 n_labels,
+                self.hyperparameters.l1,
                 self.hyperparameters.l2,
             ),
             method=self.hyperparameters.optimizer,
@@ -236,6 +241,7 @@ class NumpyCRFTrainer:
                 "maxiter": self.hyperparameters.maxiter,
                 "maxls": self.hyperparameters.maxls,
                 "ftol": self.hyperparameters.ftol,
+                "gtol": self.hyperparameters.gtol,
                 "maxcor": self.hyperparameters.maxcor,
             },
         )
@@ -255,7 +261,10 @@ class NumpyCRFTrainer:
         logger.info(f"Stopped after {res.nfev} iterations.")
 
         # Post training modifications
-        self._prune_weights(self.hyperparameters.min_abs_weight)
+        # We always prune the weights because the approximated L1 regularization will
+        # have left some very small weight values which should have become 0 had we done
+        # full-fat L1 regularization.
+        self._prune_weights(max(self.hyperparameters.min_abs_weight, 1e-8))
         scale_factor = 1.0
         if self.hyperparameters.quantize_bits:
             scale_factor = self._quantize(self.hyperparameters.quantize_bits)
@@ -471,7 +480,9 @@ def crf_objective_function(
     observed_counts: np.ndarray,
     n_features: int,
     n_labels: int,
+    l1_reg: float = 1.0,
     l2_reg: float = 1.0,
+    eps: float = 1e-8,
 ) -> tuple[float, np.ndarray]:
     """
     Compute the regularized Negative Log-Likelihood (NLL) and its analytical gradient.
@@ -486,6 +497,12 @@ def crf_objective_function(
 
 
     The gradient is calculated by ...
+
+    L1 regularisation is approximated as
+        |w| = sqrt(w^2 + eps)
+
+    This help avoid a discontinuity at 0 where the weight gradient would abruptly change
+    from -1 to +1, which would cause the L-BFGS-B optimizer to struggle.
 
     Parameters
     ----------
@@ -513,9 +530,17 @@ def crf_objective_function(
         The total number of unique features discovered across the training corpus.
     n_labels : int
         The total number of unique target tags/labels within the classification scheme.
-    l2_reg : float, default=1.0
+    l1_reg : float, optional
+        The L1 regularization coefficient. Controls model complexity and
+        prevents over-fitting by penalizing large weight magnitudes.
+        Default is 1.0.
+    l2_reg : float, optional
         The L2 regularization coefficient. Controls model complexity and
         prevents over-fitting by penalizing large weight magnitudes.
+        Default is 1.0.
+    eps : float, optional
+        Epsilon value used to smooth L1 regularisation.
+        Default is 1e-8.
 
     Returns
     -------
@@ -619,16 +644,26 @@ def crf_objective_function(
             log_pairwise = a + w + e + b - log_z
             expected_transitions += np.exp(log_pairwise).sum(axis=0)
 
-    # Apply L2 penalties to overall loss scalar
-    total_loss += 0.5 * l2_reg * np.sum(flat_weights**2)
+    # Apply L1 and L2 penalties to overall loss scalar
+    l1_penalty = l1_reg * np.sum(np.sqrt(flat_weights**2 + eps))
+    l2_penalty = 0.5 * l2_reg * np.sum(flat_weights**2)
+    total_loss += l1_penalty + l2_penalty
 
     # Compute the partial gradient for each weight.
     observed_emissions = observed_counts[:split_point].reshape((n_features, n_labels))
     observed_transitions = observed_counts[split_point:].reshape((n_labels, n_labels))
 
-    grad_emissions = expected_emissions - observed_emissions + l2_reg * emission_weights
+    grad_emissions = (
+        expected_emissions
+        - observed_emissions
+        + l1_reg * (emission_weights / np.sqrt(emission_weights**2 + eps))
+        + l2_reg * emission_weights
+    )
     grad_transitions = (
-        expected_transitions - observed_transitions + l2_reg * transition_weights
+        expected_transitions
+        - observed_transitions
+        + l1_reg * (transition_weights / np.sqrt(transition_weights**2 + eps))
+        + l2_reg * transition_weights
     )
 
     # Flatten matrices back into a single dimension to satisfy Scipy formatting

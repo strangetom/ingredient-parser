@@ -29,11 +29,13 @@ logger = logging.getLogger(__name__)
 # Valid parameter options for trainer and expected types
 VALID_HYPER_PARAMS = {
     "optimizer": (str,),
+    "l1": (float, int),
     "l2": (float, int),
     "maxiter": (int,),
     "maxls": (int,),
     "maxcor": (int,),
     "ftol": (float, int),
+    "gtol": (float, int),
     "quantize_bits": (int, type(None)),
     "min_abs_weight": (float, int),
 }
