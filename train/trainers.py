@@ -50,15 +50,15 @@ class NumpyCRFTrainer:
     # Define default hyper parameters
     hyperparameters = CRFHyperParameters(
         optimizer="L-BFGS-B",
-        l1=0.1,
+        l1=0.2,
         l2=0.5,
-        maxiter=500,
+        maxiter=1000,
         maxls=5,
         ftol=1e-6,
         gtol=1e-6,
         maxcor=10,
         quantize_bits=8,
-        min_abs_weight=0,
+        min_abs_weight=0.01,
     )
     result: scipy.optimize.OptimizeResult | None = None
 
