@@ -593,8 +593,17 @@ def grid_search(args: argparse.Namespace):
                     exc_info=exception,
                 )
             else:
-                logger.info(f"{convert_num_ordinal(idx + 1)} algorithm completed.")
-                eval_results.append(future.result())
+                result = future.result()
+                eval_results.append(result)
+
+                completed_at = time.strftime("%H:%M")
+                elapsed = timedelta(seconds=int(result["time"]))
+                logger.info(
+                    (
+                        f"{convert_num_ordinal(idx + 1)} algorithm completed at "
+                        f"{completed_at} ({elapsed} elapsed)."
+                    )
+                )
 
     # Sort with highest sentence accuracy first, then highest token accuracy
     eval_results = sorted(
@@ -617,14 +626,14 @@ def grid_search(args: argparse.Namespace):
         params = result["params"]
         stats = result["stats"]
         size = result["model_size"]
-        time = timedelta(seconds=int(result["time"]))
+        elapsed = timedelta(seconds=int(result["time"]))
         table.append(
             [
                 algo,
                 ", ".join([f"{k}={v}" for k, v in params.items()]),
                 f"{100 * stats.token.accuracy:.2f}%",
                 f"{100 * stats.sentence.accuracy:.2f}%",
-                str(time),
+                str(elapsed),
                 f"{size:.2f}",
             ]
         )
