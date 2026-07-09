@@ -2,6 +2,7 @@
 
 import argparse
 import concurrent.futures as cf
+import json
 import logging
 import os
 import time
@@ -556,6 +557,10 @@ def grid_search(args: argparse.Namespace):
     args : argparse.Namespace
         Grid search configuration
     """
+    if args.generate_param_json:
+        generate_parameter_json(args)
+        return
+
     if args.lbfgs_params is not None:
         validate_lbfgs_params(args.lbfgs_params)
 
@@ -650,3 +655,55 @@ def grid_search(args: argparse.Namespace):
         )
         + "\n"
     )
+
+
+def generate_parameter_json(args: argparse.Namespace) -> None:
+    """Write a template json file for gridsearch containing the possible parameters for
+    the given algorithms for use with the --parameters-from-json command line argument
+    for gridsearch.
+
+    Parameters
+    ----------
+    args : argparse.Namespace
+        Grid search configuration
+    """
+    parameter_json = {
+        "algos": args.algos,
+    }
+
+    if "lbfgs" in args.algos:
+        parameter_json["lbfgs_params"] = {}
+        for param in VALID_LBFGS_PARAMS.keys():
+            parameter_json["lbfgs_params"][param] = []
+
+    if "ap" in args.algos:
+        parameter_json["ap_params"] = {}
+        for param in VALID_AP_PARAMS.keys():
+            parameter_json["ap_params"][param] = []
+
+    if "pa" in args.algos:
+        parameter_json["pa_params"] = {}
+        for param in VALID_PA_PARAMS.keys():
+            parameter_json["pa_params"][param] = []
+
+    if "l2sgd" in args.algos:
+        parameter_json["l2sgd_params"] = {}
+        for param in VALID_L2SGD_PARAMS.keys():
+            parameter_json["lbfgs_params"][param] = []
+
+    if "arow" in args.algos:
+        parameter_json["arow_params"] = {}
+        for param in VALID_AROW_PARAMS.keys():
+            parameter_json["lbfgs_params"][param] = []
+
+    parameter_json["global_params"] = {}
+    for param in VALID_GLOBAL_PARAMS.keys():
+        parameter_json["global_params"][param] = []
+
+    parameter_json["pt_params"] = {}
+    for param in VALID_POST_TRAINING_PARAMS.keys():
+        parameter_json["pt_params"][param] = []
+
+    print('Generated "gridsearch_params.json".')
+    with open("gridsearch_params.json", "w") as f:
+        json.dump(parameter_json, f, indent=2)

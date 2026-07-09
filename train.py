@@ -307,6 +307,12 @@ if __name__ == "__main__":
         type=Path,
     )
     gridsearch_parser.add_argument(
+        "--generate-param-json",
+        help="Generate .json file specifying gridsearch parameters.",
+        action="store_true",
+        default=False,
+    )
+    gridsearch_parser.add_argument(
         "-v",
         help="Enable verbose output.",
         action="count",
