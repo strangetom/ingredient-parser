@@ -163,7 +163,7 @@ def normalise_spelling(tokens: list[IngredientToken]) -> list[IngredientToken]:
 
     if normalised_tokens != tokens:
         norm_tokens = [t.token for t in normalised_tokens]
-        logger.debug(f"Normalised '{[t.token for t in tokens]}' to '{norm_tokens}'.")
+        logger.debug("Normalised '%s' to '%s'.", [t.token for t in tokens], norm_tokens)
 
     return normalised_tokens
 
@@ -230,7 +230,8 @@ def load_fdc_ingredients() -> list[FDCIngredient]:
                 tokenized_description = tokenize_fdc_description(row["description"])
                 if not tokenized_description.embedding_tokens:
                     logger.debug(
-                        f"'{row['description']}' has no tokens in embedding vocabulary."
+                        "'%s' has no tokens in embedding vocabulary.",
+                        row["description"],
                     )
                     continue
                 foundation_foods.append(
@@ -247,7 +248,7 @@ def load_fdc_ingredients() -> list[FDCIngredient]:
                     )
                 )
 
-    logger.debug(f"Loaded {len(foundation_foods)} FDC ingredients.")
+    logger.debug("Loaded %d FDC ingredients.", len(foundation_foods))
     return foundation_foods
 
 

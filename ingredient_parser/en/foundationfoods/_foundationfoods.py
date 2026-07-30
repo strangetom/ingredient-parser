@@ -94,13 +94,13 @@ def match_foundation_foods(
     name_tokens = [IngredientToken(token, tag) for token, tag in zip(tokens, pos_tags)]
 
     name_tokens = strip_ambiguous_leading_adjectives(name_tokens)
-    logger.debug(f"Matching FDC ingredient for ingredient name tokens: {tokens}")
+    logger.debug("Matching FDC ingredient for ingredient name tokens: %s", tokens)
     prepared_tokens = prepare_tokens(tuple(name_tokens))
     if not prepared_tokens:
         logger.debug("Ingredient name has no tokens valid for matching.")
         return None
     else:
-        logger.debug(f"Prepared tokens: {prepared_tokens}.")
+        logger.debug("Prepared tokens: %s.", prepared_tokens)
 
     normalised_tokens = normalise_spelling(prepared_tokens)
 
@@ -158,7 +158,9 @@ def match_foundation_foods(
     # Check if both BM25 and uSIF agree on the top result. If they do, return that and
     # avoid any further processing.
     if fdc := consistent_top_result(bm25_matches, usif_matches):
-        logger.debug(f"BM25 and uSIF rankers agree on best match: {fdc.fdc_id=}")
+        logger.debug(
+            "BM25 and uSIF rankers agree on best match: fdc.fdc_id=%s", fdc.fdc_id
+        )
         return FoundationFood(
             text=fdc.description,
             confidence=1.0,
@@ -177,12 +179,14 @@ def match_foundation_foods(
             m.fdc.fdc_id for m in bm25_matches[:TOP_K]
         }
         logger.debug(
-            f"BM25 and uSIF ranker alignment is below threshold "
-            f"({bm25_usif_agreement=:.4f} < {BM25_USIF_AGREENMENT_THRESHOLD=})."
+            "BM25 and uSIF ranker alignment is below threshold "
+            "(bm25_usif_agreement=%.4f < BM25_USIF_AGREENMENT_THRESHOLD=%f).",
+            bm25_usif_agreement,
+            BM25_USIF_AGREENMENT_THRESHOLD,
         )
         logger.debug(
-            f"Using FuzzyMatcher on top {TOP_K} matches from "
-            "BM25 and uSIF to help arbitrate."
+            "Using FuzzyMatcher on top %d matches from BM25 and uSIF to arbitrate.",
+            TOP_K,
         )
 
         fuzzy = get_fuzzy_ranker()
@@ -213,16 +217,17 @@ def match_foundation_foods(
         )
         if matches_with_top_score > len(DATASET_PREFERENCE):
             logger.debug(
-                f"Top score shared by {matches_with_top_score} FDC entries "
-                "therefore cannot determine suitable match."
+                "Top score shared by %d FDC entries therefore cannot determine match.",
+                matches_with_top_score,
             )
             return None
 
     match_quality = determine_match_quality(best_match, usif_matches, fuzzy_matches)
     if match_quality.quality == "poor":
         logger.debug(
-            f"Rejected best match of '{best_match.fdc.description}' because "
-            f"{match_quality.reason}."
+            "Rejected best match of '%s' because %s.",
+            best_match.fdc.description,
+            match_quality.reason,
         )
         return None
 
@@ -552,10 +557,10 @@ def fuse_results(
     fuzzy_conf = fuzzy_conf / total_conf * 3
     usif_conf = usif_conf / total_conf * 3
     logger.debug(
-        f"Ranker confidences: "
-        f"BM25={bm25_conf:.4f}, "
-        f"uSIF={usif_conf:.4f}, "
-        f"Fuzzy={fuzzy_conf:.4f}."
+        "Ranker confidences: BM25=%.4f, uSIF=%.4f, Fuzzy=%.4f.",
+        bm25_conf,
+        usif_conf,
+        fuzzy_conf,
     )
 
     fused_matches = []

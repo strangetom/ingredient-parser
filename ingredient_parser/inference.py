@@ -128,7 +128,7 @@ class NumpyCRFInference:
 
         if expect_name_in_output and all("NAME" not in label for label in labels):
             # No tokens were assigned the NAME label, so guess if there's a name
-            logger.debug(f"No tokens found where name is most probable label: {labels}")
+            logger.debug("No tokens labelled as NAME by model: %s", labels)
             labels, scores = self._guess_ingredient_name(labels, scores)
 
         self._detect_invalid_label_sequence(labels)
@@ -285,7 +285,7 @@ class NumpyCRFInference:
             labels[token_index] = new_label
             scores[token_index] = new_score
 
-        logger.debug(f"Found alternative name at token indices: {indices}")
+        logger.debug("Found alternative name at token indices: %s", indices)
         return labels, scores
 
     def _detect_invalid_label_sequence(self, labels: list[str]) -> None:

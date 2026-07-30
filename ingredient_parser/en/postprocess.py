@@ -196,9 +196,10 @@ class PostProcessor:
             self.labels = name_replaced_labels
             logger.debug(
                 (
-                    f"Relabelled tokens to {name_replaced_labels} ",
+                    "Relabelled tokens to %s ",
                     "because seperate_name=False.",
-                )
+                ),
+                name_replaced_labels,
             )
 
             # Process NAME labels as any other label, but return as a list
@@ -1073,7 +1074,9 @@ class PostProcessor:
                         amounts.append(first)
                         _ = match.pop(-1)
 
-                        logger.debug(f"Implicit quantity of '1' applied to '1 {unit}'.")
+                        logger.debug(
+                            "Implicit quantity of '1' applied to '1 %s'.", unit
+                        )
                     else:
                         # The first amount is made up of the first and last items
                         # Note that this cannot be singular, but may be approximate
@@ -1581,7 +1584,7 @@ class PostProcessor:
 
             if amount.implicit_quantity:
                 logger.debug(
-                    f"Implicit quantity of '{amount.quantity}' applied to '{text}'."
+                    "Implicit quantity of '%s' applied to '%s'.", amount.quantity, text
                 )
 
         return processed_amounts

@@ -127,7 +127,7 @@ class PreProcessor:
         """
         self.input: str = input_sentence
         self.sentence: str = self._normalise(input_sentence)
-        logger.debug(f'Normalised sentence: "{self.sentence}".')
+        logger.debug("Normalised sentence: '%s'.", self.sentence)
 
         if custom_units is not None:
             self._units = UNITS | custom_units
@@ -196,7 +196,7 @@ class PreProcessor:
 
         for func in funcs:
             sentence = func(sentence)
-            logger.debug(f"{func.__name__}: {sentence}")
+            logger.debug("%s: %s", func.__name__, sentence)
 
         return sentence.strip()
 
@@ -625,8 +625,8 @@ class PreProcessor:
                 )
             )
 
-        logger.debug(f"Tokenized sentence: {[t.text for t in tokens]}.")
-        logger.debug(f"Singularised tokens at indices: {self.singularised_indices}.")
+        logger.debug("Tokenized sentence: %s.", [t.text for t in tokens])
+        logger.debug("Singularised tokens at indices: %s.", self.singularised_indices)
 
         return tokens
 

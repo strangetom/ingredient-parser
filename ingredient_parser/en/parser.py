@@ -67,7 +67,7 @@ def parse_ingredient_en(
     ParsedIngredient
         ParsedIngredient object of structured data parsed from input string.
     """
-    logger.debug(f'Parsing sentence "{sentence}" using "en" parser.')
+    logger.debug("Parsing sentence '%s' using 'en' parser.", sentence)
     TAGGER = load_parser_model()
 
     if custom_units is None:
@@ -84,7 +84,7 @@ def parse_ingredient_en(
     labels, scores = zip(*TAGGER.tag_from_features(features, expect_name_in_output))
     labels = list(labels)
     scores = list(scores)
-    logger.debug(f"Sentence token labels: {labels}.")
+    logger.debug("Sentence token labels: %s.", labels)
 
     labelled_tokens = [
         LabelledToken(
@@ -173,7 +173,7 @@ def inspect_parser_en(
         ParserDebugInfo object containing the PreProcessor object, PostProcessor
         object and Tagger.
     """
-    logger.debug(f'Parsing sentence "{sentence}" using "en" parser.')
+    logger.debug("Parsing sentence '%s' using 'en' parser.", sentence)
     TAGGER = load_parser_model()
 
     if custom_units is None:
@@ -190,7 +190,7 @@ def inspect_parser_en(
     labels, scores = zip(*TAGGER.tag_from_features(features, expect_name_in_output))
     labels = list(labels)
     scores = list(scores)
-    logger.debug(f"Sentence token labels: {labels}.")
+    logger.debug("Sentence token labels: %s.", labels)
 
     labelled_tokens = [
         LabelledToken(
