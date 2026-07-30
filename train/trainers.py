@@ -108,8 +108,8 @@ class IngredientParserTrainer(pycrfsuite.Trainer):  # type: ignore
             Log line emitted from crfsuite.
         """
         elapsed_time = timedelta(seconds=int(time.time() - self._start_time))
-        logger.info(f"Model trained in {elapsed_time}.")
-        logger.info(f"Stopped after {self._iterations} iterations.")
+        logger.info("Model trained in %s.", elapsed_time)
+        logger.info("Stopped after %d iterations.", self._iterations)
 
     def write_model_config(
         self, model_file: Path, extra_parameters: dict[str, None | int | float | bool]

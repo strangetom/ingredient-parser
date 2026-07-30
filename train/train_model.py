@@ -153,7 +153,7 @@ def train_parser_model(
     if seed is None:
         seed = randint(0, 1_000_000_000)
 
-    logger.info(f"{seed} is the random seed used for the train/test split.")
+    logger.info("%d is the random seed used for the train/test split.", seed)
 
     # Split data into train and test sets
     # The stratify argument means that each dataset is represented proportionally
@@ -181,8 +181,8 @@ def train_parser_model(
         random_state=seed,
     )
 
-    logger.info(f"{len(features_train):,} training vectors.")
-    logger.info(f"{len(features_test):,} testing vectors.")
+    logger.info("d training vectors.", len(features_train))
+    logger.info("%d testing vectors.", len(features_test))
 
     trainer = IngredientParserTrainer(verbose=True)
     trainer.set_params(
@@ -382,9 +382,9 @@ def train_multiple(args: argparse.Namespace) -> None:
         futures = [
             executor.submit(train_parser_model_bypass_logging, *a) for a in arguments
         ]
-        logger.info(f"Queued for {args.runs} separate runs")
+        logger.info("Queued for %d separate runs", args.runs)
         for idx, future in enumerate(cf.as_completed(futures)):
-            logger.info(f"{convert_num_ordinal(idx + 1)} run completed")
+            logger.info("%s run completed", convert_num_ordinal(idx + 1))
             eval_results.append(future.result())
 
     word_accuracies, sentence_accuracies, seeds = [], [], []

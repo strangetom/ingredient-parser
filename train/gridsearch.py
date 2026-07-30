@@ -584,17 +584,18 @@ def grid_search(args: argparse.Namespace):
 
     arguments = generate_argument_sets(args)
 
-    logger.info(f"Grid search over {len(arguments)} hyperparameters combinations.")
-    logger.info(f"{args.seed} is the random seed used for the train/test split.")
+    logger.info("Grid search over %d hyperparameters combinations.", len(arguments))
+    logger.info("%d is the random seed used for the train/test split.", args.seed)
 
     eval_results = []
     with cf.ProcessPoolExecutor(max_workers=args.processes) as executor:
         futures = [executor.submit(train_model_grid_search, *a) for a in arguments]
-        logger.info(f"Queued for separate runs against {len(args.algos)} algorithms")
+        logger.info("Queued for separate runs against %d algorithms", len(args.algos))
         for idx, future in enumerate(cf.as_completed(futures)):
             if exception := future.exception():
                 logger.error(
-                    f"{convert_num_ordinal(idx + 1)} algorithm failed with exception:",
+                    "%s algorithm failed with exception:",
+                    convert_num_ordinal(idx + 1),
                     exc_info=exception,
                 )
             else:
@@ -605,8 +606,10 @@ def grid_search(args: argparse.Namespace):
                 elapsed = timedelta(seconds=int(result["time"]))
                 logger.info(
                     (
-                        f"{convert_num_ordinal(idx + 1)} algorithm completed at "
-                        f"{completed_at} ({elapsed} elapsed)."
+                        "%s algorithm completed at %s (%s elapsed).",
+                        convert_num_ordinal(idx + 1),
+                        completed_at,
+                        elapsed,
                     )
                 )
 

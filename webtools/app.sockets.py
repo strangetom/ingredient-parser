@@ -178,12 +178,15 @@ def background_thread(thread_event, input_data):
         with set_redirect_log_stream(captured_output):
             with contextlib.redirect_stdout(captured_output):
                 logger.debug(
-                    f"{input_data['task'].capitalize()} requested"
-                    f" @ {datetime.now().strftime('%H:%M:%S')} on PID {os.getpid()}"
+                    "%s requested @ %s on PID %s",
+                    input_data["task"].capitalize(),
+                    datetime.now().strftime("%H:%M:%S"),
+                    os.getpid(),
                 )
                 logger.debug(
-                    f"{input_data['task'].capitalize()} inputs "
-                    f" {', '.join([f'{k}={v}' for k, v in args.items()])}"
+                    "%s inputs %s",
+                    input_data["task"].capitalize(),
+                    ", ".join([f"{k}={v}" for k, v in args.items()]),
                 )
 
                 start_time = time.monotonic()
@@ -205,12 +208,15 @@ def background_thread(thread_event, input_data):
                 period_seconds = timedelta(seconds=int(period_time)).total_seconds()
 
                 logger.debug(
-                    f"{input_data['task'].capitalize()} ended"
-                    f" @ {datetime.now().strftime('%H:%M:%S')} on PID {os.getpid()}"
+                    "%s ended @ %s on PID %s",
+                    input_data["task"].capitalize(),
+                    datetime.now().strftime("%H:%M:%S"),
+                    os.getpid(),
                 )
                 logger.debug(
-                    f"Took approximately"
-                    f" {int(period_seconds // 60)}mins {int(period_seconds % 60)}s"
+                    "Took approximately %d mins %d s",
+                    int(period_seconds // 60),
+                    int(period_seconds % 60),
                 )
 
                 time.sleep(1)  # allow buffer time to readout final output

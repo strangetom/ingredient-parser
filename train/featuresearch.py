@@ -246,8 +246,8 @@ def feature_search(args: argparse.Namespace):
         ]
         argument_sets.append(arguments)
 
-    logger.info(f"Grid search over {len(argument_sets)} feature sets.")
-    logger.info(f"{args.seed} is the random seed used for the train/test split.")
+    logger.info("Grid search over %d feature sets.", len(argument_sets))
+    logger.info("%d is the random seed used for the train/test split.", args.seed)
 
     eval_results = []
     with cf.ProcessPoolExecutor(max_workers=args.processes) as executor:
@@ -255,10 +255,10 @@ def feature_search(args: argparse.Namespace):
             executor.submit(train_model_feature_search, *a) for a in argument_sets
         ]
         logger.info(
-            f"Queued for separate runs against {len(argument_sets)} feature sets"
+            "Queued for separate runs against %d feature sets", len(argument_sets)
         )
         for idx, future in enumerate(cf.as_completed(futures)):
-            logger.info(f"{convert_num_ordinal(idx + 1)} set completed")
+            logger.info("%s set completed", convert_num_ordinal(idx + 1))
             eval_results.append(future.result())
 
     # Sort with highest sentence accuracy first

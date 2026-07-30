@@ -259,8 +259,8 @@ def load_datasets(
         discarded=sum(v.discarded for v in vectors),
     )
 
-    logger.info(f"{len(all_vectors.sentences):,} usable vectors.")
-    logger.info(f"{all_vectors.discarded:,} discarded due to OTHER labels.")
+    logger.info("%d usable vectors.", len(all_vectors.sentences))
+    logger.info("%d discarded due to OTHER labels.", all_vectors.discarded)
     return all_vectors
 
 
@@ -430,7 +430,7 @@ def confusion_matrix(
     ax.tick_params(axis="x", labelrotation=45)
     fig.tight_layout()
     fig.savefig(figure_path)
-    logger.info(f"Confusion matrix saved to {figure_path}.")
+    logger.info("Confusion matrix saved to '%s'.", figure_path)
     plt.close(fig)
 
 
