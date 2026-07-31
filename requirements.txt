@@ -1,3 +1,5 @@
 nltk>=3.9.1
 pint>=0.25.0
 numpy
+onnxruntime
+tokenizers

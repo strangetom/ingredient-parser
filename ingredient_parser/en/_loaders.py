@@ -7,6 +7,7 @@ from functools import lru_cache
 from importlib.resources import as_file, files
 
 from ..inference import NumpyCRFInference
+from ._bert import MdbrLeafMTModel
 from ._embeddings import GloVeModel
 
 logger = logging.getLogger("ingredient-parser")
@@ -44,6 +45,26 @@ def load_embeddings_model() -> GloVeModel:
     """
     logger.debug("Loading embeddings model: 'ingredient_embeddings.35d.glove.txt.gz'.")
     return GloVeModel("data/ingredient_embeddings.35d.glove.txt.gz")
+
+
+@lru_cache
+def load_bert_embeddings_model() -> MdbrLeafMTModel:
+    """Load BERT embeddings model.
+
+    This function is cached so that when the model has been loaded once, it does not
+    need to be loaded again, the cached model is returned.
+
+    Returns
+    -------
+    MdbrLeafMTModel
+        Embeddings model.
+    """
+    logger.debug("Loading BERT embeddings model: 'model_quantized.onnx'.")
+    with (
+        as_file(files(__package__) / "data/model_quantized.onnx") as onnx,
+        as_file(files(__package__) / "data/tokenizer.json") as tokenizer,
+    ):
+        return MdbrLeafMTModel(str(onnx), str(tokenizer))
 
 
 @lru_cache
