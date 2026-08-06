@@ -406,6 +406,102 @@ def p_fraction_range_in_prep():
 
 
 @pytest.fixture
+def p_fraction_multiplier_size():
+    """Define a PostProcessor object for sentence with a fraction size
+    to use for testing the PostProcessor class methods.
+
+    This sentence includes a number range in the preparation instructions.
+    """
+    sentence = "9 oz boneless, skinless chicken breast, cut into thin strips (¾ x 1¾in)"
+    tokens = [
+        "9",
+        "oz",
+        "boneless",
+        ",",
+        "skinless",
+        "chicken",
+        "breast",
+        ",",
+        "cut",
+        "into",
+        "thin",
+        "strip",
+        "(",
+        "#3$4x",
+        "1#3$4",
+        "in",
+        ")",
+    ]
+    pos_tags = [
+        "CD",
+        "JJ",
+        "JJ",
+        ",",
+        "JJ",
+        "NN",
+        "NN",
+        ",",
+        "VBN",
+        "IN",
+        "JJ",
+        "NNS",
+        "(",
+        "CD",
+        "CD",
+        "NN",
+        ")",
+    ]
+    labels = [
+        "QTY",
+        "UNIT",
+        "B_NAME_TOK",
+        "PUNC",
+        "I_NAME_TOK",
+        "I_NAME_TOK",
+        "I_NAME_TOK",
+        "PUNC",
+        "PREP",
+        "PREP",
+        "PREP",
+        "PREP",
+        "PUNC",
+        "PREP",
+        "PREP",
+        "PREP",
+        "PUNC",
+    ]
+    scores = [
+        0.9999893537546699,
+        0.9981938178422948,
+        0.8506037085268775,
+        0.9985192500887348,
+        0.997999889494879,
+        0.9992767217106394,
+        0.9994629081432607,
+        0.9999962602567518,
+        0.999582306931633,
+        0.9996687766624078,
+        0.9999766436571353,
+        0.9998952388185688,
+        0.9989079669008221,
+        0.45396881337880235,
+        0.46392260022876336,
+        0.4620409914471675,
+        0.9999265767783522,
+    ]
+    labelled_tokens = [
+        LabelledToken(
+            index=i, text=text, pos_tag=tag, label=label, score=score, plural=False
+        )
+        for i, (text, tag, label, score) in enumerate(
+            zip(tokens, pos_tags, labels, scores)
+        )
+    ]
+
+    return PostProcessor(sentence, labelled_tokens, custom_units={})
+
+
+@pytest.fixture
 def p_split_name():
     """Define a PostProcessor object with discard_isolated_stop_words set to False
     to use for testing the PostProcessor class methods.
@@ -748,6 +844,45 @@ class TestPostProcessor_parsed:
         )
 
         assert p_fraction_range_in_prep.parsed == expected
+
+    def test_fraction_multiplier_size(self, p_fraction_multiplier_size):
+        """
+        Test fixture returns expected ParsedIngredient object, with the fraction size
+        in the preparation instruction retained.
+        """
+        expected = ParsedIngredient(
+            name=[
+                IngredientText(
+                    text="boneless, skinless chicken breast",
+                    confidence=0.969172,
+                    starting_index=2,
+                )
+            ],
+            size=None,
+            amount=[
+                ingredient_amount_factory(
+                    quantity="9",
+                    unit="oz",
+                    text="9 oz",
+                    confidence=0.999092,
+                    starting_index=0,
+                ),
+            ],
+            preparation=IngredientText(
+                text="cut into thin strips (3/4x 1 3/4 in)",
+                confidence=0.819766,
+                starting_index=8,
+            ),
+            comment=None,
+            purpose=None,
+            foundation_foods=[],
+            sentence=(
+                "9 oz boneless, skinless chicken breast, cut into "
+                "thin strips (¾ x 1¾in)"
+            ),
+        )
+
+        assert p_fraction_multiplier_size.parsed == expected
 
     def test_split_ingredient_name(self, p_split_name):
         """
