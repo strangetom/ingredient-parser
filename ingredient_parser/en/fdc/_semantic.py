@@ -13,13 +13,7 @@ logger = logging.getLogger("ingredient-parser.foundation-foods.semantic")
 
 
 class SemanticRanker:
-    """Implementation of ATIRE BM25 ranking function [1]_.
-
-    References
-    ----------
-    .. [1] Trotman, A., Jia, X.F., Crane, M.: Towards an efficient and effective search
-           engine. In: SIGIR 2012 Workshop on Open Source Information Retrieval,
-           pp. 40–47, Portland (2012)
+    """
 
     Attributes
     ----------

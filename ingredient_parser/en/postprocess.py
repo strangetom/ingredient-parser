@@ -8,7 +8,7 @@ from functools import cached_property
 from itertools import chain, pairwise
 from statistics import mean
 
-from ingredient_parser.en.foundationfoods import match_foundation_foods
+from ingredient_parser.en.fdc import match_foundation_foods
 
 from .._common import consume, group_consecutive_idx
 from ..dataclasses import (
@@ -563,7 +563,9 @@ class PostProcessor:
                     # name.
                     tokens = [self.tokens[i].text for i in token_idx]
                     pos_tags = [self.tokens[i].pos_tag for i in token_idx]
-                    if ff := match_foundation_foods(tokens, pos_tags, len(names) - 1):
+                    if ff := match_foundation_foods(
+                        ing_text.text, tokens, pos_tags, len(names) - 1
+                    ):
                         foundation_foods.append(ff)
 
         return names, foundation_foods

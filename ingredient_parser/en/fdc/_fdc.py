@@ -7,7 +7,6 @@ from typing import Literal
 
 import numpy as np
 
-from ingredient_parser.en._loaders import load_embeddings_model
 from ingredient_parser.en.foundationfoods._ff_dataclasses import (
     FDCIngredient,
     FDCIngredientMatch,
@@ -17,8 +16,6 @@ from ...dataclasses import FoundationFood
 from ._bm25 import get_bm25_ranker
 from ._ff_constants import (
     FOUNDATION_FOOD_OVERRIDES,
-    NON_RAW_FOOD_NOUN_STEMS,
-    NON_RAW_FOOD_VERB_STEMS,
 )
 from ._ff_dataclasses import IngredientToken
 from ._ff_utils import (
@@ -26,8 +23,7 @@ from ._ff_utils import (
     prepare_tokens,
     strip_ambiguous_leading_adjectives,
 )
-from ._fuzzy import get_fuzzy_ranker
-from ._usif import get_usif_ranker
+from ._semantic import get_semantic_ranker
 
 logger = logging.getLogger("ingredient-parser.foundation-foods")
 
@@ -37,7 +33,7 @@ TOP_K = 50
 # Constant defining the minimum agreement between BM25 and uSIF rankings
 BM25_USIF_AGREENMENT_THRESHOLD = 0.25
 
-# Constant defining the minimum percetage difference between top ranked results to
+# Constant defining the minimum percentage difference between top ranked results to
 # be confident in the top ranked result.
 TOP_PC_DIFF_THRESHOLD = 0.01
 
@@ -110,56 +106,18 @@ def match_foundation_foods(
         match.name_index = name_idx
         return match
 
-    # Determine if there any of the normalised tokens are in the embeddings model.
-    # If not, we will skip the semantic (embeddings based) rankers.
-    embeddings = load_embeddings_model()
-    normalised_embeddings_tokens = [
-        t for t in normalised_tokens if t.token in embeddings
-    ]
-    has_token_in_embeddings = len(normalised_embeddings_tokens) > 0
-    if not has_token_in_embeddings:
-        logger.debug(
-            "Skipping semantic rankers (uSIF, Fuzzy) because ingredient name "
-            "does not contain any tokens present in the embeddings model."
-        )
-
-    # Bias the results towards selecting the raw version of a FDC ingredient, but
-    # only if the ingredient name tokens don't already include a verb or noun that
-    # indicates the food is not raw (e.g. cooked)
-    if (
-        len({t.token for t in normalised_tokens} & NON_RAW_FOOD_VERB_STEMS) == 0
-        and len({t.token for t in normalised_tokens} & NON_RAW_FOOD_NOUN_STEMS) == 0
-    ):
-        logger.debug("Biasing tokens towards raw FDC ingredients.")
-        normalised_tokens.append(IngredientToken("raw", "JJ"))
-        normalised_embeddings_tokens.append(IngredientToken("raw", "JJ"))
-
     bm25 = get_bm25_ranker()
     bm25_matches = bm25.rank_matches(normalised_tokens)
 
-    if not has_token_in_embeddings:
-        if not bm25_matches:
-            return None
-
-        # No other possible matching techniques, so just pick the best from BM25.
-        best_match = bm25_matches[0]
-        return FoundationFood(
-            text=best_match.fdc.description,
-            confidence=1.0,
-            fdc_id=best_match.fdc.fdc_id,
-            category=best_match.fdc.category,
-            data_type=best_match.fdc.data_type,
-            name_index=name_idx,
-        )
-
-    u = get_usif_ranker()
-    usif_matches = u.rank_matches(normalised_embeddings_tokens)
+    semantic = get_semantic_ranker()
+    # Need to do the name substitutions on ingredient name too.
+    semantic_matches = semantic.rank_matches(ingredient_name)
 
     # Check if both BM25 and uSIF agree on the top result. If they do, return that and
     # avoid any further processing.
-    if fdc := consistent_top_result(bm25_matches, usif_matches):
+    if fdc := consistent_top_result(bm25_matches, semantic_matches):
         logger.debug(
-            "BM25 and uSIF rankers agree on best match: fdc.fdc_id=%s", fdc.fdc_id
+            "BM25 and semantic rankers agree on best match: fdc.fdc_id=%s", fdc.fdc_id
         )
         return FoundationFood(
             text=fdc.description,
@@ -170,31 +128,7 @@ def match_foundation_foods(
             name_index=name_idx,
         )
 
-    fuzzy_matches = []
-    bm25_usif_agreement = estimate_bm25_usif_agreement(bm25_matches, usif_matches)
-    if has_token_in_embeddings and bm25_usif_agreement < BM25_USIF_AGREENMENT_THRESHOLD:
-        # Get all FDC IDs for BM25 and uSIF matches
-        # We'll only use the fuzzy ranker on these, instead of the whole FDC set.
-        candidate_fdc_ids = {m.fdc.fdc_id for m in usif_matches[:TOP_K]} | {
-            m.fdc.fdc_id for m in bm25_matches[:TOP_K]
-        }
-        logger.debug(
-            "BM25 and uSIF ranker alignment is below threshold "
-            "(bm25_usif_agreement=%.4f < BM25_USIF_AGREENMENT_THRESHOLD=%f).",
-            bm25_usif_agreement,
-            BM25_USIF_AGREENMENT_THRESHOLD,
-        )
-        logger.debug(
-            "Using FuzzyMatcher on top %d matches from BM25 and uSIF to arbitrate.",
-            TOP_K,
-        )
-
-        fuzzy = get_fuzzy_ranker()
-        fuzzy_matches = fuzzy.rank_matches(
-            normalised_embeddings_tokens, candidate_fdc_ids
-        )
-
-    fused_matches = fuse_results(bm25_matches, fuzzy_matches, usif_matches, top_n=TOP_K)
+    fused_matches = fuse_results(bm25_matches, semantic_matches, top_n=TOP_K)
     best_match = fused_matches[0]
 
     # If the there is less than 1% difference in score between the best two fused
@@ -205,8 +139,9 @@ def match_foundation_foods(
     # select the first because fused_matches are already sorted in order of preferred
     # dataset.
     top_pc_diff = percent_difference(fused_matches[0].score, fused_matches[1].score)
-    if best_match.score < 0.95 and 0 < top_pc_diff <= TOP_PC_DIFF_THRESHOLD:
+    if best_match.score < 0.9 and 0 < top_pc_diff <= TOP_PC_DIFF_THRESHOLD:
         logger.debug("No FDC ingredients found with good enough match.")
+        logger.debug("Best match: %s (%.4f)", best_match.fdc, best_match.score)
         return None
 
     if top_pc_diff == 0:
@@ -222,15 +157,6 @@ def match_foundation_foods(
             )
             return None
 
-    match_quality = determine_match_quality(best_match, usif_matches, fuzzy_matches)
-    if match_quality.quality == "poor":
-        logger.debug(
-            "Rejected best match of '%s' because %s.",
-            best_match.fdc.description,
-            match_quality.reason,
-        )
-        return None
-
     return FoundationFood(
         text=best_match.fdc.description,
         confidence=best_match.score,  # Note: already rounded by fuse_results
@@ -242,7 +168,7 @@ def match_foundation_foods(
 
 
 def consistent_top_result(
-    bm25_matches: list[FDCIngredientMatch], usif_matches: list[FDCIngredientMatch]
+    bm25_matches: list[FDCIngredientMatch], semantic_matches: list[FDCIngredientMatch]
 ) -> FDCIngredient | None:
     """If the BM25 and uSIF matches have a single consistent best match, return it.
     Otherwise return None.
@@ -254,14 +180,14 @@ def consistent_top_result(
     ----------
     bm25_matches : list[FDCIngredientMatch]
         List of FDCIngredientMatch from the BM25 ranker.
-    usif_matches : list[FDCIngredientMatch]
+    semantic_matches : list[FDCIngredientMatch]
         List of FDCIngredientMatch from the uSIF ranker.
 
     Returns
     -------
     FDCIngredient | None
     """
-    if not bm25_matches or not usif_matches:
+    if not bm25_matches or not semantic_matches:
         return None
 
     best_matches = set()
@@ -276,9 +202,9 @@ def consistent_top_result(
         else:
             break
 
-    best_matches.add(usif_matches[0].fdc)
-    best_score = usif_matches[0].score
-    for m in usif_matches[1:]:
+    best_matches.add(semantic_matches[0].fdc)
+    best_score = semantic_matches[0].score
+    for m in semantic_matches[1:]:
         if m.score == best_score:
             best_matches.add(m.fdc)
         else:
@@ -481,8 +407,7 @@ def normalize_scores(scores: list[float]) -> list[float]:
 
 def fuse_results(
     bm25_matches: list[FDCIngredientMatch],
-    fuzzy_matches: list[FDCIngredientMatch],
-    usif_matches: list[FDCIngredientMatch],
+    semantic_matches: list[FDCIngredientMatch],
     top_n: int = 100,
 ) -> list[FDCIngredientMatch]:
     """Distribution-based score fusion of BM25 and uSIF match results.
@@ -511,10 +436,8 @@ def fuse_results(
     ----------
     bm25_matches : list[FDCIngredientMatch]
         List of FDCIngredientMatch from the BM25 ranker.
-    fuzzy_matches : list[FDCIngredientMatch]
-        List of FDCIngredientMatch from the Fuzzy ranker.
-    usif_matches : list[FDCIngredientMatch]
-        List of FDCIngredientMatch from the uSIF ranker.
+    semantic_matches : list[FDCIngredientMatch]
+        List of FDCIngredientMatch from the semantic ranker.
     top_n : int, optional
         Number of top matches to consider.
 
@@ -526,22 +449,16 @@ def fuse_results(
     # Limit to best `top_n` results to prevent the normalisation being dominated by poor
     # matches.
     bm25_matches = bm25_matches[:top_n]
-    usif_matches = usif_matches[:top_n]
-    fuzzy_matches = fuzzy_matches[:top_n]
+    semantic_matches = semantic_matches[:top_n]
 
     # Normalize both score distributions
     bm25_normalized = normalize_scores([m.score for m in bm25_matches])
-    usif_normalized = normalize_scores([m.score for m in usif_matches])
-    fuzzy_normalized = normalize_scores([m.score for m in fuzzy_matches])
+    semantic_normalized = normalize_scores([m.score for m in semantic_matches])
 
     # Create dict mapping fdc_id to normalized score
-    usif_dict = {
+    semantic_dict = {
         match.fdc.fdc_id: norm_score
-        for match, norm_score in zip(usif_matches, usif_normalized)
-    }
-    fuzzy_dict = {
-        match.fdc.fdc_id: norm_score
-        for match, norm_score in zip(fuzzy_matches, fuzzy_normalized)
+        for match, norm_score in zip(semantic_matches, semantic_normalized)
     }
     bm25_dict = {
         match.fdc.fdc_id: norm_score
@@ -550,33 +467,25 @@ def fuse_results(
 
     # Estimate ranker confidences based on spread of normalised scores.
     bm25_conf = estimate_ranker_confidence(bm25_normalized)
-    fuzzy_conf = estimate_ranker_confidence(fuzzy_normalized)
-    usif_conf = estimate_ranker_confidence(usif_normalized)
-    total_conf = bm25_conf + usif_conf + fuzzy_conf
+    semantic_conf = estimate_ranker_confidence(semantic_normalized)
+    total_conf = bm25_conf + semantic_conf
     bm25_conf = bm25_conf / total_conf * 3
-    fuzzy_conf = fuzzy_conf / total_conf * 3
-    usif_conf = usif_conf / total_conf * 3
+    semantic_conf = semantic_conf / total_conf * 3
     logger.debug(
-        "Ranker confidences: BM25=%.4f, uSIF=%.4f, Fuzzy=%.4f.",
+        "Ranker confidences: BM25=%.4f, semantic=%.4f.",
         bm25_conf,
-        usif_conf,
-        fuzzy_conf,
+        semantic_conf,
     )
 
     fused_matches = []
-    fdc_entries = {m.fdc for m in bm25_matches} | {m.fdc for m in usif_matches}
+    fdc_entries = {m.fdc for m in bm25_matches} | {m.fdc for m in semantic_matches}
     for fdc in fdc_entries:
         bm25_norm_score = bm25_dict.get(fdc.fdc_id, 0)
-        # uSIF and Fuzzy scores are inverted (i.e. smaller = better). Therefore, after
+        # Semantic scores are inverted (i.e. smaller = better). Therefore, after
         # normalisation, subtract from one to make bigger = better.
-        usif_norm_score = 1 - usif_dict.get(fdc.fdc_id, 1)
-        fuzzy_norm_score = 1 - fuzzy_dict.get(fdc.fdc_id, 1)
+        semantic_norm_score = 1 - semantic_dict.get(fdc.fdc_id, 1)
 
-        fused_score = (
-            bm25_conf * bm25_norm_score
-            + usif_conf * usif_norm_score
-            + fuzzy_conf * fuzzy_norm_score
-        )
+        fused_score = bm25_conf * bm25_norm_score + semantic_conf * semantic_norm_score
         fused_matches.append(
             FDCIngredientMatch(fdc=fdc, score=float(round(fused_score / 3, 6)))
         )
@@ -587,73 +496,3 @@ def fuse_results(
         key=lambda x: (x.score, DATASET_PREFERENCE.index(x.fdc.data_type)),
         reverse=True,
     )
-
-
-def determine_match_quality(
-    best_match: FDCIngredientMatch,
-    usif_matches: list[FDCIngredientMatch],
-    fuzzy_matches: list[FDCIngredientMatch],
-) -> MatchQuality:
-    """Determine the quality of the FDC match based on the scores from the semantic
-    rankers.
-
-    The ranking functions will always return results, regardless of the quality of the
-    match, which means we can always create a "best" match. Therefore, we compute a
-    metric to describe the quality of the best match with the goal of being able to
-    reject matches that are objectively poor matches.
-
-    Parameters
-    ----------
-    best_match : FDCIngredientMatch
-        Best match.
-    fuzzy_matches : list[FDCIngredientMatch]
-        List of ranked Fuzzy matches.
-    usif_matches : list[FDCIngredientMatch]
-        List of ranked uSIF matches.
-
-    Returns
-    -------
-    MatchQuality
-    """
-    usif_match = get_matching_fdc_score(best_match.fdc.fdc_id, usif_matches)
-    fuzzy_match = get_matching_fdc_score(best_match.fdc.fdc_id, fuzzy_matches)
-
-    usif_score = usif_match.score if usif_match else 1
-    fuzzy_score = fuzzy_match.score if fuzzy_match else 1
-    best_semantic_score = min(usif_score, fuzzy_score)
-    if best_semantic_score > SEMANTIC_SCORE_THRESHOLD:
-        return MatchQuality(
-            quality="poor",
-            reason=(
-                f"best semantic score greater than threshold "
-                f"({best_semantic_score=:.4f} > {SEMANTIC_SCORE_THRESHOLD=})"
-            ),
-        )
-
-    return MatchQuality(quality="good", reason="")
-
-
-def get_matching_fdc_score(
-    fdc_id: int, matches: list[FDCIngredientMatch]
-) -> FDCIngredientMatch | None:
-    """Return the FDCIngredientMatch with given fdc_id.
-
-    If a match with the given fdc_id does not exist, return None.
-
-    Parameters
-    ----------
-    fdc_id : int
-        FDC ID to return score for.
-    matches : list[FDCIngredientMatch]
-        List of FDC matches to search.
-
-    Returns
-    -------
-    FDCIngredientMatch | None
-        FDC match, or None if no match found.
-    """
-    for match in matches:
-        if match.fdc.fdc_id == fdc_id:
-            return match
-
-    return None
