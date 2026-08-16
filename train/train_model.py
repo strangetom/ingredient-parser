@@ -181,7 +181,7 @@ def train_parser_model(
         random_state=seed,
     )
 
-    logger.info("d training vectors.", len(features_train))
+    logger.info("%d training vectors.", len(features_train))
     logger.info("%d testing vectors.", len(features_test))
 
     trainer = IngredientParserTrainer(verbose=True)
