@@ -81,7 +81,6 @@ UNITS = {
     "pounds": "pound",
     "pts": "pt",
     "punnets": "punnet",
-    "racks": "rack",
     "rashers": "rasher",
     "recipes": "recipe",
     "rectangles": "rectangle",
