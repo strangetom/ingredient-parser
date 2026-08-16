@@ -68,6 +68,7 @@ class Test_convert_to_pint_unit:
         assert convert_to_pint_unit("Ml") == UREG("milliliter").units
         assert convert_to_pint_unit("Pt") == UREG("pint").units
         assert convert_to_pint_unit("Tb") == UREG("tablespoon").units
+        assert convert_to_pint_unit("tb") == UREG("tablespoon").units
         assert convert_to_pint_unit("C") == UREG("cup").units
         assert convert_to_pint_unit("c") == UREG("cup").units
 

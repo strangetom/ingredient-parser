@@ -111,15 +111,14 @@ UNIT_REPLACEMENTS = [
     (re.compile(r"\b(fluid oz)\b"), "fluid_ounce"),
     (re.compile(r"\b(fl ounce)\b"), "fluid_ounce"),
     (re.compile(r"\b(fluid ounce)\b"), "fluid_ounce"),
-    (re.compile(r"\b(C)\b"), "cup"),
-    (re.compile(r"\b(c)\b"), "cup"),
+    (re.compile(r"\b(C)\b", re.I), "cup"),
     (re.compile(r"\b(qt)\b"), "quart"),
     (re.compile(r"\b(Cl)\b"), "centiliter"),
     (re.compile(r"\b(G)\b"), "gram"),
     (re.compile(r"\b(Ml)\b"), "milliliter"),
     (re.compile(r"\b(Mm)\b"), "millimeter"),
     (re.compile(r"\b(Pt)\b"), "pint"),
-    (re.compile(r"\b(Tb)\b"), "tablespoon"),
+    (re.compile(r"\b(Tb)\b", re.I), "tablespoon"),
 ]
 
 download_nltk_resources()
