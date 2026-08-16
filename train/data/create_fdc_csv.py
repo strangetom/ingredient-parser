@@ -152,7 +152,7 @@ if __name__ == "__main__":
             # Discard whole meals or dishes
             if "dishes" in category.lower() or "sandwich" in category.lower():
                 continue
-            if category in {"Restaurant Foods", "Pizza", "Burgers"}:
+            if category in {"Restaurant Foods", "Pizza", "Burgers", "Fast Foods"}:
                 continue
 
             fdc = FDCIngredient(
@@ -187,3 +187,4 @@ if __name__ == "__main__":
                     "category": fdc.category,
                 }
             )
+        print(f"Data written to {args.output}.")
