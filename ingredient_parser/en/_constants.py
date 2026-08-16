@@ -104,6 +104,7 @@ UNITS = {
     "stems": "stem",
     "sticks": "stick",
     "strips": "strip",
+    "t": "t",
     "tablespoons": "tablespoon",
     "tbsps": "tbsp",
     "tbs": "tb",
