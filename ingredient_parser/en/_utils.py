@@ -351,10 +351,17 @@ def convert_to_pint_unit(
         # the string.
         return unit
 
+    # If the unit is in uppercase, convert to lowercase.
+    # Keep the original unit so we can return it as provided to this function if we
+    # can't convert to a pint.Unit object.
+    original_unit = unit
+    if unit == unit.upper():
+        unit = unit.lower()
+
     if unit.lower() in MISINTERPRETED_UNITS:
         # Special cases to prevent pint interpreting units incorrectly
         # e.g. pinch != pico-inch
-        return unit
+        return original_unit
 
     # Apply replacements to ensure correct matches in pint Unit Registry
     for regex, replacement in UNIT_REPLACEMENTS:
@@ -374,7 +381,7 @@ def convert_to_pint_unit(
     if unit != "" and unit in UREG:
         return UREG(unit).units
 
-    return unit
+    return original_unit
 
 
 @lru_cache(maxsize=512)

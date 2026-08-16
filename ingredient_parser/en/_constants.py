@@ -118,10 +118,11 @@ UNITS = {
     "vials": "vial",
     "wheels": "wheel",
 }
-# Generate capitalized version of each entry in the UNITS dictionary
+# Generate capitalized and uppercase version of each entry in the UNITS dictionary
 _capitalized_units = {}
 for plural, singular in UNITS.items():
     _capitalized_units[plural.capitalize()] = singular.capitalize()
+    _capitalized_units[plural.upper()] = singular.upper()
 UNITS = UNITS | _capitalized_units
 # Create a flattened set of all keys and values in UNITS dict
 # since we need this in a few places

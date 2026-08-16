@@ -176,7 +176,7 @@ class Test_convert_to_pint_unit:
         """
         assert convert_to_pint_unit("medium-size") == "medium-size"
 
-    def test_misinterpretted_units(self):
+    def test_misinterpreted_units(self):
         """
         Test cases that pint would misinterpret as a different, incorrect unit
         """
@@ -188,6 +188,18 @@ class Test_convert_to_pint_unit:
         # Title case + plural
         assert convert_to_pint_unit("Links") == "Links"
         assert convert_to_pint_unit("shake") == "shake"
+
+    def test_upper_case_units(self):
+        """
+        Test cases where the unit is provided in all caps.
+        """
+        assert convert_to_pint_unit("TSP") == UREG("teaspoon")
+        assert convert_to_pint_unit("TB") == UREG("tablespoon")
+        assert convert_to_pint_unit("CUP") == UREG("cup")
+        # Misinterpreted unit
+        assert convert_to_pint_unit("PINCH") == "PINCH"
+        # Not a recognised pint unit
+        assert convert_to_pint_unit("CASK") == "CASK"
 
 
 class Testcombine_quantities_split_by_and:
