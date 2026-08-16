@@ -489,12 +489,14 @@ def p_fraction_multiplier_size():
         0.4620409914471675,
         0.9999265767783522,
     ]
+    plurals = [False] * len(tokens)
+    plurals[11] = True
     labelled_tokens = [
         LabelledToken(
-            index=i, text=text, pos_tag=tag, label=label, score=score, plural=False
+            index=i, text=text, pos_tag=tag, label=label, score=score, plural=plural
         )
-        for i, (text, tag, label, score) in enumerate(
-            zip(tokens, pos_tags, labels, scores)
+        for i, (text, tag, label, score, plural) in enumerate(
+            zip(tokens, pos_tags, labels, scores, plurals)
         )
     ]
 

@@ -642,7 +642,12 @@ class PostProcessor:
                     text_fraction = text_fraction.replace("- ", "-")
                     group_tokens.append(text_fraction)
                 else:
-                    group_tokens.append(self.tokens[i].text)
+                    if self.tokens[i].plural:
+                        group_tokens.append(
+                            pluralise_units(self.tokens[i].text, self.custom_units)
+                        )
+                    else:
+                        group_tokens.append(self.tokens[i].text)
 
             joined = " ".join(group_tokens)
             confidence = mean([self.tokens[i].score for i in idx])
@@ -671,7 +676,6 @@ class PostProcessor:
         else:
             text = ", ".join(parts)
         text = self._fix_punctuation(text)
-        text = pluralise_units(text, self.custom_units)
 
         if len(parts) == 0:
             return None
