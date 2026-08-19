@@ -4,6 +4,7 @@ import csv
 import gzip
 import logging
 import string
+import unicodedata
 from dataclasses import dataclass
 from functools import lru_cache
 from importlib.resources import as_file, files
@@ -111,12 +112,40 @@ for type_ in PASTA_TYPES:
     FDC_TOKEN_TO_PHRASE_SUBSTITUTIONS[type_] = ["pasta", "dri"]
 
 
+def strip_accents(token: str) -> str:
+    """
+    Strip accents (all combining unicode characters) from a unicode string.
+
+    Parameters
+    ----------
+    token : str
+        Token to strip accents from.
+
+    Returns
+    -------
+    str
+        Token stripped of accents.
+
+    Examples
+    --------
+    >>> strip_accents("créme")
+    creme
+
+    >>> strip_accents("fraîche")
+    fraiche
+    """
+    ndf_string = unicodedata.normalize("NFD", token)
+    return "".join(char for char in ndf_string if unicodedata.category(char) != "Mn")
+
+
 def normalise_spelling(tokens: list[IngredientToken]) -> list[IngredientToken]:
     """Normalise spelling in `tokens` to standard spellings used in FDC ingredient
     descriptions.
 
-    This also include substitution of certain ingredients to use the FDC version e.g.
+    This includes substitution of certain ingredients to use the FDC version e.g.
     courgette -> zucchini; coriander -> cilantro.
+
+    Additionally, diacritics are removed, as are letter like symbols e.g. ®
 
     Parameters
     ----------
@@ -133,6 +162,11 @@ def normalise_spelling(tokens: list[IngredientToken]) -> list[IngredientToken]:
     normalised_tokens = []
     for i, ing_token in enumerate(itokens):
         token = ing_token.token.lower()
+
+        token = strip_accents(token)
+        for symbol in "®©™":
+            token = token.replace(symbol, "")
+
         if i < len(tokens) - 1:
             next_token = tokens[i + 1].token.lower()
         else:
@@ -159,7 +193,13 @@ def normalise_spelling(tokens: list[IngredientToken]) -> list[IngredientToken]:
                 IngredientToken(FDC_TOKEN_SUBSTITUTIONS[token], ing_token.pos_tag)
             )
         else:
-            normalised_tokens.append(ing_token)
+            # Do this again to retain capitalisation.
+            token = ing_token.token
+            token = strip_accents(token)
+            for symbol in "®©™":
+                token = token.replace(symbol, "")
+
+            normalised_tokens.append(IngredientToken(token, ing_token.pos_tag))
 
     if normalised_tokens != tokens:
         norm_tokens = [t.token for t in normalised_tokens]
