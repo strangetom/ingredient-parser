@@ -230,6 +230,16 @@ def prepare_tokens(tokens: tuple[IngredientToken, ...]) -> list[IngredientToken]
     for ing_token in tokens:
         if "-" in ing_token.token:
             token_parts = [t for t in ing_token.token.split("-") if t]
+
+            # Special case: if the last token part ends with %, then for each numeric
+            # part of the token, also append % to them to.
+            # This to handle ranges like 60-69%, which appear in the FDC database,
+            # without discarding the lower end of the range below.
+            if token_parts and token_parts[-1].endswith("%"):
+                for i in range(len(token_parts) - 1):
+                    if token_parts[i].isnumeric():
+                        token_parts[i] = token_parts[i] + "%"
+
             split_tokens.extend(
                 [IngredientToken(p, ing_token.pos_tag) for p in token_parts]
             )
