@@ -223,7 +223,7 @@ class NumpyCRFInference:
         )
 
     def _guess_ingredient_name(
-        self, labels: list[str], scores: list[float], min_score: float = 0.2
+        self, labels: list[str], scores: list[float], min_score: float = 0.15
     ) -> tuple[list[str], list[float]]:
         """Guess ingredient name from list of labels and scores.
 
