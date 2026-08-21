@@ -10,6 +10,7 @@ from collections.abc import Generator, Iterator
 from importlib.resources import as_file, files
 from itertools import groupby, islice
 from operator import itemgetter
+from typing import TypeVar
 
 import pint
 from nltk.data import find as nltk_find
@@ -87,6 +88,36 @@ def group_consecutive_idx(idx: list[int]) -> Generator[Iterator[int], None, None
     """
     for _, g in groupby(enumerate(idx), key=lambda x: x[0] - x[1]):
         yield map(itemgetter(1), g)
+
+
+T = TypeVar("T")
+
+
+def incremental_sublists(sequence: list[T]) -> list[list[T]]:
+    """Return sublists of sequence, retaining the same order, where each sublist
+    contains incrementally more of sequence.
+
+
+    Parameters
+    ----------
+    sequence : list[T]
+        Sequence of elements.
+
+    Returns
+    -------
+    list[list[T]]
+        Incremental sublists of sequence
+
+    Examples
+    --------
+    >>> incremental_sublists([0, 1, 2, 3])
+    [[0], [0, 1], [0, 1, 2], [0, 1, 2, 3]]
+
+    >>> incremental_sublists(["this", "is", "a", "sequence"])
+    [["this"], ["this", "is"], ["this", "is", "a"], ["this", "is", "a", "sequence"]]
+    """
+    sequence = sequence.copy()
+    return [sequence[: i + 1] for i in range(len(sequence))]
 
 
 def show_model_card(lang: str = "en") -> None:

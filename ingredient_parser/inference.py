@@ -6,15 +6,21 @@ import logging
 import mimetypes
 from itertools import pairwise
 from pathlib import Path
+from typing import NamedTuple
 
 import numpy as np
 
-from ._common import group_consecutive_idx
+from ._common import group_consecutive_idx, incremental_sublists
 
 logger = logging.getLogger(__name__)
 
 # Type alias for dict of token features.
 FeatureDict = dict[str, str | bool]
+
+
+class AlternativeSequence(NamedTuple):
+    labels: list[str]
+    scores: list[float]
 
 
 # Prohibited transitions between labels.
@@ -131,7 +137,7 @@ class NumpyCRFInference:
             logger.debug("No tokens labelled as NAME by model: %s", labels)
             labels, scores = self._guess_ingredient_name(labels, scores)
 
-        self._detect_invalid_label_sequence(labels)
+        labels, scores = self._detect_invalid_label_sequence(labels, scores)
 
         return list(zip(labels, scores))
 
@@ -288,7 +294,9 @@ class NumpyCRFInference:
         logger.debug("Found alternative name at token indices: %s", indices)
         return labels, scores
 
-    def _detect_invalid_label_sequence(self, labels: list[str]) -> None:
+    def _detect_invalid_label_sequence(
+        self, labels: list[str], scores: list[float]
+    ) -> tuple[list[str], list[float]]:
         """Detect invalid label sequences in token labels.
 
         Invalid label sequences are those that violate the labelling scheme. The current
@@ -312,10 +320,13 @@ class NumpyCRFInference:
         ----------
         labels : list[str]
             List of token labels.
+        scores : list[float]
+            List of scores.
 
         Returns
         -------
-        None
+        list[str], list[float]
+            Labels and scores, modified to correct invalid sequence if possible.
         """
 
         # NAME_VAR checks
@@ -324,11 +335,9 @@ class NumpyCRFInference:
         if len(name_var_groups) == 1:
             # There should be at least 2 groups of consecutive NAME_VAR labels.
             logger.debug(
-                (
-                    "Invalid label sequence for NAME_VAR label: single NAME_VAR group. "
-                    "Parsed names may be incorrect."
-                )
+                "Invalid label sequence for NAME_VAR label: single NAME_VAR group."
             )
+            labels, scores = self._fix_invalid_name_var_sequence(labels, scores)
         elif len(name_var_groups) > 1:
             for group1, group2 in pairwise(name_var_groups):
                 # Get indices between groups and check for NAME_SEP or PUNC.
@@ -372,7 +381,141 @@ class NumpyCRFInference:
                     )
                 )
 
-        return None
+        return labels, scores
+
+    def _fix_invalid_name_var_sequence(
+        self, labels: list[str], scores: list[float]
+    ) -> tuple[list[str], list[float]]:
+        """Correct invalid NAME_VAR sequence by changing the NAME_VAR labels to
+        *_NAME_TOK or *_NAME_TOK labels to NAME_VAR to find the alternative sequence
+        that maximises the total sequence score.
+
+        Groups of consecutive labels of the same type are identified and changed
+        together. The changing of labels for a group results in a candidate alternative
+        label sequence. The total score for the new sequence is used to identify the
+        best alternative sequence.
+
+        In order to make sure that output sequence is still valid, there are a couple of
+        special cases to consider.
+
+        1. If a NAME_VAR group contains a single element, we need to check if the token
+           that follows has the B_NAME_TOK label. If it does, then we change it to
+           I_NAME_TOK to prevent consecutive B_NAME_TOK labels.
+        2. If a *_NAME_TOK group contains a single element and is the last *_NAME_TOK
+           group in the sequence, do not make changes.
+        3. If a *_NAME_TOK group contains a more than one element and is the last
+           *_NAME_TOK group in the sequence, do not change the last element. We will,
+           however, generate multiple alternative sequences where we vary the number of
+           elements of the group that have their labels changed starting with just the
+           first element, then first and second, etc.
+
+        Parameters
+        ----------
+        labels : list[str]
+            Invalid label sequence.
+        scores : list[float]
+            Scores for invalid label sequence.
+
+        Returns
+        -------
+        tuple[list[str], list[float]]
+            List of labels, list of scores.
+        """
+        alternative_sequences = []
+
+        name_var_idx = [i for i, label in enumerate(labels) if label == "NAME_VAR"]
+        name_var_groups = [list(g) for g in group_consecutive_idx(name_var_idx)]
+        for name_var_group in name_var_groups:
+            # Convert NAME_VAR indices in this group to *_NAME_TOK
+            alt_labels = labels.copy()
+            alt_scores = scores.copy()
+            for i, idx in enumerate(name_var_group):
+                if i == 0:
+                    alt_labels[idx] = "B_NAME_TOK"
+                    alt_scores[idx] = self.marginal("B_NAME_TOK", idx)
+                else:
+                    alt_labels[idx] = "I_NAME_TOK"
+                    alt_scores[idx] = self.marginal("I_NAME_TOK", idx)
+
+            if len(name_var_group) == 1:
+                # If this name_var_group only contains one element then we need to check
+                # the next element of the label sequence. If the next element is
+                # B_NAME_TOK already, then we need to change it to I_NAME_TOK to prevent
+                # consecutive B_NAME_TOK labels.
+                next_idx = name_var_group[-1] + 1
+                if next_idx < len(labels) and labels[next_idx] == "B_NAME_TOK":
+                    alt_labels[next_idx] = "I_NAME_TOK"
+                    alt_scores[next_idx] = self.marginal("I_NAME_TOK", next_idx)
+
+            alternative_sequences.append(
+                AlternativeSequence(
+                    labels=alt_labels,
+                    scores=alt_scores,
+                )
+            )
+
+        name_tok_idx = [i for i, label in enumerate(labels) if "NAME_TOK" in label]
+        name_tok_groups = [list(g) for g in group_consecutive_idx(name_tok_idx)]
+        for group_number, name_tok_group in enumerate(name_tok_groups):
+            # Generate new sequences that convert the labels in each group to NAME_VAR.
+            #
+            # For the last name_tok_group in the sentence, ensure that there is always
+            # at least one *_NAME_TOK retained at the end.
+            #
+            # If the name_tok_group does not end at the end of the label sequence, then
+            # just change all labels for the group at once.
+
+            # If the group only contains a single B_NAME_TOK at the end of the sequence
+            # then we don't do anything.
+            alt_labels = labels.copy()
+            alt_scores = scores.copy()
+            if len(name_tok_group) == 1 and group_number == len(name_tok_groups) - 1:
+                # Last name_tok_group with only one element, therefore make no changes.
+                continue
+            elif group_number == len(name_tok_groups) - 1:
+                # This is the last name_tok_group in the sentence, so make sure the last
+                # token of this group remains *_NAME_TOK
+                name_tok_group = name_tok_group[:-1]
+                for sublist_idx in incremental_sublists(name_tok_group):
+                    for idx in sublist_idx:
+                        alt_labels[idx] = "NAME_VAR"
+                        alt_scores[idx] = self.marginal("NAME_VAR", idx)
+
+                    # Change last index+1 to B_NAME_TOK
+                    end_idx = sublist_idx[-1] + 1
+                    alt_labels[end_idx] = "B_NAME_TOK"
+                    alt_scores[end_idx] = self.marginal("B_NAME_TOK", end_idx)
+
+                    alternative_sequences.append(
+                        AlternativeSequence(
+                            labels=alt_labels,
+                            scores=alt_scores,
+                        )
+                    )
+            else:
+                # Convert all in this group to NAME_VAR
+                for idx in name_tok_group:
+                    alt_labels[idx] = "NAME_VAR"
+                    alt_scores[idx] = self.marginal("NAME_VAR", idx)
+
+                alternative_sequences.append(
+                    AlternativeSequence(
+                        labels=alt_labels,
+                        scores=alt_scores,
+                    )
+                )
+
+        sorted_alt_sequences = sorted(
+            alternative_sequences, key=lambda s: sum(s.scores), reverse=True
+        )
+        logger.debug("Original sequence: %s had total score %.4f", labels, sum(scores))
+        for alt in sorted_alt_sequences:
+            logger.debug(
+                "Alternative sequence: %s has total score %.4f",
+                alt.labels,
+                sum(alt.scores),
+            )
+        return sorted_alt_sequences[0].labels, sorted_alt_sequences[0].scores
 
 
 class NumpyViterbiInference:

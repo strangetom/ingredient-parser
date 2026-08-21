@@ -5,6 +5,7 @@ import pytest
 from ingredient_parser._common import (
     consume,
     group_consecutive_idx,
+    incremental_sublists,
     is_float,
     is_range,
     show_model_card,
@@ -121,3 +122,23 @@ class Test_show_model_card:
             show_model_card("en")
         except FileNotFoundError:
             pytest.fail("Model card not found.")
+
+
+class Test_incremental_sublists:
+    def test_integer_list(self):
+        """
+        Test that the input list is return as 3 sublists.
+        """
+        input_sequence = [1, 2, 3]
+        expected = [[1], [1, 2], [1, 2, 3]]
+        assert incremental_sublists(input_sequence) == expected
+        assert len(incremental_sublists(input_sequence)) == len(input_sequence)
+
+    def test_single_element_list(self):
+        """
+        Test that the input list is return as 1 sublists.
+        """
+        input_sequence = ["text"]
+        expected = [["text"]]
+        assert incremental_sublists(input_sequence) == expected
+        assert len(incremental_sublists(input_sequence)) == len(input_sequence)
