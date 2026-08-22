@@ -366,7 +366,7 @@ class CompositeIngredientAmount:
 
         # Set confidence to average of confidence values for amounts that make up the
         # composite amount.
-        self.confidence = mean(amount.confidence for amount in self.amounts)
+        self.confidence = round(mean(amount.confidence for amount in self.amounts), 6)
 
         # Determine unit system from amounts
         unit_systems = {amount.unit_system for amount in self.amounts}
