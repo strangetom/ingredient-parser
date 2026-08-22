@@ -51,6 +51,7 @@ UNITS = {
     "jars": "jar",
     "jiggers": "jigger",
     "kg": "kg",
+    "kilos": "kilo",
     "kilograms": "kilogram",
     "knobs": "knob",
     "ladles": "ladle",
