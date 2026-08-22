@@ -437,15 +437,15 @@ class NumpyCRFInference:
                     alt_labels[idx] = "I_NAME_TOK"
                     alt_scores[idx] = self.marginal("I_NAME_TOK", idx)
 
-            if len(name_var_group) == 1:
-                # If this name_var_group only contains one element then we need to check
-                # the next element of the label sequence. If the next element is
-                # B_NAME_TOK already, then we need to change it to I_NAME_TOK to prevent
-                # consecutive B_NAME_TOK labels.
-                next_idx = name_var_group[-1] + 1
-                if next_idx < len(labels) and labels[next_idx] == "B_NAME_TOK":
-                    alt_labels[next_idx] = "I_NAME_TOK"
-                    alt_scores[next_idx] = self.marginal("I_NAME_TOK", next_idx)
+            # Since we've modified label to be B_NAME_TOK/I_NAME_TOK, we need to
+            # look ahead at the next label (outside this group). If the next label
+            # is B_NAME_TOK already, then we need to change it to I_NAME_TOK to
+            # prevent consecutive B_NAME_TOK labels, or a B_NAME_TOK immediately
+            # following I_NAME_TOK.
+            next_idx = name_var_group[-1] + 1
+            if next_idx < len(labels) and labels[next_idx] == "B_NAME_TOK":
+                alt_labels[next_idx] = "I_NAME_TOK"
+                alt_scores[next_idx] = self.marginal("I_NAME_TOK", next_idx)
 
             alternative_sequences.append(
                 AlternativeSequence(
