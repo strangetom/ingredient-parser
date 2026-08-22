@@ -467,8 +467,6 @@ class NumpyCRFInference:
 
             # If the group only contains a single B_NAME_TOK at the end of the sequence
             # then we don't do anything.
-            alt_labels = labels.copy()
-            alt_scores = scores.copy()
             if len(name_tok_group) == 1 and group_number == len(name_tok_groups) - 1:
                 # Last name_tok_group with only one element, therefore make no changes.
                 continue
@@ -477,6 +475,8 @@ class NumpyCRFInference:
                 # token of this group remains *_NAME_TOK
                 name_tok_group = name_tok_group[:-1]
                 for sublist_idx in incremental_sublists(name_tok_group):
+                    alt_labels = labels.copy()
+                    alt_scores = scores.copy()
                     for idx in sublist_idx:
                         alt_labels[idx] = "NAME_VAR"
                         alt_scores[idx] = self.marginal("NAME_VAR", idx)
@@ -493,6 +493,8 @@ class NumpyCRFInference:
                         )
                     )
             else:
+                alt_labels = labels.copy()
+                alt_scores = scores.copy()
                 # Convert all in this group to NAME_VAR
                 for idx in name_tok_group:
                     alt_labels[idx] = "NAME_VAR"
