@@ -119,7 +119,10 @@ UNIT_REPLACEMENTS = [
     (re.compile(r"\b(Mm)\b"), "millimeter"),
     (re.compile(r"\b(Pt)\b"), "pint"),
     (re.compile(r"\b(Tb)\b", re.I), "tablespoon"),
-    (re.compile(r"\b(T)\b", re.I), "tablespoon"),
+    (re.compile(r"\b(T)\b"), "tablespoon"),
+    (re.compile(r"\b(t)\b"), "teaspoon"),
+    (re.compile(r"\b(Ts)\b"), "tablespoon"),
+    (re.compile(r"\b(ts)\b"), "teaspoon"),
 ]
 
 download_nltk_resources()
@@ -352,12 +355,7 @@ def convert_to_pint_unit(
         # the string.
         return unit
 
-    # If the unit is in uppercase, convert to lowercase.
-    # Keep the original unit so we can return it as provided to this function if we
-    # can't convert to a pint.Unit object.
     original_unit = unit
-    if unit == unit.upper():
-        unit = unit.lower()
 
     if unit.lower() in MISINTERPRETED_UNITS:
         # Special cases to prevent pint interpreting units incorrectly
@@ -368,6 +366,11 @@ def convert_to_pint_unit(
     for regex, replacement in UNIT_REPLACEMENTS:
         unit = regex.sub(replacement, unit)
 
+    # If the unit is in uppercase, convert to lowercase.
+    # Keep the original unit so we can return it as provided to this function if we
+    # can't convert to a pint.Unit object.
+    if unit == unit.upper():
+        unit = unit.lower()
     if (
         unit in VOLUMETRIC_UNITS_W_ALTERNATIVES
         and volumetric_units_system != "us_customary"

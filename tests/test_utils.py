@@ -72,6 +72,8 @@ class Test_convert_to_pint_unit:
         assert convert_to_pint_unit("C") == UREG("cup").units
         assert convert_to_pint_unit("c") == UREG("cup").units
         assert convert_to_pint_unit("T") == UREG("tablespoon").units
+        assert convert_to_pint_unit("ts") == UREG("teaspoon").units
+        assert convert_to_pint_unit("t") == UREG("teaspoon").units
 
     def test_alternative_pints(self):
         """
