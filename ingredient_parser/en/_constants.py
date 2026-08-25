@@ -105,6 +105,7 @@ UNITS = {
     "sticks": "stick",
     "strips": "strip",
     "t": "t",
+    "ts": "ts",
     "tablespoons": "tablespoon",
     "tbsps": "tbsp",
     "tbs": "tb",
