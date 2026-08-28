@@ -571,6 +571,88 @@ def p_multiplier_range_amount():
     )
 
 
+@pytest.fixture
+def p_duplicate_token_in_mod_and_tok():
+    """Define a PostProcessor object for a sentence with the same text labelled as
+    NAME_MOD and B_NAME_TOK.
+    """
+    sentence = "1 pound smoked turkey or chicken, skin removed, or smoked pork"
+    tokens = [
+        "1",
+        "pound",
+        "smoked",
+        "turkey",
+        "or",
+        "chicken",
+        ",",
+        "skin",
+        "removed",
+        ",",
+        "or",
+        "smoked",
+        "pork",
+    ]
+    pos_tags = [
+        "CD",
+        "NN",
+        "VBN",
+        "NN",
+        "CC",
+        "NN",
+        ",",
+        "NN",
+        "VBN",
+        ",",
+        "CC",
+        "VBN",
+        "NN",
+    ]
+    labels = [
+        "QTY",
+        "UNIT",
+        "NAME_MOD",
+        "B_NAME_TOK",
+        "NAME_SEP",
+        "B_NAME_TOK",
+        "PUNC",
+        "PREP",
+        "PREP",
+        "PUNC",
+        "NAME_SEP",
+        "B_NAME_TOK",
+        "I_NAME_TOK",
+    ]
+    scores = [
+        0.9999659557009596,
+        0.9998660888919204,
+        0.5502268673082731,
+        0.5514723193410653,
+        0.8520264469887686,
+        0.8436409211416562,
+        0.9999974581212332,
+        0.9982213002668826,
+        0.9992993933143473,
+        0.9999868864197562,
+        0.7805252771902836,
+        0.7744775564507543,
+        0.7643047109708179,
+    ]
+    labelled_tokens = [
+        LabelledToken(
+            index=i, text=text, pos_tag=tag, label=label, score=score, plural=False
+        )
+        for i, (text, tag, label, score) in enumerate(
+            zip(tokens, pos_tags, labels, scores)
+        )
+    ]
+
+    return PostProcessor(
+        sentence,
+        labelled_tokens,
+        custom_units={},
+    )
+
+
 class TestPostProcessor__builtins__:
     def test__str__(self, p):
         """
@@ -895,7 +977,7 @@ class TestPostProcessor_parsed:
             name=[
                 IngredientText(
                     text="fresh basil leaves",
-                    confidence=0.858622,
+                    confidence=0.82192,
                     starting_index=1,
                 )
             ],
@@ -955,3 +1037,41 @@ class TestPostProcessor_parsed:
         assert p_multiplier_range_amount.parsed == expected
         assert expected.amount[0].MULTIPLIER
         assert expected.amount[0].RANGE
+
+    def test_duplicate_token_in_mod_and_tok(self, p_duplicate_token_in_mod_and_tok):
+        """
+        Test fixture returns expected ParsedIngredient object, where the last ingredient
+        name does not duplicate the word "smoked".
+        """
+        expected = ParsedIngredient(
+            name=[
+                IngredientText(
+                    text="smoked turkey", confidence=0.55085, starting_index=2
+                ),
+                IngredientText(
+                    text="smoked chicken", confidence=0.696934, starting_index=2
+                ),
+                IngredientText(
+                    text="smoked pork", confidence=0.769391, starting_index=2
+                ),
+            ],
+            size=None,
+            amount=[
+                ingredient_amount_factory(
+                    quantity="1",
+                    unit="pound",
+                    text="1 pound",
+                    confidence=0.999916,
+                    starting_index=0,
+                )
+            ],
+            preparation=IngredientText(
+                text="skin removed", confidence=0.99876, starting_index=7
+            ),
+            comment=None,
+            purpose=None,
+            foundation_foods=[],
+            sentence="1 pound smoked turkey or chicken, skin removed, or smoked pork",
+        )
+
+        assert p_duplicate_token_in_mod_and_tok.parsed == expected

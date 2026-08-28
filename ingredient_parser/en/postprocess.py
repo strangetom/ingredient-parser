@@ -650,15 +650,23 @@ class PostProcessor:
                         group_tokens.append(self.tokens[i].text)
 
             joined = " ".join(group_tokens)
-            confidence = mean([self.tokens[i].score for i in idx])
-
             if self.discard_isolated_stop_words and joined.lower() in STOP_WORDS:
                 # Skip part if it's a stop word
                 continue
 
             self.consumed.extend(idx)
-            parts.append(joined)
-            confidence_parts.append(confidence)
+            if selected_label == "NAME":
+                # For NAMEs, keep the group tokens separate for now because we need to
+                # make sure we can remove duplicates tokens if one duplicate token is in
+                # a different group. For example, if NAME_MOD is "smoked" and NAME_TOK
+                # is "smoked pork", we need to discard one of the "smoked tokens".
+                # If we join the tokens here we would get ["smoked", "smoked port"] and
+                # _remove_adjacent_duplicates below wouldn't remove the duplicate token.
+                parts.extend(group_tokens)
+                confidence_parts.extend([self.tokens[i].score for i in idx])
+            else:
+                parts.append(joined)
+                confidence_parts.append(mean([self.tokens[i].score for i in idx]))
             starting_index = min(starting_index, idx[0])
 
         # Find the indices of the joined tokens list where the element
