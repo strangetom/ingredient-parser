@@ -24,6 +24,7 @@ from ._regex import (
     EXPANDED_RANGE,
     FRACTION_PARTS_PATTERN,
     FRACTION_TOKEN_PATTERN,
+    HYPHEN_SPLIT_NAME_PATTERN,
     LOWERCASE_PATTERN,
     QUANTITY_UNITS_PATTERN,
     QUANTITY_X_PATTERN,
@@ -192,6 +193,7 @@ class PreProcessor:
             self._replace_dupe_units_ranges,
             self._merge_quantity_x,
             self._collapse_ranges,
+            self._expand_hyphen_split_names,
         ]
 
         for func in funcs:
@@ -552,6 +554,41 @@ class PreProcessor:
         "0.25-0.5 tsp salt"
         """
         return EXPANDED_RANGE.sub(r"\1-\2", sentence)
+
+    def _expand_hyphen_split_names(self, sentence: str) -> str:
+        """Expand names split with a hyphen that have a common suffix, for example
+        "medium- or -short-grain", "red- or yellow-fleshed".
+
+        In these cases, this function will fully expand the first name so that it
+        includes the common suffix.
+
+        Parameters
+        ----------
+        sentence : str
+            Ingredient sentence.
+
+        Returns
+        -------
+        str
+            Ingredient sentence with hyphen split names fully expanded.
+
+        Examples
+        --------
+        >>> p = PreProcessor("")
+        >>> p._expand_hyphen_split_names("1 tablespoon red- or white-wine vinegar")
+        "1 tablespoon red-wine or white-wine vinegar"
+
+        >>> p = PreProcessor("")
+        >>> p._expand_hyphen_split_names("2 cups unsalted stove- or air-popped popcorn")
+        "2 cups unsalted stove-popped or air-popped popcorn"
+        """
+        for match in HYPHEN_SPLIT_NAME_PATTERN.finditer(sentence):
+            split_word = match.group(1)
+            common_suffix = match.group(2)
+            replacement = split_word + common_suffix + " "
+            sentence = re.sub(rf"\b{split_word}\s", replacement, sentence)
+
+        return sentence
 
     def _calculate_tokens(self, sentence: str) -> list[Token]:
         """Tokenize sentence and calculate attributes for each token.
