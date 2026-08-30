@@ -229,8 +229,6 @@ def train_parser_model(
     )
 
     # Create NumpyCRFInference object for evaluation.
-    logger.info("Evaluating model with test data.")
-
     tagger = NumpyCRFInference(save_model, combine_name_labels)
     stats, labels_pred, scores_pred = evaluate_model_only(
         tagger, features_test, truth_test, seed, combine_name_labels
