@@ -24,6 +24,7 @@ from .test_results_to_html import test_results_to_html
 from .trainers import IngredientParserTrainer
 from .training_eval import (
     Stats,
+    evalate_postprocessor_output,
     evaluate_model_only,
     evaluate_model_with_label_corrections,
 )
@@ -260,6 +261,7 @@ def train_parser_model(
     _ = evaluate_model_with_label_corrections(
         tagger, features_test, truth_test, seed, combine_name_labels
     )
+    evalate_postprocessor_output(tagger, features_test, tokens_test, truth_test)
 
     # We don't need to keep the crfsuite model.
     crfsuite_model_path.unlink(missing_ok=True)

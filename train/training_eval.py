@@ -10,7 +10,10 @@ from sklearn.metrics import (
 )
 from tabulate import tabulate
 
+from ingredient_parser.dataclasses import LabelledToken, ParsedIngredient
 from ingredient_parser.inference import FeatureDict, NumpyCRFInference
+
+from .training_utils import select_postprocessor
 
 logger = logging.getLogger(__name__)
 
@@ -157,7 +160,7 @@ def evaluate_model_only(
     features_test : list[list[FeatureDict]]
         List of feature lists for test sentences.
     truth_test : list[list[str]]
-        List of label lists for test sentences.
+        List of true label lists for test sentences.
     seed : int
         Seed used to train model.
     combine_name_labels : bool, optional
@@ -223,7 +226,7 @@ def evaluate_model_with_label_corrections(
     features_test : list[list[FeatureDict]]
         List of feature lists for test sentences.
     truth_test : list[list[str]]
-        List of label lists for test sentences.
+        List of true label lists for test sentences.
     seed : int
         Seed used to train model.
     combine_name_labels : bool, optional
@@ -273,3 +276,155 @@ def evaluate_model_with_label_corrections(
     logger.info(formatted_table)
 
     return stats, labels_pred, scores_pred
+
+
+def evalate_postprocessor_output(
+    tagger: NumpyCRFInference,
+    features_test: list[list[FeatureDict]],
+    tokens_test: list[list[str]],
+    truth_test: list[list[str]],
+):
+    """Evaluate combined model and full post-processing and print results.
+
+    Parameters
+    ----------
+    tagger : NumpyCRFInference
+        Tagger instance.
+    features_test : list[list[FeatureDict]]
+        List of feature lists for test sentences.
+    tokens_test : list[list[str]]
+        List of token lists for test sentences.
+    truth_test : list[list[str]]
+        List of true label lists for test sentences.
+    """
+    logger.info(
+        (
+            "Evaluating model (including invalid label corrections) and "
+            "post-processing using test data."
+        )
+    )
+
+    PostProcessor = select_postprocessor("en")
+
+    correct = 0
+    for features, tokens, true_labels in zip(features_test, tokens_test, truth_test):
+        predicted_labels, _ = zip(
+            *tagger.tag_from_features(
+                features, expect_name_in_output=True, constrain_transitions=True
+            )
+        )
+        predicted_tokens = [
+            LabelledToken(
+                index=idx,
+                text=token,
+                pos_tag=feature_dict["pos"],
+                label=label,
+                score=0,
+                plural=False,
+            )
+            for idx, (feature_dict, token, label) in enumerate(
+                zip(features, tokens, predicted_labels)
+            )
+        ]
+        predicted_parsed = PostProcessor("", predicted_tokens, {}).parsed
+
+        true_tokens = [
+            LabelledToken(
+                index=idx,
+                text=token,
+                pos_tag=feature_dict["pos"],
+                label=label,
+                score=0,
+                plural=False,
+            )
+            for idx, (feature_dict, token, label) in enumerate(
+                zip(features, tokens, true_labels)
+            )
+        ]
+        true_parsed = PostProcessor("", true_tokens, {}).parsed
+
+        if compare_parsed_sentences(predicted_parsed, true_parsed):
+            correct += 1
+
+    logger.info(
+        "%.2f%% of test sentence produce correct results.",
+        100 * correct / len(features_test),
+    )
+
+
+def compare_parsed_sentences(
+    predicted: ParsedIngredient, true: ParsedIngredient
+) -> bool:
+    """Compare ParsedIngredient objects generated from predicted and true labels.
+
+    Only the text fields of the IngredientText, IngredientAmount and
+    CompositeIngredientAmount objects are compared; scores and other fields are ignored.
+
+    Parameters
+    ----------
+    predicted : ParsedIngredient
+        ParsedIngredient object generated from predicted labels.
+    true : ParsedIngredient
+        ParsedIngredient object generated from true labels.
+
+    Returns
+    -------
+    bool
+        True, if the ParsedIngredient objects are equivalent, else False.
+    """
+    # Name
+    if len(predicted.name) != len(true.name):
+        return False
+
+    for predicted_name, true_name in zip(predicted.name, true.name):
+        if predicted_name.text != true_name.text:
+            return False
+
+    # Amount
+    if len(predicted.amount) != len(true.amount):
+        return False
+
+    for predicted_amount, true_amount in zip(predicted.amount, true.amount):
+        if predicted_amount.text != true_amount.text:
+            return False
+    # Size
+    if (predicted.size is None) ^ (true.size is None):
+        return False
+    elif (
+        (predicted.size is not None)
+        and (true.size is not None)
+        and (predicted.size.text != true.size.text)
+    ):
+        return False
+
+    # Prep
+    if (predicted.preparation is None) ^ (true.preparation is None):
+        return False
+    elif (
+        (predicted.preparation is not None)
+        and (true.preparation is not None)
+        and (predicted.preparation.text != true.preparation.text)
+    ):
+        return False
+
+    # Comment
+    if (predicted.comment is None) ^ (true.comment is None):
+        return False
+    elif (
+        (predicted.comment is not None)
+        and (true.comment is not None)
+        and (predicted.comment.text != true.comment.text)
+    ):
+        return False
+
+    # Purpose
+    if (predicted.purpose is None) ^ (true.purpose is None):
+        return False
+    elif (
+        (predicted.purpose is not None)
+        and (true.purpose is not None)
+        and (predicted.purpose.text != true.purpose.text)
+    ):
+        return False
+
+    return True

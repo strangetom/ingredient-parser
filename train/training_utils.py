@@ -115,6 +115,34 @@ def select_preprocessor(lang: str) -> Any:
             return PreProcessor
 
 
+def select_postprocessor(lang: str) -> Any:
+    """Select appropriate PostProcessor class for given language.
+
+    Parameters
+    ----------
+    lang : str
+        Language of training data.
+
+    Returns
+    -------
+    Any
+        PostProcessor class for post-processing in given language.
+
+    Raises
+    ------
+    ValueError
+        Selected language not supported
+    """
+    if lang not in SUPPORTED_LANGUAGES:
+        raise ValueError(f'Unsupported language "{lang}"')
+
+    match lang:
+        case "en":
+            from ingredient_parser.en import PostProcessor
+
+            return PostProcessor
+
+
 def load_datasets(
     database: str,
     table: str,
