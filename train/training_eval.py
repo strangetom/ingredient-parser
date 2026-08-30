@@ -347,7 +347,7 @@ def evalate_postprocessor_output(
             correct += 1
 
     logger.info(
-        "%.2f%% of test sentence produce correct results.",
+        "%.2f%% of test sentences had the correct parsed output.",
         100 * correct / len(features_test),
     )
 
