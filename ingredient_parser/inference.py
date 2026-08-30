@@ -137,7 +137,8 @@ class NumpyCRFInference:
             logger.debug("No tokens labelled as NAME by model: %s", labels)
             labels, scores = self._guess_ingredient_name(labels, scores)
 
-        labels, scores = self._detect_invalid_label_sequence(labels, scores)
+        if constrain_transitions:
+            labels, scores = self._detect_invalid_label_sequence(labels, scores)
 
         return list(zip(labels, scores))
 

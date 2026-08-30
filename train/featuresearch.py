@@ -18,10 +18,10 @@ from ingredient_parser.inference import NumpyCRFInference
 from .export import export_crfsuite_to_json
 from .train_model import DEFAULT_MODEL_LOCATION
 from .trainers import IngredientParserTrainer
+from .training_eval import evaluate
 from .training_utils import (
     DataVectors,
     convert_num_ordinal,
-    evaluate,
     load_datasets,
 )
 

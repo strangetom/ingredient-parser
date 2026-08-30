@@ -22,13 +22,16 @@ from .export import export_crfsuite_to_json
 from .test_results_to_detailed_results import test_results_to_detailed_results
 from .test_results_to_html import test_results_to_html
 from .trainers import IngredientParserTrainer
+from .training_eval import (
+    Stats,
+    evaluate_model_only,
+    evaluate_model_with_label_corrections,
+)
 from .training_utils import (
     DEFAULT_MODEL_LOCATION,
     DataVectors,
-    Stats,
     confusion_matrix,
     convert_num_ordinal,
-    evaluate,
     load_datasets,
 )
 
@@ -227,13 +230,11 @@ def train_parser_model(
 
     # Create NumpyCRFInference object for evaluation.
     logger.info("Evaluating model with test data.")
-    tagger = NumpyCRFInference(save_model, combine_name_labels)
 
-    labels_pred, scores_pred = [], []
-    for X in features_test:
-        labels, scores = zip(*tagger.tag_from_features(X, expect_name_in_output=False))
-        labels_pred.append(list(labels))
-        scores_pred.append(list(scores))
+    tagger = NumpyCRFInference(save_model, combine_name_labels)
+    stats, labels_pred, scores_pred = evaluate_model_only(
+        tagger, features_test, truth_test, seed, combine_name_labels
+    )
 
     if html:
         test_results_to_html(
@@ -258,7 +259,9 @@ def train_parser_model(
     if plot_confusion_matrix:
         confusion_matrix(labels_pred, truth_test)
 
-    stats = evaluate(labels_pred, truth_test, seed, combine_name_labels)
+    _ = evaluate_model_with_label_corrections(
+        tagger, features_test, truth_test, seed, combine_name_labels
+    )
 
     # We don't need to keep the crfsuite model.
     crfsuite_model_path.unlink(missing_ok=True)
@@ -299,7 +302,7 @@ def train_single(args: argparse.Namespace) -> None:
     else:
         save_model = args.save_model
 
-    stats = train_parser_model(
+    _ = train_parser_model(
         vectors,
         args.split,
         Path(save_model),
@@ -309,32 +312,6 @@ def train_single(args: argparse.Namespace) -> None:
         args.confusion,
         keep_model=True,
         combine_name_labels=args.combine_name_labels,
-    )
-
-    headers = ["Sentence-level results", "Word-level results"]
-    table = []
-
-    table.append(
-        [
-            f"Accuracy: {100 * stats.sentence.accuracy:.2f}%",
-            f"Accuracy: {100 * stats.token.accuracy:.2f}%\n"
-            f"Precision (micro) {100 * stats.token.weighted_avg.precision:.2f}%\n"
-            f"Recall (micro) {100 * stats.token.weighted_avg.recall:.2f}%\n"
-            f"F1 score (micro) {100 * stats.token.weighted_avg.f1_score:.2f}%",
-        ]
-    )
-
-    print(
-        "\n"
-        + tabulate(
-            table,
-            headers=headers,
-            tablefmt="fancy_grid",
-            maxcolwidths=[None, None],
-            stralign="left",
-            numalign="right",
-        )
-        + "\n"
     )
 
 
@@ -438,15 +415,12 @@ def train_multiple(args: argparse.Namespace) -> None:
     table.append(["Best", f"{max_word:.2f}%", f"{max_sent:.2f}%", f"{max_seed}"])
     table.append(["Worst", f"{min_word:.2f}%", f"{min_sent:.2f}%", f"{min_seed}"])
 
-    print(
-        "\n"
-        + tabulate(
-            table,
-            headers=headers,
-            tablefmt="fancy_grid",
-            maxcolwidths=[None, None, None, None],
-            stralign="left",
-            numalign="right",
-        )
-        + "\n"
+    formatted_table = "\n" + tabulate(
+        table,
+        headers=headers,
+        tablefmt="fancy_grid",
+        maxcolwidths=[None, None, None, None],
+        stralign="left",
+        numalign="right",
     )
+    logger.info(formatted_table)

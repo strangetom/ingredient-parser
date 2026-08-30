@@ -16,11 +16,7 @@ matplotlib.use(
     "Agg"
 )  # suppress matplotlib gui / headless environment for simple file dump
 from matplotlib import pyplot as plt
-from sklearn.metrics import (
-    ConfusionMatrixDisplay,
-    accuracy_score,
-    classification_report,
-)
+from sklearn.metrics import ConfusionMatrixDisplay
 
 from ingredient_parser import SUPPORTED_LANGUAGES
 
@@ -42,70 +38,6 @@ class DataVectors:
     source: list[str]
     uids: list[int]
     discarded: int
-
-
-@dataclass
-class Metrics:
-    """Metrics returned by sklearn.metrics.classification_report for each label."""
-
-    precision: float
-    recall: float
-    f1_score: float
-    support: int
-
-
-@dataclass
-class TokenStats:
-    """Statistics for token classification performance."""
-
-    B_NAME_TOK: Metrics
-    I_NAME_TOK: Metrics
-    NAME_VAR: Metrics
-    NAME_MOD: Metrics
-    NAME_SEP: Metrics
-    QTY: Metrics
-    UNIT: Metrics
-    SIZE: Metrics
-    COMMENT: Metrics
-    PURPOSE: Metrics
-    PREP: Metrics
-    PUNC: Metrics
-    macro_avg: Metrics
-    weighted_avg: Metrics
-    accuracy: float
-
-
-@dataclass
-class TokenStatsCombinedName:
-    """Statistics for token classification performance."""
-
-    NAME: Metrics
-    QTY: Metrics
-    UNIT: Metrics
-    SIZE: Metrics
-    COMMENT: Metrics
-    PURPOSE: Metrics
-    PREP: Metrics
-    PUNC: Metrics
-    macro_avg: Metrics
-    weighted_avg: Metrics
-    accuracy: float
-
-
-@dataclass
-class SentenceStats:
-    """Statistics for sentence classification performance."""
-
-    accuracy: float
-
-
-@dataclass
-class Stats:
-    """Statistics for token and sentence classification performance."""
-
-    token: TokenStats | TokenStatsCombinedName
-    sentence: SentenceStats
-    seed: int
 
 
 def chunked(iterable: Iterable, n: int) -> Iterable:
@@ -333,68 +265,6 @@ def process_sentences(
             )
 
     return DataVectors(sentences, features, tokens, labels, source, uids, discarded)
-
-
-def evaluate(
-    predictions: list[list[str]],
-    truths: list[list[str]],
-    seed: int,
-    combine_name_labels: bool,
-) -> Stats:
-    """Calculate statistics on the predicted labels for the test data.
-
-    Parameters
-    ----------
-    predictions : list[list[str]]
-        Predicted labels for each test sentence.
-    truths : list[list[str]]
-        True labels for each test sentence.
-    seed : int
-        Seed value that produced the results.
-    combine_name_labels : bool
-        If True, all NAME labels are combined into a single NAME label.
-
-    Returns
-    -------
-    Stats
-        Dataclass holding token and sentence statistics.
-    """
-    # Generate token statistics
-    # Flatten prediction and truth lists
-    flat_predictions = list(chain.from_iterable(predictions))
-    flat_truths = list(chain.from_iterable(truths))
-    labels = list(set(flat_predictions))
-
-    report = classification_report(
-        flat_truths,
-        flat_predictions,
-        labels=labels,
-        output_dict=True,
-    )
-
-    # Convert report to TokenStats dataclass
-    token_stats = {}
-    for k, v in report.items():  # type: ignore
-        # Convert dict to Metrics
-        if k in [*labels, "macro avg", "weighted avg"]:
-            k = k.replace(" ", "_")
-            token_stats[k] = Metrics(
-                v["precision"], v["recall"], v["f1-score"], int(v["support"])
-            )
-
-    token_stats["accuracy"] = accuracy_score(flat_truths, flat_predictions)
-    if combine_name_labels:
-        token_stats = TokenStatsCombinedName(**token_stats)
-    else:
-        token_stats = TokenStats(**token_stats)
-
-    # Generate sentence statistics
-    # The only statistics that makes sense here is accuracy because there are only
-    # true-positive results (i.e. correct) and false-negative results (i.e. incorrect)
-    correct_sentences = len([p for p, t in zip(predictions, truths) if p == t])
-    sentence_stats = SentenceStats(correct_sentences / len(predictions))
-
-    return Stats(token_stats, sentence_stats, seed)
 
 
 def confusion_matrix(

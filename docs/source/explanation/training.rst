@@ -244,8 +244,8 @@ The figure below shows how the sentence- and word-level performance has changed 
   :class: .dark-light
   :alt: Bar graph showing the model performance improving which each new release
 
-.. tip::
+.. note::
 
-    The reduction in performance seen between v1.3.0 and v2.0.0 is due to changing the labelling scheme to be able to separate the names of each ingredient in an ingredient sentence.
+    * At v2.0.0 the labelling scheme was changed to be able to separate the names of each ingredient in an ingredient sentence. This is a more complex labelling scheme than previously and therefore the model accuracy dropped slightly.
 
-    This is a more complex labelling scheme than previously and unfortunately does not perform quite as well, however this is continually being improved and the model accuracy is trending in the right direction.
+    * At v2.7.0 the method by which the model accuracy was measured change so that it only included the accuracy of the model as trained. Prior to this, the accuracy figures included the effects of additional post processing to correct invalid label sequences.

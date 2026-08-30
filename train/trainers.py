@@ -34,6 +34,7 @@ class IngredientParserTrainer(pycrfsuite.Trainer):  # type: ignore
             Log line emitted from crfsuite.
         """
         self._start_time = time.time()
+        logger.info("Training started at %s", time.strftime("%H:%m:%S"))
 
     def on_featgen_progress(self, log, percent):
         """Callback called on during feature generation.

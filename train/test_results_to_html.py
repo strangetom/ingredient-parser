@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 
+import logging
 import xml.etree.ElementTree as ET
 from collections import Counter
 from itertools import chain
+
+logger = logging.getLogger(__name__)
 
 
 def test_results_to_html(
@@ -271,6 +274,7 @@ def test_results_to_html(
     with open("test_results.html", "w") as f:
         f.write("<!DOCTYPE html>\n")
         f.write(ET.tostring(html, encoding="unicode", method="html"))
+    logger.info("HTML output of incorrect sentence written to 'test_results.html'.")
 
 
 def create_html_table(

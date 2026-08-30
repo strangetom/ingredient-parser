@@ -20,10 +20,10 @@ from ingredient_parser.inference import NumpyCRFInference
 from .export import export_crfsuite_to_json
 from .train_model import DEFAULT_MODEL_LOCATION
 from .trainers import IngredientParserTrainer
+from .training_eval import evaluate
 from .training_utils import (
     DataVectors,
     convert_num_ordinal,
-    evaluate,
     load_datasets,
 )
 
@@ -605,12 +605,10 @@ def grid_search(args: argparse.Namespace):
                 completed_at = time.strftime("%H:%M")
                 elapsed = timedelta(seconds=int(result["time"]))
                 logger.info(
-                    (
-                        "%s algorithm completed at %s (%s elapsed).",
-                        convert_num_ordinal(idx + 1),
-                        completed_at,
-                        elapsed,
-                    )
+                    "%s algorithm completed at %s (%s elapsed).",
+                    convert_num_ordinal(idx + 1),
+                    completed_at,
+                    elapsed,
                 )
 
     # Sort with highest sentence accuracy first, then highest token accuracy
