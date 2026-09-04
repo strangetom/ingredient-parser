@@ -1156,3 +1156,105 @@ class TestPostProcessor_composite_amounts_pattern:
             assert out.combined() == expected.combined()
             for amount in out.amounts:
                 assert amount.PREPARED_INGREDIENT
+
+    def test_combined_sizable_units_and_composite_amount(self):
+        """
+        Test that both the sizeable unit and composite amount are identified.
+
+        This is an important case because the sizeable unit pattern is looked for first.
+        If found, this will consume tokens which will effect how the composite amount
+        pattern is looked for.
+        """
+        sentence = "2 8 1/2-ounce cans, or 2 cups plus 2 tablespoons cream-style corn"
+        tokens = [
+            "2",
+            "8#1$2",
+            "ounce",
+            "can",
+            ",",
+            "or",
+            "2",
+            "cup",
+            "plus",
+            "2",
+            "tablespoon",
+            "cream-style",
+            "corn",
+        ]
+        pos_tags = [
+            "CD",
+            "CD",
+            "NN",
+            "NNS",
+            ",",
+            "CC",
+            "CD",
+            "NNS",
+            "CC",
+            "CD",
+            "NNS",
+            "JJ",
+            "NN",
+        ]
+        labels = [
+            "QTY",
+            "QTY",
+            "UNIT",
+            "UNIT",
+            "PUNC",
+            "COMMENT",
+            "QTY",
+            "UNIT",
+            "COMMENT",
+            "QTY",
+            "UNIT",
+            "B_NAME_TOK",
+            "I_NAME_TOK",
+        ]
+        scores = [0.0] * len(tokens)
+        labelled_tokens = [
+            LabelledToken(i, text, tag, label, score, False)
+            for i, (text, tag, label, score) in enumerate(
+                zip(tokens, pos_tags, labels, scores)
+            )
+        ]
+        p = PostProcessor(sentence, labelled_tokens, custom_units={})
+
+        expected = [
+            ingredient_amount_factory(
+                quantity="2",
+                unit="can",
+                text="2 cans",
+                confidence=0.0,
+                starting_index=0,
+            ),
+            ingredient_amount_factory(
+                quantity="8.5",
+                unit="ounce",
+                text="8 1/2 ounces",
+                confidence=0.0,
+                starting_index=1,
+                SINGULAR=True,
+            ),
+            CompositeIngredientAmount(
+                amounts=[
+                    ingredient_amount_factory(
+                        quantity="2",
+                        unit="cup",
+                        text="2 cups",
+                        confidence=0.0,
+                        starting_index=6,
+                    ),
+                    ingredient_amount_factory(
+                        quantity="2",
+                        unit="tablespoon",
+                        text="2 tablespoons",
+                        confidence=0.0,
+                        starting_index=9,
+                    ),
+                ],
+                join=" plus ",
+                subtractive=False,
+            ),
+        ]
+        assert p.parsed.amount == expected

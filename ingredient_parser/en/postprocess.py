@@ -1328,25 +1328,25 @@ class PostProcessor:
 
                 # Check if flags should be set and make sure both IngredientAmounts get
                 # the same flags.
-                prepared = self._is_prepared(
-                    tokens[mstart1].index, tokens
-                ) or self._is_prepared(tokens[mstart2].index, tokens)
+                prepared = self._is_prepared(mstart1, tokens) or self._is_prepared(
+                    mstart2, tokens
+                )
 
                 approximate = self._is_approximate(
-                    tokens[mstart1].index, tokens
-                ) or self._is_prepared(tokens[mstart2].index, tokens)
+                    mstart1, tokens
+                ) or self._is_approximate(mstart2, tokens)
 
                 # The _is_singular check only works if the index provided is for a token
                 # labelled with UNIT.
-                # Therefore, use idx[mstart + 1] to get the unit for the first amount
-                # and idx[match[-1]] to get the last unit for the second amount.
-                singular = self._is_singular(
-                    tokens[mstart1 + 1].index, tokens
-                ) or self._is_singular(tokens[match[-1]].index, tokens)
+                # Therefore, use mstart + 1 to get the unit for the first amount
+                # and match[-1] to get the last unit for the second amount.
+                singular = self._is_singular(mstart1 + 1, tokens) or self._is_singular(
+                    match[-1], tokens
+                )
 
                 if self._is_singular_and_approximate(
-                    tokens[mstart1].index, tokens
-                ) or self._is_singular_and_approximate(tokens[mstart2].index, tokens):
+                    mstart1, tokens
+                ) or self._is_singular_and_approximate(mstart2, tokens):
                     approximate = True
                     singular = True
 
