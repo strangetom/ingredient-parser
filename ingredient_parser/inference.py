@@ -81,6 +81,22 @@ class NumpyCRFInference:
             f"combined_name_labels={self.combined_name_labels})"
         )
 
+    def _trained_with_combined_name_labels(self) -> bool:
+        """Return True is model was trained with combined name labels.
+
+        Combined name labels means there is a single "NAME" label, rather than labels
+        for the different parts of names (e.g. B_NAME_TOK, I_NAME_TOK, NAME_MOD etc.)
+
+        Returns
+        -------
+        bool
+            Description
+        """
+        return (
+            "NAME" in self.model.label_to_idx
+            and "B_NAME_TOK" not in self.model.label_to_idx
+        )
+
     def tag_from_features(
         self,
         sentence_features: list[FeatureDict],
@@ -132,8 +148,14 @@ class NumpyCRFInference:
             features, constrain_transitions=constrain_transitions
         )
 
-        if expect_name_in_output and all("NAME" not in label for label in labels):
-            # No tokens were assigned the NAME label, so guess if there's a name
+        if (
+            expect_name_in_output
+            and all("NAME" not in label for label in labels)
+            and not self._trained_with_combined_name_labels()
+        ):
+            # No tokens were assigned the NAME_* label, so guess if there's a name.
+            # Don't attempt this is the model was trained using combined name labels
+            # because the function doesn't work for that case.
             logger.debug("No tokens labelled as NAME by model: %s", labels)
             labels, scores = self._guess_ingredient_name(labels, scores)
 
@@ -255,10 +277,6 @@ class NumpyCRFInference:
         list[str], list[float]
             Labels and scores, modified to assign a name if possible.
         """
-        if "NAME" in self.model.label_to_idx:
-            # Using combined NAME labels, so we can't do anything.
-            return labels, scores
-
         # For each element of the sequence, determine the most likely *NAME label whose
         # score exceeds the minimum threshold.
         # Store in a dict -> {element_index: (score, label)}
