@@ -130,11 +130,11 @@ CURRENCY_PATTERN = re.compile(rf"\(\s*(?:{currency_pattern})\s*[0-9.,]+\**\s*\)"
 # second captures the part of the second word after the hyphen.
 HYPHEN_SPLIT_NAME_PATTERN = re.compile(
     r"""
-    \b([a-zA-Z]+\-) # Capture word ending with a hyphen
+    \b([a-zA-Z\']+\-) # Capture word ending with a hyphen
     \s+ # Space(s)
     or # "or"
     \s+ # Space(s)
-    \b[a-zA-Z]+\-([a-zA-Z]+)\b # Word containing hyphen, capturing the part after hyphen
+    \b[a-zA-Z\']+\-([a-zA-Z]+)\b # Word containing hyphen, capturing part after hyphen
     """,
     re.VERBOSE,
 )

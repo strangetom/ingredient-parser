@@ -22,6 +22,16 @@ class TestPreProcessor_expand_hyphen_split_names:
             == "15 cups hot unsalted stove-popped or air-popped popcorn"
         )
 
+    def test_single_hypen_split_with_apostrophe(self, p):
+        """
+        sheep's- is converted to sheep's-milk.
+        """
+        input_sentence = "2 tbsp semi-aged sheep's- or cow's-milk cheese"
+        assert (
+            p._expand_hyphen_split_names(input_sentence)
+            == "2 tbsp semi-aged sheep's-milk or cow's-milk cheese"
+        )
+
     def test_no_hypen_split(self, p):
         """
         Input sentence is unchanged
