@@ -255,6 +255,10 @@ class NumpyCRFInference:
         list[str], list[float]
             Labels and scores, modified to assign a name if possible.
         """
+        if "NAME" in self.model.label_to_idx:
+            # Using combined NAME labels, so we can't do anything.
+            return labels, scores
+
         # For each element of the sequence, determine the most likely *NAME label whose
         # score exceeds the minimum threshold.
         # Store in a dict -> {element_index: (score, label)}
@@ -555,7 +559,7 @@ class NumpyViterbiInference:
         self.scale_factor = scale_factor
         self.zero_offset = zero_offset
 
-        self.transition_constraint_mask = self._precompute_constraint_mask()
+        self.transition_constraint_mask = None
 
         # Determine data type for weights
         if isinstance(next(iter(feature_weights.values())), int):
@@ -676,6 +680,10 @@ class NumpyViterbiInference:
             (List of labels, list of confidences) for the sequence.
         """
         seq_len = len(features_seq)
+
+        # Only compute the transition constraint mask if we're constraining transitions.
+        if constrain_transitions and self.transition_constraint_mask is None:
+            self.transition_constraint_mask = self._precompute_constraint_mask()
 
         # Pre-compute state scores for all elements of sequence from emission matrix.
         # Rows: sequence elements
