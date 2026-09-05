@@ -222,17 +222,27 @@ def validiate_NAME_VAR(row: DBRow) -> bool:
     if "NAME_VAR" not in row.labels:
         return True
 
+    # Check if there is only one NAME_VAR.
     name_var_count = sum(1 for label in row.labels if label == "NAME_VAR")
     if name_var_count == 1:
         print(f"[ERROR] ID: {row.id} [{row.source}]")
         print("\tError in NAME labels: Single NAME_VAR")
         return False
-    else:
-        b_name_tok_count = sum(1 for label in row.labels if label == "B_NAME_TOK")
-        if b_name_tok_count < 1:
-            print(f"[ERROR] ID: {row.id} [{row.source}]")
-            print("\tError in NAME labels: NAME_VAR without B_NAME_TOK")
-            return False
+
+    # Check if there is not B_NAME_TOK, given that there is at least two NAME_VAR.
+    b_name_tok_count = sum(1 for label in row.labels if label == "B_NAME_TOK")
+    if b_name_tok_count == 0:
+        print(f"[ERROR] ID: {row.id} [{row.source}]")
+        print("\tError in NAME labels: NAME_VAR without B_NAME_TOK")
+        return False
+
+    # Check that at least one B_NAME_TOK occurs after the last NAME_VAR.
+    last_name_var_idx = max(i for i, v in enumerate(row.labels) if v == "NAME_VAR")
+    last_b_name_tok_idx = max(i for i, v in enumerate(row.labels) if v == "B_NAME_TOK")
+    if last_name_var_idx > last_b_name_tok_idx:
+        print(f"[ERROR] ID: {row.id} [{row.source}]")
+        print("\tError in NAME labels: NAME_VAR is not followed by B_NAME_TOK")
+        return False
 
     return True
 
