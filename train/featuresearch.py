@@ -258,8 +258,24 @@ def feature_search(args: argparse.Namespace):
             "Queued for separate runs against %d feature sets", len(argument_sets)
         )
         for idx, future in enumerate(cf.as_completed(futures)):
-            logger.info("%s set completed", convert_num_ordinal(idx + 1))
-            eval_results.append(future.result())
+            if exception := future.exception():
+                logger.error(
+                    "%s set failed with exception:",
+                    convert_num_ordinal(idx + 1),
+                    exc_info=exception,
+                )
+            else:
+                result = future.result()
+                eval_results.append(result)
+
+                completed_at = time.strftime("%H:%M")
+                elapsed = timedelta(seconds=int(result["time"]))
+                logger.info(
+                    "%s set completed at %s (%s elapsed).",
+                    convert_num_ordinal(idx + 1),
+                    completed_at,
+                    elapsed,
+                )
 
     # Sort with highest sentence accuracy first
     eval_results = sorted(
@@ -280,13 +296,13 @@ def feature_search(args: argparse.Namespace):
         feature_set = result["feature_set"]
         stats = result["stats"]
         size = result["model_size"]
-        time = timedelta(seconds=int(result["time"]))
+        elapsed = timedelta(seconds=int(result["time"]))
         table.append(
             [
                 feature_set,
                 f"{100 * stats.token.accuracy:.2f}%",
                 f"{100 * stats.sentence.accuracy:.2f}%",
-                str(time),
+                str(elapsed),
                 f"{size:.2f}",
             ]
         )
