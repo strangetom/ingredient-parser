@@ -206,6 +206,9 @@ def validate_I_NAME_TOK(row: DBRow) -> bool:
 def validiate_NAME_VAR(row: DBRow) -> bool:
     """Validate if the sentence contains NAME_VAR, there is more than one.
 
+    If there is more than one, check there is at least one B_NAME_TOK in the sentence
+    too.
+
     Parameters
     ----------
     row : DBRow
@@ -222,8 +225,14 @@ def validiate_NAME_VAR(row: DBRow) -> bool:
     name_var_count = sum(1 for label in row.labels if label == "NAME_VAR")
     if name_var_count == 1:
         print(f"[ERROR] ID: {row.id} [{row.source}]")
-        print("\tError in NAME labels: NAME_VAR")
+        print("\tError in NAME labels: Single NAME_VAR")
         return False
+    else:
+        b_name_tok_count = sum(1 for label in row.labels if label == "B_NAME_TOK")
+        if b_name_tok_count < 1:
+            print(f"[ERROR] ID: {row.id} [{row.source}]")
+            print("\tError in NAME labels: NAME_VAR without B_NAME_TOK")
+            return False
 
     return True
 
