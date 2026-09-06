@@ -54,10 +54,10 @@ class SentenceStrucureFeatures:
         r"""
         # Extended multi-ingredient phrase containing of 3 ingredients
         # w, x or y z
-        EMIP: {<NN.*|JJ.*>+<,><NN.*|JJ.*>+<,>?<CC><DT|NN.*|JJ.*>*<NN.*>}
+        EMIP: {<NN.*|JJ.*|VB.*>+<,><NN.*|JJ.*|VB.*>+<,>?<CC><DT|NN.*|JJ.*|VB.*>*<NN.*>}
         # Multi-ingredient phrase containing of 2 ingredients
         # x or y z
-        MIP: {<NN.*|JJ.*>+<CC><DT|NN.*|JJ.*>*<NN.*>}
+        MIP: {<NN.*|JJ.*|VB.*>+<CC><DT|NN.*|JJ.*|VB.*>*<NN.*>}
         """
     )
 
@@ -201,10 +201,10 @@ class SentenceStrucureFeatures:
             if self._cc_is_not_or(text_pos, indices):
                 continue
 
-            # Remove any units or sizes from the beginning of the phrase
+            # Remove first unit or size from the beginning of the phrase
             first_idx = indices[0]
             tokens_to_discard = [*FLATTENED_UNITS_LIST, *SIZES]
-            while self.tokenized_sentence[first_idx].text.lower() in tokens_to_discard:
+            if self.tokenized_sentence[first_idx].text.lower() in tokens_to_discard:
                 indices = indices[1:]
                 first_idx = indices[0]
 
@@ -375,12 +375,15 @@ class SentenceStrucureFeatures:
         features = {
             prefix + "mip_start": False,
             prefix + "mip_end": False,
+            prefix + "within_mip": False,
             prefix + "after_sentence_split": False,
             prefix + "example_phrase": False,
         }
         for phrase in self.mip_phrases:
             if index not in phrase:
                 continue
+
+            features[prefix + "within_mip"] = True
 
             if index == phrase[0]:
                 features[prefix + "mip_start"] = True
