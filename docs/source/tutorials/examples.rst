@@ -135,6 +135,12 @@ For example, **1 cup flour, sifted** instructs the chef to measure 1 cup of flou
 Conversely, **1 cup sifted flour** instructs the chef to sift flour to obtain 1 cup, which would have a different mass to the first case.
 For this second case, the ``PREPARED_INGREDIENT`` flag will be set to True.
 
+This syntactic rule is overridden when the preparation is an irreversible action verb (chopped, sliced, diced, minced, grated, shredded, etc.) and the amount unit is volumetric.
+For these combinations pre-prep volumetric measurement is physically impossible — there is no way to cup-measure unchopped onion or unshredded cheese — so the amount must refer to the prepared form regardless of preparation position.
+The override does not fire for strict-liquid units (ml, cl, dl, l, fl oz), or for count and mass units where the measurement is invariant under preparation.
+
+For example, **1 cup carrots, diced** sets ``PREPARED_INGREDIENT`` to True (the cup measures diced carrots, since pre-dice cup measurement is impossible), while **3 carrots, diced** keeps it False (the count of three whole carrots is unchanged by subsequent dicing).
+
 .. code:: python
 
     >>> parse_ingredient("1 cup flour, sifted")

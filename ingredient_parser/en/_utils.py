@@ -15,6 +15,7 @@ from .._common import UREG, consume, download_nltk_resources, is_float, is_range
 from ..dataclasses import IngredientAmount
 from ._constants import (
     FLATTENED_UNITS_LIST,
+    LIQUID_ONLY_UNIT_NAMES,
     UNIT_SYNONYMS,
     UNITS,
 )
@@ -386,6 +387,93 @@ def convert_to_pint_unit(
         return UREG(unit).units
 
     return original_unit
+
+
+def _coerce_unit_to_pint(unit: pint.Unit | str | list[str] | None) -> pint.Unit | None:
+    """Normalise the three forms an amount unit can take across the
+    parser pipeline (pint.Unit, str, list[str]) to a pint.Unit.
+
+    Returns None if the input is empty or cannot be resolved by pint.
+    String / list inputs are routed through convert_to_pint_unit so
+    hyphen edge cases, MISINTERPRETED_UNITS and the standard
+    unit-string replacements are handled consistently with the rest of
+    the pipeline.
+    """
+    if unit is None or unit == "":
+        return None
+
+    if isinstance(unit, list):
+        unit = " ".join(unit).strip()
+        if not unit:
+            return None
+
+    if isinstance(unit, str):
+        unit = convert_to_pint_unit(unit)
+
+    if isinstance(unit, pint.Unit):
+        return unit
+
+    return None
+
+
+def is_volumetric_unit(unit: pint.Unit | str | list[str] | None) -> bool:
+    """Return True if the given unit measures volume.
+
+    Detection is delegated to pint by comparing dimensionality against
+    UREG.cup. Accepts the three unit forms used across the parser
+    pipeline: pint.Unit, str, and list[str] (raw partial-amount form).
+
+    Parameters
+    ----------
+    unit : pint.Unit | str | list[str] | None
+        Unit value from a partial or full IngredientAmount.
+
+    Returns
+    -------
+    bool
+        True if the unit's dimensionality matches volume, otherwise False.
+        Empty / unknown units return False.
+    """
+    pu = _coerce_unit_to_pint(unit)
+    if pu is None:
+        return False
+    try:
+        return pu.dimensionality == UREG.cup.dimensionality
+    except (pint.errors.UndefinedUnitError, pint.errors.DimensionalityError):
+        return False
+
+
+def is_liquid_only_unit(unit: pint.Unit | str | list[str] | None) -> bool:
+    """Return True if the given unit exclusively measures liquids in
+    cooking contexts (ml, cl, dl, l, fl oz and their aliases).
+
+    Pint dimensionality treats all volume units as equivalent, but for
+    cooking semantics we sometimes need to distinguish strictly-liquid
+    units from dual-use volumetric units (cup, tbsp, tsp, pint, quart,
+    gallon) that commonly measure both liquids and dry ingredients.
+    The IRREVERSIBLE_PREP_VERBS override uses this distinction:
+    pre-prep measurement is physically possible for liquids regardless
+    of preparation, so the override only fires on volumetric units that
+    are not strictly liquid.
+
+    Accepts the same input forms as is_volumetric_unit.
+
+    Parameters
+    ----------
+    unit : pint.Unit | str | list[str] | None
+        Unit value from a partial or full IngredientAmount.
+
+    Returns
+    -------
+    bool
+        True if the unit is one of the strictly-liquid volumetric units
+        (members of LIQUID_ONLY_UNIT_NAMES). Empty / unknown units
+        return False.
+    """
+    pu = _coerce_unit_to_pint(unit)
+    if pu is None:
+        return False
+    return str(pu) in LIQUID_ONLY_UNIT_NAMES
 
 
 @lru_cache(maxsize=512)
