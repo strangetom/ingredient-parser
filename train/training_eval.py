@@ -325,15 +325,7 @@ def evalate_postprocessor_output(
             )
             for token, label in zip(p.tokenized_sentence, predicted_labels)
         ]
-        try:
-            predicted_parsed = PostProcessor("", predicted_tokens, {}).parsed
-        except Exception as e:
-            with open("error.txt", "w") as f:
-                for token in predicted_tokens:
-                    f.write(str(token))
-                    f.write("\n")
-                f.write("\n\n")
-            raise e
+        predicted_parsed = PostProcessor("", predicted_tokens, {}).parsed
 
         true_tokens = [
             LabelledToken(
