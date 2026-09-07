@@ -261,7 +261,7 @@ def train_parser_model(
     _ = evaluate_model_with_label_corrections(
         tagger, features_test, truth_test, seed, combine_name_labels
     )
-    evalate_postprocessor_output(tagger, features_test, tokens_test, truth_test)
+    evalate_postprocessor_output(tagger, sentences_test, truth_test)
 
     # We don't need to keep the crfsuite model.
     crfsuite_model_path.unlink(missing_ok=True)
@@ -361,8 +361,16 @@ def train_multiple(args: argparse.Namespace) -> None:
         ]
         logger.info("Queued for %d separate runs", args.runs)
         for idx, future in enumerate(cf.as_completed(futures)):
-            logger.info("%s run completed", convert_num_ordinal(idx + 1))
-            eval_results.append(future.result())
+            if exception := future.exception():
+                logger.error(
+                    "%s algorithm failed with exception:",
+                    convert_num_ordinal(idx + 1),
+                    exc_info=exception,
+                )
+            else:
+                result = future.result()
+                eval_results.append(result)
+                logger.info("%s run completed", convert_num_ordinal(idx + 1))
 
     word_accuracies, sentence_accuracies, seeds = [], [], []
     for result in eval_results:

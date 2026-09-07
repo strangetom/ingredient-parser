@@ -13,7 +13,7 @@ from tabulate import tabulate
 from ingredient_parser.dataclasses import LabelledToken, ParsedIngredient
 from ingredient_parser.inference import FeatureDict, NumpyCRFInference
 
-from .training_utils import select_postprocessor
+from .training_utils import select_postprocessor, select_preprocessor
 
 logger = logging.getLogger(__name__)
 
@@ -280,8 +280,7 @@ def evaluate_model_with_label_corrections(
 
 def evalate_postprocessor_output(
     tagger: NumpyCRFInference,
-    features_test: list[list[FeatureDict]],
-    tokens_test: list[list[str]],
+    sentences_test: list[str],
     truth_test: list[list[str]],
 ):
     """Evaluate combined model and full post-processing and print results.
@@ -290,10 +289,8 @@ def evalate_postprocessor_output(
     ----------
     tagger : NumpyCRFInference
         Tagger instance.
-    features_test : list[list[FeatureDict]]
-        List of feature lists for test sentences.
-    tokens_test : list[list[str]]
-        List of token lists for test sentences.
+    sentences_test : list[str]
+        List of test sentences.
     truth_test : list[list[str]]
         List of true label lists for test sentences.
     """
@@ -305,41 +302,49 @@ def evalate_postprocessor_output(
     )
 
     PostProcessor = select_postprocessor("en")
+    PreProcessor = select_preprocessor("en")
 
     correct = 0
-    for features, tokens, true_labels in zip(features_test, tokens_test, truth_test):
+    for sentence, true_labels in zip(sentences_test, truth_test):
+        p = PreProcessor(sentence)
         predicted_labels, _ = zip(
             *tagger.tag_from_features(
-                features, expect_name_in_output=True, constrain_transitions=True
+                p.sentence_features(),
+                expect_name_in_output=True,
+                constrain_transitions=True,
             )
         )
         predicted_tokens = [
             LabelledToken(
-                index=idx,
-                text=token,
-                pos_tag=feature_dict["pos"],
+                index=token.index,
+                text=token.text,
+                pos_tag=token.pos_tag,
                 label=label,
                 score=0,
-                plural=False,
+                plural=token.index in p.singularised_indices,
             )
-            for idx, (feature_dict, token, label) in enumerate(
-                zip(features, tokens, predicted_labels)
-            )
+            for token, label in zip(p.tokenized_sentence, predicted_labels)
         ]
-        predicted_parsed = PostProcessor("", predicted_tokens, {}).parsed
+        try:
+            predicted_parsed = PostProcessor("", predicted_tokens, {}).parsed
+        except Exception as e:
+            with open("error.txt", "w") as f:
+                for token in predicted_tokens:
+                    f.write(str(token))
+                    f.write("\n")
+                f.write("\n\n")
+            raise e
 
         true_tokens = [
             LabelledToken(
-                index=idx,
-                text=token,
-                pos_tag=feature_dict["pos"],
+                index=token.index,
+                text=token.text,
+                pos_tag=token.pos_tag,
                 label=label,
                 score=0,
-                plural=False,
+                plural=token.index in p.singularised_indices,
             )
-            for idx, (feature_dict, token, label) in enumerate(
-                zip(features, tokens, true_labels)
-            )
+            for token, label in zip(p.tokenized_sentence, true_labels)
         ]
         true_parsed = PostProcessor("", true_tokens, {}).parsed
 
@@ -348,7 +353,7 @@ def evalate_postprocessor_output(
 
     logger.info(
         "%.2f%% of test sentences had the correct parsed output.",
-        100 * correct / len(features_test),
+        100 * correct / len(sentences_test),
     )
 
 
