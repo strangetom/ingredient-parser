@@ -102,12 +102,11 @@ class SentenceStrucureFeatures:
             Tokenized sentence.
         """
         self.tokenized_sentence = tokenized_sentence
+        self.units_sizes = [*FLATTENED_UNITS_LIST, *SIZES]
         self.mip_phrases = self.detect_mip_phrases(tokenized_sentence)
         self.sentence_splits = self.detect_sentences_splits(tokenized_sentence)
         self.example_phrases = self.detect_examples(tokenized_sentence)
         self.dimensional_phrases = self.detect_dimensional_phrases(tokenized_sentence)
-
-        self.units_sizes = [*FLATTENED_UNITS_LIST, *SIZES]
 
     def __repr__(self) -> str:
         return (
