@@ -66,7 +66,7 @@ class SentenceStrucureFeatures:
     # constants.
     compound_parser = nltk.RegexpParser(r"""
         CS_WU: {<CC><RB>?<CD|DT>+<RB>?<UNIT|SIZE>+} # with unit: quantity with unit/size
-        CS_NU: {<CC><CD|DT>+<NN.*|JJ.*>}  # no unit: quantity but no unit or size
+        CS_NU: {<CC><CD>+<NN.*|JJ.*>}  # no unit: quantity but no unit or size
         CS_HALF: {<CC><HALF>} # "or half the", "or half that" etc.
     """)
 
@@ -106,6 +106,8 @@ class SentenceStrucureFeatures:
         self.sentence_splits = self.detect_sentences_splits(tokenized_sentence)
         self.example_phrases = self.detect_examples(tokenized_sentence)
         self.dimensional_phrases = self.detect_dimensional_phrases(tokenized_sentence)
+
+        self.units_sizes = [*FLATTENED_UNITS_LIST, *SIZES]
 
     def __repr__(self) -> str:
         return (
@@ -203,8 +205,7 @@ class SentenceStrucureFeatures:
 
             # Remove first unit or size from the beginning of the phrase
             first_idx = indices[0]
-            tokens_to_discard = [*FLATTENED_UNITS_LIST, *SIZES]
-            if self.tokenized_sentence[first_idx].text.lower() in tokens_to_discard:
+            if self.tokenized_sentence[first_idx].text.lower() in self.units_sizes:
                 indices = indices[1:]
                 first_idx = indices[0]
 
@@ -255,7 +256,14 @@ class SentenceStrucureFeatures:
             if self._cc_is_not_or(text_pos, indices):
                 continue
 
-            split_indices.append(indices[0])
+            split_idx = indices[0]
+            if self.tokenized_sentence[split_idx - 1].text.lower() in self.units_sizes:
+                # If the token prior to the split is a unit or size, assume that this
+                # isn't a split in sentence subject, but rather it's an alternative
+                # unit/size e.g. "3 cups or 1 lb ..."
+                continue
+
+            split_indices.append(split_idx)
 
         return split_indices
 

@@ -120,6 +120,17 @@ class Test_compound_sentence_features:
         )
         assert p.sentence_structure.sentence_splits == [3, 7]
 
+    def test_detect_no_compound_sentence_alternative_units(self):
+        """
+        Test that no split is identified despite the or-number-unit sequence because the
+        prior token is also a unit.
+        """
+        p = PreProcessor(
+            "3 cups or 1 lb thinly sliced leeks including the tender green",
+            custom_units={},
+        )
+        assert p.sentence_structure.sentence_splits == []
+
     def test_after_sentence_split_feature(self):
         """
         Test that the or-number-size sequence is identified as split point.
