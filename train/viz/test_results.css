@@ -33,59 +33,149 @@
 	--aqua: #689d6a;
 	--aqua-blend: #567856;
 	--aqua-alt: #8ec07c;
+
+	--mantine-font-family:
+		-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji;
 }
 
 body {
 	font-family: sans-serif;
-	margin: 2rem;
 	background-color: var(--bg-s);
 	color: var(--fg);
+	font-family: var(--mantine-font-family);
 }
-table {
-	margin-bottom: 2rem;
-	border-collapse: collapse;
-	border: var(--fg-2) 3px solid;
-}
-td {
-	padding: 0.5rem 1rem;
-	border: var(--fg-2) 1px solid;
-	position: relative;
-}
-div > div {
+header {
+	padding: 0.5rem;
 	display: flex;
-	align-items: center;
+	justify-content: space-between;
+	border-bottom: 1px solid color-mix(in srgb, var(--fg), transparent 66%);
+	background-color: var(--bg-s);
+	position: sticky;
+	left: 0;
+	right: 0;
+	top: 0;
+	z-index: 1;
 }
-div.filters {
-	display: flex;
-	gap: 1rem;
+h1 {
+	margin: 0;
+	font-weight: normal;
+}
+h5 {
+	font-weight: normal;
+	font-style: italic;
+	font-size: 1rem;
+	color: var(--fg-2);
+	margin: 0;
+}
+
+button {
+	padding: 1rem;
+	border: none;
+	background-color: var(--bg-3);
+	color: var(--fg);
+	font-weight: 600;
+	border-radius: 0.25rem;
+	min-width: 15ch;
+	cursor: pointer;
+}
+button:hover {
+	background-color: var(--bg-4);
+}
+button.copy {
+	padding: 0.25rem;
+	min-width: 10ch;
+}
+input[type="search"] {
+	padding: 1rem;
+	color: var(--fg);
+	background-color: var(--bg-2);
+	border: 1px solid color-mix(in srgb, var(--fg), transparent 86%);
+	border-radius: 0.25rem;
+	width: 40ch;
+}
+input[type="search"]:focus,
+input[type="search"]:focus-within,
+input[type="search"]:focus-visible {
+	outline: 1px solid var(--fg);
+}
+input[type="search"]::placeholder {
+	color: var(--fg);
+	opacity: 0.33;
+}
+
+dialog::backdrop {
+	/* Backdrop does not inherit from any element so cannot use CSS variables.
+  https://fullscreen.spec.whatwg.org/#::backdrop-pseudo-element
+  */
+	background-color: #32302f66;
+}
+dialog#filter-dialog {
+	margin-right: 1rem;
+	margin-top: 5rem;
+	border: 1px solid color-mix(in srgb, var(--fg), transparent 33%);
+	background-color: var(--bg-1);
+	padding: 0;
+	width: 80ch;
+	color: var(--fg);
 }
 div.filter-options {
-	display: flex;
-	flex-direction: column;
-	width: 23ch;
-	border: 1px solid var(--fg-2);
-	border-radius: 0.25rem;
+	border-bottom: 1px solid color-mix(in srgb, var(--fg), transparent 86%);
 	padding: 0.5rem;
+	accent-color: var(--green-alt);
 }
-.mismatch {
-	font-weight: 700;
-	background-color: var(--red-blend);
+div.filter-options > div {
+	display: grid;
+	grid-template-columns: 4fr 1fr;
+	grid-gap: 0.5rem;
 }
-.low-score {
-	font-weight: 700;
-	background-color: var(--yellow-blend);
+div.filter-checkboxes {
+	text-align: right;
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(16ch, 1fr));
+}
+
+div.display-counts {
+	padding: 0.5rem 1rem;
+	background-color: var(--bg-3);
+	border-radius: 0.25rem;
+	min-width: 10ch;
+	display: flex;
+	gap: 1ch;
+}
+
+table {
+	margin-bottom: 1rem;
+	border-collapse: collapse;
+	border: 2px solid color-mix(in srgb, var(--fg), transparent 66%);
+}
+td {
+	padding: 0.25rem 1rem 0.25rem 0.5rem;
+	border: 1px solid color-mix(in srgb, var(--fg), transparent 66%);
+	position: relative;
+}
+p {
+	margin: 0.25rem 0;
+}
+.wrapper {
+	border-bottom: 1px solid color-mix(in srgb, var(--fg), transparent 86%);
+	padding: 0 1rem;
+	width: calc(100% - 2rem);
+	overflow-x: scroll;
+}
+.sentence {
+	display: flex;
+	margin: 0.5rem;
+}
+.sentence-source {
+	background-color: var(--fg);
 	color: var(--bg);
+	border-radius: 0.25rem;
+	padding: 0 0.25rem;
+	margin-right: 0.5rem;
 }
 .row-title {
 	font-style: italic;
 	background-color: var(--bg-2);
-}
-h4,
-h5 {
-	margin: 0;
-}
-h4 {
-	display: inline;
 }
 label {
 	text-transform: uppercase;
@@ -108,4 +198,61 @@ tr:first-of-type td:not(:first-of-type)::after {
 	right: 0.25rem;
 	font-size: 0.7rem;
 	color: var(--fg-3);
+}
+
+.QTY {
+	background-color: color-mix(in srgb, var(--green-alt), transparent 20%);
+	color: var(--bg);
+}
+.UNIT {
+	background-color: color-mix(in srgb, var(--yellow-alt), transparent 20%);
+	color: var(--bg);
+}
+.B_NAME_TOK {
+	background-color: color-mix(in srgb, var(--aqua-alt), transparent 20%);
+	color: var(--bg);
+}
+.I_NAME_TOK {
+	background-color: color-mix(in srgb, var(--aqua-alt), transparent 20%);
+	color: var(--bg);
+}
+.NAME_VAR {
+	background-color: color-mix(in srgb, var(--aqua-alt), transparent 20%);
+	color: var(--bg);
+}
+.NAME_MOD {
+	background-color: color-mix(in srgb, var(--aqua-alt), transparent 20%);
+	color: var(--bg);
+}
+.NAME_SEP {
+	background-color: color-mix(in srgb, var(--aqua-alt), transparent 20%);
+	color: var(--bg);
+}
+.PREP {
+	background-color: color-mix(in srgb, var(--blue-alt), transparent 20%);
+	color: var(--bg);
+}
+.COMMENT {
+	background-color: color-mix(in srgb, var(--purple-alt), transparent 20%);
+	color: var(--bg);
+}
+.PURPOSE {
+	background-color: color-mix(in srgb, var(--red-alt), transparent 20%);
+	color: var(--bg);
+}
+.SIZE {
+	background-color: color-mix(in srgb, var(--orange-alt), transparent 20%);
+	color: var(--bg);
+}
+.PUNC {
+	background-color: color-mix(in srgb, var(--gray), transparent 20%);
+	color: var(--bg);
+}
+.mismatch {
+	border: 4px solid var(--red-alt);
+	background-color: var(--fg);
+}
+.low-score {
+	color: var(--yellow-alt);
+	font-weight: bold;
 }

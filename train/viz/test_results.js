@@ -1,4 +1,16 @@
 document.addEventListener("DOMContentLoaded", () => {
+	const filterDialog = document.querySelector("#filter-dialog");
+	const filterDialogBtn = document.querySelector("#filters-btn");
+	filterDialogBtn.addEventListener("click", () => {
+		filterDialog.showModal();
+	});
+	filterDialog.addEventListener("click", (event) => {
+		if (event.target.nodeName === "DIALOG") {
+			filterDialog.returnValue = "cancel";
+			filterDialog.close();
+		}
+	});
+
 	const copyButtons = document.querySelectorAll("button.copy");
 	copyButtons.forEach((button) => {
 		button.addEventListener("click", (e) => {
@@ -68,20 +80,17 @@ document.addEventListener("DOMContentLoaded", () => {
 				sent.classList.add("hidden");
 			}
 		});
-		const filter_counts = [];
+
 		let total = 0;
-		for (const [k, v] of Object.entries(filtered_src)) {
-			filter_counts.push(`${k.toUpperCase()}: ${v}, `);
-			total += v;
+		for (const [source, count] of Object.entries(filtered_src)) {
+			document.querySelector(`span.display-count-${source}`).innerText = count;
+			total += count;
 		}
-		const filter_count_el = document.querySelector("#filter-counts");
-		const filter_text =
-			" [" + filter_counts.join("") + "] (" + total + " total)";
-		filter_count_el.innerText = filter_text;
+		document.querySelector("span.display-count-total").innerText = total;
 	}
 	const filterInputs = document.querySelectorAll("input[type='checkbox']");
 	filterInputs.forEach((input) => {
-		input.addEventListener("change", (e) => {
+		input.addEventListener("change", () => {
 			applyFilter();
 		});
 	});
