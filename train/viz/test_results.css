@@ -48,6 +48,7 @@ header {
 	padding: 0.5rem;
 	display: flex;
 	justify-content: space-between;
+	align-items: center;
 	border-bottom: 1px solid color-mix(in srgb, var(--fg), transparent 66%);
 	background-color: var(--bg-s);
 	position: sticky;
@@ -59,6 +60,7 @@ header {
 h1 {
 	margin: 0;
 	font-weight: normal;
+	font-size: 1.5rem;
 }
 h5 {
 	font-weight: normal;
@@ -141,6 +143,7 @@ div.display-counts {
 	min-width: 10ch;
 	display: flex;
 	gap: 1ch;
+	font-size: 0.8rem;
 }
 
 table {
