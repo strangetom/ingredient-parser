@@ -116,7 +116,7 @@ dialog#filter-dialog {
 	border: 1px solid color-mix(in srgb, var(--fg), transparent 33%);
 	background-color: var(--bg-1);
 	padding: 0;
-	width: 80ch;
+	width: 90ch;
 	color: var(--fg);
 }
 div.filter-options {
@@ -132,7 +132,7 @@ div.filter-options > div {
 div.filter-checkboxes {
 	text-align: right;
 	display: grid;
-	grid-template-columns: repeat(auto-fill, minmax(16ch, 1fr));
+	grid-template-columns: repeat(auto-fill, minmax(18ch, 1fr));
 }
 
 div.display-counts {
