@@ -39,10 +39,9 @@
 }
 
 body {
-	font-family: sans-serif;
+	font-family: var(--mantine-font-family);
 	background-color: var(--bg-s);
 	color: var(--fg);
-	font-family: var(--mantine-font-family);
 }
 header {
 	padding: 0.5rem;

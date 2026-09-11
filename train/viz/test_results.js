@@ -25,7 +25,9 @@ document.addEventListener("DOMContentLoaded", () => {
 		button.addEventListener("click", (e) => {
 			const parent = e.target.parentElement;
 			const checkboxes = parent.querySelectorAll("input[type='checkbox']");
-			checkboxes.forEach((box) => (box.checked = true));
+			checkboxes.forEach((box) => {
+				box.checked = true;
+			});
 			applyFilter();
 		});
 	});
@@ -50,7 +52,7 @@ document.addEventListener("DOMContentLoaded", () => {
 			.querySelector("#token-filter")
 			.value.split(" ")
 			.map((token) => token.toLowerCase());
-		if (token_filters == "") {
+		if (token_filters === "") {
 			token_filters = new Set();
 		} else {
 			token_filters = new Set(token_filters);
@@ -67,11 +69,11 @@ document.addEventListener("DOMContentLoaded", () => {
 				mismatch_filters.includes(sent.dataset.mismatches) &&
 				src_filters.includes(sent.dataset.src) &&
 				errors.intersection(error_filters).size > 0 &&
-				(token_filters.size == 0 ||
-					sent_tokens.intersection(token_filters).size == token_filters.size)
+				(token_filters.size === 0 ||
+					sent_tokens.intersection(token_filters).size === token_filters.size)
 			) {
 				sent.classList.remove("hidden");
-				if (filtered_src[sent.dataset.src] == undefined) {
+				if (filtered_src[sent.dataset.src] === undefined) {
 					filtered_src[sent.dataset.src] = 1;
 				} else {
 					filtered_src[sent.dataset.src] += 1;
