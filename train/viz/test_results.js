@@ -52,7 +52,7 @@ document.addEventListener("DOMContentLoaded", () => {
 			.querySelector("#token-filter")
 			.value.split(" ")
 			.map((token) => token.toLowerCase());
-		if (token_filters === "") {
+		if (token_filters == "") {
 			token_filters = new Set();
 		} else {
 			token_filters = new Set(token_filters);
