@@ -32,7 +32,17 @@ document.addEventListener("DOMContentLoaded", () => {
 		});
 	});
 	function applyFilter() {
-		const filtered_src = {};
+		// Create map to count filtered sentences per source
+		const filtered_src = [...document.querySelectorAll(".source-count input")]
+			.map((el) => {
+				return el.dataset.value;
+			}) // Get source names.
+			.reduce((obj, src) => {
+				// Turn into map with default value of 0.
+				obj[src] = 0;
+				return obj;
+			}, {});
+
 		const sentences = document.querySelectorAll(".wrapper");
 
 		const mismatch_filters = [...document.querySelectorAll("input.mismatch")]
@@ -51,8 +61,11 @@ document.addEventListener("DOMContentLoaded", () => {
 		let token_filters = document
 			.querySelector("#token-filter")
 			.value.split(" ")
-			.map((token) => token.toLowerCase());
-		if (token_filters == "") {
+			.map((token) => token.toLowerCase())
+			.filter((el) => {
+				return el === "";
+			});
+		if (token_filters.length === 0) {
 			token_filters = new Set();
 		} else {
 			token_filters = new Set(token_filters);
@@ -73,11 +86,7 @@ document.addEventListener("DOMContentLoaded", () => {
 					sent_tokens.intersection(token_filters).size === token_filters.size)
 			) {
 				sent.classList.remove("hidden");
-				if (filtered_src[sent.dataset.src] === undefined) {
-					filtered_src[sent.dataset.src] = 1;
-				} else {
-					filtered_src[sent.dataset.src] += 1;
-				}
+				filtered_src[sent.dataset.src] += 1;
 			} else {
 				sent.classList.add("hidden");
 			}
