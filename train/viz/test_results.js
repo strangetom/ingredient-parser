@@ -63,7 +63,7 @@ document.addEventListener("DOMContentLoaded", () => {
 			.value.split(" ")
 			.map((token) => token.toLowerCase())
 			.filter((el) => {
-				return el === "";
+				return el !== "";
 			});
 		if (token_filters.length === 0) {
 			token_filters = new Set();
