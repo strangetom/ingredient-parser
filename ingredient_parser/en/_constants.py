@@ -139,6 +139,7 @@ AMBIGUOUS_UNITS = [
     "ribs",
     "gram",  # e.g. gram (chickpea) flour
     "glass",  # e.g. glass noodles
+    "stem",  # e.g. stem ginger
 ]
 # Extend list automatically to include singular and capitalized forms
 _ambiguous_units_alt_forms = []
