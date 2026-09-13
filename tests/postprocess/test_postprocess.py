@@ -504,6 +504,88 @@ def p_fraction_multiplier_size():
 
 
 @pytest.fixture
+def p_fraction_subtoken_in_name():
+    """Define a PostProcessor object for sentence with a fraction size
+    to use for testing the PostProcessor class methods.
+
+    This sentence includes a fraction as a sub-token of a name token.
+    """
+    sentence = "4 ounces Gruyère cheese, grated, or a mixture with 1/4-part Parmesan"
+    tokens = [
+        "4",
+        "ounce",
+        "Gruyère",
+        "cheese",
+        ",",
+        "grated",
+        ",",
+        "or",
+        "a",
+        "mixture",
+        "with",
+        "#1$4-part",
+        "Parmesan",
+    ]
+    pos_tags = [
+        "CD",
+        "NNS",
+        "NNP",
+        "NN",
+        ",",
+        "VBN",
+        ",",
+        "CC",
+        "DT",
+        "NN",
+        "IN",
+        "CD",
+        "NNP",
+    ]
+    labels = [
+        "QTY",
+        "UNIT",
+        "B_NAME_TOK",
+        "I_NAME_TOK",
+        "PUNC",
+        "PREP",
+        "PUNC",
+        "NAME_SEP",
+        "B_NAME_TOK",
+        "I_NAME_TOK",
+        "I_NAME_TOK",
+        "I_NAME_TOK",
+        "I_NAME_TOK",
+    ]
+    scores = [
+        0.9999842715883475,
+        0.9998544249395854,
+        0.9811047518517215,
+        0.981313226581661,
+        0.9999987202976345,
+        0.9992334794573822,
+        0.9999478184843615,
+        0.569284255225948,
+        0.5603426104490784,
+        0.5870288345439654,
+        0.7273310378354662,
+        0.7351191214749928,
+        0.7366090045516512,
+    ]
+    plurals = [False] * len(tokens)
+    plurals[11] = True
+    labelled_tokens = [
+        LabelledToken(
+            index=i, text=text, pos_tag=tag, label=label, score=score, plural=plural
+        )
+        for i, (text, tag, label, score, plural) in enumerate(
+            zip(tokens, pos_tags, labels, scores, plurals)
+        )
+    ]
+
+    return PostProcessor(sentence, labelled_tokens, custom_units={})
+
+
+@pytest.fixture
 def p_split_name():
     """Define a PostProcessor object with discard_isolated_stop_words set to False
     to use for testing the PostProcessor class methods.
@@ -967,6 +1049,49 @@ class TestPostProcessor_parsed:
         )
 
         assert p_fraction_multiplier_size.parsed == expected
+
+    def test_fraction_subtoken_in_name(self, p_fraction_subtoken_in_name):
+        """
+        Test fixture returns expected ParsedIngredient object, with the fraction size
+        in the name retained.
+        """
+        expected = ParsedIngredient(
+            name=[
+                IngredientText(
+                    text="Gruyère cheese",
+                    confidence=0.981209,
+                    starting_index=2,
+                ),
+                IngredientText(
+                    text="a mixture with 1/4-part Parmesan",
+                    confidence=0.669286,
+                    starting_index=8,
+                ),
+            ],
+            size=None,
+            amount=[
+                ingredient_amount_factory(
+                    quantity="4",
+                    unit="ounce",
+                    text="4 ounces",
+                    confidence=0.999919,
+                    starting_index=0,
+                ),
+            ],
+            preparation=IngredientText(
+                text="grated",
+                confidence=0.999233,
+                starting_index=5,
+            ),
+            comment=None,
+            purpose=None,
+            foundation_foods=[],
+            sentence=(
+                "4 ounces Gruyère cheese, grated, or a mixture with 1/4-part Parmesan"
+            ),
+        )
+
+        assert p_fraction_subtoken_in_name.parsed == expected
 
     def test_split_ingredient_name(self, p_split_name):
         """
