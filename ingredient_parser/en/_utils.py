@@ -187,6 +187,8 @@ def tokenize(sentence: str) -> list[str]:
 
     # Recombine "and/or" into a single token
     combined = combine_and_or(flattened)
+    # Recombine "No. 1" and similar into a single token
+    combined = combine_no_number(combined)
 
     # Second pass to separate full stops from end of tokens
     tokens = [FULL_STOP_TOKENISER.split(tok) for tok in combined]
@@ -249,6 +251,36 @@ def combine_and_or(tokens: list[str]) -> list[str]:
         if tokens[i] == AND_OR_PATTERN[0] and tokens[i : i + 3] == AND_OR_PATTERN:
             combined.append("and/or")
             consume(idx, len(AND_OR_PATTERN) - 1)
+        else:
+            combined.append(tokens[i])
+
+    return combined
+
+
+def combine_no_number(tokens: list[str]) -> list[str]:
+    """Combine "No." followed by a number into a single token.
+
+    Parameters
+    ----------
+    tokens : list[str]
+        Flat list of tokens.
+
+    Returns
+    -------
+    list[str]
+        Input tokens with any instances of and/or combined into a single token.
+
+    Examples
+    --------
+    >>> recombine_and_or(["1", "teaspoon", "No", ".", "1", "curing", "salt"])
+    ['1', 'teaspoon', 'No. 1', 'curing', 'salt']
+    """
+    combined = []
+    idx = iter(range(len(tokens)))
+    for i in idx:
+        if tokens[i] == "No." and is_float(tokens[i + 1]):
+            combined.append("No. " + tokens[i + 1])
+            consume(idx, 1)
         else:
             combined.append(tokens[i])
 
