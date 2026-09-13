@@ -441,6 +441,28 @@ class TestPostProcessor_sizeable_unit_pattern:
             assert out.SINGULAR == exp.SINGULAR
             assert out.APPROXIMATE == exp.APPROXIMATE
 
+    def test_no_count_pattern_plural(self):
+        """
+        Test that [QTY, UNIT, UNIT] does not match when the end unit is plural.
+        """
+        sentence = "4 thick slices bread"
+        tokens = ["4", "thick", "slice", "bread"]
+        pos_tags = ["CD", "JJ", "NNS", "NN"]
+        labels = ["QTY", "UNIT", "UNIT", "B_NAME_TOK"]
+        plurals = [False, False, True, False]
+        scores = [0.0] * len(tokens)
+        labelled_tokens = [
+            LabelledToken(
+                index=i, text=text, pos_tag=tag, label=label, score=score, plural=plural
+            )
+            for i, (text, tag, label, score, plural) in enumerate(
+                zip(tokens, pos_tags, labels, scores, plurals)
+            )
+        ]
+        p = PostProcessor(sentence, labelled_tokens, custom_units={})
+
+        assert p._sizeable_unit_pattern(labelled_tokens) == []
+
     def test_no_count_pattern_non_container_end(self):
         """
         Test that [QTY, UNIT, UNIT] does not match when the end unit is not

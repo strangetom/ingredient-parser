@@ -1057,6 +1057,11 @@ class PostProcessor:
                 if any(tokens[i].index in self.consumed for i in match):
                     continue
 
+                if pattern == patterns[3] and tokens[match[-1]].plural:
+                    # Do not match the QTY UNIT UNIT pattern if the last UNIT is plural
+                    # because the implicit quantity of 1 applied would be invalid.
+                    continue
+
                 # If the pattern ends with one of end_units, we have found a match for
                 # this pattern!
                 if tokens[match[-1]].text in end_units:
