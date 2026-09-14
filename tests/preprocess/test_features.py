@@ -14,15 +14,19 @@ def p():
 class TestPreProcessor_is_unit:
     def test_true(self, p):
         """
-        "glass" is a unit
+        "teaspoon" is a unit
         """
-        assert p._is_unit("glass")
+        input_sentence = "8-10 teaspoons pine nuts (ground), toasted"
+        p = PreProcessor(input_sentence, custom_units={})
+        assert p._is_unit(1)
 
     def test_false(self, p):
         """
-        "watt" is not a unit
+        "pine" is not a unit
         """
-        assert not p._is_unit("watt")
+        input_sentence = "8-10 teaspoons pine nuts (ground), toasted"
+        p = PreProcessor(input_sentence, custom_units={})
+        assert not p._is_unit(2)
 
 
 class TestPreProcessor_is_punc:
@@ -255,31 +259,41 @@ class TestPreProcessor_is_ambiguous_unit:
         """
         Clove is indicated as ambiguous unit
         """
-        assert p._is_ambiguous_unit("clove")
+        input_sentence = "1 tsp cloves"
+        p = PreProcessor(input_sentence, custom_units={})
+        assert p._is_ambiguous_unit(2)
 
     def test_leaves(self, p):
         """
         Leaves is indicated as ambiguous unit
         """
-        assert p._is_ambiguous_unit("leaves")
+        input_sentence = "fresh basil leaves"
+        p = PreProcessor(input_sentence, custom_units={})
+        assert p._is_ambiguous_unit(2)
 
     def test_slabs(self, p):
         """
-        Clove is indicated as ambiguous unit
+        Slab is indicated as ambiguous unit
         """
-        assert p._is_ambiguous_unit("slab")
+        input_sentence = "1 lb 5 ox slab bacon"
+        p = PreProcessor(input_sentence, custom_units={})
+        assert p._is_ambiguous_unit(4)
 
     def test_wedges(self, p):
         """
-        Clove is indicated as ambiguous unit
+        Wedge is indicated as ambiguous unit
         """
-        assert p._is_ambiguous_unit("wedges")
+        input_sentence = "1 lemon or lime wedge"
+        p = PreProcessor(input_sentence, custom_units={})
+        assert p._is_ambiguous_unit(4)
 
     def test_cup(self, p):
         """
         Cup is not indicated as ambiguous unit
         """
-        assert not p._is_ambiguous_unit("cup")
+        input_sentence = "2 cups white wine"
+        p = PreProcessor(input_sentence, custom_units={})
+        assert not p._is_ambiguous_unit(1)
 
 
 class TestPreProcessor_word_shape:

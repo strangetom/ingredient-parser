@@ -647,9 +647,8 @@ class PreProcessor:
                 stem=stem(feat_text),
                 shape=self._word_shape(feat_text),
                 is_capitalised=self._is_capitalised(feat_text),
-                is_unit=self._is_unit(feat_text),
                 is_punc=self._is_punc(feat_text),
-                is_ambiguous_unit=self._is_ambiguous_unit(feat_text),
+                is_dimension=self._is_dimension(feat_text),
             )
 
             tokens.append(
@@ -667,29 +666,20 @@ class PreProcessor:
 
         return tokens
 
-    def _is_unit(self, token: str) -> bool:
+    def _is_unit(self, index: int) -> bool:
         """Return True if token is a unit.
 
         Parameters
         ----------
-        token : str
-            Token to check.
+        index : int
+            Index of token to check.
 
         Returns
         -------
         bool
-            True if token is a unit, else False.
-
-        Examples
-        --------
-        >>> p = PreProcessor("")
-        >>> p._is_unit("cup")
-        True
-
-        >>> p = PreProcessor("")
-        >>> p._is_unit("beef")
-        False
+            True if token  at index is a unit, else False.
         """
+        token = self.tokenized_sentence[index].feat_text
         return (
             token.lower() in self._units.values() and token.lower() not in LENGTH_UNITS
         )
@@ -936,33 +926,20 @@ class PreProcessor:
 
         return False
 
-    def _is_ambiguous_unit(self, token: str) -> bool:
+    def _is_ambiguous_unit(self, index: int) -> bool:
         """Return True if token is in AMBIGUOUS_UNITS list.
 
         Parameters
         ----------
-        token : str
-            Token to check.
+        index : int
+            Index of token to check.
 
         Returns
         -------
         bool
-            True if token is in AMBIGUOUS_UNITS, else False.
-
-        Examples
-        --------
-        >>> p = PreProcessor("")
-        >>> p._is_ambiguous_unit("cloves")
-        True
-
-        >>> p = PreProcessor("")
-        >>> p._is_ambiguous_unit("wedge")
-        True
-
-        >>> p = PreProcessor("")
-        >>> p._is_ambiguous_unit("leaf")
-        True
+            True if token at index is in AMBIGUOUS_UNITS, else False.
         """
+        token = self.tokenized_sentence[index].feat_text
         return token in AMBIGUOUS_UNITS
 
     def _sentence_length_bucket(self) -> int:
@@ -1046,15 +1023,15 @@ class PreProcessor:
         token = self.tokenized_sentence[index]
         return {
             prefix + "is_capitalised": token.features.is_capitalised,
-            prefix + "is_unit": token.features.is_unit,
             prefix + "is_punc": token.features.is_punc,
-            prefix + "is_ambiguous": token.features.is_ambiguous_unit,
+            prefix + "is_dimension": token.features.is_dimension,
+            prefix + "word_shape": token.features.shape,
+            prefix + "is_unit": self._is_unit(index),
+            prefix + "is_ambiguous": self._is_ambiguous_unit(index),
             prefix + "is_in_parens": self._is_inside_parentheses(index),
             prefix + "is_after_comma": self._follows_comma(index),
             prefix + "is_after_plus": self._follows_plus(index),
-            prefix + "word_shape": token.features.shape,
             prefix + "is_length_unit": self._is_length_unit(index),
-            prefix + "is_dimension": self._is_dimension(token.feat_text),
         }
 
     def _ngram_features(self, token: str, prefix: str) -> dict[str, str]:
