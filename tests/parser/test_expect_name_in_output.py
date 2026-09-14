@@ -1,40 +1,116 @@
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+import numpy as np
 import pytest
 
 from ingredient_parser import parse_ingredient
+from ingredient_parser.en._loaders import load_parser_model
 from ingredient_parser.inference import NumpyCRFInference
 
 
 class Test_expect_name_in_output:
-    @pytest.mark.model_dependent
     def test_enabled(self):
         """
         Test that the return name is not []
         """
         sentence = "1 cup, plus 2 tablespoons olive oil"
-        parsed = parse_ingredient(sentence, expect_name_in_output=True)
+        tagger = load_parser_model()
+
+        def mock_predict_sequence(features_seq, constrain_transitions=True):
+            """
+            Mock predict sequence function that always return "COMMENT" for all labels.
+
+            Modify the marginals for the last two tokens so the B_NAME_TOK and
+            I_NAME_TOK have lower scores than the COMMENT label, but high enough so that
+            guess_ingredient_name would select them if enabled.
+            """
+            n = len(features_seq)
+            labels = ["COMMENT"] * n
+            scores = [0.5] * n
+
+            #
+            marginals = np.full((n, tagger.model.n_labels), 0.01)
+            marginals[n - 2, tagger.model.label_to_idx["B_NAME_TOK"]] = 0.3
+            marginals[n - 1, tagger.model.label_to_idx["I_NAME_TOK"]] = 0.2
+            tagger.model.marginals = marginals
+            return labels, scores
+
+        with patch.object(
+            tagger.model, "predict_sequence", side_effect=mock_predict_sequence
+        ):
+            parsed = parse_ingredient(sentence, expect_name_in_output=True)
+
         assert parsed.name != []
 
-    @pytest.mark.model_dependent
     def test_disabled(self):
         """
         Test that the returned name is []
         """
         sentence = "1 cup, plus 2 tablespoons olive oil"
-        parsed = parse_ingredient(sentence, expect_name_in_output=False)
+        tagger = load_parser_model()
+
+        def mock_predict_sequence(features_seq, constrain_transitions=True):
+            """
+            Mock predict sequence function that always return "COMMENT" for all labels.
+
+            Modify the marginals for the last two tokens so the B_NAME_TOK and
+            I_NAME_TOK have lower scores than the COMMENT label, but high enough so that
+            guess_ingredient_name would select them if enabled.
+            """
+            n = len(features_seq)
+            labels = ["COMMENT"] * n
+            scores = [0.5] * n
+
+            #
+            marginals = np.full((n, tagger.model.n_labels), 0.01)
+            marginals[n - 2, tagger.model.label_to_idx["B_NAME_TOK"]] = 0.3
+            marginals[n - 1, tagger.model.label_to_idx["I_NAME_TOK"]] = 0.2
+            tagger.model.marginals = marginals
+            return labels, scores
+
+        with patch.object(
+            tagger.model, "predict_sequence", side_effect=mock_predict_sequence
+        ):
+            parsed = parse_ingredient(sentence, expect_name_in_output=False)
+
         assert parsed.name == []
 
-    @pytest.mark.model_dependent
     def test_disabled_name_not_separate(self):
         """
         Test that the returned name is [] when not separating names
         """
-        sentence = "1 cup, plus 2 tablespoons olive oil"
-        parsed = parse_ingredient(
-            sentence, expect_name_in_output=False, separate_names=False
-        )
+        sentence = "1 cup, plus 2 tablespoons olive or vegetable oil"
+        tagger = load_parser_model()
+
+        def mock_predict_sequence(features_seq, constrain_transitions=True):
+            """
+            Mock predict sequence function that always return "COMMENT" for all labels.
+
+            Modify the marginals for the last 4 tokens so the B_NAME_TOK, NAME_SEP and
+            NAME_VAR have lower scores than the COMMENT label, but high enough so that
+            guess_ingredient_name would select them if enabled.
+            """
+            n = len(features_seq)
+            labels = ["COMMENT"] * n
+            scores = [0.5] * n
+
+            #
+            marginals = np.full((n, tagger.model.n_labels), 0.01)
+            marginals[n - 4, tagger.model.label_to_idx["NAME_VAR"]] = 0.17
+            marginals[n - 3, tagger.model.label_to_idx["NAME_SEP"]] = 0.25
+            marginals[n - 2, tagger.model.label_to_idx["NAME_VAR"]] = 0.3
+            marginals[n - 1, tagger.model.label_to_idx["B_NAME_TOK"]] = 0.2
+            tagger.model.marginals = marginals
+            return labels, scores
+
+        with patch.object(
+            tagger.model, "predict_sequence", side_effect=mock_predict_sequence
+        ):
+            parsed = parse_ingredient(
+                sentence, expect_name_in_output=False, separate_names=False
+            )
+
         assert parsed.name == []
 
     @pytest.mark.model_dependent
