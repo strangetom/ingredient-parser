@@ -387,6 +387,13 @@ def convert_to_pint_unit(
         # the string.
         return unit
 
+    if '"' in unit or "'" in unit:
+        # If the unit contains " or ', this will cause a TokenError when pint tries to
+        # parse the unit.
+        # Since there aren't any pint units that contain these characters, just return
+        # early here to avoid the problem.
+        return unit
+
     original_unit = unit
 
     if unit.lower() in MISINTERPRETED_UNITS:

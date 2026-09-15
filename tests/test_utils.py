@@ -175,10 +175,19 @@ class Test_convert_to_pint_unit:
     def test_unit_with_hypen(self):
         """
         Test that units containing hyphens always return string.
-        This example isn't actually a unit, but can be mislablled as one, so
+        This example isn't actually a unit, but can be mislabelled as one, so
         we need to check this case.
         """
         assert convert_to_pint_unit("medium-size") == "medium-size"
+
+    def test_unit_with_quote(self):
+        """
+        Test that units containing quotes and apostrophes always return string.
+        This example isn't actually a unit, but can be mislabelled as one, so
+        we need to check this case.
+        """
+        assert convert_to_pint_unit('2"') == '2"'
+        assert convert_to_pint_unit("2'") == "2'"
 
     def test_misinterpreted_units(self):
         """
