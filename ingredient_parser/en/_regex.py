@@ -142,3 +142,7 @@ HYPHEN_SPLIT_NAME_PATTERN = re.compile(
     """,
     re.VERBOSE,
 )
+
+# Regex pattern to match a token ending with a number then ".
+# e.g. 1", 2" etc.
+INCH_SIZE_PATTERN = re.compile(r"\d\"$")

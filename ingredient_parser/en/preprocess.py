@@ -25,6 +25,7 @@ from ._regex import (
     FRACTION_PARTS_PATTERN,
     FRACTION_TOKEN_PATTERN,
     HYPHEN_SPLIT_NAME_PATTERN,
+    INCH_SIZE_PATTERN,
     LOWERCASE_PATTERN,
     QUANTITY_UNITS_PATTERN,
     QUANTITY_X_PATTERN,
@@ -649,6 +650,7 @@ class PreProcessor:
                 is_capitalised=self._is_capitalised(feat_text),
                 is_punc=self._is_punc(feat_text),
                 is_dimension=self._is_dimension(feat_text),
+                ends_with_inch_symbol=self._ends_with_inch_symbol(feat_text),
             )
 
             tokens.append(
@@ -711,7 +713,43 @@ class PreProcessor:
         >>> p._is_dimension("cm")
         False
         """
-        return token.lower() in DIMENSIONS
+        if token.lower() in DIMENSIONS:
+            return True
+
+        for dim in DIMENSIONS:
+            if token.lower().endswith(dim):
+                return True
+
+        return False
+
+    def _ends_with_inch_symbol(self, token: str) -> bool:
+        """Return True is token ends with an inch size e.g. 1", 2".
+
+        Parameters
+        ----------
+        token : str
+            Token to check.
+
+        Returns
+        -------
+        bool
+            True if token ends with inch size, else False.
+
+        Examples
+        --------
+        >>> p = PreProcessor("")
+        >>> p._ends_with_inch_symbol('1"')
+        True
+
+        >>> p = PreProcessor("")
+        >>> p._ends_with_inch_symbol('2-3"')
+        True
+
+        >>> p = PreProcessor("")
+        >>> p._ends_with_inch_symbol("1 inch")
+        False
+        """
+        return INCH_SIZE_PATTERN.match(token) is not None
 
     def _is_length_unit(self, index: int) -> bool:
         """Return True if token at index is a length unit.
@@ -1026,6 +1064,7 @@ class PreProcessor:
             prefix + "is_punc": token.features.is_punc,
             prefix + "is_dimension": token.features.is_dimension,
             prefix + "word_shape": token.features.shape,
+            prefix + "ends_with_inch_symbol": token.features.ends_with_inch_symbol,
             prefix + "is_unit": self._is_unit(index),
             prefix + "is_ambiguous": self._is_ambiguous_unit(index),
             prefix + "is_in_parens": self._is_inside_parentheses(index),
