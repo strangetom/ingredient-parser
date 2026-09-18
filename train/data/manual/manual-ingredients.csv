@@ -116,7 +116,7 @@ input,name,quantity,unit,size,preparation,comment,purpose
 2 1/2 dessertspoons grated Parmesan cheese,Parmesan cheese,2#1$2,dessertspoon,,grated,,
 "4 dessertspoons neutral oil, like grapeseed or corn",neutral oil,4,dessertspoon,,,like grapeseed or corn,
 3 dessertspoons black soy sauce,black soy sauce,3,dessertspoon,,,,
-1 dessertspoon shredded fresh ginger (use the large holes on a box grater),fresh ginger,1,dessertspoon,,shredded,use the large holes on a box grater,
+1 dessertspoon shredded fresh ginger (use the large holes on a box grater),fresh ginger,1,dessertspoon,,shredded use the large holes on a box grater,,
 2 dessertspoons shaved chocolate for garnish,chocolate,2,dessertspoon,,shaved,,for garnish
 ¼ c plus 2 dessertspoons grated Pecorino Romano,Pecorino Romano,#1$4 2,c dessertspoon,,grated,plus,
 6 dessertspoons fino sherry,fino sherry,6,dessertspoon,,,,
@@ -126,7 +126,7 @@ input,name,quantity,unit,size,preparation,comment,purpose
 "2 T port, Madeira, or cognac",port Madeira or cognac,2,T,,,,
 4 T butter,butter,4,T,,,,
 4 T light olive oil or salad oil,light olive oil or salad oil,4,T,,,,
-2 T fresh minced tarragon or parsley,fresh tarragon or parsley,2,T,,minced,,
+2 T fresh minced tarragon or parsley,tarragon or parsley,2,T,,fresh minced,,
 4 T clarified butter,clarified butter,4,T,,,,
 2 T minced parsley,parsley,2,T,,minced,,
 6 T butter,butter,6,T,,,,
