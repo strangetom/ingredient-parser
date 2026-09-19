@@ -93,31 +93,22 @@ Sentence level accuracy measures the percentage of ingredient sentences where al
 
 ## Training and Evaluation Data
 
-There are 6 datasets used to train and evaluate model performance.
+There are 7 datasets used to train and evaluate model performance.
 
 1. New York Times, originally found at https://github.com/nytimes/ingredient-phrase-tagger.
 
-   The first 30,000 sentences are used in the training and evaluation of the model.
-
 2. Cookstr, originally found as part of https://archive.org/details/recipes-en-201706.
-
-   The first 15,000 sentences are used in the training and evaluation of the model.
 
 3. BBC Food, originally found as part of https://archive.org/details/recipes-en-201706.
 
-   The first 15,000 sentences are used in the training and evaluation of the model.
-
 4. AllRecipes, originally found as part of https://archive.org/details/recipes-en-201706.
 
-   The first 15,000 sentences are used in the training and evaluation of the model.
+5. Tastecooking, scraped in September 2024.
 
-5. Tastecooking, scraped in September 2024
+6. Bon Appetit, scraped in September 2024.
 
-   All 6318 sentences are used in the training and evaluation of the model.
+7. Manually written sentences.
 
-6. Manual
-
-   141 manually written sentences added to exhibit specific patterns.
 
 
 All datasets have been through extensive cleaning to make the data consistent. The cleaned versions of the data are found in the repository for the ingredient_parser_nlp package: https://github.com/strangetom/ingredient-parser
@@ -130,7 +121,7 @@ The model has the following performance metrics:
 
 | Word level accuracy | Sentence level accuracy |
 | ------------------- | ----------------------- |
-| 98.30 ± 0.22%       | 95.70 ± 0.48%           |
+| 97.95 ± 0.25        | 94.70 ± 0.48%           |
 
 These metrics were determined by executing 25 training/evaluation cycles and calculating the mean and standard deviation for the two metrics across all cycles. The uncertainty values provided represent the 99.7% confidence bounds (i.e. 3x standard deviation). The uncertainty is due to the randomisation of the selection of training and evaluation data whenever the model is trained.
 
