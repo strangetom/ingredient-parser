@@ -43,6 +43,8 @@ class TokenFeatures:
         True if the token is a punctuation character, else False.
     is_dimension : bool
         True if the token is in the list of dimensions, else False.
+    ends_with_inch_symbol : bool
+        True if the token ends with an inch size, else False.
     """
 
     stem: str
@@ -50,6 +52,7 @@ class TokenFeatures:
     is_capitalised: bool
     is_punc: bool
     is_dimension: bool
+    ends_with_inch_symbol: bool
 
 
 @dataclass
