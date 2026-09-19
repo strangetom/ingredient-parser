@@ -119,7 +119,7 @@ class SentenceStrucureFeatures:
 
     def _get_subtree_indices(
         self, parent_tree: nltk.Tree, labels: list[str]
-    ) -> list[list[int]]:
+    ) -> list[tuple[list[int], str]]:
         """Get the indices of a subtree in the parent tree.
 
         Parameters
@@ -131,16 +131,19 @@ class SentenceStrucureFeatures:
 
         Returns
         -------
-        list[int]
-            List of indices of subtree in parent tree.
+        list[tuple[list[int], str]]
+            List of pairs of (list of indices, label) of subtree in parent tree.
             If not found, return empty list.
         """
         indices = []
+        subtree_labels = []
+
         leaf_idx = 0
         for child in parent_tree:
             if isinstance(child, nltk.Tree):
                 num_leaves = len(child.leaves())
                 if child.label() in labels:
+                    subtree_labels.append(child.label())
                     indices.append(list(range(leaf_idx, leaf_idx + num_leaves)))
 
                 # Jump leaf_idx forwards by num_leaves regardless of whether the child
@@ -149,7 +152,7 @@ class SentenceStrucureFeatures:
             else:
                 leaf_idx += 1
 
-        return indices
+        return list(zip(indices, subtree_labels))
 
     def _cc_is_not_or(
         self, text_pos: list[tuple[str, str]], indices: list[int]
@@ -178,7 +181,9 @@ class SentenceStrucureFeatures:
         except ValueError:
             return False
 
-    def detect_mip_phrases(self, tokenized_sentence: list[Token]) -> list[list[int]]:
+    def detect_mip_phrases(
+        self, tokenized_sentence: list[Token]
+    ) -> list[tuple[list[int], str]]:
         """Detect multi-ingredient phrases in tokenized sentence.
 
         Parameters
@@ -188,16 +193,17 @@ class SentenceStrucureFeatures:
 
         Returns
         -------
-        list[list[int]]
-            List of phrases. Each phrase is specified by the indices of the tokens in
-            the tokenized sentence.
+        list[tuple[list[int], str]]
+            List of phrases.
+            Each phrase is specified by the indices of the tokens in the tokenized
+            sentence and the label of the phrase type (i.e. MIP, EMIP).
         """
         phrases = []
 
         text_pos = [(token.text, token.pos_tag) for token in self.tokenized_sentence]
         parsed = self.mip_parser.parse(text_pos)
         logger.debug("MIP parser: \n%s", parsed)
-        for indices in self._get_subtree_indices(parsed, ["EMIP", "MIP"]):  # type: ignore
+        for indices, label in self._get_subtree_indices(parsed, ["EMIP", "MIP"]):  # type: ignore
             # If the conjunction is not "or", skip
             if self._cc_is_not_or(text_pos, indices):
                 continue
@@ -216,9 +222,70 @@ class SentenceStrucureFeatures:
             if self.tokenized_sentence[indices[0]].pos_tag == "CC" or not indices:
                 continue
 
-            phrases.append(indices)
+            phrases.append((indices, label))
 
         return phrases
+
+    def _get_clause_boundary_indices(
+        self, phrase_indices: list[int], type_: str
+    ) -> list[int]:
+        """Get the indices of the clause boundaries in multi-ingredient phrases.
+
+        If type_ is MIP, the boundary is at the first conjunction.
+        If type_ is EMIP, the first boundary is at the first comma, the second boundary
+        is at the first conjunction.
+
+        Parameters
+        ----------
+        phrase_indices : list[int]
+            Indices of multi-ingredient phrase.
+        type_ : str
+            Type of phrase i.e. MIP, EMIP.
+
+        Returns
+        -------
+        list[int]
+            List of indices of clause boundaries.
+        """
+        boundary_indices = []
+
+        tags = [
+            token.pos_tag
+            for i, token in enumerate(self.tokenized_sentence)
+            if i in phrase_indices
+        ]
+        if type_ == "MIP":
+            try:
+                index = tags.index("CC")
+                boundary_indices.append(phrase_indices[index])
+            except ValueError:
+                logger.debug(
+                    "Did not find MIP clause boundary in phrase at indices: %s",
+                    phrase_indices,
+                )
+
+        elif type_ == "EMIP":
+            # First boundary at first comma.
+            # Second boundary at first conjunction.
+            try:
+                index = tags.index(",")
+                boundary_indices.append(phrase_indices[index])
+            except ValueError:
+                logger.debug(
+                    "Did not find 1st EMIP clause boundary in phrase at indices: %s",
+                    phrase_indices,
+                )
+
+            try:
+                index = tags.index("CC")
+                boundary_indices.append(phrase_indices[index])
+            except ValueError:
+                logger.debug(
+                    "Did not find 2nd EMIP clause boundary in phrase at indices: %s",
+                    phrase_indices,
+                )
+
+        return boundary_indices
 
     def detect_sentences_splits(self, tokenized_sentence: list[Token]) -> list[int]:
         """Return indices of tokens that mark a split in sentence subject.
@@ -250,7 +317,10 @@ class SentenceStrucureFeatures:
 
         parsed = self.compound_parser.parse(text_pos)
         logger.debug("Sentence split parser: \n%s", parsed)
-        for indices in self._get_subtree_indices(parsed, ["CS_WU", "CS_NU", "CS_HALF"]):  # type: ignore
+        for indices, _ in self._get_subtree_indices(
+            parsed,  # type: ignore
+            ["CS_WU", "CS_NU", "CS_HALF"],
+        ):
             # If the conjunction is not "or", skip
             if self._cc_is_not_or(text_pos, indices):
                 continue
@@ -289,7 +359,7 @@ class SentenceStrucureFeatures:
         text_pos = [(token.text, token.pos_tag) for token in self.tokenized_sentence]
         parsed = self.example_parser.parse(text_pos)
         logger.debug("Example parser: \n%s", parsed)
-        for indices in self._get_subtree_indices(parsed, ["EX"]):  #  type: ignore
+        for indices, _ in self._get_subtree_indices(parsed, ["EX"]):  #  type: ignore
             phrase_text_pos = [
                 (token.text.upper(), token.pos_tag)
                 for i, token in enumerate(self.tokenized_sentence)
@@ -356,7 +426,13 @@ class SentenceStrucureFeatures:
         parsed = self.dimensional_phrase_parser.parse(text_pos)
         logger.debug("Dimensional phrase parser: \n%s", parsed)
         dimensional_phrases = self._get_subtree_indices(parsed, ["DP"])  # type: ignore
-        return dimensional_phrases
+        if dimensional_phrases:
+            # Unzip dimensional phrase so we can discard the phrase labels, since
+            # they're all "DP".
+            dimensional_phrases, _ = zip(*dimensional_phrases)
+            return list(dimensional_phrases)
+
+        return []
 
     def token_features(self, index: int, prefix: str) -> dict[str, bool]:
         """Return dict of features for token at index.
@@ -386,7 +462,7 @@ class SentenceStrucureFeatures:
             prefix + "after_sentence_split": False,
             prefix + "example_phrase": False,
         }
-        for phrase in self.mip_phrases:
+        for phrase, label in self.mip_phrases:
             if index not in phrase:
                 continue
 
@@ -397,6 +473,17 @@ class SentenceStrucureFeatures:
 
             if index == phrase[-1]:
                 features[prefix + "mip_end"] = True
+
+            boundary_indices = self._get_clause_boundary_indices(phrase, label)
+            for i, boundary in enumerate(boundary_indices):
+                if index == boundary:
+                    # Don't set feature on boundaries.
+                    break
+                elif index < boundary:
+                    # Clauses are enumerated by (negative) distance from end of phrase.
+                    distance = -1 * len(boundary_indices) + i
+                    features[prefix + f"within_mip_clause_{distance}"] = True
+                    break
 
         for split_index in self.sentence_splits:
             if index >= split_index:
