@@ -1,6 +1,7 @@
 import pytest
 
 from ingredient_parser.en import PreProcessor
+from ingredient_parser.en._constants import DIMENSIONS
 
 
 @pytest.fixture
@@ -311,3 +312,24 @@ class TestPreProcessor_word_shape:
         assert p._word_shape("2-pound") == "d-xxxxx"
         # Punctuation
         assert p._word_shape(",") == ","
+
+
+class TestPreProccessor_is_dimension:
+    def test_full_tokens(self, p):
+        """
+        Test that tokens in the DIMENSIONS constant return True for the is_dimension
+        feature.
+        """
+        for token in DIMENSIONS:
+            assert p._is_dimension(token)
+
+    def test_partial_token(self, p):
+        """
+        Test that tokens ending with a hyphen followed by a dimension return True
+        for the is_dimension feature.
+
+        These cases includes token containing " to indicate inches.
+        """
+        assert p._is_dimension('2"-long')
+        assert p._is_dimension('1"-thick')
+        assert p._is_dimension('1/2"-wide')

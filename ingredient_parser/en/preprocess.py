@@ -716,8 +716,10 @@ class PreProcessor:
         if token.lower() in DIMENSIONS:
             return True
 
-        for dim in DIMENSIONS:
-            if token.lower().endswith(dim):
+        # Try splitting token on hyphens and checking the last part
+        if "-" in token:
+            end_part = token.lower().split("-")[-1]
+            if end_part in DIMENSIONS:
                 return True
 
         return False
