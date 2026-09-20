@@ -200,7 +200,7 @@ class SentenceStrucureFeatures:
         """
         phrases = []
 
-        text_pos = [(token.text, token.pos_tag) for token in self.tokenized_sentence]
+        text_pos = [(token.text, token.pos_tag) for token in tokenized_sentence]
         parsed = self.mip_parser.parse(text_pos)
         logger.debug("MIP parser: \n%s", parsed)
         for indices, label in self._get_subtree_indices(parsed, ["EMIP", "MIP"]):  # type: ignore
@@ -210,7 +210,7 @@ class SentenceStrucureFeatures:
 
             # Remove first unit or size from the beginning of the phrase
             first_idx = indices[0]
-            if self.tokenized_sentence[first_idx].text.lower() in self.units_sizes:
+            if tokenized_sentence[first_idx].text.lower() in self.units_sizes:
                 indices = indices[1:]
                 first_idx = indices[0]
 
@@ -219,7 +219,7 @@ class SentenceStrucureFeatures:
                 continue
 
             # If first index is now a conjunction, skip.
-            if self.tokenized_sentence[indices[0]].pos_tag == "CC" or not indices:
+            if tokenized_sentence[indices[0]].pos_tag == "CC":
                 continue
 
             phrases.append((indices, label))
@@ -356,13 +356,13 @@ class SentenceStrucureFeatures:
         """
         examples = []
 
-        text_pos = [(token.text, token.pos_tag) for token in self.tokenized_sentence]
+        text_pos = [(token.text, token.pos_tag) for token in tokenized_sentence]
         parsed = self.example_parser.parse(text_pos)
         logger.debug("Example parser: \n%s", parsed)
         for indices, _ in self._get_subtree_indices(parsed, ["EX"]):  #  type: ignore
             phrase_text_pos = [
                 (token.text.upper(), token.pos_tag)
-                for i, token in enumerate(self.tokenized_sentence)
+                for i, token in enumerate(tokenized_sentence)
                 if i in indices
             ]
 
@@ -484,6 +484,8 @@ class SentenceStrucureFeatures:
                     distance = -1 * len(boundary_indices) + i
                     features[prefix + f"within_mip_clause_{distance}"] = True
                     break
+                elif index > max(boundary_indices):
+                    features[prefix + "within_mip_clause_0"] = True
 
         for split_index in self.sentence_splits:
             if index >= split_index:

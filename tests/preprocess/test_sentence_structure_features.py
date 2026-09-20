@@ -115,15 +115,18 @@ class Test_multi_ingredient_phrase_features:
         """
         p = PreProcessor("2 tbsp olive, vegetable or sunflower oil", custom_units={})
 
-        # Assert that all tokens after the first two have the within_mip feature.
+        # Assert that all tokens after the first two have the within_mip_clause feature.
         for i, token_features in enumerate(p.sentence_features()):
             if i == 2:
                 assert token_features.get("within_mip_clause_-2", False)
             elif i == 4:
                 assert token_features.get("within_mip_clause_-1", False)
+            elif i in [6, 7]:
+                assert token_features.get("within_mip_clause_0", False)
             else:
                 assert not token_features.get("within_mip_clause_-1", False)
                 assert not token_features.get("within_mip_clause_-2", False)
+                assert not token_features.get("within_mip_clause_0", False)
 
 
 class Test_compound_sentence_features:
