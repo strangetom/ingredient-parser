@@ -246,6 +246,7 @@ def feature_search(args: argparse.Namespace):
         ]
         argument_sets.append(arguments)
 
+    logger.info("Feature search started at %s", time.strftime("%H:%M:%S"))
     logger.info("Grid search over %d feature sets.", len(argument_sets))
     logger.info("%d is the random seed used for the train/test split.", args.seed)
 

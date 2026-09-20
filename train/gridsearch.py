@@ -584,6 +584,7 @@ def grid_search(args: argparse.Namespace):
 
     arguments = generate_argument_sets(args)
 
+    logger.info("Grid search started at %s", time.strftime("%H:%M:%S"))
     logger.info("Grid search over %d hyperparameters combinations.", len(arguments))
     logger.info("%d is the random seed used for the train/test split.", args.seed)
 
