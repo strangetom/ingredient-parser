@@ -675,6 +675,9 @@ class PostProcessor:
         parts = [parts[i] for i in keep_idx]
         confidence_parts = [confidence_parts[i] for i in keep_idx]
 
+        if len(parts) == 0:
+            return None
+
         # Join all the parts together into a single string and fix any
         # punctuation weirdness as a result.
         # If the selected_label is NAME, join with a space. For all other labels, join
@@ -682,11 +685,14 @@ class PostProcessor:
         if selected_label == "NAME":
             text = " ".join(parts)
         else:
-            text = ", ".join(parts)
-        text = self._fix_punctuation(text)
+            text = parts[0]
+            for part in parts[1:]:
+                if part[0] in ["(", "["]:
+                    text += " " + part
+                else:
+                    text += ", " + part
 
-        if len(parts) == 0:
-            return None
+        text = self._fix_punctuation(text)
 
         return IngredientText(
             text=text,
