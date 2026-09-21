@@ -4,8 +4,10 @@ import argparse
 import concurrent.futures as cf
 import logging
 import os
+import time
 from collections.abc import Generator
 from contextlib import contextmanager
+from datetime import timedelta
 from pathlib import Path
 from random import randint
 from statistics import mean, stdev
@@ -272,13 +274,26 @@ def train_parser_model(
     return stats
 
 
-def train_parser_model_bypass_logging(*kargs) -> Stats:
+def train_parser_model_bypass_logging(*args) -> tuple[float, Stats]:
+    """Train parser model, suppressing logging.
+
+    Parameters
+    ----------
+    *args :
+        train_parser_model function arguments.
+
+    Returns
+    -------
+    tuple[float, Stats]
+        Tuple of elapsed time, evaluation statistics.
+    """
+    start_time = time.monotonic()
     stats = None
     with change_log_level(
         logging.WARNING
     ):  # Temporarily stop logging below WARNING for multi-processing
-        stats = train_parser_model(*kargs)
-    return stats
+        stats = train_parser_model(*args)
+    return time.monotonic() - start_time, stats
 
 
 def train_single(args: argparse.Namespace) -> None:
@@ -359,6 +374,7 @@ def train_multiple(args: argparse.Namespace) -> None:
         futures = [
             executor.submit(train_parser_model_bypass_logging, *a) for a in arguments
         ]
+        logger.info("Multiple runs started at %s", time.strftime("%H:%M:%S"))
         logger.info("Queued for %d separate runs", args.runs)
         for idx, future in enumerate(cf.as_completed(futures)):
             if exception := future.exception():
@@ -368,9 +384,14 @@ def train_multiple(args: argparse.Namespace) -> None:
                     exc_info=exception,
                 )
             else:
-                result = future.result()
-                eval_results.append(result)
-                logger.info("%s run completed", convert_num_ordinal(idx + 1))
+                elapsed_time, stats = future.result()
+                eval_results.append(stats)
+                logger.info(
+                    "%s run completed at %s (%s elapsed).",
+                    convert_num_ordinal(idx + 1),
+                    time.strftime("%H:%M"),
+                    timedelta(seconds=int(elapsed_time)),
+                )
 
     word_accuracies, sentence_accuracies, seeds = [], [], []
     for result in eval_results:
