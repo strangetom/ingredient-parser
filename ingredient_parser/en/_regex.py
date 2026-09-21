@@ -117,7 +117,7 @@ DIGIT_PATTERN = re.compile(r"[0-9]")
 # The second non-capturing group is for any trailing characters in cases such as 1/2x or
 # 1/2-part.
 FRACTION_TOKEN_PATTERN = re.compile(
-    r"^\d*\#\d+\$\d+(?:\-\d*\#\d+\$\d+)?(?:x|\-[a-z]*)?$"
+    r"^\d*\#\d+\$\d+(?:\-(?:\d*\#\d+\$\d+|\d+))?(?:x|\-[a-z]*)?$"
 )
 
 # Regex pattern to match currency within parentheses e.g. ($1.99)
