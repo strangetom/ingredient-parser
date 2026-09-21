@@ -246,7 +246,7 @@ def feature_search(args: argparse.Namespace):
         ]
         argument_sets.append(arguments)
 
-    logger.info("Feature search started at %s", time.strftime("%H:%M:%S"))
+    logger.info("Feature search started at %s.", time.strftime("%H:%M:%S"))
     logger.info("Grid search over %d feature sets.", len(argument_sets))
     logger.info("%d is the random seed used for the train/test split.", args.seed)
 
@@ -256,7 +256,7 @@ def feature_search(args: argparse.Namespace):
             executor.submit(train_model_feature_search, *a) for a in argument_sets
         ]
         logger.info(
-            "Queued for separate runs against %d feature sets", len(argument_sets)
+            "Queued for separate runs against %d feature sets.", len(argument_sets)
         )
         for idx, future in enumerate(cf.as_completed(futures)):
             if exception := future.exception():

@@ -374,8 +374,8 @@ def train_multiple(args: argparse.Namespace) -> None:
         futures = [
             executor.submit(train_parser_model_bypass_logging, *a) for a in arguments
         ]
-        logger.info("Multiple runs started at %s", time.strftime("%H:%M:%S"))
-        logger.info("Queued for %d separate runs", args.runs)
+        logger.info("Multiple runs started at %s.", time.strftime("%H:%M:%S"))
+        logger.info("Queued for %d separate runs.", args.runs)
         for idx, future in enumerate(cf.as_completed(futures)):
             if exception := future.exception():
                 logger.error(

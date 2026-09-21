@@ -591,7 +591,7 @@ def grid_search(args: argparse.Namespace):
     eval_results = []
     with cf.ProcessPoolExecutor(max_workers=args.processes) as executor:
         futures = [executor.submit(train_model_grid_search, *a) for a in arguments]
-        logger.info("Queued for separate runs against %d algorithms", len(args.algos))
+        logger.info("Queued for separate runs against %d algorithms.", len(args.algos))
         for idx, future in enumerate(cf.as_completed(futures)):
             if exception := future.exception():
                 logger.error(
