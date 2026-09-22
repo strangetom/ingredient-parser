@@ -1,5 +1,22 @@
 # Changelog
 
+### 2.8.0
+
+* Bugfixes: 
+  * Recognise T (tablespoon), Ts (tablespoons), t (teaspoon) and ts (teaspoons) as units.
+  * Improve labelling of units specified in uppercase (e.g. TSP, TBS).
+  * Improve labelling of "dessert spoons" as units.
+  * Don't consider "rack" to be a unit in contexts like "racks of lamb".
+  * Improve foundation food matching be stripping diacritics and letter-like symbols (e.g. ®©™) from ingredient names.
+  * When loading the FDC data, do not discard the lower ends of percentage ranges in descriptions.
+  * Fix exceptions raised is a token labelled as UNIT contained `"` or `'`.
+  
+* Update FDC data to 2026-04-30 release.
+
+* Fully expand ingredient names that are split with a hyphen to indicate a common suffix e.g. "1 cup long- or short-grain rice" is expanded to "1 cup long-grain or short-grain rice".
+
+* Improve accuracy for sentences containing multiple ingredient names.
+
 ### 2.7.0
 
 > [!WARNING]
