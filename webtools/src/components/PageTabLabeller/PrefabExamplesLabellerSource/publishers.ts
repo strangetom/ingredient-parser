@@ -2,8 +2,8 @@ import AllRecipes from "../../../assets/publishers/logo.allrecipes.svg";
 import TheBBC from "../../../assets/publishers/logo.bbc.svg";
 import CookStr from "../../../assets/publishers/logo.cookstr.svg";
 import TheNYTCooking from "../../../assets/publishers/logo.nytcooking.svg";
-//import Saveur from "../../../assets/publishers/logo.saveur.svg";
 import Taste from "../../../assets/publishers/logo.taste.svg";
+import BonAppetit from "../../assets/publishers/logo.bonappetite.svg";
 
 interface Source {
 	abbr: string;
@@ -17,13 +17,11 @@ export const sources: Source[] = [
 		name: "New York Times Cooking",
 		logo: TheNYTCooking,
 	},
-	/*
-  {
-    abbr: "saveur",
-    name: "Saveur",
-    logo: Saveur,
-  },
-   */
+	{
+		abbr: "ba",
+		name: "Bon Appetit",
+		logo: BonAppetit,
+	},
 	{
 		abbr: "bbc",
 		name: "BBC",

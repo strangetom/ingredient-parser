@@ -7,35 +7,37 @@ class Test_multi_ingredient_phrase_features:
         Test that multi ingredient phrase is correctly identified.
         """
         p = PreProcessor("2 tbsp chicken or beef stock", custom_units={})
-        assert p.sentence_structure.mip_phrases == [[2, 3, 4, 5]]
+        assert p.sentence_structure.mip_phrases == [([2, 3, 4, 5], "MIP")]
 
     def test_multi_ingredient_phrase_detection_with_name_mod(self):
         """
         Test that multi ingredient phrase with name modifier is correctly identified.
         """
         p = PreProcessor("2 tbsp hot chicken or beef stock", custom_units={})
-        assert p.sentence_structure.mip_phrases == [[2, 3, 4, 5, 6]]
+        assert p.sentence_structure.mip_phrases == [([2, 3, 4, 5, 6], "MIP")]
 
     def test_extended_multi_ingredient_phrase_detection(self):
         """
         Test that extended multi ingredient phrase is correctly identified.
         """
         p = PreProcessor("2 tbsp olive, vegetable or sunflower oil", custom_units={})
-        assert p.sentence_structure.mip_phrases == [[2, 3, 4, 5, 6, 7]]
+        assert p.sentence_structure.mip_phrases == [([2, 3, 4, 5, 6, 7], "EMIP")]
 
     def test_extended_multi_ingredient_phrase_detection_comma(self):
         """
-        Test that extended multi ingredient phrase is correctly identified.
+        Test that extended multi ingredient phrase containing two commas is correctly
+        identified.
         """
         p = PreProcessor("2 tbsp olive, vegetable, or sunflower oil", custom_units={})
-        assert p.sentence_structure.mip_phrases == [[2, 3, 4, 5, 6, 7, 8]]
+        assert p.sentence_structure.mip_phrases == [([2, 3, 4, 5, 6, 7, 8], "EMIP")]
 
     def test_multi_ingredient_phrase_detection_determinant(self):
         """
-        Test that extended multi ingredient phrase is correctly identified.
+        Test that multi ingredient phrase containing a determinant is correctly
+        identified.
         """
         p = PreProcessor("½ c grapeseed oil or any mild-flavored oil", custom_units={})
-        assert p.sentence_structure.mip_phrases == [[2, 3, 4, 5, 6, 7]]
+        assert p.sentence_structure.mip_phrases == [([2, 3, 4, 5, 6, 7], "MIP")]
 
     def test_mip_start_feature_unit(self):
         """
@@ -51,7 +53,7 @@ class Test_multi_ingredient_phrase_features:
             else:
                 assert not token_features.get("mip_start", False)
 
-    def test_mip_start_feature_size(self):
+    def test_mip_start_feature(self):
         """
         Test that the start of the multi ingredient phrase is correctly identified by
         ignoring the size.
@@ -77,6 +79,54 @@ class Test_multi_ingredient_phrase_features:
                 assert token_features.get("mip_end", False)
             else:
                 assert not token_features.get("mip_end", False)
+
+    def test_within_mip_feature(self):
+        """
+        Test that the all tokens within the multi-ingredient phrase have the
+        within_mip feature set to True.
+        """
+        p = PreProcessor("2 tbsp hot chicken or beef stock", custom_units={})
+
+        # Assert that all tokens after the first two have the within_mip feature.
+        for i, token_features in enumerate(p.sentence_features()):
+            if i > 1:
+                assert token_features.get("within_mip", False)
+            else:
+                assert not token_features.get("within_mip", False)
+
+    def test_within_mip_clause_feature_mip(self):
+        """
+        Test that the all tokens within the first clause of the MIP have the
+        within_mip_clause_-1 feature.
+        """
+        p = PreProcessor("2 tbsp chicken or beef stock", custom_units={})
+
+        # Assert that all tokens after the first two have the within_mip feature.
+        for i, token_features in enumerate(p.sentence_features()):
+            if i == 2:
+                assert token_features.get("within_mip_clause_-1", False)
+            else:
+                assert not token_features.get("within_mip_clause_-1", False)
+
+    def test_within_mip_clause_feature_emip(self):
+        """
+        Test that the all tokens within the two clauses have the appropriate
+        with_mip_clause_* feature.
+        """
+        p = PreProcessor("2 tbsp olive, vegetable or sunflower oil", custom_units={})
+
+        # Assert that all tokens after the first two have the within_mip_clause feature.
+        for i, token_features in enumerate(p.sentence_features()):
+            if i == 2:
+                assert token_features.get("within_mip_clause_-2", False)
+            elif i == 4:
+                assert token_features.get("within_mip_clause_-1", False)
+            elif i in [6, 7]:
+                assert token_features.get("within_mip_clause_0", False)
+            else:
+                assert not token_features.get("within_mip_clause_-1", False)
+                assert not token_features.get("within_mip_clause_-2", False)
+                assert not token_features.get("within_mip_clause_0", False)
 
 
 class Test_compound_sentence_features:
@@ -119,6 +169,17 @@ class Test_compound_sentence_features:
             custom_units={},
         )
         assert p.sentence_structure.sentence_splits == [3, 7]
+
+    def test_detect_no_compound_sentence_alternative_units(self):
+        """
+        Test that no split is identified despite the or-number-unit sequence because the
+        prior token is also a unit.
+        """
+        p = PreProcessor(
+            "3 cups or 1 lb thinly sliced leeks including the tender green",
+            custom_units={},
+        )
+        assert p.sentence_structure.sentence_splits == []
 
     def test_after_sentence_split_feature(self):
         """

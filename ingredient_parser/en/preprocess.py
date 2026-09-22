@@ -24,6 +24,8 @@ from ._regex import (
     EXPANDED_RANGE,
     FRACTION_PARTS_PATTERN,
     FRACTION_TOKEN_PATTERN,
+    HYPHEN_SPLIT_NAME_PATTERN,
+    INCH_SIZE_PATTERN,
     LOWERCASE_PATTERN,
     QUANTITY_UNITS_PATTERN,
     QUANTITY_X_PATTERN,
@@ -127,7 +129,7 @@ class PreProcessor:
         """
         self.input: str = input_sentence
         self.sentence: str = self._normalise(input_sentence)
-        logger.debug(f'Normalised sentence: "{self.sentence}".')
+        logger.debug("Normalised sentence: '%s'.", self.sentence)
 
         if custom_units is not None:
             self._units = UNITS | custom_units
@@ -192,11 +194,12 @@ class PreProcessor:
             self._replace_dupe_units_ranges,
             self._merge_quantity_x,
             self._collapse_ranges,
+            self._expand_hyphen_split_names,
         ]
 
         for func in funcs:
             sentence = func(sentence)
-            logger.debug(f"{func.__name__}: {sentence}")
+            logger.debug("%s: %s", func.__name__, sentence)
 
         return sentence.strip()
 
@@ -553,6 +556,41 @@ class PreProcessor:
         """
         return EXPANDED_RANGE.sub(r"\1-\2", sentence)
 
+    def _expand_hyphen_split_names(self, sentence: str) -> str:
+        """Expand names split with a hyphen that have a common suffix, for example
+        "medium- or -short-grain", "red- or yellow-fleshed".
+
+        In these cases, this function will fully expand the first name so that it
+        includes the common suffix.
+
+        Parameters
+        ----------
+        sentence : str
+            Ingredient sentence.
+
+        Returns
+        -------
+        str
+            Ingredient sentence with hyphen split names fully expanded.
+
+        Examples
+        --------
+        >>> p = PreProcessor("")
+        >>> p._expand_hyphen_split_names("1 tablespoon red- or white-wine vinegar")
+        "1 tablespoon red-wine or white-wine vinegar"
+
+        >>> p = PreProcessor("")
+        >>> p._expand_hyphen_split_names("2 cups unsalted stove- or air-popped popcorn")
+        "2 cups unsalted stove-popped or air-popped popcorn"
+        """
+        for match in HYPHEN_SPLIT_NAME_PATTERN.finditer(sentence):
+            split_word = match.group(1)
+            common_suffix = match.group(2)
+            replacement = split_word + common_suffix + " "
+            sentence = re.sub(rf"\b{split_word}\s", replacement, sentence)
+
+        return sentence
+
     def _calculate_tokens(self, sentence: str) -> list[Token]:
         """Tokenize sentence and calculate attributes for each token.
 
@@ -610,9 +648,9 @@ class PreProcessor:
                 stem=stem(feat_text),
                 shape=self._word_shape(feat_text),
                 is_capitalised=self._is_capitalised(feat_text),
-                is_unit=self._is_unit(feat_text),
                 is_punc=self._is_punc(feat_text),
-                is_ambiguous_unit=self._is_ambiguous_unit(feat_text),
+                is_dimension=self._is_dimension(feat_text),
+                ends_with_inch_symbol=self._ends_with_inch_symbol(feat_text),
             )
 
             tokens.append(
@@ -625,34 +663,25 @@ class PreProcessor:
                 )
             )
 
-        logger.debug(f"Tokenized sentence: {[t.text for t in tokens]}.")
-        logger.debug(f"Singularised tokens at indices: {self.singularised_indices}.")
+        logger.debug("Tokenized sentence: %s.", [t.text for t in tokens])
+        logger.debug("Singularised tokens at indices: %s.", self.singularised_indices)
 
         return tokens
 
-    def _is_unit(self, token: str) -> bool:
+    def _is_unit(self, index: int) -> bool:
         """Return True if token is a unit.
 
         Parameters
         ----------
-        token : str
-            Token to check.
+        index : int
+            Index of token to check.
 
         Returns
         -------
         bool
-            True if token is a unit, else False.
-
-        Examples
-        --------
-        >>> p = PreProcessor("")
-        >>> p._is_unit("cup")
-        True
-
-        >>> p = PreProcessor("")
-        >>> p._is_unit("beef")
-        False
+            True if token  at index is a unit, else False.
         """
+        token = self.tokenized_sentence[index].feat_text
         return (
             token.lower() in self._units.values() and token.lower() not in LENGTH_UNITS
         )
@@ -684,7 +713,45 @@ class PreProcessor:
         >>> p._is_dimension("cm")
         False
         """
-        return token.lower() in DIMENSIONS
+        if token.lower() in DIMENSIONS:
+            return True
+
+        # Try splitting token on hyphens and checking the last part
+        if "-" in token:
+            end_part = token.lower().split("-")[-1]
+            if end_part in DIMENSIONS:
+                return True
+
+        return False
+
+    def _ends_with_inch_symbol(self, token: str) -> bool:
+        """Return True is token ends with an inch size e.g. 1", 2".
+
+        Parameters
+        ----------
+        token : str
+            Token to check.
+
+        Returns
+        -------
+        bool
+            True if token ends with inch size, else False.
+
+        Examples
+        --------
+        >>> p = PreProcessor("")
+        >>> p._ends_with_inch_symbol('1"')
+        True
+
+        >>> p = PreProcessor("")
+        >>> p._ends_with_inch_symbol('2-3"')
+        True
+
+        >>> p = PreProcessor("")
+        >>> p._ends_with_inch_symbol("1 inch")
+        False
+        """
+        return INCH_SIZE_PATTERN.match(token) is not None
 
     def _is_length_unit(self, index: int) -> bool:
         """Return True if token at index is a length unit.
@@ -899,33 +966,20 @@ class PreProcessor:
 
         return False
 
-    def _is_ambiguous_unit(self, token: str) -> bool:
+    def _is_ambiguous_unit(self, index: int) -> bool:
         """Return True if token is in AMBIGUOUS_UNITS list.
 
         Parameters
         ----------
-        token : str
-            Token to check.
+        index : int
+            Index of token to check.
 
         Returns
         -------
         bool
-            True if token is in AMBIGUOUS_UNITS, else False.
-
-        Examples
-        --------
-        >>> p = PreProcessor("")
-        >>> p._is_ambiguous_unit("cloves")
-        True
-
-        >>> p = PreProcessor("")
-        >>> p._is_ambiguous_unit("wedge")
-        True
-
-        >>> p = PreProcessor("")
-        >>> p._is_ambiguous_unit("leaf")
-        True
+            True if token at index is in AMBIGUOUS_UNITS, else False.
         """
+        token = self.tokenized_sentence[index].feat_text
         return token in AMBIGUOUS_UNITS
 
     def _sentence_length_bucket(self) -> int:
@@ -1009,15 +1063,16 @@ class PreProcessor:
         token = self.tokenized_sentence[index]
         return {
             prefix + "is_capitalised": token.features.is_capitalised,
-            prefix + "is_unit": token.features.is_unit,
             prefix + "is_punc": token.features.is_punc,
-            prefix + "is_ambiguous": token.features.is_ambiguous_unit,
+            prefix + "is_dimension": token.features.is_dimension,
+            prefix + "word_shape": token.features.shape,
+            prefix + "ends_with_inch_symbol": token.features.ends_with_inch_symbol,
+            prefix + "is_unit": self._is_unit(index),
+            prefix + "is_ambiguous": self._is_ambiguous_unit(index),
             prefix + "is_in_parens": self._is_inside_parentheses(index),
             prefix + "is_after_comma": self._follows_comma(index),
             prefix + "is_after_plus": self._follows_plus(index),
-            prefix + "word_shape": token.features.shape,
             prefix + "is_length_unit": self._is_length_unit(index),
-            prefix + "is_dimension": self._is_dimension(token.feat_text),
         }
 
     def _ngram_features(self, token: str, prefix: str) -> dict[str, str]:

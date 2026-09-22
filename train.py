@@ -60,7 +60,7 @@ if __name__ == "__main__":
         help="Datasets to use in training and evaluating the model",
         dest="datasets",
         nargs="*",
-        default=["bbc", "cookstr", "nyt", "allrecipes", "tc", "manual"],
+        default=["bbc", "cookstr", "nyt", "allrecipes", "tc", "manual", "ba"],
     )
     train_parser.add_argument(
         "--split",
@@ -128,7 +128,7 @@ if __name__ == "__main__":
         help="Datasets to use in training and evaluating the model",
         dest="datasets",
         nargs="*",
-        default=["bbc", "cookstr", "nyt", "allrecipes", "tc", "manual"],
+        default=["bbc", "cookstr", "nyt", "allrecipes", "tc", "manual", "ba"],
     )
     multiple_parser.add_argument(
         "--split",
@@ -206,7 +206,7 @@ if __name__ == "__main__":
         help="Datasets to use in training and evaluating the model",
         dest="datasets",
         nargs="*",
-        default=["bbc", "cookstr", "nyt", "allrecipes", "tc", "manual"],
+        default=["bbc", "cookstr", "nyt", "allrecipes", "tc", "manual", "ba"],
     )
     gridsearch_parser.add_argument(
         "--split",
@@ -307,6 +307,12 @@ if __name__ == "__main__":
         type=Path,
     )
     gridsearch_parser.add_argument(
+        "--generate-param-json",
+        help="Generate .json file specifying gridsearch parameters.",
+        action="store_true",
+        default=False,
+    )
+    gridsearch_parser.add_argument(
         "-v",
         help="Enable verbose output.",
         action="count",
@@ -337,7 +343,7 @@ if __name__ == "__main__":
         help="Datasets to use in training and evaluating the model",
         dest="datasets",
         nargs="*",
-        default=["bbc", "cookstr", "nyt", "allrecipes", "tc", "manual"],
+        default=["bbc", "cookstr", "nyt", "allrecipes", "tc", "manual", "ba"],
     )
     featuresearch_parser.add_argument(
         "--split",
@@ -408,7 +414,7 @@ if __name__ == "__main__":
         help="Datasets to use in training and evaluating the model",
         dest="datasets",
         nargs="*",
-        default=["bbc", "cookstr", "nyt", "allrecipes", "tc", "manual"],
+        default=["bbc", "cookstr", "nyt", "allrecipes", "tc", "manual", "ba"],
     )
     utility_parser.add_argument(
         "-v",

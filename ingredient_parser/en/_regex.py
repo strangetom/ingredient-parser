@@ -112,9 +112,13 @@ DIGIT_PATTERN = re.compile(r"[0-9]")
 # This is a token for a fraction where the forward slash has been replaced by $ and
 # any space between the whole part and fraction part has been replaced by #
 # e.g. #1$2 for 1/2, or 1#1$3 for 1 1/3
-# The group at the end of the regex is optional, for capturing the upper end if the
-# token is a range.
-FRACTION_TOKEN_PATTERN = re.compile(r"^\d*\#\d+\$\d+(?:\-\d*\#\d+\$\d+)?$")
+# The first non-capturing group at the end of the regex is optional, for capturing the
+# upper end if the token is a range.
+# The second non-capturing group is for any trailing characters in cases such as 1/2x or
+# 1/2-part.
+FRACTION_TOKEN_PATTERN = re.compile(
+    r"^\d*\#\d+\$\d+(?:\-(?:\d*\#\d+\$\d+|\d+))?(?:x|\-[a-z]*)?$"
+)
 
 # Regex pattern to match currency within parentheses e.g. ($1.99)
 # Allows optional white space after opening parenthesis, before currency symbol, and
@@ -123,3 +127,22 @@ FRACTION_TOKEN_PATTERN = re.compile(r"^\d*\#\d+\$\d+(?:\-\d*\#\d+\$\d+)?$")
 # that has been seen on budgetbytes.com.
 currency_pattern = "|".join(re.escape(c) for c in ["$", "£", "€", "¥", "₹"])
 CURRENCY_PATTERN = re.compile(rf"\(\s*(?:{currency_pattern})\s*[0-9.,]+\**\s*\)")
+
+# Regex pattern to match a name that has been split with a hyphen.
+# e.g. "red- or white-wine", "medium- or short-grain".
+# There are two capture groups: the first captures the word ending with the hyphen, the
+# second captures the part of the second word after the hyphen.
+HYPHEN_SPLIT_NAME_PATTERN = re.compile(
+    r"""
+    \b([a-zA-Z\']+\-) # Capture word ending with a hyphen
+    \s+ # Space(s)
+    or # "or"
+    \s+ # Space(s)
+    \b[a-zA-Z\']+\-([a-zA-Z]+)\b # Word containing hyphen, capturing part after hyphen
+    """,
+    re.VERBOSE,
+)
+
+# Regex pattern to match a token ending with a number then ".
+# e.g. 1", 2" etc.
+INCH_SIZE_PATTERN = re.compile(r"\d\"$")

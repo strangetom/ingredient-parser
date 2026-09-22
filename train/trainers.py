@@ -34,6 +34,7 @@ class IngredientParserTrainer(pycrfsuite.Trainer):  # type: ignore
             Log line emitted from crfsuite.
         """
         self._start_time = time.time()
+        logger.info("Training started at %s", time.strftime("%H:%M:%S"))
 
     def on_featgen_progress(self, log, percent):
         """Callback called on during feature generation.
@@ -108,11 +109,11 @@ class IngredientParserTrainer(pycrfsuite.Trainer):  # type: ignore
             Log line emitted from crfsuite.
         """
         elapsed_time = timedelta(seconds=int(time.time() - self._start_time))
-        logger.info(f"Model trained in {elapsed_time}.")
-        logger.info(f"Stopped after {self._iterations} iterations.")
+        logger.info("Model trained in %s.", elapsed_time)
+        logger.info("Stopped after %d iterations.", self._iterations)
 
     def write_model_config(
-        self, model_file: Path, extra_parameters: dict[str, None | int | float | bool]
+        self, model_file: Path, extra_parameters: dict[str, int | float | bool | None]
     ) -> Path:
         """Write configuration JSON file detail model parameters.
 

@@ -81,3 +81,21 @@ class TestTokenizeFDCDescription:
             embedding_pos_tags=expected_pos_tags,
             embedding_weights=expected_weights,
         )
+
+    def test_percentage_range(self):
+        """
+        Test that the upper and lower limits of a percentage range are retained with the
+        percentage sign.
+        """
+        description = "Chocolate, dark, 60-69% cacao solids"
+
+        expected_tokens = ["chocol", "dark", "60%", "69%", "cacao", "solid"]
+        expected_pos_tags = ["NN", "JJ", "JJ", "JJ", "NN", "NNS"]
+        expected_weights = [1.0, 1.0 - 1e-3, 1 - 2e-3, 1 - 2e-3, 1 - 2e-3, 1 - 2e-3]
+        assert tokenize_fdc_description(description) == TokenizedFDCDescription(
+            tokens=expected_tokens,
+            pos_tags=expected_pos_tags,
+            embedding_tokens=expected_tokens,
+            embedding_pos_tags=expected_pos_tags,
+            embedding_weights=expected_weights,
+        )

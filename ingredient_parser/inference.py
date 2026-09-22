@@ -4,14 +4,47 @@ import gzip
 import json
 import logging
 import mimetypes
+from itertools import pairwise
 from pathlib import Path
+from typing import NamedTuple
 
 import numpy as np
+
+from ._common import group_consecutive_idx, incremental_sublists
 
 logger = logging.getLogger(__name__)
 
 # Type alias for dict of token features.
 FeatureDict = dict[str, str | bool]
+
+
+class AlternativeSequence(NamedTuple):
+    labels: list[str]
+    scores: list[float]
+
+
+# Prohibited transitions between labels.
+# These are based on the labelling scheme and confirmed as being not present in the
+# training data, rather than just being derived directly from the training data.
+PROHIBITED_TRANSITIONS = {
+    "B_NAME_TOK": {"NAME_MOD", "NAME_VAR"},
+    "I_NAME_TOK": {"NAME_MOD"},
+    "NAME_MOD": {"PURPOSE", "I_NAME_TOK", "UNIT", "QTY"},
+    "NAME_SEP": {"PURPOSE", "I_NAME_TOK", "NAME_SEP"},
+    "NAME_VAR": {"COMMENT", "PURPOSE", "I_NAME_TOK", "NAME_MOD", "UNIT", "QTY"},
+    "QTY": {"PURPOSE", "NAME_SEP"},
+    "PURPOSE": {
+        "SIZE",
+        "I_NAME_TOK",
+        "B_NAME_TOK",
+        "NAME_SEP",
+        "NAME_MOD",
+        "PREP",
+        "UNIT",
+        "NAME_VAR",
+        "QTY",
+    },
+}
 
 
 class NumpyCRFInference:
@@ -48,26 +81,55 @@ class NumpyCRFInference:
             f"combined_name_labels={self.combined_name_labels})"
         )
 
+    def _trained_with_combined_name_labels(self) -> bool:
+        """Return True is model was trained with combined name labels.
+
+        Combined name labels means there is a single "NAME" label, rather than labels
+        for the different parts of names (e.g. B_NAME_TOK, I_NAME_TOK, NAME_MOD etc.)
+
+        Returns
+        -------
+        bool
+            Description
+        """
+        return (
+            "NAME" in self.model.label_to_idx
+            and "B_NAME_TOK" not in self.model.label_to_idx
+        )
+
     def tag_from_features(
-        self, sentence_features: list[FeatureDict]
+        self,
+        sentence_features: list[FeatureDict],
+        expect_name_in_output: bool = True,
+        constrain_transitions: bool = True,
     ) -> list[tuple[str, float]]:
         """Tag a sentence with labels using model.
 
         This function accepts a list of features for each token, rather than
         calculating the features from the tokens.
 
-        If self.combined_name_labels=True, then we cannot apply transition constraints
-        because they only apply to I_NAME_TOK.
+        If self.combined_name_labels=True, then we cannot apply label transition
+        constraints. In this case, constrain_transitions is forced to False.
 
         Parameters
         ----------
         sentence_features : list[FeatureDict]
             List of feature dicts for each token.
+        expect_name_in_output : bool, optional
+            If True and the model doesn't label any words in the sentence as the name,
+            fallback to selecting the most likely name from any token even though the
+            model gives it a different label. Note that this does guarantee the output
+            contains a name.
+            Default is True.
+        constrain_transitions : bool, optional
+            If True, constrain label transitions to prevent certain invalid label
+            sequences.
+            Default is True.
 
         Returns
         -------
         list[tuple[str, float]]
-            List of labels.
+            List of (label, confidence) tuples.
         """
         if (
             self.model.emission_weights.size == 0
@@ -75,10 +137,32 @@ class NumpyCRFInference:
         ):
             raise ValueError("NumpyViterbiInference model does not have any weights.")
 
+        if self.combined_name_labels and constrain_transitions:
+            logger.debug(
+                "Ignoring constrain_transitions=True because combine_name_labels=True."
+            )
+            constrain_transitions = False
+
         features = [self._convert_features(f) for f in sentence_features]
-        return self.model.predict_sequence(
-            features, constrain_transitions=not self.combined_name_labels
+        labels, scores = self.model.predict_sequence(
+            features, constrain_transitions=constrain_transitions
         )
+
+        if (
+            expect_name_in_output
+            and all("NAME" not in label for label in labels)
+            and not self._trained_with_combined_name_labels()
+        ):
+            # No tokens were assigned the NAME_* label, so guess if there's a name.
+            # Don't attempt this is the model was trained using combined name labels
+            # because the function doesn't work for that case.
+            logger.debug("No tokens labelled as NAME by model: %s", labels)
+            labels, scores = self._guess_ingredient_name(labels, scores)
+
+        if constrain_transitions:
+            labels, scores = self._detect_invalid_label_sequence(labels, scores)
+
+        return list(zip(labels, scores))
 
     def _convert_features(self, features: FeatureDict) -> set[str]:
         """Convert features dict to set of strings.
@@ -128,16 +212,16 @@ class NumpyCRFInference:
         Returns
         -------
         float
-            Description
+            Marginal probability of given label at given position.
 
         Raises
         ------
         ValueError
-            Description
+            Raised if marginals matrix does not exist.
         """
         if self.model.marginals.size == 0:
             raise ValueError(
-                "Cannot return marginals until predict_sequence() has been called."
+                "Cannot return marginals until tag_from_features() has been called."
             )
 
         label_idx = self.model.label_to_idx[label]
@@ -166,6 +250,297 @@ class NumpyCRFInference:
             scale_factor=data["quantization_scale"],
             zero_offset=data["quantization_zero_offset"],
         )
+
+    def _guess_ingredient_name(
+        self, labels: list[str], scores: list[float], min_score: float = 0.15
+    ) -> tuple[list[str], list[float]]:
+        """Guess ingredient name from list of labels and scores.
+
+        This only applies if the token labelling resulted in no tokens being assigned
+        the NAME label. When this happens, calculate the confidence of each token being
+        NAME, and select the most likely value where the confidence is greater than
+        min_score.
+        If there are consecutive tokens that meet that criteria, give them all the NAME
+        label.
+
+        Parameters
+        ----------
+        labels : list[str]
+            List of token labels.
+        scores : list[float]
+            List of scores.
+        min_score : float
+            Minimum score to consider as candidate name.
+
+        Returns
+        -------
+        list[str], list[float]
+            Labels and scores, modified to assign a name if possible.
+        """
+        # For each element of the sequence, determine the most likely *NAME label whose
+        # score exceeds the minimum threshold.
+        # Store in a dict -> {element_index: (score, label)}
+        candidate_score_labels: dict[int, tuple[float, str]] = {}
+        for i, _ in enumerate(labels):
+            alt_label_scores = [
+                (self.marginal(label, i), label)
+                for label in [
+                    "B_NAME_TOK",
+                    "I_NAME_TOK",
+                    "NAME_VAR",
+                    "NAME_MOD",
+                    "NAME_SEP",
+                ]
+            ]
+            max_score = max(alt_label_scores, key=lambda x: x[0])
+            if max_score[0] > min_score:
+                candidate_score_labels[i] = max_score
+
+        if len(candidate_score_labels) == 0:
+            logger.debug("No viable name tokens identified.")
+            return labels, scores
+
+        # Group element indices into groups of consecutive indices.
+        groups = [
+            list(group)
+            for group in group_consecutive_idx(list(candidate_score_labels.keys()))
+        ]
+
+        # Take longest group of consecutive indices and replace the labels and scores at
+        # these indices with the most likely *NAME labels and their score.
+        indices = sorted(groups, key=len, reverse=True)[0]
+        for token_index in indices:
+            new_score, new_label = candidate_score_labels[token_index]
+            labels[token_index] = new_label
+            scores[token_index] = new_score
+
+        logger.debug("Found alternative name at token indices: %s", indices)
+        return labels, scores
+
+    def _detect_invalid_label_sequence(
+        self, labels: list[str], scores: list[float]
+    ) -> tuple[list[str], list[float]]:
+        """Detect invalid label sequences in token labels.
+
+        Invalid label sequences are those that violate the labelling scheme. The current
+        list of checks are as follows:
+
+        NAME_VAR
+        * If there is a NAME_VAR label, there should be at least 2 groups of consecutive
+          NAME_VAR groups.
+        * The groups of consecutive NAME_VAR labels should be separated by NAME_SEP or
+          PUNC.
+
+        NAME_MOD
+        * If there is a NAME_MOD label, there should be either
+          * 2+ NAME_VARS and 1+ B_NAME_TOK
+          * 2+ B_NAME_TOK
+
+        The current implementation only outputs debug messages when invalid sequences
+        are detected. Future versions may attempt to fix the problems too.
+
+        Parameters
+        ----------
+        labels : list[str]
+            List of token labels.
+        scores : list[float]
+            List of scores.
+
+        Returns
+        -------
+        list[str], list[float]
+            Labels and scores, modified to correct invalid sequence if possible.
+        """
+
+        # NAME_VAR checks
+        name_var_idx = [i for i, label in enumerate(labels) if label == "NAME_VAR"]
+        name_var_groups = [list(g) for g in group_consecutive_idx(name_var_idx)]
+        if len(name_var_groups) == 1:
+            # There should be at least 2 groups of consecutive NAME_VAR labels.
+            logger.debug(
+                "Invalid label sequence for NAME_VAR label: single NAME_VAR group."
+            )
+            labels, scores = self._fix_invalid_name_var_sequence(labels, scores)
+        elif len(name_var_groups) > 1:
+            for group1, group2 in pairwise(name_var_groups):
+                # Get indices between groups and check for NAME_SEP or PUNC.
+                inbetween_idx = list(range(group1[-1] + 1, group2[0]))
+                inbetween_labels = [labels[i] for i in inbetween_idx]
+                if not any(label in {"NAME_SEP", "PUNC"} for label in inbetween_labels):
+                    # Groups of consecutive NAME_VAR labels should be separated by a
+                    # PUNC or NAME_SEP label.
+                    logger.debug(
+                        (
+                            "Invalid label sequence for NAME_VAR label: "
+                            "NAME_VAR groups not separated by NAME_SEP or PUNC. "
+                            "Parsed names may be incorrect."
+                        )
+                    )
+
+        # NAME_MOD checks
+        name_mod_idx = [i for i, label in enumerate(labels) if label == "NAME_MOD"]
+        if name_mod_idx:
+            # Get index of last NAME_MOD label.
+            name_mod_idx = max(name_mod_idx)
+            # Count number of NAME_VAR and B_NAME_TOK labels that occur after the
+            # NAME_MOD label.
+            name_var_count = sum(
+                1 for label in labels[name_mod_idx:] if label == "NAME_VAR"
+            )
+            b_name_tok_count = sum(
+                1 for label in labels[name_mod_idx:] if label == "B_NAME_TOK"
+            )
+            if not (
+                b_name_tok_count >= 2 or (name_var_count >= 2 and b_name_tok_count >= 1)
+            ):
+                # NAME_MOD should be followed by at least 2 B_NAME_TOK or at least 2
+                # NAME_VAR and at least 1 B_NAME_TOK.
+                logger.debug(
+                    (
+                        "Invalid label sequence for NAME_MOD label: "
+                        "NAME_MOD is not followed by at least 2 NAME_VAR "
+                        "or 2 B_NAME_TOK. "
+                        "Parsed names may be incorrect."
+                    )
+                )
+
+        return labels, scores
+
+    def _fix_invalid_name_var_sequence(
+        self, labels: list[str], scores: list[float]
+    ) -> tuple[list[str], list[float]]:
+        """Correct invalid NAME_VAR sequence by changing the NAME_VAR labels to
+        *_NAME_TOK or *_NAME_TOK labels to NAME_VAR to find the alternative sequence
+        that maximises the total sequence score.
+
+        Groups of consecutive labels of the same type are identified and changed
+        together. The changing of labels for a group results in a candidate alternative
+        label sequence. The total score for the new sequence is used to identify the
+        best alternative sequence.
+
+        In order to make sure that output sequence is still valid, there are a couple of
+        special cases to consider.
+
+        1. If a NAME_VAR group contains a single element, we need to check if the token
+           that follows has the B_NAME_TOK label. If it does, then we change it to
+           I_NAME_TOK to prevent consecutive B_NAME_TOK labels.
+        2. If a *_NAME_TOK group contains a single element and is the last *_NAME_TOK
+           group in the sequence, do not make changes.
+        3. If a *_NAME_TOK group contains a more than one element and is the last
+           *_NAME_TOK group in the sequence, do not change the last element. We will,
+           however, generate multiple alternative sequences where we vary the number of
+           elements of the group that have their labels changed starting with just the
+           first element, then first and second, etc.
+
+        Parameters
+        ----------
+        labels : list[str]
+            Invalid label sequence.
+        scores : list[float]
+            Scores for invalid label sequence.
+
+        Returns
+        -------
+        tuple[list[str], list[float]]
+            List of labels, list of scores.
+        """
+        alternative_sequences = []
+
+        name_var_idx = [i for i, label in enumerate(labels) if label == "NAME_VAR"]
+        name_var_groups = [list(g) for g in group_consecutive_idx(name_var_idx)]
+        for name_var_group in name_var_groups:
+            # Convert NAME_VAR indices in this group to *_NAME_TOK
+            alt_labels = labels.copy()
+            alt_scores = scores.copy()
+            for i, idx in enumerate(name_var_group):
+                if i == 0:
+                    alt_labels[idx] = "B_NAME_TOK"
+                    alt_scores[idx] = self.marginal("B_NAME_TOK", idx)
+                else:
+                    alt_labels[idx] = "I_NAME_TOK"
+                    alt_scores[idx] = self.marginal("I_NAME_TOK", idx)
+
+            # Since we've modified label to be B_NAME_TOK/I_NAME_TOK, we need to
+            # look ahead at the next label (outside this group). If the next label
+            # is B_NAME_TOK already, then we need to change it to I_NAME_TOK to
+            # prevent consecutive B_NAME_TOK labels, or a B_NAME_TOK immediately
+            # following I_NAME_TOK.
+            next_idx = name_var_group[-1] + 1
+            if next_idx < len(labels) and labels[next_idx] == "B_NAME_TOK":
+                alt_labels[next_idx] = "I_NAME_TOK"
+                alt_scores[next_idx] = self.marginal("I_NAME_TOK", next_idx)
+
+            alternative_sequences.append(
+                AlternativeSequence(
+                    labels=alt_labels,
+                    scores=alt_scores,
+                )
+            )
+
+        name_tok_idx = [i for i, label in enumerate(labels) if "NAME_TOK" in label]
+        name_tok_groups = [list(g) for g in group_consecutive_idx(name_tok_idx)]
+        for group_number, name_tok_group in enumerate(name_tok_groups):
+            # Generate new sequences that convert the labels in each group to NAME_VAR.
+            #
+            # For the last name_tok_group in the sentence, ensure that there is always
+            # at least one *_NAME_TOK retained at the end.
+            #
+            # If the name_tok_group does not end at the end of the label sequence, then
+            # just change all labels for the group at once.
+
+            # If the group only contains a single B_NAME_TOK at the end of the sequence
+            # then we don't do anything.
+            if len(name_tok_group) == 1 and group_number == len(name_tok_groups) - 1:
+                # Last name_tok_group with only one element, therefore make no changes.
+                continue
+            elif group_number == len(name_tok_groups) - 1:
+                # This is the last name_tok_group in the sentence, so make sure the last
+                # token of this group remains *_NAME_TOK
+                name_tok_group = name_tok_group[:-1]
+                for sublist_idx in incremental_sublists(name_tok_group):
+                    alt_labels = labels.copy()
+                    alt_scores = scores.copy()
+                    for idx in sublist_idx:
+                        alt_labels[idx] = "NAME_VAR"
+                        alt_scores[idx] = self.marginal("NAME_VAR", idx)
+
+                    # Change last index+1 to B_NAME_TOK
+                    end_idx = sublist_idx[-1] + 1
+                    alt_labels[end_idx] = "B_NAME_TOK"
+                    alt_scores[end_idx] = self.marginal("B_NAME_TOK", end_idx)
+
+                    alternative_sequences.append(
+                        AlternativeSequence(
+                            labels=alt_labels,
+                            scores=alt_scores,
+                        )
+                    )
+            else:
+                alt_labels = labels.copy()
+                alt_scores = scores.copy()
+                # Convert all in this group to NAME_VAR
+                for idx in name_tok_group:
+                    alt_labels[idx] = "NAME_VAR"
+                    alt_scores[idx] = self.marginal("NAME_VAR", idx)
+
+                alternative_sequences.append(
+                    AlternativeSequence(
+                        labels=alt_labels,
+                        scores=alt_scores,
+                    )
+                )
+
+        sorted_alt_sequences = sorted(
+            alternative_sequences, key=lambda s: sum(s.scores), reverse=True
+        )
+        logger.debug("Original sequence: %s had total score %.4f", labels, sum(scores))
+        for alt in sorted_alt_sequences:
+            logger.debug(
+                "Alternative sequence: %s has total score %.4f",
+                alt.labels,
+                sum(alt.scores),
+            )
+        return sorted_alt_sequences[0].labels, sorted_alt_sequences[0].scores
 
 
 class NumpyViterbiInference:
@@ -202,6 +577,8 @@ class NumpyViterbiInference:
         self.scale_factor = scale_factor
         self.zero_offset = zero_offset
 
+        self.transition_constraint_mask = None
+
         # Determine data type for weights
         if isinstance(next(iter(feature_weights.values())), int):
             dtype = np.int32
@@ -212,7 +589,7 @@ class NumpyViterbiInference:
         # weights.
         self.emission_weights = np.zeros((self.n_features, self.n_labels), dtype=dtype)
         for feat, weight in feature_weights.items():
-            feature, label = feat.split("|")
+            feature, label = feat.split("\u001f")
             feature_idx = self.features_to_idx[feature]
             label_idx = self.label_to_idx[label]
             self.emission_weights[feature_idx, label_idx] = weight
@@ -221,7 +598,7 @@ class NumpyViterbiInference:
         # weights.
         self.transition_weights = np.zeros((self.n_labels, self.n_labels), dtype=dtype)
         for feat, weight in transition_weights.items():
-            prev_label, current_label = feat.split("|")
+            prev_label, current_label = feat.split("\u001f")
             prev_label_idx = self.label_to_idx[prev_label]
             current_label_idx = self.label_to_idx[current_label]
             self.transition_weights[prev_label_idx, current_label_idx] = weight
@@ -274,9 +651,31 @@ class NumpyViterbiInference:
             ]
         )
 
+    def _precompute_constraint_mask(self) -> np.ndarray:
+        """Compute constraint mask.
+
+        This is a boolean matrix of shape (n_labels, n_labels) where a value of 1 means
+        that the transition from previous label (row) to current label (column) is
+        forbidden.
+
+        Returns
+        -------
+        np.ndarray
+            Boolean matrix indicating forbidden transitions.
+
+        """
+        mask = np.zeros((self.n_labels, self.n_labels), dtype=np.bool_)
+
+        for prev_label, constrained_labels in PROHIBITED_TRANSITIONS.items():
+            prev_idx = self.label_to_idx[prev_label]
+            for idx in [self.label_to_idx[label] for label in constrained_labels]:
+                mask[prev_idx, idx] = 1
+
+        return mask
+
     def predict_sequence(
         self, features_seq: list[set[str]], constrain_transitions: bool = True
-    ) -> list[tuple[str, float]]:
+    ) -> tuple[list[str], list[float]]:
         """Predict the label sequence using Viterbi algorithm for a sequence of tokens
         described by sequence of features sets.
 
@@ -295,10 +694,14 @@ class NumpyViterbiInference:
 
         Returns
         -------
-        list[tuple[str, float]]
-            List of (label, confidence) tuples for the sequence.
+        tuple[list[str], list[float]]
+            (List of labels, list of confidences) for the sequence.
         """
         seq_len = len(features_seq)
+
+        # Only compute the transition constraint mask if we're constraining transitions.
+        if constrain_transitions and self.transition_constraint_mask is None:
+            self.transition_constraint_mask = self._precompute_constraint_mask()
 
         # Pre-compute state scores for all elements of sequence from emission matrix.
         # Rows: sequence elements
@@ -356,6 +759,7 @@ class NumpyViterbiInference:
 
             # Force the scores from constrained transitions to -inf
             if constrain_transitions and b_name_idx:
+                candidates[self.transition_constraint_mask] = -np.inf
                 # Mask transitions to I_NAME_TOK from paths that lack a B_NAME_TOK
                 invalid_prev_paths = ~has_b_name[t - 1]
                 candidates[invalid_prev_paths, i_name_idx] = -np.inf
@@ -397,7 +801,7 @@ class NumpyViterbiInference:
             float(self.marginals[t, idx]) for t, idx in enumerate(label_indices)
         ]
 
-        return list(zip(predicted_labels, confidences))
+        return predicted_labels, confidences
 
     def _compute_marginals(self, seq_len: int, state_scores: np.ndarray) -> np.ndarray:
         """Compute marginals using Log-Sum-Exp for numerical stability

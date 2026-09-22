@@ -1,6 +1,6 @@
 // {{{EXTERNAL}}}
 
-import { Box, type BoxProps, CopyButton, Text } from "@mantine/core";
+import { Box, type BoxProps, CopyButton, Text, Tooltip } from "@mantine/core";
 // {{{ASSETS}}}
 import {
 	IconCopy,
@@ -108,7 +108,9 @@ export function LabellerSentence({
 				data-edited={edited || undefined}
 			>
 				{sentence.id && (
-					<Box className={classes.identifable}>{sentence.id}</Box>
+					<Tooltip p="xs" withArrow offset={-25} label={sentence.source}>
+						<Box className={classes.identifable}>{sentence.id}</Box>
+					</Tooltip>
 				)}
 				<Box className={classes.sentence}>{plain ? words : labellers}</Box>
 				{tasks.length !== 0 && (

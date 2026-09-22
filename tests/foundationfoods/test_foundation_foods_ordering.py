@@ -52,5 +52,6 @@ class TestPostProcessor_ordering:
         assert p_mulitple_names.parsed.foundation_foods[0].name_index == 0
 
         assert p_mulitple_names.parsed.name[1].text == "sunflower oil"
-        assert p_mulitple_names.parsed.foundation_foods[1].fdc_id == 2710192
+        # There are two sensible matches for sunflower oil, both equally valid.
+        assert p_mulitple_names.parsed.foundation_foods[1].fdc_id in [2710192, 1750349]
         assert p_mulitple_names.parsed.foundation_foods[1].name_index == 1

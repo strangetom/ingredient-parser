@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 
 import csv
+import logging
 from collections import defaultdict
 from dataclasses import dataclass
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True, order=True)
@@ -95,6 +98,7 @@ def test_results_to_detailed_results(
             frac_correct = float(correct) / total
             assert "\t" not in token, f"token has a tab: {token}"
             writer.writerow([token, total, correct, incorrect, f"{frac_correct:.3f}"])
+        logger.info("Written 'classification_results_tokens.tsv'.")
 
     # Per-feature stats
     with open("classification_results_features.tsv", "w") as crs:
@@ -107,6 +111,7 @@ def test_results_to_detailed_results(
             total = correct + incorrect
             frac_correct = float(correct) / total
             writer.writerow([feature, total, correct, incorrect, f"{frac_correct:.3f}"])
+        logger.info("Written 'classification_results_features.tsv'.")
 
     with open("classification_results_token_sentences.tsv", "w") as crts:
         writer = csv.writer(crts, delimiter="\t", lineterminator="\n")
@@ -115,6 +120,7 @@ def test_results_to_detailed_results(
             writer.writerow(
                 [tcr.token, tcr.index, tcr.truth, tcr.prediction, tcr.sentence]
             )
+        logger.info("Written 'classification_results_token_sentences.tsv'.")
 
     # Per-sentence stats
     with open("classification_results_sentences.tsv", "w") as crs:
@@ -146,3 +152,4 @@ def test_results_to_detailed_results(
                     ",".join(sentence_details[sentence].prediction),
                 ]
             )
+        logger.info("Written 'classification_results_sentences.tsv'.")

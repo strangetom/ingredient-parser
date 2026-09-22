@@ -68,8 +68,13 @@ class Test_convert_to_pint_unit:
         assert convert_to_pint_unit("Ml") == UREG("milliliter").units
         assert convert_to_pint_unit("Pt") == UREG("pint").units
         assert convert_to_pint_unit("Tb") == UREG("tablespoon").units
+        assert convert_to_pint_unit("tb") == UREG("tablespoon").units
         assert convert_to_pint_unit("C") == UREG("cup").units
         assert convert_to_pint_unit("c") == UREG("cup").units
+        assert convert_to_pint_unit("T") == UREG("tablespoon").units
+        assert convert_to_pint_unit("t") == UREG("teaspoon").units
+        assert convert_to_pint_unit("ts") == UREG("teaspoon").units
+        assert convert_to_pint_unit("Ts") == UREG("tablespoon").units
 
     def test_alternative_pints(self):
         """
@@ -170,12 +175,21 @@ class Test_convert_to_pint_unit:
     def test_unit_with_hypen(self):
         """
         Test that units containing hyphens always return string.
-        This example isn't actually a unit, but can be mislablled as one, so
+        This example isn't actually a unit, but can be mislabelled as one, so
         we need to check this case.
         """
         assert convert_to_pint_unit("medium-size") == "medium-size"
 
-    def test_misinterpretted_units(self):
+    def test_unit_with_quote(self):
+        """
+        Test that units containing quotes and apostrophes always return string.
+        This example isn't actually a unit, but can be mislabelled as one, so
+        we need to check this case.
+        """
+        assert convert_to_pint_unit('2"') == '2"'
+        assert convert_to_pint_unit("2'") == "2'"
+
+    def test_misinterpreted_units(self):
         """
         Test cases that pint would misinterpret as a different, incorrect unit
         """
@@ -187,6 +201,18 @@ class Test_convert_to_pint_unit:
         # Title case + plural
         assert convert_to_pint_unit("Links") == "Links"
         assert convert_to_pint_unit("shake") == "shake"
+
+    def test_upper_case_units(self):
+        """
+        Test cases where the unit is provided in all caps.
+        """
+        assert convert_to_pint_unit("TSP") == UREG("teaspoon")
+        assert convert_to_pint_unit("TB") == UREG("tablespoon")
+        assert convert_to_pint_unit("CUP") == UREG("cup")
+        # Misinterpreted unit
+        assert convert_to_pint_unit("PINCH") == "PINCH"
+        # Not a recognised pint unit
+        assert convert_to_pint_unit("CASK") == "CASK"
 
 
 class Testcombine_quantities_split_by_and:

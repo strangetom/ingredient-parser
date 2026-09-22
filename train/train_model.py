@@ -4,8 +4,10 @@ import argparse
 import concurrent.futures as cf
 import logging
 import os
+import time
 from collections.abc import Generator
 from contextlib import contextmanager
+from datetime import timedelta
 from pathlib import Path
 from random import randint
 from statistics import mean, stdev
@@ -22,13 +24,17 @@ from .export import export_crfsuite_to_json
 from .test_results_to_detailed_results import test_results_to_detailed_results
 from .test_results_to_html import test_results_to_html
 from .trainers import IngredientParserTrainer
+from .training_eval import (
+    Stats,
+    evalate_postprocessor_output,
+    evaluate_model_only,
+    evaluate_model_with_label_corrections,
+)
 from .training_utils import (
     DEFAULT_MODEL_LOCATION,
     DataVectors,
-    Stats,
     confusion_matrix,
     convert_num_ordinal,
-    evaluate,
     load_datasets,
 )
 
@@ -153,7 +159,7 @@ def train_parser_model(
     if seed is None:
         seed = randint(0, 1_000_000_000)
 
-    logger.info(f"{seed} is the random seed used for the train/test split.")
+    logger.info("%d is the random seed used for the train/test split.", seed)
 
     # Split data into train and test sets
     # The stratify argument means that each dataset is represented proportionally
@@ -181,8 +187,8 @@ def train_parser_model(
         random_state=seed,
     )
 
-    logger.info(f"{len(features_train):,} training vectors.")
-    logger.info(f"{len(features_test):,} testing vectors.")
+    logger.info("%d training vectors.", len(features_train))
+    logger.info("%d testing vectors.", len(features_test))
 
     trainer = IngredientParserTrainer(verbose=True)
     trainer.set_params(
@@ -190,8 +196,8 @@ def train_parser_model(
             "feature.minfreq": 0,
             "feature.possible_states": True,
             "feature.possible_transitions": True,
-            "c1": 0.6,
-            "c2": 0.5,
+            "c1": 0.3,
+            "c2": 0.6,
             "max_linesearch": 5,
             "num_memories": 3,
             "period": 10,
@@ -226,14 +232,10 @@ def train_parser_model(
     )
 
     # Create NumpyCRFInference object for evaluation.
-    logger.info("Evaluating model with test data.")
     tagger = NumpyCRFInference(save_model, combine_name_labels)
-
-    labels_pred, scores_pred = [], []
-    for X in features_test:
-        labels, scores = zip(*tagger.tag_from_features(X))
-        labels_pred.append(list(labels))
-        scores_pred.append(list(scores))
+    stats, labels_pred, scores_pred = evaluate_model_only(
+        tagger, features_test, truth_test, seed, combine_name_labels
+    )
 
     if html:
         test_results_to_html(
@@ -258,7 +260,10 @@ def train_parser_model(
     if plot_confusion_matrix:
         confusion_matrix(labels_pred, truth_test)
 
-    stats = evaluate(labels_pred, truth_test, seed, combine_name_labels)
+    _ = evaluate_model_with_label_corrections(
+        tagger, features_test, truth_test, seed, combine_name_labels
+    )
+    evalate_postprocessor_output(tagger, sentences_test, truth_test)
 
     # We don't need to keep the crfsuite model.
     crfsuite_model_path.unlink(missing_ok=True)
@@ -269,13 +274,26 @@ def train_parser_model(
     return stats
 
 
-def train_parser_model_bypass_logging(*kargs) -> Stats:
+def train_parser_model_bypass_logging(*args) -> tuple[float, Stats]:
+    """Train parser model, suppressing logging.
+
+    Parameters
+    ----------
+    *args :
+        train_parser_model function arguments.
+
+    Returns
+    -------
+    tuple[float, Stats]
+        Tuple of elapsed time, evaluation statistics.
+    """
+    start_time = time.monotonic()
     stats = None
     with change_log_level(
         logging.WARNING
     ):  # Temporarily stop logging below WARNING for multi-processing
-        stats = train_parser_model(*kargs)
-    return stats
+        stats = train_parser_model(*args)
+    return time.monotonic() - start_time, stats
 
 
 def train_single(args: argparse.Namespace) -> None:
@@ -299,7 +317,7 @@ def train_single(args: argparse.Namespace) -> None:
     else:
         save_model = args.save_model
 
-    stats = train_parser_model(
+    _ = train_parser_model(
         vectors,
         args.split,
         Path(save_model),
@@ -309,32 +327,6 @@ def train_single(args: argparse.Namespace) -> None:
         args.confusion,
         keep_model=True,
         combine_name_labels=args.combine_name_labels,
-    )
-
-    headers = ["Sentence-level results", "Word-level results"]
-    table = []
-
-    table.append(
-        [
-            f"Accuracy: {100 * stats.sentence.accuracy:.2f}%",
-            f"Accuracy: {100 * stats.token.accuracy:.2f}%\n"
-            f"Precision (micro) {100 * stats.token.weighted_avg.precision:.2f}%\n"
-            f"Recall (micro) {100 * stats.token.weighted_avg.recall:.2f}%\n"
-            f"F1 score (micro) {100 * stats.token.weighted_avg.f1_score:.2f}%",
-        ]
-    )
-
-    print(
-        "\n"
-        + tabulate(
-            table,
-            headers=headers,
-            tablefmt="fancy_grid",
-            maxcolwidths=[None, None],
-            stralign="left",
-            numalign="right",
-        )
-        + "\n"
     )
 
 
@@ -382,10 +374,24 @@ def train_multiple(args: argparse.Namespace) -> None:
         futures = [
             executor.submit(train_parser_model_bypass_logging, *a) for a in arguments
         ]
-        logger.info(f"Queued for {args.runs} separate runs")
+        logger.info("Multiple runs started at %s.", time.strftime("%H:%M:%S"))
+        logger.info("Queued for %d separate runs.", args.runs)
         for idx, future in enumerate(cf.as_completed(futures)):
-            logger.info(f"{convert_num_ordinal(idx + 1)} run completed")
-            eval_results.append(future.result())
+            if exception := future.exception():
+                logger.error(
+                    "%s algorithm failed with exception:",
+                    convert_num_ordinal(idx + 1),
+                    exc_info=exception,
+                )
+            else:
+                elapsed_time, stats = future.result()
+                eval_results.append(stats)
+                logger.info(
+                    "%s run completed at %s (%s elapsed).",
+                    convert_num_ordinal(idx + 1),
+                    time.strftime("%H:%M"),
+                    timedelta(seconds=int(elapsed_time)),
+                )
 
     word_accuracies, sentence_accuracies, seeds = [], [], []
     for result in eval_results:
@@ -438,15 +444,12 @@ def train_multiple(args: argparse.Namespace) -> None:
     table.append(["Best", f"{max_word:.2f}%", f"{max_sent:.2f}%", f"{max_seed}"])
     table.append(["Worst", f"{min_word:.2f}%", f"{min_sent:.2f}%", f"{min_seed}"])
 
-    print(
-        "\n"
-        + tabulate(
-            table,
-            headers=headers,
-            tablefmt="fancy_grid",
-            maxcolwidths=[None, None, None, None],
-            stralign="left",
-            numalign="right",
-        )
-        + "\n"
+    formatted_table = "\n" + tabulate(
+        table,
+        headers=headers,
+        tablefmt="fancy_grid",
+        maxcolwidths=[None, None, None, None],
+        stralign="left",
+        numalign="right",
     )
+    logger.info(formatted_table)

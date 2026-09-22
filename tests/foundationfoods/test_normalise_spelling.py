@@ -46,3 +46,25 @@ class TestNormaliseSpelling:
         normalised_tokens = normalise_spelling(ing_tokens)
         assert len(tokens) == len(normalised_tokens)
         assert [t.token for t in normalised_tokens] == ["arugula"]
+
+    def test_token_symbols(self):
+        """
+        Test "®" symbol is removed.
+        """
+        tokens = ["REESE'S®"]
+        pos_tags = [""]
+        ing_tokens = [IngredientToken(t, p) for t, p in zip(tokens, pos_tags)]
+        normalised_tokens = normalise_spelling(ing_tokens)
+        assert len(tokens) == len(normalised_tokens)
+        assert [t.token for t in normalised_tokens] == ["REESE'S"]
+
+    def test_token_diacritics(self):
+        """
+        Test accents are removed from tokens.
+        """
+        tokens = ["créme", "fraîche"]
+        pos_tags = ["", ""]
+        ing_tokens = [IngredientToken(t, p) for t, p in zip(tokens, pos_tags)]
+        normalised_tokens = normalise_spelling(ing_tokens)
+        assert len(tokens) == len(normalised_tokens)
+        assert [t.token for t in normalised_tokens] == ["creme", "fraiche"]

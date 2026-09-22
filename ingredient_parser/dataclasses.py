@@ -39,20 +39,20 @@ class TokenFeatures:
         Shape of the token, represented by X, x, d characters.
     is_capitalised : bool
         True if the token starts with a capital letter, else False.
-    is_unit : str
-        True if the token is in the list of units, else False.
-    is_punc : str
+    is_punc : bool
         True if the token is a punctuation character, else False.
-    is_ambiguous_unit : str
-        True if the token is in the list of ambiguous units, else False.
+    is_dimension : bool
+        True if the token is in the list of dimensions, else False.
+    ends_with_inch_symbol : bool
+        True if the token ends with an inch size, else False.
     """
 
     stem: str
     shape: str
     is_capitalised: bool
-    is_unit: bool
     is_punc: bool
-    is_ambiguous_unit: bool
+    is_dimension: bool
+    ends_with_inch_symbol: bool
 
 
 @dataclass
@@ -366,7 +366,7 @@ class CompositeIngredientAmount:
 
         # Set confidence to average of confidence values for amounts that make up the
         # composite amount.
-        self.confidence = mean(amount.confidence for amount in self.amounts)
+        self.confidence = round(mean(amount.confidence for amount in self.amounts), 6)
 
         # Determine unit system from amounts
         unit_systems = {amount.unit_system for amount in self.amounts}

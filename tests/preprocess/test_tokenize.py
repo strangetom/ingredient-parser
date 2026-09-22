@@ -166,3 +166,44 @@ class TestTokenize:
         """
         sentence = "2 cups beef and/or chicken stock"
         assert tokenize(sentence) == ["2", "cups", "beef", "and/or", "chicken", "stock"]
+
+    def test_no_followed_by_number(self):
+        """
+        Test "No." followed by number is output as a single token.
+        """
+        sentence = "1 teaspoon No. 1 curing salt"
+        assert tokenize(sentence) == ["1", "teaspoon", "No. 1", "curing", "salt"]
+
+    def test_no_followed_by_2_digit_number(self):
+        """
+        Test "No." followed by number is output as a single token.
+        """
+        sentence = "3 fluid ounces Smirnoff No. 21 Vodka"
+        assert tokenize(sentence) == [
+            "3",
+            "fluid",
+            "ounces",
+            "Smirnoff",
+            "No. 21",
+            "Vodka",
+        ]
+
+    def test_no_followed_by_number_multiple(self):
+        """
+        Test that all instances of "No." followed by a number are output as a single
+        token.
+        """
+        sentence = "1 cup fine or medium (No. 1 or No. 2) bulgur"
+        assert tokenize(sentence) == [
+            "1",
+            "cup",
+            "fine",
+            "or",
+            "medium",
+            "(",
+            "No. 1",
+            "or",
+            "No. 2",
+            ")",
+            "bulgur",
+        ]

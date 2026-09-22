@@ -111,15 +111,18 @@ UNIT_REPLACEMENTS = [
     (re.compile(r"\b(fluid oz)\b"), "fluid_ounce"),
     (re.compile(r"\b(fl ounce)\b"), "fluid_ounce"),
     (re.compile(r"\b(fluid ounce)\b"), "fluid_ounce"),
-    (re.compile(r"\b(C)\b"), "cup"),
-    (re.compile(r"\b(c)\b"), "cup"),
+    (re.compile(r"\b(C)\b", re.I), "cup"),
     (re.compile(r"\b(qt)\b"), "quart"),
     (re.compile(r"\b(Cl)\b"), "centiliter"),
-    (re.compile(r"\b(G)\b"), "gram"),
+    (re.compile(r"\b(G)\b", re.I), "gram"),
     (re.compile(r"\b(Ml)\b"), "milliliter"),
     (re.compile(r"\b(Mm)\b"), "millimeter"),
     (re.compile(r"\b(Pt)\b"), "pint"),
-    (re.compile(r"\b(Tb)\b"), "tablespoon"),
+    (re.compile(r"\b(Tb)\b", re.I), "tablespoon"),
+    (re.compile(r"\b(T)\b"), "tablespoon"),
+    (re.compile(r"\b(t)\b"), "teaspoon"),
+    (re.compile(r"\b(Ts)\b"), "tablespoon"),
+    (re.compile(r"\b(ts)\b"), "teaspoon"),
 ]
 
 download_nltk_resources()
@@ -184,6 +187,8 @@ def tokenize(sentence: str) -> list[str]:
 
     # Recombine "and/or" into a single token
     combined = combine_and_or(flattened)
+    # Recombine "No. 1" and similar into a single token
+    combined = combine_no_number(combined)
 
     # Second pass to separate full stops from end of tokens
     tokens = [FULL_STOP_TOKENISER.split(tok) for tok in combined]
@@ -246,6 +251,36 @@ def combine_and_or(tokens: list[str]) -> list[str]:
         if tokens[i] == AND_OR_PATTERN[0] and tokens[i : i + 3] == AND_OR_PATTERN:
             combined.append("and/or")
             consume(idx, len(AND_OR_PATTERN) - 1)
+        else:
+            combined.append(tokens[i])
+
+    return combined
+
+
+def combine_no_number(tokens: list[str]) -> list[str]:
+    """Combine "No." followed by a number into a single token.
+
+    Parameters
+    ----------
+    tokens : list[str]
+        Flat list of tokens.
+
+    Returns
+    -------
+    list[str]
+        Input tokens with any instances of and/or combined into a single token.
+
+    Examples
+    --------
+    >>> recombine_and_or(["1", "teaspoon", "No", ".", "1", "curing", "salt"])
+    ['1', 'teaspoon', 'No. 1', 'curing', 'salt']
+    """
+    combined = []
+    idx = iter(range(len(tokens)))
+    for i in idx:
+        if tokens[i] == "No." and is_float(tokens[i + 1]):
+            combined.append("No. " + tokens[i + 1])
+            consume(idx, 1)
         else:
             combined.append(tokens[i])
 
@@ -352,15 +387,29 @@ def convert_to_pint_unit(
         # the string.
         return unit
 
+    if '"' in unit or "'" in unit:
+        # If the unit contains " or ', this will cause a TokenError when pint tries to
+        # parse the unit.
+        # Since there aren't any pint units that contain these characters, just return
+        # early here to avoid the problem.
+        return unit
+
+    original_unit = unit
+
     if unit.lower() in MISINTERPRETED_UNITS:
         # Special cases to prevent pint interpreting units incorrectly
         # e.g. pinch != pico-inch
-        return unit
+        return original_unit
 
     # Apply replacements to ensure correct matches in pint Unit Registry
     for regex, replacement in UNIT_REPLACEMENTS:
         unit = regex.sub(replacement, unit)
 
+    # If the unit is in uppercase, convert to lowercase.
+    # Keep the original unit so we can return it as provided to this function if we
+    # can't convert to a pint.Unit object.
+    if unit == unit.upper():
+        unit = unit.lower()
     if (
         unit in VOLUMETRIC_UNITS_W_ALTERNATIVES
         and volumetric_units_system != "us_customary"
@@ -375,7 +424,7 @@ def convert_to_pint_unit(
     if unit != "" and unit in UREG:
         return UREG(unit).units
 
-    return unit
+    return original_unit
 
 
 @lru_cache(maxsize=512)

@@ -2,6 +2,7 @@
 
 import argparse
 import concurrent.futures as cf
+import json
 import logging
 import os
 import time
@@ -19,14 +20,17 @@ from ingredient_parser.inference import NumpyCRFInference
 from .export import export_crfsuite_to_json
 from .train_model import DEFAULT_MODEL_LOCATION
 from .trainers import IngredientParserTrainer
+from .training_eval import evaluate
 from .training_utils import (
     DataVectors,
     convert_num_ordinal,
-    evaluate,
     load_datasets,
 )
 
 logger = logging.getLogger(__name__)
+
+HyperparameterGridDict = dict[str, list[int] | list[float] | list[str] | list[bool]]
+HyperparameterDict = dict[str, int | float | str | bool]
 
 # Valid parameter options for LBFGS training algorithm and expected types
 VALID_LBFGS_PARAMS = {
@@ -88,6 +92,7 @@ VALID_GLOBAL_PARAMS = {
 VALID_POST_TRAINING_PARAMS = {
     "quantize_bits": (int, type(None)),
     "min_abs_weight": (float, type(None)),
+    "constrain_transitions": (bool,),
 }
 
 
@@ -315,7 +320,7 @@ def validate_post_training_params(post_training_params: dict) -> None:
                 raise ValueError(f"Parameter values for {key} should be {type_str}")
 
 
-def param_combos(params: dict) -> list[dict]:
+def param_combos(params: HyperparameterGridDict) -> list[HyperparameterDict]:
     """Generate list of dictionaries covering all possible combinations of parameters
     and their values given in the params input.
 
@@ -482,9 +487,11 @@ def train_model_grid_search(
     post_training_parameters = {
         "quantize_bits": parameters["quantize_bits"],
         "min_abs_weight": parameters["min_abs_weight"],
+        "constrain_transitions": parameters["constrain_transitions"],
     }
     del parameters["quantize_bits"]
     del parameters["min_abs_weight"]
+    del parameters["constrain_transitions"]
 
     # Train model
     trainer = IngredientParserTrainer(algorithm=algo, verbose=True)
@@ -517,7 +524,12 @@ def train_model_grid_search(
     tagger = NumpyCRFInference(save_model_path, combine_name_labels)
     labels_pred = []
     for X in features_test:
-        labels, _ = zip(*tagger.tag_from_features(X))
+        labels, _ = zip(
+            *tagger.tag_from_features(
+                X,
+                constrain_transitions=post_training_parameters["constrain_transitions"],
+            )
+        )
         labels_pred.append(list(labels))
     stats = evaluate(labels_pred, truth_test, seed, combine_name_labels)
 
@@ -545,6 +557,10 @@ def grid_search(args: argparse.Namespace):
     args : argparse.Namespace
         Grid search configuration
     """
+    if args.generate_param_json:
+        generate_parameter_json(args)
+        return
+
     if args.lbfgs_params is not None:
         validate_lbfgs_params(args.lbfgs_params)
 
@@ -568,16 +584,33 @@ def grid_search(args: argparse.Namespace):
 
     arguments = generate_argument_sets(args)
 
-    logger.info(f"Grid search over {len(arguments)} hyperparameters combinations.")
-    logger.info(f"{args.seed} is the random seed used for the train/test split.")
+    logger.info("Grid search started at %s", time.strftime("%H:%M:%S"))
+    logger.info("Grid search over %d hyperparameters combinations.", len(arguments))
+    logger.info("%d is the random seed used for the train/test split.", args.seed)
 
     eval_results = []
     with cf.ProcessPoolExecutor(max_workers=args.processes) as executor:
         futures = [executor.submit(train_model_grid_search, *a) for a in arguments]
-        logger.info(f"Queued for separate runs against {len(args.algos)} algorithms")
+        logger.info("Queued for separate runs against %d algorithms.", len(args.algos))
         for idx, future in enumerate(cf.as_completed(futures)):
-            logger.info(f"{convert_num_ordinal(idx + 1)} algorithm completed")
-            eval_results.append(future.result())
+            if exception := future.exception():
+                logger.error(
+                    "%s algorithm failed with exception:",
+                    convert_num_ordinal(idx + 1),
+                    exc_info=exception,
+                )
+            else:
+                result = future.result()
+                eval_results.append(result)
+
+                completed_at = time.strftime("%H:%M")
+                elapsed = timedelta(seconds=int(result["time"]))
+                logger.info(
+                    "%s algorithm completed at %s (%s elapsed).",
+                    convert_num_ordinal(idx + 1),
+                    completed_at,
+                    elapsed,
+                )
 
     # Sort with highest sentence accuracy first, then highest token accuracy
     eval_results = sorted(
@@ -600,14 +633,14 @@ def grid_search(args: argparse.Namespace):
         params = result["params"]
         stats = result["stats"]
         size = result["model_size"]
-        time = timedelta(seconds=int(result["time"]))
+        elapsed = timedelta(seconds=int(result["time"]))
         table.append(
             [
                 algo,
                 ", ".join([f"{k}={v}" for k, v in params.items()]),
                 f"{100 * stats.token.accuracy:.2f}%",
                 f"{100 * stats.sentence.accuracy:.2f}%",
-                str(time),
+                str(elapsed),
                 f"{size:.2f}",
             ]
         )
@@ -624,3 +657,55 @@ def grid_search(args: argparse.Namespace):
         )
         + "\n"
     )
+
+
+def generate_parameter_json(args: argparse.Namespace) -> None:
+    """Write a template json file for gridsearch containing the possible parameters for
+    the given algorithms for use with the --parameters-from-json command line argument
+    for gridsearch.
+
+    Parameters
+    ----------
+    args : argparse.Namespace
+        Grid search configuration
+    """
+    parameter_json = {
+        "algos": args.algos,
+    }
+
+    if "lbfgs" in args.algos:
+        parameter_json["lbfgs_params"] = {}
+        for param in VALID_LBFGS_PARAMS.keys():
+            parameter_json["lbfgs_params"][param] = []
+
+    if "ap" in args.algos:
+        parameter_json["ap_params"] = {}
+        for param in VALID_AP_PARAMS.keys():
+            parameter_json["ap_params"][param] = []
+
+    if "pa" in args.algos:
+        parameter_json["pa_params"] = {}
+        for param in VALID_PA_PARAMS.keys():
+            parameter_json["pa_params"][param] = []
+
+    if "l2sgd" in args.algos:
+        parameter_json["l2sgd_params"] = {}
+        for param in VALID_L2SGD_PARAMS.keys():
+            parameter_json["lbfgs_params"][param] = []
+
+    if "arow" in args.algos:
+        parameter_json["arow_params"] = {}
+        for param in VALID_AROW_PARAMS.keys():
+            parameter_json["lbfgs_params"][param] = []
+
+    parameter_json["global_params"] = {}
+    for param in VALID_GLOBAL_PARAMS.keys():
+        parameter_json["global_params"][param] = []
+
+    parameter_json["pt_params"] = {}
+    for param in VALID_POST_TRAINING_PARAMS.keys():
+        parameter_json["pt_params"][param] = []
+
+    print('Generated "gridsearch_params.json".')
+    with open("gridsearch_params.json", "w") as f:
+        json.dump(parameter_json, f, indent=2)

@@ -18,10 +18,10 @@ from ingredient_parser.inference import NumpyCRFInference
 from .export import export_crfsuite_to_json
 from .train_model import DEFAULT_MODEL_LOCATION
 from .trainers import IngredientParserTrainer
+from .training_eval import evaluate
 from .training_utils import (
     DataVectors,
     convert_num_ordinal,
-    evaluate,
     load_datasets,
 )
 
@@ -153,8 +153,8 @@ def train_model_feature_search(
             "feature.minfreq": 0,
             "feature.possible_states": True,
             "feature.possible_transitions": True,
-            "c1": 0.6,
-            "c2": 0.5,
+            "c1": 0.3,
+            "c2": 0.6,
             "max_linesearch": 5,
             "num_memories": 3,
             "period": 10,
@@ -246,8 +246,9 @@ def feature_search(args: argparse.Namespace):
         ]
         argument_sets.append(arguments)
 
-    logger.info(f"Grid search over {len(argument_sets)} feature sets.")
-    logger.info(f"{args.seed} is the random seed used for the train/test split.")
+    logger.info("Feature search started at %s.", time.strftime("%H:%M:%S"))
+    logger.info("Grid search over %d feature sets.", len(argument_sets))
+    logger.info("%d is the random seed used for the train/test split.", args.seed)
 
     eval_results = []
     with cf.ProcessPoolExecutor(max_workers=args.processes) as executor:
@@ -255,11 +256,27 @@ def feature_search(args: argparse.Namespace):
             executor.submit(train_model_feature_search, *a) for a in argument_sets
         ]
         logger.info(
-            f"Queued for separate runs against {len(argument_sets)} feature sets"
+            "Queued for separate runs against %d feature sets.", len(argument_sets)
         )
         for idx, future in enumerate(cf.as_completed(futures)):
-            logger.info(f"{convert_num_ordinal(idx + 1)} set completed")
-            eval_results.append(future.result())
+            if exception := future.exception():
+                logger.error(
+                    "%s set failed with exception:",
+                    convert_num_ordinal(idx + 1),
+                    exc_info=exception,
+                )
+            else:
+                result = future.result()
+                eval_results.append(result)
+
+                completed_at = time.strftime("%H:%M")
+                elapsed = timedelta(seconds=int(result["time"]))
+                logger.info(
+                    "%s set completed at %s (%s elapsed).",
+                    convert_num_ordinal(idx + 1),
+                    completed_at,
+                    elapsed,
+                )
 
     # Sort with highest sentence accuracy first
     eval_results = sorted(
@@ -280,13 +297,13 @@ def feature_search(args: argparse.Namespace):
         feature_set = result["feature_set"]
         stats = result["stats"]
         size = result["model_size"]
-        time = timedelta(seconds=int(result["time"]))
+        elapsed = timedelta(seconds=int(result["time"]))
         table.append(
             [
                 feature_set,
                 f"{100 * stats.token.accuracy:.2f}%",
                 f"{100 * stats.sentence.accuracy:.2f}%",
-                str(time),
+                str(elapsed),
                 f"{size:.2f}",
             ]
         )

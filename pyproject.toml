@@ -74,7 +74,7 @@ exclude = [
 line-length = 88
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "PERF", "PT", "RUF"]
+select = ["E", "F", "I", "PERF", "PT", "RUF", "G"]
 ignore = [
     "E402",   # To enable path to be modified in doc conf.py before import
     "RUF001", # Ambiguous unicode characters are handled explicitly in functions

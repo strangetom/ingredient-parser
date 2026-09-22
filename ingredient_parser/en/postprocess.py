@@ -196,9 +196,10 @@ class PostProcessor:
             self.labels = name_replaced_labels
             logger.debug(
                 (
-                    f"Relabelled tokens to {name_replaced_labels} ",
+                    "Relabelled tokens to %s ",
                     "because seperate_name=False.",
-                )
+                ),
+                name_replaced_labels,
             )
 
             # Process NAME labels as any other label, but return as a list
@@ -641,18 +642,31 @@ class PostProcessor:
                     text_fraction = text_fraction.replace("- ", "-")
                     group_tokens.append(text_fraction)
                 else:
-                    group_tokens.append(self.tokens[i].text)
+                    if self.tokens[i].plural:
+                        group_tokens.append(
+                            pluralise_units(self.tokens[i].text, self.custom_units)
+                        )
+                    else:
+                        group_tokens.append(self.tokens[i].text)
 
             joined = " ".join(group_tokens)
-            confidence = mean([self.tokens[i].score for i in idx])
-
             if self.discard_isolated_stop_words and joined.lower() in STOP_WORDS:
                 # Skip part if it's a stop word
                 continue
 
             self.consumed.extend(idx)
-            parts.append(joined)
-            confidence_parts.append(confidence)
+            if selected_label == "NAME":
+                # For NAMEs, keep the group tokens separate for now because we need to
+                # make sure we can remove duplicates tokens if one duplicate token is in
+                # a different group. For example, if NAME_MOD is "smoked" and NAME_TOK
+                # is "smoked pork", we need to discard one of the "smoked tokens".
+                # If we join the tokens here we would get ["smoked", "smoked port"] and
+                # _remove_adjacent_duplicates below wouldn't remove the duplicate token.
+                parts.extend(group_tokens)
+                confidence_parts.extend([self.tokens[i].score for i in idx])
+            else:
+                parts.append(joined)
+                confidence_parts.append(mean([self.tokens[i].score for i in idx]))
             starting_index = min(starting_index, idx[0])
 
         # Find the indices of the joined tokens list where the element
@@ -661,6 +675,9 @@ class PostProcessor:
         parts = [parts[i] for i in keep_idx]
         confidence_parts = [confidence_parts[i] for i in keep_idx]
 
+        if len(parts) == 0:
+            return None
+
         # Join all the parts together into a single string and fix any
         # punctuation weirdness as a result.
         # If the selected_label is NAME, join with a space. For all other labels, join
@@ -668,12 +685,14 @@ class PostProcessor:
         if selected_label == "NAME":
             text = " ".join(parts)
         else:
-            text = ", ".join(parts)
-        text = self._fix_punctuation(text)
-        text = pluralise_units(text, self.custom_units)
+            text = parts[0]
+            for part in parts[1:]:
+                if part[0] in ["(", "["]:
+                    text += " " + part
+                else:
+                    text += ", " + part
 
-        if len(parts) == 0:
-            return None
+        text = self._fix_punctuation(text)
 
         return IngredientText(
             text=text,
@@ -1044,6 +1063,11 @@ class PostProcessor:
                 if any(tokens[i].index in self.consumed for i in match):
                     continue
 
+                if pattern == patterns[3] and tokens[match[-1]].plural:
+                    # Do not match the QTY UNIT UNIT pattern if the last UNIT is plural
+                    # because the implicit quantity of 1 applied would be invalid.
+                    continue
+
                 # If the pattern ends with one of end_units, we have found a match for
                 # this pattern!
                 if tokens[match[-1]].text in end_units:
@@ -1073,7 +1097,9 @@ class PostProcessor:
                         amounts.append(first)
                         _ = match.pop(-1)
 
-                        logger.debug(f"Implicit quantity of '1' applied to '1 {unit}'.")
+                        logger.debug(
+                            "Implicit quantity of '1' applied to '1 %s'.", unit
+                        )
                     else:
                         # The first amount is made up of the first and last items
                         # Note that this cannot be singular, but may be approximate
@@ -1313,25 +1339,25 @@ class PostProcessor:
 
                 # Check if flags should be set and make sure both IngredientAmounts get
                 # the same flags.
-                prepared = self._is_prepared(
-                    tokens[mstart1].index, tokens
-                ) or self._is_prepared(tokens[mstart2].index, tokens)
+                prepared = self._is_prepared(mstart1, tokens) or self._is_prepared(
+                    mstart2, tokens
+                )
 
                 approximate = self._is_approximate(
-                    tokens[mstart1].index, tokens
-                ) or self._is_prepared(tokens[mstart2].index, tokens)
+                    mstart1, tokens
+                ) or self._is_approximate(mstart2, tokens)
 
                 # The _is_singular check only works if the index provided is for a token
                 # labelled with UNIT.
-                # Therefore, use idx[mstart + 1] to get the unit for the first amount
-                # and idx[match[-1]] to get the last unit for the second amount.
-                singular = self._is_singular(
-                    tokens[mstart1 + 1].index, tokens
-                ) or self._is_singular(tokens[match[-1]].index, tokens)
+                # Therefore, use mstart + 1 to get the unit for the first amount
+                # and match[-1] to get the last unit for the second amount.
+                singular = self._is_singular(mstart1 + 1, tokens) or self._is_singular(
+                    match[-1], tokens
+                )
 
                 if self._is_singular_and_approximate(
-                    tokens[mstart1].index, tokens
-                ) or self._is_singular_and_approximate(tokens[mstart2].index, tokens):
+                    mstart1, tokens
+                ) or self._is_singular_and_approximate(mstart2, tokens):
                     approximate = True
                     singular = True
 
@@ -1581,7 +1607,7 @@ class PostProcessor:
 
             if amount.implicit_quantity:
                 logger.debug(
-                    f"Implicit quantity of '{amount.quantity}' applied to '{text}'."
+                    "Implicit quantity of '%s' applied to '%s'.", amount.quantity, text
                 )
 
         return processed_amounts

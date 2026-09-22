@@ -51,6 +51,7 @@ UNITS = {
     "jars": "jar",
     "jiggers": "jigger",
     "kg": "kg",
+    "kilos": "kilo",
     "kilograms": "kilogram",
     "knobs": "knob",
     "ladles": "ladle",
@@ -81,7 +82,6 @@ UNITS = {
     "pounds": "pound",
     "pts": "pt",
     "punnets": "punnet",
-    "racks": "rack",
     "rashers": "rasher",
     "recipes": "recipe",
     "rectangles": "rectangle",
@@ -104,6 +104,7 @@ UNITS = {
     "stems": "stem",
     "sticks": "stick",
     "strips": "strip",
+    "ts": "t",
     "tablespoons": "tablespoon",
     "tbsps": "tbsp",
     "tbs": "tb",
@@ -118,10 +119,11 @@ UNITS = {
     "vials": "vial",
     "wheels": "wheel",
 }
-# Generate capitalized version of each entry in the UNITS dictionary
+# Generate capitalized and uppercase version of each entry in the UNITS dictionary
 _capitalized_units = {}
 for plural, singular in UNITS.items():
     _capitalized_units[plural.capitalize()] = singular.capitalize()
+    _capitalized_units[plural.upper()] = singular.upper()
 UNITS = UNITS | _capitalized_units
 # Create a flattened set of all keys and values in UNITS dict
 # since we need this in a few places
@@ -137,6 +139,8 @@ AMBIGUOUS_UNITS = [
     "ribs",
     "gram",  # e.g. gram (chickpea) flour
     "glass",  # e.g. glass noodles
+    "stem",  # e.g. stem ginger
+    "pound",  # e.g. pound cake
 ]
 # Extend list automatically to include singular and capitalized forms
 _ambiguous_units_alt_forms = []

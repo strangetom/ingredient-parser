@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8"/>
+        <meta name="viewport" content="width=device-width"/>
+        <title>Incorrect test results</title>
+        <link rel="stylesheet" type="text/css" href="./train/viz/test_results.css"/>
+        <script src="./train/viz/test_results.js"></script>
+    </head>
+    <body>
+        <header>
+            <h1>{{ sentences|length }} incorrect sentences in test data</h1>
+            <div class="display-counts">
+                {%- for source, _, _ in error_source -%}
+                <p>{{ source|upper }}:
+                    <span class="display-count-{{ source }}">0</span>
+                </p>
+                {%- endfor -%}
+                <p>| Total:
+                    <span class="display-count-total">0</span>
+                </p>
+            </div>
+            <div>
+                <button type="button" class="filter" id="filters-btn">Filters</button>
+                <input type="search" id="token-filter" name="token-filter" placeholder="Tokens">
+                <button type="button" class="select-all">Filter by tokens</button>
+            </div>
+        </header>
+        {%- for sentence in sentences -%}
+        <div class="wrapper hidden" data-mismatches="{{ sentence.mismatch_count }}" data-src="{{ sentence.source }}" data-errors="{{ sentence.label_errors|join(",") }}">
+            <div class="sentence">
+                <p>
+                    <span class="sentence-source">{{ sentence.source|upper }}</span>
+                    {{ sentence.sentence }}
+                </p>
+                <button class="copy">Copy text</button>
+            </div>
+            <table>
+                <tr>
+                    <td class="row-title">Token</td>
+                    {%- for token in sentence.tokens -%}
+                    <td class={{ "mismatch" if mismatch }}>{{ token }}</td>
+                    {%- endfor -%}
+                </tr>
+                <tr>
+                    <td class="row-title">Truth</td>
+                    {%- for truth, _ in sentence.labels -%}
+                    <td class="{{ truth }}">{{ truth }}</td>
+                    {%- endfor -%}
+                </tr>
+                <tr>
+                    <td class="row-title">Prediction</td>
+                    {%- for truth, prediction in sentence.labels -%}
+                    <td class="{{ prediction }} {{ 'mismatch' if truth != prediction }}">{{ prediction }}</td>
+                    {%- endfor -%}
+                </tr>
+                <tr>
+                    <td class="row-title">Score</td>
+                    {%- for score in sentence.scores -%}
+                    <td class={{ "low-score" if score < 0.6 }}>{{ '%.1f'|format(100 * score) }}%</td>
+                    {%- endfor -%}
+                </tr>
+            </table>
+        </div>
+        {%- endfor -%}
+    </body>
+
+    <dialog id="filter-dialog">
+        <div class="filter-options error-count">
+            <h5>Number of sentence errors</h5>
+            <div>
+                <div class="filter-checkboxes">
+                    {%- for count in error_counts -%}
+                    <label for="filter-{{ count }}">{{ count }}
+                        <input type="checkbox" class="mismatch" name="filter-{{ count }}" id="filter-{{ count }}" data-value="{{ count }}">
+                    </label>
+                    {%- endfor -%}
+                </div>
+                <button type="button" class="select-all">Select all</button>
+            </div>
+        </div>
+        <div class="filter-options source-count">
+            <h5>Source</h5>
+            <div>
+                <div class="filter-checkboxes">
+                    {%- for source, count, percent in error_source -%}
+                    <label for="filter-{{ source }}">{{ source }} ({{ count }} = {{ "%.1f"|format(percent) }}%)
+                        <input type="checkbox" class="src" name="filter-{{ source }}" id="filter-{{ source }}" data-value="{{ source }}">
+                    </label>
+                    {%- endfor -%}
+                </div>
+                <button type="button" class="select-all">Select all</button>
+            </div>
+        </div>
+        <div class="filter-options label-count">
+            <h5>Label errors</h5>
+            <div>
+                <div class="filter-checkboxes">
+                    {%- for label, count in error_label -%}
+                    <label for="filter-{{ label }}">{{ label }} ({{ count }})
+                        <input type="checkbox" class="error" name="filter-{{ label }}" id="filter-{{ label }}" data-value="{{ label }}">
+                    </label>
+                    {%- endfor -%}
+                </div>
+                <button type="button" class="select-all">Select all</button>
+            </div>
+        </div>
+    </dialog>
+</html>
