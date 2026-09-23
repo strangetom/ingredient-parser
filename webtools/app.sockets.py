@@ -22,7 +22,10 @@ from flask_cors import CORS
 from flask_socketio import SocketIO, emit
 
 # {{INTERNAL}}
-sys.path.append("..")  # force use of local, not system wide ingredient parser installed
+parent_dir = Path(__file__).parent.parent
+sys.path.append(
+    str(parent_dir)
+)  # force use of local, not system wide ingredient parser
 from train import (
     grid_search,
     set_redirect_log_stream,
@@ -31,8 +34,7 @@ from train import (
     train_single,
 )
 
-# globals
-parent_dir = Path(__file__).parent.parent
+# Globals
 NPM_BUILD_DIRECTORY = "build"
 SQL3_DATABASE = parent_dir / "train/data/training.sqlite3"
 SAVED_MODEL = parent_dir / "ingredient_parser/en/data/model.en.crfsuite"
