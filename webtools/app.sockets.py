@@ -37,7 +37,7 @@ from train import (
 # Globals
 NPM_BUILD_DIRECTORY = "build"
 SQL3_DATABASE = parent_dir / "train/data/training.sqlite3"
-SAVED_MODEL = parent_dir / "ingredient_parser/en/data/model.en.crfsuite"
+SAVED_MODEL = parent_dir / "ingredient_parser/en/data/model.en.json.gz"
 MODEL_REQUIREMENTS = parent_dir / "requirements-dev.txt"
 
 # flask
