@@ -6,6 +6,7 @@ import string
 import unicodedata
 from html import unescape
 
+from .._common import is_fraction
 from ..dataclasses import Token, TokenFeatures
 from ._constants import (
     AMBIGUOUS_UNITS,
@@ -23,7 +24,6 @@ from ._regex import (
     DUPE_UNIT_RANGES_PATTERN,
     EXPANDED_RANGE,
     FRACTION_PARTS_PATTERN,
-    FRACTION_TOKEN_PATTERN,
     HYPHEN_SPLIT_NAME_PATTERN,
     INCH_SIZE_PATTERN,
     LOWERCASE_PATTERN,
@@ -843,6 +843,10 @@ class PreProcessor:
         True
 
         >>> p = PreProcessor("")
+        >>> p._is_numeric("#1$2")
+        True
+
+        >>> p = PreProcessor("")
         >>> p._is_numeric("beef")
         False
         """
@@ -850,7 +854,7 @@ class PreProcessor:
             # Special cases of digits that don't represent numbers
             return False
 
-        if FRACTION_TOKEN_PATTERN.match(token):
+        if is_fraction(token):
             # Fraction tokens e.g. #1$4 or 1#2$3
             return True
 
@@ -859,17 +863,20 @@ class PreProcessor:
 
         if "-" in token:
             parts = token.split("-")
-            return all([self._is_numeric(part) for part in parts])
+            return all([self._is_numeric(part) or is_fraction(part) for part in parts])
 
         if token == "dozen":
             return True
 
         if token.endswith("x"):
-            try:
-                float(token[:-1])
+            if is_fraction(token[:-1]):
                 return True
-            except ValueError:
-                return False
+            else:
+                try:
+                    float(token[:-1])
+                    return True
+                except ValueError:
+                    return False
 
         try:
             float(token)

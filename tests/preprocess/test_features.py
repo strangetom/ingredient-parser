@@ -75,6 +75,18 @@ class TestPreProcessor_is_numeric:
         """
         assert p._is_numeric("1-1.5")
 
+    def test_fraction(self, p):
+        """
+        "#1$2" is numeric
+        """
+        assert p._is_numeric("#1$2")
+
+    def test_fraction_range(self, p):
+        """
+        "#1$2-1#1$2" is not numeric
+        """
+        assert p._is_numeric("#1$2-1#1$2")
+
     def test_false(self, p):
         """
         "1/2" is not numeric

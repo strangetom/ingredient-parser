@@ -10,7 +10,12 @@ from statistics import mean
 
 from ingredient_parser.en.foundationfoods import match_foundation_foods
 
-from .._common import consume, group_consecutive_idx
+from .._common import (
+    INTERMEDIATE_FRACTION_PATTERN,
+    consume,
+    group_consecutive_idx,
+    intermediate_fraction_to_unicode,
+)
 from ..dataclasses import (
     CompositeIngredientAmount,
     FoundationFood,
@@ -28,7 +33,6 @@ from ._constants import (
     STOP_WORDS,
     STRING_NUMBERS_REGEXES,
 )
-from ._regex import FRACTION_TOKEN_PATTERN
 from ._utils import (
     combine_quantities_split_by_and,
     ingredient_amount_factory,
@@ -633,14 +637,10 @@ class PostProcessor:
             # Convert any fractions in intermediate form (i.e. #1$2) into text
             group_tokens = []
             for i in idx:
-                if FRACTION_TOKEN_PATTERN.match(self.tokens[i].text):
-                    text_fraction = (
-                        self.tokens[i].text.replace("#", " ").replace("$", "/").strip()
+                if INTERMEDIATE_FRACTION_PATTERN.search(self.tokens[i].text):
+                    group_tokens.append(
+                        intermediate_fraction_to_unicode(self.tokens[i].text)
                     )
-                    # If fraction range, remove space that will follow hyphen caused by
-                    # replacing # with space.
-                    text_fraction = text_fraction.replace("- ", "-")
-                    group_tokens.append(text_fraction)
                 else:
                     if self.tokens[i].plural:
                         group_tokens.append(

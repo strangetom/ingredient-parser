@@ -11,7 +11,14 @@ from nltk.tag import _get_tagger, _pos_tag
 
 from ingredient_parser.en._loaders import load_ingredient_tagdict
 
-from .._common import UREG, consume, download_nltk_resources, is_float, is_range
+from .._common import (
+    UREG,
+    consume,
+    download_nltk_resources,
+    is_float,
+    is_fraction,
+    is_range,
+)
 from ..dataclasses import IngredientAmount
 from ._constants import (
     FLATTENED_UNITS_LIST,
@@ -20,7 +27,6 @@ from ._constants import (
 )
 from ._regex import (
     FRACTION_SPLIT_AND_PATTERN,
-    FRACTION_TOKEN_PATTERN,
     STRING_RANGE_PATTERN,
 )
 
@@ -542,9 +548,9 @@ def to_frac(token: str) -> Fraction:
     Returns
     -------
     Fraction
-        Fraction object represeting the same quantity as token.
+        Fraction object representing the same quantity as token.
     """
-    if FRACTION_TOKEN_PATTERN.match(token):
+    if is_fraction(token):
         fraction_parts = [p.replace("$", "/") for p in token.split("#") if p]
         return sum(Fraction(p) for p in fraction_parts)
 
@@ -624,7 +630,7 @@ def ingredient_amount_factory(
         _quantity = min(range_parts)
         quantity_max = max(range_parts)
         RANGE = True
-    elif is_float(quantity) or FRACTION_TOKEN_PATTERN.match(quantity):
+    elif is_float(quantity) or is_fraction(quantity):
         # If float or fraction, set quantity_max = quantity
         _quantity = to_frac(quantity)
         quantity_max = _quantity

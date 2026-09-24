@@ -967,7 +967,7 @@ class TestPostProcessor_parsed:
                 )
             ],
             preparation=IngredientText(
-                text="peeled and sliced into 5 mm (1/4 in) coins",
+                text="peeled and sliced into 5 mm (¼ in) coins",
                 confidence=0.905338,
                 starting_index=3,
             ),
@@ -999,7 +999,7 @@ class TestPostProcessor_parsed:
                 )
             ],
             preparation=IngredientText(
-                text="peeled and sliced into 5-10 mm (1/4-1/2 in) coins",
+                text="peeled and sliced into 5-10 mm (¼-½ in) coins",
                 confidence=0.905338,
                 starting_index=3,
             ),
@@ -1035,7 +1035,7 @@ class TestPostProcessor_parsed:
                 ),
             ],
             preparation=IngredientText(
-                text="cut into thin strips (3/4x 1 3/4 in)",
+                text="cut into thin strips (¾x 1¾ in)",
                 confidence=0.819766,
                 starting_index=8,
             ),
@@ -1063,7 +1063,7 @@ class TestPostProcessor_parsed:
                     starting_index=2,
                 ),
                 IngredientText(
-                    text="a mixture with 1/4-part Parmesan",
+                    text="a mixture with ¼-part Parmesan",
                     confidence=0.669286,
                     starting_index=8,
                 ),

@@ -108,18 +108,6 @@ LOWERCASE_PATTERN = re.compile(r"[a-z]")
 UPPERCASE_PATTERN = re.compile(r"[A-Z]")
 DIGIT_PATTERN = re.compile(r"[0-9]")
 
-# Regex pattern to match a fraction token or a range formed by fractions.
-# This is a token for a fraction where the forward slash has been replaced by $ and
-# any space between the whole part and fraction part has been replaced by #
-# e.g. #1$2 for 1/2, or 1#1$3 for 1 1/3
-# The first non-capturing group at the end of the regex is optional, for capturing the
-# upper end if the token is a range.
-# The second non-capturing group is for any trailing characters in cases such as 1/2x or
-# 1/2-part.
-FRACTION_TOKEN_PATTERN = re.compile(
-    r"^\d*\#\d+\$\d+(?:\-(?:\d*\#\d+\$\d+|\d+))?(?:x|\-[a-z]*)?$"
-)
-
 # Regex pattern to match currency within parentheses e.g. ($1.99)
 # Allows optional white space after opening parenthesis, before currency symbol, and
 # before closing parenthesis.

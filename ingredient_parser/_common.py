@@ -223,3 +223,119 @@ def is_range(value: str) -> bool:
     False
     """
     return RANGE_PATTERN.match(value) is not None
+
+
+# Define the regex pattern for a fraction in the intermediate format.
+# The first capture group captures any leading integer.
+# The second capture group captures the fraction part, including the leading '#'.
+INTERMEDIATE_FRACTION_PATTERN = re.compile(r"(\d*)(\#\d+\$\d+)")
+
+
+def intermediate_fraction_to_unicode(token: str) -> str:
+    """Convert intermediate format fraction to unicode fraction.
+
+    The intermediate format uses # to mark the start of the fraction (and separate any
+    leading integer from the fraction) and $ to mark the separation between the
+    numerator and denominator. For example:
+        #1$2 = ½
+        2#1$3 = 2⅓
+
+    If the fraction part does not correspond to a unicode fraction, it is returned in
+    a plain text form e.g. 1/2.
+
+    Parameters
+    ----------
+    fraction : str
+        Fraction in intermediate format.
+
+    Returns
+    -------
+    str
+        Intermediate format fraction converted to unicode fraction.
+
+    Examples
+    --------
+    >>> intermediate_fraction_to_unicode("#1$2")
+    ½
+
+    >>> intermediate_fraction_to_unicode("1#1$3")
+    1⅓
+
+    >>> intermediate_fraction_to_unicode("2#1$9")
+    2 1/9
+
+    >>> intermediate_fraction_to_unicode("#1$2-#3$4")
+    ½-¾
+
+    >>> intermediate_fraction_to_unicode("2#1$2-inch")
+    2½-inch
+    """
+    UNICODE_FRACTIONS = {
+        "#1$8": "\u215b",
+        "#3$8": "\u215c",
+        "#5$8": "\u215d",
+        "#7$8": "\u215e",
+        "#1$6": "\u2159",
+        "#5$6": "\u215a",
+        "#1$5": "\u2155",
+        "#2$5": "\u2156",
+        "#3$5": "\u2157",
+        "#4$5": "\u2158",
+        "#1$4": "\xbc",
+        "#3$4": "\xbe",
+        "#1$3": "\u2153",
+        "#2$3": "\u2154",
+        "#1$2": "\xbd",
+    }
+
+    def subtitute_fraction_string(match: re.Match) -> str:
+        """Function to construct the substitute for a intermediate format fraction.
+
+        Parameters
+        ----------
+        match : re.Match
+            Match object for fraction in intermediate format.
+
+        Returns
+        -------
+        str
+            Replacement string.
+        """
+        integer = match.group(1)
+        fraction = match.group(2)
+
+        if fraction in UNICODE_FRACTIONS:
+            replacement_fraction = UNICODE_FRACTIONS[fraction]
+        else:
+            replacement_fraction = fraction.replace("#", " ").replace("$", "/")
+
+        return integer + replacement_fraction
+
+    return INTERMEDIATE_FRACTION_PATTERN.sub(subtitute_fraction_string, token).strip()
+
+
+def is_fraction(value: str) -> bool:
+    """Check if `value` is a fraction given in the intermediate format.
+
+    Parameters
+    ----------
+    value : str
+        Value to check.
+
+    Returns
+    -------
+    bool
+        True if the value is an fraction, else False.
+
+    Examples
+    --------
+    >>> is_range("#1$2")
+    True
+
+    >>> is_float("2#1$4")
+    True
+
+    >>> is_float("#1$2-#3$4")
+    False
+    """
+    return INTERMEDIATE_FRACTION_PATTERN.fullmatch(value) is not None
