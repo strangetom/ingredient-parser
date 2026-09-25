@@ -11,14 +11,14 @@ from datetime import timedelta
 from pathlib import Path
 from random import randint
 from statistics import mean, stdev
-from typing import TextIO
+from typing import TextIO, cast
 from uuid import uuid4
 
 import pycrfsuite
 from sklearn.model_selection import train_test_split
 from tabulate import tabulate
 
-from ingredient_parser.inference import NumpyCRFInference
+from ingredient_parser.inference import FeatureDict, NumpyCRFInference
 
 from .export import export_crfsuite_to_json
 from .test_results_to_detailed_results import test_results_to_detailed_results
@@ -165,6 +165,8 @@ def train_parser_model(
     # The stratify argument means that each dataset is represented proportionally
     # in the train and tests sets, avoiding the possibility that train or tests sets
     # contain data from one dataset disproportionally.
+    # We use typing.cast to stop pyright (and other checkers) from crying about the
+    # unknown types of the output.
     (
         _,
         sentences_test,
@@ -176,15 +178,29 @@ def train_parser_model(
         source_test,
         _,
         tokens_test,
-    ) = train_test_split(
-        vectors.sentences,
-        vectors.features,
-        vectors.labels,
-        vectors.source,
-        vectors.tokens,
-        test_size=split,
-        stratify=vectors.source,
-        random_state=seed,
+    ) = cast(
+        tuple[
+            list[str],
+            list[str],
+            list[list[FeatureDict]],
+            list[list[FeatureDict]],
+            list[list[str]],
+            list[list[str]],
+            list[str],
+            list[str],
+            list[list[str]],
+            list[list[str]],
+        ],
+        train_test_split(
+            vectors.sentences,
+            vectors.features,
+            vectors.labels,
+            vectors.source,
+            vectors.tokens,
+            test_size=split,
+            stratify=vectors.source,
+            random_state=seed,
+        ),
     )
 
     logger.info("%d training vectors.", len(features_train))

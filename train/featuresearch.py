@@ -7,6 +7,7 @@ import os
 import time
 from datetime import timedelta
 from pathlib import Path
+from typing import cast
 from uuid import uuid4
 
 import pycrfsuite
@@ -114,6 +115,8 @@ def train_model_feature_search(
     # The stratify argument means that each dataset is represented proportionally
     # in the train and tests sets, avoiding the possibility that train or tests sets
     # contain data from one dataset disproportionally.
+    # We use typing.cast to stop pyright (and other checkers) from crying about the
+    # unknown types of the output.
     features_train: list[list[FeatureDict]]
     features_test: list[list[FeatureDict]]
     truth_train: list[list[str]]
@@ -127,14 +130,26 @@ def train_model_feature_search(
         truth_test,
         _,
         _,
-    ) = train_test_split(
-        vectors.sentences,
-        vectors.features,
-        vectors.labels,
-        vectors.source,
-        test_size=split,
-        stratify=vectors.source,
-        random_state=seed,
+    ) = cast(
+        tuple[
+            list[str],
+            list[str],
+            list[list[FeatureDict]],
+            list[list[FeatureDict]],
+            list[list[str]],
+            list[list[str]],
+            list[str],
+            list[str],
+        ],
+        train_test_split(
+            vectors.sentences,
+            vectors.features,
+            vectors.labels,
+            vectors.source,
+            test_size=split,
+            stratify=vectors.source,
+            random_state=seed,
+        ),
     )
 
     # Remove features not in selected feature set

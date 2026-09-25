@@ -26,20 +26,20 @@ class _SentenceLabeling:
 
 def test_results_to_detailed_results(
     sentences: list[str],
-    sentence_tokens: list[str],
+    sentence_tokens: list[list[str]],
     features_truth: list[list[dict[str, str | bool]]],
     labels_truth: list[list[str]],
     labels_prediction: list[list[str]],
     scores_prediction: list[list[float]],
 ) -> None:
-    """Output detailed labeling results for test vectors to tab-separated values files.
+    """Output detailed labelling results for test vectors to tab-separated values files.
 
     Parameters
     ----------
     sentences : list[str]
         List of ingredient sentences.
-    sentence_tokens : list[str]
-        List of tokens for sentence.
+    sentence_tokens : list[list[str]]
+        List of tokens for sentences.
     labels_truth : list[list[str]]
         True labels for sentence.
     features_truth : list[list[dict[str, str | bool]]]
@@ -56,7 +56,7 @@ def test_results_to_detailed_results(
     sentence_details = {}
     # token_classif: token => (# correct, # incorrect)
     token_classif = defaultdict(lambda: defaultdict(int))
-    # token_details: auxilliary info for misclassified tokens
+    # token_details: auxiliary info for misclassified tokens
     token_details = []
     # feature_classif: feature => (# correct, # incorrect)
     feature_classif = defaultdict(lambda: defaultdict(int))

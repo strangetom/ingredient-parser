@@ -18,7 +18,7 @@ TEMPLATE_ENVIRONMENT = Environment(
 
 def test_results_to_html(
     sentences: list[str],
-    sentence_tokens: list[str],
+    sentence_tokens: list[list[str]],
     labels_truth: list[list[str]],
     labels_prediction: list[list[str]],
     scores_prediction: list[list[float]],
@@ -31,8 +31,8 @@ def test_results_to_html(
     ----------
     sentences : list[str]
         List of ingredient sentences
-    sentence_tokens : list[str]
-        List of tokens for sentence
+    sentence_tokens : list[list[str]]
+        List of tokens for sentences
     labels_truth : list[list[str]]
         True labels for tokens
     labels_prediction : list[list[str]]

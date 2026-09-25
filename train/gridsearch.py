@@ -9,13 +9,14 @@ import time
 from datetime import timedelta
 from itertools import product
 from pathlib import Path
+from typing import cast
 from uuid import uuid4
 
 import pycrfsuite
 from sklearn.model_selection import train_test_split
 from tabulate import tabulate
 
-from ingredient_parser.inference import NumpyCRFInference
+from ingredient_parser.inference import FeatureDict, NumpyCRFInference
 
 from .export import export_crfsuite_to_json
 from .train_model import DEFAULT_MODEL_LOCATION
@@ -461,6 +462,8 @@ def train_model_grid_search(
     # The stratify argument means that each dataset is represented proportionally
     # in the train and tests sets, avoiding the possibility that train or tests sets
     # contain data from one dataset disproportionally.
+    # We use typing.cast to stop pyright (and other checkers) from crying about the
+    # unknown types of the output.
     (
         _,
         _,
@@ -470,14 +473,26 @@ def train_model_grid_search(
         truth_test,
         _,
         _,
-    ) = train_test_split(
-        vectors.sentences,
-        vectors.features,
-        vectors.labels,
-        vectors.source,
-        test_size=split,
-        stratify=vectors.source,
-        random_state=seed,
+    ) = cast(
+        tuple[
+            list[str],
+            list[str],
+            list[list[FeatureDict]],
+            list[list[FeatureDict]],
+            list[list[str]],
+            list[list[str]],
+            list[str],
+            list[str],
+        ],
+        train_test_split(
+            vectors.sentences,
+            vectors.features,
+            vectors.labels,
+            vectors.source,
+            test_size=split,
+            stratify=vectors.source,
+            random_state=seed,
+        ),
     )
 
     # Make model name unique
