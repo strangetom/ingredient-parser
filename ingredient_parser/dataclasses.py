@@ -255,7 +255,7 @@ class IngredientAmount:
             return UnitSystem.NONE
 
         # If unit is a pint.Unit, convert to string
-        str_unit = str(self.unit) if isinstance(self.unit, pint.Unit) else self.unit
+        str_unit = str(self.unit)
 
         # Detect if unit uses a particular volumetric unit system.
         # Remove that identifying text from the unit to make the check below simpler.

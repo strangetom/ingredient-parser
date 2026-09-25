@@ -4,10 +4,11 @@ import re
 from fractions import Fraction
 from functools import lru_cache
 from itertools import chain
+from typing import cast
 
 import pint
 from nltk.stem.snowball import EnglishStemmer
-from nltk.tag import _get_tagger, _pos_tag
+from nltk.tag import _get_tagger, _pos_tag  # type: ignore
 
 from ingredient_parser.en._loaders import load_ingredient_tagdict
 
@@ -428,7 +429,7 @@ def convert_to_pint_unit(
     # If unit not empty string and found in Unit Registry,
     # return pint.Unit object for unit
     if unit != "" and unit in UREG:
-        return UREG(unit).units
+        return cast(pint.Unit, UREG(unit).units)
 
     return original_unit
 
@@ -552,7 +553,7 @@ def to_frac(token: str) -> Fraction:
     """
     if is_fraction(token):
         fraction_parts = [p.replace("$", "/") for p in token.split("#") if p]
-        return sum(Fraction(p) for p in fraction_parts)
+        return sum((Fraction(p) for p in fraction_parts), start=Fraction(0))
 
     return Fraction(token)
 

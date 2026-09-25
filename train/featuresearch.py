@@ -13,7 +13,7 @@ import pycrfsuite
 from sklearn.model_selection import train_test_split
 from tabulate import tabulate
 
-from ingredient_parser.inference import NumpyCRFInference
+from ingredient_parser.inference import FeatureDict, NumpyCRFInference
 
 from .export import export_crfsuite_to_json
 from .train_model import DEFAULT_MODEL_LOCATION
@@ -27,7 +27,7 @@ from .training_utils import (
 
 logger = logging.getLogger(__name__)
 
-DISCARDED_FEATURES = {
+DISCARDED_FEATURES: dict[int, list[str]] = {
     0: [],
     1: [
         "after_sentence_split",
@@ -42,20 +42,20 @@ DISCARDED_FEATURES = {
 
 
 def select_features(
-    features_all: list[list[dict]], discard_features: list[str]
-) -> list[dict]:
+    features_all: list[list[FeatureDict]], discard_features: list[str]
+) -> list[list[FeatureDict]]:
     """Select specific features from full feature set.
 
     Parameters
     ----------
-    features_all : list[list[dict]]
+    features_all : list[list[FeatureDict]]
         List of sentence feature dicts containing all features.
     discard_features : list[str]
         List of feature names to discard.
 
     Returns
     -------
-    list[dict]
+    list[list[FeatureDict]]
         List of feature dicts, containing selected features.
     """
     features_selected = []
@@ -114,6 +114,10 @@ def train_model_feature_search(
     # The stratify argument means that each dataset is represented proportionally
     # in the train and tests sets, avoiding the possibility that train or tests sets
     # contain data from one dataset disproportionally.
+    features_train: list[list[FeatureDict]]
+    features_test: list[list[FeatureDict]]
+    truth_train: list[list[str]]
+    truth_test: list[list[str]]
     (
         _,
         _,

@@ -20,7 +20,7 @@ class CRFModelParameters:
 
 
 def export_crfsuite_to_json(
-    model: pycrfsuite.Tagger,
+    model: pycrfsuite.Tagger,  # type: ignore
     path: Path,
     quantize_bits: int | None,
     min_abs_weight: float | None,
