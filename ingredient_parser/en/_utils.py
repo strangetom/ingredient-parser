@@ -344,8 +344,6 @@ def pluralise_units(sentence: str, custom_units: dict[str, str]) -> str:
     >>> pluralise_units("1.5 loaf bread")
     '1.5 loaves bread'
     """
-    # units = UNITS | custom_units
-
     sentence = pluralise_unit(sentence)
     for plural, singular in custom_units.items():
         sentence = re.sub(rf"\b({singular})\b", f"{plural}", sentence)
