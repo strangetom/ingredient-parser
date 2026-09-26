@@ -25,7 +25,7 @@ from ._constants import (
     FLATTENED_UNITS_LIST,
     UNIT_SYNONYMS,
     UNITS,
-    pluralise_unit,
+    pluralise_known_unit,
 )
 from ._regex import (
     FRACTION_SPLIT_AND_PATTERN,
@@ -345,7 +345,7 @@ def pluralise_units(sentence: str, custom_units: dict[str, str]) -> str:
     >>> pluralise_units("1.5 loaf bread")
     '1.5 loaves bread'
     """
-    sentence = pluralise_unit(sentence)
+    sentence = pluralise_known_unit(sentence)
     for plural, singular in custom_units.items():
         sentence = re.sub(rf"\b({singular})\b", f"{plural}", sentence)
 
