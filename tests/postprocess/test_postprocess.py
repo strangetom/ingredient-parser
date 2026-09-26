@@ -123,7 +123,7 @@ def p_string_numbers_range():
         "one",
         "or",
         "two",
-        "pounds",
+        "pound",
         "each",
     ]
     pos_tags = ["CD", "NN", "NN", ",", "IN", "CD", "CC", "CD", "NNS", "DT"]
@@ -768,8 +768,8 @@ class TestPostProcessor_parsed:
             amount=[
                 ingredient_amount_factory(
                     quantity="2",
-                    unit="cans",
-                    text="2 cans",
+                    unit="can",
+                    text="2 can",
                     confidence=0.966951,
                     starting_index=0,
                     APPROXIMATE=False,
@@ -778,7 +778,7 @@ class TestPostProcessor_parsed:
                 ingredient_amount_factory(
                     quantity="14",
                     unit="ounce",
-                    text="14 ounces",
+                    text="14 ounce",
                     confidence=0.994150,
                     starting_index=1,
                     APPROXIMATE=False,
@@ -819,7 +819,7 @@ class TestPostProcessor_parsed:
                 ingredient_amount_factory(
                     quantity="1.5",
                     unit="pound",
-                    text="1 1/2 pounds",
+                    text="1 1/2 pound",
                     confidence=0.768515,
                     starting_index=5,
                     APPROXIMATE=True,
@@ -859,8 +859,8 @@ class TestPostProcessor_parsed:
                 ),
                 ingredient_amount_factory(
                     quantity="1-2",
-                    unit="pounds",
-                    text="1-2 pounds",
+                    unit="pound",
+                    text="1-2 pound",
                     confidence=0.768515,
                     starting_index=5,
                     APPROXIMATE=True,
@@ -921,8 +921,8 @@ class TestPostProcessor_parsed:
             amount=[
                 ingredient_amount_factory(
                     quantity="2",
-                    unit="cans",
-                    text="2 cans",
+                    unit="can",
+                    text="2 can",
                     confidence=0.966951,
                     starting_index=0,
                     APPROXIMATE=False,
@@ -931,7 +931,7 @@ class TestPostProcessor_parsed:
                 ingredient_amount_factory(
                     quantity="14",
                     unit="ounce",
-                    text="14 ounces",
+                    text="14 ounce",
                     confidence=0.994150,
                     starting_index=1,
                     APPROXIMATE=False,
@@ -1073,7 +1073,7 @@ class TestPostProcessor_parsed:
                 ingredient_amount_factory(
                     quantity="4",
                     unit="ounce",
-                    text="4 ounces",
+                    text="4 ounce",
                     confidence=0.999919,
                     starting_index=0,
                 ),

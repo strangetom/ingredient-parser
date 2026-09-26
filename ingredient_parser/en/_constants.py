@@ -156,7 +156,7 @@ def _generate_regex_for_pluralising_known_units(units: dict[str, str]) -> re.Pat
     # substrings.
     ordered_singular_units = reversed(sorted(units.values()))
     return re.compile(
-        "|".join(rf"\b({singular})" for singular in ordered_singular_units)
+        "|".join(rf"\b({singular})\b" for singular in ordered_singular_units)
     )
 
 

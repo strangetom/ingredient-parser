@@ -144,7 +144,7 @@ class TestPostProcessor_composite_amounts_pattern:
                     ingredient_amount_factory(
                         quantity="2",
                         unit="pint",
-                        text="2 pints",
+                        text="2 pint",
                         confidence=0,
                         starting_index=3,
                     ),
@@ -212,7 +212,7 @@ class TestPostProcessor_composite_amounts_pattern:
                     ingredient_amount_factory(
                         quantity="2",
                         unit="pint",
-                        text="2 pints",
+                        text="2 pint",
                         confidence=0,
                         starting_index=3,
                         volumetric_units_system="imperial",
@@ -275,8 +275,8 @@ class TestPostProcessor_composite_amounts_pattern:
                 amounts=[
                     ingredient_amount_factory(
                         quantity="2",
-                        unit="pints",
-                        text="2 pints",
+                        unit="pint",
+                        text="2 pint",
                         confidence=0,
                         starting_index=3,
                         string_units=True,
@@ -378,7 +378,7 @@ class TestPostProcessor_composite_amounts_pattern:
                     ingredient_amount_factory(
                         quantity="2",
                         unit="tablespoon",
-                        text="2 tablespoons",
+                        text="2 tablespoon",
                         confidence=0,
                         starting_index=3,
                     ),
@@ -469,7 +469,7 @@ class TestPostProcessor_composite_amounts_pattern:
                     ingredient_amount_factory(
                         quantity="2",
                         unit="tablespoon",
-                        text="2 tablespoons",
+                        text="2 tablespoon",
                         confidence=0,
                         starting_index=3,
                     ),
@@ -560,7 +560,7 @@ class TestPostProcessor_composite_amounts_pattern:
                     ingredient_amount_factory(
                         quantity="2",
                         unit="tablespoon",
-                        text="2 tablespoons",
+                        text="2 tablespoon",
                         confidence=0,
                         starting_index=3,
                     ),
@@ -651,7 +651,7 @@ class TestPostProcessor_composite_amounts_pattern:
                     ingredient_amount_factory(
                         quantity="2",
                         unit="tablespoon",
-                        text="2 tablespoons",
+                        text="2 tablespoon",
                         confidence=0,
                         starting_index=3,
                     ),
@@ -776,7 +776,7 @@ class TestPostProcessor_composite_amounts_pattern:
                     ingredient_amount_factory(
                         quantity="2",
                         unit="tablespoon",
-                        text="2 tablespoons",
+                        text="2 tablespoon",
                         confidence=0,
                         starting_index=4,
                     ),
@@ -1224,14 +1224,14 @@ class TestPostProcessor_composite_amounts_pattern:
             ingredient_amount_factory(
                 quantity="2",
                 unit="can",
-                text="2 cans",
+                text="2 can",
                 confidence=0.0,
                 starting_index=0,
             ),
             ingredient_amount_factory(
                 quantity="8.5",
                 unit="ounce",
-                text="8 1/2 ounces",
+                text="8 1/2 ounce",
                 confidence=0.0,
                 starting_index=1,
                 SINGULAR=True,
@@ -1241,14 +1241,14 @@ class TestPostProcessor_composite_amounts_pattern:
                     ingredient_amount_factory(
                         quantity="2",
                         unit="cup",
-                        text="2 cups",
+                        text="2 cup",
                         confidence=0.0,
                         starting_index=6,
                     ),
                     ingredient_amount_factory(
                         quantity="2",
                         unit="tablespoon",
-                        text="2 tablespoons",
+                        text="2 tablespoon",
                         confidence=0.0,
                         starting_index=9,
                     ),

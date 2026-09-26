@@ -78,7 +78,7 @@ class TestPostProcessor_IngredientAmount:
         amount = ingredient_amount_factory(
             quantity="200",
             unit="gram",
-            text="200 grams",
+            text="200 gram",
             confidence=0,
             starting_index=0,
         )
@@ -103,7 +103,7 @@ class TestPostProcessor_IngredientAmount:
 
         assert amount.quantity == 0.25
         assert amount.quantity_max == 0.5
-        assert amount.text == "1/4-1/2 tsp"
+        assert amount.text == "1/4-1/2 tsps"
         assert amount.RANGE
         assert amount.unit_system == UnitSystem.US_CUSTOMARY
 

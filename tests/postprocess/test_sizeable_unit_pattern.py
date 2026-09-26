@@ -70,7 +70,7 @@ class TestPostProcessor_sizeable_unit_pattern:
             ingredient_amount_factory(
                 quantity="28",
                 unit="ounce",
-                text="28 ounces",
+                text="28 ounce",
                 confidence=0,
                 SINGULAR=True,
                 starting_index=1,
@@ -86,7 +86,7 @@ class TestPostProcessor_sizeable_unit_pattern:
             ingredient_amount_factory(
                 quantity="2",
                 unit="cup",
-                text="2 cups",
+                text="2 cup",
                 confidence=0,
                 starting_index=7,
                 SINGULAR=True,
@@ -424,7 +424,7 @@ class TestPostProcessor_sizeable_unit_pattern:
             ingredient_amount_factory(
                 quantity="15",
                 unit="ounce",
-                text="15 ounces",
+                text="15 ounce",
                 confidence=0,
                 starting_index=0,
                 SINGULAR=True,

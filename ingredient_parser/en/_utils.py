@@ -650,8 +650,10 @@ def ingredient_amount_factory(
         # common representation
         _unit = convert_to_pint_unit(_unit, volumetric_units_system)
 
-    # Pluralise unit as necessary
-    if _quantity != 1 and _quantity != "" and not RANGE:
+    # Pluralise unit as necessary.
+    if (_quantity != 1 and _quantity != "" and not RANGE) or (
+        quantity_max != 1 and quantity_max != "" and RANGE
+    ):
         text = pluralise_units(text, custom_units)
         if isinstance(_unit, str):
             _unit = pluralise_units(_unit, custom_units)
