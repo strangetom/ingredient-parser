@@ -2,6 +2,7 @@
 
 import re
 from itertools import chain
+from typing import OrderedDict
 
 # Plural and singular units. Length units are excluded.
 UNITS = {
@@ -129,6 +130,18 @@ UNITS = UNITS | _capitalized_units
 # since we need this in a few places
 FLATTENED_UNITS_LIST = set(chain.from_iterable(UNITS.items()))
 
+
+# Units in reverse lex order, so that any string is before its perfect substrings
+UNITS_RINDEX: dict[str, str] = dict((v, k) for k, v in UNITS.items())
+pluralise_dict = OrderedDict(reversed(sorted(UNITS.items(), key=lambda item: item[1])))
+patterns = map(r"\b({})\b".format, pluralise_dict.values())
+pluralise_pattern = re.compile("|".join(patterns))
+
+
+def pluralise_unit(s: str) -> str:
+    return pluralise_pattern.sub(lambda match: UNITS_RINDEX[match.group(0)], s)
+
+
 # Units that can be part of the name
 # e.g. 1 teaspoon ground cloves, or 5 bay leaves
 AMBIGUOUS_UNITS = [
@@ -152,6 +165,7 @@ for amb_unit in AMBIGUOUS_UNITS:
         _ambiguous_units_alt_forms.append(singular_capitalised)
 
 AMBIGUOUS_UNITS.extend(_ambiguous_units_alt_forms)
+
 
 # Words that indicate ingredient size
 SIZES = [
