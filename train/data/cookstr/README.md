@@ -32,15 +32,13 @@ The `cookstr-ingredients-snapshot-2017.csv` file was derived from the source dat
    rows = []
    for ing in ingredients:
        parsed = parse_ingredient_regex(ing)
-       
-       rows.append([
-           ing,
-           parsed["name"],
-           parsed["quantity"],
-           parsed["unit"],
-           parsed["comment"]
-       ])
-   with open("ingredient_parser/train/data/cookstr/cookstr-ingredients-snapshot-2017.csv", "w") as f:
+
+       rows.append(
+           [ing, parsed["name"], parsed["quantity"], parsed["unit"], parsed["comment"]]
+       )
+   with open(
+       "ingredient_parser/train/data/cookstr/cookstr-ingredients-snapshot-2017.csv", "w"
+   ) as f:
        writer = csv.writer(f)
        writer.writerow(["input", "name", "quantity", "unit", "comment"])
        for row in rows:
