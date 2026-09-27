@@ -199,31 +199,6 @@ def pluralise_known_unit(s: str) -> str:
     return KNOWN_PLURAL_UNIT_PATTERN.sub(singular_to_plural, s)
 
 
-# Units that can be part of the name
-# e.g. 1 teaspoon ground cloves, or 5 bay leaves
-AMBIGUOUS_UNITS = [
-    "cloves",
-    "leaves",
-    "slabs",
-    "wedges",
-    "ribs",
-    "gram",  # e.g. gram (chickpea) flour
-    "glass",  # e.g. glass noodles
-    "stem",  # e.g. stem ginger
-    "pound",  # e.g. pound cake
-]
-# Extend list automatically to include singular and capitalized forms
-_ambiguous_units_alt_forms = []
-for amb_unit in AMBIGUOUS_UNITS:
-    _ambiguous_units_alt_forms.append(amb_unit.capitalize())
-    if singular := UNITS.get(amb_unit):
-        _ambiguous_units_alt_forms.append(singular)
-    if singular_capitalised := UNITS.get(amb_unit.capitalize()):
-        _ambiguous_units_alt_forms.append(singular_capitalised)
-
-AMBIGUOUS_UNITS.extend(_ambiguous_units_alt_forms)
-
-
 # Words that indicate ingredient size
 SIZES = [
     "big",

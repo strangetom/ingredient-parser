@@ -8,11 +8,12 @@ from html import unescape
 
 from .._common import is_fraction
 from ..dataclasses import Token, TokenFeatures
+from ._ambiguity import Disambiguator
 from ._constants import (
-    AMBIGUOUS_UNITS,
     DIMENSIONS,
     FLATTENED_UNITS_LIST,
     LENGTH_UNITS,
+    SIZES,
     STRING_NUMBERS,
     UNICODE_FRACTIONS,
     UNITS,
@@ -681,10 +682,43 @@ class PreProcessor:
         bool
             True if token  at index is a unit, else False.
         """
-        token = self.tokenized_sentence[index].feat_text
-        return (
-            token.lower() in self._units.values() and token.lower() not in LENGTH_UNITS
-        )
+        token = self.tokenized_sentence[index]
+
+        if Disambiguator.is_ambiguous(
+            token, index in self.singularised_indices, "is_unit"
+        ):
+            diambiguator = Disambiguator(
+                self.tokenized_sentence, self.singularised_indices
+            )
+            return diambiguator.does_feature_apply(index, "is_unit")
+
+        text = token.feat_text.lower()
+        return text in self._units.values() and text not in LENGTH_UNITS
+
+    def _is_size(self, index: int) -> bool:
+        """Return True if token is a size.
+
+        Parameters
+        ----------
+        index : int
+            Index of token to check.
+
+        Returns
+        -------
+        bool
+            True if token  at index is a size, else False.
+        """
+        token = self.tokenized_sentence[index]
+
+        if Disambiguator.is_ambiguous(
+            token, index in self.singularised_indices, "is_size"
+        ):
+            diambiguator = Disambiguator(
+                self.tokenized_sentence, self.singularised_indices
+            )
+            return diambiguator.does_feature_apply(index, "is_size")
+
+        return token.feat_text.lower() in SIZES
 
     def _is_dimension(self, token: str) -> bool:
         """Return True if token is a dimension.
@@ -794,15 +828,15 @@ class PreProcessor:
         Examples
         --------
         >>> p = PreProcessor("")
-        >>> p._is_unit("/")
+        >>> p._is_punc("/")
         True
 
         >>> p = PreProcessor("")
-        >>> p._is_unit("--")
+        >>> p._is_punc("--")
         True
 
         >>> p = PreProcessor("")
-        >>> p._is_unit("beef")
+        >>> p._is_punc("beef")
         False
         """
         return token in string.punctuation or token in {"--"}
@@ -973,22 +1007,6 @@ class PreProcessor:
 
         return False
 
-    def _is_ambiguous_unit(self, index: int) -> bool:
-        """Return True if token is in AMBIGUOUS_UNITS list.
-
-        Parameters
-        ----------
-        index : int
-            Index of token to check.
-
-        Returns
-        -------
-        bool
-            True if token at index is in AMBIGUOUS_UNITS, else False.
-        """
-        token = self.tokenized_sentence[index].feat_text
-        return token in AMBIGUOUS_UNITS
-
     def _sentence_length_bucket(self) -> int:
         """Return the length of sentence, rounding down to the nearest bucket.
 
@@ -1075,7 +1093,7 @@ class PreProcessor:
             prefix + "word_shape": token.features.shape,
             prefix + "ends_with_inch_symbol": token.features.ends_with_inch_symbol,
             prefix + "is_unit": self._is_unit(index),
-            prefix + "is_ambiguous": self._is_ambiguous_unit(index),
+            prefix + "is_size": self._is_size(index),
             prefix + "is_in_parens": self._is_inside_parentheses(index),
             prefix + "is_after_comma": self._follows_comma(index),
             prefix + "is_after_plus": self._follows_plus(index),
