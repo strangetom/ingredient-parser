@@ -1,3 +1,5 @@
+from fractions import Fraction
+
 import pytest
 
 from ingredient_parser import parse_ingredient
@@ -47,6 +49,60 @@ class TestParser_compound_units_regression:
     Regression tests ensuring that patterns with an explicit leading count
     still work correctly after adding the no-count pattern.
     """
+
+    @pytest.mark.parametrize(
+        (
+            "sentence",
+            "expected_primary_quantity",
+            "expected_primary_unit",
+            "expected_equivalent_quantity",
+            "expected_name",
+        ),
+        [
+            (
+                "2 1/2 (250 g) cups old-fashioned rolled oats",
+                Fraction(5, 2),
+                "cups",
+                250,
+                "old-fashioned rolled oats",
+            ),
+            (
+                "2/3 (237 g) cup honey",
+                Fraction(2, 3),
+                "cups",
+                237,
+                "honey",
+            ),
+        ],
+    )
+    def test_parenthesized_equivalent_precedes_primary_unit(
+        self,
+        sentence,
+        expected_primary_quantity,
+        expected_primary_unit,
+        expected_equivalent_quantity,
+        expected_name,
+    ):
+        parsed = parse_ingredient(sentence, string_units=True)
+
+        assert len(parsed.amount) == 2
+        assert parsed.amount[0].quantity == expected_primary_quantity
+        assert str(parsed.amount[0].unit) == expected_primary_unit
+        assert parsed.amount[1].quantity == expected_equivalent_quantity
+        assert str(parsed.amount[1].unit) == "g"
+        assert parsed.name[0].text == expected_name
+
+    def test_primary_unit_precedes_parenthesized_equivalent(self):
+        parsed = parse_ingredient(
+            "2 1/2 cups (250 g) old-fashioned rolled oats", string_units=True
+        )
+
+        assert len(parsed.amount) == 2
+        assert parsed.amount[0].quantity == Fraction(5, 2)
+        assert str(parsed.amount[0].unit) == "cups"
+        assert parsed.amount[1].quantity == 250
+        assert str(parsed.amount[1].unit) == "g"
+        assert parsed.name[0].text == "old-fashioned rolled oats"
 
     def test_1_parenthesized_15oz_can(self):
         parsed = parse_ingredient("1 (15 oz) can black beans")

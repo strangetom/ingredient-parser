@@ -175,6 +175,55 @@ class TestPostProcessor_sizeable_unit_pattern:
             assert out.SINGULAR == expected.SINGULAR
             assert out.APPROXIMATE == expected.APPROXIMATE
 
+    def test_parenthesized_equivalent_before_primary_unit(self):
+        """
+        Test that a unit outside a parenthesized equivalent measurement belongs
+        to the leading quantity.
+        """
+        sentence = "2 (250 g) cups oats"
+        tokens = ["2", "(", "250", "g", ")", "cups", "oats"]
+        pos_tags = ["CD", "(", "CD", "NN", ")", "NNS", "NNS"]
+        labels = ["QTY", "PUNC", "QTY", "UNIT", "PUNC", "UNIT", "NAME"]
+        scores = [0.0] * len(tokens)
+        labelled_tokens = [
+            LabelledToken(
+                index=i, text=text, pos_tag=tag, label=label, score=score, plural=False
+            )
+            for i, (text, tag, label, score) in enumerate(
+                zip(tokens, pos_tags, labels, scores)
+            )
+        ]
+        p = PostProcessor(sentence, labelled_tokens, custom_units={}, string_units=True)
+
+        expected = [
+            ingredient_amount_factory(
+                quantity="2",
+                unit="cups",
+                text="2 cups",
+                confidence=0,
+                starting_index=0,
+                string_units=True,
+            ),
+            ingredient_amount_factory(
+                quantity="250",
+                unit="g",
+                text="250 g",
+                confidence=0,
+                starting_index=2,
+                SINGULAR=True,
+                string_units=True,
+            ),
+        ]
+
+        output = p._sizeable_unit_pattern(labelled_tokens)
+        assert len(output) == len(expected)
+        for out, expected in zip(output, expected):
+            assert out.quantity == expected.quantity
+            assert out.unit == expected.unit
+            assert out.starting_index == expected.starting_index
+            assert out.SINGULAR == expected.SINGULAR
+            assert out.APPROXIMATE == expected.APPROXIMATE
+
     def test_short_pattern(self):
         """
         Test that 4 quantity and unit amounts are returned, with the first

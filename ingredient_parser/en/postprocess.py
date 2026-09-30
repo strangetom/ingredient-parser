@@ -1068,9 +1068,19 @@ class PostProcessor:
                     # because the implicit quantity of 1 applied would be invalid.
                     continue
 
-                # If the pattern ends with one of end_units, we have found a match for
-                # this pattern!
-                if tokens[match[-1]].text in end_units:
+                opening = tokens[match[1] - 1].text if match[1] > 0 else None
+                closing = tokens[match[-1] - 1].text if match[-1] > 0 else None
+                primary_unit_follows_parenthesized_equivalent = (opening, closing) in {
+                    ("(", ")"),
+                    ("[", "]"),
+                }
+
+                # A final unit outside the equivalent-measurement delimiters belongs to
+                # the leading quantity.
+                if (
+                    tokens[match[-1]].text in end_units
+                    or primary_unit_follows_parenthesized_equivalent
+                ):
                     # Get tokens and scores that are part of match
                     matching_tokens = [tokens[i].text for i in match]
                     matching_scores = [tokens[i].score for i in match]
