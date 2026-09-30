@@ -104,6 +104,23 @@ class TestParser_compound_units_regression:
         assert str(parsed.amount[1].unit) == "g"
         assert parsed.name[0].text == "old-fashioned rolled oats"
 
+    @pytest.mark.parametrize(
+        "sentence",
+        [
+            "(4.5 ounce) can diced green chile peppers",
+            "1 (4.5 ounce) can diced green chile peppers",
+        ],
+    )
+    def test_parenthesized_container_size_is_preserved(self, sentence):
+        parsed = parse_ingredient(sentence, string_units=True)
+
+        assert len(parsed.amount) == 2
+        assert parsed.amount[0].quantity == 1
+        assert str(parsed.amount[0].unit) == "can"
+        assert parsed.amount[1].quantity == Fraction(9, 2)
+        assert str(parsed.amount[1].unit) == "ounces"
+        assert parsed.name[0].text == "diced green chile peppers"
+
     def test_1_parenthesized_15oz_can(self):
         parsed = parse_ingredient("1 (15 oz) can black beans")
 
