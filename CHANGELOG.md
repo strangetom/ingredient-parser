@@ -5,6 +5,7 @@
 * Simply and pre-compile regular expression used when pluralising units to improve parsing performance by ~18% (@[yashBhosale](https://github.com/yashBhosale))
 * Convert fractions into the `text` field of `IngredientText` objects to Unicode fractions instead of plain text fractions.
 * Improve how features are calculated for words that are units or sizes that have homonyms that aren't units or sizes e.g. clove (garlic clove vs the spice), gram (metric unit vs type of flour), medium (size vs qualifier).
+* Correctly return separate amounts in sentences that contain an equivalent amount in parentheses e.g. 2 (250 ml) cups stock. (@[paulb-instacart](https://github.com/paulb-instacart))
 
 ### 2.8.0
 

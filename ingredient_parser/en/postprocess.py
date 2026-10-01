@@ -991,6 +991,7 @@ class PostProcessor:
 
         * 1 28 ounce can
         * 2 17.3 oz (484g) package
+        * 2 (250 g) cups
 
         This also handles the case where there is no leading count, e.g.
 
@@ -1012,6 +1013,12 @@ class PostProcessor:
         [
             IngredientAmount(quantity=Fraction(1, 1), unit="can", score=0.x...),
             IngredientAmount(quantity=Fraction(15, 1), unit="ounce", score=0.x...),
+        ]
+
+        For the sentence: 2 (250 ml) cups; the correct amounts are:
+        [
+            IngredientAmount(quantity=Fraction(2, 1), unit="cup", score=0.x...),
+            IngredientAmount(quantity=Fraction(250, 1), unit="ml", score=0.x...),
         ]
 
         Parameters
@@ -1068,6 +1075,8 @@ class PostProcessor:
                     # because the implicit quantity of 1 applied would be invalid.
                     continue
 
+                # Check for the case where the inner amount is within parenthesis, and
+                # apply this pattern even if the end unit is not a container.
                 opening = tokens[match[1] - 1].text if match[1] > 0 else None
                 closing = tokens[match[-1] - 1].text if match[-1] > 0 else None
                 primary_unit_follows_parenthesized_equivalent = (opening, closing) in {
