@@ -8,6 +8,8 @@ from dataclasses import dataclass
 from itertools import pairwise
 from pathlib import Path
 
+from tabulate import tabulate
+
 # Ensure the local ingredient_parser package can be found
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
@@ -30,315 +32,426 @@ class DBRow:
     fdc_mapping: int
 
 
-def load_from_db() -> list[DBRow]:
-    """Get all training sentences from the database
-
-    Returns
-    -------
-    list[DBRow]
-        List of database rows.
-    """
-    rows = []
-    with sqlite3.connect(DATABASE, detect_types=sqlite3.PARSE_DECLTYPES) as conn:
-        conn.row_factory = sqlite3.Row
-        c = conn.cursor()
-        data = c.execute("SELECT * FROM en")
-
-    rows = [DBRow(**d) for d in data]
-    conn.close()
-
-    return rows
+@dataclass
+class CalculatedTokenError:
+    id: int
+    sentence: str
+    calculated_tokens: list[str]
+    database_tokens: list[str]
 
 
-def validate_tokens(calculated_tokens: list[str], row: DBRow) -> bool:
-    """Validate that that tokens stored in the database are the same as the tokens
-    obtained from the PreProcessor.
-
-    Parameters
-    ----------
-    calculated_tokens : list[str]
-        Tokens calculated using PreProcessor.
-    row : DBRow
-        Database row.
-
-    Returns
-    -------
-    bool
-        True if no error, else False.
-    """
-    if calculated_tokens != row.tokens:
-        print(f"[ERROR] ID: {row.id} [{row.source}]")
-        print("Database tokens do not match PreProcessor output.")
-        print(f"\t{calculated_tokens} (calc)")
-        print(f"\t{row.tokens} (db)")
-        return False
-
-    return True
+@dataclass
+class DuplicateSentenceError:
+    sentence: str
+    ids: list[int]
+    label_sequences: list[tuple[str, ...]]
 
 
-def validate_token_label_length(calculated_tokens: list[str], row: DBRow) -> bool:
-    """Validate that that number of tokens and number of labels are the same.
-
-    Parameters
-    ----------
-    calculated_tokens : list[str]
-        Tokens calculated using PreProcessor.
-    row : DBRow
-        Database row.
-
-    Returns
-    -------
-    bool
-        True if no error, else False.
-    """
-    if len(calculated_tokens) != len(row.tokens):
-        print(f"[ERROR] ID: {row.id} [{row.source}]")
-        print("\tNumber of tokens and labels are different.")
-        return False
-
-    return True
+@dataclass
+class LabelError:
+    id: int
+    error: str
 
 
-def validate_duplicate_sentences(rows: list[DBRow]) -> int:
-    """Validate the duplicate sentences have the same labels.
-
-    Parameters
-    ----------
-    rows : list[DBRow]
-        List of database rows.
-
-    Returns
-    -------
-    int
-        Number of duplicate sentences with mismatching labels.
-    """
-    labels_dict = defaultdict(set)
-    uids_dict = defaultdict(set)
-    for row in rows:
-        uid = row.id
-        sentence = row.sentence
-        labels = "|".join(row.labels)
-
-        labels_dict[sentence].add(labels)
-        uids_dict[sentence].add(uid)
-
-    errors = 0
-    for sentence, labels in labels_dict.items():
-        if len(labels) > 1:
-            uids = uids_dict[sentence]
-            unpacked_labels = [labs.split("|") for labs in labels]
-
-            print(f"[ERROR] ID: {','.join([str(uid) for uid in uids])}")
-            print("\tDuplicate sentences have different labels")
-            print(f"\t{unpacked_labels}")
-
-            errors += 1
-
-    return errors
+@dataclass
+class ValidationResults:
+    calculated_token_errors: list[CalculatedTokenError]
+    token_count_errors: list[CalculatedTokenError]
+    duplicate_sentence_errors: list[DuplicateSentenceError]
+    prohibited_transition_errors: list[LabelError]
+    i_name_tok_errors: list[LabelError]
+    name_var_errors: list[LabelError]
+    name_mod_errors: list[LabelError]
 
 
-def validate_name_labels(row: DBRow) -> bool:
-    """Validate name labels are valid.
+class TrainingDataValidator:
+    def __init__(self):
+        """Load training data from database."""
+        with sqlite3.connect(DATABASE, detect_types=sqlite3.PARSE_DECLTYPES) as conn:
+            conn.row_factory = sqlite3.Row
+            c = conn.cursor()
+            data = c.execute("SELECT * FROM en")
 
-    Name labels
+        self.training_data = [DBRow(**d) for d in data]
+        conn.close()
 
-    Parameters
-    ----------
-    row : DBRow
-        Database row.
+        self.validation_results = ValidationResults(
+            calculated_token_errors=[],
+            token_count_errors=[],
+            duplicate_sentence_errors=[],
+            prohibited_transition_errors=[],
+            i_name_tok_errors=[],
+            name_var_errors=[],
+            name_mod_errors=[],
+        )
 
-    Returns
-    -------
-    bool
-        True if no error, else False.
-    """
-    I_NAME_TOK_valid = validate_I_NAME_TOK(row)
-    NAME_VAR_valid = validiate_NAME_VAR(row)
-    NAME_MOD_valid = validiate_NAME_MOD(row)
+    def validate(self):
+        """Validate database entries and print any errors."""
+        self.validate_sentence_consistency(self.training_data)
 
-    return I_NAME_TOK_valid and NAME_VAR_valid and NAME_MOD_valid
+        for row in self.training_data:
+            self.validate_token_consistency(row)
+            self.validate_label_consistency(row)
 
-
-def validate_I_NAME_TOK(row: DBRow) -> bool:
-    """Validate that I_NAME_TOK always appears after a B_NAME_TOK.
-
-    I_NAME_TOK does not have to be adjacent to B_NAME_TOK.
-
-    If the sentence contains NAME_SEP, check there is a B_NAME_TOK after the NAME_SEP
-    before any I_NAME_TOK.
-
-    Parameters
-    ----------
-    row : DBRow
-        Database row.
-
-    Returns
-    -------
-    bool
-        True if valid, else False.
-    """
-    if "I_NAME_TOK" not in row.labels:
-        return True
-
-    for i, label in enumerate(row.labels):
-        if label != "I_NAME_TOK":
-            continue
-
-        if "NAME_SEP" in row.labels[:i]:
-            # If NAME_SEP prior to current I_NAME_TOK, check there is a B_NAME_TOK after
-            # NAME_SEP and before current label.
-            name_sep_idx = max(
-                i for i, v in enumerate(row.labels[:i]) if v == "NAME_SEP"
+        # Display results...
+        if len(self.validation_results.token_count_errors) > 0:
+            n = len(self.validation_results.token_count_errors)
+            print(
+                (
+                    f"{n} sentences where number of database tokens "
+                    "do not match PreProcessor output:"
+                )
             )
-            if "B_NAME_TOK" not in row.labels[name_sep_idx:i]:
-                print(f"[ERROR] ID: {row.id} [{row.source}]")
-                print("\tError in NAME labels: I_NAME_TOK")
-                return False
-        else:
-            if "B_NAME_TOK" not in row.labels[:i]:
-                print(f"[ERROR] ID: {row.id} [{row.source}]")
-                print("\tError in NAME labels: I_NAME_TOK")
-                return False
+            print(
+                ",".join(
+                    [
+                        str(error.id)
+                        for error in self.validation_results.token_count_errors
+                    ]
+                )
+            )
 
-    return True
+        if len(self.validation_results.calculated_token_errors) > 0:
+            n = len(self.validation_results.calculated_token_errors)
+            print(
+                f"{n} sentences where database tokens do not match PreProcessor output:"
+            )
+            print(
+                ",".join(
+                    [
+                        str(error.id)
+                        for error in self.validation_results.calculated_token_errors
+                    ]
+                )
+            )
 
+            for error in self.validation_results.calculated_token_errors:
+                table = [
+                    ["PreProcessor", error.calculated_tokens],
+                    ["Database", error.database_tokens],
+                ]
+                print(
+                    tabulate(
+                        table,
+                        headers=[f"ID: {error.id}", error.sentence],
+                        tablefmt="fancy_grid",
+                        maxcolwidths=[None, None],
+                        stralign="left",
+                        numalign="right",
+                    )
+                )
 
-def validiate_NAME_VAR(row: DBRow) -> bool:
-    """Validate if the sentence contains NAME_VAR, there is more than one.
+        if len(self.validation_results.duplicate_sentence_errors) > 0:
+            n = len(self.validation_results.duplicate_sentence_errors)
+            print(f"{n} duplicate sentence with different label sequences:")
+            table = []
+            for error in self.validation_results.duplicate_sentence_errors:
+                table.append([error.sentence, ",".join(map(str, error.ids))])
 
-    If there is more than one, check there is at least one B_NAME_TOK in the sentence
-    too.
+            print(
+                tabulate(
+                    table,
+                    headers=["Sentence", "IDs"],
+                    tablefmt="fancy_grid",
+                    maxcolwidths=[None, None],
+                    stralign="left",
+                    numalign="right",
+                )
+            )
 
-    Parameters
-    ----------
-    row : DBRow
-        Database row.
+        if (
+            self.validation_results.prohibited_transition_errors
+            or self.validation_results.i_name_tok_errors
+            or self.validation_results.name_var_errors
+            or self.validation_results.name_mod_errors
+        ):
+            print("Label sequence errors:")
+            label_error_table = [
+                [
+                    "Prohibited transitions",
+                    len(self.validation_results.prohibited_transition_errors),
+                    ",".join(
+                        {
+                            str(error.id)
+                            for error in self.validation_results.prohibited_transition_errors  # noqa
+                        }
+                    ),
+                ],
+                [
+                    "I_NAME_TOK",
+                    len(self.validation_results.i_name_tok_errors),
+                    ",".join(
+                        {
+                            str(error.id)
+                            for error in self.validation_results.i_name_tok_errors
+                        }
+                    ),
+                ],
+                [
+                    "NAME_VAR",
+                    len(self.validation_results.name_var_errors),
+                    ",".join(
+                        {
+                            str(error.id)
+                            for error in self.validation_results.name_var_errors
+                        }
+                    ),
+                ],
+                [
+                    "NAME_MOD",
+                    len(self.validation_results.name_mod_errors),
+                    ",".join(
+                        {
+                            str(error.id)
+                            for error in self.validation_results.name_mod_errors
+                        }
+                    ),
+                ],
+            ]
+            print(
+                tabulate(
+                    label_error_table,
+                    headers=["Error", "Count", "IDs"],
+                    tablefmt="fancy_grid",
+                    maxcolwidths=[None, None],
+                    stralign="left",
+                    numalign="right",
+                )
+            )
 
-    Returns
-    -------
-    bool
-        True if valid, else False.
-    """
-    if "NAME_VAR" not in row.labels:
+    def validate_sentence_consistency(self, rows: list[DBRow]) -> None:
+        """Validate duplicate sentences have the same label sequence.
+
+        Parameters
+        ----------
+        rows : list[DBRow]
+            List of database rows.
+        """
+        sentence_labels = defaultdict(set)
+        sentence_ids = defaultdict(set)
+        for row in rows:
+            sentence_labels[row.sentence].add(tuple(row.labels))
+            sentence_ids[row.sentence].add(row.id)
+
+        for sentence, label_sequences in sentence_labels.items():
+            if len(label_sequences) > 1:
+                self.validation_results.duplicate_sentence_errors.append(
+                    DuplicateSentenceError(
+                        sentence=sentence,
+                        ids=list(sentence_ids[sentence]),
+                        label_sequences=list(label_sequences),
+                    )
+                )
+
+    def validate_token_consistency(self, row: DBRow) -> None:
+        """Validate consistency between tokens stored in database and those calculated
+        by PreProcessor
+
+        Parameters
+        ----------
+        calculated_tokens : list[str]
+            Tokens calculated by PreProcessor.
+        row : DBRow
+            Database row.
+        """
+        p = PreProcessor(row.sentence)
+        calculated_tokens = [t.text for t in p.tokenized_sentence]
+
+        if len(calculated_tokens) != len(row.tokens):
+            self.validation_results.token_count_errors.append(
+                CalculatedTokenError(
+                    id=row.id,
+                    sentence=row.sentence,
+                    calculated_tokens=calculated_tokens,
+                    database_tokens=row.tokens,
+                )
+            )
+        elif calculated_tokens != row.tokens:
+            self.validation_results.calculated_token_errors.append(
+                CalculatedTokenError(
+                    id=row.id,
+                    sentence=row.sentence,
+                    calculated_tokens=calculated_tokens,
+                    database_tokens=row.tokens,
+                )
+            )
+
+    def validate_label_consistency(self, row: DBRow) -> None:
+        """Validate label sequence consistency with labelling scheme.
+
+        Check for the following:
+        * No prohibited transitions are present.
+        * No instances of I_NAME_TOK occurring before B_NAME_TOK since start of sequence
+          of last NAME_SEP.
+        * No instances of a single NAME_VAR.
+        * No instances of a NAME_MOD without at least 2 B_NAME_TOK or 2 NAME_VAR.
+
+        Parameters
+        ----------
+        row : DBRow
+            Database row.
+        """
+        if not self._validate_I_NAME_TOK(row):
+            self.validation_results.i_name_tok_errors.append(
+                LabelError(
+                    id=row.id, error="I_NAME_TOK does not occur after B_NAME_TOK."
+                )
+            )
+
+        if error := self._validate_NAME_VAR(row):
+            self.validation_results.name_var_errors.append(
+                LabelError(id=row.id, error=error)
+            )
+
+        if not self._validate_NAME_MOD(row):
+            self.validation_results.name_mod_errors.append(
+                LabelError(
+                    id=row.id,
+                    error="NAME_MOD is not followed by 2+ NAME_VAR or B_NAME_TOK.",
+                )
+            )
+
+        if error := self._validate_prohibited_transitions(row):
+            self.validation_results.prohibited_transition_errors.append(
+                LabelError(id=row.id, error=error)
+            )
+
+    def _validate_I_NAME_TOK(self, row: DBRow) -> bool:
+        """Validate that I_NAME_TOK always appears after a B_NAME_TOK.
+
+        I_NAME_TOK does not have to be adjacent to B_NAME_TOK.
+
+        If the sentence contains NAME_SEP, check there is a B_NAME_TOK after the
+        NAME_SEP before any I_NAME_TOK.
+
+        Parameters
+        ----------
+        row : DBRow
+            Database row.
+
+        Returns
+        -------
+        bool
+            True if valid, else False.
+        """
+        if "I_NAME_TOK" not in row.labels:
+            return True
+
+        for i, label in enumerate(row.labels):
+            if label != "I_NAME_TOK":
+                continue
+
+            if "NAME_SEP" in row.labels[:i]:
+                # If NAME_SEP prior to current I_NAME_TOK, check there is a B_NAME_TOK
+                # after NAME_SEP and before current label.
+                name_sep_idx = max(
+                    i for i, v in enumerate(row.labels[:i]) if v == "NAME_SEP"
+                )
+                if "B_NAME_TOK" not in row.labels[name_sep_idx:i]:
+                    return False
+            else:
+                if "B_NAME_TOK" not in row.labels[:i]:
+                    return False
+
         return True
 
-    # Check if there is only one NAME_VAR.
-    name_var_count = sum(1 for label in row.labels if label == "NAME_VAR")
-    if name_var_count == 1:
-        print(f"[ERROR] ID: {row.id} [{row.source}]")
-        print("\tError in NAME labels: Single NAME_VAR")
-        return False
+    def _validate_NAME_VAR(self, row: DBRow) -> str | None:
+        """Validate if the sentence contains NAME_VAR, there is more than one.
 
-    # Check if there is not B_NAME_TOK, given that there is at least two NAME_VAR.
-    b_name_tok_count = sum(1 for label in row.labels if label == "B_NAME_TOK")
-    if b_name_tok_count == 0:
-        print(f"[ERROR] ID: {row.id} [{row.source}]")
-        print("\tError in NAME labels: NAME_VAR without B_NAME_TOK")
-        return False
+        If there is more than one, check there is at least one B_NAME_TOK in the
+        sentence too.
 
-    # Check that at least one B_NAME_TOK occurs after the last NAME_VAR.
-    last_name_var_idx = max(i for i, v in enumerate(row.labels) if v == "NAME_VAR")
-    last_b_name_tok_idx = max(i for i, v in enumerate(row.labels) if v == "B_NAME_TOK")
-    if last_name_var_idx > last_b_name_tok_idx:
-        print(f"[ERROR] ID: {row.id} [{row.source}]")
-        print("\tError in NAME labels: NAME_VAR is not followed by B_NAME_TOK")
-        return False
+        Parameters
+        ----------
+        row : DBRow
+            Database row.
 
-    return True
+        Returns
+        -------
+        str | None
+            Return None if sequence is valid with respect to NAME_VAR labels.
+            If the sequence is not valid, return an error message.
+        """
+        if "NAME_VAR" not in row.labels:
+            return None
 
+        # Check if there is only one NAME_VAR.
+        name_var_count = sum(1 for label in row.labels if label == "NAME_VAR")
+        if name_var_count == 1:
+            return "Single NAME_VAR label."
 
-def validiate_NAME_MOD(row: DBRow) -> bool:
-    """Validate if the sentence contains NAME_MOD, there are at least 2 B_NAME_TOK or
-    at least 2 NAME_VAR after the NAME_MOD.
+        # Check if there is not B_NAME_TOK, given that there is at least two NAME_VAR.
+        b_name_tok_count = sum(1 for label in row.labels if label == "B_NAME_TOK")
+        if b_name_tok_count == 0:
+            return "NAME_VAR not followed by B_NAME_TOK."
 
-    Parameters
-    ----------
-    row : DBRow
-        Database row.
+        # Check that at least one B_NAME_TOK occurs after the last NAME_VAR.
+        last_name_var_idx = max(i for i, v in enumerate(row.labels) if v == "NAME_VAR")
+        last_b_name_tok_idx = max(
+            i for i, v in enumerate(row.labels) if v == "B_NAME_TOK"
+        )
+        if last_name_var_idx > last_b_name_tok_idx:
+            return "NAME_VAR is not followed by B_NAME_TOK."
 
-    Returns
-    -------
-    bool
-        True if valid, else False.
-    """
-    if "NAME_MOD" not in row.labels:
-        return True
+        return None
 
-    name_mod_idx = max(i for i, v in enumerate(row.labels) if v == "NAME_MOD")
+    def _validate_NAME_MOD(self, row: DBRow) -> bool:
+        """Validate if the sentence contains NAME_MOD, there are at least 2 B_NAME_TOK
+        or at least 2 NAME_VAR after the NAME_MOD.
 
-    name_var_count = sum(
-        1 for label in row.labels[name_mod_idx:] if label == "NAME_VAR"
-    )
-    b_name_tok_count = sum(
-        1 for label in row.labels[name_mod_idx:] if label == "B_NAME_TOK"
-    )
-    if not (name_var_count > 1 or b_name_tok_count > 1):
-        print(f"[ERROR] ID: {row.id} [{row.source}]")
-        print("\tError in NAME labels: NAME_MOD")
-        return False
+        Parameters
+        ----------
+        row : DBRow
+            Database row.
 
-    return True
+        Returns
+        -------
+        bool
+            True if valid, else False.
+        """
+        if "NAME_MOD" not in row.labels:
+            return True
 
+        name_mod_idx = max(i for i, v in enumerate(row.labels) if v == "NAME_MOD")
 
-def validate_prohibited_transitions(row: DBRow) -> bool:
-    """Validate than none of the label transitions are in the PROHIBITED_TRANSITIONS.
-
-    !IMPORTANT!
-    A label transition that is found in the training data that is also in the
-    PROHIBITED_TRANSITIONS does not always mean the sentence is labelled incorrectly.
-    It could be that the PROHIBITED_TRANSITIONS is incorrect and needs updating.
-
-    Parameters
-    ----------
-    row : DBRow
-        Database row.
-
-    Returns
-    -------
-    bool
-        True if valid, else False.
-    """
-    for first, second in pairwise(row.labels):
-        if second in PROHIBITED_TRANSITIONS.get(first, set()):
-            print(f"[ERROR] ID: {row.id} [{row.source}]")
-            print(f"\tTransition from {first} → {second} is in PROHIBITED_TRANSITIONS.")
+        name_var_count = sum(
+            1 for label in row.labels[name_mod_idx:] if label == "NAME_VAR"
+        )
+        b_name_tok_count = sum(
+            1 for label in row.labels[name_mod_idx:] if label == "B_NAME_TOK"
+        )
+        if not (name_var_count > 1 or b_name_tok_count > 1):
             return False
 
-    return True
+        return True
+
+    def _validate_prohibited_transitions(self, row: DBRow) -> str | None:
+        """Validate than none of the label transitions are defined in the
+        PROHIBITED_TRANSITIONS constant.
+
+        !IMPORTANT!
+        A label transition that is found in the training data that is also in the
+        PROHIBITED_TRANSITIONS does not always mean the sentence is labelled
+        incorrectly.
+        It could be that the PROHIBITED_TRANSITIONS is incorrect and needs updating.
+
+        Parameters
+        ----------
+        row : DBRow
+            Database row.
+
+        Returns
+        -------
+        bool
+            True if valid, else False.
+        """
+        for l1, l2 in pairwise(row.labels):
+            if l2 in PROHIBITED_TRANSITIONS.get(l1, set()):
+                return f"Transition from {l1} → {l2} is in PROHIBITED_TRANSITIONS."
+
+        return None
 
 
 if __name__ == "__main__":
-    rows = load_from_db()
-
-    token_errors = 0
-    token_label_errors = 0
-    name_errors = 0
-    transition_errors = 0
-
-    for row in rows:
-        p = PreProcessor(row.sentence, {})
-        if not validate_tokens([t.text for t in p.tokenized_sentence], row):
-            token_errors += 1
-        if not validate_token_label_length([t.text for t in p.tokenized_sentence], row):
-            token_label_errors += 1
-        if not validate_name_labels(row):
-            name_errors += 1
-        if not validate_prohibited_transitions(row):
-            transition_errors += 1
-
-    dupe_sentence_errors = validate_duplicate_sentences(rows)
-
-    if token_errors > 0:
-        print(f"{token_errors} token errors.")
-
-    if token_label_errors > 0:
-        print(f"{token_label_errors} token-label length mismatch errors.")
-
-    if dupe_sentence_errors > 0:
-        print(f"{dupe_sentence_errors} duplicate sentences with mismatched labels.")
-
-    if name_errors > 0:
-        print(f"{name_errors} errors in name labels.")
-
-    if transition_errors > 0:
-        print(f"{transition_errors} errors in label transitions.")
+    validator = TrainingDataValidator()
+    validator.validate()
