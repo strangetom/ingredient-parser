@@ -55,13 +55,13 @@ class LabelError:
 
 @dataclass
 class ValidationResults:
-    calculated_token_errors: list[CalculatedTokenError]
-    token_count_errors: list[CalculatedTokenError]
-    duplicate_sentence_errors: list[DuplicateSentenceError]
-    prohibited_transition_errors: list[LabelError]
-    i_name_tok_errors: list[LabelError]
-    name_var_errors: list[LabelError]
-    name_mod_errors: list[LabelError]
+    calculated_token: list[CalculatedTokenError]
+    token_count: list[CalculatedTokenError]
+    duplicate_sentence: list[DuplicateSentenceError]
+    prohibited_transition: list[LabelError]
+    i_name_tok: list[LabelError]
+    name_var: list[LabelError]
+    name_mod: list[LabelError]
 
 
 class TrainingDataValidator:
@@ -76,13 +76,13 @@ class TrainingDataValidator:
         conn.close()
 
         self.validation_results = ValidationResults(
-            calculated_token_errors=[],
-            token_count_errors=[],
-            duplicate_sentence_errors=[],
-            prohibited_transition_errors=[],
-            i_name_tok_errors=[],
-            name_var_errors=[],
-            name_mod_errors=[],
+            calculated_token=[],
+            token_count=[],
+            duplicate_sentence=[],
+            prohibited_transition=[],
+            i_name_tok=[],
+            name_var=[],
+            name_mod=[],
         )
 
     def validate(self):
@@ -94,8 +94,8 @@ class TrainingDataValidator:
             self.validate_label_consistency(row)
 
         # Display results...
-        if len(self.validation_results.token_count_errors) > 0:
-            n = len(self.validation_results.token_count_errors)
+        if len(self.validation_results.token_count) > 0:
+            n = len(self.validation_results.token_count)
             print(
                 (
                     f"{n} sentences where number of database tokens "
@@ -104,15 +104,12 @@ class TrainingDataValidator:
             )
             print(
                 ",".join(
-                    [
-                        str(error.id)
-                        for error in self.validation_results.token_count_errors
-                    ]
+                    [str(error.id) for error in self.validation_results.token_count]
                 )
             )
 
-        if len(self.validation_results.calculated_token_errors) > 0:
-            n = len(self.validation_results.calculated_token_errors)
+        if len(self.validation_results.calculated_token) > 0:
+            n = len(self.validation_results.calculated_token)
             print(
                 f"{n} sentences where database tokens do not match PreProcessor output:"
             )
@@ -120,12 +117,12 @@ class TrainingDataValidator:
                 ",".join(
                     [
                         str(error.id)
-                        for error in self.validation_results.calculated_token_errors
+                        for error in self.validation_results.calculated_token
                     ]
                 )
             )
 
-            for error in self.validation_results.calculated_token_errors:
+            for error in self.validation_results.calculated_token:
                 table = [
                     ["PreProcessor", error.calculated_tokens],
                     ["Database", error.database_tokens],
@@ -141,11 +138,11 @@ class TrainingDataValidator:
                     )
                 )
 
-        if len(self.validation_results.duplicate_sentence_errors) > 0:
-            n = len(self.validation_results.duplicate_sentence_errors)
+        if len(self.validation_results.duplicate_sentence) > 0:
+            n = len(self.validation_results.duplicate_sentence)
             print(f"{n} duplicate sentence with different label sequences:")
             table = []
-            for error in self.validation_results.duplicate_sentence_errors:
+            for error in self.validation_results.duplicate_sentence:
                 table.append([error.sentence, ",".join(map(str, error.ids))])
 
             print(
@@ -160,51 +157,42 @@ class TrainingDataValidator:
             )
 
         if (
-            self.validation_results.prohibited_transition_errors
-            or self.validation_results.i_name_tok_errors
-            or self.validation_results.name_var_errors
-            or self.validation_results.name_mod_errors
+            self.validation_results.prohibited_transition
+            or self.validation_results.i_name_tok
+            or self.validation_results.name_var
+            or self.validation_results.name_mod
         ):
             print("Label sequence errors:")
             label_error_table = [
                 [
                     "Prohibited transitions",
-                    len(self.validation_results.prohibited_transition_errors),
+                    len(self.validation_results.prohibited_transition),
                     ",".join(
                         {
                             str(error.id)
-                            for error in self.validation_results.prohibited_transition_errors  # noqa
+                            for error in self.validation_results.prohibited_transition
                         }
                     ),
                 ],
                 [
                     "I_NAME_TOK",
-                    len(self.validation_results.i_name_tok_errors),
+                    len(self.validation_results.i_name_tok),
                     ",".join(
-                        {
-                            str(error.id)
-                            for error in self.validation_results.i_name_tok_errors
-                        }
+                        {str(error.id) for error in self.validation_results.i_name_tok}
                     ),
                 ],
                 [
                     "NAME_VAR",
-                    len(self.validation_results.name_var_errors),
+                    len(self.validation_results.name_var),
                     ",".join(
-                        {
-                            str(error.id)
-                            for error in self.validation_results.name_var_errors
-                        }
+                        {str(error.id) for error in self.validation_results.name_var}
                     ),
                 ],
                 [
                     "NAME_MOD",
-                    len(self.validation_results.name_mod_errors),
+                    len(self.validation_results.name_mod),
                     ",".join(
-                        {
-                            str(error.id)
-                            for error in self.validation_results.name_mod_errors
-                        }
+                        {str(error.id) for error in self.validation_results.name_mod}
                     ),
                 ],
             ]
@@ -235,7 +223,7 @@ class TrainingDataValidator:
 
         for sentence, label_sequences in sentence_labels.items():
             if len(label_sequences) > 1:
-                self.validation_results.duplicate_sentence_errors.append(
+                self.validation_results.duplicate_sentence.append(
                     DuplicateSentenceError(
                         sentence=sentence,
                         ids=list(sentence_ids[sentence]),
@@ -258,7 +246,7 @@ class TrainingDataValidator:
         calculated_tokens = [t.text for t in p.tokenized_sentence]
 
         if len(calculated_tokens) != len(row.tokens):
-            self.validation_results.token_count_errors.append(
+            self.validation_results.token_count.append(
                 CalculatedTokenError(
                     id=row.id,
                     sentence=row.sentence,
@@ -267,7 +255,7 @@ class TrainingDataValidator:
                 )
             )
         elif calculated_tokens != row.tokens:
-            self.validation_results.calculated_token_errors.append(
+            self.validation_results.calculated_token.append(
                 CalculatedTokenError(
                     id=row.id,
                     sentence=row.sentence,
@@ -292,19 +280,17 @@ class TrainingDataValidator:
             Database row.
         """
         if not self._validate_I_NAME_TOK(row):
-            self.validation_results.i_name_tok_errors.append(
+            self.validation_results.i_name_tok.append(
                 LabelError(
                     id=row.id, error="I_NAME_TOK does not occur after B_NAME_TOK."
                 )
             )
 
         if error := self._validate_NAME_VAR(row):
-            self.validation_results.name_var_errors.append(
-                LabelError(id=row.id, error=error)
-            )
+            self.validation_results.name_var.append(LabelError(id=row.id, error=error))
 
         if not self._validate_NAME_MOD(row):
-            self.validation_results.name_mod_errors.append(
+            self.validation_results.name_mod.append(
                 LabelError(
                     id=row.id,
                     error="NAME_MOD is not followed by 2+ NAME_VAR or B_NAME_TOK.",
@@ -312,7 +298,7 @@ class TrainingDataValidator:
             )
 
         if error := self._validate_prohibited_transitions(row):
-            self.validation_results.prohibited_transition_errors.append(
+            self.validation_results.prohibited_transition.append(
                 LabelError(id=row.id, error=error)
             )
 
