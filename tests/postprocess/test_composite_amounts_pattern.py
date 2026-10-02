@@ -1157,13 +1157,13 @@ class TestPostProcessor_composite_amounts_pattern:
             for amount in out.amounts:
                 assert amount.PREPARED_INGREDIENT
 
-    def test_combined_sizable_units_and_composite_amount(self):
+    def test_combined_container_units_and_composite_amount(self):
         """
-        Test that both the sizeable unit and composite amount are identified.
+        Test that both the container unit and composite amount are identified.
 
-        This is an important case because the sizeable unit pattern is looked for first.
-        If found, this will consume tokens which will effect how the composite amount
-        pattern is looked for.
+        This is an important case because the container unit pattern is looked for
+        first. If found, this will consume tokens which will effect how the composite
+        amount pattern is looked for.
         """
         sentence = "2 8 1/2-ounce cans, or 2 cups plus 2 tablespoons cream-style corn"
         tokens = [

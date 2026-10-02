@@ -3,7 +3,7 @@ from ingredient_parser.en import PostProcessor
 from ingredient_parser.en._utils import ingredient_amount_factory
 
 
-class TestPostProcessor_sizeable_unit_pattern:
+class TestPostProcessor_container_unit_pattern:
     def test_long_pattern(self):
         """
         Test that 4 quantity and unit amounts are returned, with the first
@@ -94,7 +94,7 @@ class TestPostProcessor_sizeable_unit_pattern:
         ]
 
         # Don't check scores
-        output = p._sizeable_unit_pattern(labelled_tokens)
+        output = p._container_unit_pattern(labelled_tokens)
         assert len(output) == len(expected)
         for out, expected in zip(output, expected):
             assert out.quantity == expected.quantity
@@ -166,7 +166,7 @@ class TestPostProcessor_sizeable_unit_pattern:
         ]
 
         # Don't check scores
-        output = p._sizeable_unit_pattern(labelled_tokens)
+        output = p._container_unit_pattern(labelled_tokens)
         assert len(output) == len(expected)
         for out, expected in zip(output, expected):
             assert out.quantity == expected.quantity
@@ -215,7 +215,7 @@ class TestPostProcessor_sizeable_unit_pattern:
             ),
         ]
 
-        output = p._sizeable_unit_pattern(labelled_tokens)
+        output = p._container_unit_pattern(labelled_tokens)
         assert len(output) == len(expected)
         for out, expected in zip(output, expected):
             assert out.quantity == expected.quantity
@@ -261,7 +261,7 @@ class TestPostProcessor_sizeable_unit_pattern:
             ),
         ]
 
-        output = p._sizeable_unit_pattern(labelled_tokens)
+        output = p._container_unit_pattern(labelled_tokens)
         assert len(output) == len(expected)
         for out, expected in zip(output, expected):
             assert out.quantity == expected.quantity
@@ -334,7 +334,7 @@ class TestPostProcessor_sizeable_unit_pattern:
             ),
         ]
 
-        output = p._sizeable_unit_pattern(labelled_tokens)
+        output = p._container_unit_pattern(labelled_tokens)
         assert len(output) == len(expected)
         for out, expected in zip(output, expected):
             assert out.quantity == expected.quantity
@@ -390,7 +390,7 @@ class TestPostProcessor_sizeable_unit_pattern:
         ]
 
         # Don't check scores
-        output = p._sizeable_unit_pattern(labelled_tokens)
+        output = p._container_unit_pattern(labelled_tokens)
         assert len(output) == len(expected)
         for out, expected in zip(output, expected):
             assert out.quantity == expected.quantity
@@ -419,7 +419,7 @@ class TestPostProcessor_sizeable_unit_pattern:
         p = PostProcessor(sentence, labelled_tokens, custom_units={})
 
         # Don't check scores
-        assert p._sizeable_unit_pattern(labelled_tokens) == []
+        assert p._container_unit_pattern(labelled_tokens) == []
 
     def test_mixed_pattern(self):
         """
@@ -456,7 +456,7 @@ class TestPostProcessor_sizeable_unit_pattern:
         ]
 
         # Don't check scores
-        output = p._sizeable_unit_pattern(labelled_tokens)
+        output = p._container_unit_pattern(labelled_tokens)
         assert len(output) == len(expected)
         for out, expected in zip(output, expected):
             assert out.quantity == expected.quantity
@@ -508,7 +508,7 @@ class TestPostProcessor_sizeable_unit_pattern:
         ]
 
         # Don't check scores
-        output = p._sizeable_unit_pattern(labelled_tokens)
+        output = p._container_unit_pattern(labelled_tokens)
         assert len(output) == len(expected)
         for out, expected in zip(output, expected):
             assert out.quantity == expected.quantity
@@ -555,7 +555,7 @@ class TestPostProcessor_sizeable_unit_pattern:
         ]
 
         # Don't check scores
-        output = p._sizeable_unit_pattern(labelled_tokens)
+        output = p._container_unit_pattern(labelled_tokens)
         assert len(output) == len(expected)
         for out, expected in zip(output, expected):
             assert out.quantity == expected.quantity
@@ -599,7 +599,7 @@ class TestPostProcessor_sizeable_unit_pattern:
             ),
         ]
 
-        output = p._sizeable_unit_pattern(labelled_tokens)
+        output = p._container_unit_pattern(labelled_tokens)
         assert len(output) == len(expected)
         for out, exp in zip(output, expected):
             assert out.quantity == exp.quantity
@@ -629,7 +629,7 @@ class TestPostProcessor_sizeable_unit_pattern:
         ]
         p = PostProcessor(sentence, labelled_tokens, custom_units={})
 
-        assert p._sizeable_unit_pattern(labelled_tokens) == []
+        assert p._container_unit_pattern(labelled_tokens) == []
 
     def test_no_count_pattern_non_container_end(self):
         """
@@ -651,4 +651,4 @@ class TestPostProcessor_sizeable_unit_pattern:
         ]
         p = PostProcessor(sentence, labelled_tokens, custom_units={})
 
-        assert p._sizeable_unit_pattern(labelled_tokens) == []
+        assert p._container_unit_pattern(labelled_tokens) == []

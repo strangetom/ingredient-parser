@@ -711,7 +711,7 @@ class PostProcessor:
         The confidence is the average confidence of all labels in the IngredientGroup.
 
         A number of special cases are considered before the default processing:
-        1. "sizeable unit" pattern
+        1. "container unit" pattern
         2. "composite amounts" pattern
 
         Returns
@@ -722,7 +722,7 @@ class PostProcessor:
         self._convert_string_number_qty()
 
         funcs = [
-            self._sizeable_unit_pattern,
+            self._container_unit_pattern,
             self._composite_amounts_pattern,
             self._fallback_pattern,
         ]
@@ -981,10 +981,10 @@ class PostProcessor:
         if idx_to_remove:
             self.tokens = [t for t in self.tokens if t.index not in idx_to_remove]
 
-    def _sizeable_unit_pattern(
+    def _container_unit_pattern(
         self, tokens: list[LabelledToken]
     ) -> list[IngredientAmount]:
-        """Identify sentences which match the sizeable unit pattern.
+        """Identify sentences which match the container unit pattern.
 
         This pattern is where there is a quantity-unit pair split by one or more
         quantity-unit pairs e.g.
