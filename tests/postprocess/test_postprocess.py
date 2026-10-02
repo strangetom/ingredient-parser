@@ -819,7 +819,7 @@ class TestPostProcessor_parsed:
                 ingredient_amount_factory(
                     quantity="1.5",
                     unit="pound",
-                    text="1 1/2 pound",
+                    text="1#1$2 pound",
                     confidence=0.768515,
                     starting_index=5,
                     APPROXIMATE=True,

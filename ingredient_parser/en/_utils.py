@@ -16,6 +16,7 @@ from .._common import (
     UREG,
     consume,
     download_nltk_resources,
+    intermediate_fraction_to_unicode,
     is_float,
     is_fraction,
     is_range,
@@ -659,10 +660,10 @@ def ingredient_amount_factory(
             _unit = pluralise_units(_unit, custom_units)
 
     # Fix up text:
-    # 1. Replace intermediate fractions with text fraction
+    # 1. Replace intermediate fractions with unicode fraction
     # 2. Remove additional leading and trailing spaces
     # 3. Remove additional spaces in fraction ranges
-    text = text.replace("#", " ").replace("$", "/").strip()
+    text = intermediate_fraction_to_unicode(text.strip())
     text = text.replace("- ", "-")
 
     return IngredientAmount(

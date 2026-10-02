@@ -1231,7 +1231,7 @@ class TestPostProcessor_composite_amounts_pattern:
             ingredient_amount_factory(
                 quantity="8.5",
                 unit="ounce",
-                text="8 1/2 ounce",
+                text="8#1$2 ounce",
                 confidence=0.0,
                 starting_index=1,
                 SINGULAR=True,
