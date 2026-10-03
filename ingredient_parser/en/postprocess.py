@@ -1169,7 +1169,59 @@ class PostProcessor:
                         )
                         amounts.append(amount)
 
+        # Check if amounts after the first have equivalent quantities to first amount.
+        # If they do, set the SINGULAR flag to False.
+        for amount in amounts[1:]:
+            if self._are_equivalent_amounts(amounts[0], amount):
+                amount.SINGULAR = False
+
         return amounts
+
+    def _are_equivalent_amounts(
+        self, first: IngredientAmount, second: IngredientAmount
+    ) -> bool:
+        """Return True if both IngredientAmount objects represent equivalent amounts.
+
+        Both quantity and quantity_max are checked for equivalence.
+
+        Parameters
+        ----------
+        first : IngredientAmount
+            IngredientAmount object.
+        second : IngredientAmount
+            IngredientAmount object.
+
+        Returns
+        -------
+        bool
+            True if both IngredientAmount objects represent equivalent amounts.
+        """
+        if (
+            first.quantity == second.quantity
+            and first.quantity_max == second.quantity_max
+            and first.unit == second.unit
+        ):
+            return True
+
+        if (
+            isinstance(first.quantity, str)
+            or isinstance(second.quantity, str)
+            or isinstance(first.unit, str)
+            or isinstance(second.unit, str)
+        ):
+            # If either quantity or unit is a string, we can't check any further, so
+            # return False.
+            return False
+
+        # Create pint.Quantity objects for the two amounts and compare.
+        first_quantity = first.quantity * first.unit
+        first_quantity_max = first.quantity_max * first.unit
+        second_quantity = second.quantity * second.unit
+        second_quantity_max = second.quantity_max * second.unit
+        return bool(
+            first_quantity == second_quantity
+            and first_quantity_max == second_quantity_max
+        )
 
     def _composite_amounts_pattern(
         self, tokens: list[LabelledToken]

@@ -12,24 +12,6 @@ class TestNumpyCRFInference:
         with pytest.raises(ValueError, match=r"Model must be a .json.gz file."):
             _ = NumpyCRFInference("test/path.json")
 
-    # def test_single_NAME_VAR_label(self, caplog):
-    #    """Test debug message is output when the label sequence only contains a single
-    #    NAME_VAR group.
-    #    """
-    #    labels = ["QTY", "UNIT", "NAME_VAR", "B_NAME_TOK", "I_NAME_TOK"]
-    #    scores = [0.0] * len(labels)
-    #    model = NumpyCRFInference(Path("ingredient_parser/en/data/model.en.json.gz"))
-    #    with caplog.at_level(logging.DEBUG):
-    #        model._detect_invalid_label_sequence(labels, scores)
-    #        assert caplog.record_tuples[-1] == (
-    #            "ingredient_parser.inference",
-    #            logging.DEBUG,
-    #            (
-    #                "Invalid label sequence for NAME_VAR label: single NAME_VAR group."
-    #                "Parsed names may be incorrect."
-    #            ),
-    #        )
-
     def test_single_NAME_VAR_group(self, caplog):
         """Test debug message is output when the label sequence only contains multiple
         NAME_VAR groups, but they aren't separated by PUNC or NAME_SEP.

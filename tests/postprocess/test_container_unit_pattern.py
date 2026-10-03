@@ -130,7 +130,7 @@ class TestPostProcessor_container_unit_pattern:
             "UNIT",
             "COMMENT",
             "UNIT",
-            "NAME",
+            "B_NAME_TOK",
         ]
         scores = [0.0] * len(tokens)
         labelled_tokens = [
@@ -183,7 +183,7 @@ class TestPostProcessor_container_unit_pattern:
         sentence = "2 (250 g) cups oats"
         tokens = ["2", "(", "250", "g", ")", "cups", "oats"]
         pos_tags = ["CD", "(", "CD", "NN", ")", "NNS", "NNS"]
-        labels = ["QTY", "PUNC", "QTY", "UNIT", "PUNC", "UNIT", "NAME"]
+        labels = ["QTY", "PUNC", "QTY", "UNIT", "PUNC", "UNIT", "B_NAME_TOK"]
         scores = [0.0] * len(tokens)
         labelled_tokens = [
             LabelledToken(
@@ -198,11 +198,10 @@ class TestPostProcessor_container_unit_pattern:
         expected = [
             ingredient_amount_factory(
                 quantity="2",
-                unit="cups",
+                unit="cup",
                 text="2 cups",
                 confidence=0,
                 starting_index=0,
-                string_units=True,
             ),
             ingredient_amount_factory(
                 quantity="250",
@@ -211,11 +210,64 @@ class TestPostProcessor_container_unit_pattern:
                 confidence=0,
                 starting_index=2,
                 SINGULAR=True,
-                string_units=True,
             ),
         ]
 
         output = p._container_unit_pattern(labelled_tokens)
+        assert len(output) == len(expected)
+        for out, expected in zip(output, expected):
+            assert out.quantity == expected.quantity
+            assert out.unit == expected.unit
+            assert out.starting_index == expected.starting_index
+            assert out.SINGULAR == expected.SINGULAR
+            assert out.APPROXIMATE == expected.APPROXIMATE
+
+    def test_parenthesized_equivalent_before_primary_unit_identical_amounts(self):
+        """
+        Test that a unit outside a parenthesized equivalent measurement belongs
+        to the leading quantity.
+        In this case, the parenthesized amount is equal to the outer amount, so test
+        that SINGULAR=False in the second amount.
+        """
+        sentence = "2 (500 ml) cups milk"
+        tokens = ["2", "(", "500", "ml", ")", "cup", "milk"]
+        pos_tags = ["CD", "(", "CD", "NN", ")", "NNS", "NN"]
+        labels = ["QTY", "PUNC", "QTY", "UNIT", "PUNC", "UNIT", "B_NAME_TOK"]
+        scores = [0.0] * len(tokens)
+        labelled_tokens = [
+            LabelledToken(
+                index=i, text=text, pos_tag=tag, label=label, score=score, plural=False
+            )
+            for i, (text, tag, label, score) in enumerate(
+                zip(tokens, pos_tags, labels, scores)
+            )
+        ]
+        p = PostProcessor(
+            sentence, labelled_tokens, custom_units={}, volumetric_units_system="metric"
+        )
+
+        expected = [
+            ingredient_amount_factory(
+                quantity="2",
+                unit="cup",
+                text="2 cups",
+                confidence=0.0,
+                starting_index=0,
+                volumetric_units_system="metric",
+            ),
+            ingredient_amount_factory(
+                quantity="500",
+                unit="ml",
+                text="500 ml",
+                confidence=0.0,
+                starting_index=2,
+                SINGULAR=False,
+                volumetric_units_system="metric",
+            ),
+        ]
+
+        output = p._container_unit_pattern(labelled_tokens)
+
         assert len(output) == len(expected)
         for out, expected in zip(output, expected):
             assert out.quantity == expected.quantity
@@ -229,7 +281,7 @@ class TestPostProcessor_container_unit_pattern:
         sentence = "2 [250 g] cups oats"
         tokens = ["2", "[", "250", "g", "]", "cups", "oats"]
         pos_tags = ["CD", "[", "CD", "NN", "]", "NNS", "NNS"]
-        labels = ["QTY", "PUNC", "QTY", "UNIT", "PUNC", "UNIT", "NAME"]
+        labels = ["QTY", "PUNC", "QTY", "UNIT", "PUNC", "UNIT", "B_NAME_TOK"]
         scores = [0.0] * len(tokens)
         labelled_tokens = [
             LabelledToken(
@@ -248,7 +300,6 @@ class TestPostProcessor_container_unit_pattern:
                 text="2 cups",
                 confidence=0,
                 starting_index=0,
-                string_units=True,
             ),
             ingredient_amount_factory(
                 quantity="250",
@@ -257,7 +308,6 @@ class TestPostProcessor_container_unit_pattern:
                 confidence=0,
                 starting_index=2,
                 SINGULAR=True,
-                string_units=True,
             ),
         ]
 
