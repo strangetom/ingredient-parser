@@ -181,7 +181,7 @@ class TestPostProcessor_container_unit_pattern:
         to the leading quantity.
         """
         sentence = "2 (250 g) cups oats"
-        tokens = ["2", "(", "250", "g", ")", "cups", "oats"]
+        tokens = ["2", "(", "250", "g", ")", "cup", "oats"]
         pos_tags = ["CD", "(", "CD", "NN", ")", "NNS", "NNS"]
         labels = ["QTY", "PUNC", "QTY", "UNIT", "PUNC", "UNIT", "B_NAME_TOK"]
         scores = [0.0] * len(tokens)
@@ -193,7 +193,7 @@ class TestPostProcessor_container_unit_pattern:
                 zip(tokens, pos_tags, labels, scores)
             )
         ]
-        p = PostProcessor(sentence, labelled_tokens, custom_units={}, string_units=True)
+        p = PostProcessor(sentence, labelled_tokens, custom_units={})
 
         expected = [
             ingredient_amount_factory(
@@ -267,7 +267,6 @@ class TestPostProcessor_container_unit_pattern:
         ]
 
         output = p._container_unit_pattern(labelled_tokens)
-
         assert len(output) == len(expected)
         for out, expected in zip(output, expected):
             assert out.quantity == expected.quantity
