@@ -17,7 +17,7 @@ from tabulate import tabulate
 from ingredient_parser.inference import FeatureDict, NumpyCRFInference
 
 from .export import export_crfsuite_to_json
-from .train_model import DEFAULT_MODEL_LOCATION
+from .train_model import DEFAULT_MODEL_LOCATION, MODEL_HYPERPARAMETERS
 from .trainers import IngredientParserTrainer
 from .training_eval import evaluate
 from .training_utils import (
@@ -167,20 +167,7 @@ def train_model_feature_search(
     # Train model
     trainer = IngredientParserTrainer(verbose=True)
     # Set parameters
-    trainer.set_params(
-        {
-            "feature.minfreq": 0,
-            "feature.possible_states": True,
-            "feature.possible_transitions": True,
-            "c1": 0.3,
-            "c2": 0.6,
-            "max_linesearch": 5,
-            "num_memories": 3,
-            "period": 10,
-            "max_iterations": 1500,
-            "delta": 5e-5,
-        }
-    )
+    trainer.set_params(MODEL_HYPERPARAMETERS)
     for X, y in zip(features_train, truth_train):
         trainer.append(X, y)
     crfsuite_model_path = save_model_path.parent / (save_model_path.stem + ".crfsuite")

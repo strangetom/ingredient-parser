@@ -110,6 +110,20 @@ def set_temp_working_directory(new_path: Path) -> Generator[None, None, None]:
         os.chdir(original_path)
 
 
+MODEL_HYPERPARAMETERS = {
+    "feature.minfreq": 0,
+    "feature.possible_states": True,
+    "feature.possible_transitions": True,
+    "c1": 0.3,
+    "c2": 0.6,
+    "max_linesearch": 5,
+    "num_memories": 3,
+    "period": 10,
+    "max_iterations": 1500,
+    "delta": 5e-5,
+}
+
+
 def train_parser_model(
     vectors: DataVectors,
     split: float,
@@ -207,20 +221,7 @@ def train_parser_model(
     logger.info("%d testing vectors.", len(features_test))
 
     trainer = IngredientParserTrainer(verbose=True)
-    trainer.set_params(
-        {
-            "feature.minfreq": 0,
-            "feature.possible_states": True,
-            "feature.possible_transitions": True,
-            "c1": 0.3,
-            "c2": 0.6,
-            "max_linesearch": 5,
-            "num_memories": 3,
-            "period": 10,
-            "max_iterations": 1500,
-            "delta": 5e-5,
-        }
-    )
+    trainer.set_params(MODEL_HYPERPARAMETERS)
     for X, y in zip(features_train, truth_train):
         trainer.append(X, y)
     crfsuite_model_path = save_model.parent / (save_model.stem + ".crfsuite")
