@@ -1,9 +1,11 @@
+from fractions import Fraction
 from unittest.mock import patch
 
 import pytest
 
 from ingredient_parser._common import (
     consume,
+    fraction_obj_to_str,
     group_consecutive_idx,
     incremental_sublists,
     intermediate_fraction_to_unicode,
@@ -185,3 +187,41 @@ class Test_intermediate_fraction_to_unicode:
         assert intermediate_fraction_to_unicode("1#2$6") == "1 2/6"
         assert intermediate_fraction_to_unicode("1#2$6-1#4$6") == "1 2/6-1 4/6"
         assert intermediate_fraction_to_unicode("#2$4-inch") == "2/4-inch"
+
+
+class Test_fraction_obj_to_str:
+    def test_integer(self):
+        """
+        Test integer return as string.
+        """
+        assert fraction_obj_to_str(Fraction(2)) == "2"
+
+    def test_fraction_greater_than_1(self):
+
+        assert fraction_obj_to_str(Fraction(5, 2)) == "2½"
+
+    def test_fraction_less_than_one(self):
+
+        assert fraction_obj_to_str(Fraction(0.75)) == "¾"
+
+    def test_fraction_without_unicode_representation(self):
+        assert (
+            fraction_obj_to_str(Fraction(11829411824999997, 25000000000000))
+            == "473.176"
+        )
+
+    def test_rounding(self):
+        """
+        Test fraction is rounded to an appropriately to convert to unicode fraction.
+
+        This fraction is returned from convert 2.5 imperial cups to metric cups and back
+        again.
+        """
+        assert (
+            fraction_obj_to_str(
+                Fraction(
+                    10000000000000000933605979589053, 4000000000000000000000000000000
+                )
+            )
+            == "2½"
+        )

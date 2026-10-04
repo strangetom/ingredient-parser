@@ -11,7 +11,7 @@ from typing import Any
 
 import pint
 
-from ._common import UREG
+from ._common import UREG, fraction_obj_to_str
 from .inference import NumpyCRFInference
 
 
@@ -235,10 +235,17 @@ class IngredientAmount:
         converted_amount.unit = q_converted.units  # type: ignore
         converted_amount.unit_system = converted_amount._determine_unit_system()
 
-        # Fraction objects don't support float-style formatting until Python 3.12, so we
-        # can't just use f"{q_converted:P}"
+        # Convert to a unicode fraction if possible, otherwise use a decimal.
+        # Remove any text prior to underscore in unit text.
+        unit_text = f"{q_converted.units:P}"
+        if "_" in unit_text:
+            unit_text = unit_text.split("_")[-1]
+
+        if q_converted.magnitude != Fraction(1):
+            unit_text += "s"
+
         converted_amount.text = (
-            f"{float(q_converted.magnitude):g} " + f"{q_converted.units:P}"
+            fraction_obj_to_str(q_converted.magnitude) + " " + unit_text
         )
 
         return converted_amount

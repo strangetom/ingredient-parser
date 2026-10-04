@@ -7,6 +7,7 @@ import platform
 import re
 import subprocess
 from collections.abc import Generator, Iterator
+from fractions import Fraction
 from importlib.resources import as_file, files
 from itertools import groupby, islice
 from operator import itemgetter
@@ -339,3 +340,72 @@ def is_fraction(value: str) -> bool:
     False
     """
     return INTERMEDIATE_FRACTION_PATTERN.fullmatch(value) is not None
+
+
+def fraction_obj_to_str(frac: Fraction) -> str:
+    """Convert Fraction object to string.
+
+    If the fractional part of the Fraction object can be converted to a unicode
+    fraction, return as a unicode fraction. Otherwise return as a decimal.
+
+    Parameters
+    ----------
+    frac : Fraction
+        Fraction object to convert to string.
+
+    Returns
+    -------
+    str
+        Converted string.
+
+    Examples
+    --------
+    >>> fraction_obj_to_str(Fraction(1))
+    '1'
+
+    >>> fraction_obj_to_str(Fraction(5, 2))
+    '2½'
+
+    >>> fraction_obj_to_str(Fraction(0.75))
+    '¾'
+
+    >>> fraction_obj_to_str(Fraction(11829411824999997, 25000000000000))
+    '473.176'
+
+    >>> fraction_obj_to_str(Fraction(100000000000000009336059, 40000000000000000000000))
+    '2½'
+    """
+    UNICODE_FRACTIONS = {
+        "1/8": "\u215b",
+        "3/8": "\u215c",
+        "5/8": "\u215d",
+        "7/8": "\u215e",
+        "1/6": "\u2159",
+        "5/6": "\u215a",
+        "1/5": "\u2155",
+        "2/5": "\u2156",
+        "3/5": "\u2157",
+        "4/5": "\u2158",
+        "1/4": "\xbc",
+        "3/4": "\xbe",
+        "1/3": "\u2153",
+        "2/3": "\u2154",
+        "1/2": "\xbd",
+    }
+
+    # Round fraction to avoid compounding errors during multiple conversions.
+    frac = round(frac, 12)
+
+    if frac.is_integer():
+        return str(frac)
+
+    if str(frac - int(frac)) in UNICODE_FRACTIONS:
+        # If the fractional part can be converted to unicode, do so.
+        integer = int(frac)
+        integer_text = str(integer) if integer != 0 else ""
+        fraction = frac - int(frac)
+        fraction_text = UNICODE_FRACTIONS.get(str(fraction), "")
+        return integer_text + fraction_text
+    else:
+        # If the fractional part cannot be converted to unicode, return as decimal.
+        return f"{float(frac):g}"
