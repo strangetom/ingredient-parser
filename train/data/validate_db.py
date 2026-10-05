@@ -406,7 +406,9 @@ class TrainingDataValidator:
         b_name_tok_count = sum(
             1 for label in row.labels[name_mod_idx:] if label == "B_NAME_TOK"
         )
-        if not (name_var_count > 1 or b_name_tok_count > 1):
+        if not (
+            b_name_tok_count >= 2 or (name_var_count >= 2 and b_name_tok_count >= 1)
+        ):
             return False
 
         return True
