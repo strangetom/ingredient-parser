@@ -292,7 +292,7 @@ class PostProcessor:
 
         name_labels = [self.tokens[i].label for i in name_idx]
         bio_groups = self._group_name_labels(name_labels)
-        constructed_names = self._construct_names_from_bio_groups(bio_groups)
+        constructed_names = self._construct_names_from_bio_groups(bio_groups, name_idx)
         names, foundation_foods = self._convert_name_indices_to_object(
             name_idx, constructed_names
         )
@@ -389,7 +389,7 @@ class PostProcessor:
         return name_groups
 
     def _construct_names_from_bio_groups(
-        self, name_groups: list[list[tuple[int, str]]]
+        self, name_groups: list[list[tuple[int, str]]], name_idx: list[int]
     ) -> list[list[int]]:
         """Construct names from BIO groups.
 
@@ -406,6 +406,8 @@ class PostProcessor:
             List of BIO groups.
             Each group is a list of tuples, where each tuple if the (index, label) of
             the original list element.
+        name_idx : list[int]
+            List of indices of NAME tokens.
 
         Returns
         -------
@@ -455,7 +457,10 @@ class PostProcessor:
 
                 # Prepend this group to all constructed names so far
                 constructed_names = [
-                    current_group_idx + name for name in constructed_names
+                    current_group_idx + name
+                    if not self._is_mixture_phrase(name, name_idx)
+                    else name
+                    for name in constructed_names
                 ]
 
         # If we've iterated through all BIO groups and haven't used
@@ -465,6 +470,35 @@ class PostProcessor:
 
         # Return reversed list, so names are in the order they appear in sentence.
         return list(reversed(constructed_names))
+
+    def _is_mixture_phrase(
+        self, phrase_indices: tuple[int, ...], name_idx: list[int]
+    ) -> bool:
+        """Return True if phrase starts with "a mixture", "a mix", "a combination" etc.
+
+        Parameters
+        ----------
+        phrase_indices : tuple[int, ...]
+            Indices of tokens within name_idx list.
+        name_idx : list[int]
+            List of token indices for tokens with NAME label.
+
+        Returns
+        -------
+        bool
+            True if phrase is mixture phrase, else False.
+        """
+        MIXTURE_PHRASES = [
+            ("a", "mixture"),
+            ("a", "mix"),
+            ("a", "combination"),
+        ]
+
+        phrase = tuple(self.tokens[name_idx[i]].text for i in phrase_indices[:2])
+        if phrase in MIXTURE_PHRASES:
+            return True
+
+        return False
 
     def _get_name_group_label(self, labels: tuple[str]) -> str:
         """Get the NAME label type for the labels in a name group.
