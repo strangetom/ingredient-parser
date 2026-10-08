@@ -94,7 +94,7 @@ def group_consecutive_idx(idx: list[int]) -> Generator[Iterator[int], None, None
 T = TypeVar("T")
 
 
-def incremental_sublists(sequence: list[T]) -> list[list[T]]:
+def incremental_sublists(sequence: list[T], reverse: bool = False) -> list[list[T]]:
     """Return sublists of sequence, retaining the same order, where each sublist
     contains incrementally more of sequence.
 
@@ -103,6 +103,8 @@ def incremental_sublists(sequence: list[T]) -> list[list[T]]:
     ----------
     sequence : list[T]
         Sequence of elements.
+    reverse : bool, optional
+        If True, generate incremental sublists starting at end of sequence
 
     Returns
     -------
@@ -116,9 +118,16 @@ def incremental_sublists(sequence: list[T]) -> list[list[T]]:
 
     >>> incremental_sublists(["this", "is", "a", "sequence"])
     [["this"], ["this", "is"], ["this", "is", "a"], ["this", "is", "a", "sequence"]]
+
+    >>> incremental_sublists([0, 1, 2, 3], reverse=True)
+    [[3], [3, 2], [3, 2, 1], [3, 2, 1, 0]]
     """
-    sequence = sequence.copy()
-    return [sequence[: i + 1] for i in range(len(sequence))]
+    if reverse:
+        r_sequence = list(reversed(sequence.copy()))
+        return [r_sequence[: i + 1] for i in range(len(sequence))]
+    else:
+        sequence = sequence.copy()
+        return [sequence[: i + 1] for i in range(len(sequence))]
 
 
 def show_model_card(lang: str = "en") -> None:

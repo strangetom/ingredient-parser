@@ -227,6 +227,51 @@ class NumpyCRFInference:
         label_idx = self.model.label_to_idx[label]
         return float(self.model.marginals[position, label_idx])
 
+    def marginal_with_exclusions(
+        self, position: int, excluded_labels: set[str]
+    ) -> tuple[str, float]:
+        """Return the label with the highest marginal that is not one of the excluded
+        labels.
+
+        Parameters
+        ----------
+        position : int
+            Position in sequence.
+        excluded_labels : set[str]
+            Set of labels to exclude when finding highest marginal.
+
+        Returns
+        -------
+        tuple[str, float]
+            Label of highest marginal at given position.
+            Value of highest marginal probability at given position.
+
+        Raises
+        ------
+        ValueError
+            Raised if marginals matrix does not exist.
+            Raised if all labels have been excluded.
+            Raised if marginal cannot be found.
+        """
+        if self.model.marginals.size == 0:
+            raise ValueError(
+                "Cannot return marginals until tag_from_features() has been called."
+            )
+
+        if len(excluded_labels) == self.model.n_labels:
+            raise ValueError("Cannot return marginal if all labels have been excluded.")
+
+        sorted_idx = np.argsort(self.model.marginals[position], descending=True)
+        for idx in sorted_idx:
+            label = self.model.idx_to_label[idx]
+            if label in excluded_labels:
+                continue
+
+            score = self.model.marginals[position, idx]
+            return label, float(score)
+
+        raise ValueError(f"Could not find highest marginal at position {position}.")
+
     def load(self, path: Path) -> None:
         """Load saved model at given path.
 
@@ -360,7 +405,7 @@ class NumpyCRFInference:
             logger.debug(
                 "Invalid label sequence for NAME_VAR label: single NAME_VAR group."
             )
-            labels, scores = self._fix_invalid_name_var_sequence(labels, scores)
+            labels, scores = self._fix_single_name_var_group(labels, scores)
         elif len(name_var_groups) > 1:
             for group1, group2 in pairwise(name_var_groups):
                 # Get indices between groups and check for NAME_SEP or PUNC.
@@ -376,6 +421,17 @@ class NumpyCRFInference:
                             "Parsed names may be incorrect."
                         )
                     )
+
+                # NAME_VAR should be followed by B_NAME_TOK.
+                last_name_var_idx = name_var_groups[-1][-1]
+                if "B_NAME_TOK" not in labels[last_name_var_idx:]:
+                    logger.debug(
+                        (
+                            "Invalid label sequence for NAME_VAR label: "
+                            "NAME_VAR not followed by B_NAME_TOK."
+                        )
+                    )
+                    labels, scores = self._fix_trailing_name_var_group(labels, scores)
 
         # NAME_MOD checks
         name_mod_idx = [i for i, label in enumerate(labels) if label == "NAME_MOD"]
@@ -406,12 +462,12 @@ class NumpyCRFInference:
 
         return labels, scores
 
-    def _fix_invalid_name_var_sequence(
+    def _fix_single_name_var_group(
         self, labels: list[str], scores: list[float]
     ) -> tuple[list[str], list[float]]:
-        """Correct invalid NAME_VAR sequence by changing the NAME_VAR labels to
-        *_NAME_TOK or *_NAME_TOK labels to NAME_VAR to find the alternative sequence
-        that maximises the total sequence score.
+        """Correct invalid NAME_VAR sequence due to a single NAME_VAR group by changing
+        the NAME_VAR labels to *_NAME_TOK or *_NAME_TOK labels to NAME_VAR to find the
+        alternative sequence that maximises the total sequence score.
 
         Groups of consecutive labels of the same type are identified and changed
         together. The changing of labels for a group results in a candidate alternative
@@ -529,6 +585,107 @@ class NumpyCRFInference:
                         scores=alt_scores,
                     )
                 )
+
+        sorted_alt_sequences = sorted(
+            alternative_sequences, key=lambda s: sum(s.scores), reverse=True
+        )
+        logger.debug("Original sequence: %s had total score %.4f", labels, sum(scores))
+        for alt in sorted_alt_sequences:
+            logger.debug(
+                "Alternative sequence: %s has total score %.4f",
+                alt.labels,
+                sum(alt.scores),
+            )
+        return sorted_alt_sequences[0].labels, sorted_alt_sequences[0].scores
+
+    def _fix_trailing_name_var_group(
+        self, labels: list[str], scores: list[float]
+    ) -> tuple[list[str], list[float]]:
+        """Correct invalid NAME_VAR sequence due to having trailing NAME_VAR groups not
+        followed by B_NAME_TOK by finding an alternative sequence that maximises the
+        total sequence score.
+
+        There are two cases that we explicitly handle here:
+
+        1. There is not a B_NAME_TOK in the sequence at all.
+           In this case, we take the last NAME_VAR group and generate all possible
+           combinations of *_NAME_TOK by varying the number of elements of the group
+           that are changed starting at the end.
+        2. There is a B_NAME_TOK in the sequence, before a NAME_VAR group.
+           In this case, we take all the NAME_VAR and NAME_SEP labels after the
+           B_NAME_TOK and convert each label to the highest scoring label that isn't
+           NAME_VAR or NAME_SEP.
+
+        Parameters
+        ----------
+        labels : list[str]
+            Invalid label sequence.
+        scores : list[float]
+            Scores for invalid label sequence.
+
+        Returns
+        -------
+        tuple[list[str], list[float]]
+            List of labels, list of scores.
+        """
+        alternative_sequences = []
+
+        name_var_idx = [i for i, label in enumerate(labels) if label == "NAME_VAR"]
+        name_var_groups = [list(g) for g in group_consecutive_idx(name_var_idx)]
+        name_tok_idx = [i for i, label in enumerate(labels) if "NAME_TOK" in label]
+        name_var_sep_idx_after_name_tok = [
+            i
+            for i, label in enumerate(labels)
+            if label in ["NAME_VAR", "NAME_SEP"] and i > max(name_tok_idx)
+        ]
+
+        if name_tok_idx == []:
+            # There's no B_NAME_TOK in the sequence, so take the last NAME_VAR group
+            # and generate the alternative sequences by converting incrementally more of
+            # the elements of this group to *_NAME_TOK.
+            name_var_group = name_var_groups[-1]
+            for sublist_idx in incremental_sublists(name_var_group, reverse=True):
+                alt_labels = labels.copy()
+                alt_scores = scores.copy()
+                for i, idx in enumerate(reversed(sublist_idx)):
+                    if i == 0:
+                        alt_labels[idx] = "B_NAME_TOK"
+                        alt_scores[idx] = self.marginal("B_NAME_TOK", idx)
+                    else:
+                        alt_labels[idx] = "I_NAME_TOK"
+                        alt_scores[idx] = self.marginal("I_NAME_TOK", idx)
+
+                alternative_sequences.append(
+                    AlternativeSequence(
+                        labels=alt_labels,
+                        scores=alt_scores,
+                    )
+                )
+        elif len(name_var_sep_idx_after_name_tok) > 0:
+            # There is more than one NAME_VAR (or NAME_SEP) after the last *_NAME_TOK
+            # group. Convert these labels in these groups to the next highest scoring
+            # label that isn't NAME_VAR.
+            alt_labels = labels.copy()
+            alt_scores = scores.copy()
+            for idx in name_var_sep_idx_after_name_tok:
+                alt_labels[idx], alt_scores[idx] = self.marginal_with_exclusions(
+                    idx, {"NAME_VAR", "NAME_SEP"}
+                )
+
+            alternative_sequences.append(
+                AlternativeSequence(
+                    labels=alt_labels,
+                    scores=alt_scores,
+                )
+            )
+        else:
+            # I don't think we should get here, but just in case...
+            alternative_sequences.append(
+                AlternativeSequence(
+                    labels=labels.copy(),
+                    scores=scores.copy(),
+                )
+            )
 
         sorted_alt_sequences = sorted(
             alternative_sequences, key=lambda s: sum(s.scores), reverse=True
