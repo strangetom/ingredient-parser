@@ -692,8 +692,8 @@ class PreProcessor:
             )
             return diambiguator.does_feature_apply(index, "is_unit")
 
-        text = token.feat_text.lower()
-        return text in self._units.values() and text not in LENGTH_UNITS
+        text = token.feat_text
+        return text in self._units.values() and text.lower() not in LENGTH_UNITS
 
     def _is_size(self, index: int) -> bool:
         """Return True if token is a size.
