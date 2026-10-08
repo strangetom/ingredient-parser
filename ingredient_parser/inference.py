@@ -633,11 +633,6 @@ class NumpyCRFInference:
         name_var_idx = [i for i, label in enumerate(labels) if label == "NAME_VAR"]
         name_var_groups = [list(g) for g in group_consecutive_idx(name_var_idx)]
         name_tok_idx = [i for i, label in enumerate(labels) if "NAME_TOK" in label]
-        name_var_sep_idx_after_name_tok = [
-            i
-            for i, label in enumerate(labels)
-            if label in ["NAME_VAR", "NAME_SEP"] and i > max(name_tok_idx)
-        ]
 
         if name_tok_idx == []:
             # There's no B_NAME_TOK in the sequence, so take the last NAME_VAR group
@@ -661,31 +656,32 @@ class NumpyCRFInference:
                         scores=alt_scores,
                     )
                 )
-        elif len(name_var_sep_idx_after_name_tok) > 0:
-            # There is more than one NAME_VAR (or NAME_SEP) after the last *_NAME_TOK
-            # group. Convert these labels in these groups to the next highest scoring
-            # label that isn't NAME_VAR.
-            alt_labels = labels.copy()
-            alt_scores = scores.copy()
-            for idx in name_var_sep_idx_after_name_tok:
-                alt_labels[idx], alt_scores[idx] = self.marginal_with_exclusions(
-                    idx, {"NAME_VAR", "NAME_SEP"}
+        else:
+            name_var_sep_idx_after_name_tok = [
+                i
+                for i, label in enumerate(labels)
+                if label in ["NAME_VAR", "NAME_SEP"] and i > max(name_tok_idx)
+            ]
+            if len(name_var_sep_idx_after_name_tok) > 0:
+                # There is more than one NAME_VAR (or NAME_SEP) after the last
+                # *_NAME_TOK group. Convert these labels in these groups to the next
+                # highest scoring label that isn't NAME_VAR, NAME_SEP or NAME_MOD.
+                alt_labels = labels.copy()
+                alt_scores = scores.copy()
+                for idx in name_var_sep_idx_after_name_tok:
+                    alt_labels[idx], alt_scores[idx] = self.marginal_with_exclusions(
+                        idx, {"NAME_VAR", "NAME_SEP", "NAME_MOD"}
+                    )
+
+                alternative_sequences.append(
+                    AlternativeSequence(
+                        labels=alt_labels,
+                        scores=alt_scores,
+                    )
                 )
 
-            alternative_sequences.append(
-                AlternativeSequence(
-                    labels=alt_labels,
-                    scores=alt_scores,
-                )
-            )
-        else:
-            # I don't think we should get here, but just in case...
-            alternative_sequences.append(
-                AlternativeSequence(
-                    labels=labels.copy(),
-                    scores=scores.copy(),
-                )
-            )
+        if not alternative_sequences:
+            return labels, scores
 
         sorted_alt_sequences = sorted(
             alternative_sequences, key=lambda s: sum(s.scores), reverse=True
