@@ -166,6 +166,8 @@ See the :doc:`Foundation Foods </explanation/foundation>` page for more details.
 
 This is disabled by default and the ``foundation_foods`` field is an empty list.
 
+.. _reference-custom-units:
+
 ``custom_units``
 ^^^^^^^^^^^^^^^^
 
