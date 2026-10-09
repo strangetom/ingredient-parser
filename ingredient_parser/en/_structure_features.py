@@ -209,10 +209,8 @@ class SentenceStrucureFeatures:
                 continue
 
             # Remove first unit or size from the beginning of the phrase
-            first_idx = indices[0]
-            if tokenized_sentence[first_idx].text.lower() in self.units_sizes:
+            if tokenized_sentence[indices[0]].text.lower() in self.units_sizes:
                 indices = indices[1:]
-                first_idx = indices[0]
 
             # If phrase is empty, skip.
             if not indices:
