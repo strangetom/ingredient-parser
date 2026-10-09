@@ -11,8 +11,6 @@ from nltk import PerceptronTagger
 from nltk.stem.snowball import EnglishStemmer
 from nltk.tag import _pos_tag  # type: ignore
 
-from ingredient_parser.en._loaders import load_ingredient_tagdict
-
 from .._common import (
     UREG,
     consume,
@@ -29,6 +27,7 @@ from ._constants import (
     UNITS,
     pluralise_known_unit,
 )
+from ._loaders import load_ingredient_tagdict
 from ._regex import (
     FRACTION_SPLIT_AND_PATTERN,
     STRING_RANGE_PATTERN,
