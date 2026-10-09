@@ -7,8 +7,9 @@ from itertools import chain
 from typing import cast
 
 import pint
+from nltk import PerceptronTagger
 from nltk.stem.snowball import EnglishStemmer
-from nltk.tag import _get_tagger, _pos_tag  # type: ignore
+from nltk.tag import _pos_tag  # type: ignore
 
 from ingredient_parser.en._loaders import load_ingredient_tagdict
 
@@ -205,6 +206,25 @@ def tokenize(sentence: str) -> list[str]:
     return [tok for tok in chain.from_iterable(tokens) if tok]
 
 
+@lru_cache
+def _get_pos_tagger() -> PerceptronTagger:
+    """Cached function to return part of speech tagger.
+
+    The returned part of speech tagger is the default English part of speech tagger from
+    NLTK, but with it's tagdict updated with addition ingredient sentence specific
+    entries.
+
+    Returns
+    -------
+    PerceptronTagger
+        PerceptronTagger part of speech tagger object.
+    """
+    tagger = PerceptronTagger()
+    ingredient_tagdict = load_ingredient_tagdict()
+    tagger.tagdict.update(ingredient_tagdict)
+    return tagger
+
+
 def pos_tag(tokens: list[str]) -> list[tuple[str, str]]:
     """Tag tokens with parts of speech.
 
@@ -223,9 +243,7 @@ def pos_tag(tokens: list[str]) -> list[tuple[str, str]]:
     list[tuple[str, str]]
         List of (token, tag) pairs.
     """
-    tagger = _get_tagger("eng")
-    ingredient_tagdict = load_ingredient_tagdict()
-    tagger.tagdict.update(ingredient_tagdict)
+    tagger = _get_pos_tagger()
     return _pos_tag(tokens=tokens, tagset=None, tagger=tagger, lang="eng")
 
 
