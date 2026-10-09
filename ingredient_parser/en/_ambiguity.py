@@ -101,7 +101,7 @@ class Disambiguator:
         # gram flour aka chickpea flour
         # split gram aka chana dal
         ("gram", False, "is_unit"): FeatureDisambiguator(
-            context_window=(-3, 3),
+            context_window=(3, 3),
             disambiguating_tokens=["floursplit"],
             feature_applicability=False,
         ),
