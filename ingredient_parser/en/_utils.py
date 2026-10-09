@@ -366,7 +366,7 @@ def pluralise_units(sentence: str, custom_units: dict[str, str]) -> str:
     """
     sentence = pluralise_known_unit(sentence)
     for plural, singular in custom_units.items():
-        sentence = re.sub(rf"\b({singular})\b", f"{plural}", sentence)
+        sentence = re.sub(rf"\b({re.escape(singular)})\b", f"{plural}", sentence)
 
     return sentence
 
