@@ -588,7 +588,7 @@ def ingredient_amount_factory(
     PREPARED_INGREDIENT: bool = False,
     string_units: bool = False,
     volumetric_units_system: str = "us_customary",
-    custom_units: dict[str, str] = {},
+    custom_units: dict[str, str] | None = None,
 ) -> IngredientAmount:
     """Create ingredient amount object from parts.
 
@@ -634,6 +634,9 @@ def ingredient_amount_factory(
     IngredientAmount
         IngredientAmount object for given inputs.
     """
+    if custom_units is None:
+        custom_units = {}
+
     RANGE = False
     MULTIPLIER = False
 
