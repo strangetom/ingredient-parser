@@ -327,3 +327,23 @@ class TestPreProccessor_is_dimension:
         assert p._is_dimension('2"-long')
         assert p._is_dimension('1"-thick')
         assert p._is_dimension('1/2"-wide')
+
+
+class TestPreProcessor_ends_with_inch_symbol:
+    def test_single_digit(self, p):
+        """
+        Test that '1"' is detected as ending with inch symbol.
+        """
+        assert p._ends_with_inch_symbol('1"')
+
+    def test_range(self, p):
+        """
+        Test that the range '2-3"' is detected as ending with inch symbol.
+        """
+        assert p._ends_with_inch_symbol('2-3"')
+
+    def test_contains_inch_symbol(self, p):
+        """
+        Test a token containing an inch symbol, not at the end, returns False.
+        """
+        assert not p._ends_with_inch_symbol('3"-long')

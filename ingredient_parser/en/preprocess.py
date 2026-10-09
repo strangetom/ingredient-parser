@@ -785,7 +785,7 @@ class PreProcessor:
         >>> p._ends_with_inch_symbol("1 inch")
         False
         """
-        return INCH_SIZE_PATTERN.match(token) is not None
+        return INCH_SIZE_PATTERN.search(token) is not None
 
     def _is_length_unit(self, index: int) -> bool:
         """Return True if token at index is a length unit.
