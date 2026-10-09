@@ -324,7 +324,11 @@ class SentenceStructureFeatures:
                 continue
 
             split_idx = indices[0]
-            if self.tokenized_sentence[split_idx - 1].text.lower() in self.units_sizes:
+            if (
+                split_idx > 0
+                and self.tokenized_sentence[split_idx - 1].text.lower()
+                in self.units_sizes
+            ):
                 # If the token prior to the split is a unit or size, assume that this
                 # isn't a split in sentence subject, but rather it's an alternative
                 # unit/size e.g. "3 cups or 1 lb ..."
