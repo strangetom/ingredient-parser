@@ -242,7 +242,8 @@ class IngredientAmount:
             unit_text = unit_text.split("_")[-1]
 
         if q_converted.magnitude != Fraction(1):
-            unit_text += "s"
+            if not unit_text.endswith("s"):
+                unit_text += "s"
 
         converted_amount.text = (
             fraction_obj_to_str(q_converted.magnitude) + " " + unit_text
