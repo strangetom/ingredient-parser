@@ -287,7 +287,7 @@ def combine_no_number(tokens: list[str]) -> list[str]:
     combined = []
     idx = iter(range(len(tokens)))
     for i in idx:
-        if tokens[i] == "No." and is_float(tokens[i + 1]):
+        if i < len(tokens) - 1 and tokens[i] == "No." and is_float(tokens[i + 1]):
             combined.append("No. " + tokens[i + 1])
             consume(idx, 1)
         else:
