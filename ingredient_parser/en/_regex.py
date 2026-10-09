@@ -46,7 +46,7 @@ STRING_QUANTITY_HYPHEN_PATTERN = re.compile(
 # If a number starts with a zero, it must be followed by decimal point to be matched
 STRING_RANGE_PATTERN = re.compile(
     r"""
-    (0\.[0-9]|[1-9][\d\.]*?|\d*\#\d+\$\d+)  # Capture number
+    (0\.[0-9]+|[1-9][\d\.]*?|\d*\#\d+\$\d+) # Capture number
     \s*                                     # Optional space
     (\-)?                                   # Optional hyphen
     \s*                                     # Optional space
@@ -79,7 +79,7 @@ DUPE_UNIT_RANGES_PATTERN = re.compile(
     (
         ([\d\.]+|\d*\#\d+\$\d+)  # Capture decimal number or fraction
         \s                       # Space
-        ([a-zA-Z]+)              # Capture text string (possible unit)
+        ([a-zA-Z]+)\b            # Capture text string (possible unit)
         \s*                      # Space
         (?:\-|to|or)             # Hyphen, 'to' or 'or'
         \s*                      # Space
@@ -97,7 +97,7 @@ QUANTITY_X_PATTERN = re.compile(
     r"""
     ([\d\.]+|\d*\#\d+\$\d+)  # Capture decimal number or fraction
     \s                       # Space
-    [xX]                     # Character 'x' or 'X'
+    [xX]\b                   # Character 'x' or 'X'
     \s*                      # Optional space
     """,
     re.VERBOSE,
