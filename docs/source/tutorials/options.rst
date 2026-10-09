@@ -180,7 +180,8 @@ The custom units should be provided as a ``dict`` of plural-singular form pairs,
         "tablespoons": "tablespoon",
     }
 
-The provided units should not start with a capital letter (the capitalized version of the words are generated automatically), but may include capital letters in any other position.
+If the provided units are lowercase, then capitalised versions are automatically generated.
+If the provided units are uppercase, no alternative forms are automatically generated.
 
 The provided units should comprise a single word for both the plural and singular forms.
 Units containing spaces are not currently supported.
@@ -204,9 +205,38 @@ Units containing spaces are not currently supported.
 
   That being said, adding words to this dictionary will significantly increase the likelihood of a word being identified as a unit.
 
+By default, :class:`pint.Unit` objects are returned for units if there is a match in the Pint units registry.
+If there is any chance that a custom unit could be interpreted in a way that matches an entry in the Pint units registry, the results may be unexpected.
+
+You may wish to consider using the ``string_units=True`` option to prevent this.
+
 .. tip::
 
-  By default, :class:`pint.Unit` objects are returned for units if there is a match in the Pint units registry.
-  If there is any chance that a custom unit could be interpreted in a way that matches an entry in the Pint units registry, the results may be unexpected.
+    This functionality can be to improve the English language parser's ability to parse non-English language sentences.
+    Whilst non-English languages not technically supported, defining custom units in another target language can aid the parser in correctly parsing simple sentences.
 
-  You may wish to consider using the ``string_units=True`` option to prevent this.
+    .. code:: python
+
+        # In German, Esslöffel (EL) means tablespoon.
+        >>> parse_ingredient("250 EL Mehl", custom_units={"EL": "EL"})
+        ParsedIngredient(name=[IngredientText(text='Mehl',
+                               confidence=0.954235,
+                               starting_index=2)],
+                 size=None,
+                 amount=[IngredientAmount(quantity=Fraction(250, 1),
+                                          quantity_max=Fraction(250, 1),
+                                          unit='EL',
+                                          text='250 EL',
+                                          confidence=0.98118,
+                                          starting_index=0,
+                                          unit_system=<UnitSystem.OTHER: 'other'>,
+                                          APPROXIMATE=False,
+                                          SINGULAR=False,
+                                          RANGE=False,
+                                          MULTIPLIER=False,
+                                          PREPARED_INGREDIENT=False)],
+                 preparation=None,
+                 comment=None,
+                 purpose=None,
+                 foundation_foods=[],
+                 sentence='250 EL Mehl')

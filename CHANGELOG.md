@@ -7,6 +7,7 @@
 * Improve how features are calculated for words that are units or sizes that have homonyms that aren't units or sizes e.g. clove (garlic clove vs the spice), gram (metric unit vs type of flour), medium (size vs qualifier).
 * Correctly return separate amounts in sentences that contain an equivalent amount in parentheses e.g. 2 (250 ml) cups stock. (@[paulb-instacart](https://github.com/paulb-instacart))
 * Fix bug where custom units containing capital letters would never match with sentence tokens.
+* Update [custom units docs](https://ingredient-parser.readthedocs.io/en/latest/tutorials/options.html#custom-units) to discuss using to the `custom_units` keyword argument to improve support for non-English languages.
 
 ### 2.8.0
 
