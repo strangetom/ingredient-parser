@@ -174,7 +174,7 @@ class Disambiguator:
             return True
 
         before, after = ambiguity_data.context_window
-        context_window = self.tokens[index - before : index + after + 1]
+        context_window = self.tokens[max(index - before, 0) : index + after + 1]
 
         for context_token in context_window:
             if context_token.index == index:
