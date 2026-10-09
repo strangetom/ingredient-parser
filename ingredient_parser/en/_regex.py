@@ -22,14 +22,19 @@ units_list = FLATTENED_UNITS_LIST | {"x"} | LENGTH_UNITS
 # to match.
 # "x" is excluded from the possible following characters to allow constructs
 # like 2cmx2cm.
-QUANTITY_UNITS_PATTERN = re.compile(rf"(\d)\-?({'|'.join(units_list)})(?![a-wyzA-WYZ])")
-UNITS_QUANTITY_PATTERN = re.compile(rf"({'|'.join(units_list)})(\d)")
-UNITS_HYPHEN_QUANTITY_PATTERN = re.compile(rf"({'|'.join(units_list)})\-(\d)")
+# Units are sorted by descending length to avoid shorter units matching when a longer
+# unit should match.
+sorted_units = sorted(units_list, key=len, reverse=True)
+QUANTITY_UNITS_PATTERN = re.compile(
+    rf"(\d)\-?({'|'.join(sorted_units)})(?![a-wyzA-WYZ])"
+)
+UNITS_QUANTITY_PATTERN = re.compile(rf"({'|'.join(sorted_units)})(\d)")
+UNITS_HYPHEN_QUANTITY_PATTERN = re.compile(rf"({'|'.join(sorted_units)})\-(\d)")
 STRING_QUANTITY_HYPHEN_PATTERN = re.compile(
     rf"""
     \b({"|".join(STRING_NUMBERS.keys())})\b  # Capture string number
     \-                                       # Followed by hyphen
-    \b({"|".join(units_list)})\b             # Followed by unit
+    \b({"|".join(sorted_units)})\b           # Followed by unit
     """,
     re.VERBOSE | re.IGNORECASE,
 )
