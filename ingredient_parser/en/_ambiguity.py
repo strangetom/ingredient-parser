@@ -150,7 +150,7 @@ class Disambiguator:
         bool
             True if token is ambiguous, else False.
         """
-        return (token.text, plural, feature) in cls.AMBIGUOUS_TOKENS
+        return (token.text.lower(), plural, feature) in cls.AMBIGUOUS_TOKENS
 
     def does_feature_apply(self, index: int, feature: str) -> bool:
         """Return True is feature applies to token at given index.
@@ -164,7 +164,9 @@ class Disambiguator:
         """
         token = self.tokens[index]
         plural = index in self.plural_tokens
-        ambiguity_data = self.AMBIGUOUS_TOKENS.get((token.text, plural, feature))
+        ambiguity_data = self.AMBIGUOUS_TOKENS.get(
+            (token.text.lower(), plural, feature)
+        )
         if ambiguity_data is None:
             # If, for some reason, there is not ambiguity data, then assume the feature
             # applies.
@@ -177,7 +179,7 @@ class Disambiguator:
             if context_token.index == index:
                 # No need check the token we're interested in.
                 continue
-            if context_token.text in ambiguity_data.disambiguating_tokens:
+            if context_token.text.lower() in ambiguity_data.disambiguating_tokens:
                 return ambiguity_data.feature_applicability
 
         return not ambiguity_data.feature_applicability

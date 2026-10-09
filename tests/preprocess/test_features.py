@@ -37,11 +37,27 @@ class TestPreProcessor_is_unit:
         p = PreProcessor(input_sentence, custom_units={})
         assert p._is_unit(2)
 
-    def test_ambiguous_unit_clove_is_not_unit(self, p):
+    def test_ambiguous_unit_clove_is_unit_capitalised(self, p):
         """
         "teaspoon" is a unit
         """
+        input_sentence = "2 Garlic Cloves"
+        p = PreProcessor(input_sentence, custom_units={})
+        assert p._is_unit(2)
+
+    def test_ambiguous_unit_clove_is_not_unit(self, p):
+        """
+        "cloves" is a unit
+        """
         input_sentence = "2 cloves"
+        p = PreProcessor(input_sentence, custom_units={})
+        assert not p._is_unit(1)
+
+    def test_ambiguous_unit_clove_is_not_unit_capitalised(self, p):
+        """
+        "Cloves" is a unit
+        """
+        input_sentence = "2 Cloves"
         p = PreProcessor(input_sentence, custom_units={})
         assert not p._is_unit(1)
 
