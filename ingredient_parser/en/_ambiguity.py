@@ -79,26 +79,25 @@ class Disambiguator:
         ),
         # Slab bacon
         ("slab", False, "is_unit"): FeatureDisambiguator(
-            context_window=(0, 2),
+            context_window=(0, 1),
             disambiguating_tokens=["bacon"],
             feature_applicability=False,
         ),
-        # Celery can specified in units of ribs.
+        # Celery can be specified in units of ribs.
         # Other uses of ribs usually refer to the cut of meat.
         ("rib", False, "is_unit"): FeatureDisambiguator(
-            context_window=(3, 3),
+            context_window=(2, 2),
             disambiguating_tokens=["celery"],
             feature_applicability=True,
         ),
         ("rib", True, "is_unit"): FeatureDisambiguator(
-            context_window=(3, 3),
+            context_window=(2, 2),
             disambiguating_tokens=["celery"],
             feature_applicability=True,
         ),
         # gram flour aka chickpea flour
-        # split gram aka chana dal
         ("gram", False, "is_unit"): FeatureDisambiguator(
-            context_window=(3, 3),
+            context_window=(0, 1),
             disambiguating_tokens=["flour"],
             feature_applicability=False,
         ),
