@@ -87,7 +87,7 @@ class _PartialIngredientAmount:
     related_to_previous: bool = False
     APPROXIMATE: bool = False
     SINGULAR: bool = False
-    PREPARED_INGREDIENT = False
+    PREPARED_INGREDIENT: bool = False
     implicit_quantity: bool = False
 
 
