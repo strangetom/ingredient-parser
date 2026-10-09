@@ -13,6 +13,8 @@ EXAMPLE_PHRASE_START_IN = [("AS", "IN"), ("LIKE", "IN"), ("E.G.", "IN")]
 # For example phrase starting with a JJ-IN pair
 EXAMPLE_PHRASE_START_JJ = [[("SUCH", "JJ"), ("AS", "IN")]]
 
+# Pre-compute set of all units and sizes.
+UNITS_SIZES = {*FLATTENED_UNITS_LIST, *SIZES}
 
 logger = logging.getLogger("ingredient-parser.preprocess._structure_features")
 
@@ -102,8 +104,18 @@ class SentenceStructureFeatures:
             Tokenized sentence.
         """
         self.tokenized_sentence = tokenized_sentence
-        self.units_sizes = [*FLATTENED_UNITS_LIST, *SIZES]
+
+        # Calculate some flags that we can use to avoid parsing sentences that cannot
+        # match certain patterns.
+        pos_tags = {t.pos_tag for t in tokenized_sentence}
+        self.contains_cc = "CC" in pos_tags
+        self.contains_in = "IN" in pos_tags
+
         self.mip_phrases = self.detect_mip_phrases(tokenized_sentence)
+        self.mip_clause_boundaries = [
+            self._get_mip_clause_boundary_indices(phrase, label)
+            for phrase, label in self.mip_phrases
+        ]
         self.sentence_splits = self.detect_sentences_splits(tokenized_sentence)
         self.example_phrases = self.detect_examples(tokenized_sentence)
         self.dimensional_phrases = self.detect_dimensional_phrases(tokenized_sentence)
@@ -186,6 +198,9 @@ class SentenceStructureFeatures:
     ) -> list[tuple[list[int], str]]:
         """Detect multi-ingredient phrases in tokenized sentence.
 
+        Since all MIP phrases require a token with the CC pos tag, we first check for
+        that and return early if not present.
+
         Parameters
         ----------
         tokenized_sentence : list[Token]
@@ -200,6 +215,11 @@ class SentenceStructureFeatures:
         """
         phrases = []
 
+        if not self.contains_cc:
+            # All the patterns in mip_parser require CC, so there's no point
+            # continuing if the sentence does not contain CC.
+            return phrases
+
         text_pos = [(token.text, token.pos_tag) for token in tokenized_sentence]
         parsed = self.mip_parser.parse(text_pos)
         logger.debug("MIP parser: \n%s", parsed)
@@ -209,7 +229,7 @@ class SentenceStructureFeatures:
                 continue
 
             # Remove first unit or size from the beginning of the phrase
-            if tokenized_sentence[indices[0]].text.lower() in self.units_sizes:
+            if tokenized_sentence[indices[0]].text.lower() in UNITS_SIZES:
                 indices = indices[1:]
 
             # If phrase is empty, skip.
@@ -224,7 +244,7 @@ class SentenceStructureFeatures:
 
         return phrases
 
-    def _get_clause_boundary_indices(
+    def _get_mip_clause_boundary_indices(
         self, phrase_indices: list[int], type_: str
     ) -> list[int]:
         """Get the indices of the clause boundaries in multi-ingredient phrases.
@@ -247,11 +267,7 @@ class SentenceStructureFeatures:
         """
         boundary_indices = []
 
-        tags = [
-            token.pos_tag
-            for i, token in enumerate(self.tokenized_sentence)
-            if i in phrase_indices
-        ]
+        tags = [self.tokenized_sentence[i].pos_tag for i in phrase_indices]
         if type_ == "MIP":
             try:
                 index = tags.index("CC")
@@ -300,6 +316,11 @@ class SentenceStructureFeatures:
         """
         split_indices = []
 
+        if not self.contains_cc:
+            # All the patterns in compound_parser require CC, so there's no point
+            # continuing if the sentence does not contain CC.
+            return split_indices
+
         text_pos = []
         for t in tokenized_sentence:
             if t.text.lower() in FLATTENED_UNITS_LIST:
@@ -326,8 +347,7 @@ class SentenceStructureFeatures:
             split_idx = indices[0]
             if (
                 split_idx > 0
-                and self.tokenized_sentence[split_idx - 1].text.lower()
-                in self.units_sizes
+                and self.tokenized_sentence[split_idx - 1].text.lower() in UNITS_SIZES
             ):
                 # If the token prior to the split is a unit or size, assume that this
                 # isn't a split in sentence subject, but rather it's an alternative
@@ -358,14 +378,18 @@ class SentenceStructureFeatures:
         """
         examples = []
 
+        if not self.contains_cc:
+            # All the patterns in example_parser require IN, so there's no point
+            # continuing if the sentence does not contain IN.
+            return examples
+
         text_pos = [(token.text, token.pos_tag) for token in tokenized_sentence]
         parsed = self.example_parser.parse(text_pos)
         logger.debug("Example parser: \n%s", parsed)
         for indices, _ in self._get_subtree_indices(parsed, ["EX"]):  #  type: ignore
             phrase_text_pos = [
-                (token.text.upper(), token.pos_tag)
-                for i, token in enumerate(tokenized_sentence)
-                if i in indices
+                (tokenized_sentence[i].text.upper(), tokenized_sentence[i].pos_tag)
+                for i in indices
             ]
 
             # Check start of phrase for key words
@@ -412,18 +436,27 @@ class SentenceStructureFeatures:
         """
         dimensional_phrases = []
 
+        # Flag for optimising function call. All the patterns in the
+        # dimensional_phrase_parser require a LEN tag, so if we don't find one in the
+        # sentence we can avoid parsing the sentence.
+        includes_LEN = False
+
         text_pos = []
         for t in tokenized_sentence:
             if t.text.lower() in LENGTH_UNITS and t.pos_tag != "IN":
                 # We need to check the POS tag so we don't confuse "in" (preposition)
                 # with "in" (abbreviation of inch).
                 pos = "LEN"
+                includes_LEN = True
             elif t.text.lower() in DIMENSIONS:
                 pos = "DIM"
             else:
                 pos = t.pos_tag
 
             text_pos.append((t.feat_text, pos))
+
+        if not includes_LEN:
+            return dimensional_phrases
 
         parsed = self.dimensional_phrase_parser.parse(text_pos)
         logger.debug("Dimensional phrase parser: \n%s", parsed)
@@ -464,7 +497,9 @@ class SentenceStructureFeatures:
             prefix + "after_sentence_split": False,
             prefix + "example_phrase": False,
         }
-        for phrase, label in self.mip_phrases:
+        for (phrase, _), boundary_indices in zip(
+            self.mip_phrases, self.mip_clause_boundaries
+        ):
             if index not in phrase:
                 continue
 
@@ -476,7 +511,6 @@ class SentenceStructureFeatures:
             if index == phrase[-1]:
                 features[prefix + "mip_end"] = True
 
-            boundary_indices = self._get_clause_boundary_indices(phrase, label)
             for i, boundary in enumerate(boundary_indices):
                 if index == boundary:
                     # Don't set feature on boundaries.
