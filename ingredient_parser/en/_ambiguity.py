@@ -13,14 +13,11 @@ class FeatureDisambiguator:
 
     Attributes
     ----------
-    context_window_size : tuple[int, int]
+    context_window : tuple[int, int]
         Number of tokens before and after the feature-ambiguous token to check for
         disambiguating tokens.
     disambiguating_tokens : list[str]
         List of tokens that disambiguate the feature for the token.
-    plural : bool
-        If True, the ambiguity can also apply to the pluralized ambiguous token.
-        If False, the ambiguity only applies to the token as specified.
     feature_applicability : bool
         If True, finding a disambiguating token within the context window means the
         feature applies to the token.

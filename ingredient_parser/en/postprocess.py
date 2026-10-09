@@ -118,11 +118,10 @@ class PostProcessor:
         If True, return all IngredientAmount units as strings.
         If False, convert IngredientAmount units to pint.Unit objects where possible.
         Default is False.
-    imperial_units : bool, optional
-        If True, use imperial units instead of US customary units for pint.Unit objects
-        for the the following units: fluid ounce, cup, pint, quart, gallon.
-        Default is False, which results in US customary units being used.
-        This has no effect if string_units=True.
+    volumetric_units_system : str, optional
+        Sets the units system for volumetric measurements, like "cup" or "tablespoon".
+        Available options are "us_customary" (default), "imperial", "metric",
+        "australian", "japanese".
     foundation_foods : bool, optional
         If True, populate the foundation_foods field of ParsedIngredient.
         Default is False, in which case the foundation_foods field is an empty list.
@@ -911,7 +910,7 @@ class PostProcessor:
         Examples
         --------
         >>> p = PostProcessor("", [], [], [])
-        >>> p._remove_isolated_punctuation_and_duplicate_indices(
+        >>> p._remove_adjacent_duplicates(
             ["word", "word", "another"],
         )
         [1, 2]
@@ -1731,26 +1730,6 @@ class PostProcessor:
         -------
         bool
             True if current token is approximate.
-
-        Examples
-        --------
-        >>> p = PostProcessor("", [], [], [])
-        >>> p._is_approximate(
-            1,
-            ["about", "3", "cups"],
-            ["COMMENT", "QTY", "UNIT"],
-            [0, 1, 2]
-        )
-        True
-
-        >>> p = PostProcessor("", [], [], [])
-        >>> p._is_approximate(
-            1,
-            ["approx.", "250", "g"],
-            ["COMMENT", "QTY", "UNIT"],
-            [0, 1, 2]
-        )
-        True
         """
         if (
             tokens[i].label == "QTY"
@@ -1812,17 +1791,6 @@ class PostProcessor:
         -------
         bool
             True if current token is singular.
-
-        Examples
-        --------
-        >>> p = PostProcessor("", [], [], [])
-        >>> p._is_singular(
-            1,
-            ["3", "oz", "each"],
-            ["QTY", "UNIT", "COMMENT"],
-            [0, 1, 2]
-        )
-        True
         """
         if i == len(tokens) - 1:
             return False
@@ -1876,26 +1844,6 @@ class PostProcessor:
         -------
         bool
             True if current token is singular and approximate.
-
-        Examples
-        --------
-        >>> p = PostProcessor("", [], [], [])
-        >>> p._is_approximate(
-            2,
-            ["each", nearly", "3", "oz"],
-            ["COMMENT", "COMMENT", "QTY", "UNIT"],
-            [0, 1, 2, 3]
-        )
-        True
-
-        >>> p = PostProcessor("", [], [], [])
-        >>> p._is_approximate(
-            1,
-            ["2", lbs", "or", "so", "each"],
-            ["QTY", "UNIT", "COMMENT", "COMMENT", "COMMENT"],
-            [0, 1, 2, 3, 4]
-        )
-        True
         """
         if (
             tokens[i].label == "QTY"

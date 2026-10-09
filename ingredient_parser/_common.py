@@ -226,10 +226,10 @@ def is_range(value: str) -> bool:
     >>> is_range("1-2")
     True
 
-    >>> is_float("100-500")
+    >>> is_range("100-500")
     True
 
-    >>> is_float("1")
+    >>> is_range("1")
     False
     """
     return RANGE_PATTERN.match(value) is not None
@@ -339,13 +339,13 @@ def is_fraction(value: str) -> bool:
 
     Examples
     --------
-    >>> is_range("#1$2")
+    >>> is_fraction("#1$2")
     True
 
-    >>> is_float("2#1$4")
+    >>> is_fraction("2#1$4")
     True
 
-    >>> is_float("#1$2-#3$4")
+    >>> is_fraction("#1$2-#3$4")
     False
     """
     return INTERMEDIATE_FRACTION_PATTERN.fullmatch(value) is not None
