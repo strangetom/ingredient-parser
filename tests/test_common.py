@@ -210,6 +210,15 @@ class Test_fraction_obj_to_str:
             == "473.176"
         )
 
+    def test_fraction_with_recurring_decimal_represetnation(self):
+        """
+        Test that fractions with recurring decimal representations that have unicode
+        representation return the correct unicode representations.
+
+        This specifically checks that the rounding is not applied unnecessarily.
+        """
+        assert fraction_obj_to_str(Fraction(1, 3)) == "⅓"
+
     def test_rounding(self):
         """
         Test fraction is rounded to an appropriately to convert to unicode fraction.

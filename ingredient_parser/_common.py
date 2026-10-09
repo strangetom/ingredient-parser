@@ -403,11 +403,13 @@ def fraction_obj_to_str(frac: Fraction) -> str:
     }
 
     # Round fraction to avoid compounding errors during multiple conversions.
-    frac = round(frac, 12)
+    # Only do this if the fraction is not already in UNICODE_FRACTIONS.
+    if str(frac) not in UNICODE_FRACTIONS:
+        frac = round(frac, 12)
 
     # Fraction.is_integer() only available from Python 3.12.
-    # Use Fraction.as_integer_ratio() instead and check denominator is 1.
-    if frac.as_integer_ratio()[1] == 1:
+    # Check Fraction..denominator is 1 instead.
+    if frac.denominator == 1:
         return str(frac)
 
     if str(frac - int(frac)) in UNICODE_FRACTIONS:
