@@ -102,7 +102,7 @@ class Disambiguator:
         # split gram aka chana dal
         ("gram", False, "is_unit"): FeatureDisambiguator(
             context_window=(3, 3),
-            disambiguating_tokens=["floursplit"],
+            disambiguating_tokens=["flour"],
             feature_applicability=False,
         ),
         # glass noodles are a type of noodle
