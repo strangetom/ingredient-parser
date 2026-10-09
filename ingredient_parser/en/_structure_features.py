@@ -17,7 +17,7 @@ EXAMPLE_PHRASE_START_JJ = [[("SUCH", "JJ"), ("AS", "IN")]]
 logger = logging.getLogger("ingredient-parser.preprocess._structure_features")
 
 
-class SentenceStrucureFeatures:
+class SentenceStructureFeatures:
     """
     Sentence structure features.
 

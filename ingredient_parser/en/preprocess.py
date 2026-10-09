@@ -35,7 +35,7 @@ from ._regex import (
     UNITS_QUANTITY_PATTERN,
     UPPERCASE_PATTERN,
 )
-from ._structure_features import SentenceStrucureFeatures
+from ._structure_features import SentenceStructureFeatures
 from ._utils import (
     combine_quantities_split_by_and,
     is_unit_synonym,
@@ -139,7 +139,7 @@ class PreProcessor:
 
         self.singularised_indices = []
         self.tokenized_sentence = self._calculate_tokens(self.sentence)
-        self.sentence_structure = SentenceStrucureFeatures(self.tokenized_sentence)
+        self.sentence_structure = SentenceStructureFeatures(self.tokenized_sentence)
 
     def __repr__(self) -> str:
         """__repr__ method.
