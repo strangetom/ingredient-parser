@@ -193,17 +193,12 @@ class PostProcessor:
             name, foundationfoods = self._postprocess_names()
         else:
             # Replace all labels containing NAME with "NAME"
-            name_replaced_labels = []
             for t in self.tokens:
                 if "NAME" in t.label:
                     t.label = "NAME"
-            self.labels = name_replaced_labels
             logger.debug(
-                (
-                    "Relabelled tokens to %s ",
-                    "because seperate_name=False.",
-                ),
-                name_replaced_labels,
+                ("Relabelled tokens to %s because seperate_name=False."),
+                [t.label for t in self.tokens],
             )
 
             # Process NAME labels as any other label, but return as a list
