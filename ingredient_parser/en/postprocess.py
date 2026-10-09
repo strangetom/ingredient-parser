@@ -197,7 +197,7 @@ class PostProcessor:
                 if "NAME" in t.label:
                     t.label = "NAME"
             logger.debug(
-                ("Relabelled tokens to %s because seperate_name=False."),
+                "Relabelled tokens to %s because seperate_name=False.",
                 [t.label for t in self.tokens],
             )
 
