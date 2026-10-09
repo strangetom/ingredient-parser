@@ -255,7 +255,7 @@ def intermediate_fraction_to_unicode(token: str) -> str:
 
     Parameters
     ----------
-    fraction : str
+    token : str
         Fraction in intermediate format.
 
     Returns
@@ -298,7 +298,7 @@ def intermediate_fraction_to_unicode(token: str) -> str:
         "#1$2": "\xbd",
     }
 
-    def subtitute_fraction_string(match: re.Match) -> str:
+    def substitute_fraction_string(match: re.Match) -> str:
         """Function to construct the substitute for a intermediate format fraction.
 
         Parameters
@@ -321,7 +321,7 @@ def intermediate_fraction_to_unicode(token: str) -> str:
 
         return integer + replacement_fraction
 
-    return INTERMEDIATE_FRACTION_PATTERN.sub(subtitute_fraction_string, token).strip()
+    return INTERMEDIATE_FRACTION_PATTERN.sub(substitute_fraction_string, token).strip()
 
 
 def is_fraction(value: str) -> bool:

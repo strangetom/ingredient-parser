@@ -140,7 +140,7 @@ STEMMER = EnglishStemmer()
 # Define regular expressions used by tokenizer.
 # Matches one or more whitespace characters
 WHITESPACE_TOKENISER = re.compile(r"\S+")
-# Matches and captures one of the following: ( ) [ ] { } , " / : ; ? ! ~
+# Matches and captures one of the specified punctuation marks.
 PUNCTUATION_TOKENISER = re.compile(r"([\(\)\[\]\{\}\,/:;\?\!\*\~])")
 # Matches and captures full stop at end of string
 # (?<!\.\w) is a negative lookbehind that prevents matches if the last full stop
@@ -298,7 +298,7 @@ def combine_no_number(tokens: list[str]) -> list[str]:
 
     Examples
     --------
-    >>> recombine_and_or(["1", "teaspoon", "No", ".", "1", "curing", "salt"])
+    >>> combine_no_number(["1", "teaspoon", "No", ".", "1", "curing", "salt"])
     ['1', 'teaspoon', 'No. 1', 'curing', 'salt']
     """
     combined = []
@@ -354,14 +354,17 @@ def pluralise_units(sentence: str, custom_units: dict[str, str]) -> str:
 
     Examples
     --------
-    >>> pluralise_units("2 bag")
+    >>> pluralise_units("2 bag", {})
     '2 bags'
 
-    >>> pluralise_units("13 ounce")
+    >>> pluralise_units("13 ounce", {})
     '13 ounces'
 
-    >>> pluralise_units("1.5 loaf bread")
+    >>> pluralise_units("1.5 loaf bread", {})
     '1.5 loaves bread'
+
+    >>> pluralise_units("2 blarg bread", {"blargs": "blarg"})
+    '2 blargs bread'
     """
     sentence = pluralise_known_unit(sentence)
     for plural, singular in custom_units.items():
@@ -545,12 +548,10 @@ def replace_string_range(text: str) -> str:
 
     Examples
     --------
-    >>> p = PreProcessor("")
-    >>> p._replace_string_range("1 to 2 mashed bananas")
+    >>> replace_string_range("1 to 2 mashed bananas")
     "1-2 mashed bananas"
 
-    >>> p = PreProcessor("")
-    >>> p._replace_string_range("5- or 6- large apples")
+    >>> replace_string_range("5- or 6- large apples")
     "5-6- large apples"
     """
     return STRING_RANGE_PATTERN.sub(r"\1-\5", text)

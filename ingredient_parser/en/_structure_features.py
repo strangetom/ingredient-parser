@@ -110,11 +110,11 @@ class SentenceStructureFeatures:
 
     def __repr__(self) -> str:
         return (
-            "SentenceStrucureFeatures("
+            "SentenceStructureFeatures("
             + f"mip_phrases: {self.mip_phrases}, "
             + f"sentence_splits: {self.sentence_splits}, "
-            + f"example_phrases: {self.example_phrases}), "
-            + f"dimensional_phrases: {self.dimensional_phrases})"
+            + f"example_phrases: {self.example_phrases}, "
+            + f"dimensional_phrases: {self.dimensional_phrases}"
         )
 
     def _get_subtree_indices(

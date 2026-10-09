@@ -38,7 +38,7 @@ def parse_ingredient_en(
     expect_name_in_output : bool, optional
         If True, if the model doesn't label any words in the sentence as the name,
         fallback to selecting the most likely name from all tokens even though the
-        model gives it a different label. Note that this does guarantee the output
+        model gives it a different label. Note that this does not guarantee the output
         contains a name.
         Default is True.
     string_units : bool, optional

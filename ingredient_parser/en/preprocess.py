@@ -687,10 +687,10 @@ class PreProcessor:
         if Disambiguator.is_ambiguous(
             token, index in self.singularised_indices, "is_unit"
         ):
-            diambiguator = Disambiguator(
+            disambiguator = Disambiguator(
                 self.tokenized_sentence, self.singularised_indices
             )
-            return diambiguator.does_feature_apply(index, "is_unit")
+            return disambiguator.does_feature_apply(index, "is_unit")
 
         text = token.feat_text
         return text in self._units.values() and text.lower() not in LENGTH_UNITS
@@ -713,10 +713,10 @@ class PreProcessor:
         if Disambiguator.is_ambiguous(
             token, index in self.singularised_indices, "is_size"
         ):
-            diambiguator = Disambiguator(
+            disambiguator = Disambiguator(
                 self.tokenized_sentence, self.singularised_indices
             )
-            return diambiguator.does_feature_apply(index, "is_size")
+            return disambiguator.does_feature_apply(index, "is_size")
 
         return token.feat_text.lower() in SIZES
 
