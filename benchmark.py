@@ -9,10 +9,10 @@ from ingredient_parser import parse_ingredient
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Ingredient Parser benchmark")
     parser.add_argument(
-        "-n", type=int, help="Number of sentences to use from each source.", default=100
+        "-n", type=int, help="Number of sentences to use from each source.", default=500
     )
     parser.add_argument(
-        "--iterations", "-i", type=int, help="Number of iterations to run.", default=500
+        "--iterations", "-i", type=int, help="Number of iterations to run.", default=2
     )
     parser.add_argument(
         "--foundationfoods", "-ff", action="store_true", help="Enable foundation foods."
