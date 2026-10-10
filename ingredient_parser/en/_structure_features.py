@@ -329,6 +329,10 @@ class SentenceStructureFeatures:
                 pos = "SIZE"
             elif t.text.lower() == "half":
                 pos = "HALF"
+            elif t.text.lower().endswith("%"):
+                # For the purposes of detecting compound sentences, numeric tokens
+                # ending with '%' are not useful markers, so change their pos to VB.
+                pos = "VB"
             else:
                 pos = t.pos_tag
 
