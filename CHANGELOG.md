@@ -2,12 +2,14 @@
 
 ### develop
 
-* Simply and pre-compile regular expression used when pluralising units to improve parsing performance by ~18% (@[yashBhosale](https://github.com/yashBhosale))
+* Optimise performance for ~27% faster parsing:
+  * Simplify and pre-compile regular expressions used when pluralising units. (@[yashBhosale](https://github.com/yashBhosale))
+  * Optimise sentence structure feature calculation to avoid attempting to match sentences to the sentence structure patterns when they can never return a match.
 * Convert fractions into the `text` field of `IngredientText` objects to Unicode fractions instead of plain text fractions.
 * Improve how features are calculated for words that are units or sizes that have homonyms that aren't units or sizes e.g. clove (garlic clove vs the spice), gram (metric unit vs type of flour), medium (size vs qualifier).
 * Correctly return separate amounts in sentences that contain an equivalent amount in parentheses e.g. 2 (250 ml) cups stock. (@[paulb-instacart](https://github.com/paulb-instacart))
 * Fix bug where custom units containing capital letters would never match with sentence tokens.
-* Update [custom units docs](https://ingredient-parser.readthedocs.io/en/latest/tutorials/options.html#custom-units) to discuss using to the `custom_units` keyword argument to improve support for non-English languages.
+  * Update [custom units docs](https://ingredient-parser.readthedocs.io/en/latest/tutorials/options.html#custom-units) to discuss using to the `custom_units` keyword argument to improve support for non-English languages.
 
 ### 2.8.0
 
