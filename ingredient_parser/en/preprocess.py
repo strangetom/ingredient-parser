@@ -7,7 +7,7 @@ import unicodedata
 from html import unescape
 from itertools import chain
 
-from .._common import is_fraction
+from .._common import is_float, is_fraction
 from ..dataclasses import Token, TokenFeatures
 from ._ambiguity import Disambiguator
 from ._constants import (
@@ -645,7 +645,7 @@ class PreProcessor:
             elif text.lower() == "/":
                 # Force "/" to have SYM tag.
                 pos = "SYM"
-            elif text == "in" and i > 0 and tokens[i - 1].feat_text == "!num":
+            elif text.lower() == "in" and i > 0 and tokens[i - 1].feat_text == "!num":
                 # If the text is "in" and the previous token is a number then this is
                 # mostly likely to be the abbreviation of inches rather than the
                 # preposition.
@@ -905,24 +905,16 @@ class PreProcessor:
             parts = token.split("-")
             return all([self._is_numeric(part) or is_fraction(part) for part in parts])
 
-        if token == "dozen":
+        if token.lower() == "dozen":
             return True
 
         if token.endswith("x"):
             if is_fraction(token[:-1]):
                 return True
             else:
-                try:
-                    float(token[:-1])
-                    return True
-                except ValueError:
-                    return False
+                return is_float(token[:-1])
 
-        try:
-            float(token)
-            return True
-        except ValueError:
-            return False
+        return is_float(token)
 
     def _follows_comma(self, index: int) -> bool:
         """Return True if token at index follows a comma (by any amount) in sentence.
