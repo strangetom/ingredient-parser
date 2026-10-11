@@ -67,27 +67,20 @@ class PreProcessor:
 
     Notes
     -----
-    The cleaning steps are as follows
-
-    1. | Replace all en-dashes and em-dashes with hyphens.
-    2. | Replace numbers given as words with the numeric equivalent.
-       | e.g. one >> 1
-    3. | Replace fractions given in html markup with the unicode representation.
-       | e.g. &frac12; >> ½
-    4. | Replace unicode fractions with the equivalent decimal form. Decimals are
-       | rounded to a maximum of 3 decimal places.
-       | e.g. ½ >> 0.5
-    5. | Identify fractions represented by 1/2, 2/3 etc. by replaceing the slash with $
-       | and the prepending # in front of the fraction e.g. #1$2
-       | e.g. 1/2 >> 0.5
-    6. | A space is enforced between quantities and units
-    7. | Remove trailing periods from units
-       | e.g. tsp. >> tsp
-    8. | Numeric ranges indicated in words using "to" or "or" are replaced with a
-       | standard numeric form
-       | e.g. 1 or 2 >> 1-2; 10 to 12 >> 10-12
-    9. | Units are made singular. This step uses a predefined list of plural units and
-       | their singular form.
+    The cleaning steps are as follows:
+        1.  Unescape HTML
+        2.  Remove price annotations
+        3.  Replace en and em dashes with hyphens
+        4.  Replace unicode fractions with ASCII versions
+        5.  Combine quantities split by 'and' (e.g. 1 and 1/2)
+        6.  Identify fractions and convert to intermediate format
+        7.  Split joined quantity and units
+        8.  Remove trailing period from units
+        9.  Replace string ranges
+        10. Replace ranges involved duplicated units
+        11. Merge quantity with following 'x'
+        12. Collapse ranges into single token
+        13. Expand hyphen split names into full names
 
     Following the cleaning of the input sentence, it is tokenized into a list of tokens.
 
@@ -130,6 +123,8 @@ class PreProcessor:
         ----------
         input_sentence : str
             Input ingredient sentence.
+        custom_units : dict[str, str] | None, optional
+            Dict of plural-singular pairs of custom units.
         """
         self.input: str = input_sentence
         if custom_units is not None:
@@ -381,7 +376,7 @@ class PreProcessor:
 
         >>> p = PreProcessor("")
         >>> p._replace_unicode_fractions("¼-½ teaspoon")
-        "1/4-1/2 teaspoon"
+        " 1/4-1/2 teaspoon"
         """
         for f_unicode, f_ascii in UNICODE_FRACTIONS_TO_TEXT.items():
             sentence = sentence.replace(f_unicode, f_ascii)
@@ -498,7 +493,7 @@ class PreProcessor:
 
         >>> p = PreProcessor("")
         >>> p._replace_dupe_units_ranges("0.5 c to 1 cup shelled raw pistachios")
-        "0.5-1 c shell raw pistachios"
+        "0.5-1 c shelled raw pistachios"
         """
         matches = DUPE_UNIT_RANGES_PATTERN.findall(sentence)
 
@@ -534,11 +529,11 @@ class PreProcessor:
         Examples
         --------
         >>> p = PreProcessor("")
-        >>> p._replace_dupe_units_ranges("8 x 450 g/1 lb live lobsters")
+        >>> p._merge_quantity_x("8 x 450 g/1 lb live lobsters")
         "8x 450g/1lb live lobsters"
 
         >>> p = PreProcessor("")
-        >>> p._replace_dupe_units_ranges("4 x 100 g wild salmon fillet")
+        >>> p._merge_quantity_x("4 x 100 g wild salmon fillet")
         "4x 100 g wild salmon fillet"
         """
         return QUANTITY_X_PATTERN.sub(r"\1x ", sentence)
@@ -1149,10 +1144,6 @@ class PreProcessor:
 
     def _token_features(self, token: Token) -> FeatureDict:
         """Return the features for the token at the given index in the sentence.
-
-        If the token at the given index appears in the corpus parameter, the token is
-        used as a feature. Otherwise (i.e. for tokens that only appear once), the token
-        stem is used as a feature.
 
         Parameters
         ----------

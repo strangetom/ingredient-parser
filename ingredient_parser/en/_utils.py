@@ -138,7 +138,7 @@ download_nltk_resources()
 STEMMER = EnglishStemmer()
 
 # Define regular expressions used by tokenizer.
-# Matches one or more whitespace characters
+# Matches one or more non-white-space characters
 WHITESPACE_TOKENISER = re.compile(r"\S+")
 # Matches and captures one of the specified punctuation marks.
 PUNCTUATION_TOKENISER = re.compile(r"([\(\)\[\]\{\}\,/:;\?\!\*\~])")
@@ -294,11 +294,12 @@ def combine_no_number(tokens: list[str]) -> list[str]:
     Returns
     -------
     list[str]
-        Input tokens with any instances of and/or combined into a single token.
+        Input tokens with any instances of No. followed by number combined into a single
+        token.
 
     Examples
     --------
-    >>> combine_no_number(["1", "teaspoon", "No", ".", "1", "curing", "salt"])
+    >>> combine_no_number(["1", "teaspoon", "No.", "1", "curing", "salt"])
     ['1', 'teaspoon', 'No. 1', 'curing', 'salt']
     """
     combined = []
@@ -514,7 +515,7 @@ def combine_quantities_split_by_and(text: str) -> str:
     Returns
     -------
     str
-        Text with split fractions replaced with single decimal value.
+        Text with split fractions replaced with single value.
 
     Examples
     --------
@@ -539,7 +540,7 @@ def replace_string_range(text: str) -> str:
     For example:
     1 to 2 -> 1-2
     8.5 to 12.5 -> 8.5-12.5
-    16- to 9-
+    16- to 9- -> 19-9
 
     Parameters
     ----------
