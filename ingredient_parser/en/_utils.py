@@ -9,7 +9,6 @@ from typing import Literal, cast
 import pint
 from nltk import PerceptronTagger
 from nltk.stem.snowball import EnglishStemmer
-from nltk.tag import _pos_tag  # type: ignore
 
 from .._common import (
     UREG,
@@ -243,7 +242,7 @@ def pos_tag(tokens: list[str]) -> list[tuple[str, str]]:
         List of (token, tag) pairs.
     """
     tagger = _get_pos_tagger()
-    return _pos_tag(tokens=tokens, tagset=None, tagger=tagger, lang="eng")
+    return tagger.tag(tokens)
 
 
 def combine_and_or(tokens: list[str]) -> list[str]:
