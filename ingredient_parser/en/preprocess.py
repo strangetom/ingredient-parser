@@ -183,9 +183,9 @@ class PreProcessor:
         # List of functions to apply to sentence
         # Note that the order matters
         funcs = [
+            self._unescape_html,
             self._remove_price_annotations,
             self._replace_en_em_dash,
-            self._replace_html_fractions,
             self._replace_unicode_fractions,
             combine_quantities_split_by_and,
             self._identify_fractions,
@@ -247,8 +247,8 @@ class PreProcessor:
         """
         return sentence.replace("–", "-").replace("—", " - ")
 
-    def _replace_html_fractions(self, sentence: str) -> str:
-        """Replace html fractions e.g. &frac12; with unicode equivalents.
+    def _unescape_html(self, sentence: str) -> str:
+        """Replace escaped HTML entities e.g. &frac12; with unicode equivalents.
 
         Parameters
         ----------
@@ -258,13 +258,17 @@ class PreProcessor:
         Returns
         -------
         str
-            Ingredient sentence with html fractions replaced.
+            Ingredient sentence with html entities replaced.
 
         Examples
         --------
         >>> p = PreProcessor("")
         >>> p._replace_html_fractions("1&frac34; cups tomato ketchup")
         "1¾ cups tomato ketchup"
+
+        >>> p = PreProcessor("")
+        >>> p._replace_html_fractions("1 &ndash; 2 tbsp oil")
+        "1 – 2 tbsp oil"
         """
         return unescape(sentence)
 
