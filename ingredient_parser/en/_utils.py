@@ -313,7 +313,7 @@ def combine_no_number(tokens: list[str]) -> list[str]:
     return combined
 
 
-@lru_cache(maxsize=512)
+@lru_cache(maxsize=2048)
 def stem(token: str) -> str:
     """Stem function with cache to improve performance.
 
