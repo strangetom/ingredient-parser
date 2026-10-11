@@ -1068,7 +1068,7 @@ class PreProcessor:
             if unicodedata.category(c) != "Mn"
         )
 
-    def _common_features(self, index: int, prefix: str) -> dict[str, str | bool]:
+    def _common_features(self, index: int, prefix: str) -> FeatureDict:
         """Return common features for token at given index.
 
         Parameters
@@ -1080,7 +1080,7 @@ class PreProcessor:
 
         Returns
         -------
-        dict[str, str | bool]
+        FeatureDict
             Dict of features for token at given index.
         """
         token = self.tokenized_sentence[index]
