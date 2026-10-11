@@ -119,16 +119,30 @@ UNITS = {
     "vials": "vial",
     "wheels": "wheel",
 }
-# Generate capitalized and uppercase version of each entry in the UNITS dictionary.
-_capitalized_units = {}
-for plural, singular in UNITS.items():
-    if plural in {"ts"}:
-        # Don't convert these units because the uppercase or capitalised version has
-        # a different meaning.
-        continue
-    _capitalized_units[plural.capitalize()] = singular.capitalize()
-    _capitalized_units[plural.upper()] = singular.upper()
-UNITS = UNITS | _capitalized_units
+
+
+def _generate_upper_case_units(units: dict[str, str]) -> dict[str, str]:
+    """Generate capitalized and uppercase version of each entry in the units dict.
+
+    Parameters
+    ----------
+    units : dict[str, str]
+        UNITS dict
+    """
+    #
+    _capitalized_units = {}
+    for plural, singular in UNITS.items():
+        if plural in {"ts"}:
+            # Don't convert these units because the uppercase or capitalised version has
+            # a different meaning.
+            continue
+        _capitalized_units[plural.capitalize()] = singular.capitalize()
+        _capitalized_units[plural.upper()] = singular.upper()
+    return UNITS | _capitalized_units
+
+
+UNITS = _generate_upper_case_units(UNITS)
+
 # Create a flattened set of all keys and values in UNITS dict
 # since we need this in a few places
 FLATTENED_UNITS_LIST = frozenset(chain.from_iterable(UNITS.items()))
@@ -260,13 +274,37 @@ STRING_NUMBERS = {
     "eighteen": "18",
     "nineteen": "19",
 }
-# Precompile the regular expressions for matching the string numbers
-STRING_NUMBERS_REGEXES = {}
-for s, n in STRING_NUMBERS.items():
-    # This is case insensitive so it replace e.g. "one" and "One"
-    # Only match if the string is preceded by a non-word character or is at
-    # the start of the sentence
-    STRING_NUMBERS_REGEXES[s] = (re.compile(rf"\b({s})\b", flags=re.IGNORECASE), n)
+
+
+def _generate_string_number_regexes(
+    string_numbers: dict[str, str],
+) -> dict[str, tuple[re.Pattern, str]]:
+    """Generate pre-compiled regular expressions for converting number expressed as
+    words to digits.
+
+    The return dict values are a tuple of the pre-compiled regular expression and the
+    replacement string.
+
+    Parameters
+    ----------
+    string_numbers : dict[str, str]
+        Dict of number as words and their digit equivalent.
+
+    Returns
+    -------
+    dict[str, tuple[re.Pattern, str]]
+        Dict mapping word number to a tuple of (regex, replacement).
+    """
+    string_numbers_regexes = {}
+    for s, n in string_numbers.items():
+        # This is case insensitive so it replace e.g. "one" and "One"
+        # Only match if the string is preceded by a non-word character or is at
+        # the start of the sentence
+        string_numbers_regexes[s] = (re.compile(rf"\b({s})\b", flags=re.IGNORECASE), n)
+    return string_numbers_regexes
+
+
+STRING_NUMBERS_REGEXES = _generate_string_number_regexes(STRING_NUMBERS)
 
 # Unicode fractions and their replacements as string fractions
 # Most of the time we need to insert a space in front of the replacement so we don't
