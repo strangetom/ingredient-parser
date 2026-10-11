@@ -453,12 +453,14 @@ def convert_to_pint_unit(
         if alt := VOLUMETRIC_UNITS_W_ALTERNATIVES[unit].get(volumetric_units_system):
             unit = unit.replace(unit, alt)
 
-    # If unit not empty string and found in Unit Registry,
-    # return pint.Unit object for unit
-    if unit != "" and unit in UREG:
-        return cast(pint.Unit, UREG(unit).units)
+    if unit == "":
+        return original_unit
 
-    return original_unit
+    # Try to return unit from Unit Registry otherwise return original unit.
+    try:
+        return cast(pint.Unit, UREG(unit).units)
+    except pint.UndefinedUnitError:
+        return original_unit
 
 
 @lru_cache(maxsize=512)
