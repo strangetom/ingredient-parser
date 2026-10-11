@@ -28,9 +28,7 @@ jobs:
         pre-commit run --all-files
     - name: Install Dependencies
       run: |
-        pip install -r requirements.txt
-        # Should we have some tests with only requirements.txt?
-        pip install -r requirements-dev.txt
+        pip install -r requirements-test.txt
     - name: Run Tests
       run: |
         pytest

@@ -4,12 +4,10 @@ pyright
 ruff
 build
 twine
-pre-commit
-pytest
-coverage
 flask
 flask-CORS
 flask-socketIO
 tabulate
 matplotlib
+-r requirements-test.txt
 -e .
