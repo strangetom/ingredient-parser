@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import logging
+from typing import Literal
 
 from ..dataclasses import LabelledToken, ParsedIngredient, ParserDebugInfo
 from ._loaders import load_parser_model
@@ -16,7 +17,9 @@ def parse_ingredient_en(
     discard_isolated_stop_words: bool = True,
     expect_name_in_output: bool = True,
     string_units: bool = False,
-    volumetric_units_system: str = "us_customary",
+    volumetric_units_system: Literal[
+        "us_customary", "imperial", "metric", "australian", "japanese"
+    ] = "us_customary",
     foundation_foods: bool = False,
     custom_units: dict[str, str] | None = None,
 ) -> ParsedIngredient:
@@ -45,7 +48,9 @@ def parse_ingredient_en(
         If True, return all IngredientAmount units as strings.
         If False, convert IngredientAmount units to pint.Unit objects where possible.
         Default is False.
-    volumetric_units_system : str, optional
+    volumetric_units_system : Literal[
+        "us_customary", "imperial", "metric", "australian", "japanese"
+    ], optional
         Sets the units system for volumetric measurements, like "cup" or "tablespoon".
         Available options are "us_customary" (default), "imperial", "metric",
         "australian", "japanese".
@@ -115,7 +120,9 @@ def inspect_parser_en(
     discard_isolated_stop_words: bool = True,
     expect_name_in_output: bool = True,
     string_units: bool = False,
-    volumetric_units_system: str = "us_customary",
+    volumetric_units_system: Literal[
+        "us_customary", "imperial", "metric", "australian", "japanese"
+    ] = "us_customary",
     foundation_foods: bool = False,
     custom_units: dict[str, str] | None = None,
 ) -> ParserDebugInfo:
@@ -144,7 +151,9 @@ def inspect_parser_en(
         If True, return all IngredientAmount units as strings.
         If False, convert IngredientAmount units to pint.Unit objects where possible.
         Default is False.
-    volumetric_units_system : str, optional
+    volumetric_units_system : Literal[
+        "us_customary", "imperial", "metric", "australian", "japanese"
+    ], optional
         Sets the units system for volumetric measurements, like "cup" or "tablespoon".
         Available options are "us_customary" (default), "imperial", "metric",
         "australian", "japanese".
