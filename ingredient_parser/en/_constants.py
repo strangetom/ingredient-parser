@@ -131,7 +131,7 @@ for plural, singular in UNITS.items():
 UNITS = UNITS | _capitalized_units
 # Create a flattened set of all keys and values in UNITS dict
 # since we need this in a few places
-FLATTENED_UNITS_LIST = set(chain.from_iterable(UNITS.items()))
+FLATTENED_UNITS_LIST = frozenset(chain.from_iterable(UNITS.items()))
 
 # Invert UNITS dict so we can look up plural form from singular form.
 UNITS_RINDEX: dict[str, str] = {v: k for k, v in UNITS.items()}
@@ -495,37 +495,43 @@ UNIT_SYNONYMS = [
 ]
 
 # Set of (singular) units that refer to lengths.
-LENGTH_UNITS = {
-    "centimeter",
-    "centimetre",
-    "cm",
-    "in",
-    "inch",
-    "inches",
-    "millimeter",
-    "millimetre",
-    "mm",
-}
+LENGTH_UNITS = frozenset(
+    {
+        "centimeter",
+        "centimetre",
+        "cm",
+        "in",
+        "inch",
+        "inches",
+        "millimeter",
+        "millimetre",
+        "mm",
+    }
+)
 
 # Set of tokens that refer to the physical dimensions of an ingredient.
-DIMENSIONS = {
-    "diameter",
-    "inch-long",
-    "inch-thick",
-    "length",
-    "long",
-    "thick",
-    "thickness",
-    "wide",
-    "width",
-}
+DIMENSIONS = frozenset(
+    {
+        "diameter",
+        "inch-long",
+        "inch-thick",
+        "length",
+        "long",
+        "thick",
+        "thickness",
+        "wide",
+        "width",
+    }
+)
 
-INDEFINITE_QUANTIFIERS = {
-    "couple",
-    "few",
-    "many",
-    "plenty",
-    "more",
-    "several",
-    "some",
-}
+INDEFINITE_QUANTIFIERS = frozenset(
+    {
+        "couple",
+        "few",
+        "many",
+        "plenty",
+        "more",
+        "several",
+        "some",
+    }
+)

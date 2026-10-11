@@ -78,7 +78,7 @@ def group_consecutive_idx(idx: list[int]) -> Generator[Iterator[int], None, None
 
     Yields
     ------
-    list[list[int]]
+    Generator[Iterator[int], None, None]
         List of lists, where each sub-list contains consecutive indices.
 
     Examples
