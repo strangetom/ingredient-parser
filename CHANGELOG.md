@@ -1,6 +1,6 @@
 # Changelog
 
-### develop
+### 2.9.0
 
 * Optimise performance for ~27% faster parsing:
   * Simplify and pre-compile regular expressions used when pluralising units. (@[yashBhosale](https://github.com/yashBhosale))
