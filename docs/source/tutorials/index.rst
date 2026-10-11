@@ -87,6 +87,9 @@ This function takes a single ingredient sentence and returns a :class:`ParsedIng
 
 Each of the fields (except sentence) has a confidence value associated with it. This is a value between 0 and 1, where 0 represents no confidence and 1 represent full confidence. This is the confidence that the natural language model has that the given label is correct, averaged across all tokens that contribute to that particular field.
 
+Currently, English is the only officially support language.
+However, parsing simple non-English sentences is possible by using the :ref:`custom_units <reference-custom-units>` keyword argument.
+
 .. tip::
 
     The companion :ref:`webtools <reference-tutorials-webtools>` has a parser tool that can be used to test the library's functionality.

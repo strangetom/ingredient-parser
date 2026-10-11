@@ -71,17 +71,56 @@ A outline of the code for training the model is shown below, which trains the mo
     trainer.train("model.crfsuite")
 
 All of the above steps are implemented in the ``train.py`` script.
-The following command will execute the script and train the model on all datasets.
+The following command will execute the script and train the model on all datasets, then output the evaluation results.
 
 .. code::
 
-    $ python train.py train --model parser --database train/data/training.sqlite3
+    $ python train.py train --database train/data/training.sqlite3 --html --detailed --confusion
+    [INFO] (training_utils) Loading and transforming training data.
+    [INFO] (training_utils) 88062 usable vectors.
+    [INFO] (training_utils) 83 discarded due to OTHER labels.
+    [INFO] (train_model) 436724183 is the random seed used for the train/test split.
+    [INFO] (train_model) 70449 training vectors.
+    [INFO] (train_model) 17613 testing vectors.
+    [INFO] (trainers) Training started at 14:22:24
+    [INFO] (trainers) Training model with training data.
+    [INFO] (trainers) Model trained in 0:26:20.
+    [INFO] (trainers) Stopped after 776 iterations.
+    [INFO] (training_eval) Evaluating model using test data.
+    [INFO] (training_eval)
+    ╒══════════════════════════╤══════════════════════════╕
+    │ Sentence-level results   │ Word-level results       │
+    ╞══════════════════════════╪══════════════════════════╡
+    │ Accuracy: 94.52%         │ Accuracy: 97.96%         │
+    │                          │ Precision (micro) 97.96% │
+    │                          │ Recall (micro) 97.96%    │
+    │                          │ F1 score (micro) 97.96%  │
+    ╘══════════════════════════╧══════════════════════════╛
+    [INFO] (test_results_to_detailed_results) Written 'classification_results_tokens.tsv'.
+    [INFO] (test_results_to_detailed_results) Written 'classification_results_features.tsv'.
+    [INFO] (test_results_to_detailed_results) Written 'classification_results_token_sentences.tsv'.
+    [INFO] (test_results_to_detailed_results) Written 'classification_results_sentences.tsv'.
+    [INFO] (training_utils) Confusion matrix saved to 'confusion_matrix.svg'.
+    [INFO] (training_eval) Evaluating model (including invalid label corrections) using test data.
+    [INFO] (training_eval)
+    ╒══════════════════════════╤══════════════════════════╕
+    │ Sentence-level results   │ Word-level results       │
+    ╞══════════════════════════╪══════════════════════════╡
+    │ Accuracy: 94.92%         │ Accuracy: 98.02%         │
+    │                          │ Precision (micro) 98.02% │
+    │                          │ Recall (micro) 98.02%    │
+    │                          │ F1 score (micro) 98.02%  │
+    ╘══════════════════════════╧══════════════════════════╛
+    [INFO] (training_eval) Evaluating model (including invalid label corrections) and post-processing using test data.
+    [INFO] (training_eval) 95.09% of test sentences had the correct parsed output.
+
+
 
 You can run ``python train.py --help`` to view all the available options for tweaking the training process.
 
 .. warning::
 
-    It takes about an hour to train the model using the all the available training data on a laptop with an Intel Core 15-10300H and 64 GB of RAM.
+    It takes about 30 minutes to train the model using the all the available training data on a laptop with an Intel Core 15-10300H and 64 GB of RAM.
 
     You will not need 64 GB of RAM to train the model, 8 GB should be more than sufficient and less will probably work too.
 
@@ -90,33 +129,36 @@ You can run ``python train.py --help`` to view all the available options for twe
 Evaluation
 ^^^^^^^^^^
 
-Two metrics are used to evaluate the model:
+The model is evaluated under 3 cases:
+
+1. The direct model output.
+    This evaluates the raw model output and compares it to the true output for each sentence in the test dataset.
+2. The corrected model output.
+    This evaluates the model output after corrections have been applied to correct certain invalid label sequences.
+
+    .. note::
+
+        The :ref:`labelling scheme <labelling-scheme>` means that there are certain sequence of labels that are not valid.
+        However, the model may still output invalid sequences so `custom inference code <https://github.com/strangetom/ingredient-parser/blob/master/ingredient_parser/inference.py>`_ has been written that detects and corrects some of the errors.
+
+        Not all invalid sequences are currently be detected, and of those that are detected only a subset are corrected.
+        This will continue to be developed.
+
+3. The post processed output.
+    This evaluates the post processed corrected model output.
+
+For the first two cases, two key metrics are used to evaluate the model:
 
 1. Word-level accuracy
     This is a measure of the percentage of tokens in the evaluation data that the model predicted the correct label for.
 2. Sentence-level accuracy
     This is a measure of the percentage of sentences in the evaluation data where the model predicted the correct label for all tokens.
 
-An outline of the code for testing the model is shown below, which opens the trained model and uses it to label the tokens for each sentence in the evaluation set.
+.. tip::
 
-.. code:: python
+    See the `Parser Model Card <https://github.com/strangetom/ingredient-parser/blob/master/ingredient_parser/en/data/ModelCard.en.md>`_ for the current model performance, which shows the performance for the corrected model output.
 
-    import pycrfsuite
-
-    # Instantiate Tagger object
-    tagger = pycrfsuite.Tagger()
-    # Load the trained model
-    tagger.open("model.crfsuite")
-    # Use the model to predict the labels for each sentence
-    labels_pred = [tagger.tag(X) for X in features_evaluate]
-    # Calculate statistics on the results
-    stats = evaluate(labels_pred, truth_evaluate)
-
-.. note::
-
-    See the `Parser Model Card <https://github.com/strangetom/ingredient-parser/blob/master/ingredient_parser/en/data/ModelCard.en.md>`_ for the current model performance.
-
-To aid in assessing the model performance in more detailed, a number of optional outputs can be created by using the following arguments to the ``train.py`` command.
+To aid in assessing the model performance in more detail, a number of optional outputs can be created by using the following arguments to the ``train.py`` command.
 
 * ``--html``
 
@@ -124,7 +166,7 @@ To aid in assessing the model performance in more detailed, a number of optional
 
 * ``--detailed``
 
-  This will output a set of :abbr:`TSV (Tab Separated Value)` containing information about the types of errors made by the model.
+  This will output a set of :abbr:`TSV (Tab Separated Value)` files containing statistics about the types of errors made by the model.
 
 * ``--confusion``
 
@@ -247,5 +289,3 @@ The figure below shows how the sentence- and word-level performance has changed 
 .. note::
 
     * At v2.0.0 the labelling scheme was changed to be able to separate the names of each ingredient in an ingredient sentence. This is a more complex labelling scheme than previously and therefore the model accuracy dropped slightly.
-
-    * At v2.7.0 the method by which the model accuracy was measured change so that it only included the accuracy of the model as trained. Prior to this, the accuracy figures included the effects of additional post processing to correct invalid label sequences.

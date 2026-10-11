@@ -29,6 +29,46 @@ class TestPreProcessor_is_unit:
         p = PreProcessor(input_sentence, custom_units={})
         assert not p._is_unit(2)
 
+    def test_ambiguous_unit_clove_is_unit(self, p):
+        """
+        "teaspoon" is a unit
+        """
+        input_sentence = "2 garlic cloves"
+        p = PreProcessor(input_sentence, custom_units={})
+        assert p._is_unit(2)
+
+    def test_ambiguous_unit_clove_is_unit_capitalised(self, p):
+        """
+        "teaspoon" is a unit
+        """
+        input_sentence = "2 Garlic Cloves"
+        p = PreProcessor(input_sentence, custom_units={})
+        assert p._is_unit(2)
+
+    def test_ambiguous_unit_clove_is_not_unit(self, p):
+        """
+        "cloves" is a unit
+        """
+        input_sentence = "2 cloves"
+        p = PreProcessor(input_sentence, custom_units={})
+        assert not p._is_unit(1)
+
+    def test_ambiguous_unit_clove_is_not_unit_capitalised(self, p):
+        """
+        "Cloves" is a unit
+        """
+        input_sentence = "2 Cloves"
+        p = PreProcessor(input_sentence, custom_units={})
+        assert not p._is_unit(1)
+
+    def test_ambiguous_unit_pound_is_not_unit(self, p):
+        """
+        "teaspoon" is a unit
+        """
+        input_sentence = "1 package pound cake"
+        p = PreProcessor(input_sentence, custom_units={})
+        assert not p._is_unit(2)
+
 
 class TestPreProcessor_is_punc:
     def test_true(self, p):
@@ -74,6 +114,18 @@ class TestPreProcessor_is_numeric:
         "1-1.5" is numeric
         """
         assert p._is_numeric("1-1.5")
+
+    def test_fraction(self, p):
+        """
+        "#1$2" is numeric
+        """
+        assert p._is_numeric("#1$2")
+
+    def test_fraction_range(self, p):
+        """
+        "#1$2-1#1$2" is not numeric
+        """
+        assert p._is_numeric("#1$2-1#1$2")
 
     def test_false(self, p):
         """
@@ -255,48 +307,6 @@ class TestPreProcess_follows_comma:
         assert p._follows_comma(8)
 
 
-class TestPreProcessor_is_ambiguous_unit:
-    def test_clove(self, p):
-        """
-        Clove is indicated as ambiguous unit
-        """
-        input_sentence = "1 tsp cloves"
-        p = PreProcessor(input_sentence, custom_units={})
-        assert p._is_ambiguous_unit(2)
-
-    def test_leaves(self, p):
-        """
-        Leaves is indicated as ambiguous unit
-        """
-        input_sentence = "fresh basil leaves"
-        p = PreProcessor(input_sentence, custom_units={})
-        assert p._is_ambiguous_unit(2)
-
-    def test_slabs(self, p):
-        """
-        Slab is indicated as ambiguous unit
-        """
-        input_sentence = "1 lb 5 ox slab bacon"
-        p = PreProcessor(input_sentence, custom_units={})
-        assert p._is_ambiguous_unit(4)
-
-    def test_wedges(self, p):
-        """
-        Wedge is indicated as ambiguous unit
-        """
-        input_sentence = "1 lemon or lime wedge"
-        p = PreProcessor(input_sentence, custom_units={})
-        assert p._is_ambiguous_unit(4)
-
-    def test_cup(self, p):
-        """
-        Cup is not indicated as ambiguous unit
-        """
-        input_sentence = "2 cups white wine"
-        p = PreProcessor(input_sentence, custom_units={})
-        assert not p._is_ambiguous_unit(1)
-
-
 class TestPreProcessor_word_shape:
     def test_word_shape(self, p):
         """
@@ -333,3 +343,23 @@ class TestPreProccessor_is_dimension:
         assert p._is_dimension('2"-long')
         assert p._is_dimension('1"-thick')
         assert p._is_dimension('1/2"-wide')
+
+
+class TestPreProcessor_ends_with_inch_symbol:
+    def test_single_digit(self, p):
+        """
+        Test that '1"' is detected as ending with inch symbol.
+        """
+        assert p._ends_with_inch_symbol('1"')
+
+    def test_range(self, p):
+        """
+        Test that the range '2-3"' is detected as ending with inch symbol.
+        """
+        assert p._ends_with_inch_symbol('2-3"')
+
+    def test_contains_inch_symbol(self, p):
+        """
+        Test a token containing an inch symbol, not at the end, returns False.
+        """
+        assert not p._ends_with_inch_symbol('3"-long')

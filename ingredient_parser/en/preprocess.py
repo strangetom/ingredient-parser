@@ -6,12 +6,14 @@ import string
 import unicodedata
 from html import unescape
 
+from .._common import is_fraction
 from ..dataclasses import Token, TokenFeatures
+from ._ambiguity import Disambiguator
 from ._constants import (
-    AMBIGUOUS_UNITS,
     DIMENSIONS,
     FLATTENED_UNITS_LIST,
     LENGTH_UNITS,
+    SIZES,
     STRING_NUMBERS,
     UNICODE_FRACTIONS,
     UNITS,
@@ -23,7 +25,6 @@ from ._regex import (
     DUPE_UNIT_RANGES_PATTERN,
     EXPANDED_RANGE,
     FRACTION_PARTS_PATTERN,
-    FRACTION_TOKEN_PATTERN,
     HYPHEN_SPLIT_NAME_PATTERN,
     INCH_SIZE_PATTERN,
     LOWERCASE_PATTERN,
@@ -34,7 +35,7 @@ from ._regex import (
     UNITS_QUANTITY_PATTERN,
     UPPERCASE_PATTERN,
 )
-from ._structure_features import SentenceStrucureFeatures
+from ._structure_features import SentenceStructureFeatures
 from ._utils import (
     combine_quantities_split_by_and,
     is_unit_synonym,
@@ -138,7 +139,7 @@ class PreProcessor:
 
         self.singularised_indices = []
         self.tokenized_sentence = self._calculate_tokens(self.sentence)
-        self.sentence_structure = SentenceStrucureFeatures(self.tokenized_sentence)
+        self.sentence_structure = SentenceStructureFeatures(self.tokenized_sentence)
 
     def __repr__(self) -> str:
         """__repr__ method.
@@ -681,10 +682,43 @@ class PreProcessor:
         bool
             True if token  at index is a unit, else False.
         """
-        token = self.tokenized_sentence[index].feat_text
-        return (
-            token.lower() in self._units.values() and token.lower() not in LENGTH_UNITS
-        )
+        token = self.tokenized_sentence[index]
+
+        if Disambiguator.is_ambiguous(
+            token, index in self.singularised_indices, "is_unit"
+        ):
+            disambiguator = Disambiguator(
+                self.tokenized_sentence, self.singularised_indices
+            )
+            return disambiguator.does_feature_apply(index, "is_unit")
+
+        text = token.feat_text
+        return text in self._units.values() and text.lower() not in LENGTH_UNITS
+
+    def _is_size(self, index: int) -> bool:
+        """Return True if token is a size.
+
+        Parameters
+        ----------
+        index : int
+            Index of token to check.
+
+        Returns
+        -------
+        bool
+            True if token  at index is a size, else False.
+        """
+        token = self.tokenized_sentence[index]
+
+        if Disambiguator.is_ambiguous(
+            token, index in self.singularised_indices, "is_size"
+        ):
+            disambiguator = Disambiguator(
+                self.tokenized_sentence, self.singularised_indices
+            )
+            return disambiguator.does_feature_apply(index, "is_size")
+
+        return token.feat_text.lower() in SIZES
 
     def _is_dimension(self, token: str) -> bool:
         """Return True if token is a dimension.
@@ -751,7 +785,7 @@ class PreProcessor:
         >>> p._ends_with_inch_symbol("1 inch")
         False
         """
-        return INCH_SIZE_PATTERN.match(token) is not None
+        return INCH_SIZE_PATTERN.search(token) is not None
 
     def _is_length_unit(self, index: int) -> bool:
         """Return True if token at index is a length unit.
@@ -794,15 +828,15 @@ class PreProcessor:
         Examples
         --------
         >>> p = PreProcessor("")
-        >>> p._is_unit("/")
+        >>> p._is_punc("/")
         True
 
         >>> p = PreProcessor("")
-        >>> p._is_unit("--")
+        >>> p._is_punc("--")
         True
 
         >>> p = PreProcessor("")
-        >>> p._is_unit("beef")
+        >>> p._is_punc("beef")
         False
         """
         return token in string.punctuation or token in {"--"}
@@ -843,6 +877,10 @@ class PreProcessor:
         True
 
         >>> p = PreProcessor("")
+        >>> p._is_numeric("#1$2")
+        True
+
+        >>> p = PreProcessor("")
         >>> p._is_numeric("beef")
         False
         """
@@ -850,7 +888,7 @@ class PreProcessor:
             # Special cases of digits that don't represent numbers
             return False
 
-        if FRACTION_TOKEN_PATTERN.match(token):
+        if is_fraction(token):
             # Fraction tokens e.g. #1$4 or 1#2$3
             return True
 
@@ -859,17 +897,20 @@ class PreProcessor:
 
         if "-" in token:
             parts = token.split("-")
-            return all([self._is_numeric(part) for part in parts])
+            return all([self._is_numeric(part) or is_fraction(part) for part in parts])
 
         if token == "dozen":
             return True
 
         if token.endswith("x"):
-            try:
-                float(token[:-1])
+            if is_fraction(token[:-1]):
                 return True
-            except ValueError:
-                return False
+            else:
+                try:
+                    float(token[:-1])
+                    return True
+                except ValueError:
+                    return False
 
         try:
             float(token)
@@ -966,22 +1007,6 @@ class PreProcessor:
 
         return False
 
-    def _is_ambiguous_unit(self, index: int) -> bool:
-        """Return True if token is in AMBIGUOUS_UNITS list.
-
-        Parameters
-        ----------
-        index : int
-            Index of token to check.
-
-        Returns
-        -------
-        bool
-            True if token at index is in AMBIGUOUS_UNITS, else False.
-        """
-        token = self.tokenized_sentence[index].feat_text
-        return token in AMBIGUOUS_UNITS
-
     def _sentence_length_bucket(self) -> int:
         """Return the length of sentence, rounding down to the nearest bucket.
 
@@ -1068,7 +1093,7 @@ class PreProcessor:
             prefix + "word_shape": token.features.shape,
             prefix + "ends_with_inch_symbol": token.features.ends_with_inch_symbol,
             prefix + "is_unit": self._is_unit(index),
-            prefix + "is_ambiguous": self._is_ambiguous_unit(index),
+            prefix + "is_size": self._is_size(index),
             prefix + "is_in_parens": self._is_inside_parentheses(index),
             prefix + "is_after_comma": self._follows_comma(index),
             prefix + "is_after_plus": self._follows_plus(index),

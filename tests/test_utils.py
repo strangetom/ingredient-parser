@@ -33,6 +33,13 @@ class TestUtils_pluralise_units:
             == "3 cups (750 milliliters) milk"
         )
 
+    def test_custom_units(self):
+        """
+        Test custom units are pluralised correctly.
+        """
+        assert pluralise_units("blarg", {"blargs": "blarg"}) == "blargs"
+        assert pluralise_units("Blarg", {"Blargs": "Blarg"}) == "Blargs"
+
 
 class Test_convert_to_pint_unit:
     def test_empty_string(self):

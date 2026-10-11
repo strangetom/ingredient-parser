@@ -50,7 +50,7 @@ Refer to the documentation [here](https://ingredient-parser.readthedocs.io/en/la
 
 ## Model
 
-The core of the library is a sequence labelling model that is used to label each token in the sentence with the part of the sentence it belongs to. A data set of over 81,000 example sentences is used to train and evaluate the model. See the [Explanation](https://ingredient-parser.readthedocs.io/en/latest/explanation/index.html) section of the documentation for more details.
+The core of the library is a sequence labelling model that is used to label each token in the sentence with the part of the sentence it belongs to. A data set of over 88,000 example sentences is used to train and evaluate the model. See the [Explanation](https://ingredient-parser.readthedocs.io/en/latest/explanation/index.html) section of the documentation for more details.
 
 The model has the following accuracy on a test data set of 20% of the total data used:
 
@@ -58,10 +58,10 @@ The model has the following accuracy on a test data set of 20% of the total data
 ╒══════════════════════════╤══════════════════════════╕
 │ Sentence-level results   │ Word-level results       │
 ╞══════════════════════════╪══════════════════════════╡
-│ Accuracy: 94.94%         │ Accuracy: 98.03%         │
-│                          │ Precision (micro) 98.03% │
-│                          │ Recall (micro) 98.03%    │
-│                          │ F1 score (micro) 98.03%  │
+│ Accuracy: 94.98%         │ Accuracy: 98.05%         │
+│                          │ Precision (micro) 98.04% │
+│                          │ Recall (micro) 98.05%    │
+│                          │ F1 score (micro) 98.05%  │
 ╘══════════════════════════╧══════════════════════════╛
 ```
 

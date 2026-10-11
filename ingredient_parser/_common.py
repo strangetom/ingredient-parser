@@ -7,6 +7,7 @@ import platform
 import re
 import subprocess
 from collections.abc import Generator, Iterator
+from fractions import Fraction
 from importlib.resources import as_file, files
 from itertools import groupby, islice
 from operator import itemgetter
@@ -93,7 +94,7 @@ def group_consecutive_idx(idx: list[int]) -> Generator[Iterator[int], None, None
 T = TypeVar("T")
 
 
-def incremental_sublists(sequence: list[T]) -> list[list[T]]:
+def incremental_sublists(sequence: list[T], reverse: bool = False) -> list[list[T]]:
     """Return sublists of sequence, retaining the same order, where each sublist
     contains incrementally more of sequence.
 
@@ -102,6 +103,8 @@ def incremental_sublists(sequence: list[T]) -> list[list[T]]:
     ----------
     sequence : list[T]
         Sequence of elements.
+    reverse : bool, optional
+        If True, generate incremental sublists starting at end of sequence
 
     Returns
     -------
@@ -115,9 +118,16 @@ def incremental_sublists(sequence: list[T]) -> list[list[T]]:
 
     >>> incremental_sublists(["this", "is", "a", "sequence"])
     [["this"], ["this", "is"], ["this", "is", "a"], ["this", "is", "a", "sequence"]]
+
+    >>> incremental_sublists([0, 1, 2, 3], reverse=True)
+    [[3], [3, 2], [3, 2, 1], [3, 2, 1, 0]]
     """
-    sequence = sequence.copy()
-    return [sequence[: i + 1] for i in range(len(sequence))]
+    if reverse:
+        r_sequence = list(reversed(sequence.copy()))
+        return [r_sequence[: i + 1] for i in range(len(sequence))]
+    else:
+        sequence = sequence.copy()
+        return [sequence[: i + 1] for i in range(len(sequence))]
 
 
 def show_model_card(lang: str = "en") -> None:
@@ -216,10 +226,199 @@ def is_range(value: str) -> bool:
     >>> is_range("1-2")
     True
 
-    >>> is_float("100-500")
+    >>> is_range("100-500")
     True
 
-    >>> is_float("1")
+    >>> is_range("1")
     False
     """
     return RANGE_PATTERN.match(value) is not None
+
+
+# Define the regex pattern for a fraction in the intermediate format.
+# The first capture group captures any leading integer.
+# The second capture group captures the fraction part, including the leading '#'.
+INTERMEDIATE_FRACTION_PATTERN = re.compile(r"(\d*)(\#\d+\$\d+)")
+
+
+def intermediate_fraction_to_unicode(token: str) -> str:
+    """Convert intermediate format fraction to unicode fraction.
+
+    The intermediate format uses # to mark the start of the fraction (and separate any
+    leading integer from the fraction) and $ to mark the separation between the
+    numerator and denominator. For example:
+        #1$2 = ½
+        2#1$3 = 2⅓
+
+    If the fraction part does not correspond to a unicode fraction, it is returned in
+    a plain text form e.g. 1/2.
+
+    Parameters
+    ----------
+    token : str
+        Fraction in intermediate format.
+
+    Returns
+    -------
+    str
+        Intermediate format fraction converted to unicode fraction.
+
+    Examples
+    --------
+    >>> intermediate_fraction_to_unicode("#1$2")
+    ½
+
+    >>> intermediate_fraction_to_unicode("1#1$3")
+    1⅓
+
+    >>> intermediate_fraction_to_unicode("2#1$9")
+    2 1/9
+
+    >>> intermediate_fraction_to_unicode("#1$2-#3$4")
+    ½-¾
+
+    >>> intermediate_fraction_to_unicode("2#1$2-inch")
+    2½-inch
+    """
+    UNICODE_FRACTIONS = {
+        "#1$8": "\u215b",
+        "#3$8": "\u215c",
+        "#5$8": "\u215d",
+        "#7$8": "\u215e",
+        "#1$6": "\u2159",
+        "#5$6": "\u215a",
+        "#1$5": "\u2155",
+        "#2$5": "\u2156",
+        "#3$5": "\u2157",
+        "#4$5": "\u2158",
+        "#1$4": "\xbc",
+        "#3$4": "\xbe",
+        "#1$3": "\u2153",
+        "#2$3": "\u2154",
+        "#1$2": "\xbd",
+    }
+
+    def substitute_fraction_string(match: re.Match) -> str:
+        """Function to construct the substitute for a intermediate format fraction.
+
+        Parameters
+        ----------
+        match : re.Match
+            Match object for fraction in intermediate format.
+
+        Returns
+        -------
+        str
+            Replacement string.
+        """
+        integer = match.group(1)
+        fraction = match.group(2)
+
+        if fraction in UNICODE_FRACTIONS:
+            replacement_fraction = UNICODE_FRACTIONS[fraction]
+        else:
+            replacement_fraction = fraction.replace("#", " ").replace("$", "/")
+
+        return integer + replacement_fraction
+
+    return INTERMEDIATE_FRACTION_PATTERN.sub(substitute_fraction_string, token).strip()
+
+
+def is_fraction(value: str) -> bool:
+    """Check if `value` is a fraction given in the intermediate format.
+
+    Parameters
+    ----------
+    value : str
+        Value to check.
+
+    Returns
+    -------
+    bool
+        True if the value is an fraction, else False.
+
+    Examples
+    --------
+    >>> is_fraction("#1$2")
+    True
+
+    >>> is_fraction("2#1$4")
+    True
+
+    >>> is_fraction("#1$2-#3$4")
+    False
+    """
+    return INTERMEDIATE_FRACTION_PATTERN.fullmatch(value) is not None
+
+
+def fraction_obj_to_str(frac: Fraction) -> str:
+    """Convert Fraction object to string.
+
+    If the fractional part of the Fraction object can be converted to a unicode
+    fraction, return as a unicode fraction. Otherwise return as a decimal.
+
+    Parameters
+    ----------
+    frac : Fraction
+        Fraction object to convert to string.
+
+    Returns
+    -------
+    str
+        Converted string.
+
+    Examples
+    --------
+    >>> fraction_obj_to_str(Fraction(1))
+    '1'
+
+    >>> fraction_obj_to_str(Fraction(5, 2))
+    '2½'
+
+    >>> fraction_obj_to_str(Fraction(0.75))
+    '¾'
+
+    >>> fraction_obj_to_str(Fraction(11829411824999997, 25000000000000))
+    '473.176'
+
+    >>> fraction_obj_to_str(Fraction(100000000000000009336059, 40000000000000000000000))
+    '2½'
+    """
+    UNICODE_FRACTIONS = {
+        "1/8": "\u215b",
+        "3/8": "\u215c",
+        "5/8": "\u215d",
+        "7/8": "\u215e",
+        "1/6": "\u2159",
+        "5/6": "\u215a",
+        "1/5": "\u2155",
+        "2/5": "\u2156",
+        "3/5": "\u2157",
+        "4/5": "\u2158",
+        "1/4": "\xbc",
+        "3/4": "\xbe",
+        "1/3": "\u2153",
+        "2/3": "\u2154",
+        "1/2": "\xbd",
+    }
+
+    # Round fraction to avoid compounding errors during multiple conversions.
+    # Only do this if the fraction is not already in UNICODE_FRACTIONS.
+    if str(frac) not in UNICODE_FRACTIONS:
+        frac = round(frac, 12)
+
+    # Fraction.is_integer() only available from Python 3.12.
+    # Check Fraction..denominator is 1 instead.
+    if frac.denominator == 1:
+        return str(frac)
+
+    if str(frac - int(frac)) in UNICODE_FRACTIONS:
+        # If the fractional part can be converted to unicode, do so.
+        integer = int(frac)
+        integer_text = str(integer) if integer != 0 else ""
+        fraction = frac - int(frac)
+        fraction_text = UNICODE_FRACTIONS.get(str(fraction), "")
+        return integer_text + fraction_text
+    else:
+        # If the fractional part cannot be converted to unicode, return as decimal.
+        return f"{float(frac):g}"

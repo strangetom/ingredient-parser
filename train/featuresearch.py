@@ -7,16 +7,17 @@ import os
 import time
 from datetime import timedelta
 from pathlib import Path
+from typing import cast
 from uuid import uuid4
 
 import pycrfsuite
 from sklearn.model_selection import train_test_split
 from tabulate import tabulate
 
-from ingredient_parser.inference import NumpyCRFInference
+from ingredient_parser.inference import FeatureDict, NumpyCRFInference
 
 from .export import export_crfsuite_to_json
-from .train_model import DEFAULT_MODEL_LOCATION
+from .train_model import DEFAULT_MODEL_LOCATION, MODEL_HYPERPARAMETERS
 from .trainers import IngredientParserTrainer
 from .training_eval import evaluate
 from .training_utils import (
@@ -27,7 +28,7 @@ from .training_utils import (
 
 logger = logging.getLogger(__name__)
 
-DISCARDED_FEATURES = {
+DISCARDED_FEATURES: dict[int, list[str]] = {
     0: [],
     1: [
         "after_sentence_split",
@@ -42,20 +43,20 @@ DISCARDED_FEATURES = {
 
 
 def select_features(
-    features_all: list[list[dict]], discard_features: list[str]
-) -> list[dict]:
+    features_all: list[list[FeatureDict]], discard_features: list[str]
+) -> list[list[FeatureDict]]:
     """Select specific features from full feature set.
 
     Parameters
     ----------
-    features_all : list[list[dict]]
+    features_all : list[list[FeatureDict]]
         List of sentence feature dicts containing all features.
     discard_features : list[str]
         List of feature names to discard.
 
     Returns
     -------
-    list[dict]
+    list[list[FeatureDict]]
         List of feature dicts, containing selected features.
     """
     features_selected = []
@@ -114,6 +115,12 @@ def train_model_feature_search(
     # The stratify argument means that each dataset is represented proportionally
     # in the train and tests sets, avoiding the possibility that train or tests sets
     # contain data from one dataset disproportionally.
+    # We use typing.cast to stop pyright (and other checkers) from crying about the
+    # unknown types of the output.
+    features_train: list[list[FeatureDict]]
+    features_test: list[list[FeatureDict]]
+    truth_train: list[list[str]]
+    truth_test: list[list[str]]
     (
         _,
         _,
@@ -123,14 +130,26 @@ def train_model_feature_search(
         truth_test,
         _,
         _,
-    ) = train_test_split(
-        vectors.sentences,
-        vectors.features,
-        vectors.labels,
-        vectors.source,
-        test_size=split,
-        stratify=vectors.source,
-        random_state=seed,
+    ) = cast(
+        tuple[
+            list[str],
+            list[str],
+            list[list[FeatureDict]],
+            list[list[FeatureDict]],
+            list[list[str]],
+            list[list[str]],
+            list[str],
+            list[str],
+        ],
+        train_test_split(
+            vectors.sentences,
+            vectors.features,
+            vectors.labels,
+            vectors.source,
+            test_size=split,
+            stratify=vectors.source,
+            random_state=seed,
+        ),
     )
 
     # Remove features not in selected feature set
@@ -148,20 +167,7 @@ def train_model_feature_search(
     # Train model
     trainer = IngredientParserTrainer(verbose=True)
     # Set parameters
-    trainer.set_params(
-        {
-            "feature.minfreq": 0,
-            "feature.possible_states": True,
-            "feature.possible_transitions": True,
-            "c1": 0.3,
-            "c2": 0.6,
-            "max_linesearch": 5,
-            "num_memories": 3,
-            "period": 10,
-            "max_iterations": 1500,
-            "delta": 5e-5,
-        }
-    )
+    trainer.set_params(MODEL_HYPERPARAMETERS)
     for X, y in zip(features_train, truth_train):
         trainer.append(X, y)
     crfsuite_model_path = save_model_path.parent / (save_model_path.stem + ".crfsuite")

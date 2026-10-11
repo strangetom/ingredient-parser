@@ -10,7 +10,12 @@ from statistics import mean
 
 from ingredient_parser.en.foundationfoods import match_foundation_foods
 
-from .._common import consume, group_consecutive_idx
+from .._common import (
+    INTERMEDIATE_FRACTION_PATTERN,
+    consume,
+    group_consecutive_idx,
+    intermediate_fraction_to_unicode,
+)
 from ..dataclasses import (
     CompositeIngredientAmount,
     FoundationFood,
@@ -28,7 +33,6 @@ from ._constants import (
     STOP_WORDS,
     STRING_NUMBERS_REGEXES,
 )
-from ._regex import FRACTION_TOKEN_PATTERN
 from ._utils import (
     combine_quantities_split_by_and,
     ingredient_amount_factory,
@@ -83,7 +87,7 @@ class _PartialIngredientAmount:
     related_to_previous: bool = False
     APPROXIMATE: bool = False
     SINGULAR: bool = False
-    PREPARED_INGREDIENT = False
+    PREPARED_INGREDIENT: bool = False
     implicit_quantity: bool = False
 
 
@@ -114,11 +118,10 @@ class PostProcessor:
         If True, return all IngredientAmount units as strings.
         If False, convert IngredientAmount units to pint.Unit objects where possible.
         Default is False.
-    imperial_units : bool, optional
-        If True, use imperial units instead of US customary units for pint.Unit objects
-        for the the following units: fluid ounce, cup, pint, quart, gallon.
-        Default is False, which results in US customary units being used.
-        This has no effect if string_units=True.
+    volumetric_units_system : str, optional
+        Sets the units system for volumetric measurements, like "cup" or "tablespoon".
+        Available options are "us_customary" (default), "imperial", "metric",
+        "australian", "japanese".
     foundation_foods : bool, optional
         If True, populate the foundation_foods field of ParsedIngredient.
         Default is False, in which case the foundation_foods field is an empty list.
@@ -189,17 +192,12 @@ class PostProcessor:
             name, foundationfoods = self._postprocess_names()
         else:
             # Replace all labels containing NAME with "NAME"
-            name_replaced_labels = []
             for t in self.tokens:
                 if "NAME" in t.label:
                     t.label = "NAME"
-            self.labels = name_replaced_labels
             logger.debug(
-                (
-                    "Relabelled tokens to %s ",
-                    "because seperate_name=False.",
-                ),
-                name_replaced_labels,
+                "Relabelled tokens to %s because seperate_name=False.",
+                [t.label for t in self.tokens],
             )
 
             # Process NAME labels as any other label, but return as a list
@@ -288,7 +286,7 @@ class PostProcessor:
 
         name_labels = [self.tokens[i].label for i in name_idx]
         bio_groups = self._group_name_labels(name_labels)
-        constructed_names = self._construct_names_from_bio_groups(bio_groups)
+        constructed_names = self._construct_names_from_bio_groups(bio_groups, name_idx)
         names, foundation_foods = self._convert_name_indices_to_object(
             name_idx, constructed_names
         )
@@ -385,7 +383,7 @@ class PostProcessor:
         return name_groups
 
     def _construct_names_from_bio_groups(
-        self, name_groups: list[list[tuple[int, str]]]
+        self, name_groups: list[list[tuple[int, str]]], name_idx: list[int]
     ) -> list[list[int]]:
         """Construct names from BIO groups.
 
@@ -402,6 +400,8 @@ class PostProcessor:
             List of BIO groups.
             Each group is a list of tuples, where each tuple if the (index, label) of
             the original list element.
+        name_idx : list[int]
+            List of indices of NAME tokens.
 
         Returns
         -------
@@ -451,7 +451,10 @@ class PostProcessor:
 
                 # Prepend this group to all constructed names so far
                 constructed_names = [
-                    current_group_idx + name for name in constructed_names
+                    current_group_idx + name
+                    if not self._is_mixture_phrase(name, name_idx)
+                    else name
+                    for name in constructed_names
                 ]
 
         # If we've iterated through all BIO groups and haven't used
@@ -461,6 +464,35 @@ class PostProcessor:
 
         # Return reversed list, so names are in the order they appear in sentence.
         return list(reversed(constructed_names))
+
+    def _is_mixture_phrase(
+        self, phrase_indices: tuple[int, ...], name_idx: list[int]
+    ) -> bool:
+        """Return True if phrase starts with "a mixture", "a mix", "a combination" etc.
+
+        Parameters
+        ----------
+        phrase_indices : tuple[int, ...]
+            Indices of tokens within name_idx list.
+        name_idx : list[int]
+            List of token indices for tokens with NAME label.
+
+        Returns
+        -------
+        bool
+            True if phrase is mixture phrase, else False.
+        """
+        MIXTURE_PHRASES = [
+            ("a", "mixture"),
+            ("a", "mix"),
+            ("a", "combination"),
+        ]
+
+        phrase = tuple(self.tokens[name_idx[i]].text for i in phrase_indices[:2])
+        if phrase in MIXTURE_PHRASES:
+            return True
+
+        return False
 
     def _get_name_group_label(self, labels: tuple[str]) -> str:
         """Get the NAME label type for the labels in a name group.
@@ -633,14 +665,10 @@ class PostProcessor:
             # Convert any fractions in intermediate form (i.e. #1$2) into text
             group_tokens = []
             for i in idx:
-                if FRACTION_TOKEN_PATTERN.match(self.tokens[i].text):
-                    text_fraction = (
-                        self.tokens[i].text.replace("#", " ").replace("$", "/").strip()
+                if INTERMEDIATE_FRACTION_PATTERN.search(self.tokens[i].text):
+                    group_tokens.append(
+                        intermediate_fraction_to_unicode(self.tokens[i].text)
                     )
-                    # If fraction range, remove space that will follow hyphen caused by
-                    # replacing # with space.
-                    text_fraction = text_fraction.replace("- ", "-")
-                    group_tokens.append(text_fraction)
                 else:
                     if self.tokens[i].plural:
                         group_tokens.append(
@@ -711,7 +739,7 @@ class PostProcessor:
         The confidence is the average confidence of all labels in the IngredientGroup.
 
         A number of special cases are considered before the default processing:
-        1. "sizeable unit" pattern
+        1. "container unit" pattern
         2. "composite amounts" pattern
 
         Returns
@@ -722,7 +750,7 @@ class PostProcessor:
         self._convert_string_number_qty()
 
         funcs = [
-            self._sizeable_unit_pattern,
+            self._container_unit_pattern,
             self._composite_amounts_pattern,
             self._fallback_pattern,
         ]
@@ -882,7 +910,7 @@ class PostProcessor:
         Examples
         --------
         >>> p = PostProcessor("", [], [], [])
-        >>> p._remove_isolated_punctuation_and_duplicate_indices(
+        >>> p._remove_adjacent_duplicates(
             ["word", "word", "another"],
         )
         [1, 2]
@@ -981,16 +1009,17 @@ class PostProcessor:
         if idx_to_remove:
             self.tokens = [t for t in self.tokens if t.index not in idx_to_remove]
 
-    def _sizeable_unit_pattern(
+    def _container_unit_pattern(
         self, tokens: list[LabelledToken]
     ) -> list[IngredientAmount]:
-        """Identify sentences which match the sizeable unit pattern.
+        """Identify sentences which match the container unit pattern.
 
         This pattern is where there is a quantity-unit pair split by one or more
         quantity-unit pairs e.g.
 
         * 1 28 ounce can
         * 2 17.3 oz (484g) package
+        * 2 (250 g) cups
 
         This also handles the case where there is no leading count, e.g.
 
@@ -1012,6 +1041,12 @@ class PostProcessor:
         [
             IngredientAmount(quantity=Fraction(1, 1), unit="can", score=0.x...),
             IngredientAmount(quantity=Fraction(15, 1), unit="ounce", score=0.x...),
+        ]
+
+        For the sentence: 2 (250 ml) cups; the correct amounts are:
+        [
+            IngredientAmount(quantity=Fraction(2, 1), unit="cup", score=0.x...),
+            IngredientAmount(quantity=Fraction(250, 1), unit="ml", score=0.x...),
         ]
 
         Parameters
@@ -1068,9 +1103,21 @@ class PostProcessor:
                     # because the implicit quantity of 1 applied would be invalid.
                     continue
 
-                # If the pattern ends with one of end_units, we have found a match for
-                # this pattern!
-                if tokens[match[-1]].text in end_units:
+                # Check for the case where the inner amount is within parenthesis, and
+                # apply this pattern even if the end unit is not a container.
+                opening = tokens[match[1] - 1].text if match[1] > 0 else None
+                closing = tokens[match[-1] - 1].text if match[-1] > 0 else None
+                primary_unit_follows_parenthesized_equivalent = (opening, closing) in {
+                    ("(", ")"),
+                    ("[", "]"),
+                }
+
+                # A final unit outside the equivalent-measurement delimiters belongs to
+                # the leading quantity.
+                if (
+                    tokens[match[-1]].text in end_units
+                    or primary_unit_follows_parenthesized_equivalent
+                ):
                     # Get tokens and scores that are part of match
                     matching_tokens = [tokens[i].text for i in match]
                     matching_scores = [tokens[i].score for i in match]
@@ -1150,7 +1197,59 @@ class PostProcessor:
                         )
                         amounts.append(amount)
 
+        # Check if amounts after the first have equivalent quantities to first amount.
+        # If they do, set the SINGULAR flag to False.
+        for amount in amounts[1:]:
+            if self._are_equivalent_amounts(amounts[0], amount):
+                amount.SINGULAR = False
+
         return amounts
+
+    def _are_equivalent_amounts(
+        self, first: IngredientAmount, second: IngredientAmount
+    ) -> bool:
+        """Return True if both IngredientAmount objects represent equivalent amounts.
+
+        Both quantity and quantity_max are checked for equivalence.
+
+        Parameters
+        ----------
+        first : IngredientAmount
+            IngredientAmount object.
+        second : IngredientAmount
+            IngredientAmount object.
+
+        Returns
+        -------
+        bool
+            True if both IngredientAmount objects represent equivalent amounts.
+        """
+        if (
+            first.quantity == second.quantity
+            and first.quantity_max == second.quantity_max
+            and first.unit == second.unit
+        ):
+            return True
+
+        if (
+            isinstance(first.quantity, str)
+            or isinstance(second.quantity, str)
+            or isinstance(first.unit, str)
+            or isinstance(second.unit, str)
+        ):
+            # If either quantity or unit is a string, we can't check any further, so
+            # return False.
+            return False
+
+        # Create pint.Quantity objects for the two amounts and compare.
+        first_quantity = first.quantity * first.unit
+        first_quantity_max = first.quantity_max * first.unit
+        second_quantity = second.quantity * second.unit
+        second_quantity_max = second.quantity_max * second.unit
+        return bool(
+            first_quantity == second_quantity
+            and first_quantity_max == second_quantity_max
+        )
 
     def _composite_amounts_pattern(
         self, tokens: list[LabelledToken]
@@ -1631,26 +1730,6 @@ class PostProcessor:
         -------
         bool
             True if current token is approximate.
-
-        Examples
-        --------
-        >>> p = PostProcessor("", [], [], [])
-        >>> p._is_approximate(
-            1,
-            ["about", "3", "cups"],
-            ["COMMENT", "QTY", "UNIT"],
-            [0, 1, 2]
-        )
-        True
-
-        >>> p = PostProcessor("", [], [], [])
-        >>> p._is_approximate(
-            1,
-            ["approx.", "250", "g"],
-            ["COMMENT", "QTY", "UNIT"],
-            [0, 1, 2]
-        )
-        True
         """
         if (
             tokens[i].label == "QTY"
@@ -1712,17 +1791,6 @@ class PostProcessor:
         -------
         bool
             True if current token is singular.
-
-        Examples
-        --------
-        >>> p = PostProcessor("", [], [], [])
-        >>> p._is_singular(
-            1,
-            ["3", "oz", "each"],
-            ["QTY", "UNIT", "COMMENT"],
-            [0, 1, 2]
-        )
-        True
         """
         if i == len(tokens) - 1:
             return False
@@ -1776,26 +1844,6 @@ class PostProcessor:
         -------
         bool
             True if current token is singular and approximate.
-
-        Examples
-        --------
-        >>> p = PostProcessor("", [], [], [])
-        >>> p._is_approximate(
-            2,
-            ["each", nearly", "3", "oz"],
-            ["COMMENT", "COMMENT", "QTY", "UNIT"],
-            [0, 1, 2, 3]
-        )
-        True
-
-        >>> p = PostProcessor("", [], [], [])
-        >>> p._is_approximate(
-            1,
-            ["2", lbs", "or", "so", "each"],
-            ["QTY", "UNIT", "COMMENT", "COMMENT", "COMMENT"],
-            [0, 1, 2, 3, 4]
-        )
-        True
         """
         if (
             tokens[i].label == "QTY"

@@ -28,3 +28,21 @@ class TestParser_custom_units:
         p = parse_ingredient("2 Brillig sausages", custom_units={"brilligs": "brillig"})
         assert p.amount[0].unit == "Brilligs"
         assert p.amount[0].text == "2 Brilligs"
+
+    def test_titlecase_custom_unit(self):
+        """
+        Test that Brillig is recognised as a unit when provided as part of a custom
+        units dict.
+        """
+        p = parse_ingredient("2 Brillig sausages", custom_units={"Brilligs": "Brillig"})
+        assert p.amount[0].unit == "Brilligs"
+        assert p.amount[0].text == "2 Brilligs"
+
+    def test_uppercase_custom_unit(self):
+        """
+        Test that BLS is recognised as a unit when provided as part of a custom
+        units dict.
+        """
+        p = parse_ingredient("2 BLS sausages", custom_units={"BLS": "BL"})
+        assert p.amount[0].unit == "BLS"
+        assert p.amount[0].text == "2 BLS"

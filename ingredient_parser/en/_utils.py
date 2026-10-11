@@ -4,23 +4,32 @@ import re
 from fractions import Fraction
 from functools import lru_cache
 from itertools import chain
+from typing import cast
 
 import pint
+from nltk import PerceptronTagger
 from nltk.stem.snowball import EnglishStemmer
-from nltk.tag import _get_tagger, _pos_tag
+from nltk.tag import _pos_tag  # type: ignore
 
-from ingredient_parser.en._loaders import load_ingredient_tagdict
-
-from .._common import UREG, consume, download_nltk_resources, is_float, is_range
+from .._common import (
+    UREG,
+    consume,
+    download_nltk_resources,
+    intermediate_fraction_to_unicode,
+    is_float,
+    is_fraction,
+    is_range,
+)
 from ..dataclasses import IngredientAmount
 from ._constants import (
     FLATTENED_UNITS_LIST,
     UNIT_SYNONYMS,
     UNITS,
+    pluralise_known_unit,
 )
+from ._loaders import load_ingredient_tagdict
 from ._regex import (
     FRACTION_SPLIT_AND_PATTERN,
-    FRACTION_TOKEN_PATTERN,
     STRING_RANGE_PATTERN,
 )
 
@@ -131,7 +140,7 @@ STEMMER = EnglishStemmer()
 # Define regular expressions used by tokenizer.
 # Matches one or more whitespace characters
 WHITESPACE_TOKENISER = re.compile(r"\S+")
-# Matches and captures one of the following: ( ) [ ] { } , " / : ; ? ! ~
+# Matches and captures one of the specified punctuation marks.
 PUNCTUATION_TOKENISER = re.compile(r"([\(\)\[\]\{\}\,/:;\?\!\*\~])")
 # Matches and captures full stop at end of string
 # (?<!\.\w) is a negative lookbehind that prevents matches if the last full stop
@@ -196,6 +205,25 @@ def tokenize(sentence: str) -> list[str]:
     return [tok for tok in chain.from_iterable(tokens) if tok]
 
 
+@lru_cache
+def _get_pos_tagger() -> PerceptronTagger:
+    """Cached function to return part of speech tagger.
+
+    The returned part of speech tagger is the default English part of speech tagger from
+    NLTK, but with it's tagdict updated with addition ingredient sentence specific
+    entries.
+
+    Returns
+    -------
+    PerceptronTagger
+        PerceptronTagger part of speech tagger object.
+    """
+    tagger = PerceptronTagger()
+    ingredient_tagdict = load_ingredient_tagdict()
+    tagger.tagdict.update(ingredient_tagdict)
+    return tagger
+
+
 def pos_tag(tokens: list[str]) -> list[tuple[str, str]]:
     """Tag tokens with parts of speech.
 
@@ -214,9 +242,7 @@ def pos_tag(tokens: list[str]) -> list[tuple[str, str]]:
     list[tuple[str, str]]
         List of (token, tag) pairs.
     """
-    tagger = _get_tagger("eng")
-    ingredient_tagdict = load_ingredient_tagdict()
-    tagger.tagdict.update(ingredient_tagdict)
+    tagger = _get_pos_tagger()
     return _pos_tag(tokens=tokens, tagset=None, tagger=tagger, lang="eng")
 
 
@@ -235,10 +261,10 @@ def combine_and_or(tokens: list[str]) -> list[str]:
 
     Examples
     --------
-    >>> recombine_and_or(["2", "cups", "beef", "and/or", "chicken", "stock"])
+    >>> combine_and_or(["2", "cups", "beef", "and/or", "chicken", "stock"])
     ["2", "cups", "beef", "and/or", "chicken", "stock"]
 
-    >>> recombine_and_or(["1-2", "bananas", ":", "as", "ripe", "as", "possible"])
+    >>> combine_and_or(["1-2", "bananas", ":", "as", "ripe", "as", "possible"])
     ["1-2", "bananas", ":", "as", "ripe", "as", "possible"]
     """
     AND_OR_PATTERN = ["and", "/", "or"]
@@ -272,13 +298,13 @@ def combine_no_number(tokens: list[str]) -> list[str]:
 
     Examples
     --------
-    >>> recombine_and_or(["1", "teaspoon", "No", ".", "1", "curing", "salt"])
+    >>> combine_no_number(["1", "teaspoon", "No", ".", "1", "curing", "salt"])
     ['1', 'teaspoon', 'No. 1', 'curing', 'salt']
     """
     combined = []
     idx = iter(range(len(tokens)))
     for i in idx:
-        if tokens[i] == "No." and is_float(tokens[i + 1]):
+        if i < len(tokens) - 1 and tokens[i] == "No." and is_float(tokens[i + 1]):
             combined.append("No. " + tokens[i + 1])
             consume(idx, 1)
         else:
@@ -328,18 +354,21 @@ def pluralise_units(sentence: str, custom_units: dict[str, str]) -> str:
 
     Examples
     --------
-    >>> pluralise_units("2 bag")
+    >>> pluralise_units("2 bag", {})
     '2 bags'
 
-    >>> pluralise_units("13 ounce")
+    >>> pluralise_units("13 ounce", {})
     '13 ounces'
 
-    >>> pluralise_units("1.5 loaf bread")
+    >>> pluralise_units("1.5 loaf bread", {})
     '1.5 loaves bread'
+
+    >>> pluralise_units("2 blarg bread", {"blargs": "blarg"})
+    '2 blargs bread'
     """
-    units = UNITS | custom_units
-    for plural, singular in units.items():
-        sentence = re.sub(rf"\b({singular})\b", f"{plural}", sentence)
+    sentence = pluralise_known_unit(sentence)
+    for plural, singular in custom_units.items():
+        sentence = re.sub(rf"\b({re.escape(singular)})\b", f"{plural}", sentence)
 
     return sentence
 
@@ -422,7 +451,7 @@ def convert_to_pint_unit(
     # If unit not empty string and found in Unit Registry,
     # return pint.Unit object for unit
     if unit != "" and unit in UREG:
-        return UREG(unit).units
+        return cast(pint.Unit, UREG(unit).units)
 
     return original_unit
 
@@ -519,12 +548,10 @@ def replace_string_range(text: str) -> str:
 
     Examples
     --------
-    >>> p = PreProcessor("")
-    >>> p._replace_string_range("1 to 2 mashed bananas")
+    >>> replace_string_range("1 to 2 mashed bananas")
     "1-2 mashed bananas"
 
-    >>> p = PreProcessor("")
-    >>> p._replace_string_range("5- or 6- large apples")
+    >>> replace_string_range("5- or 6- large apples")
     "5-6- large apples"
     """
     return STRING_RANGE_PATTERN.sub(r"\1-\5", text)
@@ -542,11 +569,11 @@ def to_frac(token: str) -> Fraction:
     Returns
     -------
     Fraction
-        Fraction object represeting the same quantity as token.
+        Fraction object representing the same quantity as token.
     """
-    if FRACTION_TOKEN_PATTERN.match(token):
+    if is_fraction(token):
         fraction_parts = [p.replace("$", "/") for p in token.split("#") if p]
-        return sum(Fraction(p) for p in fraction_parts)
+        return sum((Fraction(p) for p in fraction_parts), start=Fraction(0))
 
     return Fraction(token)
 
@@ -562,7 +589,7 @@ def ingredient_amount_factory(
     PREPARED_INGREDIENT: bool = False,
     string_units: bool = False,
     volumetric_units_system: str = "us_customary",
-    custom_units: dict[str, str] = {},
+    custom_units: dict[str, str] | None = None,
 ) -> IngredientAmount:
     """Create ingredient amount object from parts.
 
@@ -608,6 +635,9 @@ def ingredient_amount_factory(
     IngredientAmount
         IngredientAmount object for given inputs.
     """
+    if custom_units is None:
+        custom_units = {}
+
     RANGE = False
     MULTIPLIER = False
 
@@ -624,7 +654,7 @@ def ingredient_amount_factory(
         _quantity = min(range_parts)
         quantity_max = max(range_parts)
         RANGE = True
-    elif is_float(quantity) or FRACTION_TOKEN_PATTERN.match(quantity):
+    elif is_float(quantity) or is_fraction(quantity):
         # If float or fraction, set quantity_max = quantity
         _quantity = to_frac(quantity)
         quantity_max = _quantity
@@ -642,17 +672,19 @@ def ingredient_amount_factory(
         # common representation
         _unit = convert_to_pint_unit(_unit, volumetric_units_system)
 
-    # Pluralise unit as necessary
-    if _quantity != 1 and _quantity != "" and not RANGE:
+    # Pluralise unit as necessary.
+    if (_quantity != 1 and _quantity != "" and not RANGE) or (
+        quantity_max != 1 and quantity_max != "" and RANGE
+    ):
         text = pluralise_units(text, custom_units)
         if isinstance(_unit, str):
             _unit = pluralise_units(_unit, custom_units)
 
     # Fix up text:
-    # 1. Replace intermediate fractions with text fraction
+    # 1. Replace intermediate fractions with unicode fraction
     # 2. Remove additional leading and trailing spaces
     # 3. Remove additional spaces in fraction ranges
-    text = text.replace("#", " ").replace("$", "/").strip()
+    text = intermediate_fraction_to_unicode(text.strip())
     text = text.replace("- ", "-")
 
     return IngredientAmount(

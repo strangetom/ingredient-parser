@@ -78,7 +78,7 @@ class TestPostProcessor_IngredientAmount:
         amount = ingredient_amount_factory(
             quantity="200",
             unit="gram",
-            text="200 grams",
+            text="200 gram",
             confidence=0,
             starting_index=0,
         )
@@ -103,7 +103,7 @@ class TestPostProcessor_IngredientAmount:
 
         assert amount.quantity == 0.25
         assert amount.quantity_max == 0.5
-        assert amount.text == "1/4-1/2 tsp"
+        assert amount.text == "1/4-1/2 tsps"
         assert amount.RANGE
         assert amount.unit_system == UnitSystem.US_CUSTOMARY
 
@@ -196,7 +196,7 @@ class Test_IngredientAmount_convert_to:
         assert converted.quantity == 1000 * amount.quantity
         assert converted.quantity_max == 1000 * amount.quantity_max
         assert converted.unit == UREG("gram").units
-        assert converted.text == "1200 gram"
+        assert converted.text == "1200 grams"
         assert converted.unit_system == UnitSystem.METRIC
 
     def test_convert_metric_to_us_customary(self):
@@ -216,7 +216,7 @@ class Test_IngredientAmount_convert_to:
         assert converted.quantity == Fraction(4226752837730377, 2000000000000000)
         assert converted.quantity_max == Fraction(4226752837730377, 2000000000000000)
         assert converted.unit == UREG("cup").units
-        assert converted.text == "2.11338 cup"
+        assert converted.text == "2.11338 cups"
         assert converted.unit_system == UnitSystem.US_CUSTOMARY
 
     def test_convert_metric_to_imperial(self):
@@ -236,7 +236,7 @@ class Test_IngredientAmount_convert_to:
         assert converted.quantity == Fraction(879876993196351, 500000000000000)
         assert converted.quantity_max == Fraction(879876993196351, 500000000000000)
         assert converted.unit == UREG("imperial_cup").units
-        assert converted.text == "1.75975 imperial_cup"
+        assert converted.text == "1.75975 cups"
         assert converted.unit_system == UnitSystem.IMPERIAL
 
     def test_string_unit(self):

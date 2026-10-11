@@ -243,7 +243,7 @@ def check_label_consistency(args: argparse.Namespace) -> None:
                 "vectorize",
                 TfidfVectorizer(
                     tokenizer=tokenize,
-                    dtype=np.float32,
+                    dtype=np.float64,
                     min_df=2,
                     max_df=0.9,
                 ),
@@ -262,7 +262,7 @@ def check_label_consistency(args: argparse.Namespace) -> None:
                     cluster_selection_epsilon=0.4,
                     n_jobs=4,
                     cluster_selection_method="leaf",
-                    copy=False,
+                    copy=False,  # type: ignore[arg-type]
                 ),
             ),
         ],

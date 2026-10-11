@@ -1,11 +1,14 @@
+from fractions import Fraction
 from unittest.mock import patch
 
 import pytest
 
 from ingredient_parser._common import (
     consume,
+    fraction_obj_to_str,
     group_consecutive_idx,
     incremental_sublists,
+    intermediate_fraction_to_unicode,
     is_float,
     is_range,
     show_model_card,
@@ -142,3 +145,92 @@ class Test_incremental_sublists:
         expected = [["text"]]
         assert incremental_sublists(input_sequence) == expected
         assert len(incremental_sublists(input_sequence)) == len(input_sequence)
+
+
+class Test_intermediate_fraction_to_unicode:
+    def test_fractions_less_than_one(self):
+        """
+        Test that fractions less than 1 return the appropriate unicode fraction.
+        """
+        assert intermediate_fraction_to_unicode("#1$2") == "½"
+        assert intermediate_fraction_to_unicode("#1$4") == "¼"
+        assert intermediate_fraction_to_unicode("#1$6") == "⅙"
+        assert intermediate_fraction_to_unicode("#5$8") == "⅝"
+
+    def test_fractions_greater_than_one(self):
+        """
+        Test that fractions greater than 1 return a string with the fraction part
+        converted to unicode fraction.
+        """
+        assert intermediate_fraction_to_unicode("1#1$2") == "1½"
+        assert intermediate_fraction_to_unicode("4#1$4") == "4¼"
+
+    def test_fraction_range(self):
+        """
+        Test that both fractions in a fraction range are converted to unicode fractions.
+        """
+        assert intermediate_fraction_to_unicode("#1$2-#3$4") == "½-¾"
+
+    def test_partial_fraction_token(self):
+        """
+        Test that the fraction part of a token containing a fraction plus other
+        characters is converted to unicode.
+        """
+        assert intermediate_fraction_to_unicode("1#1$2-inch") == "1½-inch"
+        assert intermediate_fraction_to_unicode("#1$6-inch-wide") == "⅙-inch-wide"
+
+    def test_non_unicode_fractions(self):
+        """
+        Test that fractions without unicode versions are returned in plain text.
+        """
+        assert intermediate_fraction_to_unicode("#2$6") == "2/6"
+        assert intermediate_fraction_to_unicode("1#2$6") == "1 2/6"
+        assert intermediate_fraction_to_unicode("1#2$6-1#4$6") == "1 2/6-1 4/6"
+        assert intermediate_fraction_to_unicode("#2$4-inch") == "2/4-inch"
+
+
+class Test_fraction_obj_to_str:
+    def test_integer(self):
+        """
+        Test integer return as string.
+        """
+        assert fraction_obj_to_str(Fraction(2)) == "2"
+
+    def test_fraction_greater_than_1(self):
+
+        assert fraction_obj_to_str(Fraction(5, 2)) == "2½"
+
+    def test_fraction_less_than_one(self):
+
+        assert fraction_obj_to_str(Fraction(0.75)) == "¾"
+
+    def test_fraction_without_unicode_representation(self):
+        assert (
+            fraction_obj_to_str(Fraction(11829411824999997, 25000000000000))
+            == "473.176"
+        )
+
+    def test_fraction_with_recurring_decimal_represetnation(self):
+        """
+        Test that fractions with recurring decimal representations that have unicode
+        representation return the correct unicode representations.
+
+        This specifically checks that the rounding is not applied unnecessarily.
+        """
+        assert fraction_obj_to_str(Fraction(1, 3)) == "⅓"
+
+    def test_rounding(self):
+        """
+        Test fraction is rounded to an appropriately to convert to unicode fraction.
+
+        This fraction is returned from convert 2.5 imperial cups to metric cups and back
+        again.
+        """
+        assert (
+            fraction_obj_to_str(
+                Fraction(
+                    10000000000000000933605979589053, 4000000000000000000000000000000
+                )
+            )
+            == "2½"
+        )

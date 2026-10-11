@@ -160,3 +160,71 @@ class TestPostProcessor_postprocess_names:
         p = PostProcessor(sentence, labelled_tokens, custom_units={})
         names, _ = p._postprocess_names()
         assert names == expected
+
+    def test_or_a_mixture(self):
+        """
+        Test that a list containing one IngredientText objects is returned
+        """
+        sentence = "3 pounds bone-in chicken thighs or drumsticks (or a mixture)"
+        tokens = [
+            "3",
+            "pound",
+            "bone-in",
+            "chicken",
+            "thighs",
+            "or",
+            "drumsticks",
+            "(",
+            "or",
+            "a",
+            "mixture",
+            ")",
+        ]
+        pos_tags = [
+            "CD",
+            "NNS",
+            "JJ",
+            "NN",
+            "NNS",
+            "CC",
+            "NNS",
+            "(",
+            "CC",
+            "DT",
+            "NN",
+            ")",
+        ]
+        labels = [
+            "QTY",
+            "UNIT",
+            "NAME_MOD",
+            "NAME_MOD",
+            "B_NAME_TOK",
+            "NAME_SEP",
+            "B_NAME_TOK",
+            "PUNC",
+            "NAME_SEP",
+            "B_NAME_TOK",
+            "I_NAME_TOK",
+            "PUNC",
+        ]
+        labelled_tokens = [
+            LabelledToken(
+                index=i, text=text, pos_tag=tag, label=label, score=0, plural=False
+            )
+            for i, (text, tag, label) in enumerate(zip(tokens, pos_tags, labels))
+        ]
+
+        expected = [
+            IngredientText(
+                text="bone-in chicken thighs", confidence=0, starting_index=2
+            ),
+            IngredientText(
+                text="bone-in chicken drumsticks", confidence=0, starting_index=2
+            ),
+            IngredientText(text="a mixture", confidence=0, starting_index=9),
+        ]
+
+        p = PostProcessor(sentence, labelled_tokens, custom_units={})
+        names, _ = p._postprocess_names()
+        assert names == expected

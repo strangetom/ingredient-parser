@@ -119,7 +119,7 @@ UNITS = {
     "vials": "vial",
     "wheels": "wheel",
 }
-# Generate capitalized and uppercase version of each entry in the UNITS dictionary
+# Generate capitalized and uppercase version of each entry in the UNITS dictionary.
 _capitalized_units = {}
 for plural, singular in UNITS.items():
     _capitalized_units[plural.capitalize()] = singular.capitalize()
@@ -129,29 +129,75 @@ UNITS = UNITS | _capitalized_units
 # since we need this in a few places
 FLATTENED_UNITS_LIST = set(chain.from_iterable(UNITS.items()))
 
-# Units that can be part of the name
-# e.g. 1 teaspoon ground cloves, or 5 bay leaves
-AMBIGUOUS_UNITS = [
-    "cloves",
-    "leaves",
-    "slabs",
-    "wedges",
-    "ribs",
-    "gram",  # e.g. gram (chickpea) flour
-    "glass",  # e.g. glass noodles
-    "stem",  # e.g. stem ginger
-    "pound",  # e.g. pound cake
-]
-# Extend list automatically to include singular and capitalized forms
-_ambiguous_units_alt_forms = []
-for amb_unit in AMBIGUOUS_UNITS:
-    _ambiguous_units_alt_forms.append(amb_unit.capitalize())
-    if singular := UNITS.get(amb_unit):
-        _ambiguous_units_alt_forms.append(singular)
-    if singular_capitalised := UNITS.get(amb_unit.capitalize()):
-        _ambiguous_units_alt_forms.append(singular_capitalised)
+# Invert UNITS dict so we can look up plural form from singular form.
+UNITS_RINDEX: dict[str, str] = {v: k for k, v in UNITS.items()}
 
-AMBIGUOUS_UNITS.extend(_ambiguous_units_alt_forms)
+
+def _generate_regex_for_pluralising_known_units(units: dict[str, str]) -> re.Pattern:
+    """Pre-compile regular expression for pluralising unit in the UNITS dict.
+
+    This is a performance optimisation to avoid iterating over each item in the UNITS
+    dict. Instead, we generate a regular expression of all singular units which captures
+    a matching singular unit. We can then use the captured singular unit to look up the
+    plural and substitute it into a string.
+
+    Parameters
+    ----------
+    units : dict[str, str]
+        Dict of known singular units and their plural versions.
+
+    Returns
+    -------
+    re.Pattern
+        Pre-compiled regular expression containing the union of all known singular
+        units.
+    """
+    # Generate dict in reverse lex order, so that each string occurs before it's perfect
+    # substrings.
+    ordered_singular_units = reversed(sorted(units.values()))
+    return re.compile(
+        "|".join(rf"\b({singular})\b" for singular in ordered_singular_units)
+    )
+
+
+KNOWN_PLURAL_UNIT_PATTERN = _generate_regex_for_pluralising_known_units(UNITS)
+
+
+def pluralise_known_unit(s: str) -> str:
+    """Substitute singular form of known units in input string with plural form.
+
+    Parameters
+    ----------
+    s : str
+        String to perform substitution on.
+
+    Returns
+    -------
+    str
+        Input string with singular units substituted with plural forms.
+    """
+
+    def singular_to_plural(match: re.Match) -> str:
+        """Convert singular form of unit to plural form.
+
+        If, for any reason, the captured singular form does not occur in UNITS_RINDEX,
+        return the plural form.
+
+        Parameters
+        ----------
+        match : re.Match
+            Regular expression match capturing singular form unit.
+
+        Returns
+        -------
+        str
+            Plural form of captured unit.
+        """
+        plural_unit: str = match.group(0)
+        return UNITS_RINDEX.get(plural_unit, plural_unit)
+
+    return KNOWN_PLURAL_UNIT_PATTERN.sub(singular_to_plural, s)
+
 
 # Words that indicate ingredient size
 SIZES = [

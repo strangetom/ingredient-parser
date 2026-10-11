@@ -3,7 +3,7 @@ from ingredient_parser.en import PostProcessor
 from ingredient_parser.en._utils import ingredient_amount_factory
 
 
-class TestPostProcessor_sizeable_unit_pattern:
+class TestPostProcessor_container_unit_pattern:
     def test_long_pattern(self):
         """
         Test that 4 quantity and unit amounts are returned, with the first
@@ -70,7 +70,7 @@ class TestPostProcessor_sizeable_unit_pattern:
             ingredient_amount_factory(
                 quantity="28",
                 unit="ounce",
-                text="28 ounces",
+                text="28 ounce",
                 confidence=0,
                 SINGULAR=True,
                 starting_index=1,
@@ -86,7 +86,7 @@ class TestPostProcessor_sizeable_unit_pattern:
             ingredient_amount_factory(
                 quantity="2",
                 unit="cup",
-                text="2 cups",
+                text="2 cup",
                 confidence=0,
                 starting_index=7,
                 SINGULAR=True,
@@ -94,7 +94,7 @@ class TestPostProcessor_sizeable_unit_pattern:
         ]
 
         # Don't check scores
-        output = p._sizeable_unit_pattern(labelled_tokens)
+        output = p._container_unit_pattern(labelled_tokens)
         assert len(output) == len(expected)
         for out, expected in zip(output, expected):
             assert out.quantity == expected.quantity
@@ -130,7 +130,7 @@ class TestPostProcessor_sizeable_unit_pattern:
             "UNIT",
             "COMMENT",
             "UNIT",
-            "NAME",
+            "B_NAME_TOK",
         ]
         scores = [0.0] * len(tokens)
         labelled_tokens = [
@@ -166,7 +166,224 @@ class TestPostProcessor_sizeable_unit_pattern:
         ]
 
         # Don't check scores
-        output = p._sizeable_unit_pattern(labelled_tokens)
+        output = p._container_unit_pattern(labelled_tokens)
+        assert len(output) == len(expected)
+        for out, expected in zip(output, expected):
+            assert out.quantity == expected.quantity
+            assert out.unit == expected.unit
+            assert out.starting_index == expected.starting_index
+            assert out.SINGULAR == expected.SINGULAR
+            assert out.APPROXIMATE == expected.APPROXIMATE
+
+    def test_parenthesized_equivalent_before_primary_unit(self):
+        """
+        Test that a unit outside a parenthesized equivalent measurement belongs
+        to the leading quantity.
+        """
+        sentence = "2 (250 g) cups oats"
+        tokens = ["2", "(", "250", "g", ")", "cup", "oats"]
+        pos_tags = ["CD", "(", "CD", "NN", ")", "NNS", "NNS"]
+        labels = ["QTY", "PUNC", "QTY", "UNIT", "PUNC", "UNIT", "B_NAME_TOK"]
+        scores = [0.0] * len(tokens)
+        labelled_tokens = [
+            LabelledToken(
+                index=i, text=text, pos_tag=tag, label=label, score=score, plural=False
+            )
+            for i, (text, tag, label, score) in enumerate(
+                zip(tokens, pos_tags, labels, scores)
+            )
+        ]
+        p = PostProcessor(sentence, labelled_tokens, custom_units={})
+
+        expected = [
+            ingredient_amount_factory(
+                quantity="2",
+                unit="cup",
+                text="2 cups",
+                confidence=0,
+                starting_index=0,
+            ),
+            ingredient_amount_factory(
+                quantity="250",
+                unit="g",
+                text="250 g",
+                confidence=0,
+                starting_index=2,
+                SINGULAR=True,
+            ),
+        ]
+
+        output = p._container_unit_pattern(labelled_tokens)
+        assert len(output) == len(expected)
+        for out, expected in zip(output, expected):
+            assert out.quantity == expected.quantity
+            assert out.unit == expected.unit
+            assert out.starting_index == expected.starting_index
+            assert out.SINGULAR == expected.SINGULAR
+            assert out.APPROXIMATE == expected.APPROXIMATE
+
+    def test_parenthesized_equivalent_before_primary_unit_identical_amounts(self):
+        """
+        Test that a unit outside a parenthesized equivalent measurement belongs
+        to the leading quantity.
+        In this case, the parenthesized amount is equal to the outer amount, so test
+        that SINGULAR=False in the second amount.
+        """
+        sentence = "2 (500 ml) cups milk"
+        tokens = ["2", "(", "500", "ml", ")", "cup", "milk"]
+        pos_tags = ["CD", "(", "CD", "NN", ")", "NNS", "NN"]
+        labels = ["QTY", "PUNC", "QTY", "UNIT", "PUNC", "UNIT", "B_NAME_TOK"]
+        scores = [0.0] * len(tokens)
+        labelled_tokens = [
+            LabelledToken(
+                index=i, text=text, pos_tag=tag, label=label, score=score, plural=False
+            )
+            for i, (text, tag, label, score) in enumerate(
+                zip(tokens, pos_tags, labels, scores)
+            )
+        ]
+        p = PostProcessor(
+            sentence, labelled_tokens, custom_units={}, volumetric_units_system="metric"
+        )
+
+        expected = [
+            ingredient_amount_factory(
+                quantity="2",
+                unit="cup",
+                text="2 cups",
+                confidence=0.0,
+                starting_index=0,
+                volumetric_units_system="metric",
+            ),
+            ingredient_amount_factory(
+                quantity="500",
+                unit="ml",
+                text="500 ml",
+                confidence=0.0,
+                starting_index=2,
+                SINGULAR=False,
+                volumetric_units_system="metric",
+            ),
+        ]
+
+        output = p._container_unit_pattern(labelled_tokens)
+        assert len(output) == len(expected)
+        for out, expected in zip(output, expected):
+            assert out.quantity == expected.quantity
+            assert out.unit == expected.unit
+            assert out.starting_index == expected.starting_index
+            assert out.SINGULAR == expected.SINGULAR
+            assert out.APPROXIMATE == expected.APPROXIMATE
+
+    def test_bracketed_equivalent_before_primary_unit(self):
+        """Test that square brackets also delimit an equivalent measurement."""
+        sentence = "2 [250 g] cups oats"
+        tokens = ["2", "[", "250", "g", "]", "cup", "oats"]
+        pos_tags = ["CD", "[", "CD", "NN", "]", "NNS", "NNS"]
+        labels = ["QTY", "PUNC", "QTY", "UNIT", "PUNC", "UNIT", "B_NAME_TOK"]
+        scores = [0.0] * len(tokens)
+        labelled_tokens = [
+            LabelledToken(
+                index=i, text=text, pos_tag=tag, label=label, score=score, plural=False
+            )
+            for i, (text, tag, label, score) in enumerate(
+                zip(tokens, pos_tags, labels, scores)
+            )
+        ]
+        p = PostProcessor(sentence, labelled_tokens, custom_units={})
+
+        expected = [
+            ingredient_amount_factory(
+                quantity="2",
+                unit="cups",
+                text="2 cups",
+                confidence=0,
+                starting_index=0,
+            ),
+            ingredient_amount_factory(
+                quantity="250",
+                unit="g",
+                text="250 g",
+                confidence=0,
+                starting_index=2,
+                SINGULAR=True,
+            ),
+        ]
+
+        output = p._container_unit_pattern(labelled_tokens)
+        assert len(output) == len(expected)
+        for out, expected in zip(output, expected):
+            assert out.quantity == expected.quantity
+            assert out.unit == expected.unit
+            assert out.starting_index == expected.starting_index
+            assert out.SINGULAR == expected.SINGULAR
+            assert out.APPROXIMATE == expected.APPROXIMATE
+
+    def test_parenthesized_container_size(self):
+        """Test that a parenthesized package size keeps the container primary."""
+        sentence = "1 (4.5 ounce) can diced green chile peppers"
+        tokens = [
+            "1",
+            "(",
+            "4.5",
+            "ounce",
+            ")",
+            "can",
+            "diced",
+            "green",
+            "chile",
+            "peppers",
+        ]
+        pos_tags = [
+            "CD",
+            "(",
+            "CD",
+            "NN",
+            ")",
+            "MD",
+            "VBN",
+            "JJ",
+            "NN",
+            "NNS",
+        ]
+        labels = [
+            "QTY",
+            "PUNC",
+            "QTY",
+            "UNIT",
+            "PUNC",
+            "UNIT",
+            "B_NAME_TOK",
+            "I_NAME_TOK",
+            "I_NAME_TOK",
+            "I_NAME_TOK",
+        ]
+        scores = [0.0] * len(tokens)
+        labelled_tokens = [
+            LabelledToken(
+                index=i, text=text, pos_tag=tag, label=label, score=score, plural=False
+            )
+            for i, (text, tag, label, score) in enumerate(
+                zip(tokens, pos_tags, labels, scores)
+            )
+        ]
+        p = PostProcessor(sentence, labelled_tokens, custom_units={})
+
+        expected = [
+            ingredient_amount_factory(
+                quantity="1", unit="can", text="1 can", confidence=0, starting_index=0
+            ),
+            ingredient_amount_factory(
+                quantity="4.5",
+                unit="ounce",
+                text="4.5 ounce",
+                confidence=0,
+                starting_index=2,
+                SINGULAR=True,
+            ),
+        ]
+
+        output = p._container_unit_pattern(labelled_tokens)
         assert len(output) == len(expected)
         for out, expected in zip(output, expected):
             assert out.quantity == expected.quantity
@@ -222,7 +439,7 @@ class TestPostProcessor_sizeable_unit_pattern:
         ]
 
         # Don't check scores
-        output = p._sizeable_unit_pattern(labelled_tokens)
+        output = p._container_unit_pattern(labelled_tokens)
         assert len(output) == len(expected)
         for out, expected in zip(output, expected):
             assert out.quantity == expected.quantity
@@ -251,7 +468,7 @@ class TestPostProcessor_sizeable_unit_pattern:
         p = PostProcessor(sentence, labelled_tokens, custom_units={})
 
         # Don't check scores
-        assert p._sizeable_unit_pattern(labelled_tokens) == []
+        assert p._container_unit_pattern(labelled_tokens) == []
 
     def test_mixed_pattern(self):
         """
@@ -288,7 +505,7 @@ class TestPostProcessor_sizeable_unit_pattern:
         ]
 
         # Don't check scores
-        output = p._sizeable_unit_pattern(labelled_tokens)
+        output = p._container_unit_pattern(labelled_tokens)
         assert len(output) == len(expected)
         for out, expected in zip(output, expected):
             assert out.quantity == expected.quantity
@@ -340,7 +557,7 @@ class TestPostProcessor_sizeable_unit_pattern:
         ]
 
         # Don't check scores
-        output = p._sizeable_unit_pattern(labelled_tokens)
+        output = p._container_unit_pattern(labelled_tokens)
         assert len(output) == len(expected)
         for out, expected in zip(output, expected):
             assert out.quantity == expected.quantity
@@ -387,7 +604,7 @@ class TestPostProcessor_sizeable_unit_pattern:
         ]
 
         # Don't check scores
-        output = p._sizeable_unit_pattern(labelled_tokens)
+        output = p._container_unit_pattern(labelled_tokens)
         assert len(output) == len(expected)
         for out, expected in zip(output, expected):
             assert out.quantity == expected.quantity
@@ -424,14 +641,14 @@ class TestPostProcessor_sizeable_unit_pattern:
             ingredient_amount_factory(
                 quantity="15",
                 unit="ounce",
-                text="15 ounces",
+                text="15 ounce",
                 confidence=0,
                 starting_index=0,
                 SINGULAR=True,
             ),
         ]
 
-        output = p._sizeable_unit_pattern(labelled_tokens)
+        output = p._container_unit_pattern(labelled_tokens)
         assert len(output) == len(expected)
         for out, exp in zip(output, expected):
             assert out.quantity == exp.quantity
@@ -461,7 +678,7 @@ class TestPostProcessor_sizeable_unit_pattern:
         ]
         p = PostProcessor(sentence, labelled_tokens, custom_units={})
 
-        assert p._sizeable_unit_pattern(labelled_tokens) == []
+        assert p._container_unit_pattern(labelled_tokens) == []
 
     def test_no_count_pattern_non_container_end(self):
         """
@@ -483,4 +700,4 @@ class TestPostProcessor_sizeable_unit_pattern:
         ]
         p = PostProcessor(sentence, labelled_tokens, custom_units={})
 
-        assert p._sizeable_unit_pattern(labelled_tokens) == []
+        assert p._container_unit_pattern(labelled_tokens) == []

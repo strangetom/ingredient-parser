@@ -98,10 +98,10 @@ For the example sentence, we get the following groups:
 .. code:: python
 
   [
-    [(0, 'NAME_MOD')],
-    [(1, 'NAME_VAR')],
-    [(3, 'NAME_VAR')],
-    [(4, 'B_NAME_TOK'), (5, 'I_NAME_TOK')]
+    [(0, 'NAME_MOD')],  # whole
+    [(1, 'NAME_VAR')],  # red
+    [(3, 'NAME_VAR')],  # yellow
+    [(4, 'B_NAME_TOK'), (5, 'I_NAME_TOK')]  # bell pepper
   ]
 
 Construct names from NAME groups

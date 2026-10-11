@@ -19,6 +19,7 @@ from matplotlib import pyplot as plt
 from sklearn.metrics import ConfusionMatrixDisplay
 
 from ingredient_parser import SUPPORTED_LANGUAGES
+from ingredient_parser.inference import FeatureDict
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +33,7 @@ class DataVectors:
     """Dataclass to store the loaded and transformed inputs."""
 
     sentences: list[str]
-    features: list[list[dict[str, str]]]
+    features: list[list[FeatureDict]]
     tokens: list[list[str]]
     labels: list[list[str]]
     source: list[str]

@@ -38,7 +38,7 @@ def parse_ingredient_en(
     expect_name_in_output : bool, optional
         If True, if the model doesn't label any words in the sentence as the name,
         fallback to selecting the most likely name from all tokens even though the
-        model gives it a different label. Note that this does guarantee the output
+        model gives it a different label. Note that this does not guarantee the output
         contains a name.
         Default is True.
     string_units : bool, optional
@@ -76,7 +76,8 @@ def parse_ingredient_en(
     # Generate capitalized version of each entry in the custom units dictionary
     _capitalized_units = {}
     for plural, singular in custom_units.items():
-        _capitalized_units[plural.capitalize()] = singular.capitalize()
+        if plural.capitalize() not in custom_units:
+            _capitalized_units[plural.capitalize()] = singular.capitalize()
     custom_units = custom_units | _capitalized_units
 
     processed_sentence = PreProcessor(sentence, custom_units=custom_units)
@@ -182,7 +183,8 @@ def inspect_parser_en(
     # Generate capitalized version of each entry in the custom units dictionary
     _capitalized_units = {}
     for plural, singular in custom_units.items():
-        _capitalized_units[plural.capitalize()] = singular.capitalize()
+        if plural.capitalize() not in custom_units:
+            _capitalized_units[plural.capitalize()] = singular.capitalize()
     custom_units = custom_units | _capitalized_units
 
     processed_sentence = PreProcessor(sentence, custom_units=custom_units)

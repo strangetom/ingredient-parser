@@ -22,14 +22,19 @@ units_list = FLATTENED_UNITS_LIST | {"x"} | LENGTH_UNITS
 # to match.
 # "x" is excluded from the possible following characters to allow constructs
 # like 2cmx2cm.
-QUANTITY_UNITS_PATTERN = re.compile(rf"(\d)\-?({'|'.join(units_list)})(?![a-wyzA-WYZ])")
-UNITS_QUANTITY_PATTERN = re.compile(rf"({'|'.join(units_list)})(\d)")
-UNITS_HYPHEN_QUANTITY_PATTERN = re.compile(rf"({'|'.join(units_list)})\-(\d)")
+# Units are sorted by descending length to avoid shorter units matching when a longer
+# unit should match.
+sorted_units = sorted(units_list, key=len, reverse=True)
+QUANTITY_UNITS_PATTERN = re.compile(
+    rf"(\d)\-?({'|'.join(sorted_units)})(?![a-wyzA-WYZ])"
+)
+UNITS_QUANTITY_PATTERN = re.compile(rf"({'|'.join(sorted_units)})(\d)")
+UNITS_HYPHEN_QUANTITY_PATTERN = re.compile(rf"({'|'.join(sorted_units)})\-(\d)")
 STRING_QUANTITY_HYPHEN_PATTERN = re.compile(
     rf"""
     \b({"|".join(STRING_NUMBERS.keys())})\b  # Capture string number
     \-                                       # Followed by hyphen
-    \b({"|".join(units_list)})\b             # Followed by unit
+    \b({"|".join(sorted_units)})\b           # Followed by unit
     """,
     re.VERBOSE | re.IGNORECASE,
 )
@@ -41,7 +46,7 @@ STRING_QUANTITY_HYPHEN_PATTERN = re.compile(
 # If a number starts with a zero, it must be followed by decimal point to be matched
 STRING_RANGE_PATTERN = re.compile(
     r"""
-    (0\.[0-9]|[1-9][\d\.]*?|\d*\#\d+\$\d+)  # Capture number
+    (0\.[0-9]+|[1-9][\d\.]*?|\d*\#\d+\$\d+) # Capture number
     \s*                                     # Optional space
     (\-)?                                   # Optional hyphen
     \s*                                     # Optional space
@@ -74,7 +79,7 @@ DUPE_UNIT_RANGES_PATTERN = re.compile(
     (
         ([\d\.]+|\d*\#\d+\$\d+)  # Capture decimal number or fraction
         \s                       # Space
-        ([a-zA-Z]+)              # Capture text string (possible unit)
+        ([a-zA-Z]+)\b            # Capture text string (possible unit)
         \s*                      # Space
         (?:\-|to|or)             # Hyphen, 'to' or 'or'
         \s*                      # Space
@@ -92,7 +97,7 @@ QUANTITY_X_PATTERN = re.compile(
     r"""
     ([\d\.]+|\d*\#\d+\$\d+)  # Capture decimal number or fraction
     \s                       # Space
-    [xX]                     # Character 'x' or 'X'
+    [xX]\b                   # Character 'x' or 'X'
     \s*                      # Optional space
     """,
     re.VERBOSE,
@@ -107,18 +112,6 @@ EXPANDED_RANGE = re.compile(r"(\d)\s*\-\s*([\d\#])")
 LOWERCASE_PATTERN = re.compile(r"[a-z]")
 UPPERCASE_PATTERN = re.compile(r"[A-Z]")
 DIGIT_PATTERN = re.compile(r"[0-9]")
-
-# Regex pattern to match a fraction token or a range formed by fractions.
-# This is a token for a fraction where the forward slash has been replaced by $ and
-# any space between the whole part and fraction part has been replaced by #
-# e.g. #1$2 for 1/2, or 1#1$3 for 1 1/3
-# The first non-capturing group at the end of the regex is optional, for capturing the
-# upper end if the token is a range.
-# The second non-capturing group is for any trailing characters in cases such as 1/2x or
-# 1/2-part.
-FRACTION_TOKEN_PATTERN = re.compile(
-    r"^\d*\#\d+\$\d+(?:\-(?:\d*\#\d+\$\d+|\d+))?(?:x|\-[a-z]*)?$"
-)
 
 # Regex pattern to match currency within parentheses e.g. ($1.99)
 # Allows optional white space after opening parenthesis, before currency symbol, and
