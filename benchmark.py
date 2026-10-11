@@ -9,7 +9,10 @@ from ingredient_parser import parse_ingredient
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Ingredient Parser benchmark")
     parser.add_argument(
-        "-n", type=int, help="Number of sentences to use from each source.", default=500
+        "-n",
+        type=int,
+        help="Number of sentences to use from each source.",
+        default=1000,
     )
     parser.add_argument(
         "--iterations", "-i", type=int, help="Number of iterations to run.", default=2
@@ -23,7 +26,7 @@ if __name__ == "__main__":
         "train/data/training.sqlite3", detect_types=sqlite3.PARSE_DECLTYPES
     ) as conn:
         c = conn.cursor()
-        # Select `n` sentences from each source
+        # Select first `n` sentences from each source
         c.execute(
             """
             SELECT sentence FROM 
