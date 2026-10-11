@@ -28,8 +28,8 @@ SUPPORTED_LANGUAGES = ["en"]
 logger = logging.getLogger("ingredient-parser")
 logger.addHandler(logging.NullHandler())
 
-# Regex pattern for matching a numeric range e.g. 1-2, 2-3, #1$2-1#3$4.
-RANGE_PATTERN = re.compile(r"^[\d\#\$]+\s*[\-][\d\#\$]+$")
+# Regex pattern for matching a numeric range e.g. 1-2, 2-3, #1$2-1#3$4, 1.5-2.5
+RANGE_PATTERN = re.compile(r"^[\d\#\$\.]+\s*[\-][\d\#\$\.]+$")
 
 
 def consume(iterator: Iterator[Any], n: int | None) -> None:

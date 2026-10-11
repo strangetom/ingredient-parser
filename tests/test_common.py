@@ -87,11 +87,23 @@ class Test_is_range:
         """
         assert not is_range("1-2 dozen")
 
+    def test_decimal_range(self):
+        """
+        Test string range that includes decimals is identified as a range
+        """
+        assert is_range("2.5-3.5")
+
     def test_x(self):
         """
         Test string "1x" is correctly identified as not a range
         """
         assert not is_range("1x")
+
+    def test_mixed_formats(self):
+        """
+        Test string range that includes decimals and fractions is identified as a range
+        """
+        assert is_range("1.5-3#1$2")
 
 
 class Test_group_consecutive_indices:
