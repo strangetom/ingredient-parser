@@ -73,13 +73,6 @@ def parse_ingredient_en(
     if custom_units is None:
         custom_units = {}
 
-    # Generate capitalized version of each entry in the custom units dictionary
-    _capitalized_units = {}
-    for plural, singular in custom_units.items():
-        if plural.capitalize() not in custom_units:
-            _capitalized_units[plural.capitalize()] = singular.capitalize()
-    custom_units = custom_units | _capitalized_units
-
     processed_sentence = PreProcessor(sentence, custom_units=custom_units)
     features = processed_sentence.sentence_features()
     labels, scores = zip(*TAGGER.tag_from_features(features, expect_name_in_output))

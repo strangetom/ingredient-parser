@@ -1,5 +1,9 @@
 # Changelog
 
+### develop
+
+* Make custom units fully case sensitive.
+
 ### 2.9.0
 
 * Optimise performance for ~27% faster parsing:
