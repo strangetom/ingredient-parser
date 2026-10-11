@@ -4,7 +4,7 @@ import re
 from fractions import Fraction
 from functools import lru_cache
 from itertools import chain
-from typing import cast
+from typing import Literal, cast
 
 import pint
 from nltk import PerceptronTagger
@@ -375,7 +375,10 @@ def pluralise_units(sentence: str, custom_units: dict[str, str]) -> str:
 
 @lru_cache(maxsize=512)
 def convert_to_pint_unit(
-    unit: str, volumetric_units_system: str = "us_customary"
+    unit: str,
+    volumetric_units_system: Literal[
+        "us_customary", "imperial", "metric", "australian", "japanese"
+    ] = "us_customary",
 ) -> str | pint.Unit:
     """Convert a unit to a pint.Unit object, if possible.
 
@@ -385,7 +388,9 @@ def convert_to_pint_unit(
     ----------
     unit : str
         Unit to find in pint Unit Registry.
-    volumetric_units_system : str, optional
+    volumetric_units_system : Literal[
+        "us_customary", "imperial", "metric", "australian", "japanese"
+    ], optional
         Sets the units system for volumetric measurements, like "cup" or "tablespoon".
         Default is "us_customary".
 
@@ -434,10 +439,10 @@ def convert_to_pint_unit(
     for regex, replacement in UNIT_REPLACEMENTS:
         unit = regex.sub(replacement, unit)
 
-    # If the unit is in uppercase, convert to lowercase.
+    # If the unit is not in lowercase, convert to lowercase.
     # Keep the original unit so we can return it as provided to this function if we
     # can't convert to a pint.Unit object.
-    if unit == unit.upper():
+    if unit != unit.lower():
         unit = unit.lower()
     if (
         unit in VOLUMETRIC_UNITS_W_ALTERNATIVES
@@ -588,7 +593,9 @@ def ingredient_amount_factory(
     SINGULAR: bool = False,
     PREPARED_INGREDIENT: bool = False,
     string_units: bool = False,
-    volumetric_units_system: str = "us_customary",
+    volumetric_units_system: Literal[
+        "us_customary", "imperial", "metric", "australian", "japanese"
+    ] = "us_customary",
     custom_units: dict[str, str] | None = None,
 ) -> IngredientAmount:
     """Create ingredient amount object from parts.
@@ -626,7 +633,9 @@ def ingredient_amount_factory(
         If True, return all IngredientAmount units as strings.
         If False, convert IngredientAmount units to pint.Unit objects where possible.
         Default is False.
-    volumetric_units_system : str, optional
+    volumetric_units_system : Literal[
+        "us_customary", "imperial", "metric", "australian", "japanese"
+    ], optional
         Set the country standard for volumetric units such as cups, tablespoon.
         This has no effect is string_units=True.
 

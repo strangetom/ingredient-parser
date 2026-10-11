@@ -2,7 +2,8 @@
 
 ### develop
 
-* Make custom units fully case sensitive.
+* Make custom units fully case sensitive and ensure that custom units are considered during pre-processing steps.
+* Fix capitalised units being returned as strings instead of the appropriate `pint.Unit` object.
 * Improve type hints for parse_ingredient arguments.
 
 ### 2.9.0

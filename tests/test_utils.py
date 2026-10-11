@@ -221,6 +221,15 @@ class Test_convert_to_pint_unit:
         # Not a recognised pint unit
         assert convert_to_pint_unit("CASK") == "CASK"
 
+    def test_mixed_case_units(self):
+        """
+        Test cases where the unit contains mixed case letters.
+        """
+        assert convert_to_pint_unit("Cup") == UREG("cup")
+        assert convert_to_pint_unit("Cup", volumetric_units_system="metric") == UREG(
+            "metric_cup"
+        )
+
 
 class Testcombine_quantities_split_by_and:
     def test_half(self):
