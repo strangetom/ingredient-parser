@@ -98,6 +98,9 @@ def parse_ingredient(
     ParsedIngredient
         ParsedIngredient object of structured data parsed from input string.
     """
+    if not sentence:
+        raise ValueError("Cannot parse an empty string.")
+
     if lang not in SUPPORTED_LANGUAGES:
         raise ValueError(f'Unsupported language "{lang}"')
 
@@ -169,7 +172,7 @@ def parse_multiple_ingredients(
     expect_name_in_output : bool, optional
         If True, if the model doesn't label any words in the sentence as the name,
         fallback to selecting the most likely name from all tokens even though the
-        model gives it a different label. Note that this does guarantee the output
+        model gives it a different label. Note that this does not guarantee the output
         contains a name.
         Default is True.
     string_units : bool
@@ -264,7 +267,7 @@ def inspect_parser(
     expect_name_in_output : bool, optional
         If True, if the model doesn't label any words in the sentence as the name,
         fallback to selecting the most likely name from all tokens even though the
-        model gives it a different label. Note that this does guarantee the output
+        model gives it a different label. Note that this does not guarantee the output
         contains a name.
         Default is True.
     string_units : bool
@@ -310,6 +313,9 @@ def inspect_parser(
         ParserDebugInfo object containing the PreProcessor object, PostProcessor
         object and Tagger.
     """
+    if not sentence:
+        raise ValueError("Cannot parse an empty string.")
+
     if lang not in SUPPORTED_LANGUAGES:
         raise ValueError(f'Unsupported language "{lang}"')
 
