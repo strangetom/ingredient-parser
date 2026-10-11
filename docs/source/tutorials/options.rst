@@ -192,11 +192,11 @@ Custom units are case sensitive.
 
     .. code:: python
 
-        >>> parse_ingredient("1 barrel sausages").amount[0].unit
+        >>> parse_ingredient("1 case sausages").amount[0].unit
         ''
 
-        >>> parse_ingredient("1 barrel sausages", custom_units={"barrels": "barrel"}).amount[0].unit
-        <Unit('barrel')>
+        >>> parse_ingredient("1 case sausages", custom_units={"cases": "case"}).amount[0].unit
+        'case'
 
 .. important::
 
