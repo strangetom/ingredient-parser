@@ -30,7 +30,7 @@ def load_data() -> tuple[tuple[str], list[float], list[float]]:
         # Skip first row because it contains column headings
         data = list(reader)[1:]
 
-    releases, sentence, word = zip(*data)
+    releases, sentence, word, _ = zip(*data)
     sentence = [float(s) for s in sentence]
     word = [float(w) for w in word]
 
