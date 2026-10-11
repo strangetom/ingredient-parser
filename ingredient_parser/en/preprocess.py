@@ -620,7 +620,7 @@ class PreProcessor:
             # Convert tokens:
             # * Singularise units, keeping track of indices of singularised tokens
             # * Replace numeric token with "!num"
-            if singular := self._units.get(text):
+            if (singular := self._units.get(text)) and singular != text:
                 self.singularised_indices.append(i)
                 feat_text = singular
                 text = singular

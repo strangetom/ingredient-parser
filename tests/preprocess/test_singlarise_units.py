@@ -48,3 +48,15 @@ class TestPreProcessor_singlarise_units:
             "teaspoon",
         ]
         assert p.singularised_indices == [1, 4]
+
+    def test_identical_singular_plural_forms(self):
+        """
+        The unit "kg" is not marked as singularised because the token has not changed.
+        """
+        p = PreProcessor("2 kg potatoes", custom_units={})
+        assert [t.text for t in p.tokenized_sentence] == [
+            "2",
+            "kg",
+            "potatoes",
+        ]
+        assert p.singularised_indices == []
