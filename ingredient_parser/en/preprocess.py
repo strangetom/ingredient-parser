@@ -899,11 +899,12 @@ class PreProcessor:
             return True
 
         if token.lower() in STRING_NUMBERS.keys():
+            # Numbers written in words are considered numeric.
             return True
 
         if "-" in token:
             parts = token.split("-")
-            return all([self._is_numeric(part) or is_fraction(part) for part in parts])
+            return all([self._is_numeric(part) for part in parts])
 
         if token.lower() == "dozen":
             return True
