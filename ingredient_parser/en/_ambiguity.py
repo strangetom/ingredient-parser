@@ -119,7 +119,7 @@ class Disambiguator:
             disambiguating_tokens=["cake"],
             feature_applicability=False,
         ),
-        # Medium is usually a size, unless in the context
+        # Medium is usually a size, unless in the context of the specified tokens.
         ("medium", False, "is_size"): FeatureDisambiguator(
             context_window=(0, 5),
             disambiguating_tokens=["firm", "ripe", "dry", "roast", "curry", "strength"],
@@ -128,6 +128,15 @@ class Disambiguator:
     }
 
     def __init__(self, tokens: list[Token], singularised_indices: list[int]):
+        """Initialise
+
+        Parameters
+        ----------
+        tokens : list[Token]
+            List of Tokens for current sentence.
+        singularised_indices : list[int]
+            List of indices of Tokens in current sentence that have been singularised.
+        """
         self.tokens = tokens
         self.plural_tokens = singularised_indices
 
@@ -143,6 +152,10 @@ class Disambiguator:
         ----------
         token : Token
             Token to determine if ambiguous.
+        plural : bool
+            True if the token is a plural that has been singularised.
+        feature : str
+            The feature under consideration.
 
         Returns
         -------

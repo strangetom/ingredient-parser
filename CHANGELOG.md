@@ -3,6 +3,7 @@
 ### develop
 
 * Make custom units fully case sensitive.
+* Improve type hints for parse_ingredient arguments.
 
 ### 2.9.0
 

@@ -126,7 +126,6 @@ def incremental_sublists(sequence: list[T], reverse: bool = False) -> list[list[
         r_sequence = list(reversed(sequence.copy()))
         return [r_sequence[: i + 1] for i in range(len(sequence))]
     else:
-        sequence = sequence.copy()
         return [sequence[: i + 1] for i in range(len(sequence))]
 
 
@@ -408,7 +407,7 @@ def fraction_obj_to_str(frac: Fraction) -> str:
         frac = round(frac, 12)
 
     # Fraction.is_integer() only available from Python 3.12.
-    # Check Fraction..denominator is 1 instead.
+    # Check Fraction.denominator is 1 instead.
     if frac.denominator == 1:
         return str(frac)
 
@@ -417,7 +416,7 @@ def fraction_obj_to_str(frac: Fraction) -> str:
         integer = int(frac)
         integer_text = str(integer) if integer != 0 else ""
         fraction = frac - int(frac)
-        fraction_text = TEXT_FRAC_TO_UNICODE.get(str(fraction), "")
+        fraction_text = TEXT_FRAC_TO_UNICODE[str(fraction)]
         return integer_text + fraction_text
     else:
         # If the fractional part cannot be converted to unicode, return as decimal.
