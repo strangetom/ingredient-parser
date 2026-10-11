@@ -181,7 +181,7 @@ def pluralise_known_unit(s: str) -> str:
         """Convert singular form of unit to plural form.
 
         If, for any reason, the captured singular form does not occur in UNITS_RINDEX,
-        return the plural form.
+        return the singular form.
 
         Parameters
         ----------
@@ -193,8 +193,8 @@ def pluralise_known_unit(s: str) -> str:
         str
             Plural form of captured unit.
         """
-        plural_unit: str = match.group(0)
-        return UNITS_RINDEX.get(plural_unit, plural_unit)
+        singular_unit: str = match.group(0)
+        return UNITS_RINDEX.get(singular_unit, singular_unit)
 
     return KNOWN_PLURAL_UNIT_PATTERN.sub(singular_to_plural, s)
 
