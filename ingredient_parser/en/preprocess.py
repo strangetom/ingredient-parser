@@ -15,7 +15,7 @@ from ._constants import (
     LENGTH_UNITS,
     SIZES,
     STRING_NUMBERS,
-    UNICODE_FRACTIONS,
+    UNICODE_FRACTIONS_TO_TEXT,
     UNITS,
 )
 from ._regex import (
@@ -372,7 +372,7 @@ class PreProcessor:
         >>> p._replace_unicode_fractions("¼-½ teaspoon")
         "1/4-1/2 teaspoon"
         """
-        for f_unicode, f_ascii in UNICODE_FRACTIONS.items():
+        for f_unicode, f_ascii in UNICODE_FRACTIONS_TO_TEXT.items():
             sentence = sentence.replace(f_unicode, f_ascii)
 
         return sentence

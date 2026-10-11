@@ -273,7 +273,7 @@ for s, n in STRING_NUMBERS.items():
 # merge the replacement with the previous token i.e. 1½ != 11/2
 # However, if the prior chaacter is a hyphen, we don't want to insert a space as this
 # will mess up any ranges
-UNICODE_FRACTIONS = {
+UNICODE_FRACTIONS_TO_TEXT = {
     "-\u215b": "-1/8",
     "-\u215c": "-3/8",
     "-\u215d": "-5/8",

@@ -280,7 +280,7 @@ def intermediate_fraction_to_unicode(token: str) -> str:
     >>> intermediate_fraction_to_unicode("2#1$2-inch")
     2½-inch
     """
-    UNICODE_FRACTIONS = {
+    INTERMEDIATE_FRAC_TO_UNICODE = {
         "#1$8": "\u215b",
         "#3$8": "\u215c",
         "#5$8": "\u215d",
@@ -314,8 +314,8 @@ def intermediate_fraction_to_unicode(token: str) -> str:
         integer = match.group(1)
         fraction = match.group(2)
 
-        if fraction in UNICODE_FRACTIONS:
-            replacement_fraction = UNICODE_FRACTIONS[fraction]
+        if fraction in INTERMEDIATE_FRAC_TO_UNICODE:
+            replacement_fraction = INTERMEDIATE_FRAC_TO_UNICODE[fraction]
         else:
             replacement_fraction = fraction.replace("#", " ").replace("$", "/")
 
@@ -384,7 +384,7 @@ def fraction_obj_to_str(frac: Fraction) -> str:
     >>> fraction_obj_to_str(Fraction(100000000000000009336059, 40000000000000000000000))
     '2½'
     """
-    UNICODE_FRACTIONS = {
+    TEXT_FRAC_TO_UNICODE = {
         "1/8": "\u215b",
         "3/8": "\u215c",
         "5/8": "\u215d",
@@ -404,7 +404,7 @@ def fraction_obj_to_str(frac: Fraction) -> str:
 
     # Round fraction to avoid compounding errors during multiple conversions.
     # Only do this if the fraction is not already in UNICODE_FRACTIONS.
-    if str(frac) not in UNICODE_FRACTIONS:
+    if str(frac) not in TEXT_FRAC_TO_UNICODE:
         frac = round(frac, 12)
 
     # Fraction.is_integer() only available from Python 3.12.
@@ -412,12 +412,12 @@ def fraction_obj_to_str(frac: Fraction) -> str:
     if frac.denominator == 1:
         return str(frac)
 
-    if str(frac - int(frac)) in UNICODE_FRACTIONS:
+    if str(frac - int(frac)) in TEXT_FRAC_TO_UNICODE:
         # If the fractional part can be converted to unicode, do so.
         integer = int(frac)
         integer_text = str(integer) if integer != 0 else ""
         fraction = frac - int(frac)
-        fraction_text = UNICODE_FRACTIONS.get(str(fraction), "")
+        fraction_text = TEXT_FRAC_TO_UNICODE.get(str(fraction), "")
         return integer_text + fraction_text
     else:
         # If the fractional part cannot be converted to unicode, return as decimal.
