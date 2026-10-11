@@ -49,6 +49,7 @@ from ._utils import (
 logger = logging.getLogger("ingredient-parser.preprocess")
 
 CONSECUTIVE_SPACES = re.compile(r"\s+")
+PUNCTUATION = frozenset(string.punctuation) | {"--"}
 
 # Type alias for dict of token features.
 FeatureDict = dict[str, str | bool]
@@ -844,7 +845,7 @@ class PreProcessor:
         >>> p._is_punc("beef")
         False
         """
-        return token in string.punctuation or token in {"--"}
+        return token in PUNCTUATION
 
     def _is_numeric(self, token: str) -> bool:
         """Return True if token is numeric.
