@@ -35,7 +35,7 @@ class TestPreProcessor_remove_unit_trailing_period:
         input_sentence = "3 lbs. minced beef"
         assert p._remove_unit_trailing_period(input_sentence) == "3 lbs minced beef"
 
-    def test_oz(self, p):
+    def test_oz_no_space(self, p):
         """
         "oz." is replaced by "oz"
         """
@@ -44,3 +44,11 @@ class TestPreProcessor_remove_unit_trailing_period:
             p._remove_unit_trailing_period(input_sentence)
             == "1 12oz can chopped tomatoes"
         )
+
+    def test_no_match_within_word(self, p):
+        """
+        "lbs" is not matched within the word "bulbs" therefore the input sentence is
+        unchanged.
+        """
+        input_sentence = "2 bulbs."
+        assert p._remove_unit_trailing_period(input_sentence) == input_sentence

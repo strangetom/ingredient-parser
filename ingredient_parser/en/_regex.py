@@ -139,3 +139,11 @@ HYPHEN_SPLIT_NAME_PATTERN = re.compile(
 # Regex pattern to match a token ending with a number then ".
 # e.g. 1", 2" etc.
 INCH_SIZE_PATTERN = re.compile(r"\d\"$")
+
+# Regex pattern to match specific units followed by a period.
+# tsp, tbsp and lb may be followed by an optional 's' for the plural versions.
+# The unit must be preceded by a digit or a white space character to avoid matching
+# within a word (e.g. 'lbs' matching within 'bulbs')
+UNITS_WITH_TRAILING_PERIOD = re.compile(
+    r"(?<=[\s\d])(tsps?|tbsps?|tbs|tb|lbs?|oz)\.", re.IGNORECASE
+)

@@ -33,6 +33,7 @@ from ._regex import (
     STRING_QUANTITY_HYPHEN_PATTERN,
     UNITS_HYPHEN_QUANTITY_PATTERN,
     UNITS_QUANTITY_PATTERN,
+    UNITS_WITH_TRAILING_PERIOD,
     UPPERCASE_PATTERN,
 )
 from ._structure_features import SentenceStructureFeatures
@@ -444,23 +445,23 @@ class PreProcessor:
         >>> p._remove_unit_trailing_period("5 oz. chopped tomatoes")
         "5 oz chopped tomatoes"
         """
-        units = [
-            "tsp.",
-            "tsps.",
-            "tbsp.",
-            "tbsps.",
-            "tbs.",
-            "tb.",
-            "lb.",
-            "lbs.",
-            "oz.",
-        ]
-        units.extend([u.capitalize() for u in units])
-        for unit in units:
-            unit_no_period = unit.replace(".", "")
-            sentence = sentence.replace(unit, unit_no_period)
 
-        return sentence
+        def strip_trailing_period(match: re.Match) -> str:
+            """Strip trailing period from matching unit.
+
+            Parameters
+            ----------
+            m : re.Match
+                Regular expression match capturing unit followed by period.
+
+            Returns
+            -------
+            str
+                Captured unit with trailing period removed.
+            """
+            return match.group(0).removesuffix(".")
+
+        return UNITS_WITH_TRAILING_PERIOD.sub(strip_trailing_period, sentence)
 
     def _replace_dupe_units_ranges(self, sentence: str) -> str:
         """Replace ranges where the unit appears twice with standard range then unit.
