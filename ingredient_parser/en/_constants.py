@@ -530,6 +530,7 @@ UNIT_SYNONYMS = [
     {"quart", "qt"},
     {"tablespoon", "tbsp", "tbs", "tb"},
     {"teaspoon", "tsp"},
+    {"pint", "pt"},
 ]
 
 # Set of (singular) units that refer to lengths.
