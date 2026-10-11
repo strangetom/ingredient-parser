@@ -122,6 +122,10 @@ UNITS = {
 # Generate capitalized and uppercase version of each entry in the UNITS dictionary.
 _capitalized_units = {}
 for plural, singular in UNITS.items():
+    if plural in {"ts"}:
+        # Don't convert these units because the uppercase or capitalised version has
+        # a different meaning.
+        continue
     _capitalized_units[plural.capitalize()] = singular.capitalize()
     _capitalized_units[plural.upper()] = singular.upper()
 UNITS = UNITS | _capitalized_units
@@ -490,7 +494,7 @@ UNIT_SYNONYMS = [
     {"teaspoon", "tsp"},
 ]
 
-# Set of units that refer to lengths.
+# Set of (singular) units that refer to lengths.
 LENGTH_UNITS = {
     "centimeter",
     "centimetre",
