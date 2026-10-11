@@ -73,14 +73,14 @@ def parse_ingredient_en(
         ParsedIngredient object of structured data parsed from input string.
     """
     logger.debug("Parsing sentence '%s' using 'en' parser.", sentence)
-    TAGGER = load_parser_model()
+    tagger = load_parser_model()
 
     if custom_units is None:
         custom_units = {}
 
     processed_sentence = PreProcessor(sentence, custom_units=custom_units)
     features = processed_sentence.sentence_features()
-    labels, scores = zip(*TAGGER.tag_from_features(features, expect_name_in_output))
+    labels, scores = zip(*tagger.tag_from_features(features, expect_name_in_output))
     labels = list(labels)
     scores = list(scores)
     logger.debug("Sentence token labels: %s.", labels)
@@ -177,7 +177,7 @@ def inspect_parser_en(
         object and Tagger.
     """
     logger.debug("Parsing sentence '%s' using 'en' parser.", sentence)
-    TAGGER = load_parser_model()
+    tagger = load_parser_model()
 
     if custom_units is None:
         custom_units = {}
@@ -191,7 +191,7 @@ def inspect_parser_en(
 
     processed_sentence = PreProcessor(sentence, custom_units=custom_units)
     features = processed_sentence.sentence_features()
-    labels, scores = zip(*TAGGER.tag_from_features(features, expect_name_in_output))
+    labels, scores = zip(*tagger.tag_from_features(features, expect_name_in_output))
     labels = list(labels)
     scores = list(scores)
     logger.debug("Sentence token labels: %s.", labels)
@@ -225,5 +225,5 @@ def inspect_parser_en(
         sentence=sentence,
         PreProcessor=processed_sentence,
         PostProcessor=postprocessed_sentence,
-        tagger=TAGGER,
+        tagger=tagger,
     )
