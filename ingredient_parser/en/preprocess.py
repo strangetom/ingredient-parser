@@ -5,6 +5,7 @@ import re
 import string
 import unicodedata
 from html import unescape
+from itertools import chain
 
 from .._common import is_fraction
 from ..dataclasses import Token, TokenFeatures
@@ -131,13 +132,17 @@ class PreProcessor:
             Input ingredient sentence.
         """
         self.input: str = input_sentence
-        self.sentence: str = self._normalise(input_sentence)
-        logger.debug("Normalised sentence: '%s'.", self.sentence)
-
         if custom_units is not None:
             self._units = UNITS | custom_units
+            self._flattened_units = FLATTENED_UNITS_LIST | set(
+                chain.from_iterable(custom_units.items())
+            )
         else:
             self._units = UNITS
+            self._flattened_units = FLATTENED_UNITS_LIST
+
+        self.sentence: str = self._normalise(input_sentence)
+        logger.debug("Normalised sentence: '%s'.", self.sentence)
 
         self.singularised_indices = []
         self.tokenized_sentence = self._calculate_tokens(self.sentence)
@@ -506,7 +511,7 @@ class PreProcessor:
                 continue
 
             # If capture unit not in units list, abort
-            if unit1 not in FLATTENED_UNITS_LIST and unit1 not in LENGTH_UNITS:
+            if unit1 not in self._flattened_units and unit1 not in LENGTH_UNITS:
                 continue
 
             sentence = sentence.replace(full_match, f"{quantity1}-{quantity2} {unit1}")
