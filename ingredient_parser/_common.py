@@ -11,7 +11,7 @@ from fractions import Fraction
 from importlib.resources import as_file, files
 from itertools import groupby, islice
 from operator import itemgetter
-from typing import TypeVar
+from typing import Any, TypeVar
 
 import pint
 from nltk.data import find as nltk_find
@@ -32,14 +32,14 @@ logger.addHandler(logging.NullHandler())
 RANGE_PATTERN = re.compile(r"^[\d\#\$]+\s*[\-][\d\#\$]+$")
 
 
-def consume(iterator: Iterator, n: int | None) -> None:
+def consume(iterator: Iterator[Any], n: int | None) -> None:
     """Advance the `iterator` n-steps ahead. If `n` is none, consume entirely.
 
     See consume from https://docs.python.org/3/library/itertools.html#itertools-recipes
 
     Parameters
     ----------
-    iterator : Iterator
+    iterator : Iterator[Any]
         Iterator to advance.
     n : int | None
         Number of iterations to advance by.
