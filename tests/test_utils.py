@@ -2,6 +2,7 @@ from ingredient_parser.en._utils import (
     UREG,
     combine_quantities_split_by_and,
     convert_to_pint_unit,
+    is_numeric,
     is_unit_synonym,
     pluralise_units,
     replace_string_range,
@@ -330,3 +331,77 @@ class Test_is_unit_synonym:
 
     def test_not_synonym(self):
         assert not is_unit_synonym("kg", "gram")
+
+
+class TestPreProcessor_is_numeric:
+    def test_integer(self):
+        """
+        "1" is numeric
+        """
+        assert is_numeric("1")
+
+    def test_negative_integer(self):
+        """
+        "-5" is numeric
+        """
+        assert is_numeric("-5")
+
+    def test_decimal(self):
+        """
+        "2.667" is numeric
+        """
+        assert is_numeric("2.667")
+
+    def test_integer_range(self):
+        """
+        "1-2" is numeric
+        """
+        assert is_numeric("1-2")
+
+    def test_decimal_range(self):
+        """
+        "3.5-5.5" is numeric
+        """
+        assert is_numeric("3.5-5.5")
+
+    def test_mixed_range(self):
+        """
+        "1-1.5" is numeric
+        """
+        assert is_numeric("1-1.5")
+
+    def test_fraction(self):
+        """
+        "#1$2" is numeric
+        """
+        assert is_numeric("#1$2")
+
+    def test_fraction_range(self):
+        """
+        "#1$2-1#1$2" is not numeric
+        """
+        assert is_numeric("#1$2-1#1$2")
+
+    def test_false(self):
+        """
+        "1/2" is not numeric
+        """
+        assert not is_numeric("1/2")
+
+    def test_false_range(self):
+        """
+        "red-wine" is not numeric
+        """
+        assert not is_numeric("red-wine")
+
+    def test_dozen(self):
+        """
+        "dozen" is numeric
+        """
+        assert is_numeric("dozen")
+
+    def test_quart(self):
+        """
+        "one-quarter" is numeric
+        """
+        assert is_numeric("one-quarter")

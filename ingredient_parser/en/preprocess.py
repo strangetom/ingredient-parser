@@ -7,7 +7,6 @@ import unicodedata
 from html import unescape
 from itertools import chain
 
-from .._common import is_float, is_fraction
 from ..dataclasses import Token, TokenFeatures
 from ._ambiguity import Disambiguator
 from ._constants import (
@@ -16,7 +15,6 @@ from ._constants import (
     FLATTENED_UNITS_LIST,
     LENGTH_UNITS,
     SIZES,
-    STRING_NUMBERS,
     UNICODE_FRACTIONS_TO_TEXT,
     UNITS,
 )
@@ -38,6 +36,7 @@ from ._regex import (
 from ._structure_features import SentenceStructureFeatures
 from ._utils import (
     combine_quantities_split_by_and,
+    is_numeric,
     is_unit_synonym,
     pos_tag,
     replace_string_range,
@@ -654,7 +653,7 @@ class PreProcessor:
         tokens = []
         for i, (text, pos) in enumerate(pos_tag(tokenize(sentence))):
             # Pre-compute this once because we need it in multiple places.
-            token_is_numeric = self._is_numeric(text)
+            tokenis_numeric = is_numeric(text)
 
             # Convert tokens:
             # * Singularise units, keeping track of indices of singularised tokens
@@ -663,13 +662,13 @@ class PreProcessor:
                 self.singularised_indices.append(i)
                 feat_text = singular
                 text = singular
-            elif token_is_numeric:
+            elif tokenis_numeric:
                 feat_text = "!num"
             else:
                 feat_text = text
 
             # Get part of speech tag, with overrides for certain tokens.
-            if token_is_numeric:
+            if tokenis_numeric:
                 pos = "CD"
             elif text.lower() in ["c", "g"]:
                 # Special cases for c (cup) and g (gram).
@@ -885,72 +884,6 @@ class PreProcessor:
         False
         """
         return token in PUNCTUATION
-
-    def _is_numeric(self, token: str) -> bool:
-        """Return True if token is numeric.
-
-        Parameters
-        ----------
-        token : str
-            Token to check.
-
-        Returns
-        -------
-        bool
-            True if token is numeric, else False.
-
-        Examples
-        --------
-        >>> p = PreProcessor("")
-        >>> p._is_numeric("1")
-        True
-
-        >>> p = PreProcessor("")
-        >>> p._is_numeric("1-2")
-        True
-
-        >>> p = PreProcessor("")
-        >>> p._is_numeric("dozen")
-        True
-
-        >>> p = PreProcessor("")
-        >>> p._is_numeric("1x")
-        True
-
-        >>> p = PreProcessor("")
-        >>> p._is_numeric("three")
-        True
-
-        >>> p = PreProcessor("")
-        >>> p._is_numeric("#1$2")
-        True
-
-        >>> p = PreProcessor("")
-        >>> p._is_numeric("beef")
-        False
-        """
-        if token == "00":
-            # Special cases of digits that don't represent numbers
-            return False
-
-        lower = token.lower()
-        if lower in STRING_NUMBERS or lower == "dozen":
-            # Numbers written in words are considered numeric.
-            return True
-
-        if token.endswith("x"):
-            # Strip trailing x so we can check the remaining token.
-            token = token[:-1]
-
-        if is_fraction(token):
-            # Fraction tokens e.g. #1$4 or 1#2$3
-            return True
-
-        if "-" in token:
-            parts = token.split("-")
-            return all(self._is_numeric(part) for part in parts)
-
-        return is_float(token)
 
     def _follows_comma(self, index: int) -> bool:
         """Return True if token at index follows a comma (by any amount) in sentence.

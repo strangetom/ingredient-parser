@@ -22,6 +22,7 @@ from .._common import (
 from ..dataclasses import IngredientAmount
 from ._constants import (
     FLATTENED_UNITS_LIST,
+    STRING_NUMBERS,
     UNIT_SYNONYMS,
     UNITS,
     pluralise_known_unit,
@@ -332,6 +333,72 @@ def stem(token: str) -> str:
         Stem of token.
     """
     return STEMMER.stem(token)
+
+
+@lru_cache(maxsize=5_000)
+def is_numeric(token: str) -> bool:
+    """Return True if token is numeric.
+
+    This function is cached because it is called for each token and some tokens occur
+    frequently in recipe ingredient sentences, so there's no point redoing the
+    calculation in full each time a repeat token is encountered.
+
+    Parameters
+    ----------
+    token : str
+        Token to check.
+
+    Returns
+    -------
+    bool
+        True if token is numeric, else False.
+
+    Examples
+    --------
+    >>> is_numeric("1")
+    True
+
+    >>> is_numeric("1-2")
+    True
+
+    >>> is_numeric("dozen")
+    True
+
+    >>> is_numeric("1x")
+    True
+
+    >>> is_numeric("three")
+    True
+
+    >>> is_numeric("#1$2")
+    True
+
+    >>> is_numeric("beef")
+    False
+    """
+    if token == "00":
+        # Special cases of digits that don't represent numbers
+        return False
+
+    lower = token.lower()
+    if lower in STRING_NUMBERS or lower == "dozen":
+        # Numbers written in words are considered numeric.
+        return True
+
+    if token.endswith("x"):
+        # Strip trailing x so we can check the remaining token.
+        token = token[:-1]
+
+    if is_fraction(token):
+        # Fraction tokens e.g. #1$4 or 1#2$3
+        return True
+
+    if "-" in token[1:]:
+        # Check for ranges, but not negative numbers
+        parts = token.split("-")
+        return all(is_numeric(part) for part in parts)
+
+    return is_float(token)
 
 
 def pluralise_units(sentence: str, custom_units: dict[str, str]) -> str:
