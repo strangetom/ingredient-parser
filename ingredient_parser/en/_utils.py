@@ -6,7 +6,6 @@ from functools import lru_cache
 from typing import Literal, cast
 
 import pint
-from nltk import PerceptronTagger
 from nltk.stem.snowball import EnglishStemmer
 
 from .._common import (
@@ -18,6 +17,7 @@ from .._common import (
     is_range,
 )
 from ..dataclasses import IngredientAmount
+from ..perceptron import PerceptronTagger
 from ._constants import (
     FLATTENED_UNITS_LIST,
     STRING_NUMBERS,
