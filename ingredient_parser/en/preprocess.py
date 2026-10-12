@@ -56,6 +56,44 @@ PUNCTUATION = frozenset(string.punctuation) | {"--"}
 FeatureDict = dict[str, str | bool]
 
 
+# Define features to include for current token from context tokens.
+# These are only included if the token has the feature.
+CONTEXT_FEATURES = [
+    "stem",
+    "pos",
+    "is_capitalised",
+    "is_punc",
+    "is_dimension",
+    "word_shape",
+    "ends_with_inch_symbol",
+    "is_unit",
+    "is_size",
+    "is_in_parens",
+    "is_after_comma",
+    "is_after_plus",
+    "is_length_unit",
+    "mip_start",
+    "mip_end",
+    "within_mip",
+    "within_mip_clause_0",
+    "within_mip_clause_1",
+    "within_mip_clause_2",
+    "after_sentence_split",
+    "example_phrase",
+    "dimensional_phrase",
+]
+# Define the size of the context window and the prefixes to apply to the features from
+# the context tokens.
+CONTEXT_TOKEN_PREFIXES = {
+    -3: "prev3_",
+    -2: "prev2_",
+    -1: "prev_",
+    1: "next_",
+    2: "next2_",
+    3: "next3_",
+}
+
+
 class PreProcessor:
     """Recipe ingredient sentence PreProcessor class.
 
@@ -1072,35 +1110,45 @@ class PreProcessor:
             if unicodedata.category(c) != "Mn"
         )
 
-    def _common_features(self, index: int, prefix: str) -> FeatureDict:
+    def _common_features(self, token: Token) -> FeatureDict:
         """Return common features for token at given index.
 
         Parameters
         ----------
-        index : int
-            Index of token to return features for.
-        prefix : str
-            Feature label prefix.
+        token : Token
+            Token to return features for.
 
         Returns
         -------
         FeatureDict
             Dict of features for token at given index.
         """
-        token = self.tokenized_sentence[index]
-        return {
-            prefix + "is_capitalised": token.features.is_capitalised,
-            prefix + "is_punc": token.features.is_punc,
-            prefix + "is_dimension": token.features.is_dimension,
-            prefix + "word_shape": token.features.shape,
-            prefix + "ends_with_inch_symbol": token.features.ends_with_inch_symbol,
-            prefix + "is_unit": self._is_unit(index),
-            prefix + "is_size": self._is_size(index),
-            prefix + "is_in_parens": self._is_inside_parentheses(index),
-            prefix + "is_after_comma": self._follows_comma(index),
-            prefix + "is_after_plus": self._follows_plus(index),
-            prefix + "is_length_unit": self._is_length_unit(index),
+        token = self.tokenized_sentence[token.index]
+        features = {
+            "bias": "",
+            "sentence_length": str(self._sentence_length_bucket()),
+            "pos": token.pos_tag,
+            "stem": token.features.stem,
+            "is_capitalised": token.features.is_capitalised,
+            "is_punc": token.features.is_punc,
+            "is_dimension": token.features.is_dimension,
+            "word_shape": token.features.shape,
+            "ends_with_inch_symbol": token.features.ends_with_inch_symbol,
+            "is_unit": self._is_unit(token.index),
+            "is_size": self._is_size(token.index),
+            "is_in_parens": self._is_inside_parentheses(token.index),
+            "is_after_comma": self._follows_comma(token.index),
+            "is_after_plus": self._follows_plus(token.index),
+            "is_length_unit": self._is_length_unit(token.index),
         }
+
+        if token.feat_text != token.features.stem:
+            features["token"] = token.feat_text
+
+        features |= self._ngram_features(token.feat_text, "")
+        features |= self.sentence_structure.token_features(token.index, "")
+
+        return features
 
     def _ngram_features(self, token: str, prefix: str) -> dict[str, str]:
         """Return n-gram features for token in a dict.
@@ -1138,130 +1186,88 @@ class PreProcessor:
 
         return ngram_features
 
-    def _token_features(self, token: Token) -> FeatureDict:
-        """Return the features for the token at the given index in the sentence.
+    def _pos_ngram(self, index: int, offset: int) -> list[str]:
+        """Generate part of speech tag ngram for token at given index for given offset.
+
+        The part of speech ngram is a list of contiguous part of speech tags between the
+        token at the given index and the token at the offset from the given index.
+
+        The tags are ordered so that the tag for the left most token in the sentence is
+        first e.g.:
+        For index=3, offset=2: [tag_3, tag_4, tag_5]
+        For index=1, offset=-2: [tag_0, tag_1]
 
         Parameters
         ----------
-        token : Token
-            Token to generate features for.
+        index : int
+            Index of token.
+        offset : int
+            Offset from index to generate ngram for.
+
+        Returns
+        -------
+        list[str]
+            List POS tags that make up ngram.
+        """
+        # Calculate the minimum index, can't be less than 0.
+        min_ngram_index = max(0, min(index, index + offset))
+
+        # Calculate the maximum index, can't be greater than sentence length.
+        max_ngram_index = min(
+            len(self.tokenized_sentence), max(index, index + offset) + 1
+        )
+        return [
+            self.tokenized_sentence[index].pos_tag
+            for index in range(min_ngram_index, max_ngram_index)
+        ]
+
+    def _context_token_features(
+        self,
+        context_token_index: int,
+        prefix: str,
+        sentence_features: list[FeatureDict],
+    ) -> FeatureDict:
+        """Get the context features for a context token at given index.
+
+        The context features are features off token in the context window for a given
+        token. These are a subset of the feature calculated from the context token,
+        itself but are included as a feature of another token with a different feature
+        name (modified by prepending the prefix).
+
+        Parameters
+        ----------
+        context_token_index : int
+            Index in sentence of context token.
+        prefix : str
+            Prefix prepended to feature names.
+        sentence_features : list[FeatureDict]
+            List of calculated features for tokens.
 
         Returns
         -------
         FeatureDict
-            Dictionary of features for token at index.
+            Context features for a context token at given index.
         """
+        context_token_features = {}
+        for context_feature in CONTEXT_FEATURES:
+            value = sentence_features[context_token_index].get(context_feature, None)
+            # Only include context features where the context token has that
+            # feature.
+            if value is not None:
+                context_token_features[prefix + context_feature] = value
 
-        index = token.index
-        features: FeatureDict = {}
-
-        features["bias"] = ""
-        features["sentence_length"] = str(self._sentence_length_bucket())
-
-        # Features for current token
-        features["pos"] = token.pos_tag
-        features["stem"] = token.features.stem
-        if token.feat_text != token.features.stem:
-            features["token"] = token.feat_text
-
-        features |= self._common_features(index, "")
-        features |= self._ngram_features(token.feat_text, "")
-        features |= self.sentence_structure.token_features(index, "")
-
-        # Features for previous token
-        if index > 0:
-            prev_token = self.tokenized_sentence[index - 1]
-            features["prev_stem"] = prev_token.features.stem
-            features["prev_pos_ngram"] = "+".join(
-                (
-                    self.tokenized_sentence[index - 1].pos_tag,
-                    self.tokenized_sentence[index].pos_tag,
-                )
-            )
-            features["prev_pos"] = self.tokenized_sentence[index - 1].pos_tag
-            features |= self._common_features(index - 1, "prev_")
-            features |= self.sentence_structure.token_features(index - 1, "prev_")
-
-        # Features for previous previous token
-        if index > 1:
-            prev2_token = self.tokenized_sentence[index - 2]
-            features["prev2_stem"] = prev2_token.features.stem
-            features["prev2_pos_ngram"] = "+".join(
-                (
-                    self.tokenized_sentence[index - 2].pos_tag,
-                    self.tokenized_sentence[index - 1].pos_tag,
-                    self.tokenized_sentence[index].pos_tag,
-                )
-            )
-            features["prev2_pos"] = self.tokenized_sentence[index - 2].pos_tag
-            features |= self._common_features(index - 2, "prev2_")
-            features |= self.sentence_structure.token_features(index - 2, "prev2_")
-
-        # Features for previous previous previous token
-        if index > 2:
-            prev3_token = self.tokenized_sentence[index - 3]
-            features["prev3_stem"] = prev3_token.features.stem
-            features["prev3_pos_ngram"] = "+".join(
-                (
-                    self.tokenized_sentence[index - 3].pos_tag,
-                    self.tokenized_sentence[index - 2].pos_tag,
-                    self.tokenized_sentence[index - 1].pos_tag,
-                    self.tokenized_sentence[index].pos_tag,
-                )
-            )
-            features["prev3_pos"] = self.tokenized_sentence[index - 3].pos_tag
-            features |= self._common_features(index - 3, "prev3_")
-            features |= self.sentence_structure.token_features(index - 3, "prev3_")
-
-        # Features for next token
-        if index < len(self.tokenized_sentence) - 1:
-            next_token = self.tokenized_sentence[index + 1]
-            features["next_stem"] = next_token.features.stem
-            features["next_pos_ngram"] = "+".join(
-                (
-                    self.tokenized_sentence[index].pos_tag,
-                    self.tokenized_sentence[index + 1].pos_tag,
-                )
-            )
-            features["next_pos"] = self.tokenized_sentence[index + 1].pos_tag
-            features |= self._common_features(index + 1, "next_")
-            features |= self.sentence_structure.token_features(index + 1, "next_")
-
-        # Features for next next token
-        if index < len(self.tokenized_sentence) - 2:
-            next2_token = self.tokenized_sentence[index + 2]
-            features["next2_stem"] = next2_token.features.stem
-            features["next2_pos_ngram"] = "+".join(
-                (
-                    self.tokenized_sentence[index].pos_tag,
-                    self.tokenized_sentence[index + 1].pos_tag,
-                    self.tokenized_sentence[index + 2].pos_tag,
-                )
-            )
-            features["next2_pos"] = self.tokenized_sentence[index + 2].pos_tag
-            features |= self._common_features(index + 2, "next2_")
-            features |= self.sentence_structure.token_features(index + 2, "next2_")
-
-        # Features for next next next token
-        if index < len(self.tokenized_sentence) - 3:
-            next3_token = self.tokenized_sentence[index + 3]
-            features["next3_stem"] = next3_token.features.stem
-            features["next3_pos_ngram"] = "+".join(
-                (
-                    self.tokenized_sentence[index].pos_tag,
-                    self.tokenized_sentence[index + 1].pos_tag,
-                    self.tokenized_sentence[index + 2].pos_tag,
-                    self.tokenized_sentence[index + 3].pos_tag,
-                )
-            )
-            features["next3_pos"] = self.tokenized_sentence[index + 3].pos_tag
-            features |= self._common_features(index + 3, "next3_")
-            features |= self.sentence_structure.token_features(index + 3, "next3_")
-
-        return features
+        return context_token_features
 
     def sentence_features(self) -> list[FeatureDict]:
         """Return dict of features for each token in sentence.
+
+        This is done in two stages:
+        1. Calculate the common features that every token has.
+        2. Calculate the features for the context of each token by looking up the
+           features from the common features for the context tokens.
+
+        This two stage approach avoids calculating each feature for every token and
+        every time each token is a context token, which improves performance.
 
         Returns
         -------
@@ -1269,4 +1275,31 @@ class PreProcessor:
             List of feature dicts for each token in sentence.
         """
         logger.debug("Generating features for tokens.")
-        return [self._token_features(token) for token in self.tokenized_sentence]
+
+        sentence_features = [
+            self._common_features(token) for token in self.tokenized_sentence
+        ]
+
+        # Iterate over sentence features and add features for context tokens to features
+        # for each token.
+        for i, features in enumerate(sentence_features):
+            # Iterate over all context window offsets for each element of
+            # sentence_features.
+            for offset, prefix in CONTEXT_TOKEN_PREFIXES.items():
+                # If the index for the given context feature is within the sentence
+                # (i.e. not < 0 or > sentence length), then obtain the context features
+                # for that token from the already calculated sentence_features.
+                if i + offset >= 0 and i + offset < len(sentence_features):
+                    features |= self._context_token_features(
+                        i + offset, prefix, sentence_features
+                    )
+
+                # Only include the pos ngram feature if it contains as many tags as the
+                # offset + 1.
+                # This is to avoid tokens near the start or end of a sentence having
+                # ngrams only containing a single tag despite the offset being non-zero.
+                pos_ngram = self._pos_ngram(i, offset)
+                if len(pos_ngram) == abs(offset) + 1:
+                    features[prefix + "pos_ngram"] = "+".join(pos_ngram)
+
+        return sentence_features
