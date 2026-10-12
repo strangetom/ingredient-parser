@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import re
+import string
 from itertools import chain
 
 # Plural and singular units. Length units are excluded.
@@ -572,5 +573,14 @@ INDEFINITE_QUANTIFIERS = frozenset(
         "more",
         "several",
         "some",
+    }
+)
+
+# Define table mapping ascii characters to characters used in word shape.
+ASCII_SHAPE_TABLE = str.maketrans(
+    {
+        **{c: "x" for c in string.ascii_lowercase},
+        **{c: "X" for c in string.ascii_uppercase},
+        **{c: "d" for c in string.digits},
     }
 )

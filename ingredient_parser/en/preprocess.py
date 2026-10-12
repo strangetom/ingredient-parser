@@ -11,6 +11,7 @@ from .._common import is_float, is_fraction
 from ..dataclasses import Token, TokenFeatures
 from ._ambiguity import Disambiguator
 from ._constants import (
+    ASCII_SHAPE_TABLE,
     DIMENSIONS,
     FLATTENED_UNITS_LIST,
     LENGTH_UNITS,
@@ -22,20 +23,17 @@ from ._constants import (
 from ._regex import (
     CAPITALISED_PATTERN,
     CURRENCY_PATTERN,
-    DIGIT_PATTERN,
     DUPE_UNIT_RANGES_PATTERN,
     EXPANDED_RANGE,
     FRACTION_PARTS_PATTERN,
     HYPHEN_SPLIT_NAME_PATTERN,
     INCH_SIZE_PATTERN,
-    LOWERCASE_PATTERN,
     QUANTITY_UNITS_PATTERN,
     QUANTITY_X_PATTERN,
     STRING_QUANTITY_HYPHEN_PATTERN,
     UNITS_HYPHEN_QUANTITY_PATTERN,
     UNITS_QUANTITY_PATTERN,
     UNITS_WITH_TRAILING_PERIOD,
-    UPPERCASE_PATTERN,
 )
 from ._structure_features import SentenceStructureFeatures
 from ._utils import (
@@ -1086,10 +1084,7 @@ class PreProcessor:
             Word shape of token.
         """
         normalised = self._remove_accents(token)
-        shape = LOWERCASE_PATTERN.sub("x", normalised)
-        shape = UPPERCASE_PATTERN.sub("X", shape)
-        shape = DIGIT_PATTERN.sub("d", shape)
-        return shape
+        return normalised.translate(ASCII_SHAPE_TABLE)
 
     def _remove_accents(self, token: str) -> str:
         """Remove accents from characters in token.
@@ -1104,6 +1099,11 @@ class PreProcessor:
         str
            Token with accents removed.
         """
+        if token.isascii():
+            # If token is ASCII, then it contains no accents so we can avoid doing any
+            # work.
+            return token
+
         return "".join(
             c
             for c in unicodedata.normalize("NFD", token)

@@ -109,10 +109,6 @@ QUANTITY_X_PATTERN = re.compile(
 # e.g. #1$4 - #1$2.
 EXPANDED_RANGE = re.compile(r"(\d)\s*\-\s*([\d\#])")
 
-LOWERCASE_PATTERN = re.compile(r"[a-z]")
-UPPERCASE_PATTERN = re.compile(r"[A-Z]")
-DIGIT_PATTERN = re.compile(r"[0-9]")
-
 # Regex pattern to match currency within parentheses e.g. ($1.99)
 # Allows optional white space after opening parenthesis, before currency symbol, and
 # before closing parenthesis.
