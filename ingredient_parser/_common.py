@@ -199,8 +199,16 @@ def is_float(value: str) -> bool:
 
     >>> is_float("1-2")
     False
+
+    >>> if_float("-5")
+    True
     """
-    if not value or value == "nan" or value.endswith("inf") or not value[0].isdecimal():
+    if (
+        not value
+        or value == "nan"
+        or value.endswith("inf")
+        or not (value[0].isdecimal() or value[0] == "-")
+    ):
         # Quick checks for things that definitely aren't floats.
         return False
 
