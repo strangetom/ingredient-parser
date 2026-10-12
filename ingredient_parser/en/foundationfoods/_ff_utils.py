@@ -12,7 +12,8 @@ from itertools import groupby
 
 from ..._common import consume
 from .._loaders import load_embeddings_model
-from .._utils import pos_tag, stem, tokenize
+from .._tokenize import tokenize
+from .._utils import pos_tag, stem
 from ._ff_constants import (
     AMBIGUOUS_ADJECTIVES,
     NEGATION_TOKENS,

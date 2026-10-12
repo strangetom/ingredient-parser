@@ -34,6 +34,7 @@ from ._regex import (
     UNITS_WITH_TRAILING_PERIOD,
 )
 from ._structure_features import SentenceStructureFeatures
+from ._tokenize import tokenize
 from ._utils import (
     combine_quantities_split_by_and,
     is_numeric,
@@ -41,7 +42,6 @@ from ._utils import (
     pos_tag,
     replace_string_range,
     stem,
-    tokenize,
 )
 
 logger = logging.getLogger("ingredient-parser.preprocess")
