@@ -261,7 +261,9 @@ class NumpyCRFInference:
         if len(excluded_labels) == self.model.n_labels:
             raise ValueError("Cannot return marginal if all labels have been excluded.")
 
-        sorted_idx = np.argsort(self.model.marginals[position], descending=True)
+        sorted_idx = np.argsort(self.model.marginals[position])
+        sorted_idx = np.flip(sorted_idx)
+
         for idx in sorted_idx:
             label = self.model.idx_to_label[idx]
             if label in excluded_labels:
