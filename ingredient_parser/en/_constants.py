@@ -156,9 +156,13 @@ def _generate_regex_for_pluralising_known_units(units: dict[str, str]) -> re.Pat
     """Pre-compile regular expression for pluralising unit in the UNITS dict.
 
     This is a performance optimisation to avoid iterating over each item in the UNITS
-    dict. Instead, we generate a regular expression of all singular units which captures
-    a matching singular unit. We can then use the captured singular unit to look up the
-    plural and substitute it into a string.
+    dict. Instead, we generate a regular expression of all singular units in an
+    alternate group.
+
+    If the regular expression matches, we can substitute the match for the plural unit
+    by looking at the match in the UNITS_RINDEX dict. We don't need to create a capture
+    group specifically (hence the use of a non-capturing group: (?:...) ) because it
+    would be identical to the whole match since \b have no width.
 
     Parameters
     ----------
@@ -174,9 +178,8 @@ def _generate_regex_for_pluralising_known_units(units: dict[str, str]) -> re.Pat
     # Generate dict in reverse lex order, so that each string occurs before it's perfect
     # substrings.
     ordered_singular_units = reversed(sorted(units.values()))
-    return re.compile(
-        "|".join(rf"\b({singular})\b" for singular in ordered_singular_units)
-    )
+    alt = "|".join(re.escape(singular) for singular in ordered_singular_units)
+    return re.compile(rf"\b(?:{alt})\b")
 
 
 KNOWN_PLURAL_UNIT_PATTERN = _generate_regex_for_pluralising_known_units(UNITS)
