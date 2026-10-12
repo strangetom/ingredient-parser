@@ -259,7 +259,7 @@ class IngredientAmount:
         UnitSystem
             Enum specifying the unit system in use.
         """
-        if self.unit == "":
+        if isinstance(self.unit, str) and self.unit == "":
             return UnitSystem.NONE
 
         # If unit is a pint.Unit, convert to string

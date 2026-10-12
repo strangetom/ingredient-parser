@@ -107,6 +107,24 @@ class TestPostProcessor_IngredientAmount:
         assert amount.RANGE
         assert amount.unit_system == UnitSystem.US_CUSTOMARY
 
+    def test_no_unit(self):
+        """
+        Test that the unit_system when there is not unit is NONE.
+        """
+        amount = ingredient_amount_factory(
+            quantity="2",
+            unit="",
+            text="2",
+            confidence=0,
+            starting_index=0,
+        )
+
+        assert amount.quantity == 2
+        assert amount.quantity_max == 2
+        assert amount.unit == ""
+        assert amount.text == "2"
+        assert amount.unit_system == UnitSystem.NONE
+
 
 class Test_IngredientAmountVolumetricUnitSystem:
     def test_metric_volumentric_measurements(self):
