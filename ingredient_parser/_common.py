@@ -200,6 +200,10 @@ def is_float(value: str) -> bool:
     >>> is_float("1-2")
     False
     """
+    if not value or value == "nan" or value.endswith("inf") or not value[0].isdecimal():
+        # Quick checks for things that definitely aren't floats.
+        return False
+
     try:
         _ = float(value)
         return True

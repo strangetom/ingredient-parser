@@ -929,30 +929,26 @@ class PreProcessor:
         >>> p._is_numeric("beef")
         False
         """
-        if token in ["00"]:
+        if token == "00":
             # Special cases of digits that don't represent numbers
             return False
+
+        lower = token.lower()
+        if lower in STRING_NUMBERS or lower == "dozen":
+            # Numbers written in words are considered numeric.
+            return True
+
+        if token.endswith("x"):
+            # Strip trailing x so we can check the remaining token.
+            token = token[:-1]
 
         if is_fraction(token):
             # Fraction tokens e.g. #1$4 or 1#2$3
             return True
 
-        if token.lower() in STRING_NUMBERS.keys():
-            # Numbers written in words are considered numeric.
-            return True
-
         if "-" in token:
             parts = token.split("-")
-            return all([self._is_numeric(part) for part in parts])
-
-        if token.lower() == "dozen":
-            return True
-
-        if token.endswith("x"):
-            if is_fraction(token[:-1]):
-                return True
-            else:
-                return is_float(token[:-1])
+            return all(self._is_numeric(part) for part in parts)
 
         return is_float(token)
 
