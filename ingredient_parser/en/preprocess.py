@@ -455,8 +455,12 @@ class PreProcessor:
         """
         sentence = QUANTITY_UNITS_PATTERN.sub(r"\1 \2", sentence)
         sentence = UNITS_QUANTITY_PATTERN.sub(r"\1 \2", sentence)
-        sentence = UNITS_HYPHEN_QUANTITY_PATTERN.sub(r"\1 - \2", sentence)
-        return STRING_QUANTITY_HYPHEN_PATTERN.sub(r"\1 \2", sentence)
+        if "-" in sentence:
+            # These regular expressions only need to run if the sentence contains a
+            # hyphen.
+            sentence = UNITS_HYPHEN_QUANTITY_PATTERN.sub(r"\1 - \2", sentence)
+            sentence = STRING_QUANTITY_HYPHEN_PATTERN.sub(r"\1 \2", sentence)
+        return sentence
 
     def _remove_unit_trailing_period(self, sentence: str) -> str:
         """Remove trailing periods from units e.g. tsp. -> tsp.

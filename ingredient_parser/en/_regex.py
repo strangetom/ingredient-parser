@@ -32,9 +32,9 @@ UNITS_QUANTITY_PATTERN = re.compile(rf"({'|'.join(sorted_units)})(\d)")
 UNITS_HYPHEN_QUANTITY_PATTERN = re.compile(rf"({'|'.join(sorted_units)})\-(\d)")
 STRING_QUANTITY_HYPHEN_PATTERN = re.compile(
     rf"""
-    \b({"|".join(STRING_NUMBERS.keys())})\b  # Capture string number
-    \-                                       # Followed by hyphen
-    \b({"|".join(sorted_units)})\b           # Followed by unit
+    \b({"|".join(sorted(STRING_NUMBERS.keys()))})\b  # Capture string number
+    \-                                               # Followed by hyphen
+    \b({"|".join(sorted_units)})\b                   # Followed by unit
     """,
     re.VERBOSE | re.IGNORECASE,
 )
