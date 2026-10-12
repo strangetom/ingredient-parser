@@ -55,30 +55,32 @@ FeatureDict = dict[str, str | bool]
 
 # Define features to include for current token from context tokens.
 # These are only included if the token has the feature.
-CONTEXT_FEATURES = [
-    "stem",
-    "pos",
-    "is_capitalised",
-    "is_punc",
-    "is_dimension",
-    "word_shape",
-    "ends_with_inch_symbol",
-    "is_unit",
-    "is_size",
-    "is_in_parens",
-    "is_after_comma",
-    "is_after_plus",
-    "is_length_unit",
-    "mip_start",
-    "mip_end",
-    "within_mip",
-    "within_mip_clause_0",
-    "within_mip_clause_1",
-    "within_mip_clause_2",
-    "after_sentence_split",
-    "example_phrase",
-    "dimensional_phrase",
-]
+CONTEXT_FEATURES = frozenset(
+    [
+        "stem",
+        "pos",
+        "is_capitalised",
+        "is_punc",
+        "is_dimension",
+        "word_shape",
+        "ends_with_inch_symbol",
+        "is_unit",
+        "is_size",
+        "is_in_parens",
+        "is_after_comma",
+        "is_after_plus",
+        "is_length_unit",
+        "mip_start",
+        "mip_end",
+        "within_mip",
+        "within_mip_clause_0",
+        "within_mip_clause_1",
+        "within_mip_clause_2",
+        "after_sentence_split",
+        "example_phrase",
+        "dimensional_phrase",
+    ]
+)
 # Define the size of the context window and the prefixes to apply to the features from
 # the context tokens.
 CONTEXT_TOKEN_PREFIXES = {
@@ -176,6 +178,7 @@ class PreProcessor:
 
         self.singularised_indices = []
         self.tokenized_sentence = self._calculate_tokens(self.sentence)
+        self.n_tokens = len(self.tokenized_sentence)
         self.sentence_structure = SentenceStructureFeatures(self.tokenized_sentence)
 
     def __repr__(self) -> str:
@@ -988,10 +991,9 @@ class PreProcessor:
         int
             Length bucket of sentence.
         """
-        length = len(self.tokenized_sentence)
         bucket = 1
         for length_bucket in [2, 4, 8, 12, 16, 20, 32, 64]:
-            if length >= length_bucket:
+            if self.n_tokens >= length_bucket:
                 bucket = length_bucket
 
         return bucket
@@ -1119,7 +1121,9 @@ class PreProcessor:
 
         return ngram_features
 
-    def _pos_ngram(self, index: int, offset: int) -> list[str]:
+    def _pos_ngram(
+        self, sentence_tags: list[str], index: int, offset: int
+    ) -> list[str]:
         """Generate part of speech tag ngram for token at given index for given offset.
 
         The part of speech ngram is a list of contiguous part of speech tags between the
@@ -1132,6 +1136,8 @@ class PreProcessor:
 
         Parameters
         ----------
+        sentence_tags : list[str]
+            List of part of speech tags for full sentence.
         index : int
             Index of token.
         offset : int
@@ -1146,50 +1152,9 @@ class PreProcessor:
         min_ngram_index = max(0, min(index, index + offset))
 
         # Calculate the maximum index, can't be greater than sentence length.
-        max_ngram_index = min(
-            len(self.tokenized_sentence), max(index, index + offset) + 1
-        )
-        return [
-            self.tokenized_sentence[index].pos_tag
-            for index in range(min_ngram_index, max_ngram_index)
-        ]
+        max_ngram_index = min(self.n_tokens, max(index, index + offset) + 1)
 
-    def _context_token_features(
-        self,
-        context_token_index: int,
-        prefix: str,
-        sentence_features: list[FeatureDict],
-    ) -> FeatureDict:
-        """Get the context features for a context token at given index.
-
-        The context features are features off token in the context window for a given
-        token. These are a subset of the feature calculated from the context token,
-        itself but are included as a feature of another token with a different feature
-        name (modified by prepending the prefix).
-
-        Parameters
-        ----------
-        context_token_index : int
-            Index in sentence of context token.
-        prefix : str
-            Prefix prepended to feature names.
-        sentence_features : list[FeatureDict]
-            List of calculated features for tokens.
-
-        Returns
-        -------
-        FeatureDict
-            Context features for a context token at given index.
-        """
-        context_token_features = {}
-        for context_feature in CONTEXT_FEATURES:
-            value = sentence_features[context_token_index].get(context_feature, None)
-            # Only include context features where the context token has that
-            # feature.
-            if value is not None:
-                context_token_features[prefix + context_feature] = value
-
-        return context_token_features
+        return sentence_tags[min_ngram_index:max_ngram_index]
 
     def sentence_features(self) -> list[FeatureDict]:
         """Return dict of features for each token in sentence.
@@ -1209,8 +1174,21 @@ class PreProcessor:
         """
         logger.debug("Generating features for tokens.")
 
+        sentence_pos_tags = [t.pos_tag for t in self.tokenized_sentence]
         sentence_features = [
             self._common_features(token) for token in self.tokenized_sentence
+        ]
+
+        # Calculate the features used for each token when the token is in the context
+        # window of another token.
+        # This is a list of (feature name, feature value) tuples for each each element
+        # in the sentence.
+        # This approach means we only calculate the features for a context token once
+        # and we can just look up the features of each context token to include in the
+        # features for each token.
+        context_features = [
+            [(feat, val) for feat, val in features.items() if feat in CONTEXT_FEATURES]
+            for features in sentence_features
         ]
 
         # Iterate over sentence features and add features for context tokens to features
@@ -1222,16 +1200,15 @@ class PreProcessor:
                 # If the index for the given context feature is within the sentence
                 # (i.e. not < 0 or > sentence length), then obtain the context features
                 # for that token from the already calculated sentence_features.
-                if i + offset >= 0 and i + offset < len(sentence_features):
-                    features |= self._context_token_features(
-                        i + offset, prefix, sentence_features
-                    )
+                if 0 <= i + offset < self.n_tokens:
+                    for feature, value in context_features[i + offset]:
+                        features[prefix + feature] = value
 
                 # Only include the pos ngram feature if it contains as many tags as the
                 # offset + 1.
                 # This is to avoid tokens near the start or end of a sentence having
                 # ngrams only containing a single tag despite the offset being non-zero.
-                pos_ngram = self._pos_ngram(i, offset)
+                pos_ngram = self._pos_ngram(sentence_pos_tags, i, offset)
                 if len(pos_ngram) == abs(offset) + 1:
                     features[prefix + "pos_ngram"] = "+".join(pos_ngram)
 
