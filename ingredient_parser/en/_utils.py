@@ -6,18 +6,17 @@ from functools import lru_cache
 from typing import Literal, cast
 
 import pint
-from nltk import PerceptronTagger
 from nltk.stem.snowball import EnglishStemmer
 
 from .._common import (
     UREG,
-    download_nltk_resources,
     intermediate_fraction_to_unicode,
     is_float,
     is_fraction,
     is_range,
 )
 from ..dataclasses import IngredientAmount
+from ..perceptron import PerceptronTagger
 from ._constants import (
     FLATTENED_UNITS_LIST,
     STRING_NUMBERS,
@@ -132,7 +131,6 @@ UNIT_REPLACEMENTS = [
     (re.compile(r"\b(ts)\b"), "teaspoon"),
 ]
 
-download_nltk_resources()
 STEMMER = EnglishStemmer()
 
 
