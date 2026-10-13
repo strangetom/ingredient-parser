@@ -10,7 +10,6 @@ from nltk.stem.snowball import EnglishStemmer
 
 from .._common import (
     UREG,
-    download_nltk_resources,
     intermediate_fraction_to_unicode,
     is_float,
     is_fraction,
@@ -132,7 +131,6 @@ UNIT_REPLACEMENTS = [
     (re.compile(r"\b(ts)\b"), "teaspoon"),
 ]
 
-download_nltk_resources()
 STEMMER = EnglishStemmer()
 
 
