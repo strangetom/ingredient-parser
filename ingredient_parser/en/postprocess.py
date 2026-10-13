@@ -6,8 +6,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 from functools import cached_property
 from itertools import chain, pairwise
-from statistics import mean
-from typing import Literal
+from typing import Iterable, Literal
 
 from ingredient_parser.en.foundationfoods import match_foundation_foods
 
@@ -46,6 +45,30 @@ logger = logging.getLogger("ingredient-parser.postprocess")
 WORD_CHAR = re.compile(r"\w")
 
 _RELATED_AMOUNT_PREFIXES = frozenset({"(", "/", "["})
+
+
+def _mean(values: Iterable[float]) -> float:
+    """Calculate the mean of the values.
+
+    This function is used instead of statistics.mean because it is called often as part
+    of the postprocessing and statistics.mean performs exact fractional arithmetic,
+    which isn't necessary here.
+
+    Using this function provides a ~5% performance improvement over statistics.mean.
+
+    Parameters
+    ----------
+    values : Iterable[float]
+        Values of calculate mean of.
+
+    Returns
+    -------
+    float
+        Mean of values.
+    """
+    if not isinstance(values, (list, tuple)):
+        values = list(values)
+    return sum(values) / len(values)
 
 
 @dataclass(slots=True)
@@ -326,7 +349,7 @@ class PostProcessor:
 
         merged = IngredientText(
             text=text,
-            confidence=round(mean(n.confidence for n in sorted_objs), 6),
+            confidence=round(_mean(n.confidence for n in sorted_objs), 6),
             starting_index=min(n.starting_index for n in sorted_objs),
         )
         return merged
@@ -701,7 +724,7 @@ class PostProcessor:
                 confidence_parts.extend([self.tokens[i].score for i in idx])
             else:
                 parts.append(joined)
-                confidence_parts.append(mean([self.tokens[i].score for i in idx]))
+                confidence_parts.append(_mean([self.tokens[i].score for i in idx]))
             starting_index = min(starting_index, idx[0])
 
         # Find the indices of the joined tokens list where the element
@@ -731,7 +754,7 @@ class PostProcessor:
 
         return IngredientText(
             text=text,
-            confidence=round(mean(confidence_parts), 6),
+            confidence=round(_mean(confidence_parts), 6),
             starting_index=starting_index,
         )
 
@@ -997,7 +1020,7 @@ class PostProcessor:
             replacement = combine_quantities_split_by_and(fragment)
             if replacement != fragment:
                 mod_idx = idx_group[0]  # Index to replace with replacement
-                self.tokens[mod_idx].score = mean(
+                self.tokens[mod_idx].score = _mean(
                     [self.tokens[i].score for i in idx_group]
                 )
                 self.tokens[mod_idx].text = replacement
@@ -1008,7 +1031,7 @@ class PostProcessor:
             replacement = replace_string_range(fragment)
             if replacement != fragment:
                 mod_idx = idx_group[0]  # Index to replace with replacement
-                self.tokens[mod_idx].score = mean(
+                self.tokens[mod_idx].score = _mean(
                     [self.tokens[i].score for i in idx_group]
                 )
                 self.tokens[mod_idx].text = replacement
@@ -1168,7 +1191,7 @@ class PostProcessor:
                             quantity=quantity,
                             unit=unit,
                             text=text,
-                            confidence=mean(
+                            confidence=_mean(
                                 [matching_scores.pop(0), matching_scores.pop(-1)]
                             ),
                             starting_index=tokens[match[0]].index,
@@ -1189,7 +1212,7 @@ class PostProcessor:
                         quantity = matching_tokens[i]
                         unit = matching_tokens[i + 1]
                         text = " ".join((quantity, unit)).strip()
-                        confidence = mean(matching_scores[i : i + 1])
+                        confidence = _mean(matching_scores[i : i + 1])
 
                         # If the first amount (e.g. 1 can) is approximate,
                         # so are all the pairs in between
@@ -1414,7 +1437,7 @@ class PostProcessor:
                 mstart1 = match[start1]  # Index of start of 1st part in full sentence.
                 quantity_1 = tokens[mstart1].text
                 unit_1 = tokens[match[start1 + 1]].text
-                score_1 = mean(tokens[i].score for i in match[start1 : start1 + 2])
+                score_1 = _mean(tokens[i].score for i in match[start1 : start1 + 2])
                 text_1 = " ".join((quantity_1, unit_1)).strip()
 
                 first_amount = ingredient_amount_factory(
@@ -1432,7 +1455,7 @@ class PostProcessor:
                 mstart2 = match[start2]  # Index of start of 2nd part in full sentence.
                 quantity_2 = tokens[mstart2].text
                 unit_2 = " ".join([tokens[i].text for i in match[start2 + 1 :]])
-                score_2 = mean(tokens[i].score for i in match[start2:])
+                score_2 = _mean(tokens[i].score for i in match[start2:])
                 text_2 = " ".join((quantity_2, unit_2)).strip()
 
                 second_amount = ingredient_amount_factory(
@@ -1714,7 +1737,7 @@ class PostProcessor:
                     quantity=amount.quantity,
                     unit=unit,
                     text=text,
-                    confidence=mean(amount.confidence),
+                    confidence=_mean(amount.confidence),
                     starting_index=amount.starting_index,
                     APPROXIMATE=amount.APPROXIMATE,
                     SINGULAR=amount.SINGULAR,
