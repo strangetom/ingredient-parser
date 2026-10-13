@@ -11,7 +11,7 @@ from nltk.downloader import download as nltk_download
 logger = logging.getLogger(__name__)
 
 _WEIGHT_FILE_PREFIX = (
-    "taggers/averaged_perceptron_tagger_eng/averaged_perceptron_tagger_eng"
+    "taggers/averaged_perceptron_tagger_eng/averaged_perceptron_tagger_eng."
 )
 
 
@@ -198,23 +198,17 @@ class PerceptronTagger:
             "bias",
             "i suffix " + token[-3:],
             "i pref1 " + token[0] if token else "",
+            "i-1 tag " + prev,
+            "i-2 tag " + prev2,
+            "i tag+i-2 tag " + prev + " " + prev2,
             "i word " + context[i],
+            "i-1 tag+i word " + prev + " " + context[i],
             "i-1 word " + context[i - 1],
             "i-1 suffix " + context[i - 1][-3:],
             "i-2 word " + context[i - 2],
             "i+1 word " + context[i + 1],
             "i+1 suffix " + context[i + 1][-3:],
             "i+2 word " + context[i + 2],
-            # Features above are static because they only require knowing the token.
-            # It may be possible to compute the observation scores for these features
-            # as a batch for the whole sentence.
-            #
-            # Features below are all dynamic, because they require knowing the previous
-            # tags.
-            "i-1 tag " + prev,
-            "i-2 tag " + prev2,
-            "i tag+i-2 tag " + prev + " " + prev2,
-            "i-1 tag+i word " + prev + " " + context[i],
         ]
 
     def load(self) -> None:
