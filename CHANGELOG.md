@@ -6,6 +6,10 @@
 * Fix capitalised units being returned as strings instead of the appropriate `pint.Unit` object.
 * Improve type hints for parse_ingredient arguments.
 
+### 2.9.1
+
+* Fix use of NumPy behaviour only present in the latest release (2.5.0). (@[yashBhosale](https://github.com/yashBhosale))
+
 ### 2.9.0
 
 * Optimise performance for ~27% faster parsing:
