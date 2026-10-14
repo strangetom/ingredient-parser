@@ -8,5 +8,5 @@ This appendix to the model guide contains additional details that I thought were
 .. toctree::
    :maxdepth: 1
 
-   Improved part of speech tags <pos-tags>
+   Improved part of speech tagging <pos-tags>
    NumPy based inference <numpy-inference>
