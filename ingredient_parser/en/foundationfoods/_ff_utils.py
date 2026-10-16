@@ -164,7 +164,6 @@ def normalise_spelling(tokens: list[IngredientToken]) -> list[IngredientToken]:
     while idx < n_tokens:
         ing_token = tokens[idx]
         token = ing_token.token.lower()
-
         if not token.isascii():
             token = strip_accents(token)
             for symbol in "®©™":
@@ -199,8 +198,12 @@ def normalise_spelling(tokens: list[IngredientToken]) -> list[IngredientToken]:
             )
             idx += 1
         else:
-            # Do this again to retain capitalisation.
+            # Do this again to retain capitalisation i.e. do not call lower().
             token = tokens[idx].token
+            if not token.isascii():
+                token = strip_accents(token)
+                for symbol in "®©™":
+                    token = token.replace(symbol, "")
             normalised_tokens.append(IngredientToken(token, ing_token.pos_tag))
             idx += 1
 
