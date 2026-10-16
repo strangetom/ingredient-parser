@@ -294,7 +294,7 @@ def load_fdc_ingredients() -> list[FDCIngredient]:
                         tokens=tokenized_description.tokens,
                         pos_tags=tokenized_description.pos_tags,
                         embedding_tokens=tokenized_description.embedding_tokens,
-                        embedding_pos_tags=tokenized_description.pos_tags,
+                        embedding_pos_tags=tokenized_description.embedding_pos_tags,
                         embedding_weights=tokenized_description.embedding_weights,
                     )
                 )
