@@ -95,13 +95,17 @@ class BM25:
         for token, ingredients in self.t2d.items():
             self.idf[token] = math.log(self.corpus_size / len(ingredients))
 
-    def rank_matches(self, tokens: list[IngredientToken]) -> list[FDCIngredientMatch]:
+    def rank_matches(
+        self, tokens: list[IngredientToken], tok_k: int
+    ) -> list[FDCIngredientMatch]:
         """Rank and score FDC Ingredients according to closest match to tokens.
 
         Parameters
         ----------
         tokens : list[IngredientToken]
             List of tokens.
+        top_k : int
+            Number of highest ranking matches to return.
 
         Returns
         -------
@@ -138,6 +142,9 @@ class BM25:
                     score=score,
                 )
             )
+
+            if len(matches) == tok_k:
+                break
 
         if not matches:
             logger.debug(

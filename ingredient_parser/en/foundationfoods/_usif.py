@@ -254,13 +254,17 @@ class uSIF:
             )
             return np.mean(weighted, axis=0)
 
-    def rank_matches(self, tokens: list[IngredientToken]) -> list[FDCIngredientMatch]:
+    def rank_matches(
+        self, tokens: list[IngredientToken], top_k: int
+    ) -> list[FDCIngredientMatch]:
         """Rank and score FDC Ingredients according to closest match to tokens.
 
         Parameters
         ----------
         tokens : list[str]
             List of tokens.
+        top_k : int
+            Number of highest ranking matches to return.
 
         Returns
         -------
@@ -283,7 +287,7 @@ class uSIF:
 
         sorted_candidates = [
             FDCIngredientMatch(fdc=self.fdc_ingredients[idx], score=float(scores[idx]))
-            for idx in order
+            for idx in order[:top_k]
         ]
         return sorted_candidates
 

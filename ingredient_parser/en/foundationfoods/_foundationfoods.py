@@ -135,7 +135,7 @@ def match_foundation_foods(
         normalised_embeddings_tokens.append(IngredientToken("raw", "JJ"))
 
     bm25 = get_bm25_ranker()
-    bm25_matches = bm25.rank_matches(normalised_tokens)
+    bm25_matches = bm25.rank_matches(normalised_tokens, TOP_K)
 
     if not has_token_in_embeddings:
         if not bm25_matches:
@@ -153,7 +153,7 @@ def match_foundation_foods(
         )
 
     u = get_usif_ranker()
-    usif_matches = u.rank_matches(normalised_embeddings_tokens)
+    usif_matches = u.rank_matches(normalised_embeddings_tokens, TOP_K)
 
     # Check if both BM25 and uSIF agree on the top result. If they do, return that and
     # avoid any further processing.
@@ -175,8 +175,8 @@ def match_foundation_foods(
     if has_token_in_embeddings and bm25_usif_agreement < BM25_USIF_AGREENMENT_THRESHOLD:
         # Get all FDC IDs for BM25 and uSIF matches
         # We'll only use the fuzzy ranker on these, instead of the whole FDC set.
-        candidate_fdc_ids = {m.fdc.fdc_id for m in usif_matches[:TOP_K]} | {
-            m.fdc.fdc_id for m in bm25_matches[:TOP_K]
+        candidate_fdc_ids = {m.fdc.fdc_id for m in usif_matches} | {
+            m.fdc.fdc_id for m in bm25_matches
         }
         logger.debug(
             "BM25 and uSIF ranker alignment is below threshold "
