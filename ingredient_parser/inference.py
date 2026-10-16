@@ -786,7 +786,7 @@ class NumpyViterbiInference:
         """
         return (weights.astype(np.float32) - self.zero_offset) / self.scale_factor
 
-    def _features_to_idx_array(self, features: set[str]) -> np.ndarray:
+    def _features_to_idx_array(self, features: set[str]) -> list[int]:
         """Map set of feature strings to row indices in emission matrix.
 
         Parameters
@@ -796,16 +796,14 @@ class NumpyViterbiInference:
 
         Returns
         -------
-        np.ndarray
-            NumPy array of integer indices for string features.
+        list[int]
+            List of integer indices for string features.
         """
-        return np.array(
-            [
-                self.features_to_idx[feat]
-                for feat in features
-                if feat in self.features_to_idx
-            ]
-        )
+        return [
+            self.features_to_idx[feat]
+            for feat in features
+            if feat in self.features_to_idx
+        ]
 
     def _precompute_constraint_mask(self) -> np.ndarray:
         """Compute constraint mask.
