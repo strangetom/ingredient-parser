@@ -2,7 +2,6 @@
 
 import logging
 from collections import defaultdict
-from dataclasses import dataclass
 from functools import lru_cache
 
 import numpy as np
@@ -13,14 +12,6 @@ from ._ff_dataclasses import FDCIngredient, FDCIngredientMatch, IngredientToken
 from ._ff_utils import load_fdc_ingredients
 
 logger = logging.getLogger("ingredient-parser.foundation-foods.usif")
-
-
-@dataclass
-class Embedding:
-    """Dataclass for holding an embedding vector and it's norm."""
-
-    vec: np.ndarray
-    norm: np.floating
 
 
 class uSIF:
@@ -47,8 +38,6 @@ class uSIF:
         Dimension of embeddings model.
     fdc_ingredients : list[FDCIngredient]
         Lists of FDC ingredients.
-    fdc_vectors : dict[str, list[FDCIngredient]]
-        Lists of embedding vectors for FDC ingredients, grouped by data type.
     min_prob : float
         Minimum token probability.
     token_prob : dict[str, float]
@@ -75,7 +64,7 @@ class uSIF:
         self.min_prob: float = min(self.token_prob.values())
         self.a: float = self._calculate_a_factor()
 
-        self.fdc_vectors = self._embed_fdc_ingredients()
+        self._build_vector_index(self._embed_fdc_ingredients())
 
     def _estimate_token_probability(
         self, fdc_ingredients: list[FDCIngredient]
@@ -136,6 +125,40 @@ class uSIF:
         Z = 0.5 * vocab_size
         return (1 - alpha) / (alpha * Z)
 
+    def _build_vector_index(self, vectors: np.ndarray) -> None:
+        """Prepare the FDC vectors so that scoring a query is a single matrix-vector
+        product.
+
+        Vectors are L2-normalised up front so cosine similarity reduces to a dot
+        product. Rows that are identical (many FDC entries share the same embedding
+        tokens, e.g. the same food in different datasets) are collapsed so that they are
+        scored once and, importantly, always receive exactly the same score. The
+        consistent-top-result check relies on exact score ties.
+
+        Rows with zero norm (every token weighted to 0) are left as zero vectors, giving
+        them a cosine distance of 1 (the worst score) rather than NaN.
+
+        Two arrays are created:
+        _unique_unit_vectors: contains the unique embedding vectors for the FDC
+        ingredients.
+        _row_to_unique: Has one entry per entry in self.fdc_ingredients, which contains
+        the row index of _unique_units_vectors that maps to the FDC ingredient at that
+        position i.e. the unit vector for FDC ingredient with index i (in
+        self.fdc_ingredients) can be found at row _row_to_unique[i] within
+        _unique_unit_vectors.
+
+        Parameters
+        ----------
+        vectors : np.ndarray
+            Array with shape (n_fdc_ingredients, embeddings_dimension).
+        """
+        norms = np.linalg.norm(vectors, axis=1)
+        unit = vectors / np.where(norms > 0, norms, 1.0)[:, np.newaxis]
+        unique_rows, inverse = np.unique(unit, axis=0, return_inverse=True)
+
+        self._unique_unit_vectors = np.ascontiguousarray(unique_rows)
+        self._row_to_unique = inverse.reshape(-1)
+
     def _weight(self, token: str, pos_tag: str) -> float:
         """Return weight for token.
 
@@ -144,7 +167,7 @@ class uSIF:
         The weight of a token is related to it's frequency in the corpus used to
         calculate the "a" factor - the idea being that more frequent tokens convey less
         useful meaning than lower frequency tokens.
-        In this particular application, that isn't stictly true. The name of an
+        In this particular application, that isn't strictly true. The name of an
         ingredient conveys a lot of meaning but often occurs frequently in multiple
         entries in the FDC data. Therefore, we include a multiplier to the weight to
         increase the weight for nouns (i.e. ingredient names) and decrease it for verbs
@@ -172,28 +195,23 @@ class uSIF:
         else:
             return weight
 
-    def _embed_fdc_ingredients(self) -> list[Embedding]:
+    def _embed_fdc_ingredients(self) -> np.ndarray:
         """Calculate embedding vectors for all FDC ingredients.
 
         Returns
         -------
-        list[Embedding]
-            List of embedding vectors for FDC ingredients.
+        np.ndarray
+            Array of embedded vectors for FDC ingredients.
+            (n_fdc_ingredients, embeddings_dimension)
         """
-        embedded = []
-        for fdc in self.fdc_ingredients:
-            vec = self._embed(
-                fdc.embedding_tokens, fdc.embedding_pos_tags, fdc.embedding_weights
-            )
-            norm = np.linalg.norm(vec)
-            embedded.append(
-                Embedding(
-                    vec=vec,
-                    norm=norm,
+        return np.vstack(
+            [
+                self._embed(
+                    fdc.embedding_tokens, fdc.embedding_pos_tags, fdc.embedding_weights
                 )
-            )
-
-        return embedded
+                for fdc in self.fdc_ingredients
+            ]
+        )
 
     def _embed(
         self, tokens: list[str], pos_tags: list[str], phrase_weight: list[float]
@@ -236,23 +254,6 @@ class uSIF:
             )
             return np.mean(weighted, axis=0)
 
-    def _cosine_similarity(self, vec1: Embedding, vec2: Embedding) -> float:
-        """Return cosine similarity score for input vectors.
-
-        Parameters
-        ----------
-        vec1 : np.ndarray
-            Input vector 1.
-        vec2 : np.ndarray
-            Input vector 2.
-
-        Returns
-        -------
-        float
-            Cosine similarity score.
-        """
-        return 1 - float(np.dot(vec1.vec, vec2.vec) / (vec1.norm * vec2.norm))
-
     def rank_matches(self, tokens: list[IngredientToken]) -> list[FDCIngredientMatch]:
         """Rank and score FDC Ingredients according to closest match to tokens.
 
@@ -269,19 +270,21 @@ class uSIF:
         vec = self._embed(
             [t.token for t in tokens], [t.pos_tag for t in tokens], [1] * len(tokens)
         )
-        input_token_vector = Embedding(vec=vec, norm=np.linalg.norm(vec))
+        norm = np.linalg.norm(vec)
 
-        candidates = []
-        for idx, vec in enumerate(self.fdc_vectors):
-            score = self._cosine_similarity(input_token_vector, vec)
-            candidates.append(
-                FDCIngredientMatch(
-                    fdc=self.fdc_ingredients[idx],
-                    score=float(score),
-                )
-            )
+        if norm > 0:
+            unique_scores = 1.0 - self._unique_unit_vectors @ (vec / norm)
+        else:
+            unique_scores = np.ones(len(self._unique_unit_vectors))
 
-        sorted_candidates = sorted(candidates, key=lambda x: x.score)
+        # Expand score array so that there is a score for each FDC ingredient.
+        scores = unique_scores[self._row_to_unique]
+        order = np.argsort(scores, kind="stable")
+
+        sorted_candidates = [
+            FDCIngredientMatch(fdc=self.fdc_ingredients[idx], score=float(scores[idx]))
+            for idx in order
+        ]
         return sorted_candidates
 
 
