@@ -106,6 +106,9 @@ class BM25:
 
         # Pre-compute the contribution of each token to every FDC ingredient that
         # contains it.
+        # When it comes to ranking for FDC ingredients for a given set of query tokens,
+        # we just need to look at the posting for each token in the query and sum the
+        # contributions for relevant FDC ingredients.
         doc_len = np.array(self.doc_len)
         denom_constant = self.k1 * (1 - self.b + self.b * doc_len / self.avgdl)
         for token, ingredients in self.t2d.items():
@@ -137,6 +140,10 @@ class BM25:
         shares_noun = np.zeros(self.corpus_size, dtype=np.bool)
 
         for token in tokens:
+            # Get the posting for each token.
+            # The posting contains the indices for the FDC ingredients in self.corpus
+            # that contain the token, and the contribution to the score for that FDC
+            # ingredient as a result of this token.
             posting = self.postings.get(token.token)
             if not posting:
                 continue
@@ -156,7 +163,6 @@ class BM25:
 
         candidate_scores = scores[candidates]
         order = np.argsort(-1 * candidate_scores)
-
         return [
             FDCIngredientMatch(
                 fdc=self.corpus[idx],
