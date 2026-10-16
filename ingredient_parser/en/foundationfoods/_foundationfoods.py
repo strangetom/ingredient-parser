@@ -271,7 +271,7 @@ def consistent_top_result(
     best_matches.add(bm25_matches[0].fdc)
     best_score = bm25_matches[0].score
     for m in bm25_matches[1:]:
-        if m.score == best_score:
+        if abs(m.score - best_score) <= 1e-12:
             best_matches.add(m.fdc)
         else:
             break
@@ -279,7 +279,7 @@ def consistent_top_result(
     best_matches.add(usif_matches[0].fdc)
     best_score = usif_matches[0].score
     for m in usif_matches[1:]:
-        if m.score == best_score:
+        if abs(m.score - best_score) <= 1e-12:
             best_matches.add(m.fdc)
         else:
             break
