@@ -10,7 +10,6 @@ from functools import lru_cache
 from importlib.resources import as_file, files
 from itertools import groupby
 
-from ..._common import consume
 from .._loaders import load_embeddings_model
 from .._tokenize import tokenize
 from .._utils import pos_tag, stem
@@ -158,20 +157,25 @@ def normalise_spelling(tokens: list[IngredientToken]) -> list[IngredientToken]:
     list[IngredientToken]
         List of tokens with spelling normalised.
     """
-    itokens = iter(tokens)
-
     normalised_tokens = []
-    for i, ing_token in enumerate(itokens):
+    idx = 0
+    n_tokens = len(tokens)
+
+    while idx < n_tokens:
+        ing_token = tokens[idx]
         token = ing_token.token.lower()
 
-        token = strip_accents(token)
-        for symbol in "®©™":
-            token = token.replace(symbol, "")
+        if not token.isascii():
+            token = strip_accents(token)
+            for symbol in "®©™":
+                token = token.replace(symbol, "")
 
-        if i < len(tokens) - 1:
-            next_token = tokens[i + 1].token.lower()
-        else:
-            next_token = ""
+        next_token = tokens[idx + 1].token.lower() if idx < n_tokens - 1 else ""
+        if next_token:
+            if not next_token.isascii():
+                next_token = strip_accents(next_token)
+                for symbol in "®©™":
+                    token = token.replace(symbol, "")
 
         if (token, next_token) in FDC_PHRASE_SUBSTITUTIONS:
             normalised_tokens.extend(
@@ -180,8 +184,7 @@ def normalise_spelling(tokens: list[IngredientToken]) -> list[IngredientToken]:
                     for t in FDC_PHRASE_SUBSTITUTIONS[(token, next_token)]
                 ]
             )
-            # Jump forward to avoid processing next_token again.
-            consume(itokens, 1)
+            idx += 2
         elif token in FDC_TOKEN_TO_PHRASE_SUBSTITUTIONS:
             normalised_tokens.extend(
                 [
@@ -189,18 +192,17 @@ def normalise_spelling(tokens: list[IngredientToken]) -> list[IngredientToken]:
                     for t in FDC_TOKEN_TO_PHRASE_SUBSTITUTIONS[token]
                 ]
             )
+            idx += 1
         elif token in FDC_TOKEN_SUBSTITUTIONS:
             normalised_tokens.append(
                 IngredientToken(FDC_TOKEN_SUBSTITUTIONS[token], ing_token.pos_tag)
             )
+            idx += 1
         else:
             # Do this again to retain capitalisation.
-            token = ing_token.token
-            token = strip_accents(token)
-            for symbol in "®©™":
-                token = token.replace(symbol, "")
-
+            token = tokens[idx].token
             normalised_tokens.append(IngredientToken(token, ing_token.pos_tag))
+            idx += 1
 
     if normalised_tokens != tokens:
         norm_tokens = [t.token for t in normalised_tokens]
@@ -251,8 +253,6 @@ def prepare_tokens(tokens: tuple[IngredientToken, ...]) -> list[IngredientToken]
         IngredientToken(stem(ing_token.token.lower()), ing_token.pos_tag)
         for ing_token in split_tokens
         if not ing_token.token.isnumeric()
-        and not ing_token.token.isdigit()
-        and not ing_token.token.isdecimal()
         and not ing_token.token.isspace()
         and ing_token.token not in string.punctuation
         and len(ing_token.token) > 1
