@@ -181,6 +181,6 @@ REDUCED_RELEVANCE_TOKENS = {"with", "on"}
 AMBIGUOUS_ADJECTIVES = [
     "hot",  # temperature/spiciness
     "cool",  # temperature/taste (e.g. cool mint)
-    "strong"  # concentration (e.g. coffee)/gluten content (e.g. strong bread flour)
+    "strong",  # concentration (e.g. coffee)/gluten content (e.g. strong bread flour)
     "hard",  # texture (e.g. cheese)/alocholic (e.g. hard cider)
 ]
