@@ -22,7 +22,6 @@ from ._ff_constants import (
 )
 from ._ff_dataclasses import IngredientToken
 from ._ff_utils import (
-    normalise_spelling,
     prepare_tokens,
     strip_ambiguous_leading_adjectives,
 )
@@ -102,20 +101,18 @@ def match_foundation_foods(
     else:
         logger.debug("Prepared tokens: %s.", prepared_tokens)
 
-    normalised_tokens = normalise_spelling(prepared_tokens)
+    prepared_token_tokens = tuple([t.token for t in prepared_tokens])
 
-    if tuple([t.token for t in normalised_tokens]) in FOUNDATION_FOOD_OVERRIDES:
+    if prepared_token_tokens in FOUNDATION_FOOD_OVERRIDES:
         logger.debug("Returning FDC ingredient from override list.")
-        match = FOUNDATION_FOOD_OVERRIDES[tuple([t.token for t in normalised_tokens])]
+        match = FOUNDATION_FOOD_OVERRIDES[prepared_token_tokens]
         match.name_index = name_idx
         return match
 
     # Determine if there any of the normalised tokens are in the embeddings model.
     # If not, we will skip the semantic (embeddings based) rankers.
     embeddings = load_embeddings_model()
-    normalised_embeddings_tokens = [
-        t for t in normalised_tokens if t.token in embeddings
-    ]
+    normalised_embeddings_tokens = [t for t in prepared_tokens if t.token in embeddings]
     has_token_in_embeddings = len(normalised_embeddings_tokens) > 0
     if not has_token_in_embeddings:
         logger.debug(
@@ -127,15 +124,15 @@ def match_foundation_foods(
     # only if the ingredient name tokens don't already include a verb or noun that
     # indicates the food is not raw (e.g. cooked)
     if (
-        len({t.token for t in normalised_tokens} & NON_RAW_FOOD_VERB_STEMS) == 0
-        and len({t.token for t in normalised_tokens} & NON_RAW_FOOD_NOUN_STEMS) == 0
+        len(set(prepared_token_tokens) & NON_RAW_FOOD_VERB_STEMS) == 0
+        and len(set(prepared_token_tokens) & NON_RAW_FOOD_NOUN_STEMS) == 0
     ):
         logger.debug("Biasing tokens towards raw FDC ingredients.")
-        normalised_tokens.append(IngredientToken("raw", "JJ"))
+        prepared_tokens.append(IngredientToken("raw", "JJ"))
         normalised_embeddings_tokens.append(IngredientToken("raw", "JJ"))
 
     bm25 = get_bm25_ranker()
-    bm25_matches = bm25.rank_matches(normalised_tokens, TOP_K)
+    bm25_matches = bm25.rank_matches(prepared_tokens, TOP_K)
 
     if not has_token_in_embeddings:
         if not bm25_matches:
