@@ -10,6 +10,8 @@ from functools import lru_cache
 from importlib.resources import as_file, files
 from itertools import groupby
 
+import numpy as np
+
 from .._loaders import load_embeddings_model
 from .._tokenize import tokenize
 from .._utils import pos_tag, stem
@@ -506,3 +508,59 @@ def strip_ambiguous_leading_adjectives(
         return original_tokens
 
     return tokens
+
+
+def top_k_indices(
+    array: np.ndarray, top_k: int, *, bigger_is_better: bool
+) -> np.ndarray:
+    """Return the ordered indices of the top_k elements of array.
+
+    If bigger_is_better = True, the returned elements are the indices of the top_k
+    highest values, with the index of largest first.
+    If bigger_is_better = True, the returned elements are the indices of the top_k
+    lowest values, with the index of smallest first.
+
+    Important: This function does guarantee the returned array has exactly top_k
+    elements. If there are multiple elements of the input array that have the same value
+    as the top_kth element, then they will all be included.
+
+    Parameters
+    ----------
+    array : np.ndarray
+        Array of values to return the indices of the top_k values of
+    top_k : int
+        Nominal number of elements to return.
+    bigger_is_better : bool
+        If True, order largest to smallest.
+        If False, order smallest to largest.
+
+    Returns
+    -------
+    np.ndarray
+        Sorted indices of input array for top_k elements.
+    """
+    if array.size == 0:
+        return np.array([], dtype=np.intp)
+
+    top_k = min(top_k, array.size)
+
+    if bigger_is_better:
+        array = -array
+
+    # Partition on the top_kth element, which gives the index of the top_kth score
+    # at the top_kth position. Use this to get the cut-off score. We'll discard
+    # everything that has a score above this value.
+    partition = np.argpartition(array, top_k - 1)
+    cutoff = array[partition[top_k - 1]]
+
+    # Keep all scores less than or equal to the cut-off.
+    # Note that this may mean there are more than top_k indices in this array, if
+    # there are multiple FDC ingredients with the same score as the top_kth.
+    # We assume that the number of tied results is small and therefore has a
+    # negligible effect.
+    top_indices = np.flatnonzero(array <= cutoff)
+
+    # Now we sort the scores we kept.
+    # Use -scores so they are sorted in descending order.
+    order = top_indices[np.argsort(array[top_indices], kind="stable")]
+    return order

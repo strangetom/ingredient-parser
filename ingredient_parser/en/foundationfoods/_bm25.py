@@ -9,7 +9,7 @@ from statistics import mean
 import numpy as np
 
 from ._ff_dataclasses import FDCIngredient, FDCIngredientMatch, IngredientToken
-from ._ff_utils import load_fdc_ingredients
+from ._ff_utils import load_fdc_ingredients, top_k_indices
 
 logger = logging.getLogger("ingredient-parser.foundation-foods.bm25")
 
@@ -160,9 +160,10 @@ class BM25:
                 "BM25 ranker found no FDC entries that had a noun "
                 "common with the ingredient name."
             )
+            return []
 
         candidate_scores = scores[candidates]
-        order = np.argsort(-1 * candidate_scores)
+        order = top_k_indices(candidate_scores, top_k, bigger_is_better=True)
         return [
             FDCIngredientMatch(
                 fdc=self.corpus[idx],

@@ -9,7 +9,7 @@ import numpy as np
 from .._embeddings import GloVeModel
 from .._loaders import load_embeddings_model
 from ._ff_dataclasses import FDCIngredient, FDCIngredientMatch, IngredientToken
-from ._ff_utils import load_fdc_ingredients
+from ._ff_utils import load_fdc_ingredients, top_k_indices
 
 logger = logging.getLogger("ingredient-parser.foundation-foods.usif")
 
@@ -288,23 +288,7 @@ class uSIF:
         # match at the top_kth position, then only sort scores less than or equal to
         # that. Because there are 11,000+ FDC ingredients, the effect of this
         # optimisation is quite substantial.
-
-        # Partition on the top_kth element, which gives the index of the top_kth score
-        # at the top_kth position. Use this to get the cut-off score. We'll discard
-        # everything that has a score above this value.
-        partition = np.argpartition(scores, top_k - 1)
-        cutoff = scores[partition[top_k - 1]]
-
-        # Keep all scores less than or equal to the cut-off.
-        # Note that this may mean there are more than top_k indices in this array, if
-        # there are multiple FDC ingredients with the same score as the top_kth.
-        # We assume that the number of tied results is small and therefore has a
-        # negligible effect.
-        top_indices = np.flatnonzero(scores <= cutoff)
-
-        # Now we sort the scores we kept.
-        # Use -scores so they are sorted in descending order.
-        order = top_indices[np.argsort(scores[top_indices], kind="stable")]
+        order = top_k_indices(scores, top_k, bigger_is_better=False)
 
         sorted_candidates = [
             FDCIngredientMatch(fdc=self.fdc_ingredients[idx], score=float(scores[idx]))
