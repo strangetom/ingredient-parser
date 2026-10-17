@@ -22,11 +22,12 @@ from ._constants import (
     STRING_NUMBERS,
     UNIT_SYNONYMS,
     UNITS,
-    pluralise_known_unit,
+    UNITS_RINDEX,
 )
 from ._loaders import load_ingredient_tagdict
 from ._regex import (
     FRACTION_SPLIT_AND_PATTERN,
+    PLURAL_UNIT_PATTERN,
     STRING_RANGE_PATTERN,
 )
 
@@ -262,6 +263,42 @@ def is_numeric(token: str) -> bool:
     return is_float(token)
 
 
+def pluralise_known_unit(s: str) -> str:
+    """Substitute singular form of known units in input string with plural form.
+
+    Parameters
+    ----------
+    s : str
+        String to perform substitution on.
+
+    Returns
+    -------
+    str
+        Input string with singular units substituted with plural forms.
+    """
+
+    def singular_to_plural(match: re.Match) -> str:
+        """Convert singular form of unit to plural form.
+
+        If, for any reason, the captured singular form does not occur in UNITS_RINDEX,
+        return the singular form.
+
+        Parameters
+        ----------
+        match : re.Match
+            Regular expression match capturing singular form unit.
+
+        Returns
+        -------
+        str
+            Plural form of captured unit.
+        """
+        singular_unit: str = match.group(0)
+        return UNITS_RINDEX.get(singular_unit, singular_unit)
+
+    return PLURAL_UNIT_PATTERN.sub(singular_to_plural, s)
+
+
 def pluralise_units(sentence: str, custom_units: dict[str, str]) -> str:
     """Pluralise units in the sentence.
 
@@ -295,10 +332,27 @@ def pluralise_units(sentence: str, custom_units: dict[str, str]) -> str:
     '2 blargs bread'
     """
     sentence = pluralise_known_unit(sentence)
-    for plural, singular in custom_units.items():
-        sentence = re.sub(rf"\b({re.escape(singular)})\b", plural, sentence)
 
-    return sentence
+    def singular_to_plural(match: re.Match) -> str:
+        """Convert singular form of unit to plural form.
+
+        If, for any reason, the captured singular form does not occur in UNITS_RINDEX,
+        return the singular form.
+
+        Parameters
+        ----------
+        match : re.Match
+            Regular expression match capturing singular form unit.
+
+        Returns
+        -------
+        str
+            Plural form of captured unit.
+        """
+        singular_unit: str = match.group(0)
+        return custom_units.get(singular_unit, singular_unit)
+
+    return PLURAL_UNIT_PATTERN.sub(singular_to_plural, sentence)
 
 
 @lru_cache(maxsize=512)

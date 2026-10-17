@@ -173,7 +173,9 @@ class PostProcessor:
     ):
         self.sentence = sentence
         self.tokens = labelled_tokens
-        self.custom_units = custom_units
+        # Reverse the custom units dict because we only need it for converting from
+        # singular to plural.
+        self.custom_units = {v: k for k, v in custom_units.items()}
         self.separate_names = separate_names
         self.discard_isolated_stop_words = discard_isolated_stop_words
         self.string_units = string_units

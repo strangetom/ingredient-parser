@@ -143,3 +143,10 @@ INCH_SIZE_PATTERN = re.compile(r"\d\"$")
 UNITS_WITH_TRAILING_PERIOD = re.compile(
     r"(?<=[\s\d])(tsps?|tbsps?|tbs|tb|lbs?|oz)\.", re.IGNORECASE
 )
+
+# Regular expression used for pluralising units.
+# We don't need a complex regex pattern to replace singular units with their plural
+# because all the units are complete words. Therefore we only need the regular
+# expression to group characters by word, then we can look up the word in the
+# UNITS_RINDEX dict to get a plural version if it exists.
+PLURAL_UNIT_PATTERN = re.compile(r"\w+")
