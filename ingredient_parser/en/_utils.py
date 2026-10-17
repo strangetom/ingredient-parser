@@ -302,14 +302,12 @@ def pluralise_known_unit(s: str) -> str:
 def pluralise_units(sentence: str, custom_units: dict[str, str]) -> str:
     """Pluralise units in the sentence.
 
-    Use the same UNITS dictionary as PreProcessor to make any units in sentence plural
-
     Parameters
     ----------
     sentence : str
         Input sentence.
     custom_units : dict[str, str]
-        Dict of custom plural: singular pairs of units
+        Dict of custom singular: plural pairs of units
 
     Returns
     -------
@@ -350,6 +348,7 @@ def pluralise_units(sentence: str, custom_units: dict[str, str]) -> str:
             Plural form of captured unit.
         """
         singular_unit: str = match.group(0)
+        print(singular_unit)
         return custom_units.get(singular_unit, singular_unit)
 
     return PLURAL_UNIT_PATTERN.sub(singular_to_plural, sentence)
