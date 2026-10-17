@@ -348,7 +348,6 @@ def pluralise_units(sentence: str, custom_units: dict[str, str]) -> str:
             Plural form of captured unit.
         """
         singular_unit: str = match.group(0)
-        print(singular_unit)
         return custom_units.get(singular_unit, singular_unit)
 
     return PLURAL_UNIT_PATTERN.sub(singular_to_plural, sentence)
