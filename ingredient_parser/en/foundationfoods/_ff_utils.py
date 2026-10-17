@@ -112,7 +112,16 @@ for type_ in PASTA_TYPES:
     FDC_TOKEN_TO_PHRASE_SUBSTITUTIONS[type_] = ["pasta", "dri"]
 
 
-def strip_accents(token: str) -> str:
+# Every token that can trigger a substitution above. Most tokens are not in here, which
+# lets `normalise_spelling` skip all of its substitution lookups for them.
+_SUBSTITUTION_TRIGGERS: frozenset[str] = frozenset(
+    {phrase[0] for phrase in FDC_PHRASE_SUBSTITUTIONS}
+    | FDC_TOKEN_SUBSTITUTIONS.keys()
+    | FDC_TOKEN_TO_PHRASE_SUBSTITUTIONS.keys()
+)
+
+
+def _strip_accents(token: str) -> str:
     """
     Strip accents (all combining unicode characters) from a unicode string.
 
@@ -136,6 +145,29 @@ def strip_accents(token: str) -> str:
     """
     ndf_string = unicodedata.normalize("NFD", token)
     return "".join(char for char in ndf_string if unicodedata.category(char) != "Mn")
+
+
+def _clean_token(token: str) -> str:
+    """Clean token by stripping accents and symbols.
+
+    Parameters
+    ----------
+    token : str
+        Token to clean.
+
+    Returns
+    -------
+    str
+        Cleaned token.
+    """
+    if token.isascii():
+        return token
+
+    token = _strip_accents(token)
+    for symbol in "®©™":
+        token = token.replace(symbol, "")
+
+    return token
 
 
 def normalise_spelling(tokens: list[IngredientToken]) -> list[IngredientToken]:
@@ -163,19 +195,28 @@ def normalise_spelling(tokens: list[IngredientToken]) -> list[IngredientToken]:
 
     while idx < n_tokens:
         ing_token = tokens[idx]
-        token = ing_token.token.lower()
-        if not token.isascii():
-            token = strip_accents(token)
-            for symbol in "®©™":
-                token = token.replace(symbol, "")
+        token = _clean_token(ing_token.token.lower())
 
-        next_token = tokens[idx + 1].token.lower() if idx < n_tokens - 1 else ""
-        if next_token:
-            if not next_token.isascii():
-                next_token = strip_accents(next_token)
-                for symbol in "®©™":
-                    token = token.replace(symbol, "")
+        if token not in _SUBSTITUTION_TRIGGERS:
+            # If this token does not trigger a substitution, skip forwards
+            if ing_token.token.isascii():
+                # Avoid re-instantiating IngredientText object if we're not making any
+                # changes and the token doesn't need cleaning.
+                normalised_tokens.append(ing_token)
+            else:
+                # We want to retain the original capitalisation of the token, so we have
+                # to call _clean_token on ing_token.token.
+                normalised_tokens.append(
+                    IngredientToken(_clean_token(ing_token.token), ing_token.pos_tag)
+                )
 
+            idx += 1
+            # Skip the rest of this loop because there are no substitutions to make.
+            continue
+
+        next_token = (
+            _clean_token(tokens[idx + 1].token.lower()) if idx < n_tokens - 1 else ""
+        )
         if (token, next_token) in FDC_PHRASE_SUBSTITUTIONS:
             normalised_tokens.extend(
                 [
@@ -198,13 +239,13 @@ def normalise_spelling(tokens: list[IngredientToken]) -> list[IngredientToken]:
             )
             idx += 1
         else:
-            # Do this again to retain capitalisation i.e. do not call lower().
-            token = tokens[idx].token
-            if not token.isascii():
-                token = strip_accents(token)
-                for symbol in "®©™":
-                    token = token.replace(symbol, "")
-            normalised_tokens.append(IngredientToken(token, ing_token.pos_tag))
+            # If we got here then the first token matched the first part of a phrase
+            # substitution matched, but the whole phrase was not matched.
+            # We want to retain the original capitalisation of the token, so we have
+            # to call _clean_token on ing_token.token.
+            normalised_tokens.append(
+                IngredientToken(_clean_token(ing_token.token), ing_token.pos_tag)
+            )
             idx += 1
 
     if normalised_tokens != tokens:
@@ -212,6 +253,55 @@ def normalise_spelling(tokens: list[IngredientToken]) -> list[IngredientToken]:
         logger.debug("Normalised '%s' to '%s'.", [t.token for t in tokens], norm_tokens)
 
     return normalised_tokens
+
+
+@lru_cache(maxsize=2000)
+def _prepare_token(token: str, pos_tag: str) -> tuple[IngredientToken, ...]:
+    """Prepare single token for use with embeddings model.
+
+    This involves obtaining the stem for the token and discarding tokens which are
+    numeric, which are punctuation, or which are in STOP_WORDS.
+
+    This function is cached based on the (token, pos_tag) pair because this function
+    is called for each entry in the FDC ingredients list, which contains many repeated
+    tokens.
+
+    Parameters
+    ----------
+    token : str
+        Token text.
+    pos_tag : str
+        Part of speech tag for token.
+
+    Returns
+    -------
+    list[IngredientToken]
+        Prepared tokens.
+    """
+    # Split tokens on hyphens
+    if "-" in token:
+        token_parts = [t for t in token.split("-") if t]
+
+        # Special case: if the last token part ends with %, then for each numeric
+        # part of the token, also append % to them to.
+        # This to handle ranges like 60-69%, which appear in the FDC database,
+        # without discarding the lower end of the range below.
+        if token_parts and token_parts[-1].endswith("%"):
+            for i in range(len(token_parts) - 1):
+                if token_parts[i].isnumeric():
+                    token_parts[i] = token_parts[i] + "%"
+
+    else:
+        token_parts = [token]
+
+    return tuple(
+        IngredientToken(stem(part.lower()), pos_tag)
+        for part in token_parts
+        if not part.isnumeric()
+        and not part.isspace()
+        and part not in string.punctuation
+        and len(part) > 1
+    )
 
 
 @lru_cache(maxsize=512)
@@ -232,36 +322,11 @@ def prepare_tokens(tokens: tuple[IngredientToken, ...]) -> list[IngredientToken]
         Prepared tokens.
     """
     # Split tokens on hyphens
-    split_tokens = []
-    for ing_token in tokens:
-        if "-" in ing_token.token:
-            token_parts = [t for t in ing_token.token.split("-") if t]
+    prepared_tokens = []
+    for token, tag in tokens:
+        prepared_tokens.extend(_prepare_token(token, tag))
 
-            # Special case: if the last token part ends with %, then for each numeric
-            # part of the token, also append % to them to.
-            # This to handle ranges like 60-69%, which appear in the FDC database,
-            # without discarding the lower end of the range below.
-            if token_parts and token_parts[-1].endswith("%"):
-                for i in range(len(token_parts) - 1):
-                    if token_parts[i].isnumeric():
-                        token_parts[i] = token_parts[i] + "%"
-
-            split_tokens.extend(
-                [IngredientToken(p, ing_token.pos_tag) for p in token_parts]
-            )
-        else:
-            split_tokens.append(ing_token)
-
-    stemmed_tokens = [
-        IngredientToken(stem(ing_token.token.lower()), ing_token.pos_tag)
-        for ing_token in split_tokens
-        if not ing_token.token.isnumeric()
-        and not ing_token.token.isspace()
-        and ing_token.token not in string.punctuation
-        and len(ing_token.token) > 1
-    ]
-
-    return normalise_spelling(stemmed_tokens)
+    return normalise_spelling(prepared_tokens)
 
 
 @lru_cache
