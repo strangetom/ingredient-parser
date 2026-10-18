@@ -42,12 +42,13 @@ TOP_PC_DIFF_THRESHOLD = 0.01
 # Constant defining the maximum reasonable semantic score.
 SEMANTIC_SCORE_THRESHOLD = 0.275
 
-# List of FDC data preferences, least preferred to most preferred.
-DATASET_PREFERENCE = [
-    "survey_fndds_food",
-    "sr_legacy_food",
-    "foundation_food",
-]
+# Dict of FDC dataset preferences defined as name: rank, where a lower rank number is
+# more preferred.
+DATASET_PREFERENCE = {
+    "survey_fndds_food": 2,
+    "sr_legacy_food": 1,
+    "foundation_food": 0,
+}
 
 
 @dataclass
@@ -535,20 +536,6 @@ def fuse_results(
     usif_normalized = normalize_scores([m.score for m in usif_matches])
     fuzzy_normalized = normalize_scores([m.score for m in fuzzy_matches])
 
-    # Create dict mapping fdc_id to normalized score
-    usif_dict = {
-        match.fdc.fdc_id: norm_score
-        for match, norm_score in zip(usif_matches, usif_normalized)
-    }
-    fuzzy_dict = {
-        match.fdc.fdc_id: norm_score
-        for match, norm_score in zip(fuzzy_matches, fuzzy_normalized)
-    }
-    bm25_dict = {
-        match.fdc.fdc_id: norm_score
-        for match, norm_score in zip(bm25_matches, bm25_normalized)
-    }
-
     # Estimate ranker confidences based on spread of normalised scores.
     bm25_conf = estimate_ranker_confidence(bm25_normalized)
     fuzzy_conf = estimate_ranker_confidence(fuzzy_normalized)
@@ -564,30 +551,50 @@ def fuse_results(
         fuzzy_conf,
     )
 
-    fused_matches = []
-    fdc_entries = {m.fdc for m in bm25_matches} | {m.fdc for m in usif_matches}
-    for fdc in fdc_entries:
-        bm25_norm_score = bm25_dict.get(fdc.fdc_id, 0)
+    # Create dict mapping fdc_id to normalized score
+    usif_dict = {
+        match.fdc.fdc_id: norm_score
+        for match, norm_score in zip(usif_matches, usif_normalized)
+    }
+    bm25_dict = {
+        match.fdc.fdc_id: norm_score
+        for match, norm_score in zip(bm25_matches, bm25_normalized)
+    }
+    fuzzy_dict = {
+        match.fdc.fdc_id: norm_score
+        for match, norm_score in zip(fuzzy_matches, fuzzy_normalized)
+    }
+
+    # Get unique FDC entries from BM25 and uSIF rankers.
+    fdc_entries: dict[int, FDCIngredient] = {m.fdc.fdc_id: m.fdc for m in bm25_matches}
+    fdc_entries.update({m.fdc.fdc_id: m.fdc for m in usif_matches})
+
+    scored_matches = []
+    for idx, fdc in enumerate(fdc_entries.values()):
         # uSIF and Fuzzy scores are inverted (i.e. smaller = better). Therefore, after
         # normalisation, subtract from one to make bigger = better.
-        usif_norm_score = 1 - usif_dict.get(fdc.fdc_id, 1)
-        fuzzy_norm_score = 1 - fuzzy_dict.get(fdc.fdc_id, 1)
-
-        fused_score = (
-            bm25_conf * bm25_norm_score
-            + usif_conf * usif_norm_score
-            + fuzzy_conf * fuzzy_norm_score
+        fused_score = bm25_conf * bm25_dict.get(fdc.fdc_id, 0) + usif_conf * (
+            1 - usif_dict.get(fdc.fdc_id, 1)
         )
-        fused_matches.append(
-            FDCIngredientMatch(fdc=fdc, score=float(round(fused_score / 3, 6)))
+        if fuzzy_conf > 0:
+            fused_score += fuzzy_conf * (1 - fuzzy_dict.get(fdc.fdc_id, 1))
+
+        # Store scored matches as a tuple of (score, dataset rank, -index, FDC object).
+        # This makes sorting these naturally resolve equal score according to preferred
+        # dataset, then index in FDC list.
+        scored_matches.append(
+            (
+                float(round(fused_score / 3, 6)),
+                DATASET_PREFERENCE[fdc.data_type],
+                -idx,
+                fdc,
+            )
         )
 
-    # When resolving identical scores, use the preferred dataset.
-    return sorted(
-        fused_matches,
-        key=lambda x: (x.score, DATASET_PREFERENCE.index(x.fdc.data_type)),
-        reverse=True,
-    )
+    scored_matches.sort(reverse=True)
+    return [
+        FDCIngredientMatch(fdc=fdc, score=score) for score, _, _, fdc in scored_matches
+    ]
 
 
 def determine_match_quality(
