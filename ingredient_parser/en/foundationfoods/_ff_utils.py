@@ -8,7 +8,6 @@ import unicodedata
 from dataclasses import dataclass
 from functools import lru_cache
 from importlib.resources import as_file, files
-from itertools import groupby
 from typing import Callable
 
 import numpy as np
@@ -410,62 +409,50 @@ def tokenize_fdc_description(
     TokenizedFDCDescription
     """
     embeddings = load_embeddings_model()
-    tokens = tokenize(description.lower())
-    _, pos_tags = list(zip(*tagger(tokens)))
-    prepared_tokens = prepare_tokens(
-        tuple(IngredientToken(tok, tag) for tok, tag in zip(tokens, pos_tags))
-    )
+    tagged_tokens = tagger(tokenize(description.lower()))
 
+    # Split tokenized description into phrases, separated by commas.
+    phrases: list[list[IngredientToken]] = []
+    current_phrase: list[IngredientToken] = []
+    for tok, tag in tagged_tokens:
+        if tok == ",":
+            if current_phrase:
+                phrases.append(current_phrase)
+                current_phrase = []
+        else:
+            current_phrase.append(IngredientToken(tok, tag))
+    if current_phrase:
+        phrases.append(current_phrase)
+
+    prepared_tokens = []
     embedding_weights = []
     prepared_embedding_tokens = []
     prepared_embedding_pos_tags = []
-    phrase_count = 0
-    for is_phrase, phrase in groupby(zip(tokens, pos_tags), lambda x: x[0] != ","):
-        if not is_phrase:
-            # If not phrase (i.e. is the comma), set weight to 0 if token is in vocab.
-            # These tokens will be discarded later anyway.
-            for token, _ in phrase:
-                if token in embeddings:
-                    prepared_embedding_tokens.append([tok for tok, _ in phrase])
-                    prepared_embedding_pos_tags.append([tag for _, tag in phrase])
-                    embedding_weights.append(0.0)
-            continue
+    for phrase_count, phrase in enumerate(phrases):
+        prepared_phrase = prepare_tokens(tuple(phrase))
+        prepared_tokens.extend(prepared_phrase)
 
-        phrase = list(phrase)
-        phrase_tags = [
-            tok.pos_tag
-            for tok in prepare_tokens(
-                tuple(IngredientToken(t, tag) for t, tag in phrase)
-            )
-            if tok.token in embeddings
-        ]
-        phrase = [
-            tok.token
-            for tok in prepare_tokens(
-                tuple(IngredientToken(t, tag) for t, tag in phrase)
-            )
-            if tok.token in embeddings
-        ]
-        phrase_weights = [1.0 - phrase_count * 1e-3] * len(phrase)
+        phrase_toks = [t.token for t in prepared_phrase if t.token in embeddings]
+        phrase_tags = [t.pos_tag for t in prepared_phrase if t.token in embeddings]
+        phrase_weights = [1.0 - phrase_count * 1e-3] * len(phrase_toks)
 
         # Check for negated tokens and set weight to 0.
         for neg in NEGATION_TOKENS:
-            if neg in phrase:
+            if neg in phrase_toks:
                 # Include negation token negated_tokens set since it won't hold any
                 # further relevant semantic information.
-                for neg_idx in range(phrase.index(neg), len(phrase)):
+                for neg_idx in range(phrase_toks.index(neg), len(phrase_toks)):
                     phrase_weights[neg_idx] = 0
 
         # Check for tokens that indicate reduced relevance and reduce their weight
         for rr in REDUCED_RELEVANCE_TOKENS:
-            if rr in phrase:
-                for rr_idx in range(phrase.index(rr), len(phrase)):
+            if rr in phrase_toks:
+                for rr_idx in range(phrase_toks.index(rr), len(phrase_toks)):
                     phrase_weights[rr_idx] = max(phrase_weights[rr_idx] - 0.5, 0)
 
-        prepared_embedding_tokens.extend(phrase)
+        prepared_embedding_tokens.extend(phrase_toks)
         prepared_embedding_pos_tags.extend(phrase_tags)
         embedding_weights.extend(phrase_weights)
-        phrase_count += 1
 
     return TokenizedFDCDescription(
         tokens=[t.token for t in prepared_tokens],
