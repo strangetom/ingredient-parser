@@ -105,17 +105,28 @@ class FuzzyEmbeddingMatcher:
         """
         # Pre-calculate distances between all pairs of ingredient and FDC token vectors.
         # This is a matrix with shape (len(ingredient_tokens), len(fdc_tokens)).
-        distances = np.linalg.norm(
-            ingredient_vectors[:, np.newaxis, :] - fdc_vectors[np.newaxis, :, :], axis=2
-        )
+        # This is the Euclidean distance, calculated directly rather than with
+        # np.linalg.norm, which has a lot of fixed overhead for arrays this small.
+        diff = ingredient_vectors[:, np.newaxis, :] - fdc_vectors[np.newaxis, :, :]
+        diff *= diff
+        distances = np.sqrt(np.add.reduce(diff, axis=2))
 
-        # Apply sigmoid transformation, forcing a value of 1 where the distance = 0, to
-        # get the similarity scores between all pairs of ingredient and FDC tokens.
+        # Apply sigmoid transformation to get the similarity scores between all pairs of
+        # ingredient and FDC tokens. A distance of 0 must give a similarity of 1.
+        # Flooring the distances achieves that without special casing: for a tiny
+        # distance, exp(-1 / distance) underflows to 0 and the sigmoid is exactly 1.
+        # 1e-30 is chosen so that it, and 1/1e-30 are both representable by a float32.
         # This is a matrix with shape (len(ingredient_tokens), len(fdc_tokens)).
-        with np.errstate(divide="ignore"):
-            similarities = np.where(
-                distances == 0, 1.0, 1 / (1 + np.exp(-1 / distances))
-            )
+        np.maximum(distances, 1e-30, out=distances)
+        similarities = 1 / (1 + np.exp(-1 / distances))
+
+        # Best similarity for each ingredient token to any FDC token, and for each FDC
+        # token to any ingredient token. Calculating these once is much faster than
+        # calling max() on a row or column of similarities for every token below.
+        # These are kept as arrays (rather than converted to lists) so the scores keep
+        # the dtype of the embeddings and the results are unchanged.
+        best_fdc_for_ingred = similarities.max(axis=1)
+        best_ingred_for_fdc = similarities.max(axis=0)
 
         # Calculate fuzzy intersection from the tokens that are similar in both the
         # ingredient and FDC ingredient name, to the tokens that are similar to only
@@ -136,14 +147,12 @@ class FuzzyEmbeddingMatcher:
                 # Exact match for token in ingredient tokens.
                 token_ingred_score = 1.0
                 # Select the best match in the FDC tokens.
-                ingred_idx = [i for i, t in enumerate(ingredient_tokens) if t == token]
-                token_fdc_score = max(similarities[ingred_idx[0], :])
+                token_fdc_score = best_fdc_for_ingred[ingredient_tokens.index(token)]
             elif token not in ingredient_tokens and token in fdc_tokens:
                 # Exact match for token in FDC tokens.
                 token_fdc_score = 1.0
                 # Select the best match in the ingredient tokens.
-                fdc_idx = [i for i, t in enumerate(fdc_tokens) if t == token]
-                token_ingred_score = max(similarities[:, fdc_idx[0]])
+                token_ingred_score = best_ingred_for_fdc[fdc_tokens.index(token)]
 
             union_membership += token_ingred_score * token_fdc_score
             ingred_membership += token_ingred_score
