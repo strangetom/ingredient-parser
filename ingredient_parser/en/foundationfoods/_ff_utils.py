@@ -9,12 +9,13 @@ from dataclasses import dataclass
 from functools import lru_cache
 from importlib.resources import as_file, files
 from itertools import groupby
+from typing import Callable
 
 import numpy as np
 
 from .._loaders import load_embeddings_model
 from .._tokenize import tokenize
-from .._utils import pos_tag, stem
+from .._utils import get_pos_tagger, stem
 from ._ff_constants import (
     AMBIGUOUS_ADJECTIVES,
     NEGATION_TOKENS,
@@ -341,14 +342,17 @@ def load_fdc_ingredients() -> list[FDCIngredient]:
         List of FDC ingredients.
     """
     logger = logging.getLogger("ingredient-parser.fdc")
+    tagger = get_pos_tagger()
 
     foundation_foods = []
     with as_file(files(__package__).joinpath("..", "data/fdc_ingredients.csv.gz")) as p:
-        with gzip.open(p, "rt") as f:
+        with gzip.open(p, "rt") as f, tagger.cache_context() as t:
             logger.debug("Loading FDC ingredients: 'fdc_ingredients.csv.gz'.")
             reader = csv.DictReader(f)
             for row in reader:
-                tokenized_description = tokenize_fdc_description(row["description"])
+                tokenized_description = tokenize_fdc_description(
+                    row["description"], t.tag_with_cache
+                )
                 if not tokenized_description.embedding_tokens:
                     logger.debug(
                         "'%s' has no tokens in embedding vocabulary.",
@@ -373,7 +377,9 @@ def load_fdc_ingredients() -> list[FDCIngredient]:
     return foundation_foods
 
 
-def tokenize_fdc_description(description: str) -> TokenizedFDCDescription:
+def tokenize_fdc_description(
+    description: str, tagger: Callable[[list[str]], list[tuple[str, str]]]
+) -> TokenizedFDCDescription:
     """Tokenize FDC ingredient description, returning tokens and weight for each token.
 
     Tokens that are not compatible with the embeddings are discarded.
@@ -396,6 +402,8 @@ def tokenize_fdc_description(description: str) -> TokenizedFDCDescription:
     ----------
     description : str
         FDC description to tokenize.
+    tagger : Callable[[list[str]], list[tuple[str, str]]]
+        Function to tag tokens with parts of speech.
 
     Returns
     -------
@@ -403,7 +411,7 @@ def tokenize_fdc_description(description: str) -> TokenizedFDCDescription:
     """
     embeddings = load_embeddings_model()
     tokens = tokenize(description.lower())
-    _, pos_tags = list(zip(*pos_tag(tokens)))
+    _, pos_tags = list(zip(*tagger(tokens)))
     prepared_tokens = prepare_tokens(
         tuple(IngredientToken(tok, tag) for tok, tag in zip(tokens, pos_tags))
     )

@@ -157,7 +157,7 @@ def stem(token: str) -> str:
 
 
 @lru_cache
-def _get_pos_tagger() -> PerceptronTagger:
+def get_pos_tagger() -> PerceptronTagger:
     """Cached function to return part of speech tagger.
 
     The returned part of speech tagger is the default English part of speech tagger from
@@ -193,7 +193,7 @@ def pos_tag(tokens: list[str]) -> list[tuple[str, str]]:
     list[tuple[str, str]]
         List of (token, tag) pairs.
     """
-    tagger = _get_pos_tagger()
+    tagger = get_pos_tagger()
     return tagger.tag(tokens)
 
 
