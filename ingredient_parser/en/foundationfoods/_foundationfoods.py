@@ -3,9 +3,8 @@
 
 import logging
 from dataclasses import dataclass
+from math import fsum, sqrt
 from typing import Literal
-
-import numpy as np
 
 from ingredient_parser.en._loaders import load_embeddings_model
 from ingredient_parser.en.foundationfoods._ff_dataclasses import (
@@ -395,6 +394,13 @@ def estimate_ranker_confidence(scores: list[float]) -> float:
 
     The two metrics are combined to estimate the ranker confidence.
 
+    .. note::
+
+      The statistics are calculated with plain Python rather than NumPy. The lists are
+      short (<= TOP_K), so the fixed overhead of the NumPy calls (array conversion,
+      dispatch, axis handling) dominates the actual calculation.
+
+
     Parameters
     ----------
     scores : list[float]
@@ -403,9 +409,10 @@ def estimate_ranker_confidence(scores: list[float]) -> float:
     Returns
     -------
     float
-        Description
+        Confidence for ranker based on scores.
     """
-    if len(scores) < 2:
+    n = len(scores)
+    if n < 2:
         return 0
 
     sorted_scores = sorted(scores, reverse=True)
@@ -419,12 +426,15 @@ def estimate_ranker_confidence(scores: list[float]) -> float:
     gap = max_score - second_max
     relative_gap = gap / max_score
 
-    if len(scores) > 2:
-        # Calculate coefficient of variation for scores below top
+    if n > 2:
+        # Calculate coefficient of variation for scores below top.
         remaining_scores = sorted_scores[1:]
-        remaining_std = np.std(remaining_scores)
-        remaining_mean = np.mean(remaining_scores)
+        count = n - 1
+        remaining_mean = fsum(remaining_scores) / count
         if remaining_mean > 0:
+            remaining_std = sqrt(
+                fsum([(x - remaining_mean) ** 2 for x in remaining_scores]) / count
+            )
             cv = remaining_std / remaining_mean
             # Lower CV = more concentrated = clearer winner
             distribution_factor = 1.0 / (1.0 + cv)
@@ -434,8 +444,7 @@ def estimate_ranker_confidence(scores: list[float]) -> float:
         distribution_factor = 1.0
 
     # Combine gap and distribution (weighted average)
-    confidence = 0.7 * relative_gap + 0.3 * distribution_factor
-    return float(confidence)
+    return 0.7 * relative_gap + 0.3 * distribution_factor
 
 
 def normalize_scores(scores: list[float]) -> list[float]:
