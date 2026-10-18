@@ -36,7 +36,7 @@ TOP_K = 50
 # Constant defining the minimum agreement between BM25 and uSIF rankings
 BM25_USIF_AGREENMENT_THRESHOLD = 0.25
 
-# Constant defining the minimum percetage difference between top ranked results to
+# Constant defining the minimum percentage difference between top ranked results to
 # be confident in the top ranked result.
 TOP_PC_DIFF_THRESHOLD = 0.01
 
@@ -454,26 +454,21 @@ def normalize_scores(scores: list[float]) -> list[float]:
     if not scores:
         return []
 
-    scores_array = np.array(scores)
+    min_ = min(scores)
+    max_ = max(scores)
 
-    # Handle case where all scores are identical
-    if np.all(scores_array == scores_array[0]):
+    # If min_ and max_ are identical then all scores are identical, so they all get
+    # normalized to 0.5.
+    if min_ == max_:
         return [0.5] * len(scores)
 
-    # Calculate normalization interval.
-    min_ = min(scores_array)
-    max_ = max(scores_array)
-    # Ensure that the range is never 0
-    range_val = max(max_ - min_, 1e-9)
+    range_val = max_ - min_
+    if range_val >= 1e-9:
+        return [(score - min_) / range_val for score in scores]
 
-    normalized = []
-    for score in scores_array:
-        norm_score = (score - min_) / range_val
-        # Clip to [0, 1] to handle cases where range_val is really small.
-        norm_score = max(0.0, min(1.0, norm_score))
-        normalized.append(norm_score)
-
-    return normalized
+    # If the range is really small (< 1e-9), clip the scores to [0, 1] to prevent the
+    # division by a really small number causing numbers to exceed 1.
+    return [min(1.0, max(0.0, (s - min_) / range_val)) for s in scores]
 
 
 def fuse_results(
