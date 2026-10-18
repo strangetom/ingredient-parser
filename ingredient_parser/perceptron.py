@@ -2,7 +2,8 @@
 
 import json
 import logging
-from typing import ClassVar
+from contextlib import contextmanager
+from typing import ClassVar, Iterator
 
 import numpy as np
 from nltk.data import find as nltk_find
@@ -90,7 +91,7 @@ class PerceptronTagger:
     START: ClassVar[tuple[str, str]] = ("-START-", "-START2-")
     END: ClassVar[tuple[str, str]] = ("-END-", "-END2-")
 
-    def __init__(self, autodownload_weights: bool = True):
+    def __init__(self, autodownload_weights: bool = True, max_cache_size: int = 2**15):
         """Initialize PerceptronTagger.
 
         Parameters
@@ -98,9 +99,17 @@ class PerceptronTagger:
         autodownload_weights : bool, optional
             If True, automatically download NLTK's PerceptronTagger weights if missing.
             (the default is True)
+        max_cache_size : int, optional
+            Sets the maximum cache size when using tag_with_cache().
         """
         self.autodownload_weights = autodownload_weights
         self.tagdict: dict[str, str] = {}
+
+        self.max_cache_size = max_cache_size
+        # The tag cache keys are a tuple of the token, context tokens and context token
+        # tags that would otherwise be used to generate the features.
+        self._tag_cache: dict[tuple[str, ...], str] = {}
+
         self.load()
 
     def __repr__(self):
@@ -113,6 +122,10 @@ class PerceptronTagger:
         ----------
         tokens : list[str]
             List of tokens to tag.
+        use_tagdict : bool, optional
+            When True, the tagdict is used to determine the tag (if present in the
+            tagdict), which avoids using the model.
+            Default is True.
 
         Returns
         -------
@@ -134,6 +147,101 @@ class PerceptronTagger:
             prev = tag
 
         return output
+
+    def tag_with_cache(
+        self, tokens: list[str], use_tagdict: bool = True
+    ) -> list[tuple[str, str]]:
+        """Tag a list of tokens using Averaged Perceptron model.
+
+        The function caches the tags for tokens and their context (including the tags of
+        previous tokens in the context) and returns the tag from the cache where
+        possible. This is useful when tagging a large number of sentence that contain
+        a lot similarities, for example the descriptions of the FDC ingredients,
+        because it avoid using the model which makes this quicker.
+
+        This function is intended to be used with the `cache_context()`
+        context manager, so that the cache is emptied upon exiting the context.
+
+        Alternative, `clear_cache()` can be called to manually clear the cache.
+
+        If the size of the cache exceeds
+
+        Parameters
+        ----------
+        tokens : list[str]
+            List of tokens to tag.
+        use_tagdict : bool, optional
+            When True, the tagdict is used to determine the tag (if present in the
+            tagdict), which avoids using the model and the cache.
+            Default is True.
+
+        Returns
+        -------
+        list[tuple[str, str]]
+            List of (token, tag) tuples.
+        """
+        output = []
+        prev, prev2 = self.START
+        context = [*self.START, *[self._normalize(w) for w in tokens], *self.END]
+
+        offset = len(self.START)
+        for idx, token in enumerate(tokens):
+            tag = self.tagdict.get(token) if use_tagdict else None
+            if not tag:
+                i = idx + offset
+                cache_key = (
+                    token,
+                    prev,
+                    prev2,
+                    context[i - 2],
+                    context[i - 1],
+                    context[i + 1],
+                    context[i + 2],
+                )
+                tag = self._tag_cache.get(cache_key)
+                if not tag:
+                    # Fallback to using the model, and add result to cache.
+                    features = self._get_features(idx, token, context, prev, prev2)
+                    tag = self.model.predict(features)
+                    if self.max_cache_size > 0:
+                        if len(self._tag_cache) > self.max_cache_size:
+                            self._tag_cache.clear()
+                            logger.debug(
+                                (
+                                    "PerceptronTagger tag cache exceeded maximum cache"
+                                    " size of %s and was cleared."
+                                ),
+                                self.max_cache_size,
+                            )
+
+                        self._tag_cache[cache_key] = tag
+
+            output.append((token, tag))
+
+            prev2 = prev
+            prev = tag
+
+        return output
+
+    def clear_cache(self) -> None:
+        """Empty the tag cache of all cached entries."""
+        self._tag_cache.clear()
+
+    @contextmanager
+    def cache_context(self) -> Iterator["PerceptronTagger"]:
+        """Context manager for used with `tag_with_cache`, which clears the cache upon
+        exiting the context.
+
+        Examples
+        --------
+        >>> with tagger.cache_context() as t:
+        ...     for tokens in many_token_lists:
+        ...         t.tag_with_cache(tokens)
+        """
+        try:
+            yield self
+        finally:
+            self.clear_cache()
 
     def _normalize(self, token: str) -> str:
         """Normalization used in pre-processing.
@@ -261,6 +369,7 @@ class PerceptronTagger:
         weights_matrix[rows, cols] = vals
 
         self.model = NumpyAveragedPerceptron(tags, weights_matrix, feature_vocab)
+        logger.debug("Part of speech tagger model loaded.")
 
     def _get_weights_paths(self) -> tuple[str, str, str]:
         """Get paths to weights files for PerceptronTagger weights.
