@@ -33,8 +33,8 @@ from .training_eval import (
 from .training_utils import (
     DEFAULT_MODEL_LOCATION,
     DataVectors,
-    confusion_matrix,
     convert_num_ordinal,
+    create_confusion_matrix,
     load_datasets,
 )
 
@@ -275,7 +275,7 @@ def train_parser_model(
         )
 
     if plot_confusion_matrix:
-        confusion_matrix(labels_pred, truth_test)
+        create_confusion_matrix(labels_pred, truth_test)
 
     _ = evaluate_model_with_label_corrections(
         tagger, features_test, truth_test, seed, combine_name_labels

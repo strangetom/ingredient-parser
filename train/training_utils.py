@@ -5,18 +5,20 @@ import json
 import logging
 import sqlite3
 from collections.abc import Callable, Iterable
+from contextlib import closing
 from dataclasses import dataclass
 from functools import partial
 from itertools import chain, islice
 from typing import Any
 
 import matplotlib
+import numpy as np
 
 matplotlib.use(
     "Agg"
 )  # suppress matplotlib gui / headless environment for simple file dump
 from matplotlib import pyplot as plt
-from sklearn.metrics import ConfusionMatrixDisplay
+from sklearn.metrics import ConfusionMatrixDisplay, confusion_matrix
 
 from ingredient_parser import SUPPORTED_LANGUAGES
 from ingredient_parser.inference import FeatureDict
@@ -161,7 +163,7 @@ def load_datasets(
         Name of database table containing training data.
     datasets : list[str]
         List of data source to include.
-        Valid options are: nyt, cookstr, bbc, allrecipes, tc, manual.
+        Valid options are: nyt, cookstr, bbc, allrecipes, tc, manual, ba.
     discard_other : bool, optional
         If True, discard sentences containing tokens with OTHER label.
     combine_name_labels :  bool, optional
@@ -181,15 +183,20 @@ def load_datasets(
     logger.info("Loading and transforming training data.")
 
     n = len(datasets)
-    with sqlite3.connect(database, detect_types=sqlite3.PARSE_DECLTYPES) as conn:
+    # contextlib.closing automatically calls conn.close() on exiting the context.
+    with closing(
+        sqlite3.connect(database, detect_types=sqlite3.PARSE_DECLTYPES)
+    ) as conn:
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
         c.execute(
-            f"SELECT * FROM {table} WHERE source IN ({','.join(['?'] * n)})",
+            (
+                f"SELECT id, source, sentence, labels FROM {table} "
+                f"WHERE source IN ({','.join(['?'] * n)})"
+            ),
             datasets,
         )
         data = [dict(row) for row in c.fetchall()]
-    conn.close()
 
     # Chunk data into 4 groups to process in parallel.
     n_chunks = 4
@@ -296,7 +303,7 @@ def process_sentences(
     return DataVectors(sentences, features, tokens, labels, source, uids, discarded)
 
 
-def confusion_matrix(
+def create_confusion_matrix(
     predictions: list[list[str]],
     truths: list[list[str]],
     figure_path="confusion_matrix.svg",
@@ -315,17 +322,14 @@ def confusion_matrix(
     # Flatten prediction and truth lists
     flat_predictions = list(chain.from_iterable(predictions))
     flat_truths = list(chain.from_iterable(truths))
-    labels = list(set(flat_predictions))
+    labels = sorted(set(flat_truths) | set(flat_predictions))
 
-    cm = ConfusionMatrixDisplay.from_predictions(
-        flat_truths, flat_predictions, labels=labels
-    )
-    # Set the diagonal to -1, to better highlight the mislabels
-    for i in range(cm.confusion_matrix.shape[0]):
-        cm.confusion_matrix[i, i] = -1
+    cm = confusion_matrix(flat_truths, flat_predictions, labels=labels)
+    np.fill_diagonal(cm, -1)
+    fig, ax = plt.subplots(figsize=(10, 10))
 
     fig, ax = plt.subplots(figsize=(10, 10))
-    cm.plot(ax=ax, colorbar=False)
+    ConfusionMatrixDisplay(cm, display_labels=labels).plot(ax=ax, colorbar=False)
     ax.tick_params(axis="x", labelrotation=45)
     fig.tight_layout()
     fig.savefig(figure_path)
@@ -369,5 +373,5 @@ def convert_num_ordinal(num: int | float | str) -> str:
         else:
             suffix = ["th", "st", "nd", "rd", "th"][min(n % 10, 4)]
         return str(n) + suffix
-    except TypeError or ValueError:
+    except (TypeError, ValueError):
         return str(num)
