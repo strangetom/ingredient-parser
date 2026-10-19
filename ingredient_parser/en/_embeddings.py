@@ -30,7 +30,6 @@ class GloVeModel:
         """
         self.vec_file = vec_file
         self._load_vectors_from_file(vec_file)
-        self._binarize_vectors()
 
     def __repr__(self) -> str:
         return f"GloVeModel(vec_file={self.vec_file})"
