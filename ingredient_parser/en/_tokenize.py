@@ -1,19 +1,23 @@
 #!/usr/bin/env python3
 
 import re
-from itertools import chain
 
-from .._common import consume, is_float
+from .._common import is_float
 
 # Define regular expressions used by tokenizer.
 # Matches one or more non-white-space characters
 WHITESPACE_TOKENISER = re.compile(r"\S+")
 # Matches and captures one of the specified punctuation marks.
+# Note that this does not include full stops.
 PUNCTUATION_TOKENISER = re.compile(r"([\(\)\[\]\{\}\,/:;\?\!\*\~])")
 # Matches and captures full stop at end of string
 # (?<!\.\w) is a negative look behind that prevents matches if the last full stop
 # is preceded by a a full stop then a word character.
 FULL_STOP_TOKENISER = re.compile(r"(?<!\.\w)(\.)$")
+# Matches a full stop at the end of a white space delimited token, i.e. one that is
+# followed by white space or the end of the string. Used to skip the full stop pass
+# for the many sentences that have no such token.
+TRAILING_FULL_STOP = re.compile(r"\.(?:\s|\Z)")
 
 
 def tokenize(sentence: str) -> list[str]:
@@ -56,30 +60,39 @@ def tokenize(sentence: str) -> list[str]:
     >>> tokenize("2 cups beef and/or chicken stock")
     ["2", "cups", "beef", "and/or", "chicken", "stock"]
     """
-    tokens = [
-        PUNCTUATION_TOKENISER.split(tok)
-        for tok in WHITESPACE_TOKENISER.findall(sentence)
-    ]
-    flattened = [tok for tok in chain.from_iterable(tokens) if tok]
+    # Surround punctuation marks with space, then split on white space.
+    # Doing it this way, instead of splitting on white space then splitting punctuation,
+    # avoids calling PUNCTUATION_TOKENISER on each token - it's only called once per
+    # sentence.
+    padded_punctation = PUNCTUATION_TOKENISER.sub(r" \1 ", sentence)
+    tokens = padded_punctation.split()
 
-    # Recombine "and/or" into a single token
-    combined = combine_and_or(flattened)
-    # Recombine "No. 1" and similar into a single token
-    combined = combine_no_number(combined)
+    if "/" in tokens:
+        # Recombine "and/or" into a single token.
+        tokens = combine_and_or(tokens)
 
-    # Second pass to separate full stops from end of tokens
-    tokens = [FULL_STOP_TOKENISER.split(tok) for tok in combined]
+    if "no." in padded_punctation.lower():
+        # Recombine "No. 1" and similar into a single token.
+        tokens = combine_no_number(tokens)
 
-    return [tok for tok in chain.from_iterable(tokens) if tok]
+    if TRAILING_FULL_STOP.search(padded_punctation):
+        # Second pass to separate full stops from end of tokens, but only if we have
+        # detected a full stop followed by a space or the end of the string.
+        # Otherwise there's no need to do anything.
+        tokens = split_full_stops(tokens)
+
+    return tokens
 
 
 def combine_and_or(tokens: list[str]) -> list[str]:
     """Combine ["and", "/", "or"] into a single token.
 
+    This function retains the case of the original tokens.
+
     Parameters
     ----------
     tokens : list[str]
-        Flat list of tokens.
+        List of tokens.
 
     Returns
     -------
@@ -94,18 +107,21 @@ def combine_and_or(tokens: list[str]) -> list[str]:
     >>> combine_and_or(["1-2", "bananas", ":", "as", "ripe", "as", "possible"])
     ["1-2", "bananas", ":", "as", "ripe", "as", "possible"]
     """
-    AND_OR_PATTERN = ["and", "/", "or"]
-
     combined = []
-    idx = iter(range(len(tokens)))
-    for i in idx:
-        # Short circuit: If tokens[i] is not equal to the first element
-        # of AND_OR_PATTERN, skip to next iteration
-        if tokens[i] == AND_OR_PATTERN[0] and tokens[i : i + 3] == AND_OR_PATTERN:
-            combined.append("and/or")
-            consume(idx, len(AND_OR_PATTERN) - 1)
+    n = len(tokens)
+    i = 0
+    while i < n:
+        if (
+            tokens[i].lower() == "and"
+            and i + 2 < n
+            and tokens[i + 1] == "/"
+            and tokens[i + 2].lower() == "or"
+        ):
+            combined.append(tokens[i] + "/" + tokens[i + 2])
+            i += 3
         else:
             combined.append(tokens[i])
+            i += 1
 
     return combined
 
@@ -113,10 +129,12 @@ def combine_and_or(tokens: list[str]) -> list[str]:
 def combine_no_number(tokens: list[str]) -> list[str]:
     """Combine "No." followed by a number into a single token.
 
+    This function retains the case of the original tokens.
+
     Parameters
     ----------
     tokens : list[str]
-        Flat list of tokens.
+        List of tokens.
 
     Returns
     -------
@@ -130,12 +148,49 @@ def combine_no_number(tokens: list[str]) -> list[str]:
     ['1', 'teaspoon', 'No. 1', 'curing', 'salt']
     """
     combined = []
-    idx = iter(range(len(tokens)))
-    for i in idx:
-        if i < len(tokens) - 1 and tokens[i] == "No." and is_float(tokens[i + 1]):
-            combined.append("No. " + tokens[i + 1])
-            consume(idx, 1)
+    n = len(tokens)
+    i = 0
+    while i < n:
+        if tokens[i].lower() == "no." and i + 1 < n and is_float(tokens[i + 1]):
+            combined.append(tokens[i] + " " + tokens[i + 1])
+            i += 2
         else:
             combined.append(tokens[i])
+            i += 1
 
     return combined
+
+
+def split_full_stops(tokens: list[str]) -> list[str]:
+    """Split full stop from the end of a token.
+
+    The full stop is not split from the end of a token if it preceded by a full stop
+    then a word character, for example "U.S." does not have the trailing full stop
+    split.
+
+    Parameters
+    ----------
+    tokens : list[str]
+        List of tokens.
+
+    Returns
+    -------
+    list[str]
+        Input token with trailing full stops split from tokens.
+
+    Examples
+    --------
+    >>> split_full_stops(["garnish."])
+    ['garnish', '.']
+
+    >>> split_full_stops(["U.S.", "beef"])
+    ['U.S.', 'beef']
+    """
+    split = []
+    for tok in tokens:
+        if tok.endswith("."):
+            split.extend(t for t in FULL_STOP_TOKENISER.split(tok) if t)
+        else:
+            split.append(tok)
+
+    return split

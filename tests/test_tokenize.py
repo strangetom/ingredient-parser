@@ -167,6 +167,13 @@ class TestTokenize:
         sentence = "2 cups beef and/or chicken stock"
         assert tokenize(sentence) == ["2", "cups", "beef", "and/or", "chicken", "stock"]
 
+    def test_and_or_with_capitials(self):
+        """
+        Test "AND/OR" is output as a single token.
+        """
+        sentence = "2 cups beef AND/OR chicken stock"
+        assert tokenize(sentence) == ["2", "cups", "beef", "AND/OR", "chicken", "stock"]
+
     def test_no_followed_by_number(self):
         """
         Test "No." followed by number is output as a single token.
@@ -207,3 +214,17 @@ class TestTokenize:
             ")",
             "bulgur",
         ]
+
+    def test_no_followed_by_number_lower_case(self):
+        """
+        Test "no." followed by number is output as a single token.
+        """
+        sentence = "1 teaspoon no. 1 curing salt"
+        assert tokenize(sentence) == ["1", "teaspoon", "no. 1", "curing", "salt"]
+
+    def test_no_followed_by_number_upper_case(self):
+        """
+        Test "NO." followed by number is output as a single token.
+        """
+        sentence = "1 teaspoon NO. 1 curing salt"
+        assert tokenize(sentence) == ["1", "teaspoon", "NO. 1", "curing", "salt"]
