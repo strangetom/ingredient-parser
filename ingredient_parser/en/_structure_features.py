@@ -382,7 +382,7 @@ class SentenceStructureFeatures:
         """
         examples = []
 
-        if not self.contains_cc:
+        if not self.contains_in:
             # All the patterns in example_parser require IN, so there's no point
             # continuing if the sentence does not contain IN.
             return examples
