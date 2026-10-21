@@ -29,6 +29,9 @@ logger.addHandler(logging.NullHandler())
 # Regex pattern for matching a numeric range e.g. 1-2, 2-3, #1$2-1#3$4, 1.5-2.5
 RANGE_PATTERN = re.compile(r"^[\d\#\$\.]+\s*[\-][\d\#\$\.]+$")
 
+# Prefixes at the start of the string that indicate the string may be a float.
+FLOAT_CANDIDATE_PREFIXES = frozenset(["-", "."])
+
 
 def consume(iterator: Iterator[Any], n: int | None) -> None:
     """Advance the `iterator` n-steps ahead. If `n` is none, consume entirely.
@@ -188,7 +191,7 @@ def is_float(value: str) -> bool:
         not value
         or value == "nan"
         or value.endswith("inf")
-        or not (value[0].isdecimal() or value[0] == "-")
+        or not (value[0].isdecimal() or value[0] in FLOAT_CANDIDATE_PREFIXES)
     ):
         # Quick checks for things that definitely aren't floats.
         return False

@@ -660,7 +660,7 @@ class PreProcessor:
         tokens = []
         for i, (text, pos) in enumerate(pos_tag(tokenize(sentence))):
             # Pre-compute this once because we need it in multiple places.
-            tokenis_numeric = is_numeric(text)
+            token_is_numeric = is_numeric(text)
 
             # Convert tokens:
             # * Singularise units, keeping track of indices of singularised tokens
@@ -669,13 +669,13 @@ class PreProcessor:
                 self.singularised_indices.append(i)
                 feat_text = singular
                 text = singular
-            elif tokenis_numeric:
+            elif token_is_numeric:
                 feat_text = "!num"
             else:
                 feat_text = text
 
             # Get part of speech tag, with overrides for certain tokens.
-            if tokenis_numeric:
+            if token_is_numeric:
                 pos = "CD"
             elif text.lower() in ["c", "g"]:
                 # Special cases for c (cup) and g (gram).

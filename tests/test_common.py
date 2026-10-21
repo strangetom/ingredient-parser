@@ -39,25 +39,31 @@ class Test_consume:
 class Test_is_float:
     def test_int(self):
         """
-        Test string "1" is correctly identified as convertable to float
+        Test string "1" is correctly identified as convertible to float
         """
         assert is_float("1")
 
     def test_float(self):
         """
-        Test string "2.5" is correctly identified as convertable to float
+        Test string "2.5" is correctly identified as convertible to float
         """
         assert is_float("2.5")
 
+    def test_float_without_leading_0(self):
+        """
+        Test string ".25" is correctly identified as convertible to float
+        """
+        assert is_float(".25")
+
     def test_range(self):
         """
-        Test string "1-2" is correctly identified as not convertable to float
+        Test string "1-2" is correctly identified as not convertible to float
         """
         assert not is_float("1-2")
 
     def test_x(self):
         """
-        Test string "1x" is correctly identified as not convertable to float
+        Test string "1x" is correctly identified as not convertible to float
         """
         assert not is_float("1x")
 
