@@ -130,13 +130,8 @@ def _generate_upper_case_units(units: dict[str, str]) -> dict[str, str]:
     units : dict[str, str]
         UNITS dict
     """
-    #
     _capitalized_units = {}
-    for plural, singular in UNITS.items():
-        if plural in {"ts"}:
-            # Don't convert these units because the uppercase or capitalised version has
-            # a different meaning.
-            continue
+    for plural, singular in units.items():
         _capitalized_units[plural.capitalize()] = singular.capitalize()
         _capitalized_units[plural.upper()] = singular.upper()
     return UNITS | _capitalized_units
