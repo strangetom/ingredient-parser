@@ -267,6 +267,19 @@ class Test_example_phrase_features:
             else:
                 assert not token_features.get("example_phrase", False)
 
+    def test_example_phrase_detection_no_conjunction(self):
+        """
+        Test phrase using "such as" is detected in a sentence with no conjunction.
+        This is to protect against a bug introduced in
+        24a83905df84ffc8910f6d532f4b8f3073321970 and fixed in
+        23a8ae788b01b816eba9f73a2ca2fe864482bf36 which prevent example phrase detection
+        on sentence that did not include a "CC" tag. All the example phrase tests at
+        the time contained a "CC" tag by coincidence so the bug was not noticed at
+        the time.
+        """
+        p = PreProcessor("5 oz passion fruit liqueur, such as Aliz", custom_units={})
+        assert p.sentence_structure.example_phrases == [[6, 7, 8]]
+
 
 class Test_dimensional_phrase_features:
     def test_dimensional_phrase_detection(self):
