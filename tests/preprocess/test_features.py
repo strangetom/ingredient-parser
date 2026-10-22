@@ -252,6 +252,10 @@ class TestPreProcessor_word_shape:
         assert p._word_shape("béchamel") == "xxxxxxxx"
         # Numbers
         assert p._word_shape("2-pound") == "d-xxxxx"
+        # Fraction
+        assert p._word_shape("2#1$2") == "d#d$d"
+        # Range
+        assert p._word_shape("1-2") == "d-d"
         # Punctuation
         assert p._word_shape(",") == ","
 

@@ -698,7 +698,7 @@ class PreProcessor:
 
             features = TokenFeatures(
                 stem=stem(feat_text),
-                shape=self._word_shape(feat_text),
+                shape=self._word_shape(text),
                 is_capitalised=self._is_capitalised(feat_text),
                 is_punc=self._is_punc(feat_text),
                 is_dimension=self._is_dimension(feat_text),
