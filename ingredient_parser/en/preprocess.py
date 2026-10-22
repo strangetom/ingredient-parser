@@ -230,6 +230,7 @@ class PreProcessor:
             self._unescape_html,
             self._remove_price_annotations,
             self._replace_en_em_dash,
+            self._noramlize_quote_marks,
             self._replace_unicode_fractions,
             combine_quantities_split_by_and,
             self._identify_fractions,
@@ -290,6 +291,39 @@ class PreProcessor:
         "3-4 sirloin steaks"
         """
         return sentence.replace("–", "-").replace("—", " - ")
+
+    def _noramlize_quote_marks(self, sentence: str) -> str:
+        """Replace ” “ ″ with " and ’ ′ with '.
+
+        Parameters
+        ----------
+        sentence : str
+            Ingredient sentence.
+
+        Returns
+        -------
+        str
+            Ingredient sentence with quote marks normalised.
+
+        Examples
+        --------
+        >>> p = PreProcessor("")
+        >>> p._noramlize_quote_marks("1 2” piece ginger")
+        '1 2" piece ginger'
+
+        >>> p = PreProcessor("")
+        >>> p._noramlize_quote_marks("3’ length sausage casing")
+        "3' length sausage casing"
+        """
+        for mark in {"”", "“", "″"}:
+            if mark in sentence:
+                sentence = sentence.replace(mark, '"')
+
+        for mark in {"’", "′"}:
+            if mark in sentence:
+                sentence = sentence.replace(mark, "'")
+
+        return sentence
 
     def _unescape_html(self, sentence: str) -> str:
         """Replace escaped HTML entities e.g. &frac12; with unicode equivalents.
