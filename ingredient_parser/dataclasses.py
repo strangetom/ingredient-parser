@@ -71,8 +71,8 @@ class Token:
         Part of speech tag for token.
     segment : int
         Number of syntactic breaks (',', ';' etc.) prior to token.
-    depth : int
-        Bracket/parenthesis depth of token.
+    paren_depth : int
+        Bracket/parenthesis depth for token.
     features : TokenFeatures
         Common features for token.
     """
@@ -82,7 +82,7 @@ class Token:
     feat_text: str
     pos_tag: str
     segment: int
-    depth: int
+    paren_depth: int
     features: TokenFeatures
 
 

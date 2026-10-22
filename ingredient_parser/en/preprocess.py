@@ -662,7 +662,7 @@ class PreProcessor:
             List of Tokens for sentence.
         """
         tokens = []
-        depth = segment = 0
+        paren_depth = segment = 0
         for i, (text, pos) in enumerate(pos_tag(tokenize(sentence))):
             # Pre-compute this once because we need it in multiple places.
             token_is_numeric = is_numeric(text)
@@ -711,7 +711,7 @@ class PreProcessor:
             )
 
             if feat_text in OPEN:
-                depth += 1
+                paren_depth += 1
 
             tokens.append(
                 Token(
@@ -720,14 +720,14 @@ class PreProcessor:
                     feat_text=feat_text,
                     pos_tag=pos,
                     segment=segment,
-                    depth=depth,
+                    paren_depth=paren_depth,
                     features=features,
                 )
             )
 
             if feat_text in CLOSE:
-                depth = max(depth - 1, 0)
-            elif feat_text in BREAKS and depth == 0:
+                paren_depth = max(paren_depth - 1, 0)
+            elif feat_text in BREAKS and paren_depth == 0:
                 # We don't increment the segment counter if the BREAK is within
                 # parentheses or brackets.
                 segment += 1
@@ -981,7 +981,7 @@ class PreProcessor:
         bool
             True if index is inside parentheses or is parenthesis, else False.
         """
-        return self.tokenized_sentence[index].depth > 0
+        return self.tokenized_sentence[index].paren_depth > 0
 
     def _sentence_length_bucket(self) -> int:
         """Return the length of sentence, rounding down to the nearest bucket.
