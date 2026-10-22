@@ -69,6 +69,10 @@ class Token:
         Token text used for feature generation.
     pos_tag : str
         Part of speech tag for token.
+    segment : int
+        Number of syntactic breaks (',', ';' etc.) prior to token.
+    depth : int
+        Bracket/parenthesis depth of token.
     features : TokenFeatures
         Common features for token.
     """
@@ -77,6 +81,8 @@ class Token:
     text: str
     feat_text: str
     pos_tag: str
+    segment: int
+    depth: int
     features: TokenFeatures
 
 

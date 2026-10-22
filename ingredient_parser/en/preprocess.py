@@ -92,6 +92,10 @@ CONTEXT_TOKEN_PREFIXES = {
     3: "next3_",
 }
 
+OPEN = frozenset({"(", "["})
+CLOSE = frozenset({")", "]"})
+BREAKS = frozenset({",", ";", ":"})
+
 
 class PreProcessor:
     """Recipe ingredient sentence PreProcessor class.
@@ -658,6 +662,7 @@ class PreProcessor:
             List of Tokens for sentence.
         """
         tokens = []
+        depth = segment = 0
         for i, (text, pos) in enumerate(pos_tag(tokenize(sentence))):
             # Pre-compute this once because we need it in multiple places.
             token_is_numeric = is_numeric(text)
@@ -705,15 +710,27 @@ class PreProcessor:
                 ends_with_inch_symbol=self._ends_with_inch_symbol(feat_text),
             )
 
+            if feat_text in OPEN:
+                depth += 1
+
             tokens.append(
                 Token(
                     index=i,
                     text=text,
                     feat_text=feat_text,
                     pos_tag=pos,
+                    segment=segment,
+                    depth=depth,
                     features=features,
                 )
             )
+
+            if feat_text in CLOSE:
+                depth = max(depth - 1, 0)
+            elif feat_text in BREAKS and depth == 0:
+                # We don't increment the segment counter if the BREAK is within
+                # parentheses or brackets.
+                segment += 1
 
         logger.debug("Tokenized sentence: %s.", [t.text for t in tokens])
         logger.debug("Singularised tokens at indices: %s.", self.singularised_indices)
@@ -907,7 +924,7 @@ class PreProcessor:
         bool
             True if token follows comma, else False.
         """
-        return "," in [t.feat_text for t in self.tokenized_sentence[:index]]
+        return self.tokenized_sentence[index].segment > 0
 
     def _follows_plus(self, index: int) -> bool:
         """Return True if token at index follow "plus" by any amount in sentence.
@@ -964,22 +981,7 @@ class PreProcessor:
         bool
             True if index is inside parentheses or is parenthesis, else False.
         """
-        # If it's "(" or ")", return True
-        if self.tokenized_sentence[index].feat_text in ["(", ")", "[", "]"]:
-            return True
-
-        open_parens, closed_parens = [], []
-        for i, token in enumerate(self.tokenized_sentence):
-            if token.feat_text == "(" or token.feat_text == "[":
-                open_parens.append(i)
-            elif token.feat_text == ")" or token.feat_text == "]":
-                closed_parens.append(i)
-
-        for start, end in zip(open_parens, closed_parens):
-            if start < index < end:
-                return True
-
-        return False
+        return self.tokenized_sentence[index].depth > 0
 
     def _sentence_length_bucket(self) -> int:
         """Return the length of sentence, rounding down to the nearest bucket.
