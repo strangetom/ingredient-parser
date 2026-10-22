@@ -462,17 +462,21 @@ UNIT_SYNONYMS = [
     {"pint", "pt"},
 ]
 
-# Set of (singular) units that refer to lengths.
+# Set of units that refer to lengths.
 LENGTH_UNITS = frozenset(
     {
         "centimeter",
+        "centimeters",
         "centimetre",
+        "centimetres",
         "cm",
         "in",
         "inch",
         "inches",
         "millimeter",
+        "millimeters",
         "millimetre",
+        "millimetres",
         "mm",
     }
 )
