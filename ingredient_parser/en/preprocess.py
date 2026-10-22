@@ -1132,12 +1132,13 @@ class PreProcessor:
         The tags are ordered so that the tag for the left most token in the sentence is
         first e.g.:
         For index=3, offset=2: [tag_3, tag_4, tag_5]
-        For index=1, offset=-2: [tag_0, tag_1]
+        For index=1, offset=-2: [<BOS> tag_0, tag_1]
 
         Parameters
         ----------
         sentence_tags : list[str]
-            List of part of speech tags for full sentence.
+            List of part of speech tags for full sentence, padding at start and end to
+            cover maximum context window.
         index : int
             Index of token.
         offset : int
@@ -1149,10 +1150,15 @@ class PreProcessor:
             List POS tags that make up ngram.
         """
         # Calculate the minimum index, can't be less than 0.
-        min_ngram_index = max(0, min(index, index + offset))
+        # Note the index in increased by +3 to account for the padding tags at the start
+        # of the sentence.
+        min_ngram_index = max(0, min(index + 3, index + offset + 3))
 
-        # Calculate the maximum index, can't be greater than sentence length.
-        max_ngram_index = min(self.n_tokens, max(index, index + offset) + 1)
+        # Calculate the maximum index, can't be greater than sentence length (including
+        # the padding).
+        max_ngram_index = min(
+            len(sentence_tags) - 1, max(index + 3, index + offset + 3) + 1
+        )
 
         return sentence_tags[min_ngram_index:max_ngram_index]
 
@@ -1174,7 +1180,10 @@ class PreProcessor:
         """
         logger.debug("Generating features for tokens.")
 
-        sentence_pos_tags = [t.pos_tag for t in self.tokenized_sentence]
+        # Extract sentence pos tags and pad to cover the maximum context window size.
+        sentence_pos_tags = (
+            ["<BOS>"] * 3 + [t.pos_tag for t in self.tokenized_sentence] + ["<EOS>"] * 3
+        )
         sentence_features = [
             self._common_features(token) for token in self.tokenized_sentence
         ]
@@ -1204,12 +1213,7 @@ class PreProcessor:
                     for feature, value in context_features[i + offset]:
                         features[prefix + feature] = value
 
-                # Only include the pos ngram feature if it contains as many tags as the
-                # offset + 1.
-                # This is to avoid tokens near the start or end of a sentence having
-                # ngrams only containing a single tag despite the offset being non-zero.
                 pos_ngram = self._pos_ngram(sentence_pos_tags, i, offset)
-                if len(pos_ngram) == abs(offset) + 1:
-                    features[prefix + "pos_ngram"] = "+".join(pos_ngram)
+                features[prefix + "pos_ngram"] = "+".join(pos_ngram)
 
         return sentence_features
