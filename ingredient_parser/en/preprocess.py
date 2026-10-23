@@ -1229,6 +1229,27 @@ class PreProcessor:
 
         return sentence_tags[min_ngram_index:max_ngram_index]
 
+    def _whole_sentence_features(self) -> FeatureDict:
+        """Generate features based on the complete sentence.
+
+        These features are applied to every token and are the same for each token.
+
+        Returns
+        -------
+        FeatureDict
+            Dict of whole sentence features.
+        """
+        return {
+            "starts_with_qty": self.tokenized_sentence[0].feat_text == "!num",
+            "starts_with_unit": self._is_unit(0),
+            "n_numeric": str(
+                sum(1 for t in self.tokenized_sentence if t.feat_text == "!num")
+            ),
+            "has_parens": any(t.paren_depth > 0 for t in self.tokenized_sentence),
+            "has_or": any(t.feat_text.lower() == "or" for t in self.tokenized_sentence),
+            "n_segments": str(self.tokenized_sentence[-1].segment),
+        }
+
     def sentence_features(self) -> list[FeatureDict]:
         """Return dict of features for each token in sentence.
 
@@ -1254,6 +1275,31 @@ class PreProcessor:
         sentence_features = [
             self._common_features(token) for token in self.tokenized_sentence
         ]
+
+        # Add conjunction and whole sentence features for the each token.
+        whole_sentence_features = self._whole_sentence_features()
+        for i, features in enumerate(sentence_features):
+            prev = sentence_features[i - 1] if i > 0 else None
+            next = sentence_features[i + 1] if i < self.n_tokens - 1 else None
+
+            prev_stem = prev["stem"] if prev else "<BOS>"
+            next_stem = next["stem"] if next else "<EOS>"
+
+            features["prev_stem+stem"] = f"{prev_stem}+{features['stem']}"
+            features["stem+next_stem"] = f"{features['stem']}+{next_stem}"
+            features["is_unit+prev_num"] = (
+                f"{features['is_unit']}+{bool(prev) and prev['stem'] == '!num'}"
+            )
+            features["pos+is_parens"] = f"{features['pos']}+{features['is_in_parens']}"
+            features["pos+segment"] = f"{features['pos']}+{features['segment']}"
+
+            if next and features["stem"] == "!num":
+                # number_type feature is only defined if the stem is "!num"
+                features["num_type+next_is_unit"] = (
+                    f"{features['number_type']}+{next['is_unit']}"
+                )
+
+            features |= whole_sentence_features
 
         # Calculate the features used for each token when the token is in the context
         # window of another token.

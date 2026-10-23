@@ -504,7 +504,7 @@ class SentenceStructureFeatures:
 
         segement_features = []
         for token in tokenized_sentence:
-            token_segement_features = {}
+            token_segement_features: FeatureDict = {"segment": str(token.segment)}
             if token.text in {",", ";", ":"}:
                 token_segement_features["segment_position"] = "SEP"
                 segement_features.append(token_segement_features)
