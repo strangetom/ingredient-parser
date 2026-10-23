@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 
 import logging
+from collections import defaultdict
 
 import nltk
 
 from ..dataclasses import Token
+from ..inference import FeatureDict
 from ._constants import DIMENSIONS, FLATTENED_UNITS_LIST, LENGTH_UNITS, SIZES
 
 # Lists of (token, pos) pairs for identifying the start of example phrases.
@@ -119,6 +121,8 @@ class SentenceStructureFeatures:
         self.sentence_splits = self.detect_sentences_splits(tokenized_sentence)
         self.example_phrases = self.detect_examples(tokenized_sentence)
         self.dimensional_phrases = self.detect_dimensional_phrases(tokenized_sentence)
+
+        self.segment_features = self.determine_segment_features(tokenized_sentence)
 
     def __repr__(self) -> str:
         return (
@@ -473,7 +477,68 @@ class SentenceStructureFeatures:
 
         return []
 
-    def token_features(self, index: int, prefix: str) -> dict[str, bool]:
+    def determine_segment_features(
+        self, tokenized_sentence: list[Token]
+    ) -> list[FeatureDict]:
+        """Determine segment based features for tokenized_sentence.
+
+        [description]
+
+        Parameters
+        ----------
+        tokenized_sentence : list[Token]
+            Tokenized sentence to determine segment for.
+
+        Returns
+        -------
+        list[FeatureDict]
+            List of FeatureDicts containing the segment features for each token.
+        """
+        segment_members = defaultdict(list)
+        for token in tokenized_sentence:
+            # Segment break tokens are not considered part of the segment.
+            if token.text not in {",", ";", ":"}:
+                segment_members[token.segment].append(token.index)
+
+        # Invert segment_members to map index to segment position
+
+        segement_features = []
+        for token in tokenized_sentence:
+            token_segement_features = {}
+            if token.text in {",", ";", ":"}:
+                token_segement_features["segment_position"] = "SEP"
+                segement_features.append(token_segement_features)
+                continue
+
+            members = segment_members[token.segment]
+            n_members = len(members)
+
+            if n_members == 1:
+                segment_position = "ONLY"
+            elif token.index == members[0]:
+                segment_position = "FIRST"
+            elif token.index == members[-1]:
+                segment_position = "LAST"
+            else:
+                segment_position = "MID"
+            token_segement_features["segment_position"] = segment_position
+            token_segement_features["segment_length"] = (
+                "1"
+                if n_members == 1
+                else "2"
+                if n_members == 2
+                else "3-4"
+                if n_members <= 4
+                else "5+"
+            )
+            token_segement_features["segment_has_qty"] = any(
+                tokenized_sentence[j].feat_text == "!num" for j in members
+            )
+            segement_features.append(token_segement_features)
+
+        return segement_features
+
+    def token_features(self, index: int, prefix: str) -> FeatureDict:
         """Return dict of features for token at index.
 
         Features:
@@ -494,7 +559,7 @@ class SentenceStructureFeatures:
         dict[str, bool]
             Dict of features.
         """
-        features = {
+        features: FeatureDict = {
             prefix + "mip_start": False,
             prefix + "mip_end": False,
             prefix + "within_mip": False,
@@ -538,5 +603,8 @@ class SentenceStructureFeatures:
         for phrase in self.dimensional_phrases:
             if index in phrase:
                 features[prefix + "dimensional_phrase"] = True
+
+        for feature, value in self.segment_features[index].items():
+            features[prefix + feature] = value
 
         return features

@@ -15,6 +15,7 @@ from ._constants import (
     FLATTENED_UNITS_LIST,
     LENGTH_UNITS,
     SIZES,
+    STRING_NUMBERS,
     UNICODE_FRACTIONS_TO_TEXT,
     UNITS,
 )
@@ -79,6 +80,7 @@ CONTEXT_FEATURES = frozenset(
         "after_sentence_split",
         "example_phrase",
         "dimensional_phrase",
+        "number_type",
     ]
 )
 # Define the size of the context window and the prefixes to apply to the features from
@@ -1034,6 +1036,51 @@ class PreProcessor:
 
         return bucket
 
+    def _number_type(self, token: str) -> str:
+        """Return string indicating the type of number for numeric tokens.
+
+        To avoid duplicate calls to is_numeric(), this function assumes the token being
+        passed would return True from is_numeric()
+
+        The types of number are:
+        * word
+        * multiplier
+        * range
+        * decimal
+        * fraction
+        * integer
+
+        Parameters
+        ----------
+        token : str
+            Token to return number type of.
+
+        Returns
+        -------
+        str
+            Number type.
+        """
+
+        token = token.lower()
+        if token in STRING_NUMBERS or token == "dozen":
+            return "word"
+
+        elif token.endswith("x"):
+            return "multiplier"
+
+        elif "-" in token[1:]:
+            # We don't want this to match if the token starts with "-"
+            return "range"
+
+        elif "#" in token:
+            return "fraction"
+
+        elif "." in token:
+            return "decimal"
+
+        else:
+            return "integer"
+
     def _word_shape(self, token: str) -> str:
         """Calculate the word shape for token.
 
@@ -1108,13 +1155,16 @@ class PreProcessor:
             "is_unit": self._is_unit(token.index),
             "is_size": self._is_size(token.index),
             "is_in_parens": self._is_inside_parentheses(token.index),
-            "is_after_comma": self._follows_comma(token.index),
+            # "is_after_comma": self._follows_comma(token.index),
             "is_after_plus": self._follows_plus(token.index),
             "is_length_unit": self._is_length_unit(token.index),
         }
 
         if token.feat_text != token.features.stem:
             features["token"] = token.feat_text
+
+        if token.feat_text == "!num":
+            features["number_type"] = self._number_type(token.text)
 
         features |= self._ngram_features(token.feat_text, "")
         features |= self.sentence_structure.token_features(token.index, "")
