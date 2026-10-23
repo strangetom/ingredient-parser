@@ -197,48 +197,6 @@ class TestPreProcess_follows_plus:
         assert p._follows_plus(9)
 
 
-class TestPreProcess_follows_comma:
-    def test_no_comma(self):
-        """
-        No comma in input
-        """
-        input_sentence = "freshly ground black pepper"
-        p = PreProcessor(input_sentence, custom_units={})
-        assert not p._follows_comma(2)
-
-    def test_before_comma(self):
-        """
-        Token index is before comma
-        """
-        input_sentence = "freshly ground black pepper, to taste"
-        p = PreProcessor(input_sentence, custom_units={})
-        assert not p._follows_comma(1)
-
-    def test_after_comma(self):
-        """
-        Token index is after comma
-        """
-        input_sentence = "freshly ground black pepper, to taste"
-        p = PreProcessor(input_sentence, custom_units={})
-        assert p._follows_comma(5)
-
-    def test_index_is_comma(self):
-        """
-        Token at index is comma
-        """
-        input_sentence = "freshly ground black pepper, to taste"
-        p = PreProcessor(input_sentence, custom_units={})
-        assert not p._follows_comma(4)
-
-    def test_index_is_comma_and_follows_comma(self):
-        """
-        Token at index is comma and follows another comma
-        """
-        input_sentence = "freshly ground black pepper, or white pepper, to taste"
-        p = PreProcessor(input_sentence, custom_units={})
-        assert p._follows_comma(8)
-
-
 class TestPreProcessor_word_shape:
     def test_word_shape(self, p):
         """

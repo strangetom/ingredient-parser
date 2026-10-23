@@ -68,7 +68,6 @@ CONTEXT_FEATURES = frozenset(
         "is_unit",
         "is_size",
         "is_in_parens",
-        "is_after_comma",
         "is_after_plus",
         "is_length_unit",
         "mip_start",
@@ -945,23 +944,6 @@ class PreProcessor:
         """
         return token in PUNCTUATION
 
-    def _follows_comma(self, index: int) -> bool:
-        """Return True if token at index follows a comma (by any amount) in sentence.
-
-        If the token at index is a comma, treat it the same as any other token
-
-        Parameters
-        ----------
-        index : int
-            Index of token to check.
-
-        Returns
-        -------
-        bool
-            True if token follows comma, else False.
-        """
-        return self.tokenized_sentence[index].segment > 0
-
     def _follows_plus(self, index: int) -> bool:
         """Return True if token at index follow "plus" by any amount in sentence.
 
@@ -1155,7 +1137,6 @@ class PreProcessor:
             "is_unit": self._is_unit(token.index),
             "is_size": self._is_size(token.index),
             "is_in_parens": self._is_inside_parentheses(token.index),
-            # "is_after_comma": self._follows_comma(token.index),
             "is_after_plus": self._follows_plus(token.index),
             "is_length_unit": self._is_length_unit(token.index),
         }
