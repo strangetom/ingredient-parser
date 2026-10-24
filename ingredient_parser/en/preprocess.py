@@ -1174,7 +1174,8 @@ class PreProcessor:
 
         N = 3, 4, 5 are returned if possible, for prefixes and suffixes.
         An n-gram feature is only return if length of the token greater than N for that
-        n-gram.
+        n-gram. The n-gram affixes are made lower case because repeating the feature
+        with different cases will not provide any more useful information to the model.
 
         If the token is "!num", don't return any n-gram features.
 
@@ -1192,16 +1193,16 @@ class PreProcessor:
         """
         ngram_features = {}
         if token != "!num" and len(token) >= 4:
-            ngram_features[prefix + "prefix_3"] = token[:3]
-            ngram_features[prefix + "suffix_3"] = token[-3:]
+            ngram_features[prefix + "prefix_3"] = token[:3].lower()
+            ngram_features[prefix + "suffix_3"] = token[-3:].lower()
 
         if token != "!num" and len(token) >= 5:
-            ngram_features[prefix + "prefix_4"] = token[:4]
-            ngram_features[prefix + "suffix_4"] = token[-4:]
+            ngram_features[prefix + "prefix_4"] = token[:4].lower()
+            ngram_features[prefix + "suffix_4"] = token[-4:].lower()
 
         if token != "!num" and len(token) >= 6:
-            ngram_features[prefix + "prefix_5"] = token[:5]
-            ngram_features[prefix + "suffix_5"] = token[-5:]
+            ngram_features[prefix + "prefix_5"] = token[:5].lower()
+            ngram_features[prefix + "suffix_5"] = token[-5:].lower()
 
         return ngram_features
 
