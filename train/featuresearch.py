@@ -19,7 +19,7 @@ from ingredient_parser.inference import FeatureDict, NumpyCRFInference
 from .export import export_crfsuite_to_json
 from .train_model import DEFAULT_MODEL_LOCATION, MODEL_HYPERPARAMETERS
 from .trainers import IngredientParserTrainer
-from .training_eval import evaluate
+from .training_eval import evaluate_model_with_label_corrections
 from .training_utils import (
     DataVectors,
     convert_num_ordinal,
@@ -197,11 +197,9 @@ def train_model_feature_search(
     # Create NumpyCRFInference object for evaluation.
     logger.info("Evaluating model with test data.")
     tagger = NumpyCRFInference(save_model_path, combine_name_labels)
-    labels_pred = []
-    for X in features_test:
-        labels, _ = zip(*tagger.tag_from_features(X))
-        labels_pred.append(list(labels))
-    stats = evaluate(labels_pred, truth_test, seed, combine_name_labels)
+    stats, _, _ = evaluate_model_with_label_corrections(
+        tagger, features_test, truth_test, seed, combine_name_labels
+    )
 
     # We don't need to keep the crfsuite model.
     crfsuite_model_path.unlink(missing_ok=True)
