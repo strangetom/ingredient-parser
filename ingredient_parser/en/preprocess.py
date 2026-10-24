@@ -11,9 +11,12 @@ from ..dataclasses import Token, TokenFeatures
 from ._ambiguity import Disambiguator
 from ._constants import (
     ASCII_SHAPE_TABLE,
+    BREAKS,
+    CLOSE_BRACKET,
     DIMENSIONS,
     FLATTENED_UNITS_LIST,
     LENGTH_UNITS,
+    OPEN_BRACKET,
     SIZES,
     STRING_NUMBERS,
     UNICODE_FRACTIONS_TO_TEXT,
@@ -92,10 +95,6 @@ CONTEXT_TOKEN_PREFIXES = {
     2: "next2_",
     3: "next3_",
 }
-
-OPEN = frozenset({"(", "["})
-CLOSE = frozenset({")", "]"})
-BREAKS = frozenset({",", ";", ":"})
 
 
 class PreProcessor:
@@ -745,7 +744,7 @@ class PreProcessor:
                 ends_with_inch_symbol=self._ends_with_inch_symbol(feat_text),
             )
 
-            if feat_text in OPEN:
+            if feat_text in OPEN_BRACKET:
                 paren_depth += 1
 
             tokens.append(
@@ -760,7 +759,7 @@ class PreProcessor:
                 )
             )
 
-            if feat_text in CLOSE:
+            if feat_text in CLOSE_BRACKET:
                 paren_depth = max(paren_depth - 1, 0)
             elif feat_text in BREAKS and paren_depth == 0:
                 # We don't increment the segment counter if the BREAK is within
