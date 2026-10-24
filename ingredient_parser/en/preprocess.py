@@ -1223,7 +1223,7 @@ class PreProcessor:
         # Calculate the maximum index, can't be greater than sentence length (including
         # the padding).
         max_ngram_index = min(
-            len(sentence_tags) - 1, max(index + 3, index + offset + 3) + 1
+            len(sentence_tags), max(index + 3, index + offset + 3) + 1
         )
 
         return sentence_tags[min_ngram_index:max_ngram_index]
