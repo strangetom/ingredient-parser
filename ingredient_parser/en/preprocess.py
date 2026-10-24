@@ -4,6 +4,7 @@ import logging
 import re
 import string
 import unicodedata
+from collections import Counter
 from html import unescape
 from itertools import chain
 
@@ -23,7 +24,6 @@ from ._constants import (
     UNITS,
 )
 from ._regex import (
-    CAPITALISED_PATTERN,
     CURRENCY_PATTERN,
     DUPE_UNIT_RANGES_PATTERN,
     EXPANDED_RANGE,
@@ -63,7 +63,6 @@ CONTEXT_FEATURES = frozenset(
     [
         "stem",
         "pos",
-        "is_capitalised",
         "is_punc",
         "is_dimension",
         "word_shape",
@@ -738,7 +737,6 @@ class PreProcessor:
             features = TokenFeatures(
                 stem=stem(feat_text),
                 shape=self._word_shape(text),
-                is_capitalised=self._is_capitalised(feat_text),
                 is_punc=self._is_punc(feat_text),
                 is_dimension=self._is_dimension(feat_text),
                 ends_with_inch_symbol=self._ends_with_inch_symbol(feat_text),
@@ -976,31 +974,6 @@ class PreProcessor:
             True if token follows ":", else False.
         """
         return ":" in [t.feat_text for t in self.tokenized_sentence[:index]]
-
-    def _is_capitalised(self, token: str) -> bool:
-        """Return True if token starts with a capital letter.
-
-        Parameters
-        ----------
-        token : str
-            Token to check.
-
-        Returns
-        -------
-        bool
-            True if token starts with a capital letter, else False.
-
-        Examples
-        --------
-        >>> p = PreProcessor("")
-        >>> p._is_capitalised("Chicken")
-        True
-
-        >>> p = PreProcessor("")
-        >>> p._is_capitalised("chicken")
-        False
-        """
-        return CAPITALISED_PATTERN.match(token) is not None
 
     def _is_inside_parentheses(self, index: int) -> bool:
         """Return True if token is inside parentheses or is a parenthesis.
@@ -1260,12 +1233,7 @@ class PreProcessor:
         return {
             "starts_with_qty": self.tokenized_sentence[0].feat_text == "!num",
             "starts_with_unit": self._is_unit(0),
-            "n_numeric": str(
-                sum(1 for t in self.tokenized_sentence if t.feat_text == "!num")
-            ),
-            "has_parens": any(t.paren_depth > 0 for t in self.tokenized_sentence),
             "has_or": any(t.feat_text.lower() == "or" for t in self.tokenized_sentence),
-            "n_segments": str(self.tokenized_sentence[-1].segment),
         }
 
     def sentence_features(self) -> list[FeatureDict]:
@@ -1308,12 +1276,11 @@ class PreProcessor:
             features["is_unit+prev_num"] = (
                 f"{features['is_unit']}+{bool(prev) and prev['stem'] == '!num'}"
             )
-            features["pos+is_parens"] = f"{features['pos']}+{features['is_in_parens']}"
             features["pos+segment"] = f"{features['pos']}+{features['segment']}"
 
             if next and features["stem"] == "!num":
                 # number_type feature is only defined if the stem is "!num"
-                features["num_type+next_is_unit"] = (
+                features["number_type+next_is_unit"] = (
                     f"{features['number_type']}+{next['is_unit']}"
                 )
 
@@ -1345,6 +1312,9 @@ class PreProcessor:
                         features[prefix + feature] = value
 
                 pos_ngram = self._pos_ngram(sentence_pos_tags, i, offset)
-                features[prefix + "pos_ngram"] = "+".join(pos_ngram)
+                pos_count = Counter(pos_ngram)
+                # Exclude pos_ngrams that include 2 or more padding tokens.
+                if pos_count.get("<BOS>", 0) < 2 and pos_count.get("<EOS>", 0) < 2:
+                    features[prefix + "pos_ngram"] = "+".join(pos_ngram)
 
         return sentence_features

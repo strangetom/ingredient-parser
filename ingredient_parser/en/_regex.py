@@ -9,9 +9,6 @@ from ._constants import FLATTENED_UNITS_LIST, LENGTH_UNITS, STRING_NUMBERS
 # a forward slash then another number.
 FRACTION_PARTS_PATTERN = re.compile(r"(\d*\s*\d/\d+)")
 
-# Regex pattern for checking if token starts with a capital letter.
-CAPITALISED_PATTERN = re.compile(r"^[A-Z]")
-
 # Regex pattern for finding quantity and units without space between them.
 # Add additional strings to units set that aren't necessarily units, but we want to
 # treat them like units for the purposes of splitting quantities from units.

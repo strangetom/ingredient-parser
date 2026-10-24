@@ -37,8 +37,6 @@ class TokenFeatures:
         Stem of the token.
     shape : str
         Shape of the token, represented by X, x, d characters.
-    is_capitalised : bool
-        True if the token starts with a capital letter, else False.
     is_punc : bool
         True if the token is a punctuation character, else False.
     is_dimension : bool
@@ -49,7 +47,6 @@ class TokenFeatures:
 
     stem: str
     shape: str
-    is_capitalised: bool
     is_punc: bool
     is_dimension: bool
     ends_with_inch_symbol: bool
