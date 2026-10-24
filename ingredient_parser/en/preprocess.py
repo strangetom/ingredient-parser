@@ -960,6 +960,23 @@ class PreProcessor:
         """
         return "plus" in [t.feat_text for t in self.tokenized_sentence[:index]]
 
+    def _follows_colon(self, index: int) -> bool:
+        """Return True if token at index follow ":" by any amount in sentence.
+
+        If the token at the index is ":", it doesn't count as following.
+
+        Parameters
+        ----------
+        index : int
+            Index of token to check.
+
+        Returns
+        -------
+        bool
+            True if token follows ":", else False.
+        """
+        return ":" in [t.feat_text for t in self.tokenized_sentence[:index]]
+
     def _is_capitalised(self, token: str) -> bool:
         """Return True if token starts with a capital letter.
 
@@ -1137,6 +1154,7 @@ class PreProcessor:
             "is_size": self._is_size(token.index),
             "is_in_parens": self._is_inside_parentheses(token.index),
             "is_after_plus": self._follows_plus(token.index),
+            "is_after_colon": self._follows_colon(token.index),
             "is_length_unit": self._is_length_unit(token.index),
         }
 
