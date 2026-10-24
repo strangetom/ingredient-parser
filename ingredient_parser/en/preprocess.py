@@ -1118,7 +1118,6 @@ class PreProcessor:
             "sentence_length": str(self._sentence_length_bucket()),
             "pos": token.pos_tag,
             "stem": token.features.stem,
-            "is_capitalised": token.features.is_capitalised,
             "is_punc": token.features.is_punc,
             "is_dimension": token.features.is_dimension,
             "word_shape": token.features.shape,

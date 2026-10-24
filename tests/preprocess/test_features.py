@@ -84,26 +84,6 @@ class TestPreProcessor_is_punc:
         assert not p._is_punc("beer")
 
 
-class TestPreProcessor_is_capitalised:
-    def test_capitalised(self, p):
-        """
-        "Cheese" is capitalised
-        """
-        assert p._is_capitalised("Cheese")
-
-    def test_embeded_capital(self, p):
-        """
-        "lemon-Zest" is not capitalised
-        """
-        assert not p._is_capitalised("lemon-Zest")
-
-    def test_no_captials(self, p):
-        """
-        "sausage" is not capitalised
-        """
-        assert not p._is_capitalised("sausage")
-
-
 class TestPreProcessor_is_inside_parentheses:
     def test_inside(self):
         """
