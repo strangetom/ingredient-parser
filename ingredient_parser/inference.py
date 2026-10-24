@@ -912,7 +912,7 @@ class NumpyViterbiInference:
             candidates = prev_el_scores + self.transition_weights + state_scores[t]
 
             # Force the scores from constrained transitions to -inf
-            if constrain_transitions and b_name_idx:
+            if constrain_transitions and b_name_idx is not None:
                 candidates[self.transition_constraint_mask] = -np.inf
                 # Mask transitions to I_NAME_TOK from paths that lack a B_NAME_TOK
                 invalid_prev_paths = ~has_b_name[t - 1]
@@ -925,7 +925,7 @@ class NumpyViterbiInference:
             backpointers[t] = np.argmax(candidates, axis=0)
 
             # Update has_b_name matrix
-            if constrain_transitions and b_name_idx:
+            if constrain_transitions and b_name_idx is not None:
                 # Inherit state from the best predecessor for each current label.
                 # We are setting the value of for each column to the value from the
                 # previous row (i.e. t-1) at the index given by backpointers[t] so that
