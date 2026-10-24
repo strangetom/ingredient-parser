@@ -7,7 +7,7 @@ import nltk
 
 from ..dataclasses import Token
 from ..inference import FeatureDict
-from ._constants import DIMENSIONS, FLATTENED_UNITS_LIST, LENGTH_UNITS, SIZES
+from ._constants import BREAKS, DIMENSIONS, FLATTENED_UNITS_LIST, LENGTH_UNITS, SIZES
 
 # Lists of (token, pos) pairs for identifying the start of example phrases.
 # For example phrases starting with an preposition/subordinating conjunction (IN)
@@ -497,15 +497,18 @@ class SentenceStructureFeatures:
         segment_members = defaultdict(list)
         for token in tokenized_sentence:
             # Segment break tokens are not considered part of the segment.
-            if token.text not in {",", ";", ":"}:
+            if token.text not in BREAKS:
                 segment_members[token.segment].append(token.index)
 
         # Invert segment_members to map index to segment position
 
         segement_features = []
         for token in tokenized_sentence:
-            token_segement_features: FeatureDict = {"segment": str(token.segment)}
-            if token.text in {",", ";", ":"}:
+            # Cap the segment number at 3 to prevent rare larger values overfitting.
+            token_segement_features: FeatureDict = {
+                "segment": str(min(token.segment, 3))
+            }
+            if token.text in BREAKS:
                 token_segement_features["segment_position"] = "SEP"
                 segement_features.append(token_segement_features)
                 continue
@@ -522,18 +525,28 @@ class SentenceStructureFeatures:
             else:
                 segment_position = "MID"
             token_segement_features["segment_position"] = segment_position
+            # We don't include segment_length=1 here because it is identical to
+            # segment_position="ONLY"
             token_segement_features["segment_length"] = (
-                "1"
-                if n_members == 1
-                else "2"
-                if n_members == 2
-                else "3-4"
-                if n_members <= 4
-                else "5+"
+                "2" if n_members == 2 else "3-4" if n_members <= 4 else "5+"
             )
-            token_segement_features["segment_has_qty"] = any(
-                tokenized_sentence[j].feat_text == "!num" for j in members
+            token_segement_features["segment_starts_with_qty"] = (
+                tokenized_sentence[members[0]].feat_text == "!num"
             )
+
+            # Indicate if previous segment contained quantity
+            if token.segment > 0:
+                qty_in_earlier_segment = False
+                for previous_segment in range(token.segment):
+                    for member in segment_members[previous_segment]:
+                        if self.tokenized_sentence[member].feat_text == "!num":
+                            qty_in_earlier_segment = True
+                            break
+
+                token_segement_features["qty_in_earlier_segment"] = (
+                    qty_in_earlier_segment
+                )
+
             segement_features.append(token_segement_features)
 
         return segement_features
