@@ -115,7 +115,7 @@ MODEL_HYPERPARAMETERS = {
     "feature.possible_states": True,
     "feature.possible_transitions": True,
     "c1": 0.3,
-    "c2": 0.6,
+    "c2": 0.3,
     "max_linesearch": 5,
     "num_memories": 3,
     "period": 10,
@@ -228,7 +228,7 @@ def train_parser_model(
     trainer.train(str(crfsuite_model_path))
 
     # Post-training hyperparameters
-    quantize_bits = 16
+    quantize_bits = 10
     min_abs_weight = None
 
     # Export to json.
