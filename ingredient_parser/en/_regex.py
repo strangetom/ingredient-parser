@@ -147,3 +147,8 @@ UNITS_WITH_TRAILING_PERIOD = re.compile(
 # expression to group characters by word, then we can look up the word in the
 # UNITS_RINDEX dict to get a plural version if it exists.
 PLURAL_UNIT_PATTERN = re.compile(r"\w+")
+
+# Regular expression to capture 3 or more consecutive identical characters.
+# This is used when calculating the word_shape feature to collapse runs of consecutive
+# identical characters down to a maximum run length of 3.
+WORD_SHAPE_RUN_PATTERN = re.compile(r"(.)\1{3,}")
