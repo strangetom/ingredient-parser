@@ -183,13 +183,13 @@ class TestPreProcessor_word_shape:
         Test words are transformed into correct shape pattern.
         """
         # Lower case
-        assert p._word_shape("pepper") == "xxxxxx"
+        assert p._word_shape("pepper") == "xxx"
         # Upper case
-        assert p._word_shape("Pepper") == "Xxxxxx"
+        assert p._word_shape("Pepper") == "Xxxx"
         # Accents
-        assert p._word_shape("béchamel") == "xxxxxxxx"
+        assert p._word_shape("béchamel") == "xxx"
         # Numbers
-        assert p._word_shape("2-pound") == "d-xxxxx"
+        assert p._word_shape("2-pound") == "d-xxx"
         # Fraction
         assert p._word_shape("2#1$2") == "d#d$d"
         # Range

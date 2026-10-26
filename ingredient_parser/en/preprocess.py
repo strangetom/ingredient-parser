@@ -36,6 +36,7 @@ from ._regex import (
     UNITS_HYPHEN_QUANTITY_PATTERN,
     UNITS_QUANTITY_PATTERN,
     UNITS_WITH_TRAILING_PERIOD,
+    WORD_SHAPE_RUN_PATTERN,
 )
 from ._structure_features import SentenceStructureFeatures
 from ._tokenize import tokenize
@@ -61,27 +62,27 @@ FeatureDict = dict[str, str | bool]
 # These are only included if the token has the feature.
 CONTEXT_FEATURES = frozenset(
     [
-        "stem",
-        "pos",
-        "is_punc",
-        "is_dimension",
-        "word_shape",
+        "after_sentence_split",
+        "dimensional_phrase",
         "ends_with_inch_symbol",
-        "is_unit",
-        "is_size",
-        "is_in_parens",
+        "example_phrase",
         "is_after_plus",
+        "is_dimension",
+        "is_in_parens",
         "is_length_unit",
-        "mip_start",
+        "is_punc",
+        "is_size",
+        "is_unit",
         "mip_end",
+        "mip_start",
+        "number_type",
+        "pos",
+        "stem",
         "within_mip",
-        "within_mip_clause_0",
         "within_mip_clause_-1",
         "within_mip_clause_-2",
-        "after_sentence_split",
-        "example_phrase",
-        "dimensional_phrase",
-        "number_type",
+        "within_mip_clause_0",
+        "word_shape",
     ]
 )
 # Define the size of the context window and the prefixes to apply to the features from
@@ -1062,6 +1063,9 @@ class PreProcessor:
         - All digits are replaced with "d"
         - Punctuation is left unchanged
 
+        Runs of consecutive identical characters are capped at a maximum length of 3
+        e.g. Chicken -> Xxxxxxx -> Xxxx
+
         Parameters
         ----------
         token : str
@@ -1073,7 +1077,9 @@ class PreProcessor:
             Word shape of token.
         """
         normalised = self._remove_accents(token)
-        return normalised.translate(ASCII_SHAPE_TABLE)
+        shape = normalised.translate(ASCII_SHAPE_TABLE)
+        # Cap runs of 3+ consecutive identical characters.
+        return WORD_SHAPE_RUN_PATTERN.sub(lambda m: m.group(1) * 3, shape)
 
     def _remove_accents(self, token: str) -> str:
         """Remove accents from characters in token.
@@ -1144,12 +1150,16 @@ class PreProcessor:
     def _ngram_features(self, token: str, prefix: str) -> dict[str, str]:
         """Return n-gram features for token in a dict.
 
-        N = 3, 4, 5 are returned if possible, for prefixes and suffixes.
+        N = 3 is returned if possible, for prefixes and suffixes.
         An n-gram feature is only return if length of the token greater than N for that
         n-gram. The n-gram affixes are made lower case because repeating the feature
         with different cases will not provide any more useful information to the model.
 
         If the token is "!num", don't return any n-gram features.
+
+        Note: N = 4, 5 were removed as features because doing so had no measurable
+        effect on model accuracy performance, mostly likely because for many of these
+        n-grams there is considerable overlap with the stem feature (for the prefixes).
 
         Parameters
         ----------
@@ -1167,14 +1177,6 @@ class PreProcessor:
         if token != "!num" and len(token) >= 4:
             ngram_features[prefix + "prefix_3"] = token[:3].lower()
             ngram_features[prefix + "suffix_3"] = token[-3:].lower()
-
-        if token != "!num" and len(token) >= 5:
-            ngram_features[prefix + "prefix_4"] = token[:4].lower()
-            ngram_features[prefix + "suffix_4"] = token[-4:].lower()
-
-        if token != "!num" and len(token) >= 6:
-            ngram_features[prefix + "prefix_5"] = token[:5].lower()
-            ngram_features[prefix + "suffix_5"] = token[-5:].lower()
 
         return ngram_features
 
@@ -1268,10 +1270,10 @@ class PreProcessor:
             next = sentence_features[i + 1] if i < self.n_tokens - 1 else None
 
             prev_stem = prev["stem"] if prev else "<BOS>"
-            next_stem = next["stem"] if next else "<EOS>"
 
+            # We don't need a stem+next_stem feature because most of the time it will be
+            # identical to prev_stem+stem, just offset by one token.
             features["prev_stem+stem"] = f"{prev_stem}+{features['stem']}"
-            features["stem+next_stem"] = f"{features['stem']}+{next_stem}"
             features["is_unit+prev_num"] = (
                 f"{features['is_unit']}+{bool(prev) and prev['stem'] == '!num'}"
             )
@@ -1308,6 +1310,10 @@ class PreProcessor:
                 # for that token from the already calculated sentence_features.
                 if 0 <= i + offset < self.n_tokens:
                     for feature, value in context_features[i + offset]:
+                        if feature == "word_shape" and abs(offset) > 1:
+                            # Don't use the word_shape feature outside the ±1 context.
+                            continue
+
                         features[prefix + feature] = value
 
                 pos_ngram = self._pos_ngram(sentence_pos_tags, i, offset)
