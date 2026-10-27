@@ -682,7 +682,7 @@ class PreProcessor:
         """Tokenize sentence and calculate attributes for each token.
 
         The attributes calculated for each token are attributes that properties of the
-        individual token, such as things like is_numeric, is_unit.
+        individual token, such as things like is_numeric, is_dimenision, word_shape.
         It does not include attributes that depend on the token context.
 
         Parameters
@@ -1280,11 +1280,19 @@ class PreProcessor:
             features["pos+segment"] = f"{features['pos']}+{features['segment']}"
 
             if next and features["stem"] == "!num":
-                # number_type feature is only defined if the stem is "!num"
+                # number_type feature is only defined if the stem is "!num".
                 features["number_type+next_is_unit"] = (
                     f"{features['number_type']}+{next['is_unit']}"
                 )
 
+            # Create trigram of POS tags centred on current token.
+            # The +3 is to account for the padding tags added at the start of
+            # sentence_pos_tags.
+            features["pos_ngram_centered"] = "+".join(
+                sentence_pos_tags[index] for index in range(i + 3 - 1, i + 3 + 2)
+            )
+
+            # Include whole sentence features for every token.
             features |= whole_sentence_features
 
         # Calculate the features used for each token when the token is in the context

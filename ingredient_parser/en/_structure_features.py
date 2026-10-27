@@ -500,13 +500,13 @@ class SentenceStructureFeatures:
             if token.text not in BREAKS:
                 segment_members[token.segment].append(token.index)
 
-        # Invert segment_members to map index to segment position
-
+        last_segment = max(segment_members)
         segement_features = []
         for token in tokenized_sentence:
             # Cap the segment number at 3 to prevent rare larger values overfitting.
             token_segement_features: FeatureDict = {
-                "segment": str(min(token.segment, 3))
+                "segment": str(min(token.segment, 3)),
+                "segment_from_end": str(min(last_segment - token.segment, 2)),
             }
             if token.text in BREAKS:
                 token_segement_features["segment_position"] = "SEP"
@@ -524,12 +524,16 @@ class SentenceStructureFeatures:
                 segment_position = "LAST"
             else:
                 segment_position = "MID"
+
             token_segement_features["segment_position"] = segment_position
+
             # We don't include segment_length=1 here because it is identical to
             # segment_position="ONLY"
             token_segement_features["segment_length"] = (
                 "2" if n_members == 2 else "3-4" if n_members <= 4 else "5+"
             )
+
+            # True if current segment starts with quantity.
             token_segement_features["segment_starts_with_qty"] = (
                 tokenized_sentence[members[0]].feat_text == "!num"
             )
