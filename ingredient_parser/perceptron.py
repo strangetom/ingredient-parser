@@ -7,6 +7,7 @@ from typing import ClassVar, Iterator
 
 import numpy as np
 from nltk.data import find as nltk_find
+from nltk.downloader import download as nltk_download
 
 logger = logging.getLogger(__name__)
 
@@ -90,14 +91,18 @@ class PerceptronTagger:
     START: ClassVar[tuple[str, str]] = ("-START-", "-START2-")
     END: ClassVar[tuple[str, str]] = ("-END-", "-END2-")
 
-    def __init__(self, max_cache_size: int = 2**15):
+    def __init__(self, autodownload_weights: bool = True, max_cache_size: int = 2**15):
         """Initialize PerceptronTagger.
 
         Parameters
         ----------
+        autodownload_weights : bool, optional
+            If True, automatically download NLTK's PerceptronTagger weights if missing.
+            (the default is True)
         max_cache_size : int, optional
             Sets the maximum cache size when using tag_with_cache().
         """
+        self.autodownload_weights = autodownload_weights
         self.tagdict: dict[str, str] = {}
 
         self.max_cache_size = max_cache_size
@@ -330,10 +335,14 @@ class PerceptronTagger:
         try:
             tag_path, tagdict_path, weights_path = self._get_weights_paths()
         except LookupError as e:
-            logger.debug(
-                "Required NLTK resource not available: averaged_perceptron_tagger_eng"
-            )
-            raise e
+            if self.autodownload_weights:
+                logger.debug(
+                    "Downloading required NLTK resource: averaged_perceptron_tagger_eng"
+                )
+                nltk_download("averaged_perceptron_tagger_eng")
+                tag_path, tagdict_path, weights_path = self._get_weights_paths()
+            else:
+                raise e
 
         with open(tag_path) as f:
             # Reverse=True is need to maintain consistency with the way the NLTK
