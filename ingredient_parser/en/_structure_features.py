@@ -604,6 +604,9 @@ class SentenceStructureFeatures:
             and t.text not in OPEN_BRACKET
             and t.text not in CLOSE_BRACKET
         ]
+        if in_paren_tokens == []:
+            return [{}] * len(tokenized_sentence)
+
         paren_spans = [list(g) for g in group_consecutive_idx(in_paren_tokens)]
         # Create dict mapping index to paren_span.
         paren_span_map = {idx: span for span in paren_spans for idx in span}
