@@ -85,6 +85,13 @@ CONTEXT_FEATURES = frozenset(
         "word_shape",
     ]
 )
+# Define a subset of CONTEXT_FEATURES that will only apply to a limited context i.e.
+# token immediately either side of the current token.
+LIMITED_CONTEXT_FEATURES = frozenset(
+    [
+        "word_shape",
+    ]
+)
 # Define the size of the context window and the prefixes to apply to the features from
 # the context tokens.
 CONTEXT_TOKEN_PREFIXES = {
@@ -182,8 +189,12 @@ class PreProcessor:
 
         self.singularised_indices = []
         self.tokenized_sentence = self._calculate_tokens(self.sentence)
+        # Pre-calculate is_unit for each token.
+        self.token_is_unit = [self._is_unit(t.index) for t in self.tokenized_sentence]
         self.n_tokens = len(self.tokenized_sentence)
-        self.sentence_structure = SentenceStructureFeatures(self.tokenized_sentence)
+        self.sentence_structure = SentenceStructureFeatures(
+            self.tokenized_sentence, self.token_is_unit
+        )
 
     def __repr__(self) -> str:
         """__repr__ method.
@@ -1128,7 +1139,7 @@ class PreProcessor:
             "is_dimension": token.features.is_dimension,
             "word_shape": token.features.shape,
             "ends_with_inch_symbol": token.features.ends_with_inch_symbol,
-            "is_unit": self._is_unit(token.index),
+            "is_unit": self.token_is_unit[token.index],
             "is_size": self._is_size(token.index),
             "is_in_parens": self._is_inside_parentheses(token.index),
             "is_after_plus": self._follows_plus(token.index),
@@ -1318,8 +1329,8 @@ class PreProcessor:
                 # for that token from the already calculated sentence_features.
                 if 0 <= i + offset < self.n_tokens:
                     for feature, value in context_features[i + offset]:
-                        if feature == "word_shape" and abs(offset) > 1:
-                            # Don't use the word_shape feature outside the ±1 context.
+                        if feature in LIMITED_CONTEXT_FEATURES and abs(offset) > 1:
+                            # Don't use these features outside the ±1 context.
                             continue
 
                         features[prefix + feature] = value

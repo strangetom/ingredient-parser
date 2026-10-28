@@ -5,9 +5,18 @@ from collections import defaultdict
 
 import nltk
 
+from .._common import group_consecutive_idx
 from ..dataclasses import Token
 from ..inference import FeatureDict
-from ._constants import BREAKS, DIMENSIONS, FLATTENED_UNITS_LIST, LENGTH_UNITS, SIZES
+from ._constants import (
+    BREAKS,
+    CLOSE_BRACKET,
+    DIMENSIONS,
+    FLATTENED_UNITS_LIST,
+    LENGTH_UNITS,
+    OPEN_BRACKET,
+    SIZES,
+)
 
 # Lists of (token, pos) pairs for identifying the start of example phrases.
 # For example phrases starting with an preposition/subordinating conjunction (IN)
@@ -97,15 +106,18 @@ class SentenceStructureFeatures:
         DP: {<LENGTH><SLENGTH|PLENGTH>?<IN>?<DIM>*}
     """)
 
-    def __init__(self, tokenized_sentence: list[Token]):
+    def __init__(self, tokenized_sentence: list[Token], token_is_unit: list[bool]):
         """Initialize.
 
         Parameters
         ----------
         tokenized_sentence : list[Token]
             Tokenized sentence.
+        token_is_unit : list[bool]
+            List of bools indicating if token at that position in sentence is a unit.
         """
         self.tokenized_sentence = tokenized_sentence
+        self.token_is_unit = token_is_unit
 
         # Calculate some flags that we can use to avoid parsing sentences that cannot
         # match certain patterns.
@@ -123,6 +135,7 @@ class SentenceStructureFeatures:
         self.dimensional_phrases = self.detect_dimensional_phrases(tokenized_sentence)
 
         self.segment_features = self.determine_segment_features(tokenized_sentence)
+        self.paren_span_features = self.determine_paren_features(tokenized_sentence)
 
     def __repr__(self) -> str:
         return (
@@ -327,7 +340,7 @@ class SentenceStructureFeatures:
 
         text_pos = []
         for t in tokenized_sentence:
-            if t.text.lower() in FLATTENED_UNITS_LIST:
+            if self.token_is_unit[t.index]:
                 pos = "UNIT"
             elif t.text.lower() in SIZES:
                 pos = "SIZE"
@@ -482,7 +495,13 @@ class SentenceStructureFeatures:
     ) -> list[FeatureDict]:
         """Determine segment based features for tokenized_sentence.
 
-        [description]
+        The current features based on segments are:
+        * segment - the segment count, capped at 3.
+        * segment_from_end - the segment count starting at the end, capped at 2.
+        * segment_position - one of ONLY, FIRST, LAST, MID, SEP.
+        * segment_length - number of tokens in segment.
+        * segment_starts_with_qty - True if segment starts with a quantity.
+        * qty_in_earlier_segment - True if a previous segment contains a quantity.
 
         Parameters
         ----------
@@ -529,9 +548,10 @@ class SentenceStructureFeatures:
 
             # We don't include segment_length=1 here because it is identical to
             # segment_position="ONLY"
-            token_segement_features["segment_length"] = (
-                "2" if n_members == 2 else "3-4" if n_members <= 4 else "5+"
-            )
+            if n_members > 1:
+                token_segement_features["segment_length"] = (
+                    "2" if n_members == 2 else "3-4" if n_members <= 4 else "5+"
+                )
 
             # True if current segment starts with quantity.
             token_segement_features["segment_starts_with_qty"] = (
@@ -554,6 +574,57 @@ class SentenceStructureFeatures:
             segement_features.append(token_segement_features)
 
         return segement_features
+
+    def determine_paren_features(
+        self, tokenized_sentence: list[Token]
+    ) -> list[FeatureDict]:
+        """Determine parenthesis span based features for tokenized_sentence.
+
+        Parenthesis spans include tokens that are within parentheses or brackets, not
+        including the parenthesis or bracket characters themselves. The spans are
+        identified from adjacent tokens with the same paren_depth value.
+
+        The current features based on parentheses spans are:
+        * paren_first_pos - the POS tag of the first token in a parentheses span.
+
+        Parameters
+        ----------
+        tokenized_sentence : list[Token]
+            Tokenized sentence to determine segment for.
+
+        Returns
+        -------
+        list[FeatureDict]
+            List of FeatureDicts containing the segment features for each token.
+        """
+        in_paren_tokens = [
+            t.index
+            for t in tokenized_sentence
+            if t.paren_depth > 0
+            and t.text not in OPEN_BRACKET
+            and t.text not in CLOSE_BRACKET
+        ]
+        paren_spans = [list(g) for g in group_consecutive_idx(in_paren_tokens)]
+        # Create dict mapping index to paren_span.
+        paren_span_map = {idx: span for span in paren_spans for idx in span}
+        logger.debug("Parentheses spans: ", paren_spans)
+
+        parens_features = []
+        for token in tokenized_sentence:
+            token_paren_span_features: FeatureDict = {}
+
+            paren_span_members = paren_span_map.get(token.index)
+            if paren_span_members is None:
+                parens_features.append(token_paren_span_features)
+                continue
+
+            token_paren_span_features["paren_first_pos"] = tokenized_sentence[
+                paren_span_members[0]
+            ].pos_tag
+
+            parens_features.append(token_paren_span_features)
+
+        return parens_features
 
     def token_features(self, index: int, prefix: str) -> FeatureDict:
         """Return dict of features for token at index.
@@ -622,6 +693,9 @@ class SentenceStructureFeatures:
                 features[prefix + "dimensional_phrase"] = True
 
         for feature, value in self.segment_features[index].items():
+            features[prefix + feature] = value
+
+        for feature, value in self.paren_span_features[index].items():
             features[prefix + feature] = value
 
         return features
