@@ -318,3 +318,128 @@ class Test_dimensional_phrase_features:
         """
         p = PreProcessor("1 potato, 3 inches in diameter", custom_units={})
         assert p.sentence_structure.dimensional_phrases == [[3, 4, 5, 6]]
+
+
+class Test_segment_features:
+    def test_simple_sentence(self):
+        """
+        Test basic segment features for a simple sentence with 1 segment.
+        """
+        p = PreProcessor("1 cup flour")
+        segment_features = p.sentence_structure.segment_features
+
+        assert all(t.segment == 0 for t in p.tokenized_sentence)
+        assert [feat.get("segment_position") for feat in segment_features] == [
+            "FIRST",
+            "MID",
+            "LAST",
+        ]
+        assert [feat.get("segment_length") for feat in segment_features] == [
+            "3-4",
+            "3-4",
+            "3-4",
+        ]
+        assert [feat.get("segment_starts_with_qty") for feat in segment_features] == [
+            True,
+            True,
+            True,
+        ]
+
+    def test_multiple_segments(self):
+        """
+        Test segment features for a sentence with multiple segments.
+        """
+        p = PreProcessor(
+            "2 cups cubes made from crusty bread, such as a baguette, toasted"
+        )
+        segments = [t.segment for t in p.tokenized_sentence]
+        segment_features = p.sentence_structure.segment_features
+
+        assert segments == [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2]
+
+        # Tokens 7 and 12 are a segment separators.
+        for idx in [7, 12]:
+            assert segment_features[idx].get("segment_position") == "SEP"
+            assert "segment_starts_with_qty" not in segment_features[idx].keys()
+            assert "qty_in_earlier_segment" not in segment_features[idx].keys()
+
+        # segment_starts_with_qty is True for first segment only
+        assert segment_features[0].get("segment_starts_with_qty")
+        assert not segment_features[8].get("segment_starts_with_qty")
+        assert not segment_features[13].get("segment_starts_with_qty")
+
+        # qty_in_earlier_segment is True for 2nd and 3rd segment and not present for 1st
+        assert "qty_in_earlier_segment" not in segment_features[0].keys()
+        assert segment_features[8].get("qty_in_earlier_segment")
+        assert segment_features[13].get("qty_in_earlier_segment")
+
+
+class Test_parenthesis_span_features:
+    def test_no_parentheses(self):
+        """
+        Test that sentence with no parentheses will generate no paren span features.
+        """
+        p = PreProcessor("1 cup flour")
+        assert p.sentence_structure.paren_span_features == [{}, {}, {}]
+
+    def test_single_parenthesis_span(self):
+        """
+        Test that sentence with single parenthesis spans has features set for tokens in
+        span.
+        """
+        p = PreProcessor("3 (14 ounce) cans chicken broth")
+        paren_span_features = p.sentence_structure.paren_span_features
+
+        assert [t.paren_depth for t in p.tokenized_sentence] == [0, 1, 1, 1, 1, 0, 0, 0]
+
+        # Tokens with paren_depth == 0 should not have features
+        for i, token in enumerate(p.tokenized_sentence):
+            if token.paren_depth == 0:
+                assert paren_span_features[i] == {}
+
+        # paren_first_pos should be same as POS tag of first token in paren span
+        for idx in [2, 3]:
+            assert (
+                paren_span_features[idx].get("paren_first_pos")
+                == p.tokenized_sentence[2].pos_tag
+            )
+
+    def test_multiple_parenthesis_span(self):
+        """
+        Test that sentence with multiple parenthesis spans has features set for tokens
+        in spans.
+        """
+        p = PreProcessor("3 (14 ounce) cans chicken broth [or stock]")
+        paren_span_features = p.sentence_structure.paren_span_features
+
+        assert [t.paren_depth for t in p.tokenized_sentence] == [
+            0,
+            1,
+            1,
+            1,
+            1,
+            0,
+            0,
+            0,
+            1,
+            1,
+            1,
+            1,
+        ]
+
+        # Tokens with paren_depth == 0 should not have features
+        for i, token in enumerate(p.tokenized_sentence):
+            if token.paren_depth == 0:
+                assert paren_span_features[i] == {}
+
+        # paren_first_pos should be same as POS tag of first token in each paren span
+        for idx in [2, 3]:
+            assert (
+                paren_span_features[idx].get("paren_first_pos")
+                == p.tokenized_sentence[2].pos_tag
+            )
+        for idx in [9, 10]:
+            assert (
+                paren_span_features[idx].get("paren_first_pos")
+                == p.tokenized_sentence[9].pos_tag
+            )
