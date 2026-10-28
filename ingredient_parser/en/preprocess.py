@@ -174,6 +174,9 @@ class PreProcessor:
         custom_units : dict[str, str] | None, optional
             Dict of plural-singular pairs of custom units.
         """
+        if input_sentence == "":
+            raise ValueError("Cannot pre-process empty sentence.")
+
         self.input: str = input_sentence
         if custom_units is not None:
             self._units = UNITS | custom_units
