@@ -18,6 +18,7 @@ from ._constants import (
     FLATTENED_UNITS_LIST,
     LENGTH_UNITS,
     OPEN_BRACKET,
+    OR_TOKENS,
     SIZES,
     STRING_NUMBERS,
     UNICODE_FRACTIONS_TO_TEXT,
@@ -1248,7 +1249,9 @@ class PreProcessor:
         return {
             "starts_with_qty": self.tokenized_sentence[0].feat_text == "!num",
             "starts_with_unit": self.token_is_unit[0],
-            "has_or": any(t.feat_text.lower() == "or" for t in self.tokenized_sentence),
+            "has_or": any(
+                t.feat_text.lower() in OR_TOKENS for t in self.tokenized_sentence
+            ),
         }
 
     def sentence_features(self) -> list[FeatureDict]:

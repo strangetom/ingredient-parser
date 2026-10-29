@@ -521,3 +521,4 @@ ASCII_SHAPE_TABLE = str.maketrans(
 OPEN_BRACKET = frozenset({"(", "["})
 CLOSE_BRACKET = frozenset({")", "]"})
 BREAKS = frozenset({",", ";"})
+OR_TOKENS = frozenset({"or", "and/or"})
