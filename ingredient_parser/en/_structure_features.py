@@ -506,7 +506,7 @@ class SentenceStructureFeatures:
         Parameters
         ----------
         tokenized_sentence : list[Token]
-            Tokenized sentence to determine segment for.
+            Tokenized sentence to determine segment features for.
 
         Returns
         -------
@@ -519,7 +519,7 @@ class SentenceStructureFeatures:
             if token.text not in BREAKS:
                 segment_members[token.segment].append(token.index)
 
-        last_segment = max(segment_members)
+        last_segment = max(segment_members, default=0)
         segement_features = []
         for token in tokenized_sentence:
             # Cap the segment number at 3 to prevent rare larger values overfitting.
@@ -590,7 +590,7 @@ class SentenceStructureFeatures:
         Parameters
         ----------
         tokenized_sentence : list[Token]
-            Tokenized sentence to determine segment for.
+            Tokenized sentence to determine parentheses span features for.
 
         Returns
         -------
