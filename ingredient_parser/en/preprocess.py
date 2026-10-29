@@ -1247,7 +1247,7 @@ class PreProcessor:
         """
         return {
             "starts_with_qty": self.tokenized_sentence[0].feat_text == "!num",
-            "starts_with_unit": self._is_unit(0),
+            "starts_with_unit": self.token_is_unit[0],
             "has_or": any(t.feat_text.lower() == "or" for t in self.tokenized_sentence),
         }
 
