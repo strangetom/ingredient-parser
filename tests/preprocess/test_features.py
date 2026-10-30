@@ -61,13 +61,71 @@ class TestPreProcessor_is_unit:
         p = PreProcessor(input_sentence, custom_units={})
         assert not p._is_unit(1)
 
+    def test_ambiguous_unit_clove_long_range(self, p):
+        """
+        "clove" is a unit
+        """
+        input_sentence = "1 head of garlic, about 10 cloves"
+        p = PreProcessor(input_sentence, custom_units={})
+        assert p._is_unit(7)
+
     def test_ambiguous_unit_pound_is_not_unit(self, p):
         """
-        "teaspoon" is a unit
+        "pound" is a unit
         """
         input_sentence = "1 package pound cake"
         p = PreProcessor(input_sentence, custom_units={})
         assert not p._is_unit(2)
+
+    def test_ambiguous_unit_pound_is_unit(self, p):
+        """
+        "pound" is a unit in this instance
+        """
+        input_sentence = "1 pound cake flour"
+        p = PreProcessor(input_sentence, custom_units={})
+        assert p._is_unit(1)
+
+
+class TestPreProcessor_is_size:
+    def test_true(self, p):
+        """
+        "large" is a size
+        """
+        input_sentence = "1 large avocado"
+        p = PreProcessor(input_sentence, custom_units={})
+        assert p._is_size(1)
+
+    def test_false(self, p):
+        """
+        "avocado" is a size
+        """
+        input_sentence = "1 large avocado"
+        p = PreProcessor(input_sentence, custom_units={})
+        assert not p._is_size(2)
+
+    def test_medium_is_size(self, p):
+        """
+        "medium" is a size
+        """
+        input_sentence = "1 medium banana"
+        p = PreProcessor(input_sentence, custom_units={})
+        assert p._is_size(1)
+
+    def test_medium_is_not_size(self, p):
+        """
+        "medium" is not a size in the context of "medium-ripe"
+        """
+        input_sentence = "1 medium ripe banana"
+        p = PreProcessor(input_sentence, custom_units={})
+        assert not p._is_size(1)
+
+    def test_medium_is_size_with_disambiguator(self, p):
+        """
+        "medium" is a size, despite "ripe" being within the disambiguating window.
+        """
+        input_sentence = "1 medium banana, ripe"
+        p = PreProcessor(input_sentence, custom_units={})
+        assert p._is_size(1)
 
 
 class TestPreProcessor_is_punc:

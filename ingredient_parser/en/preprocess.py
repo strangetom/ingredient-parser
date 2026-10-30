@@ -193,6 +193,12 @@ class PreProcessor:
 
         self.singularised_indices = []
         self.tokenized_sentence = self._calculate_tokens(self.sentence)
+        # Create a reusable Disambiguator object for resolving ambiguous features
+        # for tokens.
+        self.disambiguator = Disambiguator(
+            self.tokenized_sentence, self.singularised_indices
+        )
+
         # Pre-calculate is_unit for each token.
         self.token_is_unit = [self._is_unit(t.index) for t in self.tokenized_sentence]
         self.n_tokens = len(self.tokenized_sentence)
@@ -798,17 +804,10 @@ class PreProcessor:
         bool
             True if token  at index is a unit, else False.
         """
-        token = self.tokenized_sentence[index]
+        if self.disambiguator.is_ambiguous(index, "is_unit"):
+            return self.disambiguator.does_feature_apply(index, "is_unit")
 
-        if Disambiguator.is_ambiguous(
-            token, index in self.singularised_indices, "is_unit"
-        ):
-            disambiguator = Disambiguator(
-                self.tokenized_sentence, self.singularised_indices
-            )
-            return disambiguator.does_feature_apply(index, "is_unit")
-
-        text = token.feat_text
+        text = self.tokenized_sentence[index].feat_text
         return text in self._units.values() and text.lower() not in LENGTH_UNITS
 
     def _is_size(self, index: int) -> bool:
@@ -824,17 +823,11 @@ class PreProcessor:
         bool
             True if token  at index is a size, else False.
         """
-        token = self.tokenized_sentence[index]
+        if self.disambiguator.is_ambiguous(index, "is_size"):
+            return self.disambiguator.does_feature_apply(index, "is_size")
 
-        if Disambiguator.is_ambiguous(
-            token, index in self.singularised_indices, "is_size"
-        ):
-            disambiguator = Disambiguator(
-                self.tokenized_sentence, self.singularised_indices
-            )
-            return disambiguator.does_feature_apply(index, "is_size")
-
-        return token.feat_text.lower() in SIZES
+        text = self.tokenized_sentence[index].feat_text
+        return text.lower() in SIZES
 
     def _is_dimension(self, token: str) -> bool:
         """Return True if token is a dimension.
