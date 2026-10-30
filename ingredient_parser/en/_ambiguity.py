@@ -114,7 +114,17 @@ class Disambiguator:
         # Singular only.
         ("medium", "is_size"): _create_rule(
             (0, 3),
-            ["firm", "ripe", "dry", "roast", "curry", "strength", "heat", "rare"],
+            [
+                "firm",
+                "ripe",
+                "dry",
+                "roast",
+                "curry",
+                "strength",
+                "heat",
+                "rare",
+                "hot",
+            ],
             False,
             plural=False,
         ),
