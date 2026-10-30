@@ -15,6 +15,7 @@ from ._constants import (
     FLATTENED_UNITS_LIST,
     LENGTH_UNITS,
     OPEN_BRACKET,
+    OR_TOKENS,
     SIZES,
 )
 
@@ -204,7 +205,7 @@ class SentenceStructureFeatures:
         pos = [text_pos[i][1] for i in indices]
         try:
             cc_index = pos.index("CC")
-            if text[cc_index].lower() != "or":
+            if text[cc_index].lower() not in OR_TOKENS:
                 return True
             return False
         except ValueError:

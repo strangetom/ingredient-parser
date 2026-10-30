@@ -39,6 +39,13 @@ class Test_multi_ingredient_phrase_features:
         p = PreProcessor("½ c grapeseed oil or any mild-flavored oil", custom_units={})
         assert p.sentence_structure.mip_phrases == [([2, 3, 4, 5, 6, 7], "MIP")]
 
+    def test_multi_ingredient_phrase_detection_and_or(self):
+        """
+        Test that multi ingredient phrase  using "and/or" is correctly identified.
+        """
+        p = PreProcessor("2 tbsp red and/or white wine", custom_units={})
+        assert p.sentence_structure.mip_phrases == [([2, 3, 4, 5], "MIP")]
+
     def test_mip_start_feature_unit(self):
         """
         Test that the start of the multi ingredient phrase is correctly identified by
