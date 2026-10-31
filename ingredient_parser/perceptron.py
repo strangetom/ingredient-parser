@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import array
 import json
 import logging
 from contextlib import contextmanager
@@ -85,6 +86,16 @@ class NumpyAveragedPerceptron:
 
         # Return the best label
         return self.tags[scores.argmax()]
+
+
+class _FeatureWeightCount(int):
+    """Return value of the object_pairs_hook for an inner {tag: weight} object.
+    The value is the number of weights in the list of pairs i.e. the number of
+    (non-zero) weights for that feature.
+
+    We use a distinct type so we can determine whether the hook has been passed a inner
+    {tag: weight} object or the outer {feature: _FeatureWeightCount} object.
+    """
 
 
 class PerceptronTagger:
@@ -319,6 +330,95 @@ class PerceptronTagger:
             "i+2 word " + context[i + 2],
         ]
 
+    @staticmethod
+    def _load_tag_weights(
+        weights_path: str, tag_to_idx: dict[str, int]
+    ) -> tuple[np.ndarray, dict[str, int]]:
+        """Memory efficient method of loading tag weights from spare JSON file.
+
+        To avoid loading complete weights file into memory and then converting into to
+        the NumPy array needed by NumpyAveragedPerceptron, we use this slightly more
+        memory efficient method of loading the JSON.
+
+        We define an object_pairs_hook callback that is called as each object is parsed
+        from the JSON file. This hook will encounter two type of object:
+        1. Inner objects, with the form {tag: weight}.
+        2. The outer object, with the form {feature: weights}.
+
+        The callback handles the inner objects by storing the tags and weight values in
+        dense array objects. When doing so, we return the number of weights in this
+        inner object, which we need to be able to assign the (tag, value) pairs to the
+        correct row.
+
+        When encountering the outer object (which only happens once), it comprises pairs
+        of (feature, weight count), where the weight count came from handling the inner
+        objects. We return this unchanged from the callback.
+
+        Parameters
+        ----------
+        weights_path : str
+            Path to tagger weights JSON file.
+        tag_to_idx : dict[str, int]
+            Dict mapping tag to column index.
+
+        Returns
+        -------
+        tuple[np.ndarray, dict[str, int]]
+            Tagger weights, as a dense NumPy array.
+            Feature vocabulary, as a dict mapping the feature to the row of the weights
+            matrix.
+        """
+
+        # Define arrays for flat storage of tags and their weight as we encounter them
+        # when loading the JSON containing the weights.
+        # H = unsigned short - this stores the index of the tag.
+        tag_cols = array.array("H")
+        # d = double - this stores the value of the weight.
+        values = array.array("d")
+
+        def object_pairs_hook(
+            pairs: list[tuple[str, float]] | list[tuple[str, _FeatureWeightCount]],
+        ) -> _FeatureWeightCount | list[tuple[str, _FeatureWeightCount]]:
+            if pairs and isinstance(pairs[0][1], _FeatureWeightCount):
+                # This is the outer object comprising {feature: _FeatureWeightCount}
+                # pairs.
+                return pairs
+
+            # Inner objects of (tag: weight) pairs.
+            for tag, weight in pairs:
+                tag_cols.append(tag_to_idx[tag])
+                values.append(weight)
+
+            # Return the number of weights for this set of pairs i.e. for this specific
+            # feature.
+            return _FeatureWeightCount(len(pairs))
+
+        with open(weights_path) as f:
+            # This return from json.load using the object_paris_hook is a dict of
+            # {feature: _FeatureWeightCount} i.e. the number of weights that are
+            # non-zero for each feature.
+            features = json.load(f, object_pairs_hook=object_pairs_hook)
+
+        # Create feature vocab which maps each feature to it's row index in the dense
+        # weights matrix.
+        feature_vocab = {feature: i for i, (feature, _) in enumerate(features)}
+
+        # Calculate the row index for every tag weight we have stored in the tag_cols
+        # and values arrays above.
+        # The features dict contains the number of weights for each feature, so we just
+        # need to repeat the row index that many times for each feature.
+        weight_counts = np.fromiter((count for _, count in features), dtype=np.int64)
+        rows = np.repeat(np.arange(len(features)), weight_counts)
+
+        weights_matrix = np.zeros(
+            (len(feature_vocab), len(tag_to_idx)), dtype=np.float64
+        )
+        weights_matrix[rows, np.frombuffer(tag_cols, dtype=np.uint16)] = np.frombuffer(
+            values, dtype=np.float64
+        )
+
+        return weights_matrix, feature_vocab
+
     def load(self) -> None:
         """Load saved model at given path.
 
@@ -353,20 +453,7 @@ class PerceptronTagger:
         with open(tagdict_path) as f:
             self.tagdict = json.load(f)
 
-        with open(weights_path) as f:
-            weights_dict = json.load(f)
-
-        rows, cols, vals = [], [], []
-        feature_vocab = {}
-        for feat_idx, (feature, tag_weights) in enumerate(weights_dict.items()):
-            feature_vocab[feature] = feat_idx
-            for tag, weight in tag_weights.items():
-                rows.append(feat_idx)
-                cols.append(tag_to_idx[tag])
-                vals.append(weight)
-
-        weights_matrix = np.zeros((len(feature_vocab), len(tags)), dtype=np.float64)
-        weights_matrix[rows, cols] = vals
+        weights_matrix, feature_vocab = self._load_tag_weights(weights_path, tag_to_idx)
 
         self.model = NumpyAveragedPerceptron(tags, weights_matrix, feature_vocab)
         logger.debug("Part of speech tagger model loaded.")
