@@ -113,6 +113,11 @@ CONTEXT_FEATURE_OFFSETS = tuple(
 )
 
 
+# Create a frozenset of singular units from the UNTIS constant for quicker lookups when
+# calculating the _is_unit features.
+_DEFAULT_SINGULAR_UNITS = frozenset(UNITS.values())
+
+
 class PreProcessor:
     """Recipe ingredient sentence PreProcessor class.
 
@@ -192,9 +197,11 @@ class PreProcessor:
             self._flattened_units = FLATTENED_UNITS_LIST | set(
                 chain.from_iterable(custom_units.items())
             )
+            self._singular_custom_units = frozenset(custom_units.values())
         else:
             self._units = UNITS
             self._flattened_units = FLATTENED_UNITS_LIST
+            self._singular_custom_units = frozenset()
 
         self.sentence: str = self._normalise(input_sentence)
         logger.debug("Normalised sentence: '%s'.", self.sentence)
@@ -817,7 +824,9 @@ class PreProcessor:
             return self.disambiguator.does_feature_apply(index, "is_unit")
 
         text = self.tokenized_sentence[index].feat_text
-        return text in self._units.values() and text.lower() not in LENGTH_UNITS
+        return (
+            text in _DEFAULT_SINGULAR_UNITS or text in self._singular_custom_units
+        ) and text.lower() not in LENGTH_UNITS
 
     def _is_size(self, index: int) -> bool:
         """Return True if token is a size.
