@@ -1147,7 +1147,6 @@ class PreProcessor:
         token = self.tokenized_sentence[token.index]
         features = {
             "bias": "",
-            "sentence_length": str(self._sentence_length_bucket()),
             "pos": token.pos_tag,
             "stem": token.features.stem,
             "is_punc": token.features.is_punc,
@@ -1252,6 +1251,7 @@ class PreProcessor:
             Dict of whole sentence features.
         """
         return {
+            "sentence_length": str(self._sentence_length_bucket()),
             "starts_with_qty": self.tokenized_sentence[0].feat_text == "!num",
             "starts_with_unit": self.token_is_unit[0],
             "has_or": any(
