@@ -637,7 +637,7 @@ class SentenceStructureFeatures:
 
         return parens_features
 
-    def token_features(self, index: int, prefix: str) -> FeatureDict:
+    def token_features(self, index: int) -> FeatureDict:
         """Return dict of features for token at index.
 
         Features:
@@ -650,8 +650,6 @@ class SentenceStructureFeatures:
         ----------
         index : int
             Index of token to return features for.
-        prefix : str
-            Feature label prefix.
 
         Returns
         -------
@@ -659,11 +657,13 @@ class SentenceStructureFeatures:
             Dict of features.
         """
         features: FeatureDict = {
-            prefix + "mip_start": False,
-            prefix + "mip_end": False,
-            prefix + "within_mip": False,
-            prefix + "after_sentence_split": False,
-            prefix + "example_phrase": False,
+            "mip_start": False,
+            "mip_end": False,
+            "within_mip": False,
+            "after_sentence_split": False,
+            "example_phrase": False,
+            **self.segment_features[index],
+            **self.paren_span_features[index],
         }
         for (phrase, _), boundary_indices in zip(
             self.mip_phrases, self.mip_clause_boundaries
@@ -671,13 +671,13 @@ class SentenceStructureFeatures:
             if index not in phrase:
                 continue
 
-            features[prefix + "within_mip"] = True
+            features["within_mip"] = True
 
             if index == phrase[0]:
-                features[prefix + "mip_start"] = True
+                features["mip_start"] = True
 
             if index == phrase[-1]:
-                features[prefix + "mip_end"] = True
+                features["mip_end"] = True
 
             for i, boundary in enumerate(boundary_indices):
                 if index == boundary:
@@ -686,27 +686,21 @@ class SentenceStructureFeatures:
                 elif index < boundary:
                     # Clauses are enumerated by (negative) distance from end of phrase.
                     distance = -1 * len(boundary_indices) + i
-                    features[prefix + f"within_mip_clause_{distance}"] = True
+                    features[f"within_mip_clause_{distance}"] = True
                     break
                 elif index > max(boundary_indices):
-                    features[prefix + "within_mip_clause_0"] = True
+                    features["within_mip_clause_0"] = True
 
         for split_index in self.sentence_splits:
             if index >= split_index:
-                features[prefix + "after_sentence_split"] = True
+                features["after_sentence_split"] = True
 
         for phrase in self.example_phrases:
             if index in phrase:
-                features[prefix + "example_phrase"] = True
+                features["example_phrase"] = True
 
         for phrase in self.dimensional_phrases:
             if index in phrase:
-                features[prefix + "dimensional_phrase"] = True
-
-        for feature, value in self.segment_features[index].items():
-            features[prefix + feature] = value
-
-        for feature, value in self.paren_span_features[index].items():
-            features[prefix + feature] = value
+                features["dimensional_phrase"] = True
 
         return features

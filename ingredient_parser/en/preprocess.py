@@ -1168,12 +1168,12 @@ class PreProcessor:
         if token.feat_text == "!num":
             features["number_type"] = self._number_type(token.text)
 
-        features |= self._ngram_features(token.feat_text, "")
-        features |= self.sentence_structure.token_features(token.index, "")
+        features |= self._ngram_features(token.feat_text)
+        features |= self.sentence_structure.token_features(token.index)
 
         return features
 
-    def _ngram_features(self, token: str, prefix: str) -> dict[str, str]:
+    def _ngram_features(self, token: str) -> dict[str, str]:
         """Return n-gram features for token in a dict.
 
         N = 3 is returned if possible, for prefixes and suffixes.
@@ -1191,8 +1191,6 @@ class PreProcessor:
         ----------
         token : str
             Token to calculate n-gram features for.
-        prefix : str
-            Feature label prefix.
 
         Returns
         -------
@@ -1201,8 +1199,8 @@ class PreProcessor:
         """
         ngram_features = {}
         if token != "!num" and len(token) >= 4:
-            ngram_features[prefix + "prefix_3"] = token[:3].lower()
-            ngram_features[prefix + "suffix_3"] = token[-3:].lower()
+            ngram_features["prefix_3"] = token[:3].lower()
+            ngram_features["suffix_3"] = token[-3:].lower()
 
         return ngram_features
 
