@@ -1232,14 +1232,14 @@ class PreProcessor:
         list[str]
             List POS tags that make up ngram.
         """
-        # Calculate the min and max indices for the ngram.
         # Note the index in increased by +3 to account for the padding tags at the start
         # of the sentence.
         # We don't need to clamp these to 0 and the sentence length because
         # sentence_tags is already padded with the <BOS> and <EOS> tags.
-        min_ngram_index = min(index + 3, index + offset + 3)
-        max_ngram_index = max(index + 3, index + offset + 3) + 1
-        return sentence_tags[min_ngram_index:max_ngram_index]
+        if offset < 0:
+            return sentence_tags[index + offset + 3 : index + 3 + 1]
+        else:
+            return sentence_tags[index + 3 : index + offset + 3 + 1]
 
     def _whole_sentence_features(self) -> FeatureDict:
         """Generate features based on the complete sentence.
