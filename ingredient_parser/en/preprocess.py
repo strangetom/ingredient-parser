@@ -4,7 +4,6 @@ import logging
 import re
 import string
 import unicodedata
-from collections import Counter
 from html import unescape
 from itertools import chain
 
@@ -95,7 +94,7 @@ LIMITED_CONTEXT_FEATURES = frozenset(
 )
 # Define the size of the context window and the prefixes to apply to the features from
 # the context tokens.
-CONTEXT_TOKEN_PREFIXES = {
+_CONTEXT_TOKEN_PREFIXES = {
     -3: "prev3_",
     -2: "prev2_",
     -1: "prev_",
@@ -103,6 +102,15 @@ CONTEXT_TOKEN_PREFIXES = {
     2: "next2_",
     3: "next3_",
 }
+
+# Pre-compute tuple of (offset, prefix, feature name with prefix) for all context
+# features and offsets.
+# This is mainly to avoid having to calculate prefix+feature for every context feature
+# for every sentence.
+CONTEXT_FEATURE_OFFSETS = tuple(
+    (offset, prefix, {feature: prefix + feature for feature in CONTEXT_FEATURES})
+    for offset, prefix in _CONTEXT_TOKEN_PREFIXES.items()
+)
 
 
 class PreProcessor:
@@ -719,8 +727,9 @@ class PreProcessor:
         tokens = []
         paren_depth = segment = 0
         for i, (text, pos) in enumerate(pos_tag(tokenize(sentence))):
-            # Pre-compute this once because we need it in multiple places.
+            # Pre-compute these once because we need them in multiple places.
             token_is_numeric = is_numeric(text)
+            lower_text = text.lower()
 
             # Convert tokens:
             # * Singularise units, keeping track of indices of singularised tokens
@@ -737,20 +746,20 @@ class PreProcessor:
             # Get part of speech tag, with overrides for certain tokens.
             if token_is_numeric:
                 pos = "CD"
-            elif text.lower() in ["c", "g"]:
+            elif lower_text in ["c", "g"]:
                 # Special cases for c (cup) and g (gram).
                 pos = "NN"
-            elif text.lower() in ["and/or", "or", "and"]:
+            elif lower_text in ["and/or", "or", "and"]:
                 # Force 'and/or' tag to conjunction.
                 # Force OR tag to conjunction.
                 pos = "CC"
-            elif text.lower() == "e.g.":
+            elif lower_text == "e.g.":
                 # Force "e.g." tag to preposition/subordinating conjunction .
                 pos = "IN"
-            elif text.lower() == "/":
+            elif lower_text == "/":
                 # Force "/" to have SYM tag.
                 pos = "SYM"
-            elif text.lower() == "in" and i > 0 and tokens[i - 1].feat_text == "!num":
+            elif lower_text == "in" and i > 0 and tokens[i - 1].feat_text == "!num":
                 # If the text is "in" and the previous token is a number then this is
                 # mostly likely to be the abbreviation of inches rather than the
                 # preposition.
@@ -1216,17 +1225,13 @@ class PreProcessor:
         list[str]
             List POS tags that make up ngram.
         """
-        # Calculate the minimum index, can't be less than 0.
+        # Calculate the min and max indices for the ngram.
         # Note the index in increased by +3 to account for the padding tags at the start
         # of the sentence.
-        min_ngram_index = max(0, min(index + 3, index + offset + 3))
-
-        # Calculate the maximum index, can't be greater than sentence length (including
-        # the padding).
-        max_ngram_index = min(
-            len(sentence_tags), max(index + 3, index + offset + 3) + 1
-        )
-
+        # We don't need to clamp these to 0 and the sentence length because
+        # sentence_tags is already padded with the <BOS> and <EOS> tags.
+        min_ngram_index = min(index + 3, index + offset + 3)
+        max_ngram_index = max(index + 3, index + offset + 3) + 1
         return sentence_tags[min_ngram_index:max_ngram_index]
 
     def _whole_sentence_features(self) -> FeatureDict:
@@ -1322,7 +1327,7 @@ class PreProcessor:
         for i, features in enumerate(sentence_features):
             # Iterate over all context window offsets for each element of
             # sentence_features.
-            for offset, prefix in CONTEXT_TOKEN_PREFIXES.items():
+            for offset, prefix, context_feature_names in CONTEXT_FEATURE_OFFSETS:
                 # If the index for the given context feature is within the sentence
                 # (i.e. not < 0 or > sentence length), then obtain the context features
                 # for that token from the already calculated sentence_features.
@@ -1332,12 +1337,11 @@ class PreProcessor:
                             # Don't use these features outside the ±1 context.
                             continue
 
-                        features[prefix + feature] = value
+                        features[context_feature_names[feature]] = value
 
                 pos_ngram = self._pos_ngram(sentence_pos_tags, i, offset)
-                pos_count = Counter(pos_ngram)
                 # Exclude pos_ngrams that include 2 or more padding tokens.
-                if pos_count.get("<BOS>", 0) < 2 and pos_count.get("<EOS>", 0) < 2:
+                if pos_ngram.count("<BOS>") < 2 and pos_ngram.count("<EOS>") < 2:
                     features[prefix + "pos_ngram"] = "+".join(pos_ngram)
 
         return sentence_features
