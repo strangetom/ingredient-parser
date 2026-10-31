@@ -27,13 +27,9 @@ class BM25:
     ----------
     corpus : list[FDCIngredient]
         FDC ingredient corpus.
-    t2d : dict[str, dict[int, int]]
-        Dictionary with terms frequencies.
-        The keys are tokens, the values are a dict of ingredient index in corpus and the
-        frequency of the term in that ingredient.
-    idf : dict[str, float]
-        Pre computed inverse document frequency score for every term i.e. the inverse of
-        the number of ingredients containing the term.
+    postings : dict[str, tuple[np.ndarray, np.ndarray]]
+        For every term, the indices of the ingredients containing the term and the
+        pre-computed score contribution of that term to each of those ingredients.
     doc_len : list[int]
         List of ingredient lengths.
     avgdl : float
@@ -69,11 +65,6 @@ class BM25:
         self.b = b
 
         self.avgdl = 0
-        # t2d maps token to the documents that contain it and, for each containing
-        # document, the frequency of the token within that document.
-        self.t2d: dict[str, dict[int, int]] = {}
-        # idf maps each token to it's inverse document frequency.
-        self.idf: dict[str, float] = {}
         self.doc_len: list[int] = []
         self.corpus: list[FDCIngredient] = []
         # postings maps token to the documents that contain it and, for each containing
@@ -92,17 +83,22 @@ class BM25:
         """
         self.corpus = fdc_ingredients
 
+        # t2d maps each token to the documents that contain it and, for each containing
+        # document, the frequency of the token within that document.
+        t2d: dict[str, dict[int, int]] = {}
         for i, ingredient in enumerate(fdc_ingredients):
             self.doc_len.append(len(ingredient.tokens))
 
             for token in ingredient.tokens:
-                self.t2d.setdefault(token, defaultdict(int))
-                self.t2d[token][i] += 1
+                t2d.setdefault(token, defaultdict(int))
+                t2d[token][i] += 1
 
         self.avgdl = mean(self.doc_len)
 
-        for token, ingredients in self.t2d.items():
-            self.idf[token] = math.log(self.corpus_size / len(ingredients))
+        # idf maps each token to it's inverse document frequency.
+        idf: dict[str, float] = {}
+        for token, ingredients in t2d.items():
+            idf[token] = math.log(self.corpus_size / len(ingredients))
 
         # Pre-compute the contribution of each token to every FDC ingredient that
         # contains it.
@@ -111,10 +107,10 @@ class BM25:
         # contributions for relevant FDC ingredients.
         doc_len = np.array(self.doc_len)
         denom_constant = self.k1 * (1 - self.b + self.b * doc_len / self.avgdl)
-        for token, ingredients in self.t2d.items():
+        for token, ingredients in t2d.items():
             indices = np.fromiter(ingredients.keys(), dtype=np.intp)
             freqs = np.fromiter(ingredients.values(), dtype=np.float64)
-            contribution = self.idf[token] + freqs * (self.k1 + 1) / (
+            contribution = idf[token] + freqs * (self.k1 + 1) / (
                 denom_constant[indices] + freqs
             )
             self.postings[token] = (indices, contribution)
