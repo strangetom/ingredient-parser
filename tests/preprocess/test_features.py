@@ -85,6 +85,14 @@ class TestPreProcessor_is_unit:
         p = PreProcessor(input_sentence, custom_units={})
         assert p._is_unit(1)
 
+    def test_unit_unambiguous_due_to_plural(self, p):
+        """
+        "slabs" is not ambiguous because it is plural.
+        """
+        input_sentence = "2 slabs of bacon"
+        p = PreProcessor(input_sentence, custom_units={})
+        assert p._is_unit(1)
+
 
 class TestPreProcessor_is_size:
     def test_true(self, p):
