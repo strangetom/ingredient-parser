@@ -122,9 +122,16 @@ class SentenceStructureFeatures:
 
         # Calculate some flags that we can use to avoid parsing sentences that cannot
         # match certain patterns.
-        pos_tags = {t.pos_tag for t in tokenized_sentence}
-        self.contains_cc = "CC" in pos_tags
-        self.contains_in = "IN" in pos_tags
+        # The sentence contains a token in OR_TOKENS that has the CC tag.
+        self.candidate_CC = any(
+            t.pos_tag == "CC" and t.text.lower() in OR_TOKENS
+            for t in tokenized_sentence
+        )
+        # The sentence contains a "as"/"like"/"e.g." token that has the IN tag.
+        self.candidate_IN = any(
+            t.pos_tag == "IN" and t.text.lower() in {"as", "like", "e.g."}
+            for t in tokenized_sentence
+        )
 
         self.mip_phrases = self.detect_mip_phrases(tokenized_sentence)
         self.mip_clause_boundaries = [
@@ -233,7 +240,7 @@ class SentenceStructureFeatures:
         """
         phrases = []
 
-        if not self.contains_cc:
+        if not self.candidate_CC:
             # All the patterns in mip_parser require CC, so there's no point
             # continuing if the sentence does not contain CC.
             return phrases
@@ -334,7 +341,7 @@ class SentenceStructureFeatures:
         """
         split_indices = []
 
-        if not self.contains_cc:
+        if not self.candidate_CC:
             # All the patterns in compound_parser require CC, so there's no point
             # continuing if the sentence does not contain CC.
             return split_indices
@@ -400,7 +407,7 @@ class SentenceStructureFeatures:
         """
         examples = []
 
-        if not self.contains_in:
+        if not self.candidate_IN:
             # All the patterns in example_parser require IN, so there's no point
             # continuing if the sentence does not contain IN.
             return examples
