@@ -2,9 +2,22 @@
 
 ### develop
 
-* Make custom units fully case sensitive and ensure that custom units are considered during pre-processing steps.
+* Make custom units fully case-sensitive and ensure that custom units are considered during preprocessing steps.
+
 * Fix capitalised units being returned as strings instead of the appropriate `pint.Unit` object.
+
 * Improve type hints for parse_ingredient arguments.
+
+* Ensure custom units are recognised during multi-ingredient phrase detection.
+
+* Various execution performance optimisations:
+
+  | Release | `foundation_foods=False` (default) | `foundation_foods=True` |
+  | ------- | ---------------------------------- | ----------------------- |
+  | 2.10.0  | 1230 (1.6x faster)                 | 638 (11x faster)        |
+  | 2.9.1   | 745                                | 58                      |
+
+  (Values in table are sentences parsed per second.)
 
 ### 2.9.1
 
