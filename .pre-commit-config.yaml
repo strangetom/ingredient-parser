@@ -6,7 +6,7 @@ repos:
     hooks:
       - id: check-added-large-files
         name: (base:repo) debug-statements
-        args: ['--maxkb=5000']
+        args: ["--maxkb=5000"]
         stages: [pre-commit]
       - id: check-ast
         name: (base:repo) check-ast
@@ -21,7 +21,7 @@ repos:
         name: (base:repo) debug-statements
         stages: [pre-commit]
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.16.9
+    rev: v0.17.3
     hooks:
       - id: ruff
         name: (base:repo) ruff
@@ -37,7 +37,7 @@ repos:
         name: (docs:repo) sphinx-lint
         stages: [pre-commit]
   - repo: https://github.com/biomejs/pre-commit
-    rev: v2.5.14
+    rev: v2.6.4
     hooks:
       - id: biome-check
         name: (webtools:repo) biome-check
