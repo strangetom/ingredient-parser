@@ -218,7 +218,7 @@ class PreProcessor:
         self.token_is_unit = [self._is_unit(t.index) for t in self.tokenized_sentence]
         self.n_tokens = len(self.tokenized_sentence)
         self.sentence_structure = SentenceStructureFeatures(
-            self.tokenized_sentence, self.token_is_unit
+            self.tokenized_sentence, self._flattened_units, self.token_is_unit
         )
 
     def __repr__(self) -> str:

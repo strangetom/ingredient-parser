@@ -12,7 +12,6 @@ from ._constants import (
     BREAKS,
     CLOSE_BRACKET,
     DIMENSIONS,
-    FLATTENED_UNITS_LIST,
     LENGTH_UNITS,
     OPEN_BRACKET,
     OR_TOKENS,
@@ -24,9 +23,6 @@ from ._constants import (
 EXAMPLE_PHRASE_START_IN = [("AS", "IN"), ("LIKE", "IN"), ("E.G.", "IN")]
 # For example phrase starting with a JJ-IN pair
 EXAMPLE_PHRASE_START_JJ = [[("SUCH", "JJ"), ("AS", "IN")]]
-
-# Pre-compute set of all units and sizes.
-UNITS_SIZES = {*FLATTENED_UNITS_LIST, *SIZES}
 
 logger = logging.getLogger("ingredient-parser.preprocess._structure_features")
 
@@ -107,18 +103,26 @@ class SentenceStructureFeatures:
         DP: {<LENGTH><SLENGTH|PLENGTH>?<IN>?<DIM>*}
     """)
 
-    def __init__(self, tokenized_sentence: list[Token], token_is_unit: list[bool]):
+    def __init__(
+        self,
+        tokenized_sentence: list[Token],
+        units: set[str],
+        token_is_unit: list[bool],
+    ):
         """Initialize.
 
         Parameters
         ----------
         tokenized_sentence : list[Token]
             Tokenized sentence.
+        units : set[str]
+            Set of units, including custom units.
         token_is_unit : list[bool]
             List of bools indicating if token at that position in sentence is a unit.
         """
         self.tokenized_sentence = tokenized_sentence
         self.token_is_unit = token_is_unit
+        self._units = units
 
         # Calculate some flags that we can use to avoid parsing sentences that cannot
         # match certain patterns.
@@ -254,7 +258,8 @@ class SentenceStructureFeatures:
                 continue
 
             # Remove first unit or size from the beginning of the phrase
-            if tokenized_sentence[indices[0]].text.lower() in UNITS_SIZES:
+            first = tokenized_sentence[indices[0]].text.lower()
+            if first in self._units or first in SIZES:
                 indices = indices[1:]
 
             # If phrase is empty, skip.
@@ -374,9 +379,9 @@ class SentenceStructureFeatures:
                 continue
 
             split_idx = indices[0]
-            if (
-                split_idx > 0
-                and self.tokenized_sentence[split_idx - 1].text.lower() in UNITS_SIZES
+            token_before_split = self.tokenized_sentence[split_idx - 1].text.lower()
+            if split_idx > 0 and (
+                token_before_split in self._units or token_before_split in SIZES
             ):
                 # If the token prior to the split is a unit or size, assume that this
                 # isn't a split in sentence subject, but rather it's an alternative

@@ -16,6 +16,13 @@ class Test_multi_ingredient_phrase_features:
         p = PreProcessor("2 tbsp hot chicken or beef stock", custom_units={})
         assert p.sentence_structure.mip_phrases == [([2, 3, 4, 5, 6], "MIP")]
 
+    def test_multi_ingredient_phrase_detection_with_leading_size(self):
+        """
+        Test that multi ingredient phrase with leading size is correctly identified.
+        """
+        p = PreProcessor("2 small red or green chilli peppers", custom_units={})
+        assert p.sentence_structure.mip_phrases == [([2, 3, 4, 5, 6], "MIP")]
+
     def test_extended_multi_ingredient_phrase_detection(self):
         """
         Test that extended multi ingredient phrase is correctly identified.
@@ -45,6 +52,26 @@ class Test_multi_ingredient_phrase_features:
         """
         p = PreProcessor("2 tbsp red and/or white wine", custom_units={})
         assert p.sentence_structure.mip_phrases == [([2, 3, 4, 5], "MIP")]
+
+    def test_multi_ingredient_phrase_detection_custom_units(self):
+        """
+        Test that multi ingredient phrase is identified and has the custom units removed
+        from the start.
+        """
+        p = PreProcessor(
+            "2 barrels red or white wine", custom_units={"barrels": "barrel"}
+        )
+        assert p.sentence_structure.mip_phrases == [([2, 3, 4, 5], "MIP")]
+
+    def test_extended_multi_ingredient_phrase_detection_custom_units(self):
+        """
+        Test that multi ingredient phrase is identified and has the custom units removed
+        from the start.
+        """
+        p = PreProcessor(
+            "2 barrels red, white or rose wine", custom_units={"barrels": "barrel"}
+        )
+        assert p.sentence_structure.mip_phrases == [([2, 3, 4, 5, 6, 7], "EMIP")]
 
     def test_mip_start_feature_unit(self):
         """
