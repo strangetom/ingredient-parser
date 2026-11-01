@@ -41,6 +41,7 @@ repos:
     hooks:
       - id: biome-check
         name: (webtools:repo) biome-check
-        args: ["./webtools/src", "--config-path=./webtools/biome.json"]
+        files: "^webtools/src/"
+        args: ["--config-path=./webtools/biome.json"]
         exclude: "^docs/"
         stages: [pre-commit]
