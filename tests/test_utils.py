@@ -42,6 +42,18 @@ class TestUtils_pluralise_units:
 
 
 class Test_convert_to_pint_unit:
+    def test_missing_operand_returns_literal_unit(self):
+        """An invalid unit expression must not abort ingredient parsing."""
+        for unit in ("/", "g/", "+", "*"):
+            assert convert_to_pint_unit(unit) == unit
+
+    def test_invalid_expression_preserves_original_spelling(self):
+        """Retain the original unit when its normalised expression is invalid."""
+        assert convert_to_pint_unit("G/") == "G/"
+
+    def test_valid_compound_unit_still_converts(self):
+        assert convert_to_pint_unit("g/ml") == UREG("gram/milliliter").units
+
     def test_empty_string(self):
         """
         Test an empty string is returned if input
