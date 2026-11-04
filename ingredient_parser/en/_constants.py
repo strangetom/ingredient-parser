@@ -148,6 +148,11 @@ UNITS_RINDEX: dict[str, str] = {v: k for k, v in UNITS.items()}
 
 # Words that indicate ingredient size
 SIZES = [
+    "#2",
+    "#2.5",
+    "#10",
+    "#300",
+    "#303",
     "big",
     "bite-size",
     "bite-sized",
