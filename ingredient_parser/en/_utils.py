@@ -450,8 +450,13 @@ def convert_to_pint_unit(
 
     # If unit not empty string and found in Unit Registry,
     # return pint.Unit object for unit
-    if unit != "" and unit in UREG:
-        return cast(pint.Unit, UREG(unit).units)
+    try:
+        if unit != "" and unit in UREG:
+            return cast(pint.Unit, UREG(unit).units)
+    except (pint.errors.DefinitionSyntaxError, AssertionError):
+        # Pint 0.25.x raises AssertionError for expressions with missing operands.
+        # A malformed expression is not a recognised unit; preserve its literal text.
+        return original_unit
 
     return original_unit
 
