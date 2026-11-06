@@ -1,5 +1,9 @@
 # Changelog
 
+### develop
+
+* Recognise `shredded` as preparation in whole-chicken sentences regardless of word order, keeping `whole` in the ingredient name. (@[anthonypaddison](https://github.com/anthonypaddison))
+
 ### 2.9.2
 
 * If a unit can't be converted to a `pint.Unit` return the original unit instead of raising an exception. (@[anthonypaddison](https://github.com/anthonypaddison))
