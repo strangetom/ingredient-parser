@@ -353,6 +353,18 @@ class Test_dimensional_phrase_features:
         p = PreProcessor("1 potato, 3 inches in diameter", custom_units={})
         assert p.sentence_structure.dimensional_phrases == [[3, 4, 5, 6]]
 
+    def test_dimensional_features(self):
+        """
+        Test dimensional features are set correctly.
+        """
+        p = PreProcessor("1 2 in thick piece of steak", custom_units={})
+        for i in range(len(p.tokenized_sentence)):
+            structure_features = p.sentence_structure.token_features(i)
+            if i in [1, 2, 3]:
+                assert structure_features.get("dimensional_phrase", False)
+            else:
+                assert not structure_features.get("dimensional_phrase", False)
+
 
 class Test_segment_features:
     def test_simple_sentence(self):

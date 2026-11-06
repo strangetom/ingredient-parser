@@ -2,6 +2,7 @@
 
 import logging
 from collections import defaultdict
+from itertools import chain
 
 import nltk
 
@@ -137,15 +138,16 @@ class SentenceStructureFeatures:
             for t in tokenized_sentence
         )
 
-        self.mip_phrases = self.detect_mip_phrases(tokenized_sentence)
-        self.mip_clause_boundaries = [
-            self._get_mip_clause_boundary_indices(phrase, label)
-            for phrase, label in self.mip_phrases
-        ]
-        self.sentence_splits = self.detect_sentences_splits(tokenized_sentence)
-        self.example_phrases = self.detect_examples(tokenized_sentence)
-        self.dimensional_phrases = self.detect_dimensional_phrases(tokenized_sentence)
-
+        self.mip_features = self.determine_mip_features(tokenized_sentence)
+        self.sentence_split_features = self.determine_sentence_split_features(
+            tokenized_sentence
+        )
+        self.example_phrase_features = self.determine_example_phrase_features(
+            tokenized_sentence
+        )
+        self.dimensional_features = self.determine_dimensional_features(
+            tokenized_sentence
+        )
         self.segment_features = self.determine_segment_features(tokenized_sentence)
         self.paren_span_features = self.determine_paren_features(tokenized_sentence)
 
@@ -222,10 +224,10 @@ class SentenceStructureFeatures:
         except ValueError:
             return False
 
-    def detect_mip_phrases(
+    def determine_mip_features(
         self, tokenized_sentence: list[Token]
-    ) -> list[tuple[list[int], str]]:
-        """Detect multi-ingredient phrases in tokenized sentence.
+    ) -> list[FeatureDict]:
+        """Determine multi-ingredient phrase features for tokens.
 
         Since all MIP phrases require a token with the CC pos tag, we first check for
         that and return early if not present.
@@ -237,17 +239,28 @@ class SentenceStructureFeatures:
 
         Returns
         -------
-        list[tuple[list[int], str]]
-            List of phrases.
-            Each phrase is specified by the indices of the tokens in the tokenized
-            sentence and the label of the phrase type (i.e. MIP, EMIP).
+        list[FeatureDict]
+            List of FeatureDicts containing MIP features for each token.
         """
-        phrases = []
+        # mip_phrases is a list of phrases, where each phrases comprises a list of the
+        # token indices and the label of the type of phrase (MIP, EMIP).
+        # This is convenient to keep for testing purposes.
+        self.mip_phrases: list[tuple[list[int], str]] = []
+
+        # Define default MIP features for all tokens.
+        mip_features: list[FeatureDict] = [
+            {
+                "mip_start": False,
+                "mip_end": False,
+                "within_mip": False,
+            }
+            for _ in tokenized_sentence
+        ]
 
         if not self.candidate_CC:
             # All the patterns in mip_parser require CC, so there's no point
             # continuing if the sentence does not contain CC.
-            return phrases
+            return mip_features
 
         text_pos = [(token.text, token.pos_tag) for token in tokenized_sentence]
         parsed = self.mip_parser.parse(text_pos)
@@ -270,9 +283,27 @@ class SentenceStructureFeatures:
             if tokenized_sentence[indices[0]].pos_tag == "CC":
                 continue
 
-            phrases.append((indices, label))
+            self.mip_phrases.append((indices, label))
+            # Determine features for tokens in this multi-ingredient phrase.
+            clause_boundaries = self._get_mip_clause_boundary_indices(indices, label)
+            clause = 0
+            for i, index in reversed(list(enumerate(indices))):
+                mip_features[index]["within_mip"] = True
+                if i == 0:
+                    mip_features[index]["mip_start"] = True
+                elif i == len(indices) - 1:
+                    mip_features[index]["mip_end"] = True
 
-        return phrases
+                if index in clause_boundaries:
+                    # Decrement clause number
+                    clause -= 1
+                    # Don't set the within_mip_clause_ feature for clause boundary
+                    # tokens.
+                    continue
+
+                mip_features[index][f"within_mip_clause_{clause}"] = True
+
+        return mip_features
 
     def _get_mip_clause_boundary_indices(
         self, phrase_indices: list[int], type_: str
@@ -331,7 +362,9 @@ class SentenceStructureFeatures:
 
         return boundary_indices
 
-    def detect_sentences_splits(self, tokenized_sentence: list[Token]) -> list[int]:
+    def determine_sentence_split_features(
+        self, tokenized_sentence: list[Token]
+    ) -> list[FeatureDict]:
         """Return indices of tokens that mark a split in sentence subject.
 
         Parameters
@@ -341,15 +374,23 @@ class SentenceStructureFeatures:
 
         Returns
         -------
-        list[int]
-            List of indices.
+        list[FeatureDict]
+            List of FeatureDicts containing sentence split features.
         """
-        split_indices = []
+        # sentence_splits is a list of indices where a CC token indicates a semantic
+        # split in the sentence.
+        # This is convenient to keep for testing purposes.
+        self.sentence_splits: list[int] = []
+
+        # By default all "after_sentence_split" features are False.
+        sentence_split_features: list[FeatureDict] = [
+            {"after_sentence_split": False} for _ in tokenized_sentence
+        ]
 
         if not self.candidate_CC:
             # All the patterns in compound_parser require CC, so there's no point
             # continuing if the sentence does not contain CC.
-            return split_indices
+            return sentence_split_features
 
         text_pos = []
         for t in tokenized_sentence:
@@ -388,11 +429,16 @@ class SentenceStructureFeatures:
                 # unit/size e.g. "3 cups or 1 lb ..."
                 continue
 
-            split_indices.append(split_idx)
+            # Set after_sentence_split=True for all tokens after split
+            self.sentence_splits.append(split_idx)
+            for features in sentence_split_features[split_idx:]:
+                features["after_sentence_split"] = True
 
-        return split_indices
+        return sentence_split_features
 
-    def detect_examples(self, tokenized_sentence: list[Token]) -> list[list[int]]:
+    def determine_example_phrase_features(
+        self, tokenized_sentence: list[Token]
+    ) -> list[FeatureDict]:
         """Detect example phrases in tokenized sentence.
 
         Example phrases are phrases that give specific examples of an ingredient, for
@@ -406,16 +452,22 @@ class SentenceStructureFeatures:
 
         Returns
         -------
-        list[list[int]]
-            List of phrases. Each phrase is specified by the indices of the tokens in
-            the tokenized sentence.
+        list[FeatureDict]
+            List of FeatureDicts containing example phrase features for each token.
         """
-        examples = []
+        # example_phrases is a list of list of indices which indicate example phrases.
+        # This is convenient to keep for testing purposes.
+        self.example_phrases: list[list[int]] = []
+
+        # By default all "example_phrase" features are False.
+        example_phrase_features: list[FeatureDict] = [
+            {"example_phrase": False} for _ in tokenized_sentence
+        ]
 
         if not self.candidate_IN:
             # All the patterns in example_parser require IN, so there's no point
             # continuing if the sentence does not contain IN.
-            return examples
+            return example_phrase_features
 
         text_pos = [(token.text, token.pos_tag) for token in tokenized_sentence]
         parsed = self.example_parser.parse(text_pos)
@@ -427,12 +479,11 @@ class SentenceStructureFeatures:
             ]
 
             # Check start of phrase for key words
+            phrase_indices = []
             if phrase_text_pos[:2] in EXAMPLE_PHRASE_START_JJ:
-                examples.append(indices)
-                continue
+                phrase_indices = indices
             elif phrase_text_pos[0] in EXAMPLE_PHRASE_START_IN:
-                examples.append(indices)
-                continue
+                phrase_indices = indices
             elif (
                 phrase_text_pos[0][1] == "JJ"
                 and phrase_text_pos[1] in EXAMPLE_PHRASE_START_IN
@@ -441,14 +492,18 @@ class SentenceStructureFeatures:
                 # EXAMPLE_PHRASE_START_JJ.
                 # Check if it matches anything in EXAMPLE_PHRASE_START_IN if we ignore
                 # the first token.
-                examples.append(indices[1:])
-                continue
+                phrase_indices = indices[1:]
 
-        return examples
+            if phrase_indices:
+                self.example_phrases.append(phrase_indices)
+                for index in phrase_indices:
+                    example_phrase_features[index]["example_phrase"] = True
 
-    def detect_dimensional_phrases(
+        return example_phrase_features
+
+    def determine_dimensional_features(
         self, tokenized_sentence: list[Token]
-    ) -> list[list[int]]:
+    ) -> list[FeatureDict]:
         """Detect dimensional phrases in tokenized sentence.
 
         Dimensional phrases are phrases the describe the dimension of the ingredient,
@@ -464,11 +519,15 @@ class SentenceStructureFeatures:
 
         Returns
         -------
-        list[list[int]]
-            List of phrases. Each phrase is specified by the indices of the tokens in
-            the tokenized sentence.
+        list[FeatureDict]
+            List of FeatureDicts containing dimensional features
         """
-        dimensional_phrases = []
+        # dimensional_phrases is a list of list of indices which indicate dimensional
+        # phrases.
+        # This is convenient to keep for testing purposes.
+        self.dimensional_phrases = []
+
+        dimensional_features = [{} for _ in tokenized_sentence]
 
         # Flag for optimising function call. All the patterns in the
         # dimensional_phrase_parser require a LEN tag, so if we don't find one in the
@@ -490,7 +549,7 @@ class SentenceStructureFeatures:
             text_pos.append((t.feat_text, pos))
 
         if not includes_LEN:
-            return dimensional_phrases
+            return dimensional_features
 
         parsed = self.dimensional_phrase_parser.parse(text_pos)
         logger.debug("Dimensional phrase parser: \n%s", parsed)
@@ -499,9 +558,11 @@ class SentenceStructureFeatures:
             # Unzip dimensional phrase so we can discard the phrase labels, since
             # they're all "DP".
             dimensional_phrases, _ = zip(*dimensional_phrases)
-            return list(dimensional_phrases)
+            self.dimensional_phrases = list(dimensional_phrases)
+            for index in chain.from_iterable(dimensional_phrases):
+                dimensional_features[index]["dimensional_phrase"] = True
 
-        return []
+        return dimensional_features
 
     def determine_segment_features(
         self, tokenized_sentence: list[Token]
@@ -645,12 +706,6 @@ class SentenceStructureFeatures:
     def token_features(self, index: int) -> FeatureDict:
         """Return dict of features for token at index.
 
-        Features:
-        "mip_start": True if index at start of multi-ingredient phrase.
-        "mip_end": True if index at end of multi-ingredient phrase.
-        "after_sentence_split": True if index after sentence split.
-        "example_phrase": True is index in example phrase.
-
         Parameters
         ----------
         index : int
@@ -658,54 +713,14 @@ class SentenceStructureFeatures:
 
         Returns
         -------
-        dict[str, bool]
-            Dict of features.
+        FeatureDict
+            Dict of structure features.
         """
-        features: FeatureDict = {
-            "mip_start": False,
-            "mip_end": False,
-            "within_mip": False,
-            "after_sentence_split": False,
-            "example_phrase": False,
+        return {
+            **self.mip_features[index],
+            **self.sentence_split_features[index],
+            **self.example_phrase_features[index],
+            **self.dimensional_features[index],
             **self.segment_features[index],
             **self.paren_span_features[index],
         }
-        for (phrase, _), boundary_indices in zip(
-            self.mip_phrases, self.mip_clause_boundaries
-        ):
-            if index not in phrase:
-                continue
-
-            features["within_mip"] = True
-
-            if index == phrase[0]:
-                features["mip_start"] = True
-
-            if index == phrase[-1]:
-                features["mip_end"] = True
-
-            for i, boundary in enumerate(boundary_indices):
-                if index == boundary:
-                    # Don't set feature on boundaries.
-                    break
-                elif index < boundary:
-                    # Clauses are enumerated by (negative) distance from end of phrase.
-                    distance = -1 * len(boundary_indices) + i
-                    features[f"within_mip_clause_{distance}"] = True
-                    break
-                elif index > max(boundary_indices):
-                    features["within_mip_clause_0"] = True
-
-        for split_index in self.sentence_splits:
-            if index >= split_index:
-                features["after_sentence_split"] = True
-
-        for phrase in self.example_phrases:
-            if index in phrase:
-                features["example_phrase"] = True
-
-        for phrase in self.dimensional_phrases:
-            if index in phrase:
-                features["dimensional_phrase"] = True
-
-        return features
