@@ -19,6 +19,10 @@
 
   (Values in table are sentences parsed per second.)
 
+### 2.9.2
+
+* If a unit can't be converted to a `pint.Unit` return the original unit instead of raising an exception. (@[anthonypaddison](https://github.com/anthonypaddison))
+
 ### 2.9.1
 
 * Fix use of NumPy behaviour only present in the latest release (2.5.0). (@[yashBhosale](https://github.com/yashBhosale))

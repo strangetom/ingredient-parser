@@ -439,7 +439,9 @@ def convert_to_pint_unit(
     # Try to return unit from Unit Registry otherwise return original unit.
     try:
         return cast(pint.Unit, UREG(unit).units)
-    except pint.UndefinedUnitError:
+    except (pint.UndefinedUnitError, pint.DefinitionSyntaxError, AssertionError):
+        # Pint 0.25.x raises AssertionError for expressions with missing operands.
+        # A malformed expression is not a recognised unit; preserve its literal text.
         return original_unit
 
 
