@@ -255,7 +255,6 @@ class Test_convert_to_pint_unit:
         # and aren't just returning a previously cached value.
         convert_to_pint_unit.cache_clear()
         with patch("ingredient_parser.en._utils.UREG") as registry:
-            registry.__contains__.return_value = True
             registry.side_effect = RuntimeError("Registry failure")
 
             with pytest.raises(RuntimeError, match="Registry failure"):
