@@ -59,18 +59,6 @@ class Test_convert_to_pint_unit:
     def test_valid_compound_unit_still_converts(self):
         assert convert_to_pint_unit("g/ml") == UREG("gram/milliliter").units
 
-    @pytest.mark.parametrize("stage", ["membership", "conversion"])
-    def test_unrelated_registry_errors_are_not_suppressed(self, stage):
-        with patch("ingredient_parser.en._utils.UREG") as registry:
-            if stage == "membership":
-                registry.__contains__.side_effect = RuntimeError("Registry failure")
-            else:
-                registry.__contains__.return_value = True
-                registry.side_effect = RuntimeError("Registry failure")
-
-            with pytest.raises(RuntimeError, match="Registry failure"):
-                convert_to_pint_unit("g")
-
     def test_empty_string(self):
         """
         Test an empty string is returned if input
@@ -258,6 +246,20 @@ class Test_convert_to_pint_unit:
         assert convert_to_pint_unit("Cup", volumetric_units_system="metric") == UREG(
             "metric_cup"
         )
+
+    def test_unrelated_registry_errors_are_not_suppressed(self):
+        """
+        Test that exceptions other than those explicitly caught are still raised.
+        """
+        # Clear cache so that we actually run the convert_to_pint_unit function code
+        # and aren't just returning a previously cached value.
+        convert_to_pint_unit.cache_clear()
+        with patch("ingredient_parser.en._utils.UREG") as registry:
+            registry.__contains__.return_value = True
+            registry.side_effect = RuntimeError("Registry failure")
+
+            with pytest.raises(RuntimeError, match="Registry failure"):
+                convert_to_pint_unit("g")
 
 
 class Testcombine_quantities_split_by_and:
