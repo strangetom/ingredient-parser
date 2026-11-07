@@ -290,13 +290,15 @@ class SentenceStructureFeatures:
             mip_clause_pattern = "-".join(str(len(c)) for c in clauses)
 
             # Get the last stem of the last clause.
-            last_index = indices[-1]
-            stem = tokenized_sentence[last_index].features.stem
+            head_stem = tokenized_sentence[indices[-1]].features.stem
+            # Get the first stem of the first clause.
+            first_stem = tokenized_sentence[indices[0]].features.stem
 
             clause = 0
             for i, index in reversed(list(enumerate(indices))):
                 mip_features[index]["mip_clause_pattern"] = mip_clause_pattern
-                mip_features[index]["shared_head_stem"] = stem
+                mip_features[index]["shared_head_stem"] = head_stem
+                mip_features[index]["shared_first_stem"] = first_stem
                 mip_features[index]["within_mip"] = True
                 if i == 0:
                     mip_features[index]["mip_start"] = True
@@ -311,6 +313,10 @@ class SentenceStructureFeatures:
                     continue
 
                 mip_features[index]["mip_clause"] = str(clause)
+
+                clause_start_index = clauses[clause][0]
+                clause_first_pos = tokenized_sentence[clause_start_index].pos_tag
+                mip_features[index]["clause_first_pos"] = clause_first_pos
 
         return mip_features
 
