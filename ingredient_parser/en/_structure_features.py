@@ -2,7 +2,7 @@
 
 import logging
 from collections import defaultdict
-from itertools import chain
+from itertools import chain, groupby
 
 import nltk
 
@@ -285,9 +285,18 @@ class SentenceStructureFeatures:
 
             self.mip_phrases.append((indices, label))
             # Determine features for tokens in this multi-ingredient phrase.
-            clause_boundaries = self._get_mip_clause_boundary_indices(indices, label)
+            clauses, clause_boundaries = self._get_mip_clauses(indices, label)
+
+            mip_clause_pattern = "-".join(str(len(c)) for c in clauses)
+
+            # Get the last stem of the last clause.
+            last_index = indices[-1]
+            stem = tokenized_sentence[last_index].features.stem
+
             clause = 0
             for i, index in reversed(list(enumerate(indices))):
+                mip_features[index]["mip_clause_pattern"] = mip_clause_pattern
+                mip_features[index]["shared_head_stem"] = stem
                 mip_features[index]["within_mip"] = True
                 if i == 0:
                     mip_features[index]["mip_start"] = True
@@ -301,13 +310,13 @@ class SentenceStructureFeatures:
                     # tokens.
                     continue
 
-                mip_features[index][f"within_mip_clause_{clause}"] = True
+                mip_features[index]["mip_clause"] = str(clause)
 
         return mip_features
 
-    def _get_mip_clause_boundary_indices(
+    def _get_mip_clauses(
         self, phrase_indices: list[int], type_: str
-    ) -> list[int]:
+    ) -> tuple[list[list[int]], list[int]]:
         """Get the indices of the clause boundaries in multi-ingredient phrases.
 
         If type_ is MIP, the boundary is at the first conjunction.
@@ -323,7 +332,8 @@ class SentenceStructureFeatures:
 
         Returns
         -------
-        list[int]
+        tuple[list[list[int]], list[int]]
+            List of clauses, each defined as a list of indices.
             List of indices of clause boundaries.
         """
         boundary_indices = []
@@ -360,7 +370,16 @@ class SentenceStructureFeatures:
                     phrase_indices,
                 )
 
-        return boundary_indices
+        # Group phrase indices into clauses, ignoring the boundary tokens.
+        clauses = [
+            list(clause)
+            for is_boundary, clause in groupby(
+                phrase_indices, key=lambda i: i in boundary_indices
+            )
+            if not is_boundary
+        ]
+
+        return clauses, boundary_indices
 
     def determine_sentence_split_features(
         self, tokenized_sentence: list[Token]

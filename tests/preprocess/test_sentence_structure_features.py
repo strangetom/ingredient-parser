@@ -138,9 +138,9 @@ class Test_multi_ingredient_phrase_features:
         # Assert that all tokens after the first two have the within_mip feature.
         for i, token_features in enumerate(p.sentence_features()):
             if i == 2:
-                assert token_features.get("within_mip_clause_-1", False)
+                assert token_features.get("mip_clause") == "-1"
             else:
-                assert not token_features.get("within_mip_clause_-1", False)
+                assert token_features.get("mip_clause") != -1
 
     def test_within_mip_clause_feature_emip(self):
         """
@@ -152,15 +152,13 @@ class Test_multi_ingredient_phrase_features:
         # Assert that all tokens after the first two have the within_mip_clause feature.
         for i, token_features in enumerate(p.sentence_features()):
             if i == 2:
-                assert token_features.get("within_mip_clause_-2", False)
+                assert token_features.get("mip_clause") == "-2"
             elif i == 4:
-                assert token_features.get("within_mip_clause_-1", False)
+                assert token_features.get("mip_clause") == "-1"
             elif i in [6, 7]:
-                assert token_features.get("within_mip_clause_0", False)
+                assert token_features.get("mip_clause") == "0"
             else:
-                assert not token_features.get("within_mip_clause_-1", False)
-                assert not token_features.get("within_mip_clause_-2", False)
-                assert not token_features.get("within_mip_clause_0", False)
+                assert token_features.get("mip_clause") is None
 
 
 class Test_compound_sentence_features:
