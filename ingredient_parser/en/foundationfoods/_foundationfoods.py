@@ -3,9 +3,8 @@
 
 import logging
 from dataclasses import dataclass
+from math import fsum, sqrt
 from typing import Literal
-
-import numpy as np
 
 from ingredient_parser.en._loaders import load_embeddings_model
 from ingredient_parser.en.foundationfoods._ff_dataclasses import (
@@ -22,7 +21,6 @@ from ._ff_constants import (
 )
 from ._ff_dataclasses import IngredientToken
 from ._ff_utils import (
-    normalise_spelling,
     prepare_tokens,
     strip_ambiguous_leading_adjectives,
 )
@@ -37,19 +35,20 @@ TOP_K = 50
 # Constant defining the minimum agreement between BM25 and uSIF rankings
 BM25_USIF_AGREENMENT_THRESHOLD = 0.25
 
-# Constant defining the minimum percetage difference between top ranked results to
+# Constant defining the minimum percentage difference between top ranked results to
 # be confident in the top ranked result.
 TOP_PC_DIFF_THRESHOLD = 0.01
 
 # Constant defining the maximum reasonable semantic score.
 SEMANTIC_SCORE_THRESHOLD = 0.275
 
-# List of FDC data preferences, least preferred to most preferred.
-DATASET_PREFERENCE = [
-    "survey_fndds_food",
-    "sr_legacy_food",
-    "foundation_food",
-]
+# Dict of FDC dataset preferences defined as name: rank, where a lower rank number is
+# more preferred.
+DATASET_PREFERENCE = {
+    "survey_fndds_food": 2,
+    "sr_legacy_food": 1,
+    "foundation_food": 0,
+}
 
 
 @dataclass
@@ -102,20 +101,18 @@ def match_foundation_foods(
     else:
         logger.debug("Prepared tokens: %s.", prepared_tokens)
 
-    normalised_tokens = normalise_spelling(prepared_tokens)
+    prepared_token_tokens = tuple([t.token for t in prepared_tokens])
 
-    if tuple([t.token for t in normalised_tokens]) in FOUNDATION_FOOD_OVERRIDES:
+    if prepared_token_tokens in FOUNDATION_FOOD_OVERRIDES:
         logger.debug("Returning FDC ingredient from override list.")
-        match = FOUNDATION_FOOD_OVERRIDES[tuple([t.token for t in normalised_tokens])]
+        match = FOUNDATION_FOOD_OVERRIDES[prepared_token_tokens]
         match.name_index = name_idx
         return match
 
     # Determine if there any of the normalised tokens are in the embeddings model.
     # If not, we will skip the semantic (embeddings based) rankers.
     embeddings = load_embeddings_model()
-    normalised_embeddings_tokens = [
-        t for t in normalised_tokens if t.token in embeddings
-    ]
+    normalised_embeddings_tokens = [t for t in prepared_tokens if t.token in embeddings]
     has_token_in_embeddings = len(normalised_embeddings_tokens) > 0
     if not has_token_in_embeddings:
         logger.debug(
@@ -127,15 +124,15 @@ def match_foundation_foods(
     # only if the ingredient name tokens don't already include a verb or noun that
     # indicates the food is not raw (e.g. cooked)
     if (
-        len({t.token for t in normalised_tokens} & NON_RAW_FOOD_VERB_STEMS) == 0
-        and len({t.token for t in normalised_tokens} & NON_RAW_FOOD_NOUN_STEMS) == 0
+        len(set(prepared_token_tokens) & NON_RAW_FOOD_VERB_STEMS) == 0
+        and len(set(prepared_token_tokens) & NON_RAW_FOOD_NOUN_STEMS) == 0
     ):
         logger.debug("Biasing tokens towards raw FDC ingredients.")
-        normalised_tokens.append(IngredientToken("raw", "JJ"))
+        prepared_tokens.append(IngredientToken("raw", "JJ"))
         normalised_embeddings_tokens.append(IngredientToken("raw", "JJ"))
 
     bm25 = get_bm25_ranker()
-    bm25_matches = bm25.rank_matches(normalised_tokens)
+    bm25_matches = bm25.rank_matches(prepared_tokens, TOP_K)
 
     if not has_token_in_embeddings:
         if not bm25_matches:
@@ -153,7 +150,7 @@ def match_foundation_foods(
         )
 
     u = get_usif_ranker()
-    usif_matches = u.rank_matches(normalised_embeddings_tokens)
+    usif_matches = u.rank_matches(normalised_embeddings_tokens, TOP_K)
 
     # Check if both BM25 and uSIF agree on the top result. If they do, return that and
     # avoid any further processing.
@@ -175,8 +172,8 @@ def match_foundation_foods(
     if has_token_in_embeddings and bm25_usif_agreement < BM25_USIF_AGREENMENT_THRESHOLD:
         # Get all FDC IDs for BM25 and uSIF matches
         # We'll only use the fuzzy ranker on these, instead of the whole FDC set.
-        candidate_fdc_ids = {m.fdc.fdc_id for m in usif_matches[:TOP_K]} | {
-            m.fdc.fdc_id for m in bm25_matches[:TOP_K]
+        candidate_fdc_ids = {m.fdc.fdc_id for m in usif_matches} | {
+            m.fdc.fdc_id for m in bm25_matches
         }
         logger.debug(
             "BM25 and uSIF ranker alignment is below threshold "
@@ -271,7 +268,7 @@ def consistent_top_result(
     best_matches.add(bm25_matches[0].fdc)
     best_score = bm25_matches[0].score
     for m in bm25_matches[1:]:
-        if m.score == best_score:
+        if abs(m.score - best_score) <= 1e-12:
             best_matches.add(m.fdc)
         else:
             break
@@ -279,7 +276,7 @@ def consistent_top_result(
     best_matches.add(usif_matches[0].fdc)
     best_score = usif_matches[0].score
     for m in usif_matches[1:]:
-        if m.score == best_score:
+        if abs(m.score - best_score) <= 1e-12:
             best_matches.add(m.fdc)
         else:
             break
@@ -398,6 +395,13 @@ def estimate_ranker_confidence(scores: list[float]) -> float:
 
     The two metrics are combined to estimate the ranker confidence.
 
+    .. note::
+
+      The statistics are calculated with plain Python rather than NumPy. The lists are
+      short (<= TOP_K), so the fixed overhead of the NumPy calls (array conversion,
+      dispatch, axis handling) dominates the actual calculation.
+
+
     Parameters
     ----------
     scores : list[float]
@@ -406,9 +410,10 @@ def estimate_ranker_confidence(scores: list[float]) -> float:
     Returns
     -------
     float
-        Description
+        Confidence for ranker based on scores.
     """
-    if len(scores) < 2:
+    n = len(scores)
+    if n < 2:
         return 0
 
     sorted_scores = sorted(scores, reverse=True)
@@ -422,12 +427,15 @@ def estimate_ranker_confidence(scores: list[float]) -> float:
     gap = max_score - second_max
     relative_gap = gap / max_score
 
-    if len(scores) > 2:
-        # Calculate coefficient of variation for scores below top
+    if n > 2:
+        # Calculate coefficient of variation for scores below top.
         remaining_scores = sorted_scores[1:]
-        remaining_std = np.std(remaining_scores)
-        remaining_mean = np.mean(remaining_scores)
+        count = n - 1
+        remaining_mean = fsum(remaining_scores) / count
         if remaining_mean > 0:
+            remaining_std = sqrt(
+                fsum([(x - remaining_mean) ** 2 for x in remaining_scores]) / count
+            )
             cv = remaining_std / remaining_mean
             # Lower CV = more concentrated = clearer winner
             distribution_factor = 1.0 / (1.0 + cv)
@@ -437,8 +445,7 @@ def estimate_ranker_confidence(scores: list[float]) -> float:
         distribution_factor = 1.0
 
     # Combine gap and distribution (weighted average)
-    confidence = 0.7 * relative_gap + 0.3 * distribution_factor
-    return float(confidence)
+    return 0.7 * relative_gap + 0.3 * distribution_factor
 
 
 def normalize_scores(scores: list[float]) -> list[float]:
@@ -457,26 +464,21 @@ def normalize_scores(scores: list[float]) -> list[float]:
     if not scores:
         return []
 
-    scores_array = np.array(scores)
+    min_ = min(scores)
+    max_ = max(scores)
 
-    # Handle case where all scores are identical
-    if np.all(scores_array == scores_array[0]):
+    # If min_ and max_ are identical then all scores are identical, so they all get
+    # normalized to 0.5.
+    if min_ == max_:
         return [0.5] * len(scores)
 
-    # Calculate normalization interval.
-    min_ = min(scores_array)
-    max_ = max(scores_array)
-    # Ensure that the range is never 0
-    range_val = max(max_ - min_, 1e-9)
+    range_val = max_ - min_
+    if range_val >= 1e-9:
+        return [(score - min_) / range_val for score in scores]
 
-    normalized = []
-    for score in scores_array:
-        norm_score = (score - min_) / range_val
-        # Clip to [0, 1] to handle cases where range_val is really small.
-        norm_score = max(0.0, min(1.0, norm_score))
-        normalized.append(norm_score)
-
-    return normalized
+    # If the range is really small (< 1e-9), clip the scores to [0, 1] to prevent the
+    # division by a really small number causing numbers to exceed 1.
+    return [min(1.0, max(0.0, (s - min_) / range_val)) for s in scores]
 
 
 def fuse_results(
@@ -534,20 +536,6 @@ def fuse_results(
     usif_normalized = normalize_scores([m.score for m in usif_matches])
     fuzzy_normalized = normalize_scores([m.score for m in fuzzy_matches])
 
-    # Create dict mapping fdc_id to normalized score
-    usif_dict = {
-        match.fdc.fdc_id: norm_score
-        for match, norm_score in zip(usif_matches, usif_normalized)
-    }
-    fuzzy_dict = {
-        match.fdc.fdc_id: norm_score
-        for match, norm_score in zip(fuzzy_matches, fuzzy_normalized)
-    }
-    bm25_dict = {
-        match.fdc.fdc_id: norm_score
-        for match, norm_score in zip(bm25_matches, bm25_normalized)
-    }
-
     # Estimate ranker confidences based on spread of normalised scores.
     bm25_conf = estimate_ranker_confidence(bm25_normalized)
     fuzzy_conf = estimate_ranker_confidence(fuzzy_normalized)
@@ -563,30 +551,50 @@ def fuse_results(
         fuzzy_conf,
     )
 
-    fused_matches = []
-    fdc_entries = {m.fdc for m in bm25_matches} | {m.fdc for m in usif_matches}
-    for fdc in fdc_entries:
-        bm25_norm_score = bm25_dict.get(fdc.fdc_id, 0)
+    # Create dict mapping fdc_id to normalized score
+    usif_dict = {
+        match.fdc.fdc_id: norm_score
+        for match, norm_score in zip(usif_matches, usif_normalized)
+    }
+    bm25_dict = {
+        match.fdc.fdc_id: norm_score
+        for match, norm_score in zip(bm25_matches, bm25_normalized)
+    }
+    fuzzy_dict = {
+        match.fdc.fdc_id: norm_score
+        for match, norm_score in zip(fuzzy_matches, fuzzy_normalized)
+    }
+
+    # Get unique FDC entries from BM25 and uSIF rankers.
+    fdc_entries: dict[int, FDCIngredient] = {m.fdc.fdc_id: m.fdc for m in bm25_matches}
+    fdc_entries.update({m.fdc.fdc_id: m.fdc for m in usif_matches})
+
+    scored_matches = []
+    for idx, fdc in enumerate(fdc_entries.values()):
         # uSIF and Fuzzy scores are inverted (i.e. smaller = better). Therefore, after
         # normalisation, subtract from one to make bigger = better.
-        usif_norm_score = 1 - usif_dict.get(fdc.fdc_id, 1)
-        fuzzy_norm_score = 1 - fuzzy_dict.get(fdc.fdc_id, 1)
-
-        fused_score = (
-            bm25_conf * bm25_norm_score
-            + usif_conf * usif_norm_score
-            + fuzzy_conf * fuzzy_norm_score
+        fused_score = bm25_conf * bm25_dict.get(fdc.fdc_id, 0) + usif_conf * (
+            1 - usif_dict.get(fdc.fdc_id, 1)
         )
-        fused_matches.append(
-            FDCIngredientMatch(fdc=fdc, score=float(round(fused_score / 3, 6)))
+        if fuzzy_conf > 0:
+            fused_score += fuzzy_conf * (1 - fuzzy_dict.get(fdc.fdc_id, 1))
+
+        # Store scored matches as a tuple of (score, dataset rank, -index, FDC object).
+        # This makes sorting these naturally resolve equal score according to preferred
+        # dataset, then index in FDC list.
+        scored_matches.append(
+            (
+                float(round(fused_score / 3, 6)),
+                DATASET_PREFERENCE[fdc.data_type],
+                -idx,
+                fdc,
+            )
         )
 
-    # When resolving identical scores, use the preferred dataset.
-    return sorted(
-        fused_matches,
-        key=lambda x: (x.score, DATASET_PREFERENCE.index(x.fdc.data_type)),
-        reverse=True,
-    )
+    scored_matches.sort(reverse=True)
+    return [
+        FDCIngredientMatch(fdc=fdc, score=score) for score, _, _, fdc in scored_matches
+    ]
 
 
 def determine_match_quality(

@@ -2,6 +2,7 @@
 
 import warnings
 from collections.abc import Iterable
+from typing import Literal
 
 from ingredient_parser.en import inspect_parser_en, parse_ingredient_en
 
@@ -11,7 +12,7 @@ from .dataclasses import ParsedIngredient, ParserDebugInfo
 warnings.simplefilter("always", DeprecationWarning)
 
 
-SUPPORTED_VOLUMEETRIC_UNITS_SYSTEMS = {
+SUPPORTED_VOLUMETRIC_UNITS_SYSTEMS = {
     "us_customary",
     "imperial",
     "metric",
@@ -28,7 +29,9 @@ def parse_ingredient(
     expect_name_in_output: bool = True,
     string_units: bool = False,
     imperial_units: bool = False,
-    volumetric_units_system: str = "us_customary",
+    volumetric_units_system: Literal[
+        "us_customary", "imperial", "metric", "australian", "japanese"
+    ] = "us_customary",
     foundation_foods: bool = False,
     custom_units: dict[str, str] | None = None,
 ) -> ParsedIngredient:
@@ -70,7 +73,9 @@ def parse_ingredient(
 
             Use ``volumetric_units_system="imperial"`` for the same functionality.
 
-    volumetric_units_system : str, optional
+    volumetric_units_system : Literal[
+        "us_customary", "imperial", "metric", "australian", "japanese"
+    ], optional
         Sets the units system for volumetric measurements, like "cup" or "tablespoon".
         Available options are "us_customary" (default), "imperial", "metric",
         "australian", "japanese".
@@ -98,8 +103,16 @@ def parse_ingredient(
     ParsedIngredient
         ParsedIngredient object of structured data parsed from input string.
     """
+    if not sentence:
+        raise ValueError("Cannot parse an empty string.")
+
     if lang not in SUPPORTED_LANGUAGES:
         raise ValueError(f'Unsupported language "{lang}"')
+
+    if custom_units and not isinstance(custom_units, dict):
+        raise TypeError(
+            f"Custom units should be a dict not a {type(custom_units).__name__}."
+        )
 
     if imperial_units:
         warnings.warn(
@@ -112,7 +125,7 @@ def parse_ingredient(
         )
         volumetric_units_system = "imperial"
 
-    if volumetric_units_system not in SUPPORTED_VOLUMEETRIC_UNITS_SYSTEMS:
+    if volumetric_units_system not in SUPPORTED_VOLUMETRIC_UNITS_SYSTEMS:
         raise ValueError(
             f'Unsupported volumetric_units_system "{volumetric_units_system}"'
         )
@@ -141,7 +154,9 @@ def parse_multiple_ingredients(
     expect_name_in_output: bool = True,
     string_units: bool = False,
     imperial_units: bool = False,
-    volumetric_units_system: str = "us",
+    volumetric_units_system: Literal[
+        "us_customary", "imperial", "metric", "australian", "japanese"
+    ] = "us_customary",
     foundation_foods: bool = False,
     custom_units: dict[str, str] | None = None,
 ) -> list[ParsedIngredient]:
@@ -169,7 +184,7 @@ def parse_multiple_ingredients(
     expect_name_in_output : bool, optional
         If True, if the model doesn't label any words in the sentence as the name,
         fallback to selecting the most likely name from all tokens even though the
-        model gives it a different label. Note that this does guarantee the output
+        model gives it a different label. Note that this does not guarantee the output
         contains a name.
         Default is True.
     string_units : bool
@@ -186,7 +201,9 @@ def parse_multiple_ingredients(
 
             Use ``volumetric_units_system="imperial"`` for the same functionality.
 
-    volumetric_units_system : str, optional
+    volumetric_units_system : Literal[
+        "us_customary", "imperial", "metric", "australian", "japanese"
+    ], optional
         Sets the units system for volumetric measurements, like "cup" or "tablespoon".
         Available options are "us_customary" (default), "imperial", "metric",
         "australian", "japanese".
@@ -239,7 +256,9 @@ def inspect_parser(
     expect_name_in_output: bool = True,
     string_units: bool = False,
     imperial_units: bool = False,
-    volumetric_units_system: str = "us_customary",
+    volumetric_units_system: Literal[
+        "us_customary", "imperial", "metric", "australian", "japanese"
+    ] = "us_customary",
     foundation_foods: bool = False,
     custom_units: dict[str, str] | None = None,
 ) -> ParserDebugInfo:
@@ -264,7 +283,7 @@ def inspect_parser(
     expect_name_in_output : bool, optional
         If True, if the model doesn't label any words in the sentence as the name,
         fallback to selecting the most likely name from all tokens even though the
-        model gives it a different label. Note that this does guarantee the output
+        model gives it a different label. Note that this does not guarantee the output
         contains a name.
         Default is True.
     string_units : bool
@@ -281,7 +300,9 @@ def inspect_parser(
 
             Use ``volumetric_units_system="imperial"`` for the same functionality.
 
-    volumetric_units_system : str, optional
+    volumetric_units_system : Literal[
+        "us_customary", "imperial", "metric", "australian", "japanese"
+    ], optional
         Sets the units system for volumetric measurements, like "cup" or "tablespoon".
         Available options are "us_customary" (default), "imperial", "metric",
         "australian", "japanese".
@@ -310,21 +331,29 @@ def inspect_parser(
         ParserDebugInfo object containing the PreProcessor object, PostProcessor
         object and Tagger.
     """
+    if not sentence:
+        raise ValueError("Cannot parse an empty string.")
+
     if lang not in SUPPORTED_LANGUAGES:
         raise ValueError(f'Unsupported language "{lang}"')
+
+    if custom_units and not isinstance(custom_units, dict):
+        raise TypeError(
+            f"Custom units should be a dict not a {type(custom_units).__name__}."
+        )
 
     if imperial_units:
         warnings.warn(
             (
                 "imperial_units=True argument is deprecated. "
-                "Use volumetric_units_system='imperal'"
+                "Use volumetric_units_system='imperial'"
             ),
             DeprecationWarning,
             stacklevel=2,
         )
         volumetric_units_system = "imperial"
 
-    if volumetric_units_system not in SUPPORTED_VOLUMEETRIC_UNITS_SYSTEMS:
+    if volumetric_units_system not in SUPPORTED_VOLUMETRIC_UNITS_SYSTEMS:
         raise ValueError(
             f'Unsupported volumetric_units_system "{volumetric_units_system}"'
         )

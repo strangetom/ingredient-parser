@@ -4,6 +4,23 @@
 
 * Recognise `shredded` as preparation in whole-chicken sentences regardless of word order, keeping `whole` in the ingredient name. (@[anthonypaddison](https://github.com/anthonypaddison))
 
+* Make custom units fully case-sensitive and ensure that custom units are considered during preprocessing steps.
+
+* Fix capitalised units being returned as strings instead of the appropriate `pint.Unit` object.
+
+* Improve type hints for parse_ingredient arguments.
+
+* Ensure custom units are recognised during multi-ingredient phrase detection.
+
+* Various execution performance optimisations:
+
+  | Release | `foundation_foods=False` (default) | `foundation_foods=True` |
+  | ------- | ---------------------------------- | ----------------------- |
+  | 2.10.0  | 1230 (1.6x faster)                 | 638 (11x faster)        |
+  | 2.9.1   | 745                                | 58                      |
+
+  (Values in table are sentences parsed per second.)
+
 ### 2.9.2
 
 * If a unit can't be converted to a `pint.Unit` return the original unit instead of raising an exception. (@[anthonypaddison](https://github.com/anthonypaddison))

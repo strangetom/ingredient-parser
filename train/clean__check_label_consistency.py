@@ -10,7 +10,7 @@ from sklearn.decomposition import TruncatedSVD
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.pipeline import Pipeline
 
-from ingredient_parser.en._utils import tokenize
+from ingredient_parser.en._tokenize import tokenize
 
 from .training_utils import DataVectors, load_datasets
 

@@ -6,6 +6,7 @@ from ingredient_parser.en._utils import (
     UREG,
     combine_quantities_split_by_and,
     convert_to_pint_unit,
+    is_numeric,
     is_unit_synonym,
     pluralise_units,
     replace_string_range,
@@ -41,8 +42,8 @@ class TestUtils_pluralise_units:
         """
         Test custom units are pluralised correctly.
         """
-        assert pluralise_units("blarg", {"blargs": "blarg"}) == "blargs"
-        assert pluralise_units("Blarg", {"Blargs": "Blarg"}) == "Blargs"
+        assert pluralise_units("blarg", {"blarg": "blargs"}) == "blargs"
+        assert pluralise_units("Blarg", {"Blarg": "Blargs"}) == "Blargs"
 
 
 class Test_convert_to_pint_unit:
@@ -57,18 +58,6 @@ class Test_convert_to_pint_unit:
 
     def test_valid_compound_unit_still_converts(self):
         assert convert_to_pint_unit("g/ml") == UREG("gram/milliliter").units
-
-    @pytest.mark.parametrize("stage", ["membership", "conversion"])
-    def test_unrelated_registry_errors_are_not_suppressed(self, stage):
-        with patch("ingredient_parser.en._utils.UREG") as registry:
-            if stage == "membership":
-                registry.__contains__.side_effect = RuntimeError("Registry failure")
-            else:
-                registry.__contains__.return_value = True
-                registry.side_effect = RuntimeError("Registry failure")
-
-            with pytest.raises(RuntimeError, match="Registry failure"):
-                convert_to_pint_unit("g")
 
     def test_empty_string(self):
         """
@@ -249,6 +238,28 @@ class Test_convert_to_pint_unit:
         # Not a recognised pint unit
         assert convert_to_pint_unit("CASK") == "CASK"
 
+    def test_mixed_case_units(self):
+        """
+        Test cases where the unit contains mixed case letters.
+        """
+        assert convert_to_pint_unit("Cup") == UREG("cup")
+        assert convert_to_pint_unit("Cup", volumetric_units_system="metric") == UREG(
+            "metric_cup"
+        )
+
+    def test_unrelated_registry_errors_are_not_suppressed(self):
+        """
+        Test that exceptions other than those explicitly caught are still raised.
+        """
+        # Clear cache so that we actually run the convert_to_pint_unit function code
+        # and aren't just returning a previously cached value.
+        convert_to_pint_unit.cache_clear()
+        with patch("ingredient_parser.en._utils.UREG") as registry:
+            registry.side_effect = RuntimeError("Registry failure")
+
+            with pytest.raises(RuntimeError, match="Registry failure"):
+                convert_to_pint_unit("g")
+
 
 class Testcombine_quantities_split_by_and:
     def test_half(self):
@@ -349,3 +360,77 @@ class Test_is_unit_synonym:
 
     def test_not_synonym(self):
         assert not is_unit_synonym("kg", "gram")
+
+
+class TestPreProcessor_is_numeric:
+    def test_integer(self):
+        """
+        "1" is numeric
+        """
+        assert is_numeric("1")
+
+    def test_negative_integer(self):
+        """
+        "-5" is numeric
+        """
+        assert is_numeric("-5")
+
+    def test_decimal(self):
+        """
+        "2.667" is numeric
+        """
+        assert is_numeric("2.667")
+
+    def test_integer_range(self):
+        """
+        "1-2" is numeric
+        """
+        assert is_numeric("1-2")
+
+    def test_decimal_range(self):
+        """
+        "3.5-5.5" is numeric
+        """
+        assert is_numeric("3.5-5.5")
+
+    def test_mixed_range(self):
+        """
+        "1-1.5" is numeric
+        """
+        assert is_numeric("1-1.5")
+
+    def test_fraction(self):
+        """
+        "#1$2" is numeric
+        """
+        assert is_numeric("#1$2")
+
+    def test_fraction_range(self):
+        """
+        "#1$2-1#1$2" is not numeric
+        """
+        assert is_numeric("#1$2-1#1$2")
+
+    def test_false(self):
+        """
+        "1/2" is not numeric
+        """
+        assert not is_numeric("1/2")
+
+    def test_false_range(self):
+        """
+        "red-wine" is not numeric
+        """
+        assert not is_numeric("red-wine")
+
+    def test_dozen(self):
+        """
+        "dozen" is numeric
+        """
+        assert is_numeric("dozen")
+
+    def test_quart(self):
+        """
+        "one-quarter" is numeric
+        """
+        assert is_numeric("one-quarter")

@@ -1,3 +1,5 @@
+from fractions import Fraction
+
 import pytest
 
 from ingredient_parser import inspect_parser, parse_ingredient
@@ -48,6 +50,32 @@ def test_shredded_token_is_preparation(sentence):
     shredded = next(t for t in debug.PostProcessor.tokens if t.text == "shredded")
 
     assert shredded.label == "PREP"
+
+
+@pytest.mark.model_dependent
+@pytest.mark.parametrize("separate_names", [True, False])
+@pytest.mark.parametrize(
+    ("sentence", "expected_name", "quantity", "unit", "prepared"),
+    [
+        ("2 whole shredded chickens", "whole chickens", 2, "", False),
+        ("2 whole chickens, shredded", "whole chickens", 2, "", False),
+        ("2 cups shredded chicken", "chicken", 2, "cup", True),
+        ("1/2 cup shredded chicken", "chicken", Fraction(1, 2), "cup", True),
+    ],
+)
+def test_shredded_chicken_quantities(
+    sentence, expected_name, quantity, unit, prepared, separate_names
+):
+    parsed = parse_ingredient(sentence, separate_names=separate_names)
+
+    assert [name.text for name in parsed.name] == [expected_name]
+    assert parsed.preparation is not None
+    assert parsed.preparation.text == "shredded"
+    assert parsed.size is None
+    assert len(parsed.amount) == 1
+    assert parsed.amount[0].quantity == quantity
+    assert str(parsed.amount[0].unit) == unit
+    assert parsed.amount[0].PREPARED_INGREDIENT is prepared
 
 
 @pytest.mark.model_dependent

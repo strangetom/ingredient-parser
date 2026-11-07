@@ -8,11 +8,13 @@ import unicodedata
 from dataclasses import dataclass
 from functools import lru_cache
 from importlib.resources import as_file, files
-from itertools import groupby
+from typing import Callable
 
-from ..._common import consume
+import numpy as np
+
 from .._loaders import load_embeddings_model
-from .._utils import pos_tag, stem, tokenize
+from .._tokenize import tokenize
+from .._utils import get_pos_tagger, stem
 from ._ff_constants import (
     AMBIGUOUS_ADJECTIVES,
     NEGATION_TOKENS,
@@ -112,7 +114,16 @@ for type_ in PASTA_TYPES:
     FDC_TOKEN_TO_PHRASE_SUBSTITUTIONS[type_] = ["pasta", "dri"]
 
 
-def strip_accents(token: str) -> str:
+# Every token that can trigger a substitution above. Most tokens are not in here, which
+# lets `normalise_spelling` skip all of its substitution lookups for them.
+_SUBSTITUTION_TRIGGERS: frozenset[str] = frozenset(
+    {phrase[0] for phrase in FDC_PHRASE_SUBSTITUTIONS}
+    | FDC_TOKEN_SUBSTITUTIONS.keys()
+    | FDC_TOKEN_TO_PHRASE_SUBSTITUTIONS.keys()
+)
+
+
+def _strip_accents(token: str) -> str:
     """
     Strip accents (all combining unicode characters) from a unicode string.
 
@@ -138,6 +149,29 @@ def strip_accents(token: str) -> str:
     return "".join(char for char in ndf_string if unicodedata.category(char) != "Mn")
 
 
+def _clean_token(token: str) -> str:
+    """Clean token by stripping accents and symbols.
+
+    Parameters
+    ----------
+    token : str
+        Token to clean.
+
+    Returns
+    -------
+    str
+        Cleaned token.
+    """
+    if token.isascii():
+        return token
+
+    token = _strip_accents(token)
+    for symbol in "®©™":
+        token = token.replace(symbol, "")
+
+    return token
+
+
 def normalise_spelling(tokens: list[IngredientToken]) -> list[IngredientToken]:
     """Normalise spelling in `tokens` to standard spellings used in FDC ingredient
     descriptions.
@@ -157,21 +191,34 @@ def normalise_spelling(tokens: list[IngredientToken]) -> list[IngredientToken]:
     list[IngredientToken]
         List of tokens with spelling normalised.
     """
-    itokens = iter(tokens)
-
     normalised_tokens = []
-    for i, ing_token in enumerate(itokens):
-        token = ing_token.token.lower()
+    idx = 0
+    n_tokens = len(tokens)
 
-        token = strip_accents(token)
-        for symbol in "®©™":
-            token = token.replace(symbol, "")
+    while idx < n_tokens:
+        ing_token = tokens[idx]
+        token = _clean_token(ing_token.token.lower())
 
-        if i < len(tokens) - 1:
-            next_token = tokens[i + 1].token.lower()
-        else:
-            next_token = ""
+        if token not in _SUBSTITUTION_TRIGGERS:
+            # If this token does not trigger a substitution, skip forwards
+            if ing_token.token.isascii():
+                # Avoid re-instantiating IngredientText object if we're not making any
+                # changes and the token doesn't need cleaning.
+                normalised_tokens.append(ing_token)
+            else:
+                # We want to retain the original capitalisation of the token, so we have
+                # to call _clean_token on ing_token.token.
+                normalised_tokens.append(
+                    IngredientToken(_clean_token(ing_token.token), ing_token.pos_tag)
+                )
 
+            idx += 1
+            # Skip the rest of this loop because there are no substitutions to make.
+            continue
+
+        next_token = (
+            _clean_token(tokens[idx + 1].token.lower()) if idx < n_tokens - 1 else ""
+        )
         if (token, next_token) in FDC_PHRASE_SUBSTITUTIONS:
             normalised_tokens.extend(
                 [
@@ -179,8 +226,7 @@ def normalise_spelling(tokens: list[IngredientToken]) -> list[IngredientToken]:
                     for t in FDC_PHRASE_SUBSTITUTIONS[(token, next_token)]
                 ]
             )
-            # Jump forward to avoid processing next_token again.
-            consume(itokens, 1)
+            idx += 2
         elif token in FDC_TOKEN_TO_PHRASE_SUBSTITUTIONS:
             normalised_tokens.extend(
                 [
@@ -188,24 +234,76 @@ def normalise_spelling(tokens: list[IngredientToken]) -> list[IngredientToken]:
                     for t in FDC_TOKEN_TO_PHRASE_SUBSTITUTIONS[token]
                 ]
             )
+            idx += 1
         elif token in FDC_TOKEN_SUBSTITUTIONS:
             normalised_tokens.append(
                 IngredientToken(FDC_TOKEN_SUBSTITUTIONS[token], ing_token.pos_tag)
             )
+            idx += 1
         else:
-            # Do this again to retain capitalisation.
-            token = ing_token.token
-            token = strip_accents(token)
-            for symbol in "®©™":
-                token = token.replace(symbol, "")
-
-            normalised_tokens.append(IngredientToken(token, ing_token.pos_tag))
+            # If we got here then the first token matched the first part of a phrase
+            # substitution matched, but the whole phrase was not matched.
+            # We want to retain the original capitalisation of the token, so we have
+            # to call _clean_token on ing_token.token.
+            normalised_tokens.append(
+                IngredientToken(_clean_token(ing_token.token), ing_token.pos_tag)
+            )
+            idx += 1
 
     if normalised_tokens != tokens:
         norm_tokens = [t.token for t in normalised_tokens]
         logger.debug("Normalised '%s' to '%s'.", [t.token for t in tokens], norm_tokens)
 
     return normalised_tokens
+
+
+@lru_cache(maxsize=2000)
+def _prepare_token(token: str, pos_tag: str) -> tuple[IngredientToken, ...]:
+    """Prepare single token for use with embeddings model.
+
+    This involves obtaining the stem for the token and discarding tokens which are
+    numeric, which are punctuation, or which are in STOP_WORDS.
+
+    This function is cached based on the (token, pos_tag) pair because this function
+    is called for each entry in the FDC ingredients list, which contains many repeated
+    tokens.
+
+    Parameters
+    ----------
+    token : str
+        Token text.
+    pos_tag : str
+        Part of speech tag for token.
+
+    Returns
+    -------
+    list[IngredientToken]
+        Prepared tokens.
+    """
+    # Split tokens on hyphens
+    if "-" in token:
+        token_parts = [t for t in token.split("-") if t]
+
+        # Special case: if the last token part ends with %, then for each numeric
+        # part of the token, also append % to them to.
+        # This to handle ranges like 60-69%, which appear in the FDC database,
+        # without discarding the lower end of the range below.
+        if token_parts and token_parts[-1].endswith("%"):
+            for i in range(len(token_parts) - 1):
+                if token_parts[i].isnumeric():
+                    token_parts[i] = token_parts[i] + "%"
+
+    else:
+        token_parts = [token]
+
+    return tuple(
+        IngredientToken(stem(part.lower()), pos_tag)
+        for part in token_parts
+        if not part.isnumeric()
+        and not part.isspace()
+        and part not in string.punctuation
+        and len(part) > 1
+    )
 
 
 @lru_cache(maxsize=512)
@@ -226,38 +324,11 @@ def prepare_tokens(tokens: tuple[IngredientToken, ...]) -> list[IngredientToken]
         Prepared tokens.
     """
     # Split tokens on hyphens
-    split_tokens = []
-    for ing_token in tokens:
-        if "-" in ing_token.token:
-            token_parts = [t for t in ing_token.token.split("-") if t]
+    prepared_tokens = []
+    for token, tag in tokens:
+        prepared_tokens.extend(_prepare_token(token, tag))
 
-            # Special case: if the last token part ends with %, then for each numeric
-            # part of the token, also append % to them to.
-            # This to handle ranges like 60-69%, which appear in the FDC database,
-            # without discarding the lower end of the range below.
-            if token_parts and token_parts[-1].endswith("%"):
-                for i in range(len(token_parts) - 1):
-                    if token_parts[i].isnumeric():
-                        token_parts[i] = token_parts[i] + "%"
-
-            split_tokens.extend(
-                [IngredientToken(p, ing_token.pos_tag) for p in token_parts]
-            )
-        else:
-            split_tokens.append(ing_token)
-
-    stemmed_tokens = [
-        IngredientToken(stem(ing_token.token.lower()), ing_token.pos_tag)
-        for ing_token in split_tokens
-        if not ing_token.token.isnumeric()
-        and not ing_token.token.isdigit()
-        and not ing_token.token.isdecimal()
-        and not ing_token.token.isspace()
-        and ing_token.token not in string.punctuation
-        and len(ing_token.token) > 1
-    ]
-
-    return normalise_spelling(stemmed_tokens)
+    return normalise_spelling(prepared_tokens)
 
 
 @lru_cache
@@ -270,14 +341,17 @@ def load_fdc_ingredients() -> list[FDCIngredient]:
         List of FDC ingredients.
     """
     logger = logging.getLogger("ingredient-parser.fdc")
+    tagger = get_pos_tagger()
 
     foundation_foods = []
     with as_file(files(__package__).joinpath("..", "data/fdc_ingredients.csv.gz")) as p:
-        with gzip.open(p, "rt") as f:
+        with gzip.open(p, "rt") as f, tagger.cache_context() as t:
             logger.debug("Loading FDC ingredients: 'fdc_ingredients.csv.gz'.")
             reader = csv.DictReader(f)
             for row in reader:
-                tokenized_description = tokenize_fdc_description(row["description"])
+                tokenized_description = tokenize_fdc_description(
+                    row["description"], t.tag_with_cache
+                )
                 if not tokenized_description.embedding_tokens:
                     logger.debug(
                         "'%s' has no tokens in embedding vocabulary.",
@@ -293,7 +367,7 @@ def load_fdc_ingredients() -> list[FDCIngredient]:
                         tokens=tokenized_description.tokens,
                         pos_tags=tokenized_description.pos_tags,
                         embedding_tokens=tokenized_description.embedding_tokens,
-                        embedding_pos_tags=tokenized_description.pos_tags,
+                        embedding_pos_tags=tokenized_description.embedding_pos_tags,
                         embedding_weights=tokenized_description.embedding_weights,
                     )
                 )
@@ -302,7 +376,9 @@ def load_fdc_ingredients() -> list[FDCIngredient]:
     return foundation_foods
 
 
-def tokenize_fdc_description(description: str) -> TokenizedFDCDescription:
+def tokenize_fdc_description(
+    description: str, tagger: Callable[[list[str]], list[tuple[str, str]]]
+) -> TokenizedFDCDescription:
     """Tokenize FDC ingredient description, returning tokens and weight for each token.
 
     Tokens that are not compatible with the embeddings are discarded.
@@ -325,68 +401,58 @@ def tokenize_fdc_description(description: str) -> TokenizedFDCDescription:
     ----------
     description : str
         FDC description to tokenize.
+    tagger : Callable[[list[str]], list[tuple[str, str]]]
+        Function to tag tokens with parts of speech.
 
     Returns
     -------
     TokenizedFDCDescription
     """
     embeddings = load_embeddings_model()
-    tokens = tokenize(description.lower())
-    _, pos_tags = list(zip(*pos_tag(tokens)))
-    prepared_tokens = prepare_tokens(
-        tuple(IngredientToken(tok, tag) for tok, tag in zip(tokens, pos_tags))
-    )
+    tagged_tokens = tagger(tokenize(description.lower()))
 
+    # Split tokenized description into phrases, separated by commas.
+    phrases: list[list[IngredientToken]] = []
+    current_phrase: list[IngredientToken] = []
+    for tok, tag in tagged_tokens:
+        if tok == ",":
+            if current_phrase:
+                phrases.append(current_phrase)
+                current_phrase = []
+        else:
+            current_phrase.append(IngredientToken(tok, tag))
+    if current_phrase:
+        phrases.append(current_phrase)
+
+    prepared_tokens = []
     embedding_weights = []
     prepared_embedding_tokens = []
     prepared_embedding_pos_tags = []
-    phrase_count = 0
-    for is_phrase, phrase in groupby(zip(tokens, pos_tags), lambda x: x[0] != ","):
-        if not is_phrase:
-            # If not phrase (i.e. is the comma), set weight to 0 if token is in vocab.
-            # These tokens will be discarded later anyway.
-            for token, _ in phrase:
-                if token in embeddings:
-                    prepared_embedding_tokens.append([tok for tok, _ in phrase])
-                    prepared_embedding_pos_tags.append([tag for _, tag in phrase])
-                    embedding_weights.append(0.0)
-            continue
+    for phrase_count, phrase in enumerate(phrases):
+        prepared_phrase = prepare_tokens(tuple(phrase))
+        prepared_tokens.extend(prepared_phrase)
 
-        phrase = list(phrase)
-        phrase_tags = [
-            tok.pos_tag
-            for tok in prepare_tokens(
-                tuple(IngredientToken(t, tag) for t, tag in phrase)
-            )
-            if tok.token in embeddings
-        ]
-        phrase = [
-            tok.token
-            for tok in prepare_tokens(
-                tuple(IngredientToken(t, tag) for t, tag in phrase)
-            )
-            if tok.token in embeddings
-        ]
-        phrase_weights = [1.0 - phrase_count * 1e-3] * len(phrase)
+        phrase_toks = [t.token for t in prepared_phrase if t.token in embeddings]
+        phrase_tags = [t.pos_tag for t in prepared_phrase if t.token in embeddings]
+        phrase_weights = [1.0 - phrase_count * 1e-3] * len(phrase_toks)
 
         # Check for negated tokens and set weight to 0.
         for neg in NEGATION_TOKENS:
-            if neg in phrase:
+            if neg in phrase_toks:
                 # Include negation token negated_tokens set since it won't hold any
                 # further relevant semantic information.
-                for neg_idx in range(phrase.index(neg), len(phrase)):
+                for neg_idx in range(phrase_toks.index(neg), len(phrase_toks)):
                     phrase_weights[neg_idx] = 0
 
         # Check for tokens that indicate reduced relevance and reduce their weight
         for rr in REDUCED_RELEVANCE_TOKENS:
-            if rr in phrase:
-                for rr_idx in range(phrase.index(rr), len(phrase)):
+            if rr in phrase_toks:
+                for rr_idx in range(phrase_toks.index(rr), len(phrase_toks)):
                     phrase_weights[rr_idx] = max(phrase_weights[rr_idx] - 0.5, 0)
 
-        prepared_embedding_tokens.extend(phrase)
+        prepared_embedding_tokens.extend(phrase_toks)
         prepared_embedding_pos_tags.extend(phrase_tags)
         embedding_weights.extend(phrase_weights)
-        phrase_count += 1
 
     return TokenizedFDCDescription(
         tokens=[t.token for t in prepared_tokens],
@@ -437,3 +503,59 @@ def strip_ambiguous_leading_adjectives(
         return original_tokens
 
     return tokens
+
+
+def top_k_indices(
+    array: np.ndarray, top_k: int, *, bigger_is_better: bool
+) -> np.ndarray:
+    """Return the ordered indices of the top_k elements of array.
+
+    If bigger_is_better = True, the returned elements are the indices of the top_k
+    highest values, with the index of largest first.
+    If bigger_is_better = True, the returned elements are the indices of the top_k
+    lowest values, with the index of smallest first.
+
+    Important: This function does guarantee the returned array has exactly top_k
+    elements. If there are multiple elements of the input array that have the same value
+    as the top_kth element, then they will all be included.
+
+    Parameters
+    ----------
+    array : np.ndarray
+        Array of values to return the indices of the top_k values of
+    top_k : int
+        Nominal number of elements to return.
+    bigger_is_better : bool
+        If True, order largest to smallest.
+        If False, order smallest to largest.
+
+    Returns
+    -------
+    np.ndarray
+        Sorted indices of input array for top_k elements.
+    """
+    if array.size == 0:
+        return np.array([], dtype=np.intp)
+
+    top_k = min(top_k, array.size)
+
+    if bigger_is_better:
+        array = -array
+
+    # Partition on the top_kth element, which gives the index of the top_kth score
+    # at the top_kth position. Use this to get the cut-off score. We'll discard
+    # everything that has a score above this value.
+    partition = np.argpartition(array, top_k - 1)
+    cutoff = array[partition[top_k - 1]]
+
+    # Keep all scores less than or equal to the cut-off.
+    # Note that this may mean there are more than top_k indices in this array, if
+    # there are multiple FDC ingredients with the same score as the top_kth.
+    # We assume that the number of tied results is small and therefore has a
+    # negligible effect.
+    top_indices = np.flatnonzero(array <= cutoff)
+
+    # Now we sort the scores we kept.
+    # Use -scores so they are sorted in descending order.
+    order = top_indices[np.argsort(array[top_indices], kind="stable")]
+    return order

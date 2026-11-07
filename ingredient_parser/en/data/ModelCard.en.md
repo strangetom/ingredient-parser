@@ -8,11 +8,11 @@
 
 ### Model Date and Version
 
-Date: November 2026
+Date: April 2026
 
 Version: The model version is the same has the `ingredient_parser_nlp` package version.
 
-Filename: model.en.json.gz
+Filename: model.en.crfsuite
 
 ### Model Type
 
@@ -113,30 +113,19 @@ There are 7 datasets used to train and evaluate model performance.
 
 All datasets have been through extensive cleaning to make the data consistent. The cleaned versions of the data are found in the repository for the ingredient_parser_nlp package: https://github.com/strangetom/ingredient-parser
 
-The model is trained on a stratified randomised set of 80% of the original usable data (70,448 sentences), plus 13 manually labelled chicken examples. It is evaluated on the remaining 20% (17,612 sentences). Sentences containing the `OTHER` label are excluded, following the training scripts.
-
-The split is frozen before adding the 13 examples, so these are used only for training. For reproduction, exclude the `training_only_ids` listed in `model.en.json` before applying the standard stratified 80/20 split with seed 20261106, then append those examples to training. The metadata records the SHA-256 of the original database as `split_source_sha256`. Splitting the augmented database directly with the same seed would produce a different evaluation set.
+The model is trained on a randomised set of 80% of the total data, and evaluated on the remaining 20%.
 
 ## Quantitative Analysis
 
-The current model and a baseline trained without the 13 new examples have the following performance on the same held-out sentences:
-
-| Model | Word level accuracy | Sentence level accuracy |
-| ----- | ------------------- | ----------------------- |
-| Baseline | 97.8357% | 94.6457% |
-| Updated | 97.8440% | 94.6684% |
-
-Both use the repository's standard hyperparameters and 16-bit quantised export. These results are from one fixed split, not repeated trials or a comparison with the previously distributed model on its own evaluation set.
-
-The following historical metrics were measured across 25 training/evaluation cycles before this update:
+The model has the following performance metrics:
 
 | Word level accuracy | Sentence level accuracy |
 | ------------------- | ----------------------- |
-| 98.05 ± 0.23        | 94.98 ± 0.45%           |
+| 97.7905%            | 94.3631%                |
 
-These metrics were determined by executing 25 training/evaluation cycles and calculating the mean and standard deviation for the two metrics across all cycles. The uncertainty values provided represent the 99.7% confidence bounds (i.e. 3x standard deviation). The uncertainty is due to the randomisation of the selection of training and evaluation data whenever the model is trained.
+These metrics were determined by evaluating this model on a single randomised 20% test split. They are not averages across multiple training/evaluation cycles.
 
-The random seed used for the current train/test split was 20261106.
+The random seed used for the train/test split for this model was 20261106.
 
 ## Ethical Considerations
 

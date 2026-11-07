@@ -5,52 +5,117 @@ import re
 import string
 import unicodedata
 from html import unescape
+from itertools import chain
 
-from .._common import is_fraction
 from ..dataclasses import Token, TokenFeatures
 from ._ambiguity import Disambiguator
 from ._constants import (
+    ASCII_SHAPE_TABLE,
+    BREAKS,
+    CLOSE_BRACKET,
     DIMENSIONS,
     FLATTENED_UNITS_LIST,
     LENGTH_UNITS,
+    OPEN_BRACKET,
+    OR_TOKENS,
     SIZES,
     STRING_NUMBERS,
-    UNICODE_FRACTIONS,
+    UNICODE_FRACTIONS_TO_TEXT,
     UNITS,
 )
 from ._regex import (
-    CAPITALISED_PATTERN,
     CURRENCY_PATTERN,
-    DIGIT_PATTERN,
     DUPE_UNIT_RANGES_PATTERN,
     EXPANDED_RANGE,
     FRACTION_PARTS_PATTERN,
     HYPHEN_SPLIT_NAME_PATTERN,
     INCH_SIZE_PATTERN,
-    LOWERCASE_PATTERN,
     QUANTITY_UNITS_PATTERN,
     QUANTITY_X_PATTERN,
     STRING_QUANTITY_HYPHEN_PATTERN,
     UNITS_HYPHEN_QUANTITY_PATTERN,
     UNITS_QUANTITY_PATTERN,
-    UPPERCASE_PATTERN,
+    UNITS_WITH_TRAILING_PERIOD,
+    WORD_SHAPE_RUN_PATTERN,
 )
 from ._structure_features import SentenceStructureFeatures
+from ._tokenize import tokenize
 from ._utils import (
     combine_quantities_split_by_and,
+    is_numeric,
     is_unit_synonym,
     pos_tag,
     replace_string_range,
     stem,
-    tokenize,
 )
 
 logger = logging.getLogger("ingredient-parser.preprocess")
 
 CONSECUTIVE_SPACES = re.compile(r"\s+")
+PUNCTUATION = frozenset(string.punctuation) | {"--"}
 
 # Type alias for dict of token features.
 FeatureDict = dict[str, str | bool]
+
+
+# Define features to include for current token from context tokens.
+# These are only included if the token has the feature.
+CONTEXT_FEATURES = frozenset(
+    [
+        "after_sentence_split",
+        "dimensional_phrase",
+        "ends_with_inch_symbol",
+        "example_phrase",
+        "is_after_plus",
+        "is_dimension",
+        "is_in_parens",
+        "is_length_unit",
+        "is_punc",
+        "is_size",
+        "is_unit",
+        "mip_end",
+        "mip_start",
+        "number_type",
+        "pos",
+        "stem",
+        "within_mip",
+        "within_mip_clause_-1",
+        "within_mip_clause_-2",
+        "within_mip_clause_0",
+        "word_shape",
+    ]
+)
+# Define a subset of CONTEXT_FEATURES that will only apply to a limited context i.e.
+# token immediately either side of the current token.
+LIMITED_CONTEXT_FEATURES = frozenset(
+    [
+        "word_shape",
+    ]
+)
+# Define the size of the context window and the prefixes to apply to the features from
+# the context tokens.
+_CONTEXT_TOKEN_PREFIXES = {
+    -3: "prev3_",
+    -2: "prev2_",
+    -1: "prev_",
+    1: "next_",
+    2: "next2_",
+    3: "next3_",
+}
+
+# Pre-compute tuple of (offset, prefix, feature name with prefix) for all context
+# features and offsets.
+# This is mainly to avoid having to calculate prefix+feature for every context feature
+# for every sentence.
+CONTEXT_FEATURE_OFFSETS = tuple(
+    (offset, prefix, {feature: prefix + feature for feature in CONTEXT_FEATURES})
+    for offset, prefix in _CONTEXT_TOKEN_PREFIXES.items()
+)
+
+
+# Create a frozenset of singular units from the UNTIS constant for quicker lookups when
+# calculating the _is_unit features.
+_DEFAULT_SINGULAR_UNITS = frozenset(UNITS.values())
 
 
 class PreProcessor:
@@ -64,27 +129,20 @@ class PreProcessor:
 
     Notes
     -----
-    The cleaning steps are as follows
-
-    1. | Replace all en-dashes and em-dashes with hyphens.
-    2. | Replace numbers given as words with the numeric equivalent.
-       | e.g. one >> 1
-    3. | Replace fractions given in html markup with the unicode representation.
-       | e.g. &frac12; >> ½
-    4. | Replace unicode fractions with the equivalent decimal form. Decimals are
-       | rounded to a maximum of 3 decimal places.
-       | e.g. ½ >> 0.5
-    5. | Identify fractions represented by 1/2, 2/3 etc. by replaceing the slash with $
-       | and the prepending # in front of the fraction e.g. #1$2
-       | e.g. 1/2 >> 0.5
-    6. | A space is enforced between quantities and units
-    7. | Remove trailing periods from units
-       | e.g. tsp. >> tsp
-    8. | Numeric ranges indicated in words using "to" or "or" are replaced with a
-       | standard numeric form
-       | e.g. 1 or 2 >> 1-2; 10 to 12 >> 10-12
-    9. | Units are made singular. This step uses a predefined list of plural units and
-       | their singular form.
+    The cleaning steps are as follows:
+        1.  Unescape HTML
+        2.  Remove price annotations
+        3.  Replace en and em dashes with hyphens
+        4.  Replace unicode fractions with ASCII versions
+        5.  Combine quantities split by 'and' (e.g. 1 and 1/2)
+        6.  Identify fractions and convert to intermediate format
+        7.  Split joined quantity and units
+        8.  Remove trailing period from units
+        9.  Replace string ranges
+        10. Replace ranges involved duplicated units
+        11. Merge quantity with following 'x'
+        12. Collapse ranges into single token
+        13. Expand hyphen split names into full names
 
     Following the cleaning of the input sentence, it is tokenized into a list of tokens.
 
@@ -127,19 +185,41 @@ class PreProcessor:
         ----------
         input_sentence : str
             Input ingredient sentence.
+        custom_units : dict[str, str] | None, optional
+            Dict of plural-singular pairs of custom units.
         """
+        if input_sentence == "":
+            raise ValueError("Cannot pre-process empty sentence.")
+
         self.input: str = input_sentence
+        if custom_units is not None:
+            self._units = UNITS | custom_units
+            self._flattened_units = FLATTENED_UNITS_LIST | set(
+                chain.from_iterable(custom_units.items())
+            )
+            self._singular_custom_units = frozenset(custom_units.values())
+        else:
+            self._units = UNITS
+            self._flattened_units = FLATTENED_UNITS_LIST
+            self._singular_custom_units = frozenset()
+
         self.sentence: str = self._normalise(input_sentence)
         logger.debug("Normalised sentence: '%s'.", self.sentence)
 
-        if custom_units is not None:
-            self._units = UNITS | custom_units
-        else:
-            self._units = UNITS
-
         self.singularised_indices = []
         self.tokenized_sentence = self._calculate_tokens(self.sentence)
-        self.sentence_structure = SentenceStructureFeatures(self.tokenized_sentence)
+        # Create a reusable Disambiguator object for resolving ambiguous features
+        # for tokens.
+        self.disambiguator = Disambiguator(
+            self.tokenized_sentence, self.singularised_indices
+        )
+
+        # Pre-calculate is_unit for each token.
+        self.token_is_unit = [self._is_unit(t.index) for t in self.tokenized_sentence]
+        self.n_tokens = len(self.tokenized_sentence)
+        self.sentence_structure = SentenceStructureFeatures(
+            self.tokenized_sentence, self._flattened_units, self.token_is_unit
+        )
 
     def __repr__(self) -> str:
         """__repr__ method.
@@ -183,9 +263,10 @@ class PreProcessor:
         # List of functions to apply to sentence
         # Note that the order matters
         funcs = [
+            self._unescape_html,
             self._remove_price_annotations,
             self._replace_en_em_dash,
-            self._replace_html_fractions,
+            self._noramlize_quote_marks,
             self._replace_unicode_fractions,
             combine_quantities_split_by_and,
             self._identify_fractions,
@@ -247,8 +328,8 @@ class PreProcessor:
         """
         return sentence.replace("–", "-").replace("—", " - ")
 
-    def _replace_html_fractions(self, sentence: str) -> str:
-        """Replace html fractions e.g. &frac12; with unicode equivalents.
+    def _noramlize_quote_marks(self, sentence: str) -> str:
+        """Replace ” “ ″ with " and ’ ′ with '.
 
         Parameters
         ----------
@@ -258,13 +339,50 @@ class PreProcessor:
         Returns
         -------
         str
-            Ingredient sentence with html fractions replaced.
+            Ingredient sentence with quote marks normalised.
+
+        Examples
+        --------
+        >>> p = PreProcessor("")
+        >>> p._noramlize_quote_marks("1 2” piece ginger")
+        '1 2" piece ginger'
+
+        >>> p = PreProcessor("")
+        >>> p._noramlize_quote_marks("3’ length sausage casing")
+        "3' length sausage casing"
+        """
+        for mark in {"”", "“", "″"}:
+            if mark in sentence:
+                sentence = sentence.replace(mark, '"')
+
+        for mark in {"’", "′"}:
+            if mark in sentence:
+                sentence = sentence.replace(mark, "'")
+
+        return sentence
+
+    def _unescape_html(self, sentence: str) -> str:
+        """Replace escaped HTML entities e.g. &frac12; with unicode equivalents.
+
+        Parameters
+        ----------
+        sentence : str
+            Ingredient sentence.
+
+        Returns
+        -------
+        str
+            Ingredient sentence with html entities replaced.
 
         Examples
         --------
         >>> p = PreProcessor("")
         >>> p._replace_html_fractions("1&frac34; cups tomato ketchup")
         "1¾ cups tomato ketchup"
+
+        >>> p = PreProcessor("")
+        >>> p._replace_html_fractions("1 &ndash; 2 tbsp oil")
+        "1 – 2 tbsp oil"
         """
         return unescape(sentence)
 
@@ -370,9 +488,9 @@ class PreProcessor:
 
         >>> p = PreProcessor("")
         >>> p._replace_unicode_fractions("¼-½ teaspoon")
-        "1/4-1/2 teaspoon"
+        " 1/4-1/2 teaspoon"
         """
-        for f_unicode, f_ascii in UNICODE_FRACTIONS.items():
+        for f_unicode, f_ascii in UNICODE_FRACTIONS_TO_TEXT.items():
             sentence = sentence.replace(f_unicode, f_ascii)
 
         return sentence
@@ -414,8 +532,12 @@ class PreProcessor:
         """
         sentence = QUANTITY_UNITS_PATTERN.sub(r"\1 \2", sentence)
         sentence = UNITS_QUANTITY_PATTERN.sub(r"\1 \2", sentence)
-        sentence = UNITS_HYPHEN_QUANTITY_PATTERN.sub(r"\1 - \2", sentence)
-        return STRING_QUANTITY_HYPHEN_PATTERN.sub(r"\1 \2", sentence)
+        if "-" in sentence:
+            # These regular expressions only need to run if the sentence contains a
+            # hyphen.
+            sentence = UNITS_HYPHEN_QUANTITY_PATTERN.sub(r"\1 - \2", sentence)
+            sentence = STRING_QUANTITY_HYPHEN_PATTERN.sub(r"\1 \2", sentence)
+        return sentence
 
     def _remove_unit_trailing_period(self, sentence: str) -> str:
         """Remove trailing periods from units e.g. tsp. -> tsp.
@@ -440,23 +562,23 @@ class PreProcessor:
         >>> p._remove_unit_trailing_period("5 oz. chopped tomatoes")
         "5 oz chopped tomatoes"
         """
-        units = [
-            "tsp.",
-            "tsps.",
-            "tbsp.",
-            "tbsps.",
-            "tbs.",
-            "tb.",
-            "lb.",
-            "lbs.",
-            "oz.",
-        ]
-        units.extend([u.capitalize() for u in units])
-        for unit in units:
-            unit_no_period = unit.replace(".", "")
-            sentence = sentence.replace(unit, unit_no_period)
 
-        return sentence
+        def strip_trailing_period(match: re.Match) -> str:
+            """Strip trailing period from matching unit.
+
+            Parameters
+            ----------
+            m : re.Match
+                Regular expression match capturing unit followed by period.
+
+            Returns
+            -------
+            str
+                Captured unit with trailing period removed.
+            """
+            return match.group(0).removesuffix(".")
+
+        return UNITS_WITH_TRAILING_PERIOD.sub(strip_trailing_period, sentence)
 
     def _replace_dupe_units_ranges(self, sentence: str) -> str:
         """Replace ranges where the unit appears twice with standard range then unit.
@@ -487,7 +609,7 @@ class PreProcessor:
 
         >>> p = PreProcessor("")
         >>> p._replace_dupe_units_ranges("0.5 c to 1 cup shelled raw pistachios")
-        "0.5-1 c shell raw pistachios"
+        "0.5-1 c shelled raw pistachios"
         """
         matches = DUPE_UNIT_RANGES_PATTERN.findall(sentence)
 
@@ -500,7 +622,7 @@ class PreProcessor:
                 continue
 
             # If capture unit not in units list, abort
-            if unit1 not in FLATTENED_UNITS_LIST and unit1 not in LENGTH_UNITS:
+            if unit1 not in self._flattened_units and unit1 not in LENGTH_UNITS:
                 continue
 
             sentence = sentence.replace(full_match, f"{quantity1}-{quantity2} {unit1}")
@@ -523,11 +645,11 @@ class PreProcessor:
         Examples
         --------
         >>> p = PreProcessor("")
-        >>> p._replace_dupe_units_ranges("8 x 450 g/1 lb live lobsters")
+        >>> p._merge_quantity_x("8 x 450 g/1 lb live lobsters")
         "8x 450g/1lb live lobsters"
 
         >>> p = PreProcessor("")
-        >>> p._replace_dupe_units_ranges("4 x 100 g wild salmon fillet")
+        >>> p._merge_quantity_x("4 x 100 g wild salmon fillet")
         "4x 100 g wild salmon fillet"
         """
         return QUANTITY_X_PATTERN.sub(r"\1x ", sentence)
@@ -596,7 +718,7 @@ class PreProcessor:
         """Tokenize sentence and calculate attributes for each token.
 
         The attributes calculated for each token are attributes that properties of the
-        individual token, such as things like is_numeric, is_unit.
+        individual token, such as things like is_numeric, is_dimenision, word_shape.
         It does not include attributes that depend on the token context.
 
         Parameters
@@ -610,36 +732,41 @@ class PreProcessor:
             List of Tokens for sentence.
         """
         tokens = []
+        paren_depth = segment = 0
         for i, (text, pos) in enumerate(pos_tag(tokenize(sentence))):
+            # Pre-compute these once because we need them in multiple places.
+            token_is_numeric = is_numeric(text)
+            lower_text = text.lower()
+
             # Convert tokens:
             # * Singularise units, keeping track of indices of singularised tokens
             # * Replace numeric token with "!num"
-            if singular := self._units.get(text):
+            if (singular := self._units.get(text)) and singular != text:
                 self.singularised_indices.append(i)
                 feat_text = singular
                 text = singular
-            elif self._is_numeric(text):
+            elif token_is_numeric:
                 feat_text = "!num"
             else:
                 feat_text = text
 
             # Get part of speech tag, with overrides for certain tokens.
-            if self._is_numeric(text):
+            if token_is_numeric:
                 pos = "CD"
-            elif text.lower() in ["c", "g"]:
+            elif lower_text in ["c", "g"]:
                 # Special cases for c (cup) and g (gram).
                 pos = "NN"
-            elif text.lower() in ["and/or", "or", "and"]:
+            elif lower_text in ["and/or", "or", "and"]:
                 # Force 'and/or' tag to conjunction.
                 # Force OR tag to conjunction.
                 pos = "CC"
-            elif text.lower() == "e.g.":
+            elif lower_text == "e.g.":
                 # Force "e.g." tag to preposition/subordinating conjunction .
                 pos = "IN"
-            elif text.lower() == "/":
+            elif lower_text == "/":
                 # Force "/" to have SYM tag.
                 pos = "SYM"
-            elif text == "in" and i > 0 and tokens[i - 1].feat_text == "!num":
+            elif lower_text == "in" and i > 0 and tokens[i - 1].feat_text == "!num":
                 # If the text is "in" and the previous token is a number then this is
                 # mostly likely to be the abbreviation of inches rather than the
                 # preposition.
@@ -647,12 +774,14 @@ class PreProcessor:
 
             features = TokenFeatures(
                 stem=stem(feat_text),
-                shape=self._word_shape(feat_text),
-                is_capitalised=self._is_capitalised(feat_text),
+                shape=self._word_shape(text),
                 is_punc=self._is_punc(feat_text),
                 is_dimension=self._is_dimension(feat_text),
                 ends_with_inch_symbol=self._ends_with_inch_symbol(feat_text),
             )
+
+            if feat_text in OPEN_BRACKET:
+                paren_depth += 1
 
             tokens.append(
                 Token(
@@ -660,9 +789,18 @@ class PreProcessor:
                     text=text,
                     feat_text=feat_text,
                     pos_tag=pos,
+                    segment=segment,
+                    paren_depth=paren_depth,
                     features=features,
                 )
             )
+
+            if feat_text in CLOSE_BRACKET:
+                paren_depth = max(paren_depth - 1, 0)
+            elif feat_text in BREAKS and paren_depth == 0:
+                # We don't increment the segment counter if the BREAK is within
+                # parentheses or brackets.
+                segment += 1
 
         logger.debug("Tokenized sentence: %s.", [t.text for t in tokens])
         logger.debug("Singularised tokens at indices: %s.", self.singularised_indices)
@@ -682,18 +820,13 @@ class PreProcessor:
         bool
             True if token  at index is a unit, else False.
         """
-        token = self.tokenized_sentence[index]
+        if self.disambiguator.is_ambiguous(index, "is_unit"):
+            return self.disambiguator.does_feature_apply(index, "is_unit")
 
-        if Disambiguator.is_ambiguous(
-            token, index in self.singularised_indices, "is_unit"
-        ):
-            disambiguator = Disambiguator(
-                self.tokenized_sentence, self.singularised_indices
-            )
-            return disambiguator.does_feature_apply(index, "is_unit")
-
-        text = token.feat_text
-        return text in self._units.values() and text.lower() not in LENGTH_UNITS
+        text = self.tokenized_sentence[index].feat_text
+        return (
+            text in _DEFAULT_SINGULAR_UNITS or text in self._singular_custom_units
+        ) and text.lower() not in LENGTH_UNITS
 
     def _is_size(self, index: int) -> bool:
         """Return True if token is a size.
@@ -708,17 +841,11 @@ class PreProcessor:
         bool
             True if token  at index is a size, else False.
         """
-        token = self.tokenized_sentence[index]
+        if self.disambiguator.is_ambiguous(index, "is_size"):
+            return self.disambiguator.does_feature_apply(index, "is_size")
 
-        if Disambiguator.is_ambiguous(
-            token, index in self.singularised_indices, "is_size"
-        ):
-            disambiguator = Disambiguator(
-                self.tokenized_sentence, self.singularised_indices
-            )
-            return disambiguator.does_feature_apply(index, "is_size")
-
-        return token.feat_text.lower() in SIZES
+        text = self.tokenized_sentence[index].feat_text
+        return text.lower() in SIZES
 
     def _is_dimension(self, token: str) -> bool:
         """Return True if token is a dimension.
@@ -839,101 +966,7 @@ class PreProcessor:
         >>> p._is_punc("beef")
         False
         """
-        return token in string.punctuation or token in {"--"}
-
-    def _is_numeric(self, token: str) -> bool:
-        """Return True if token is numeric.
-
-        Parameters
-        ----------
-        token : str
-            Token to check.
-
-        Returns
-        -------
-        bool
-            True if token is numeric, else False.
-
-        Examples
-        --------
-        >>> p = PreProcessor("")
-        >>> p._is_numeric("1")
-        True
-
-        >>> p = PreProcessor("")
-        >>> p._is_numeric("1-2")
-        True
-
-        >>> p = PreProcessor("")
-        >>> p._is_numeric("dozen")
-        True
-
-        >>> p = PreProcessor("")
-        >>> p._is_numeric("1x")
-        True
-
-        >>> p = PreProcessor("")
-        >>> p._is_numeric("three")
-        True
-
-        >>> p = PreProcessor("")
-        >>> p._is_numeric("#1$2")
-        True
-
-        >>> p = PreProcessor("")
-        >>> p._is_numeric("beef")
-        False
-        """
-        if token in ["00"]:
-            # Special cases of digits that don't represent numbers
-            return False
-
-        if is_fraction(token):
-            # Fraction tokens e.g. #1$4 or 1#2$3
-            return True
-
-        if token.lower() in STRING_NUMBERS.keys():
-            return True
-
-        if "-" in token:
-            parts = token.split("-")
-            return all([self._is_numeric(part) or is_fraction(part) for part in parts])
-
-        if token == "dozen":
-            return True
-
-        if token.endswith("x"):
-            if is_fraction(token[:-1]):
-                return True
-            else:
-                try:
-                    float(token[:-1])
-                    return True
-                except ValueError:
-                    return False
-
-        try:
-            float(token)
-            return True
-        except ValueError:
-            return False
-
-    def _follows_comma(self, index: int) -> bool:
-        """Return True if token at index follows a comma (by any amount) in sentence.
-
-        If the token at index is a comma, treat it the same as any other token
-
-        Parameters
-        ----------
-        index : int
-            Index of token to check.
-
-        Returns
-        -------
-        bool
-            True if token follows comma, else False.
-        """
-        return "," in [t.feat_text for t in self.tokenized_sentence[:index]]
+        return token in PUNCTUATION
 
     def _follows_plus(self, index: int) -> bool:
         """Return True if token at index follow "plus" by any amount in sentence.
@@ -952,30 +985,22 @@ class PreProcessor:
         """
         return "plus" in [t.feat_text for t in self.tokenized_sentence[:index]]
 
-    def _is_capitalised(self, token: str) -> bool:
-        """Return True if token starts with a capital letter.
+    def _follows_colon(self, index: int) -> bool:
+        """Return True if token at index follow ":" by any amount in sentence.
+
+        If the token at the index is ":", it doesn't count as following.
 
         Parameters
         ----------
-        token : str
-            Token to check.
+        index : int
+            Index of token to check.
 
         Returns
         -------
         bool
-            True if token starts with a capital letter, else False.
-
-        Examples
-        --------
-        >>> p = PreProcessor("")
-        >>> p._is_capitalised("Chicken")
-        True
-
-        >>> p = PreProcessor("")
-        >>> p._is_capitalised("chicken")
-        False
+            True if token follows ":", else False.
         """
-        return CAPITALISED_PATTERN.match(token) is not None
+        return ":" in [t.feat_text for t in self.tokenized_sentence[:index]]
 
     def _is_inside_parentheses(self, index: int) -> bool:
         """Return True if token is inside parentheses or is a parenthesis.
@@ -990,22 +1015,7 @@ class PreProcessor:
         bool
             True if index is inside parentheses or is parenthesis, else False.
         """
-        # If it's "(" or ")", return True
-        if self.tokenized_sentence[index].feat_text in ["(", ")", "[", "]"]:
-            return True
-
-        open_parens, closed_parens = [], []
-        for i, token in enumerate(self.tokenized_sentence):
-            if token.feat_text == "(" or token.feat_text == "[":
-                open_parens.append(i)
-            elif token.feat_text == ")" or token.feat_text == "]":
-                closed_parens.append(i)
-
-        for start, end in zip(open_parens, closed_parens):
-            if start < index < end:
-                return True
-
-        return False
+        return self.tokenized_sentence[index].paren_depth > 0
 
     def _sentence_length_bucket(self) -> int:
         """Return the length of sentence, rounding down to the nearest bucket.
@@ -1017,13 +1027,57 @@ class PreProcessor:
         int
             Length bucket of sentence.
         """
-        length = len(self.tokenized_sentence)
         bucket = 1
         for length_bucket in [2, 4, 8, 12, 16, 20, 32, 64]:
-            if length >= length_bucket:
+            if self.n_tokens >= length_bucket:
                 bucket = length_bucket
 
         return bucket
+
+    def _number_type(self, token: str) -> str:
+        """Return string indicating the type of number for numeric tokens.
+
+        To avoid duplicate calls to is_numeric(), this function assumes the token being
+        passed would return True from is_numeric()
+
+        The types of number are:
+        * word
+        * multiplier
+        * range
+        * decimal
+        * fraction
+        * integer
+
+        Parameters
+        ----------
+        token : str
+            Token to return number type of.
+
+        Returns
+        -------
+        str
+            Number type.
+        """
+
+        token = token.lower()
+        if token in STRING_NUMBERS or token == "dozen":
+            return "word"
+
+        elif token.endswith("x"):
+            return "multiplier"
+
+        elif "-" in token[1:]:
+            # We don't want this to match if the token starts with "-"
+            return "range"
+
+        elif "#" in token:
+            return "fraction"
+
+        elif "." in token:
+            return "decimal"
+
+        else:
+            return "integer"
 
     def _word_shape(self, token: str) -> str:
         """Calculate the word shape for token.
@@ -1034,6 +1088,9 @@ class PreProcessor:
         - All uppercase characters are replaced with "X"
         - All digits are replaced with "d"
         - Punctuation is left unchanged
+
+        Runs of consecutive identical characters are capped at a maximum length of 3
+        e.g. Chicken -> Xxxxxxx -> Xxxx
 
         Parameters
         ----------
@@ -1046,10 +1103,9 @@ class PreProcessor:
             Word shape of token.
         """
         normalised = self._remove_accents(token)
-        shape = LOWERCASE_PATTERN.sub("x", normalised)
-        shape = UPPERCASE_PATTERN.sub("X", shape)
-        shape = DIGIT_PATTERN.sub("d", shape)
-        return shape
+        shape = normalised.translate(ASCII_SHAPE_TABLE)
+        # Cap runs of 3+ consecutive identical characters.
+        return WORD_SHAPE_RUN_PATTERN.sub(lambda m: m.group(1) * 3, shape)
 
     def _remove_accents(self, token: str) -> str:
         """Remove accents from characters in token.
@@ -1064,57 +1120,76 @@ class PreProcessor:
         str
            Token with accents removed.
         """
+        if token.isascii():
+            # If token is ASCII, then it contains no accents so we can avoid doing any
+            # work.
+            return token
+
         return "".join(
             c
             for c in unicodedata.normalize("NFD", token)
             if unicodedata.category(c) != "Mn"
         )
 
-    def _common_features(self, index: int, prefix: str) -> dict[str, str | bool]:
+    def _common_features(self, token: Token) -> FeatureDict:
         """Return common features for token at given index.
 
         Parameters
         ----------
-        index : int
-            Index of token to return features for.
-        prefix : str
-            Feature label prefix.
+        token : Token
+            Token to return features for.
 
         Returns
         -------
-        dict[str, str | bool]
+        FeatureDict
             Dict of features for token at given index.
         """
-        token = self.tokenized_sentence[index]
-        return {
-            prefix + "is_capitalised": token.features.is_capitalised,
-            prefix + "is_punc": token.features.is_punc,
-            prefix + "is_dimension": token.features.is_dimension,
-            prefix + "word_shape": token.features.shape,
-            prefix + "ends_with_inch_symbol": token.features.ends_with_inch_symbol,
-            prefix + "is_unit": self._is_unit(index),
-            prefix + "is_size": self._is_size(index),
-            prefix + "is_in_parens": self._is_inside_parentheses(index),
-            prefix + "is_after_comma": self._follows_comma(index),
-            prefix + "is_after_plus": self._follows_plus(index),
-            prefix + "is_length_unit": self._is_length_unit(index),
+        token = self.tokenized_sentence[token.index]
+        features = {
+            "bias": "",
+            "pos": token.pos_tag,
+            "stem": token.features.stem,
+            "is_punc": token.features.is_punc,
+            "is_dimension": token.features.is_dimension,
+            "word_shape": token.features.shape,
+            "ends_with_inch_symbol": token.features.ends_with_inch_symbol,
+            "is_unit": self.token_is_unit[token.index],
+            "is_size": self._is_size(token.index),
+            "is_in_parens": self._is_inside_parentheses(token.index),
+            "is_after_plus": self._follows_plus(token.index),
+            "is_after_colon": self._follows_colon(token.index),
+            "is_length_unit": self._is_length_unit(token.index),
         }
 
-    def _ngram_features(self, token: str, prefix: str) -> dict[str, str]:
+        if token.feat_text != token.features.stem:
+            features["token"] = token.feat_text
+
+        if token.feat_text == "!num":
+            features["number_type"] = self._number_type(token.text)
+
+        features |= self._ngram_features(token.feat_text)
+        features |= self.sentence_structure.token_features(token.index)
+
+        return features
+
+    def _ngram_features(self, token: str) -> dict[str, str]:
         """Return n-gram features for token in a dict.
 
-        N = 3, 4, 5 are returned if possible, for prefixes and suffixes.
+        N = 3 is returned if possible, for prefixes and suffixes.
         An n-gram feature is only return if length of the token greater than N for that
-        n-gram.
+        n-gram. The n-gram affixes are made lower case because repeating the feature
+        with different cases will not provide any more useful information to the model.
 
         If the token is "!num", don't return any n-gram features.
+
+        Note: N = 4, 5 were removed as features because doing so had no measurable
+        effect on model accuracy performance, mostly likely because for many of these
+        n-grams there is considerable overlap with the stem feature (for the prefixes).
 
         Parameters
         ----------
         token : str
             Token to calculate n-gram features for.
-        prefix : str
-            Feature label prefix.
 
         Returns
         -------
@@ -1123,147 +1198,77 @@ class PreProcessor:
         """
         ngram_features = {}
         if token != "!num" and len(token) >= 4:
-            ngram_features[prefix + "prefix_3"] = token[:3]
-            ngram_features[prefix + "suffix_3"] = token[-3:]
-
-        if token != "!num" and len(token) >= 5:
-            ngram_features[prefix + "prefix_4"] = token[:4]
-            ngram_features[prefix + "suffix_4"] = token[-4:]
-
-        if token != "!num" and len(token) >= 6:
-            ngram_features[prefix + "prefix_5"] = token[:5]
-            ngram_features[prefix + "suffix_5"] = token[-5:]
+            ngram_features["prefix_3"] = token[:3].lower()
+            ngram_features["suffix_3"] = token[-3:].lower()
 
         return ngram_features
 
-    def _token_features(self, token: Token) -> FeatureDict:
-        """Return the features for the token at the given index in the sentence.
+    def _pos_ngram(
+        self, sentence_tags: list[str], index: int, offset: int
+    ) -> list[str]:
+        """Generate part of speech tag ngram for token at given index for given offset.
 
-        If the token at the given index appears in the corpus parameter, the token is
-        used as a feature. Otherwise (i.e. for tokens that only appear once), the token
-        stem is used as a feature.
+        The part of speech ngram is a list of contiguous part of speech tags between the
+        token at the given index and the token at the offset from the given index.
+
+        The tags are ordered so that the tag for the left most token in the sentence is
+        first e.g.:
+        For index=3, offset=2: [tag_3, tag_4, tag_5]
+        For index=1, offset=-2: [<BOS> tag_0, tag_1]
 
         Parameters
         ----------
-        token : Token
-            Token to generate features for.
+        sentence_tags : list[str]
+            List of part of speech tags for full sentence, padding at start and end to
+            cover maximum context window.
+        index : int
+            Index of token.
+        offset : int
+            Offset from index to generate ngram for.
+
+        Returns
+        -------
+        list[str]
+            List POS tags that make up ngram.
+        """
+        # Note the index in increased by +3 to account for the padding tags at the start
+        # of the sentence.
+        # We don't need to clamp these to 0 and the sentence length because
+        # sentence_tags is already padded with the <BOS> and <EOS> tags.
+        if offset < 0:
+            return sentence_tags[index + offset + 3 : index + 3 + 1]
+        else:
+            return sentence_tags[index + 3 : index + offset + 3 + 1]
+
+    def _whole_sentence_features(self) -> FeatureDict:
+        """Generate features based on the complete sentence.
+
+        These features are applied to every token and are the same for each token.
 
         Returns
         -------
         FeatureDict
-            Dictionary of features for token at index.
+            Dict of whole sentence features.
         """
-
-        index = token.index
-        features: FeatureDict = {}
-
-        features["bias"] = ""
-        features["sentence_length"] = str(self._sentence_length_bucket())
-
-        # Features for current token
-        features["pos"] = token.pos_tag
-        features["stem"] = token.features.stem
-        if token.feat_text != token.features.stem:
-            features["token"] = token.feat_text
-
-        features |= self._common_features(index, "")
-        features |= self._ngram_features(token.feat_text, "")
-        features |= self.sentence_structure.token_features(index, "")
-
-        # Features for previous token
-        if index > 0:
-            prev_token = self.tokenized_sentence[index - 1]
-            features["prev_stem"] = prev_token.features.stem
-            features["prev_pos_ngram"] = "+".join(
-                (
-                    self.tokenized_sentence[index - 1].pos_tag,
-                    self.tokenized_sentence[index].pos_tag,
-                )
-            )
-            features["prev_pos"] = self.tokenized_sentence[index - 1].pos_tag
-            features |= self._common_features(index - 1, "prev_")
-            features |= self.sentence_structure.token_features(index - 1, "prev_")
-
-        # Features for previous previous token
-        if index > 1:
-            prev2_token = self.tokenized_sentence[index - 2]
-            features["prev2_stem"] = prev2_token.features.stem
-            features["prev2_pos_ngram"] = "+".join(
-                (
-                    self.tokenized_sentence[index - 2].pos_tag,
-                    self.tokenized_sentence[index - 1].pos_tag,
-                    self.tokenized_sentence[index].pos_tag,
-                )
-            )
-            features["prev2_pos"] = self.tokenized_sentence[index - 2].pos_tag
-            features |= self._common_features(index - 2, "prev2_")
-            features |= self.sentence_structure.token_features(index - 2, "prev2_")
-
-        # Features for previous previous previous token
-        if index > 2:
-            prev3_token = self.tokenized_sentence[index - 3]
-            features["prev3_stem"] = prev3_token.features.stem
-            features["prev3_pos_ngram"] = "+".join(
-                (
-                    self.tokenized_sentence[index - 3].pos_tag,
-                    self.tokenized_sentence[index - 2].pos_tag,
-                    self.tokenized_sentence[index - 1].pos_tag,
-                    self.tokenized_sentence[index].pos_tag,
-                )
-            )
-            features["prev3_pos"] = self.tokenized_sentence[index - 3].pos_tag
-            features |= self._common_features(index - 3, "prev3_")
-            features |= self.sentence_structure.token_features(index - 3, "prev3_")
-
-        # Features for next token
-        if index < len(self.tokenized_sentence) - 1:
-            next_token = self.tokenized_sentence[index + 1]
-            features["next_stem"] = next_token.features.stem
-            features["next_pos_ngram"] = "+".join(
-                (
-                    self.tokenized_sentence[index].pos_tag,
-                    self.tokenized_sentence[index + 1].pos_tag,
-                )
-            )
-            features["next_pos"] = self.tokenized_sentence[index + 1].pos_tag
-            features |= self._common_features(index + 1, "next_")
-            features |= self.sentence_structure.token_features(index + 1, "next_")
-
-        # Features for next next token
-        if index < len(self.tokenized_sentence) - 2:
-            next2_token = self.tokenized_sentence[index + 2]
-            features["next2_stem"] = next2_token.features.stem
-            features["next2_pos_ngram"] = "+".join(
-                (
-                    self.tokenized_sentence[index].pos_tag,
-                    self.tokenized_sentence[index + 1].pos_tag,
-                    self.tokenized_sentence[index + 2].pos_tag,
-                )
-            )
-            features["next2_pos"] = self.tokenized_sentence[index + 2].pos_tag
-            features |= self._common_features(index + 2, "next2_")
-            features |= self.sentence_structure.token_features(index + 2, "next2_")
-
-        # Features for next next next token
-        if index < len(self.tokenized_sentence) - 3:
-            next3_token = self.tokenized_sentence[index + 3]
-            features["next3_stem"] = next3_token.features.stem
-            features["next3_pos_ngram"] = "+".join(
-                (
-                    self.tokenized_sentence[index].pos_tag,
-                    self.tokenized_sentence[index + 1].pos_tag,
-                    self.tokenized_sentence[index + 2].pos_tag,
-                    self.tokenized_sentence[index + 3].pos_tag,
-                )
-            )
-            features["next3_pos"] = self.tokenized_sentence[index + 3].pos_tag
-            features |= self._common_features(index + 3, "next3_")
-            features |= self.sentence_structure.token_features(index + 3, "next3_")
-
-        return features
+        return {
+            "sentence_length": str(self._sentence_length_bucket()),
+            "starts_with_qty": self.tokenized_sentence[0].feat_text == "!num",
+            "starts_with_unit": self.token_is_unit[0],
+            "has_or": any(
+                t.feat_text.lower() in OR_TOKENS for t in self.tokenized_sentence
+            ),
+        }
 
     def sentence_features(self) -> list[FeatureDict]:
         """Return dict of features for each token in sentence.
+
+        This is done in two stages:
+        1. Calculate the common features that every token has.
+        2. Calculate the features for the context of each token by looking up the
+           features from the common features for the context tokens.
+
+        This two stage approach avoids calculating each feature for every token and
+        every time each token is a context token, which improves performance.
 
         Returns
         -------
@@ -1271,4 +1276,79 @@ class PreProcessor:
             List of feature dicts for each token in sentence.
         """
         logger.debug("Generating features for tokens.")
-        return [self._token_features(token) for token in self.tokenized_sentence]
+
+        # Extract sentence pos tags and pad to cover the maximum context window size.
+        sentence_pos_tags = (
+            ["<BOS>"] * 3 + [t.pos_tag for t in self.tokenized_sentence] + ["<EOS>"] * 3
+        )
+        sentence_features = [
+            self._common_features(token) for token in self.tokenized_sentence
+        ]
+
+        # Add conjunction and whole sentence features for the each token.
+        whole_sentence_features = self._whole_sentence_features()
+        for i, features in enumerate(sentence_features):
+            prev = sentence_features[i - 1] if i > 0 else None
+            next = sentence_features[i + 1] if i < self.n_tokens - 1 else None
+
+            prev_stem = prev["stem"] if prev else "<BOS>"
+
+            # We don't need a stem+next_stem feature because most of the time it will be
+            # identical to prev_stem+stem, just offset by one token.
+            features["prev_stem+stem"] = f"{prev_stem}+{features['stem']}"
+            features["is_unit+prev_num"] = (
+                f"{features['is_unit']}+{bool(prev) and prev['stem'] == '!num'}"
+            )
+            features["pos+segment"] = f"{features['pos']}+{features['segment']}"
+
+            if next and features["stem"] == "!num":
+                # number_type feature is only defined if the stem is "!num".
+                features["number_type+next_is_unit"] = (
+                    f"{features['number_type']}+{next['is_unit']}"
+                )
+
+            # Create trigram of POS tags centred on current token.
+            # The +3 is to account for the padding tags added at the start of
+            # sentence_pos_tags.
+            features["pos_ngram_centered"] = "+".join(
+                sentence_pos_tags[index] for index in range(i + 3 - 1, i + 3 + 2)
+            )
+
+            # Include whole sentence features for every token.
+            features |= whole_sentence_features
+
+        # Calculate the features used for each token when the token is in the context
+        # window of another token.
+        # This is a list of (feature name, feature value) tuples for each each element
+        # in the sentence.
+        # This approach means we only calculate the features for a context token once
+        # and we can just look up the features of each context token to include in the
+        # features for each token.
+        context_features = [
+            [(feat, val) for feat, val in features.items() if feat in CONTEXT_FEATURES]
+            for features in sentence_features
+        ]
+
+        # Iterate over sentence features and add features for context tokens to features
+        # for each token.
+        for i, features in enumerate(sentence_features):
+            # Iterate over all context window offsets for each element of
+            # sentence_features.
+            for offset, prefix, context_feature_names in CONTEXT_FEATURE_OFFSETS:
+                # If the index for the given context feature is within the sentence
+                # (i.e. not < 0 or > sentence length), then obtain the context features
+                # for that token from the already calculated sentence_features.
+                if 0 <= i + offset < self.n_tokens:
+                    for feature, value in context_features[i + offset]:
+                        if feature in LIMITED_CONTEXT_FEATURES and abs(offset) > 1:
+                            # Don't use these features outside the ±1 context.
+                            continue
+
+                        features[context_feature_names[feature]] = value
+
+                pos_ngram = self._pos_ngram(sentence_pos_tags, i, offset)
+                # Exclude pos_ngrams that include 2 or more padding tokens.
+                if pos_ngram.count("<BOS>") < 2 and pos_ngram.count("<EOS>") < 2:
+                    features[prefix + "pos_ngram"] = "+".join(pos_ngram)
+
+        return sentence_features

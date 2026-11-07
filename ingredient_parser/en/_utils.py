@@ -3,33 +3,31 @@
 import re
 from fractions import Fraction
 from functools import lru_cache
-from itertools import chain
-from typing import cast
+from typing import Literal, cast
 
 import pint
-from nltk import PerceptronTagger
 from nltk.stem.snowball import EnglishStemmer
-from nltk.tag import _pos_tag  # type: ignore
 
 from .._common import (
     UREG,
-    consume,
-    download_nltk_resources,
     intermediate_fraction_to_unicode,
     is_float,
     is_fraction,
     is_range,
 )
 from ..dataclasses import IngredientAmount
+from ..perceptron import PerceptronTagger
 from ._constants import (
     FLATTENED_UNITS_LIST,
+    STRING_NUMBERS,
     UNIT_SYNONYMS,
     UNITS,
-    pluralise_known_unit,
+    UNITS_RINDEX,
 )
 from ._loaders import load_ingredient_tagdict
 from ._regex import (
     FRACTION_SPLIT_AND_PATTERN,
+    PLURAL_UNIT_PATTERN,
     STRING_RANGE_PATTERN,
 )
 
@@ -134,79 +132,32 @@ UNIT_REPLACEMENTS = [
     (re.compile(r"\b(ts)\b"), "teaspoon"),
 ]
 
-download_nltk_resources()
 STEMMER = EnglishStemmer()
 
-# Define regular expressions used by tokenizer.
-# Matches one or more whitespace characters
-WHITESPACE_TOKENISER = re.compile(r"\S+")
-# Matches and captures one of the specified punctuation marks.
-PUNCTUATION_TOKENISER = re.compile(r"([\(\)\[\]\{\}\,/:;\?\!\*\~])")
-# Matches and captures full stop at end of string
-# (?<!\.\w) is a negative lookbehind that prevents matches if the last full stop
-# is preceded by a a full stop then a word character.
-FULL_STOP_TOKENISER = re.compile(r"(?<!\.\w)(\.)$")
 
+@lru_cache(maxsize=2048)
+def stem(token: str) -> str:
+    """Stem function with cache to improve performance.
 
-def tokenize(sentence: str) -> list[str]:
-    """Tokenise an ingredient sentence.
-
-    The sentence is split on whitespace characters into a list of tokens.
-    If any of these tokens contains of the punctuation marks captured by
-    PUNCTUATION_TOKENISER, these are then split and isolated as a separate
-    token.
-
-    The returned list of tokens has any empty tokens removed.
+    The stem of a word output by the stemmer is always the same, so we can
+    cache the result the first time and return that for subsequent future calls
+    without the need to do all the processing again.
 
     Parameters
     ----------
-    sentence : str
-        Ingredient sentence to tokenize.
+    token : str
+        Token to stem.
 
     Returns
     -------
-    list[str]
-        List of tokens from sentence.
-
-    Examples
-    --------
-    >>> tokenize("2 cups (500 ml) milk")
-    ["2", "cups", "(", "500", "ml", ")", "milk"]
-
-    >>> tokenize("1-2 mashed bananas: as ripe as possible")
-    ["1-2", "mashed", "bananas", ":", "as", "ripe", "as", "possible"]
-
-    >>> tokenize("1.5 kg bananas, mashed")
-    ["1.5", "kg", "bananas", ",", "mashed"]
-
-    >>> tokenize("Freshly grated Parmesan cheese, for garnish.")
-    ["Freshly", "grated", "Parmesan", "cheese", ",", "for", "garnish", "."]
-
-    >>> tokenize("2 onions, finely chopped*")
-    ["2", "onions", ",", "finely", "chopped", "*"]
-
-    >>> tokenize("2 cups beef and/or chicken stock")
-    ["2", "cups", "beef", "and/or", "chicken", "stock"]
+    str
+        Stem of token.
     """
-    tokens = [
-        PUNCTUATION_TOKENISER.split(tok)
-        for tok in WHITESPACE_TOKENISER.findall(sentence)
-    ]
-    flattened = [tok for tok in chain.from_iterable(tokens) if tok]
-
-    # Recombine "and/or" into a single token
-    combined = combine_and_or(flattened)
-    # Recombine "No. 1" and similar into a single token
-    combined = combine_no_number(combined)
-
-    # Second pass to separate full stops from end of tokens
-    tokens = [FULL_STOP_TOKENISER.split(tok) for tok in combined]
-
-    return [tok for tok in chain.from_iterable(tokens) if tok]
+    return STEMMER.stem(token)
 
 
 @lru_cache
-def _get_pos_tagger() -> PerceptronTagger:
+def get_pos_tagger() -> PerceptronTagger:
     """Cached function to return part of speech tagger.
 
     The returned part of speech tagger is the default English part of speech tagger from
@@ -242,109 +193,121 @@ def pos_tag(tokens: list[str]) -> list[tuple[str, str]]:
     list[tuple[str, str]]
         List of (token, tag) pairs.
     """
-    tagger = _get_pos_tagger()
-    return _pos_tag(tokens=tokens, tagset=None, tagger=tagger, lang="eng")
+    tagger = get_pos_tagger()
+    return tagger.tag(tokens)
 
 
-def combine_and_or(tokens: list[str]) -> list[str]:
-    """Combine ["and", "/", "or"] into a single token.
+@lru_cache(maxsize=5_000)
+def is_numeric(token: str) -> bool:
+    """Return True if token is numeric.
 
-    Parameters
-    ----------
-    tokens : list[str]
-        Flat list of tokens.
-
-    Returns
-    -------
-    list[str]
-        Input tokens with any instances of and/or combined into a single token.
-
-    Examples
-    --------
-    >>> combine_and_or(["2", "cups", "beef", "and/or", "chicken", "stock"])
-    ["2", "cups", "beef", "and/or", "chicken", "stock"]
-
-    >>> combine_and_or(["1-2", "bananas", ":", "as", "ripe", "as", "possible"])
-    ["1-2", "bananas", ":", "as", "ripe", "as", "possible"]
-    """
-    AND_OR_PATTERN = ["and", "/", "or"]
-
-    combined = []
-    idx = iter(range(len(tokens)))
-    for i in idx:
-        # Short circuit: If tokens[i] is not equal to the first element
-        # of AND_OR_PATTERN, skip to next iteration
-        if tokens[i] == AND_OR_PATTERN[0] and tokens[i : i + 3] == AND_OR_PATTERN:
-            combined.append("and/or")
-            consume(idx, len(AND_OR_PATTERN) - 1)
-        else:
-            combined.append(tokens[i])
-
-    return combined
-
-
-def combine_no_number(tokens: list[str]) -> list[str]:
-    """Combine "No." followed by a number into a single token.
-
-    Parameters
-    ----------
-    tokens : list[str]
-        Flat list of tokens.
-
-    Returns
-    -------
-    list[str]
-        Input tokens with any instances of and/or combined into a single token.
-
-    Examples
-    --------
-    >>> combine_no_number(["1", "teaspoon", "No", ".", "1", "curing", "salt"])
-    ['1', 'teaspoon', 'No. 1', 'curing', 'salt']
-    """
-    combined = []
-    idx = iter(range(len(tokens)))
-    for i in idx:
-        if i < len(tokens) - 1 and tokens[i] == "No." and is_float(tokens[i + 1]):
-            combined.append("No. " + tokens[i + 1])
-            consume(idx, 1)
-        else:
-            combined.append(tokens[i])
-
-    return combined
-
-
-@lru_cache(maxsize=512)
-def stem(token: str) -> str:
-    """Stem function with cache to improve performance.
-
-    The stem of a word output by the stemmer is always the same, so we can
-    cache the result the first time and return that for subsequent future calls
-    without the need to do all the processing again.
+    This function is cached because it is called for each token and some tokens occur
+    frequently in recipe ingredient sentences, so there's no point redoing the
+    calculation in full each time a repeat token is encountered.
 
     Parameters
     ----------
     token : str
-        Token to stem.
+        Token to check.
+
+    Returns
+    -------
+    bool
+        True if token is numeric, else False.
+
+    Examples
+    --------
+    >>> is_numeric("1")
+    True
+
+    >>> is_numeric("1-2")
+    True
+
+    >>> is_numeric("dozen")
+    True
+
+    >>> is_numeric("1x")
+    True
+
+    >>> is_numeric("three")
+    True
+
+    >>> is_numeric("#1$2")
+    True
+
+    >>> is_numeric("beef")
+    False
+    """
+    if token == "00":
+        # Special cases of digits that don't represent numbers
+        return False
+
+    lower = token.lower()
+    if lower in STRING_NUMBERS or lower == "dozen":
+        # Numbers written in words are considered numeric.
+        return True
+
+    if token.endswith("x"):
+        # Strip trailing x so we can check the remaining token.
+        token = token[:-1]
+
+    if is_fraction(token):
+        # Fraction tokens e.g. #1$4 or 1#2$3
+        return True
+
+    if "-" in token[1:]:
+        # Check for ranges, but not negative numbers
+        parts = token.split("-")
+        return all(is_numeric(part) for part in parts)
+
+    return is_float(token)
+
+
+def pluralise_known_unit(s: str) -> str:
+    """Substitute singular form of known units in input string with plural form.
+
+    Parameters
+    ----------
+    s : str
+        String to perform substitution on.
 
     Returns
     -------
     str
-        Stem of token.
+        Input string with singular units substituted with plural forms.
     """
-    return STEMMER.stem(token)
+
+    def singular_to_plural(match: re.Match) -> str:
+        """Convert singular form of unit to plural form.
+
+        If, for any reason, the captured singular form does not occur in UNITS_RINDEX,
+        return the singular form.
+
+        Parameters
+        ----------
+        match : re.Match
+            Regular expression match capturing singular form unit.
+
+        Returns
+        -------
+        str
+            Plural form of captured unit.
+        """
+        singular_unit: str = match.group(0)
+        return UNITS_RINDEX.get(singular_unit, singular_unit)
+
+    return PLURAL_UNIT_PATTERN.sub(singular_to_plural, s)
 
 
 def pluralise_units(sentence: str, custom_units: dict[str, str]) -> str:
     """Pluralise units in the sentence.
-
-    Use the same UNITS dictionary as PreProcessor to make any units in sentence plural
 
     Parameters
     ----------
     sentence : str
         Input sentence.
     custom_units : dict[str, str]
-        Dict of custom plural: singular pairs of units
+        Dict of custom singular: plural pairs of units
 
     Returns
     -------
@@ -367,15 +330,35 @@ def pluralise_units(sentence: str, custom_units: dict[str, str]) -> str:
     '2 blargs bread'
     """
     sentence = pluralise_known_unit(sentence)
-    for plural, singular in custom_units.items():
-        sentence = re.sub(rf"\b({re.escape(singular)})\b", f"{plural}", sentence)
 
-    return sentence
+    def singular_to_plural(match: re.Match) -> str:
+        """Convert singular form of unit to plural form.
+
+        If, for any reason, the captured singular form does not occur in UNITS_RINDEX,
+        return the singular form.
+
+        Parameters
+        ----------
+        match : re.Match
+            Regular expression match capturing singular form unit.
+
+        Returns
+        -------
+        str
+            Plural form of captured unit.
+        """
+        singular_unit: str = match.group(0)
+        return custom_units.get(singular_unit, singular_unit)
+
+    return PLURAL_UNIT_PATTERN.sub(singular_to_plural, sentence)
 
 
 @lru_cache(maxsize=512)
 def convert_to_pint_unit(
-    unit: str, volumetric_units_system: str = "us_customary"
+    unit: str,
+    volumetric_units_system: Literal[
+        "us_customary", "imperial", "metric", "australian", "japanese"
+    ] = "us_customary",
 ) -> str | pint.Unit:
     """Convert a unit to a pint.Unit object, if possible.
 
@@ -385,7 +368,9 @@ def convert_to_pint_unit(
     ----------
     unit : str
         Unit to find in pint Unit Registry.
-    volumetric_units_system : str, optional
+    volumetric_units_system : Literal[
+        "us_customary", "imperial", "metric", "australian", "japanese"
+    ], optional
         Sets the units system for volumetric measurements, like "cup" or "tablespoon".
         Default is "us_customary".
 
@@ -434,10 +419,10 @@ def convert_to_pint_unit(
     for regex, replacement in UNIT_REPLACEMENTS:
         unit = regex.sub(replacement, unit)
 
-    # If the unit is in uppercase, convert to lowercase.
+    # If the unit is not in lowercase, convert to lowercase.
     # Keep the original unit so we can return it as provided to this function if we
     # can't convert to a pint.Unit object.
-    if unit == unit.upper():
+    if unit != unit.lower():
         unit = unit.lower()
     if (
         unit in VOLUMETRIC_UNITS_W_ALTERNATIVES
@@ -448,17 +433,16 @@ def convert_to_pint_unit(
         if alt := VOLUMETRIC_UNITS_W_ALTERNATIVES[unit].get(volumetric_units_system):
             unit = unit.replace(unit, alt)
 
-    # If unit not empty string and found in Unit Registry,
-    # return pint.Unit object for unit
+    if unit == "":
+        return original_unit
+
+    # Try to return unit from Unit Registry otherwise return original unit.
     try:
-        if unit != "" and unit in UREG:
-            return cast(pint.Unit, UREG(unit).units)
-    except (pint.errors.DefinitionSyntaxError, AssertionError):
+        return cast(pint.Unit, UREG(unit).units)
+    except (pint.UndefinedUnitError, pint.DefinitionSyntaxError, AssertionError):
         # Pint 0.25.x raises AssertionError for expressions with missing operands.
         # A malformed expression is not a recognised unit; preserve its literal text.
         return original_unit
-
-    return original_unit
 
 
 @lru_cache(maxsize=512)
@@ -514,7 +498,7 @@ def combine_quantities_split_by_and(text: str) -> str:
     Returns
     -------
     str
-        Text with split fractions replaced with single decimal value.
+        Text with split fractions replaced with single value.
 
     Examples
     --------
@@ -539,7 +523,7 @@ def replace_string_range(text: str) -> str:
     For example:
     1 to 2 -> 1-2
     8.5 to 12.5 -> 8.5-12.5
-    16- to 9-
+    16- to 9- -> 19-9
 
     Parameters
     ----------
@@ -593,7 +577,9 @@ def ingredient_amount_factory(
     SINGULAR: bool = False,
     PREPARED_INGREDIENT: bool = False,
     string_units: bool = False,
-    volumetric_units_system: str = "us_customary",
+    volumetric_units_system: Literal[
+        "us_customary", "imperial", "metric", "australian", "japanese"
+    ] = "us_customary",
     custom_units: dict[str, str] | None = None,
 ) -> IngredientAmount:
     """Create ingredient amount object from parts.
@@ -631,7 +617,9 @@ def ingredient_amount_factory(
         If True, return all IngredientAmount units as strings.
         If False, convert IngredientAmount units to pint.Unit objects where possible.
         Default is False.
-    volumetric_units_system : str, optional
+    volumetric_units_system : Literal[
+        "us_customary", "imperial", "metric", "australian", "japanese"
+    ], optional
         Set the country standard for volumetric units such as cups, tablespoon.
         This has no effect is string_units=True.
 

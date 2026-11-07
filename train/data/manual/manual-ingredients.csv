@@ -153,3 +153,7 @@ input,name,quantity,unit,size,preparation,comment,purpose
 1 cup whole shredded chicken,whole chicken,1,cup,,shredded,,
 1 pound whole shredded chicken,whole chicken,1,pound,,shredded,,
 "1 whole shredded chicken, boned",whole chicken,1,,,shredded boned,,
+2 whole shredded chickens,whole chickens,2,,,shredded,,
+"2 whole chickens, shredded",whole chickens,2,,,shredded,,
+2 cups shredded chicken,chicken,2,cup,,shredded,,
+1/2 cup shredded chicken,chicken,#1$2,cup,,shredded,,

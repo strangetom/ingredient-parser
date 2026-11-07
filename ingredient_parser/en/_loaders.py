@@ -43,7 +43,10 @@ def load_embeddings_model() -> GloVeModel:
         Embeddings model.
     """
     logger.debug("Loading embeddings model: 'ingredient_embeddings.35d.glove.txt.gz'.")
-    return GloVeModel("data/ingredient_embeddings.35d.glove.txt.gz")
+    with as_file(
+        files(__package__) / "data/ingredient_embeddings.35d.glove.txt.gz"
+    ) as p:
+        return GloVeModel(str(p))
 
 
 @lru_cache

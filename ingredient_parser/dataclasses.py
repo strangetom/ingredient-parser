@@ -37,8 +37,6 @@ class TokenFeatures:
         Stem of the token.
     shape : str
         Shape of the token, represented by X, x, d characters.
-    is_capitalised : bool
-        True if the token starts with a capital letter, else False.
     is_punc : bool
         True if the token is a punctuation character, else False.
     is_dimension : bool
@@ -49,7 +47,6 @@ class TokenFeatures:
 
     stem: str
     shape: str
-    is_capitalised: bool
     is_punc: bool
     is_dimension: bool
     ends_with_inch_symbol: bool
@@ -69,6 +66,10 @@ class Token:
         Token text used for feature generation.
     pos_tag : str
         Part of speech tag for token.
+    segment : int
+        Number of syntactic breaks (',', ';' etc.) prior to token.
+    paren_depth : int
+        Bracket/parenthesis depth for token.
     features : TokenFeatures
         Common features for token.
     """
@@ -77,6 +78,8 @@ class Token:
     text: str
     feat_text: str
     pos_tag: str
+    segment: int
+    paren_depth: int
     features: TokenFeatures
 
 
@@ -259,7 +262,7 @@ class IngredientAmount:
         UnitSystem
             Enum specifying the unit system in use.
         """
-        if self.unit == "":
+        if isinstance(self.unit, str) and self.unit == "":
             return UnitSystem.NONE
 
         # If unit is a pint.Unit, convert to string
