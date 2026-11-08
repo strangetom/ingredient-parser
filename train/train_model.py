@@ -114,7 +114,7 @@ MODEL_HYPERPARAMETERS = {
     "feature.minfreq": 0,
     "feature.possible_states": True,
     "feature.possible_transitions": True,
-    "c1": 0.3,
+    "c1": 0.2,
     "c2": 0.3,
     "max_linesearch": 5,
     "num_memories": 3,

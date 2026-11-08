@@ -8,11 +8,11 @@
 
 ### Model Date and Version
 
-Date: April 2026
+Date: November 2026
 
 Version: The model version is the same has the `ingredient_parser_nlp` package version.
 
-Filename: model.en.crfsuite
+Filename: model.en.json.gz
 
 ### Model Type
 
@@ -43,8 +43,6 @@ The ingredient parser model parses structured information from English language 
   - PURPOSE: Purpose of the ingredient
   - OTHER: for text that cannot be classified into one of the above labels
 
-    
-  
     The labels for the ingredient names use a BIO scheme:
   
   - B_NAME_TOK: First token of a name
@@ -79,7 +77,7 @@ The model has been trained on datasets that have limitations.
 - The Cookstr dataset contains sentences that use US customary units as the primary unit, and often refer to ingredients or brands found only in the USA. Sentences often include amours in multiple unit formats (US customary, metric). The ingredient sentences are often quite long and complex.
 - The BBC Food dataset contains sentences that use metric units as the primary unit, but also often have the amounts in US customary units too. The ingredient sentences are generally quite simple and consistent in their structure.
 - The AllRecipes dataset contains sentences that usually use US customary units and often reference US brand names or branded products. The ingredient sentences are generally quite simple and consistent in their structure.
-- The TasteCooking dataset contains sentences that ususally use US customary units, but using abbreviations not found in other datasets.
+- The TasteCooking dataset contains sentences that usually use US customary units, but using abbreviations not found in other datasets.
 
 Certain sentence formats, such as consecutive numbers that should not be combined (e.g. 1 1/2-ounce steak) may be handled incorrectly in the preprocessing step and can result in unexpected parsing results. 
 
@@ -110,7 +108,6 @@ There are 7 datasets used to train and evaluate model performance.
 7. Manually written sentences.
 
 
-
 All datasets have been through extensive cleaning to make the data consistent. The cleaned versions of the data are found in the repository for the ingredient_parser_nlp package: https://github.com/strangetom/ingredient-parser
 
 The model is trained on a randomised set of 80% of the total data, and evaluated on the remaining 20%.
@@ -121,9 +118,9 @@ The model has the following performance metrics:
 
 | Word level accuracy | Sentence level accuracy |
 | ------------------- | ----------------------- |
-| 97.6158%            | 93.6308%                |
+| 98.08% ± 0.23%      | 95.15% ± 0.23%          |
 
-These metrics were determined by evaluating this model on a single randomised 20% test split. They are not averages across multiple training/evaluation cycles.
+These metrics were determined by executing 25 training/evaluation cycles and calculating the mean and standard deviation for the two metrics across all cycles. The uncertainty values provided represent the 99.7% confidence bounds (i.e. 3x standard deviation). The uncertainty is due to the randomisation of the selection of training and evaluation data whenever the model is trained.
 
 The random seed used for the train/test split for this model was 20261106.
 
