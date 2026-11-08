@@ -709,7 +709,7 @@ class SentenceStructureFeatures:
         paren_spans = [list(g) for g in group_consecutive_idx(in_paren_tokens)]
         # Create dict mapping index to paren_span.
         paren_span_map = {idx: span for span in paren_spans for idx in span}
-        logger.debug("Parentheses spans: ", paren_spans)
+        logger.debug("Parentheses spans: %s", paren_spans)
 
         parens_features = []
         for token in tokenized_sentence:
