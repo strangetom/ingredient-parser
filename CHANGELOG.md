@@ -2,6 +2,8 @@
 
 ### develop
 
+* Recognise `shredded` as preparation in whole-chicken sentences regardless of word order, keeping `whole` in the ingredient name. (@[anthonypaddison](https://github.com/anthonypaddison))
+
 * Make custom units fully case-sensitive and ensure that custom units are considered during preprocessing steps.
 
 * Fix capitalised units being returned as strings instead of the appropriate `pint.Unit` object.
