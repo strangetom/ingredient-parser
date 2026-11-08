@@ -5,7 +5,7 @@ import re
 from collections import defaultdict
 from dataclasses import dataclass
 from functools import cached_property
-from itertools import chain, pairwise
+from itertools import chain, count, pairwise
 from typing import Iterable, Literal
 
 from ingredient_parser.en.foundationfoods import match_foundation_foods
@@ -716,23 +716,31 @@ class PostProcessor:
 
             self.consumed.extend(idx)
             if selected_label == "NAME":
-                # For NAMEs, keep the group tokens separate for now because we need to
-                # make sure we can remove duplicates tokens if one duplicate token is in
-                # a different group. For example, if NAME_MOD is "smoked" and NAME_TOK
-                # is "smoked pork", we need to discard one of the "smoked tokens".
-                # If we join the tokens here we would get ["smoked", "smoked port"] and
-                # _remove_adjacent_duplicates below wouldn't remove the duplicate token.
-                parts.extend(group_tokens)
+                # Removing duplicates for NAMEs is different than for other labels. We
+                # assume that repeated tokens with a NAME group are intentional (e.g.
+                # "mahi mahi", "piri piri") but we need to remove duplicates across
+                # group boundaries (if NAME_MOD is "smoked" and NAME_TOK
+                # is "smoked pork", we need to discard one of the "smoked tokens"). For
+                # that reasons, we store the tokens in their groups here, rather than
+                # use the joined tokens.
+                parts.append(group_tokens)
                 confidence_parts.extend([self.tokens[i].score for i in idx])
             else:
                 parts.append(joined)
                 confidence_parts.append(_mean([self.tokens[i].score for i in idx]))
+
             starting_index = min(starting_index, idx[0])
 
-        # Find the indices of the joined tokens list where the element
-        # is the same as the previous element in the list.
-        keep_idx = self._remove_adjacent_duplicates(parts)
-        parts = [parts[i] for i in keep_idx]
+        if selected_label == "NAME":
+            keep_idx = self._remove_boundary_duplicates(parts)
+            # Need to flatten parts here, then discard indices we aren't keeping.
+            flattened_name_parts = list(chain.from_iterable(parts))
+            parts = [flattened_name_parts[i] for i in keep_idx]
+        else:
+            # Find the indices of the joined tokens list where the element
+            # is the same as the previous element in the list.
+            keep_idx = self._remove_adjacent_duplicates(parts)
+            parts = [parts[i] for i in keep_idx]
         confidence_parts = [confidence_parts[i] for i in keep_idx]
 
         if len(parts) == 0:
@@ -930,7 +938,8 @@ class PostProcessor:
         return text.strip()
 
     def _remove_adjacent_duplicates(self, parts: list[str]) -> list[int]:
-        """Find indices of adjacent duplicate strings.
+        """Return the indices of the elements of parts that result the list having no
+        adjacent duplicates.
 
         Parameters
         ----------
@@ -957,6 +966,60 @@ class PostProcessor:
                 idx_to_keep.append(i)
 
         return idx_to_keep
+
+    def _remove_boundary_duplicates(self, groups: list[list[str]]) -> list[int]:
+        """Return the indices of elements of groups (after flattening) that result in
+        the flattened list having no duplicates, where the duplicates were only at the
+        boundaries of sublists in groups.
+
+        For example:
+        [["smoked"], ["smoked", "pork"]] returns [1, 2] because the token at index 0 is
+        a duplicate at the boundary of the sublist.
+
+        [["mahi", "mahi"]] returns [0, 1] because the duplicate is wholly within a
+        sublist and therefore kept.
+
+        Parameters
+        ----------
+        parts : list[str]
+            List of strings with single label.
+
+        Returns
+        -------
+        list[int]
+            Indices of elements in parts to keep.
+
+        Examples
+        --------
+        >>> p = PostProcessor("", [], [], [])
+        >>> p._remove_boundary_duplicates(
+            [["smoked"], ["smoked", "pork"]],
+        )
+        [1, 2]
+
+        >>> p = PostProcessor("", [], [], [])
+        >>> p._remove_boundary_duplicates(
+            [["piri", "piri", "sauce"]],
+        )
+        [0, 1, 2]
+        """
+        idx_to_discard = []
+
+        counter = count()
+        indices = [[next(counter) for _ in group] for group in groups]
+
+        for (group1_tokens, group1_idx), (group2_tokens, _) in pairwise(
+            zip(groups, indices)
+        ):
+            # We only care if the token at the end of the first group is the same as the
+            # token at the start of the second group.
+            # If these cases, we discard the token at the end of the first group.
+            if group1_tokens[-1] == group2_tokens[0]:
+                idx_to_discard.append(group1_idx[-1])
+
+        return [
+            idx for idx in chain.from_iterable(indices) if idx not in idx_to_discard
+        ]
 
     def _replace_string_numbers(self, text: str) -> str:
         """Replace string numbers (e.g. one, two) with numeric values (e.g. 1, 2).
