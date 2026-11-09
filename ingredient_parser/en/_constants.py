@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import re
+import string
 from itertools import chain
 
 # Plural and singular units. Length units are excluded.
@@ -119,85 +120,31 @@ UNITS = {
     "vials": "vial",
     "wheels": "wheel",
 }
-# Generate capitalized and uppercase version of each entry in the UNITS dictionary.
-_capitalized_units = {}
-for plural, singular in UNITS.items():
-    _capitalized_units[plural.capitalize()] = singular.capitalize()
-    _capitalized_units[plural.upper()] = singular.upper()
-UNITS = UNITS | _capitalized_units
-# Create a flattened set of all keys and values in UNITS dict
-# since we need this in a few places
-FLATTENED_UNITS_LIST = set(chain.from_iterable(UNITS.items()))
-
-# Invert UNITS dict so we can look up plural form from singular form.
-UNITS_RINDEX: dict[str, str] = {v: k for k, v in UNITS.items()}
 
 
-def _generate_regex_for_pluralising_known_units(units: dict[str, str]) -> re.Pattern:
-    """Pre-compile regular expression for pluralising unit in the UNITS dict.
-
-    This is a performance optimisation to avoid iterating over each item in the UNITS
-    dict. Instead, we generate a regular expression of all singular units which captures
-    a matching singular unit. We can then use the captured singular unit to look up the
-    plural and substitute it into a string.
+def _generate_upper_case_units(units: dict[str, str]) -> dict[str, str]:
+    """Generate capitalized and uppercase version of each entry in the units dict.
 
     Parameters
     ----------
     units : dict[str, str]
-        Dict of known singular units and their plural versions.
-
-    Returns
-    -------
-    re.Pattern
-        Pre-compiled regular expression containing the union of all known singular
-        units.
+        UNITS dict
     """
-    # Generate dict in reverse lex order, so that each string occurs before it's perfect
-    # substrings.
-    ordered_singular_units = reversed(sorted(units.values()))
-    return re.compile(
-        "|".join(rf"\b({singular})\b" for singular in ordered_singular_units)
-    )
+    _capitalized_units = {}
+    for plural, singular in units.items():
+        _capitalized_units[plural.capitalize()] = singular.capitalize()
+        _capitalized_units[plural.upper()] = singular.upper()
+    return UNITS | _capitalized_units
 
 
-KNOWN_PLURAL_UNIT_PATTERN = _generate_regex_for_pluralising_known_units(UNITS)
+UNITS = _generate_upper_case_units(UNITS)
 
+# Create a flattened set of all keys and values in UNITS dict
+# since we need this in a few places
+FLATTENED_UNITS_LIST = frozenset(chain.from_iterable(UNITS.items()))
 
-def pluralise_known_unit(s: str) -> str:
-    """Substitute singular form of known units in input string with plural form.
-
-    Parameters
-    ----------
-    s : str
-        String to perform substitution on.
-
-    Returns
-    -------
-    str
-        Input string with singular units substituted with plural forms.
-    """
-
-    def singular_to_plural(match: re.Match) -> str:
-        """Convert singular form of unit to plural form.
-
-        If, for any reason, the captured singular form does not occur in UNITS_RINDEX,
-        return the plural form.
-
-        Parameters
-        ----------
-        match : re.Match
-            Regular expression match capturing singular form unit.
-
-        Returns
-        -------
-        str
-            Plural form of captured unit.
-        """
-        plural_unit: str = match.group(0)
-        return UNITS_RINDEX.get(plural_unit, plural_unit)
-
-    return KNOWN_PLURAL_UNIT_PATTERN.sub(singular_to_plural, s)
-
+# Invert UNITS dict so we can look up plural form from singular form.
+UNITS_RINDEX: dict[str, str] = {v: k for k, v in UNITS.items()}
 
 # Words that indicate ingredient size
 SIZES = [
@@ -256,20 +203,44 @@ STRING_NUMBERS = {
     "eighteen": "18",
     "nineteen": "19",
 }
-# Precompile the regular expressions for matching the string numbers
-STRING_NUMBERS_REGEXES = {}
-for s, n in STRING_NUMBERS.items():
-    # This is case insensitive so it replace e.g. "one" and "One"
-    # Only match if the string is preceded by a non-word character or is at
-    # the start of the sentence
-    STRING_NUMBERS_REGEXES[s] = (re.compile(rf"\b({s})\b", flags=re.IGNORECASE), n)
+
+
+def _generate_string_number_regexes(
+    string_numbers: dict[str, str],
+) -> dict[str, tuple[re.Pattern, str]]:
+    """Generate pre-compiled regular expressions for converting number expressed as
+    words to digits.
+
+    The return dict values are a tuple of the pre-compiled regular expression and the
+    replacement string.
+
+    Parameters
+    ----------
+    string_numbers : dict[str, str]
+        Dict of number as words and their digit equivalent.
+
+    Returns
+    -------
+    dict[str, tuple[re.Pattern, str]]
+        Dict mapping word number to a tuple of (regex, replacement).
+    """
+    string_numbers_regexes = {}
+    for s, n in string_numbers.items():
+        # This is case insensitive so it replace e.g. "one" and "One"
+        # Only match if the string is preceded by a non-word character or is at
+        # the start of the sentence
+        string_numbers_regexes[s] = (re.compile(rf"\b({s})\b", flags=re.IGNORECASE), n)
+    return string_numbers_regexes
+
+
+STRING_NUMBERS_REGEXES = _generate_string_number_regexes(STRING_NUMBERS)
 
 # Unicode fractions and their replacements as string fractions
 # Most of the time we need to insert a space in front of the replacement so we don't
 # merge the replacement with the previous token i.e. 1½ != 11/2
 # However, if the prior chaacter is a hyphen, we don't want to insert a space as this
 # will mess up any ranges
-UNICODE_FRACTIONS = {
+UNICODE_FRACTIONS_TO_TEXT = {
     "-\u215b": "-1/8",
     "-\u215c": "-3/8",
     "-\u215d": "-5/8",
@@ -488,40 +459,66 @@ UNIT_SYNONYMS = [
     {"quart", "qt"},
     {"tablespoon", "tbsp", "tbs", "tb"},
     {"teaspoon", "tsp"},
+    {"pint", "pt"},
 ]
 
 # Set of units that refer to lengths.
-LENGTH_UNITS = {
-    "centimeter",
-    "centimetre",
-    "cm",
-    "in",
-    "inch",
-    "inches",
-    "millimeter",
-    "millimetre",
-    "mm",
-}
+LENGTH_UNITS = frozenset(
+    {
+        "centimeter",
+        "centimeters",
+        "centimetre",
+        "centimetres",
+        "cm",
+        "in",
+        "inch",
+        "inches",
+        "millimeter",
+        "millimeters",
+        "millimetre",
+        "millimetres",
+        "mm",
+    }
+)
 
 # Set of tokens that refer to the physical dimensions of an ingredient.
-DIMENSIONS = {
-    "diameter",
-    "inch-long",
-    "inch-thick",
-    "length",
-    "long",
-    "thick",
-    "thickness",
-    "wide",
-    "width",
-}
+DIMENSIONS = frozenset(
+    {
+        "diameter",
+        "inch-long",
+        "inch-thick",
+        "length",
+        "long",
+        "thick",
+        "thickness",
+        "wide",
+        "width",
+    }
+)
 
-INDEFINITE_QUANTIFIERS = {
-    "couple",
-    "few",
-    "many",
-    "plenty",
-    "more",
-    "several",
-    "some",
-}
+INDEFINITE_QUANTIFIERS = frozenset(
+    {
+        "couple",
+        "few",
+        "many",
+        "plenty",
+        "more",
+        "several",
+        "some",
+    }
+)
+
+# Define table mapping ascii characters to characters used in word shape.
+ASCII_SHAPE_TABLE = str.maketrans(
+    {
+        **{c: "x" for c in string.ascii_lowercase},
+        **{c: "X" for c in string.ascii_uppercase},
+        **{c: "d" for c in string.digits},
+    }
+)
+
+# Define characters to mark sentence segment boundaries.
+OPEN_BRACKET = frozenset({"(", "["})
+CLOSE_BRACKET = frozenset({")", "]"})
+BREAKS = frozenset({",", ";"})
+OR_TOKENS = frozenset({"or", "and/or"})

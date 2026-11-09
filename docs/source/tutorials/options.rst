@@ -182,22 +182,21 @@ The custom units should be provided as a ``dict`` of plural-singular form pairs,
         "tablespoons": "tablespoon",
     }
 
-If the provided units are lowercase, then capitalised versions are automatically generated.
-If the provided units are uppercase, no alternative forms are automatically generated.
-
-The provided units should comprise a single word for both the plural and singular forms.
+The custom units should comprise a single word for both the plural and singular forms.
 Units containing spaces are not currently supported.
+
+Custom units are case sensitive.
 
 
 .. topic:: Example
 
     .. code:: python
 
-        >>> parse_ingredient("1 barrel sausages").amount[0].unit
+        >>> parse_ingredient("1 case sausages").amount[0].unit
         ''
 
-        >>> parse_ingredient("1 barrel sausages", custom_units={"barrels": "barrel"}).amount[0].unit
-        <Unit('barrel')>
+        >>> parse_ingredient("1 case sausages", custom_units={"cases": "case"}).amount[0].unit
+        'case'
 
 .. important::
 

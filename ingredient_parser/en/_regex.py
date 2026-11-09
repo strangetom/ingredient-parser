@@ -9,9 +9,6 @@ from ._constants import FLATTENED_UNITS_LIST, LENGTH_UNITS, STRING_NUMBERS
 # a forward slash then another number.
 FRACTION_PARTS_PATTERN = re.compile(r"(\d*\s*\d/\d+)")
 
-# Regex pattern for checking if token starts with a capital letter.
-CAPITALISED_PATTERN = re.compile(r"^[A-Z]")
-
 # Regex pattern for finding quantity and units without space between them.
 # Add additional strings to units set that aren't necessarily units, but we want to
 # treat them like units for the purposes of splitting quantities from units.
@@ -32,9 +29,9 @@ UNITS_QUANTITY_PATTERN = re.compile(rf"({'|'.join(sorted_units)})(\d)")
 UNITS_HYPHEN_QUANTITY_PATTERN = re.compile(rf"({'|'.join(sorted_units)})\-(\d)")
 STRING_QUANTITY_HYPHEN_PATTERN = re.compile(
     rf"""
-    \b({"|".join(STRING_NUMBERS.keys())})\b  # Capture string number
-    \-                                       # Followed by hyphen
-    \b({"|".join(sorted_units)})\b           # Followed by unit
+    \b({"|".join(sorted(STRING_NUMBERS.keys()))})\b  # Capture string number
+    \-                                               # Followed by hyphen
+    \b({"|".join(sorted_units)})\b                   # Followed by unit
     """,
     re.VERBOSE | re.IGNORECASE,
 )
@@ -109,10 +106,6 @@ QUANTITY_X_PATTERN = re.compile(
 # e.g. #1$4 - #1$2.
 EXPANDED_RANGE = re.compile(r"(\d)\s*\-\s*([\d\#])")
 
-LOWERCASE_PATTERN = re.compile(r"[a-z]")
-UPPERCASE_PATTERN = re.compile(r"[A-Z]")
-DIGIT_PATTERN = re.compile(r"[0-9]")
-
 # Regex pattern to match currency within parentheses e.g. ($1.99)
 # Allows optional white space after opening parenthesis, before currency symbol, and
 # before closing parenthesis.
@@ -139,3 +132,23 @@ HYPHEN_SPLIT_NAME_PATTERN = re.compile(
 # Regex pattern to match a token ending with a number then ".
 # e.g. 1", 2" etc.
 INCH_SIZE_PATTERN = re.compile(r"\d\"$")
+
+# Regex pattern to match specific units followed by a period.
+# tsp, tbsp and lb may be followed by an optional 's' for the plural versions.
+# The unit must be preceded by a digit or a white space character to avoid matching
+# within a word (e.g. 'lbs' matching within 'bulbs')
+UNITS_WITH_TRAILING_PERIOD = re.compile(
+    r"(?<=[\s\d])(tsps?|tbsps?|tbs|tb|lbs?|oz)\.", re.IGNORECASE
+)
+
+# Regular expression used for pluralising units.
+# We don't need a complex regex pattern to replace singular units with their plural
+# because all the units are complete words. Therefore we only need the regular
+# expression to group characters by word, then we can look up the word in the
+# UNITS_RINDEX dict to get a plural version if it exists.
+PLURAL_UNIT_PATTERN = re.compile(r"\w+")
+
+# Regular expression to capture 3 or more consecutive identical characters.
+# This is used when calculating the word_shape feature to collapse runs of consecutive
+# identical characters down to a maximum run length of 3.
+WORD_SHAPE_RUN_PATTERN = re.compile(r"(.)\1{3,}")

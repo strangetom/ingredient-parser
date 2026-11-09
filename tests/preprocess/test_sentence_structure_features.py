@@ -16,6 +16,13 @@ class Test_multi_ingredient_phrase_features:
         p = PreProcessor("2 tbsp hot chicken or beef stock", custom_units={})
         assert p.sentence_structure.mip_phrases == [([2, 3, 4, 5, 6], "MIP")]
 
+    def test_multi_ingredient_phrase_detection_with_leading_size(self):
+        """
+        Test that multi ingredient phrase with leading size is correctly identified.
+        """
+        p = PreProcessor("2 small red or green chilli peppers", custom_units={})
+        assert p.sentence_structure.mip_phrases == [([2, 3, 4, 5, 6], "MIP")]
+
     def test_extended_multi_ingredient_phrase_detection(self):
         """
         Test that extended multi ingredient phrase is correctly identified.
@@ -38,6 +45,33 @@ class Test_multi_ingredient_phrase_features:
         """
         p = PreProcessor("½ c grapeseed oil or any mild-flavored oil", custom_units={})
         assert p.sentence_structure.mip_phrases == [([2, 3, 4, 5, 6, 7], "MIP")]
+
+    def test_multi_ingredient_phrase_detection_and_or(self):
+        """
+        Test that multi ingredient phrase  using "and/or" is correctly identified.
+        """
+        p = PreProcessor("2 tbsp red and/or white wine", custom_units={})
+        assert p.sentence_structure.mip_phrases == [([2, 3, 4, 5], "MIP")]
+
+    def test_multi_ingredient_phrase_detection_custom_units(self):
+        """
+        Test that multi ingredient phrase is identified and has the custom units removed
+        from the start.
+        """
+        p = PreProcessor(
+            "2 barrels red or white wine", custom_units={"barrels": "barrel"}
+        )
+        assert p.sentence_structure.mip_phrases == [([2, 3, 4, 5], "MIP")]
+
+    def test_extended_multi_ingredient_phrase_detection_custom_units(self):
+        """
+        Test that multi ingredient phrase is identified and has the custom units removed
+        from the start.
+        """
+        p = PreProcessor(
+            "2 barrels red, white or rose wine", custom_units={"barrels": "barrel"}
+        )
+        assert p.sentence_structure.mip_phrases == [([2, 3, 4, 5, 6, 7], "EMIP")]
 
     def test_mip_start_feature_unit(self):
         """
@@ -104,9 +138,9 @@ class Test_multi_ingredient_phrase_features:
         # Assert that all tokens after the first two have the within_mip feature.
         for i, token_features in enumerate(p.sentence_features()):
             if i == 2:
-                assert token_features.get("within_mip_clause_-1", False)
+                assert token_features.get("mip_clause") == "-1"
             else:
-                assert not token_features.get("within_mip_clause_-1", False)
+                assert token_features.get("mip_clause") != -1
 
     def test_within_mip_clause_feature_emip(self):
         """
@@ -118,15 +152,13 @@ class Test_multi_ingredient_phrase_features:
         # Assert that all tokens after the first two have the within_mip_clause feature.
         for i, token_features in enumerate(p.sentence_features()):
             if i == 2:
-                assert token_features.get("within_mip_clause_-2", False)
+                assert token_features.get("mip_clause") == "-2"
             elif i == 4:
-                assert token_features.get("within_mip_clause_-1", False)
+                assert token_features.get("mip_clause") == "-1"
             elif i in [6, 7]:
-                assert token_features.get("within_mip_clause_0", False)
+                assert token_features.get("mip_clause") == "0"
             else:
-                assert not token_features.get("within_mip_clause_-1", False)
-                assert not token_features.get("within_mip_clause_-2", False)
-                assert not token_features.get("within_mip_clause_0", False)
+                assert token_features.get("mip_clause") is None
 
 
 class Test_compound_sentence_features:
@@ -267,6 +299,19 @@ class Test_example_phrase_features:
             else:
                 assert not token_features.get("example_phrase", False)
 
+    def test_example_phrase_detection_no_conjunction(self):
+        """
+        Test phrase using "such as" is detected in a sentence with no conjunction.
+        This is to protect against a bug introduced in
+        24a83905df84ffc8910f6d532f4b8f3073321970 and fixed in
+        23a8ae788b01b816eba9f73a2ca2fe864482bf36 which prevent example phrase detection
+        on sentence that did not include a "CC" tag. All the example phrase tests at
+        the time contained a "CC" tag by coincidence so the bug was not noticed at
+        the time.
+        """
+        p = PreProcessor("5 oz passion fruit liqueur, such as Aliz", custom_units={})
+        assert p.sentence_structure.example_phrases == [[6, 7, 8]]
+
 
 class Test_dimensional_phrase_features:
     def test_dimensional_phrase_detection(self):
@@ -305,3 +350,140 @@ class Test_dimensional_phrase_features:
         """
         p = PreProcessor("1 potato, 3 inches in diameter", custom_units={})
         assert p.sentence_structure.dimensional_phrases == [[3, 4, 5, 6]]
+
+    def test_dimensional_features(self):
+        """
+        Test dimensional features are set correctly.
+        """
+        p = PreProcessor("1 2 in thick piece of steak", custom_units={})
+        for i in range(len(p.tokenized_sentence)):
+            structure_features = p.sentence_structure.token_features(i)
+            if i in [1, 2, 3]:
+                assert structure_features.get("dimensional_phrase", False)
+            else:
+                assert not structure_features.get("dimensional_phrase", False)
+
+
+class Test_segment_features:
+    def test_simple_sentence(self):
+        """
+        Test basic segment features for a simple sentence with 1 segment.
+        """
+        p = PreProcessor("1 cup flour")
+        segment_features = p.sentence_structure.segment_features
+
+        assert all(t.segment == 0 for t in p.tokenized_sentence)
+        assert [feat.get("segment_position") for feat in segment_features] == [
+            "FIRST",
+            "MID",
+            "LAST",
+        ]
+        assert [feat.get("segment_length") for feat in segment_features] == [
+            "3-4",
+            "3-4",
+            "3-4",
+        ]
+        assert [feat.get("segment_starts_with_qty") for feat in segment_features] == [
+            True,
+            True,
+            True,
+        ]
+
+    def test_multiple_segments(self):
+        """
+        Test segment features for a sentence with multiple segments.
+        """
+        p = PreProcessor(
+            "2 cups cubes made from crusty bread, such as a baguette, toasted"
+        )
+        segments = [t.segment for t in p.tokenized_sentence]
+        segment_features = p.sentence_structure.segment_features
+
+        assert segments == [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2]
+
+        # Tokens 7 and 12 are a segment separators.
+        for idx in [7, 12]:
+            assert segment_features[idx].get("segment_position") == "SEP"
+            assert "segment_starts_with_qty" not in segment_features[idx].keys()
+            assert "qty_in_earlier_segment" not in segment_features[idx].keys()
+
+        # segment_starts_with_qty is True for first segment only
+        assert segment_features[0].get("segment_starts_with_qty")
+        assert not segment_features[8].get("segment_starts_with_qty")
+        assert not segment_features[13].get("segment_starts_with_qty")
+
+        # qty_in_earlier_segment is True for 2nd and 3rd segment and not present for 1st
+        assert "qty_in_earlier_segment" not in segment_features[0].keys()
+        assert segment_features[8].get("qty_in_earlier_segment")
+        assert segment_features[13].get("qty_in_earlier_segment")
+
+
+class Test_parenthesis_span_features:
+    def test_no_parentheses(self):
+        """
+        Test that sentence with no parentheses will generate no paren span features.
+        """
+        p = PreProcessor("1 cup flour")
+        assert p.sentence_structure.paren_span_features == [{}, {}, {}]
+
+    def test_single_parenthesis_span(self):
+        """
+        Test that sentence with single parenthesis spans has features set for tokens in
+        span.
+        """
+        p = PreProcessor("3 (14 ounce) cans chicken broth")
+        paren_span_features = p.sentence_structure.paren_span_features
+
+        assert [t.paren_depth for t in p.tokenized_sentence] == [0, 1, 1, 1, 1, 0, 0, 0]
+
+        # Tokens with paren_depth == 0 should not have features
+        for i, token in enumerate(p.tokenized_sentence):
+            if token.paren_depth == 0:
+                assert paren_span_features[i] == {}
+
+        # paren_first_pos should be same as POS tag of first token in paren span
+        for idx in [2, 3]:
+            assert (
+                paren_span_features[idx].get("paren_first_pos")
+                == p.tokenized_sentence[2].pos_tag
+            )
+
+    def test_multiple_parenthesis_span(self):
+        """
+        Test that sentence with multiple parenthesis spans has features set for tokens
+        in spans.
+        """
+        p = PreProcessor("3 (14 ounce) cans chicken broth [or stock]")
+        paren_span_features = p.sentence_structure.paren_span_features
+
+        assert [t.paren_depth for t in p.tokenized_sentence] == [
+            0,
+            1,
+            1,
+            1,
+            1,
+            0,
+            0,
+            0,
+            1,
+            1,
+            1,
+            1,
+        ]
+
+        # Tokens with paren_depth == 0 should not have features
+        for i, token in enumerate(p.tokenized_sentence):
+            if token.paren_depth == 0:
+                assert paren_span_features[i] == {}
+
+        # paren_first_pos should be same as POS tag of first token in each paren span
+        for idx in [2, 3]:
+            assert (
+                paren_span_features[idx].get("paren_first_pos")
+                == p.tokenized_sentence[2].pos_tag
+            )
+        for idx in [9, 10]:
+            assert (
+                paren_span_features[idx].get("paren_first_pos")
+                == p.tokenized_sentence[9].pos_tag
+            )

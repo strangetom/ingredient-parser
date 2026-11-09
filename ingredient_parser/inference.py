@@ -733,6 +733,7 @@ class NumpyViterbiInference:
         self.scale_factor = scale_factor
         self.zero_offset = zero_offset
 
+        self._set_constraint_label_idx()
         self.transition_constraint_mask = None
 
         # Determine data type for weights
@@ -786,7 +787,7 @@ class NumpyViterbiInference:
         """
         return (weights.astype(np.float32) - self.zero_offset) / self.scale_factor
 
-    def _features_to_idx_array(self, features: set[str]) -> np.ndarray:
+    def _features_to_idx_array(self, features: set[str]) -> list[int]:
         """Map set of feature strings to row indices in emission matrix.
 
         Parameters
@@ -796,16 +797,14 @@ class NumpyViterbiInference:
 
         Returns
         -------
-        np.ndarray
-            NumPy array of integer indices for string features.
+        list[int]
+            List of integer indices for string features.
         """
-        return np.array(
-            [
-                self.features_to_idx[feat]
-                for feat in features
-                if feat in self.features_to_idx
-            ]
-        )
+        return [
+            self.features_to_idx[feat]
+            for feat in features
+            if feat in self.features_to_idx
+        ]
 
     def _precompute_constraint_mask(self) -> np.ndarray:
         """Compute constraint mask.
@@ -829,6 +828,50 @@ class NumpyViterbiInference:
 
         return mask
 
+    def _set_constraint_label_idx(self) -> None:
+        """Set attributes specifying the index of labels used in transition constraints
+        during decoding.
+
+        If any of the labels are missing from the model, we set
+        transition_constraints_possible=False and decoding will be performed without
+        the constraints applied.
+        """
+        self.transition_constraints_possible = True
+        missing_labels = []
+
+        self.b_name_idx = self.label_to_idx.get("B_NAME_TOK")
+        if self.b_name_idx is None:
+            self.transition_constraints_possible = False
+            missing_labels.append("B_NAME_TOK")
+
+        self.i_name_idx = self.label_to_idx.get("I_NAME_TOK")
+        if self.i_name_idx is None:
+            self.transition_constraints_possible = False
+            missing_labels.append("I_NAME_TOK")
+
+        self.name_sep_idx = self.label_to_idx.get("NAME_SEP")
+        if self.name_sep_idx is None:
+            self.transition_constraints_possible = False
+            missing_labels.append("NAME_SEP")
+
+        self.name_var_idx = self.label_to_idx.get("NAME_VAR")
+        if self.name_var_idx is None:
+            self.transition_constraints_possible = False
+            missing_labels.append("NAME_VAR")
+
+        self.name_mod_idx = self.label_to_idx.get("NAME_MOD")
+        if self.name_mod_idx is None:
+            self.transition_constraints_possible = False
+            missing_labels.append("NAME_MOD")
+
+        if not self.transition_constraints_possible:
+            logger.debug(
+                "The following labels are missing from the model: %s.", missing_labels
+            )
+            logger.debug(
+                "Transition constraints during model decoding will not be applied."
+            )
+
     def predict_sequence(
         self, features_seq: list[set[str]], constrain_transitions: bool = True
     ) -> tuple[list[str], list[float]]:
@@ -836,9 +879,11 @@ class NumpyViterbiInference:
         described by sequence of features sets.
 
         If constrain_transitions is True, then transitions that are not allowed by the
-        labelling scheme are enforced.
-        Specifically this means that I_NAME_TOK is prohibited if B_NAME_TOK has not
-        occurred since the start of the sentence or since the last NAME_SEP label.
+        labelling scheme are enforced:
+        * I_NAME_TOK is prohibited if B_NAME_TOK has not occurred since the start of the
+          sentence or since the last NAME_SEP label.
+        * NAME_SEP is prohibited if B_NAME_TOK, NAME_MOD or NAME_VAR has not occurred
+          since the start of the sentence.
 
         Parameters
         ----------
@@ -856,7 +901,11 @@ class NumpyViterbiInference:
         seq_len = len(features_seq)
 
         # Only compute the transition constraint mask if we're constraining transitions.
-        if constrain_transitions and self.transition_constraint_mask is None:
+        if (
+            constrain_transitions
+            and self.transition_constraints_possible
+            and self.transition_constraint_mask is None
+        ):
             self.transition_constraint_mask = self._precompute_constraint_mask()
 
         # Pre-compute state scores for all elements of sequence from emission matrix.
@@ -870,15 +919,16 @@ class NumpyViterbiInference:
                 # to the correct row of the emission_scores matrix.
                 state_scores[t] = self.emission_weights[indices].sum(axis=0)
 
-        # Get indices for constraint-specific labels
-        b_name_idx = self.label_to_idx.get("B_NAME_TOK")
-        i_name_idx = self.label_to_idx.get("I_NAME_TOK")
-        name_sep_idx = self.label_to_idx.get("NAME_SEP")
         # Auxiliary matrix to track if B_NAME_TOK has occurred in the best path
         # for each label at each time step since the beginning or last NAME_SEP.
         # Rows: sequence elements
         # Columns: labels
         has_b_name = np.zeros((seq_len, self.n_labels), dtype=bool)
+        # Auxiliary matrix to track if B_NAME_TOK, NAME_VAR or NAME_MOD has occurred in
+        # the best path for each label at each time step since the beginning.
+        # Rows: sequence elements
+        # Columns: labels
+        has_name_start = np.zeros((seq_len, self.n_labels), dtype=bool)
 
         # Initialize the Viterbi lattice as NumPy arrays.
         # One array for the scores, initialized to -inf. This is the best score for each
@@ -892,11 +942,16 @@ class NumpyViterbiInference:
         # are only based on the emission features.
         lattice_scores[0] = state_scores[0]
 
-        # Apply initial constraints (i.e., I_NAME_TOK cannot be first)
-        if constrain_transitions:
-            lattice_scores[0, i_name_idx] = -np.inf
-            # Update has_b_name matrix for first sequence element
-            has_b_name[0, b_name_idx] = True
+        # Apply initial constraints (i.e., I_NAME_TOK and NAME_SEP cannot be first).
+        if constrain_transitions and self.transition_constraints_possible:
+            lattice_scores[0, self.i_name_idx] = -np.inf
+            lattice_scores[0, self.name_sep_idx] = -np.inf
+            # Update has_b_name matrix for first sequence element.
+            has_b_name[0, self.b_name_idx] = True
+            # Update has_name_start matrix for first sequence element.
+            has_name_start[0, self.b_name_idx] = True
+            has_name_start[0, self.name_mod_idx] = True
+            has_name_start[0, self.name_var_idx] = True
 
         # Forward pass, starting at t=1 because we've already initialised t=0
         for t in range(1, seq_len):
@@ -914,11 +969,15 @@ class NumpyViterbiInference:
             candidates = prev_el_scores + self.transition_weights + state_scores[t]
 
             # Force the scores from constrained transitions to -inf
-            if constrain_transitions and b_name_idx:
+            if constrain_transitions and self.transition_constraints_possible:
                 candidates[self.transition_constraint_mask] = -np.inf
                 # Mask transitions to I_NAME_TOK from paths that lack a B_NAME_TOK
                 invalid_prev_paths = ~has_b_name[t - 1]
-                candidates[invalid_prev_paths, i_name_idx] = -np.inf
+                candidates[invalid_prev_paths, self.i_name_idx] = -np.inf
+                # Mask transitions to NAME_SEP from paths that lack a B_NAME_TOK,
+                # NAME_MOD or NAME_VAR
+                invalid_prev_paths = ~has_name_start[t - 1]
+                candidates[invalid_prev_paths, self.name_sep_idx] = -np.inf
 
             # Find the best score in each column and the index of the best score in each
             # column and save to the lattice_scores and backpointers matrices
@@ -927,16 +986,23 @@ class NumpyViterbiInference:
             backpointers[t] = np.argmax(candidates, axis=0)
 
             # Update has_b_name matrix
-            if constrain_transitions and b_name_idx:
+            if constrain_transitions and self.transition_constraints_possible:
                 # Inherit state from the best predecessor for each current label.
                 # We are setting the value of for each column to the value from the
                 # previous row (i.e. t-1) at the index given by backpointers[t] so that
                 # we inherit whether the best sequence has a B_NAME_TOk.
                 has_b_name[t] = has_b_name[t - 1, backpointers[t]]
                 # If current label is B_NAME_TOK, the path now has a B_NAME_TOK
-                has_b_name[t, b_name_idx] = True
+                has_b_name[t, self.b_name_idx] = True
                 # If current label is NAME_SEP, the B_NAME_TOK requirement resets
-                has_b_name[t, name_sep_idx] = False
+                has_b_name[t, self.name_sep_idx] = False
+                # And do the same for the has_name_start matrix.
+                has_name_start[t] = has_name_start[t - 1, backpointers[t]]
+                # If current label is B_NAME_TOK, NAME_VAR or NAME_MOD, then the path
+                # now has a name start.
+                has_name_start[t, self.b_name_idx] = True
+                has_name_start[t, self.name_mod_idx] = True
+                has_name_start[t, self.name_var_idx] = True
 
         # Back tracking through the lattice to find the best scoring sequence.
         label_indices = [0] * seq_len

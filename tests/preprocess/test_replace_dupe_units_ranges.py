@@ -48,3 +48,11 @@ class TestPreProcessor_replace_dupe_units_ranges:
         assert (
             p._replace_dupe_units_ranges(input_sentence) == "400-500 g/14-17 oz rhubarb"
         )
+
+    def test_dupe_custom_units(self):
+        """
+        1 EL - 2 EL is replaced with 1-2 EL.
+        """
+        input_sentence = "1 EL - 2 EL Mehr"
+        p = PreProcessor(".", custom_units={"EL": "EL"})
+        assert p._replace_dupe_units_ranges(input_sentence) == "1-2 EL Mehr"

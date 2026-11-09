@@ -33,8 +33,8 @@ from .training_eval import (
 from .training_utils import (
     DEFAULT_MODEL_LOCATION,
     DataVectors,
-    confusion_matrix,
     convert_num_ordinal,
+    create_confusion_matrix,
     load_datasets,
 )
 
@@ -114,8 +114,8 @@ MODEL_HYPERPARAMETERS = {
     "feature.minfreq": 0,
     "feature.possible_states": True,
     "feature.possible_transitions": True,
-    "c1": 0.3,
-    "c2": 0.6,
+    "c1": 0.2,
+    "c2": 0.3,
     "max_linesearch": 5,
     "num_memories": 3,
     "period": 10,
@@ -228,7 +228,7 @@ def train_parser_model(
     trainer.train(str(crfsuite_model_path))
 
     # Post-training hyperparameters
-    quantize_bits = 16
+    quantize_bits = 10
     min_abs_weight = None
 
     # Export to json.
@@ -275,7 +275,7 @@ def train_parser_model(
         )
 
     if plot_confusion_matrix:
-        confusion_matrix(labels_pred, truth_test)
+        create_confusion_matrix(labels_pred, truth_test)
 
     _ = evaluate_model_with_label_corrections(
         tagger, features_test, truth_test, seed, combine_name_labels

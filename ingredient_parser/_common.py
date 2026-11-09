@@ -11,11 +11,9 @@ from fractions import Fraction
 from importlib.resources import as_file, files
 from itertools import groupby, islice
 from operator import itemgetter
-from typing import TypeVar
+from typing import Any, TypeVar
 
 import pint
-from nltk.data import find as nltk_find
-from nltk.downloader import download as nltk_download
 
 UREG = pint.UnitRegistry()
 with as_file(files(__package__) / "pint_extensions.txt") as p:
@@ -28,18 +26,21 @@ SUPPORTED_LANGUAGES = ["en"]
 logger = logging.getLogger("ingredient-parser")
 logger.addHandler(logging.NullHandler())
 
-# Regex pattern for matching a numeric range e.g. 1-2, 2-3, #1$2-1#3$4.
-RANGE_PATTERN = re.compile(r"^[\d\#\$]+\s*[\-][\d\#\$]+$")
+# Regex pattern for matching a numeric range e.g. 1-2, 2-3, #1$2-1#3$4, 1.5-2.5
+RANGE_PATTERN = re.compile(r"^[\d\#\$\.]+\s*[\-][\d\#\$\.]+$")
+
+# Prefixes at the start of the string that indicate the string may be a float.
+FLOAT_CANDIDATE_PREFIXES = frozenset(["-", "."])
 
 
-def consume(iterator: Iterator, n: int | None) -> None:
+def consume(iterator: Iterator[Any], n: int | None) -> None:
     """Advance the `iterator` n-steps ahead. If `n` is none, consume entirely.
 
     See consume from https://docs.python.org/3/library/itertools.html#itertools-recipes
 
     Parameters
     ----------
-    iterator : Iterator
+    iterator : Iterator[Any]
         Iterator to advance.
     n : int | None
         Number of iterations to advance by.
@@ -78,7 +79,7 @@ def group_consecutive_idx(idx: list[int]) -> Generator[Iterator[int], None, None
 
     Yields
     ------
-    list[list[int]]
+    Generator[Iterator[int], None, None]
         List of lists, where each sub-list contains consecutive indices.
 
     Examples
@@ -126,7 +127,6 @@ def incremental_sublists(sequence: list[T], reverse: bool = False) -> list[list[
         r_sequence = list(reversed(sequence.copy()))
         return [r_sequence[: i + 1] for i in range(len(sequence))]
     else:
-        sequence = sequence.copy()
         return [sequence[: i + 1] for i in range(len(sequence))]
 
 
@@ -160,23 +160,6 @@ def show_model_card(lang: str = "en") -> None:
             subprocess.call(("xdg-open", p))
 
 
-def download_nltk_resources() -> None:
-    """Check if required nltk resources can be found and if not, download them."""
-    try:
-        nltk_find(
-            "taggers/averaged_perceptron_tagger_eng/averaged_perceptron_tagger_eng.classes.json"
-        )
-        nltk_find(
-            "taggers/averaged_perceptron_tagger_eng/averaged_perceptron_tagger_eng.tagdict.json"
-        )
-        nltk_find(
-            "taggers/averaged_perceptron_tagger_eng/averaged_perceptron_tagger_eng.weights.json"
-        )
-    except LookupError:
-        print("Downloading required NLTK resource: averaged_perceptron_tagger_eng")
-        nltk_download("averaged_perceptron_tagger_eng")
-
-
 def is_float(value: str) -> bool:
     """Check if `value` can be converted to a float.
 
@@ -200,7 +183,19 @@ def is_float(value: str) -> bool:
 
     >>> is_float("1-2")
     False
+
+    >>> if_float("-5")
+    True
     """
+    if (
+        not value
+        or value == "nan"
+        or value.endswith("inf")
+        or not (value[0].isdecimal() or value[0] in FLOAT_CANDIDATE_PREFIXES)
+    ):
+        # Quick checks for things that definitely aren't floats.
+        return False
+
     try:
         _ = float(value)
         return True
@@ -280,7 +275,7 @@ def intermediate_fraction_to_unicode(token: str) -> str:
     >>> intermediate_fraction_to_unicode("2#1$2-inch")
     2½-inch
     """
-    UNICODE_FRACTIONS = {
+    INTERMEDIATE_FRAC_TO_UNICODE = {
         "#1$8": "\u215b",
         "#3$8": "\u215c",
         "#5$8": "\u215d",
@@ -314,8 +309,8 @@ def intermediate_fraction_to_unicode(token: str) -> str:
         integer = match.group(1)
         fraction = match.group(2)
 
-        if fraction in UNICODE_FRACTIONS:
-            replacement_fraction = UNICODE_FRACTIONS[fraction]
+        if fraction in INTERMEDIATE_FRAC_TO_UNICODE:
+            replacement_fraction = INTERMEDIATE_FRAC_TO_UNICODE[fraction]
         else:
             replacement_fraction = fraction.replace("#", " ").replace("$", "/")
 
@@ -384,7 +379,7 @@ def fraction_obj_to_str(frac: Fraction) -> str:
     >>> fraction_obj_to_str(Fraction(100000000000000009336059, 40000000000000000000000))
     '2½'
     """
-    UNICODE_FRACTIONS = {
+    TEXT_FRAC_TO_UNICODE = {
         "1/8": "\u215b",
         "3/8": "\u215c",
         "5/8": "\u215d",
@@ -404,20 +399,20 @@ def fraction_obj_to_str(frac: Fraction) -> str:
 
     # Round fraction to avoid compounding errors during multiple conversions.
     # Only do this if the fraction is not already in UNICODE_FRACTIONS.
-    if str(frac) not in UNICODE_FRACTIONS:
+    if str(frac) not in TEXT_FRAC_TO_UNICODE:
         frac = round(frac, 12)
 
     # Fraction.is_integer() only available from Python 3.12.
-    # Check Fraction..denominator is 1 instead.
+    # Check Fraction.denominator is 1 instead.
     if frac.denominator == 1:
         return str(frac)
 
-    if str(frac - int(frac)) in UNICODE_FRACTIONS:
+    if str(frac - int(frac)) in TEXT_FRAC_TO_UNICODE:
         # If the fractional part can be converted to unicode, do so.
         integer = int(frac)
         integer_text = str(integer) if integer != 0 else ""
         fraction = frac - int(frac)
-        fraction_text = UNICODE_FRACTIONS.get(str(fraction), "")
+        fraction_text = TEXT_FRAC_TO_UNICODE[str(fraction)]
         return integer_text + fraction_text
     else:
         # If the fractional part cannot be converted to unicode, return as decimal.

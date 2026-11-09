@@ -11,14 +11,14 @@ jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
-      max-parallel: 4
+      max-parallel: 5
       matrix:
-        python-version: ['3.11', '3.12', '3.13', "3.14"]
+        python-version: ['3.11', '3.12', '3.13', "3.14", "3.15"]
 
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v7
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v6
+      uses: actions/setup-python@v7
       with:
         python-version: ${{ matrix.python-version }}
     - name: Run pre-commit checks on all files
@@ -28,9 +28,7 @@ jobs:
         pre-commit run --all-files
     - name: Install Dependencies
       run: |
-        pip install -r requirements.txt
-        # Should we have some tests with only requirements.txt?
-        pip install -r requirements-dev.txt
+        pip install -r requirements-test.txt
     - name: Run Tests
       run: |
         pytest

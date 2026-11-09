@@ -19,7 +19,7 @@ from ingredient_parser.inference import FeatureDict, NumpyCRFInference
 from .export import export_crfsuite_to_json
 from .train_model import DEFAULT_MODEL_LOCATION, MODEL_HYPERPARAMETERS
 from .trainers import IngredientParserTrainer
-from .training_eval import evaluate
+from .training_eval import evaluate_model_with_label_corrections
 from .training_utils import (
     DataVectors,
     convert_num_ordinal,
@@ -197,11 +197,9 @@ def train_model_feature_search(
     # Create NumpyCRFInference object for evaluation.
     logger.info("Evaluating model with test data.")
     tagger = NumpyCRFInference(save_model_path, combine_name_labels)
-    labels_pred = []
-    for X in features_test:
-        labels, _ = zip(*tagger.tag_from_features(X))
-        labels_pred.append(list(labels))
-    stats = evaluate(labels_pred, truth_test, seed, combine_name_labels)
+    stats, _, _ = evaluate_model_with_label_corrections(
+        tagger, features_test, truth_test, seed, combine_name_labels
+    )
 
     # We don't need to keep the crfsuite model.
     crfsuite_model_path.unlink(missing_ok=True)
@@ -215,6 +213,33 @@ def train_model_feature_search(
         "stats": stats,
         "time": time.monotonic() - start_time,
     }
+
+
+def validate_discarded_in_features(
+    unique_training_features: set[str], feature_set: int
+):
+    """Validate the all features defined in the DISCARD_FEATURES feature set are present
+    in the training data.
+
+    Parameters
+    ----------
+    unique_training_features : set[str]
+        Unique feature names in training data.
+    feature_set : int
+        Discarded feature set.
+
+    Raises
+    ------
+    ValueError
+        Raised if any entry in DISCARDED_FEATURES[feature_set] are not present in
+        unique_training_features.
+    """
+    discarded_features = set(DISCARDED_FEATURES[feature_set])
+    useless_discarded_features = discarded_features - unique_training_features
+    if len(useless_discarded_features) > 0:
+        raise ValueError(
+            f"Features {useless_discarded_features} not found in training data."
+        )
 
 
 def feature_search(args: argparse.Namespace):
@@ -239,8 +264,17 @@ def feature_search(args: argparse.Namespace):
     else:
         save_model = args.save_model
 
+    unique_training_feature_names = {
+        feature
+        for sentence_features in vectors.features
+        for token_features in sentence_features
+        for feature in token_features.keys()
+    }
+
     argument_sets = []
     for feature_set in DISCARDED_FEATURES.keys():
+        validate_discarded_in_features(unique_training_feature_names, feature_set)
+
         arguments = [
             feature_set,
             vectors,

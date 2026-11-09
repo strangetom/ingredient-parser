@@ -6,8 +6,10 @@ from collections import defaultdict
 from functools import lru_cache
 from statistics import mean
 
+import numpy as np
+
 from ._ff_dataclasses import FDCIngredient, FDCIngredientMatch, IngredientToken
-from ._ff_utils import load_fdc_ingredients
+from ._ff_utils import load_fdc_ingredients, top_k_indices
 
 logger = logging.getLogger("ingredient-parser.foundation-foods.bm25")
 
@@ -23,15 +25,11 @@ class BM25:
 
     Attributes
     ----------
-    corpus : list[list[str]]
+    corpus : list[FDCIngredient]
         FDC ingredient corpus.
-    t2d : dict[str, dict[int, int]]
-        Dictionary with terms frequencies.
-        The keys are tokens, the values are a dict of ingredient index in corpus and the
-        frequency of the term in that ingredient.
-    idf : dict[str, float]
-        Pre computed inverse document frequency score for every term i.e. the inverse of
-        the number of ingredients containing the term.
+    postings : dict[str, tuple[np.ndarray, np.ndarray]]
+        For every term, the indices of the ingredients containing the term and the
+        pre-computed score contribution of that term to each of those ingredients.
     doc_len : list[int]
         List of ingredient lengths.
     avgdl : float
@@ -67,10 +65,12 @@ class BM25:
         self.b = b
 
         self.avgdl = 0
-        self.t2d = {}
-        self.idf = {}
-        self.doc_len = []
-        self.corpus = []
+        self.doc_len: list[int] = []
+        self.corpus: list[FDCIngredient] = []
+        # postings maps token to the documents that contain it and, for each containing
+        # document, the contribution of that token to the score for that document.
+        # The document indices and score contributions are stored as np.ndarrays.
+        self.postings: dict[str, tuple[np.ndarray, np.ndarray]] = {}
         self._initialize(fdc_ingredients)
 
     @property
@@ -83,69 +83,90 @@ class BM25:
         """
         self.corpus = fdc_ingredients
 
+        # t2d maps each token to the documents that contain it and, for each containing
+        # document, the frequency of the token within that document.
+        t2d: dict[str, dict[int, int]] = {}
         for i, ingredient in enumerate(fdc_ingredients):
             self.doc_len.append(len(ingredient.tokens))
 
             for token in ingredient.tokens:
-                self.t2d.setdefault(token, defaultdict(int))
-                self.t2d[token][i] += 1
+                t2d.setdefault(token, defaultdict(int))
+                t2d[token][i] += 1
 
         self.avgdl = mean(self.doc_len)
 
-        for token, ingredients in self.t2d.items():
-            self.idf[token] = math.log(self.corpus_size / len(ingredients))
+        # idf maps each token to it's inverse document frequency.
+        idf: dict[str, float] = {}
+        for token, ingredients in t2d.items():
+            idf[token] = math.log(self.corpus_size / len(ingredients))
 
-    def rank_matches(self, tokens: list[IngredientToken]) -> list[FDCIngredientMatch]:
+        # Pre-compute the contribution of each token to every FDC ingredient that
+        # contains it.
+        # When it comes to ranking for FDC ingredients for a given set of query tokens,
+        # we just need to look at the posting for each token in the query and sum the
+        # contributions for relevant FDC ingredients.
+        doc_len = np.array(self.doc_len)
+        denom_constant = self.k1 * (1 - self.b + self.b * doc_len / self.avgdl)
+        for token, ingredients in t2d.items():
+            indices = np.fromiter(ingredients.keys(), dtype=np.intp)
+            freqs = np.fromiter(ingredients.values(), dtype=np.float64)
+            contribution = idf[token] + freqs * (self.k1 + 1) / (
+                denom_constant[indices] + freqs
+            )
+            self.postings[token] = (indices, contribution)
+
+    def rank_matches(
+        self, tokens: list[IngredientToken], top_k: int
+    ) -> list[FDCIngredientMatch]:
         """Rank and score FDC Ingredients according to closest match to tokens.
 
         Parameters
         ----------
         tokens : list[IngredientToken]
             List of tokens.
+        top_k : int
+            Number of highest ranking matches to return.
 
         Returns
         -------
         list[FDCIngredientMatch]
             Scored FDC ingredients, sorted by best first.
         """
-        ingredient_nouns = {t.token for t in tokens if t.pos_tag.startswith("N")}
+        scores = np.zeros(self.corpus_size)
+        shares_noun = np.zeros(self.corpus_size, dtype=np.bool)
 
-        scores = defaultdict(float)
-        for ing_token in tokens:
-            if ing_token.token in self.t2d:
-                for index, freq in self.t2d[ing_token.token].items():
-                    denom_constant = self.k1 * (
-                        1 - self.b + self.b * self.doc_len[index] / self.avgdl
-                    )
-                    scores[index] += (
-                        self.idf[ing_token.token]
-                        * freq
-                        * (self.k1 + 1)
-                        / (denom_constant + freq)
-                    )
-
-        matches = []
-        for index, score in sorted(scores.items(), key=lambda x: x[1], reverse=True):
-            fdc = self.corpus[index]
-            if len(ingredient_nouns & set(fdc.tokens)) == 0:
-                # Skip any FDC entries that don't share any nouns with the ingredient
-                # name tokens.
+        for token in tokens:
+            # Get the posting for each token.
+            # The posting contains the indices for the FDC ingredients in self.corpus
+            # that contain the token, and the contribution to the score for that FDC
+            # ingredient as a result of this token.
+            posting = self.postings.get(token.token)
+            if not posting:
                 continue
 
-            matches.append(
-                FDCIngredientMatch(
-                    fdc=fdc,
-                    score=score,
-                )
-            )
+            indices, contributions = posting
+            scores[indices] += contributions
+            if token.pos_tag.startswith("N"):
+                shares_noun[indices] = True
 
-        if not matches:
+        # Candidates are the FDC ingredients that share a noun with input tokens.
+        candidates = np.flatnonzero(shares_noun)
+        if candidates.size == 0:
             logger.debug(
                 "BM25 ranker found no FDC entries that had a noun "
                 "common with the ingredient name."
             )
+            return []
 
-        return matches
+        candidate_scores = scores[candidates]
+        order = top_k_indices(candidate_scores, top_k, bigger_is_better=True)
+        return [
+            FDCIngredientMatch(
+                fdc=self.corpus[idx],
+                score=float(scores[idx]),
+            )
+            for idx in candidates[order][:top_k]
+        ]
 
 
 @lru_cache

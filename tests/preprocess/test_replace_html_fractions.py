@@ -11,7 +11,7 @@ def p():
     return PreProcessor(".", custom_units={})
 
 
-class TestPreProcessor_replace_html_fractions:
+class TestPreProcessor_unescape_html:
     def test_half(self, p):
         """
         The HTML fraction &frac12; is converted to the unicode symbol ½
@@ -19,7 +19,7 @@ class TestPreProcessor_replace_html_fractions:
         fraction
         """
         input_sentence = "3&frac12; potatoes"
-        assert p._replace_html_fractions(input_sentence) == "3½ potatoes"
+        assert p._unescape_html(input_sentence) == "3½ potatoes"
 
     def test_one_third(self, p):
         """
@@ -28,7 +28,7 @@ class TestPreProcessor_replace_html_fractions:
         fraction
         """
         input_sentence = "3&frac13; potatoes"
-        assert p._replace_html_fractions(input_sentence) == "3⅓ potatoes"
+        assert p._unescape_html(input_sentence) == "3⅓ potatoes"
 
     def test_two_thirds(self, p):
         """
@@ -37,7 +37,7 @@ class TestPreProcessor_replace_html_fractions:
         fraction
         """
         input_sentence = "3&frac23; potatoes"
-        assert p._replace_html_fractions(input_sentence) == "3⅔ potatoes"
+        assert p._unescape_html(input_sentence) == "3⅔ potatoes"
 
     def test_one_quarter(self, p):
         """
@@ -46,7 +46,7 @@ class TestPreProcessor_replace_html_fractions:
         fraction
         """
         input_sentence = "3&frac14; potatoes"
-        assert p._replace_html_fractions(input_sentence) == "3¼ potatoes"
+        assert p._unescape_html(input_sentence) == "3¼ potatoes"
 
     def test_three_quarters(self, p):
         """
@@ -55,74 +55,88 @@ class TestPreProcessor_replace_html_fractions:
         fraction
         """
         input_sentence = "3&frac34; potatoes"
-        assert p._replace_html_fractions(input_sentence) == "3¾ potatoes"
+        assert p._unescape_html(input_sentence) == "3¾ potatoes"
 
     def test_fifth(self, p):
         """
         The HTML fraction &frac15; is converted to the unicode symbol ⅕
         """
         input_sentence = "3 &frac15; potatoes"
-        assert p._replace_html_fractions(input_sentence) == "3 ⅕ potatoes"
+        assert p._unescape_html(input_sentence) == "3 ⅕ potatoes"
 
     def test_two_fifth(self, p):
         """
         The HTML fraction &frac25; is converted to the unicode symbol ⅖
         """
         input_sentence = "3 &frac25; potatoes"
-        assert p._replace_html_fractions(input_sentence) == "3 ⅖ potatoes"
+        assert p._unescape_html(input_sentence) == "3 ⅖ potatoes"
 
     def test_three_fifth(self, p):
         """
         The HTML fraction &frac35; is converted to the unicode symbol ⅗
         """
         input_sentence = "3 &frac35; potatoes"
-        assert p._replace_html_fractions(input_sentence) == "3 ⅗ potatoes"
+        assert p._unescape_html(input_sentence) == "3 ⅗ potatoes"
 
     def test_four_fifth(self, p):
         """
         The HTML fraction &frac45; is converted to the unicode symbol ⅘
         """
         input_sentence = "3 &frac45; potatoes"
-        assert p._replace_html_fractions(input_sentence) == "3 ⅘ potatoes"
+        assert p._unescape_html(input_sentence) == "3 ⅘ potatoes"
 
     def test_one_sixth(self, p):
         """
         The HTML fraction &frac16; is converted to the unicode symbol ⅙
         """
         input_sentence = "3 &frac16; potatoes"
-        assert p._replace_html_fractions(input_sentence) == "3 ⅙ potatoes"
+        assert p._unescape_html(input_sentence) == "3 ⅙ potatoes"
 
     def test_five_sixths(self, p):
         """
         The HTML fraction &frac56; is converted to the unicode symbol ⅚
         """
         input_sentence = "3 &frac56; potatoes"
-        assert p._replace_html_fractions(input_sentence) == "3 ⅚ potatoes"
+        assert p._unescape_html(input_sentence) == "3 ⅚ potatoes"
 
     def test_one_eighth(self, p):
         """
         The HTML fraction &frac18; is converted to the unicode symbol ⅛
         """
         input_sentence = "3 &frac18; potatoes"
-        assert p._replace_html_fractions(input_sentence) == "3 ⅛ potatoes"
+        assert p._unescape_html(input_sentence) == "3 ⅛ potatoes"
 
     def test_three_eighths(self, p):
         """
         The HTML fraction &frac38; is converted to the unicode symbol ⅜
         """
         input_sentence = "3 &frac38; potatoes"
-        assert p._replace_html_fractions(input_sentence) == "3 ⅜ potatoes"
+        assert p._unescape_html(input_sentence) == "3 ⅜ potatoes"
 
     def test_five_eighths(self, p):
         """
         The HTML fraction &frac58; is converted to the unicode symbol ⅝
         """
         input_sentence = "3 &frac58; potatoes"
-        assert p._replace_html_fractions(input_sentence) == "3 ⅝ potatoes"
+        assert p._unescape_html(input_sentence) == "3 ⅝ potatoes"
 
     def test_seven_eighths(self, p):
         """
         The HTML fraction &frac78; is converted to the unicode symbol ⅞
         """
         input_sentence = "3 &frac78; potatoes"
-        assert p._replace_html_fractions(input_sentence) == "3 ⅞ potatoes"
+        assert p._unescape_html(input_sentence) == "3 ⅞ potatoes"
+
+    def test_ndash(self, p):
+        """
+        The en-dash is converted to the unicode symbol –
+        """
+        input_sentence = "3 &ndash; 4 potatoes"
+        assert p._unescape_html(input_sentence) == "3 – 4 potatoes"
+
+    def test_pound(self, p):
+        """
+        The &pound; is converted to the unicode symbol £
+        """
+        input_sentence = "3 potatoes (&pound;1.20)"
+        assert p._unescape_html(input_sentence) == "3 potatoes (£1.20)"
