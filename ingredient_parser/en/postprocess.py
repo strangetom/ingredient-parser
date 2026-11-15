@@ -458,6 +458,13 @@ class PostProcessor:
         last_encountered_name = None
         last_encountered_name_used = False
 
+        # Keep track of NAME_MOD groups that need to be prepended to previously
+        # constructed names.
+        # When we encounter a TOK or VAR group, we will apply the pending NAME_MOD
+        # groups to all names in the constructed_names list and then clear the list
+        # of pending NAME_MOD groups before processing the TOK or VAR group.
+        pending_name_mod_groups = []
+
         # Iterate from last to first BIO group
         for group in reversed(name_groups):
             current_group_idx, labels = zip(*group)
@@ -469,11 +476,27 @@ class PostProcessor:
                 if last_encountered_name and not last_encountered_name_used:
                     constructed_names.append(last_encountered_name)
 
+                if pending_name_mod_groups:
+                    # If there are any pending NAME_MOD groups, apply them and then
+                    # clear the list.
+                    constructed_names = self._apply_name_mod_groups(
+                        constructed_names, pending_name_mod_groups, name_idx
+                    )
+                    pending_name_mod_groups = []
+
                 # Set current group to last_encountered_name group.
                 last_encountered_name = current_group_idx
                 last_encountered_name_used = False
 
             elif current_label == "VAR":
+                if pending_name_mod_groups:
+                    # If there are any pending NAME_MOD groups, apply them and then
+                    # clear the list.
+                    constructed_names = self._apply_name_mod_groups(
+                        constructed_names, pending_name_mod_groups, name_idx
+                    )
+                    pending_name_mod_groups = []
+
                 # Prepend this group to last encountered NAME group
                 if last_encountered_name:
                     constructed_names.append(current_group_idx + last_encountered_name)
@@ -491,21 +514,63 @@ class PostProcessor:
                     constructed_names.append(last_encountered_name)
                     last_encountered_name_used = True
 
-                # Prepend this group to all constructed names so far
-                constructed_names = [
-                    current_group_idx + name
-                    if not self._is_mixture_phrase(name, name_idx)
-                    else name
-                    for name in constructed_names
-                ]
+                # Store group in pending list.
+                pending_name_mod_groups.append(current_group_idx)
 
         # If we've iterated through all BIO groups and haven't used
         # last_encountered_name, add it to constructed_names now.
         if last_encountered_name and not last_encountered_name_used:
             constructed_names.append(last_encountered_name)
 
+        if pending_name_mod_groups:
+            # If there are any pending NAME_MOD groups, apply them and then clear
+            # the list.
+            constructed_names = self._apply_name_mod_groups(
+                constructed_names, pending_name_mod_groups, name_idx
+            )
+
         # Return reversed list, so names are in the order they appear in sentence.
-        return list(reversed(constructed_names))
+        return [list(name) for name in reversed(constructed_names)]
+
+    def _apply_name_mod_groups(
+        self,
+        names: list[tuple[int, ...]],
+        name_mod_groups: list[tuple[int, ...]],
+        name_idx: list[int],
+    ) -> list[tuple[int, ...]]:
+        """Apply name_mod_groups to all names by prepending the name_mod_group to the
+        name.
+
+        We do not apply name_mod_groups to names that are mixture phrases (e.g. a mix,
+        a mixture) because these won't make sense.
+
+        Parameters
+        ----------
+        names : list[tuple[int, ...]]
+            List of names defined by their token indices.
+        name_mod_groups : list[tuple[int, ...]]
+            List of NAME_MOD groups, defined by their token indices.
+        name_idx : list[int]
+            List of indices of NAME tokens.
+
+        Returns
+        -------
+        list[tuple[int, ...]]
+            List of names with NAME_MOD groups prepended.
+        """
+        prepended = []
+        for i, group in enumerate(name_mod_groups):
+            for name in names:
+                if self._is_mixture_phrase(name, name_idx):
+                    # Don't prepend name with name_mod_group if the name is a mixture
+                    # phrase. We only do this for the first name_mod_group because
+                    # otherwise we would duplicate this name as many times as there are
+                    # name_mod_groups.
+                    if i == 0:
+                        prepended.append(name)
+                else:
+                    prepended.append(group + name)
+        return prepended
 
     def _is_mixture_phrase(
         self, phrase_indices: tuple[int, ...], name_idx: list[int]

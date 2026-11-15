@@ -228,3 +228,148 @@ class TestPostProcessor_postprocess_names:
         p = PostProcessor(sentence, labelled_tokens, custom_units={})
         names, _ = p._postprocess_names()
         assert names == expected
+
+    def test_multiple_modified_and_multiple_variant_names(self):
+        """
+        Test that a list containing one IngredientText objects is returned
+        """
+        sentence = "6 fresh or dry Indian or regular bay leaves"
+        tokens = ["6", "fresh", "or", "dry", "Indian", "or", "regular", "bay", "leaf"]
+        pos_tags = ["CD", "JJ", "CC", "JJ", "JJ", "CC", "JJ", "NN", "NNS"]
+        labels = [
+            "QTY",
+            "NAME_MOD",
+            "NAME_SEP",
+            "NAME_MOD",
+            "NAME_VAR",
+            "NAME_SEP",
+            "NAME_VAR",
+            "B_NAME_TOK",
+            "I_NAME_TOK",
+        ]
+        plurals = [False, False, False, False, False, False, False, False, True]
+        labelled_tokens = [
+            LabelledToken(
+                index=i, text=text, pos_tag=tag, label=label, score=0, plural=plural
+            )
+            for i, (text, tag, label, plural) in enumerate(
+                zip(tokens, pos_tags, labels, plurals)
+            )
+        ]
+
+        expected = [
+            IngredientText(
+                text="fresh Indian bay leaves", confidence=0, starting_index=1
+            ),
+            IngredientText(
+                text="fresh regular bay leaves", confidence=0, starting_index=1
+            ),
+            IngredientText(
+                text="dry Indian bay leaves", confidence=0, starting_index=3
+            ),
+            IngredientText(
+                text="dry regular bay leaves", confidence=0, starting_index=3
+            ),
+        ]
+
+        p = PostProcessor(sentence, labelled_tokens, custom_units={})
+        names, _ = p._postprocess_names()
+        assert names == expected
+
+    def test_multiple_modified_and_multiple_variant_names_with_mixture(self):
+        """
+        Test that a list containing one IngredientText objects is returned
+        """
+        sentence = (
+            "2 cups cooked medium-grain or long-grain white or brown rice or a mix"
+        )
+        tokens = [
+            "2",
+            "cup",
+            "cooked",
+            "medium-grain",
+            "or",
+            "long-grain",
+            "white",
+            "or",
+            "brown",
+            "rice",
+            "or",
+            "a",
+            "mix",
+        ]
+        pos_tags = [
+            "CD",
+            "NNS",
+            "VBD",
+            "NN",
+            "CC",
+            "JJ",
+            "JJ",
+            "CC",
+            "JJ",
+            "NN",
+            "CC",
+            "DT",
+            "NN",
+        ]
+        labels = [
+            "QTY",
+            "UNIT",
+            "PREP",
+            "NAME_MOD",
+            "NAME_SEP",
+            "NAME_MOD",
+            "NAME_VAR",
+            "NAME_SEP",
+            "NAME_VAR",
+            "B_NAME_TOK",
+            "NAME_SEP",
+            "B_NAME_TOK",
+            "I_NAME_TOK",
+        ]
+
+        plurals = [
+            False,
+            True,
+            False,
+            False,
+            False,
+            False,
+            False,
+            False,
+            False,
+            False,
+            False,
+            False,
+            False,
+        ]
+
+        labelled_tokens = [
+            LabelledToken(
+                index=i, text=text, pos_tag=tag, label=label, score=0, plural=plural
+            )
+            for i, (text, tag, label, plural) in enumerate(
+                zip(tokens, pos_tags, labels, plurals)
+            )
+        ]
+
+        expected = [
+            IngredientText(
+                text="medium-grain white rice", confidence=0, starting_index=3
+            ),
+            IngredientText(
+                text="medium-grain brown rice", confidence=0, starting_index=3
+            ),
+            IngredientText(
+                text="long-grain white rice", confidence=0, starting_index=5
+            ),
+            IngredientText(
+                text="long-grain brown rice", confidence=0, starting_index=5
+            ),
+            IngredientText(text="a mix", confidence=0, starting_index=11),
+        ]
+
+        p = PostProcessor(sentence, labelled_tokens, custom_units={})
+        names, _ = p._postprocess_names()
+        assert names == expected
