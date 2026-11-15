@@ -17,3 +17,15 @@
     aus_pint = 570 * ml
     jp_cup = 200 * ml
 @end
+
+@group CanSizes
+    number_ten_can = 10.45 * floz
+    number_three_cylinder_can = 49.61 * floz
+    number_two_half_can = 28.55 * floz
+    number_two_cylinder_can = 25.3 * floz
+    number_two_can = 19.7 * floz
+    # This is the size of a can of beans at the store so, for lack of a more rigorous process
+    # of figuring out which can the user means we should default to this one.
+    can = 14.6 * floz = number_three_hundred_can
+    number_one_can = 10.45 * floz = picnic_can
+@end
