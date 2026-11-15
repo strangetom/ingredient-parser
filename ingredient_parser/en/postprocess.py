@@ -362,8 +362,9 @@ class PostProcessor:
         B_NAME_TOK and all following I_NAME_TOK up to the next label that is not
         I_NAME_TOK or PUNC are grouped.
 
-        All consecutive NAME_MOD labels are grouped.
         All consecutive NAME_VAR labels are grouped.
+        All consecutive NAME_MOD and PUNC labels are grouped, until a NAME_SEP is
+        encountered.
 
         A NAME_SEP label starts a new group.
 
@@ -383,27 +384,36 @@ class PostProcessor:
         current_group = []
         prev_label = None
         for idx, label in enumerate(name_labels):
-            # Start new group on NAME_SEP name label
             if label == "NAME_SEP":
+                # Start new group on NAME_SEP name label
                 if current_group:
                     name_groups.append(current_group)
                 current_group = []
-            # Start new group for new "B_*" name label
             elif label.startswith("B_"):
+                # Start new group for new "B_*" name label
                 if current_group:
                     name_groups.append(current_group)
                 current_group = [(idx, label)]
-            # Start new group if encountering new NAME_MOD or NAME_VAR, or append to
-            # current group if previous label was the same as current label.
-            elif label in ["NAME_MOD", "NAME_VAR"]:
+            elif label == "NAME_VAR":
+                # If the previous label was also NAME_VAR, then continue existing group.
+                # Otherwise start a new group.
                 if prev_label == label:
                     current_group.append((idx, label))
                 else:
                     if current_group:
                         name_groups.append(current_group)
                     current_group = [(idx, label)]
-            # Must be an I_NAME_TOK or PUNC label, so append to current group
+            elif label == "NAME_MOD":
+                # Start new group if NAME_MOD follows NAME_SEP, otherwise continue
+                # with current group.
+                if prev_label == "NAME_SEP":
+                    if current_group:
+                        name_groups.append(current_group)
+                    current_group = [(idx, label)]
+                else:
+                    current_group.append((idx, label))
             else:
+                # Must be an I_NAME_TOK or PUNC label, so append to current group
                 current_group.append((idx, label))
 
             prev_label = label
