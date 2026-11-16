@@ -198,3 +198,29 @@ class Test_group_name_labels:
             [(13, "B_NAME_TOK")],
         ]
         assert p._group_name_labels(input_labels) == expected
+
+    def test_name_tok_before_name_mod(self, p):
+        """
+        First B_NAME_TOK is grouped on it's own, followed by 2 groups for subsequence
+        NAME_MOD groups.
+        """
+        input_labels = [
+            "B_NAME_TOK",
+            "PUNC",
+            "NAME_MOD",
+            "PUNC",
+            "NAME_SEP",
+            "NAME_MOD",
+            "B_NAME_TOK",
+            "I_NAME_TOK",
+            "NAME_SEP",
+            "B_NAME_TOK",
+        ]
+        expected = [
+            [(0, "B_NAME_TOK"), (1, "PUNC")],
+            [(2, "NAME_MOD"), (3, "PUNC")],
+            [(5, "NAME_MOD")],
+            [(6, "B_NAME_TOK"), (7, "I_NAME_TOK")],
+            [(9, "B_NAME_TOK")],
+        ]
+        assert p._group_name_labels(input_labels) == expected

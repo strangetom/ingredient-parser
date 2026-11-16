@@ -404,14 +404,13 @@ class PostProcessor:
                         name_groups.append(current_group)
                     current_group = [(idx, label)]
             elif label == "NAME_MOD":
-                # Start new group if NAME_MOD follows NAME_SEP, otherwise continue
-                # with current group.
-                if prev_label == "NAME_SEP":
+                # Continue with same group the current group starts with NAME_MOD.
+                if current_group and current_group[0][1] == "NAME_MOD":
+                    current_group.append((idx, label))
+                else:
                     if current_group:
                         name_groups.append(current_group)
                     current_group = [(idx, label)]
-                else:
-                    current_group.append((idx, label))
             else:
                 # Must be an I_NAME_TOK or PUNC label, so append to current group
                 current_group.append((idx, label))
