@@ -592,6 +592,7 @@ class PostProcessor:
             ("a", "mixture"),
             ("a", "mix"),
             ("a", "combination"),
+            ("any", "combination"),
         ]
 
         phrase = tuple(self.tokens[name_idx[i]].text for i in phrase_indices[:2])
