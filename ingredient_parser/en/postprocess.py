@@ -663,6 +663,14 @@ class PostProcessor:
             token_idx = [name_idx[idx] for idx in group]
 
             if merge_with_next and merge_with_next_idx:
+                logger.debug(
+                    (
+                        "Merging names at indices: %s and %s because the first group "
+                        "ended with a DT, IN or JJ part of speech tag."
+                    ),
+                    merge_with_next_idx,
+                    token_idx,
+                )
                 token_idx = [*merge_with_next_idx, *token_idx]
 
             if self._last_non_punc_token_pos(token_idx) in {"DT", "IN", "JJ"}:
