@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from itertools import pairwise
 from pathlib import Path
 
+import tqdm
 from tabulate import tabulate
 
 # Ensure the local ingredient_parser package can be found
@@ -19,6 +20,24 @@ from ingredient_parser.inference import PROHIBITED_TRANSITIONS
 sqlite3.register_converter("json", json.loads)
 
 DATABASE = "train/data/training.sqlite3"
+
+VALID_LABELS = frozenset(
+    [
+        "B_NAME_TOK",
+        "COMMENT",
+        "I_NAME_TOK",
+        "NAME_MOD",
+        "NAME_SEP",
+        "NAME_VAR",
+        "OTHER",
+        "PREP",
+        "PUNC",
+        "PURPOSE",
+        "QTY",
+        "SIZE",
+        "UNIT",
+    ]
+)
 
 
 @dataclass
@@ -58,6 +77,7 @@ class ValidationResults:
     calculated_token: list[CalculatedTokenError]
     token_count: list[CalculatedTokenError]
     duplicate_sentence: list[DuplicateSentenceError]
+    labels: list[LabelError]
     prohibited_transition: list[LabelError]
     i_name_tok: list[LabelError]
     name_var: list[LabelError]
@@ -79,6 +99,7 @@ class TrainingDataValidator:
             calculated_token=[],
             token_count=[],
             duplicate_sentence=[],
+            labels=[],
             prohibited_transition=[],
             i_name_tok=[],
             name_var=[],
@@ -89,7 +110,7 @@ class TrainingDataValidator:
         """Validate database entries and print any errors."""
         self.validate_sentence_consistency(self.training_data)
 
-        for row in self.training_data:
+        for row in tqdm.tqdm(self.training_data):
             self.validate_token_consistency(row)
             self.validate_label_consistency(row)
 
@@ -157,13 +178,19 @@ class TrainingDataValidator:
             )
 
         if (
-            self.validation_results.prohibited_transition
+            self.validation_results.labels
+            or self.validation_results.prohibited_transition
             or self.validation_results.i_name_tok
             or self.validation_results.name_var
             or self.validation_results.name_mod
         ):
             print("Label sequence errors:")
             label_error_table = [
+                [
+                    "Invalid labels",
+                    len(self.validation_results.labels),
+                    ",".join(str(error.id) for error in self.validation_results.labels),
+                ],
                 [
                     "Prohibited transitions",
                     len(self.validation_results.prohibited_transition),
@@ -201,7 +228,7 @@ class TrainingDataValidator:
                     label_error_table,
                     headers=["Error", "Count", "IDs"],
                     tablefmt="fancy_grid",
-                    maxcolwidths=[None, None],
+                    maxcolwidths=[None, None, 100],
                     stralign="left",
                     numalign="right",
                 )
@@ -268,6 +295,7 @@ class TrainingDataValidator:
         """Validate label sequence consistency with labelling scheme.
 
         Check for the following:
+        * All labels are in allowed label set.
         * No prohibited transitions are present.
         * No instances of I_NAME_TOK occurring before B_NAME_TOK since start of sequence
           of last NAME_SEP.
@@ -279,6 +307,11 @@ class TrainingDataValidator:
         row : DBRow
             Database row.
         """
+        if not self._validate_labels(row):
+            self.validation_results.labels.append(
+                LabelError(id=row.id, error="Sentence contains invalid label.")
+            )
+
         if not self._validate_I_NAME_TOK(row):
             self.validation_results.i_name_tok.append(
                 LabelError(
@@ -301,6 +334,21 @@ class TrainingDataValidator:
             self.validation_results.prohibited_transition.append(
                 LabelError(id=row.id, error=error)
             )
+
+    def _validate_labels(self, row: DBRow) -> bool:
+        """Validate all labels are in VALID_LABELS set.
+
+        Parameters
+        ----------
+        row : DBRow
+            Database row.
+
+        Returns
+        -------
+        bool
+            True if valid, else False.
+        """
+        return all(label in VALID_LABELS for label in row.labels)
 
     def _validate_I_NAME_TOK(self, row: DBRow) -> bool:
         """Validate that I_NAME_TOK always appears after a B_NAME_TOK.
