@@ -6,7 +6,7 @@ import {
 	defineConfig,
 	loadEnv,
 	type Plugin,
-	transformWithEsbuild,
+	transformWithOxc,
 } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
 
@@ -186,8 +186,8 @@ function svgrPlugin(): Plugin {
 					},
 				});
 
-				const res = await transformWithEsbuild(componentCode, id, {
-					loader: "jsx",
+				const res = await transformWithOxc(componentCode, id, {
+					lang: "jsx",
 				});
 
 				return {

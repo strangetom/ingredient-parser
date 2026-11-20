@@ -1,7 +1,8 @@
 // {{{EXTERNAL}}}
 import { Box, type MantineStyleProp } from "@mantine/core";
 import { useMemo } from "react";
-import { AutoSizer, List as ListVirtual } from "react-virtualized";
+import { List as ListVirtual } from "react-virtualized";
+import { AutoSizer } from "react-virtualized-auto-sizer";
 // {{{INTERNAL}}}
 import type {
 	ParsedSentenceEditable,
@@ -61,17 +62,17 @@ export function ScrollableVirtualized({
 
 	return (
 		<Box {...others}>
-			<AutoSizer>
-				{({ width, height }) => (
+			<AutoSizer
+				renderProp={({ width, height }) => (
 					<ListVirtual
-						width={width}
-						height={height}
+						width={width ?? 0}
+						height={height ?? 0}
 						rowCount={parsedSentencesProvided.length}
 						rowHeight={92}
 						rowRenderer={sentenceListRenderer}
 					/>
 				)}
-			</AutoSizer>
+			/>
 		</Box>
 	);
 }

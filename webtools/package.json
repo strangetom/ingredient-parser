@@ -17,6 +17,7 @@
 		"react-dom": "^19.3.1",
 		"react-router-dom": "^7.18.6",
 		"react-virtualized": "^10.0.1",
+		"react-virtualized-auto-sizer": "^2.0.4",
 		"socket.io-client": "^4.8.4",
 		"zustand": "^5.1.0"
 	},
