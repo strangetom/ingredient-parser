@@ -30,7 +30,7 @@ BIAS_EXAMPLES = [
 
 MULTIPLE_EXAMPLES = [
     ("salt and black pepper", (170931, 746775)),
-    ("24 fresh basil leaves or dried basil", (172232, 171317)),
+    ("24 leaves fresh basil or dried basil", (172232, 171317)),
     ("2 red or green peppers", (2258588, 2258590)),
     ("250 ml hot beef or chicken stock", (172883, 172884)),
 ]
@@ -45,6 +45,7 @@ NO_EMBEDDING_TOKENS = [
 
 
 class TestPostProcessor_match_foundation_foods:
+    @pytest.mark.model_dependent
     @pytest.mark.parametrize(("sentence", "fdc_id"), OVERRIDE_EXAMPLES)
     def test_match_foundation_foods_overrides(self, sentence, fdc_id):
         """
@@ -55,6 +56,7 @@ class TestPostProcessor_match_foundation_foods:
         assert p.foundation_foods[0].fdc_id == fdc_id
         assert p.foundation_foods[0].confidence == 1
 
+    @pytest.mark.model_dependent
     @pytest.mark.parametrize(("sentence", "fdc_id"), SIMPLE_EXAMPLES)
     def test_match_foundation_foods_simple(self, sentence, fdc_id):
         """
@@ -64,6 +66,7 @@ class TestPostProcessor_match_foundation_foods:
         assert p.foundation_foods != []
         assert p.foundation_foods[0].fdc_id == fdc_id
 
+    @pytest.mark.model_dependent
     @pytest.mark.parametrize(("sentence", "fdc_id"), SIMPLE_EXAMPLES)
     def test_match_foundation_foods_simple_combined_names(self, sentence, fdc_id):
         """
@@ -73,6 +76,7 @@ class TestPostProcessor_match_foundation_foods:
         assert p.foundation_foods != []
         assert p.foundation_foods[0].fdc_id == fdc_id
 
+    @pytest.mark.model_dependent
     @pytest.mark.parametrize(("sentence", "fdc_ids"), MULTIPLE_EXAMPLES)
     def test_match_foundation_foods_multiple(self, sentence, fdc_ids):
         """
@@ -83,6 +87,7 @@ class TestPostProcessor_match_foundation_foods:
         for ff in p.foundation_foods:
             assert ff.fdc_id in fdc_ids
 
+    @pytest.mark.model_dependent
     @pytest.mark.parametrize(("sentence", "fdc_ids"), BIAS_EXAMPLES)
     def test_match_foundation_foods_bias(self, sentence, fdc_ids):
         """
@@ -93,6 +98,7 @@ class TestPostProcessor_match_foundation_foods:
         for ff in p.foundation_foods:
             assert ff.fdc_id in fdc_ids
 
+    @pytest.mark.model_dependent
     @pytest.mark.parametrize("sentence", NO_MATCH_EXAMPLES)
     def test_match_foundation_foods_no_match(self, sentence):
         """
@@ -101,6 +107,7 @@ class TestPostProcessor_match_foundation_foods:
         p = parse_ingredient(sentence, foundation_foods=True)
         assert p.foundation_foods == []
 
+    @pytest.mark.model_dependent
     @pytest.mark.parametrize(("sentence", "fdc_id"), NO_EMBEDDING_TOKENS)
     def test_match_foundation_foods_no_embeddings(self, sentence, fdc_id):
         """

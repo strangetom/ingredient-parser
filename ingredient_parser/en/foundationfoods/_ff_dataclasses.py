@@ -9,7 +9,7 @@ class IngredientToken(NamedTuple):
     pos_tag: str
 
 
-@dataclass
+@dataclass(slots=True)
 class FDCIngredient:
     """Dataclass for details of an ingredient from the FoodDataCentral database."""
 

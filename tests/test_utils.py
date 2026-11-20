@@ -1,3 +1,7 @@
+from unittest.mock import patch
+
+import pytest
+
 from ingredient_parser.en._utils import (
     UREG,
     combine_quantities_split_by_and,
@@ -43,6 +47,18 @@ class TestUtils_pluralise_units:
 
 
 class Test_convert_to_pint_unit:
+    @pytest.mark.parametrize("unit", ["/", "g/", "+", "*"])
+    def test_missing_operand_returns_literal_unit(self, unit):
+        """An invalid unit expression must not abort ingredient parsing."""
+        assert convert_to_pint_unit(unit) == unit
+
+    def test_invalid_expression_preserves_original_spelling(self):
+        """Retain the original unit when its normalised expression is invalid."""
+        assert convert_to_pint_unit("G/") == "G/"
+
+    def test_valid_compound_unit_still_converts(self):
+        assert convert_to_pint_unit("g/ml") == UREG("gram/milliliter").units
+
     def test_empty_string(self):
         """
         Test an empty string is returned if input
@@ -230,6 +246,19 @@ class Test_convert_to_pint_unit:
         assert convert_to_pint_unit("Cup", volumetric_units_system="metric") == UREG(
             "metric_cup"
         )
+
+    def test_unrelated_registry_errors_are_not_suppressed(self):
+        """
+        Test that exceptions other than those explicitly caught are still raised.
+        """
+        # Clear cache so that we actually run the convert_to_pint_unit function code
+        # and aren't just returning a previously cached value.
+        convert_to_pint_unit.cache_clear()
+        with patch("ingredient_parser.en._utils.UREG") as registry:
+            registry.side_effect = RuntimeError("Registry failure")
+
+            with pytest.raises(RuntimeError, match="Registry failure"):
+                convert_to_pint_unit("g")
 
 
 class Testcombine_quantities_split_by_and:

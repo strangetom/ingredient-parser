@@ -5,7 +5,7 @@ import re
 from collections import defaultdict
 from dataclasses import dataclass
 from functools import cached_property
-from itertools import chain, pairwise
+from itertools import chain, count, pairwise
 from typing import Iterable, Literal
 
 from ingredient_parser.en.foundationfoods import match_foundation_foods
@@ -362,8 +362,9 @@ class PostProcessor:
         B_NAME_TOK and all following I_NAME_TOK up to the next label that is not
         I_NAME_TOK or PUNC are grouped.
 
-        All consecutive NAME_MOD labels are grouped.
         All consecutive NAME_VAR labels are grouped.
+        All consecutive NAME_MOD and PUNC labels are grouped, until a NAME_SEP is
+        encountered.
 
         A NAME_SEP label starts a new group.
 
@@ -383,27 +384,35 @@ class PostProcessor:
         current_group = []
         prev_label = None
         for idx, label in enumerate(name_labels):
-            # Start new group on NAME_SEP name label
             if label == "NAME_SEP":
+                # Start new group on NAME_SEP name label
                 if current_group:
                     name_groups.append(current_group)
                 current_group = []
-            # Start new group for new "B_*" name label
             elif label.startswith("B_"):
+                # Start new group for new "B_*" name label
                 if current_group:
                     name_groups.append(current_group)
                 current_group = [(idx, label)]
-            # Start new group if encountering new NAME_MOD or NAME_VAR, or append to
-            # current group if previous label was the same as current label.
-            elif label in ["NAME_MOD", "NAME_VAR"]:
+            elif label == "NAME_VAR":
+                # If the previous label was also NAME_VAR, then continue existing group.
+                # Otherwise start a new group.
                 if prev_label == label:
                     current_group.append((idx, label))
                 else:
                     if current_group:
                         name_groups.append(current_group)
                     current_group = [(idx, label)]
-            # Must be an I_NAME_TOK or PUNC label, so append to current group
+            elif label == "NAME_MOD":
+                # Continue with same group the current group starts with NAME_MOD.
+                if current_group and current_group[0][1] == "NAME_MOD":
+                    current_group.append((idx, label))
+                else:
+                    if current_group:
+                        name_groups.append(current_group)
+                    current_group = [(idx, label)]
             else:
+                # Must be an I_NAME_TOK or PUNC label, so append to current group
                 current_group.append((idx, label))
 
             prev_label = label
@@ -448,6 +457,13 @@ class PostProcessor:
         last_encountered_name = None
         last_encountered_name_used = False
 
+        # Keep track of NAME_MOD groups that need to be prepended to previously
+        # constructed names.
+        # When we encounter a TOK or VAR group, we will apply the pending NAME_MOD
+        # groups to all names in the constructed_names list and then clear the list
+        # of pending NAME_MOD groups before processing the TOK or VAR group.
+        pending_name_mod_groups = []
+
         # Iterate from last to first BIO group
         for group in reversed(name_groups):
             current_group_idx, labels = zip(*group)
@@ -459,11 +475,27 @@ class PostProcessor:
                 if last_encountered_name and not last_encountered_name_used:
                     constructed_names.append(last_encountered_name)
 
+                if pending_name_mod_groups:
+                    # If there are any pending NAME_MOD groups, apply them and then
+                    # clear the list.
+                    constructed_names = self._apply_name_mod_groups(
+                        constructed_names, pending_name_mod_groups, name_idx
+                    )
+                    pending_name_mod_groups = []
+
                 # Set current group to last_encountered_name group.
                 last_encountered_name = current_group_idx
                 last_encountered_name_used = False
 
             elif current_label == "VAR":
+                if pending_name_mod_groups:
+                    # If there are any pending NAME_MOD groups, apply them and then
+                    # clear the list.
+                    constructed_names = self._apply_name_mod_groups(
+                        constructed_names, pending_name_mod_groups, name_idx
+                    )
+                    pending_name_mod_groups = []
+
                 # Prepend this group to last encountered NAME group
                 if last_encountered_name:
                     constructed_names.append(current_group_idx + last_encountered_name)
@@ -481,21 +513,63 @@ class PostProcessor:
                     constructed_names.append(last_encountered_name)
                     last_encountered_name_used = True
 
-                # Prepend this group to all constructed names so far
-                constructed_names = [
-                    current_group_idx + name
-                    if not self._is_mixture_phrase(name, name_idx)
-                    else name
-                    for name in constructed_names
-                ]
+                # Store group in pending list.
+                pending_name_mod_groups.append(current_group_idx)
 
         # If we've iterated through all BIO groups and haven't used
         # last_encountered_name, add it to constructed_names now.
         if last_encountered_name and not last_encountered_name_used:
             constructed_names.append(last_encountered_name)
 
+        if pending_name_mod_groups:
+            # If there are any pending NAME_MOD groups, apply them and then clear
+            # the list.
+            constructed_names = self._apply_name_mod_groups(
+                constructed_names, pending_name_mod_groups, name_idx
+            )
+
         # Return reversed list, so names are in the order they appear in sentence.
-        return list(reversed(constructed_names))
+        return [list(name) for name in reversed(constructed_names)]
+
+    def _apply_name_mod_groups(
+        self,
+        names: list[tuple[int, ...]],
+        name_mod_groups: list[tuple[int, ...]],
+        name_idx: list[int],
+    ) -> list[tuple[int, ...]]:
+        """Apply name_mod_groups to all names by prepending the name_mod_group to the
+        name.
+
+        We do not apply name_mod_groups to names that are mixture phrases (e.g. a mix,
+        a mixture) because these won't make sense.
+
+        Parameters
+        ----------
+        names : list[tuple[int, ...]]
+            List of names defined by their token indices.
+        name_mod_groups : list[tuple[int, ...]]
+            List of NAME_MOD groups, defined by their token indices.
+        name_idx : list[int]
+            List of indices of NAME tokens.
+
+        Returns
+        -------
+        list[tuple[int, ...]]
+            List of names with NAME_MOD groups prepended.
+        """
+        prepended = []
+        for i, group in enumerate(name_mod_groups):
+            for name in names:
+                if self._is_mixture_phrase(name, name_idx):
+                    # Don't prepend name with name_mod_group if the name is a mixture
+                    # phrase. We only do this for the first name_mod_group because
+                    # otherwise we would duplicate this name as many times as there are
+                    # name_mod_groups.
+                    if i == 0:
+                        prepended.append(name)
+                else:
+                    prepended.append(group + name)
+        return prepended
 
     def _is_mixture_phrase(
         self, phrase_indices: tuple[int, ...], name_idx: list[int]
@@ -518,6 +592,7 @@ class PostProcessor:
             ("a", "mixture"),
             ("a", "mix"),
             ("a", "combination"),
+            ("any", "combination"),
         ]
 
         phrase = tuple(self.tokens[name_idx[i]].text for i in phrase_indices[:2])
@@ -588,6 +663,14 @@ class PostProcessor:
             token_idx = [name_idx[idx] for idx in group]
 
             if merge_with_next and merge_with_next_idx:
+                logger.debug(
+                    (
+                        "Merging names at indices: %s and %s because the first group "
+                        "ended with a DT, IN or JJ part of speech tag."
+                    ),
+                    merge_with_next_idx,
+                    token_idx,
+                )
                 token_idx = [*merge_with_next_idx, *token_idx]
 
             if self._last_non_punc_token_pos(token_idx) in {"DT", "IN", "JJ"}:
@@ -716,23 +799,31 @@ class PostProcessor:
 
             self.consumed.extend(idx)
             if selected_label == "NAME":
-                # For NAMEs, keep the group tokens separate for now because we need to
-                # make sure we can remove duplicates tokens if one duplicate token is in
-                # a different group. For example, if NAME_MOD is "smoked" and NAME_TOK
-                # is "smoked pork", we need to discard one of the "smoked tokens".
-                # If we join the tokens here we would get ["smoked", "smoked port"] and
-                # _remove_adjacent_duplicates below wouldn't remove the duplicate token.
-                parts.extend(group_tokens)
+                # Removing duplicates for NAMEs is different than for other labels. We
+                # assume that repeated tokens with a NAME group are intentional (e.g.
+                # "mahi mahi", "piri piri") but we need to remove duplicates across
+                # group boundaries (if NAME_MOD is "smoked" and NAME_TOK
+                # is "smoked pork", we need to discard one of the "smoked tokens"). For
+                # that reasons, we store the tokens in their groups here, rather than
+                # use the joined tokens.
+                parts.append(group_tokens)
                 confidence_parts.extend([self.tokens[i].score for i in idx])
             else:
                 parts.append(joined)
                 confidence_parts.append(_mean([self.tokens[i].score for i in idx]))
+
             starting_index = min(starting_index, idx[0])
 
-        # Find the indices of the joined tokens list where the element
-        # is the same as the previous element in the list.
-        keep_idx = self._remove_adjacent_duplicates(parts)
-        parts = [parts[i] for i in keep_idx]
+        if selected_label == "NAME":
+            keep_idx = self._remove_boundary_duplicates(parts)
+            # Need to flatten parts here, then discard indices we aren't keeping.
+            flattened_name_parts = list(chain.from_iterable(parts))
+            parts = [flattened_name_parts[i] for i in keep_idx]
+        else:
+            # Find the indices of the joined tokens list where the element
+            # is the same as the previous element in the list.
+            keep_idx = self._remove_adjacent_duplicates(parts)
+            parts = [parts[i] for i in keep_idx]
         confidence_parts = [confidence_parts[i] for i in keep_idx]
 
         if len(parts) == 0:
@@ -930,7 +1021,8 @@ class PostProcessor:
         return text.strip()
 
     def _remove_adjacent_duplicates(self, parts: list[str]) -> list[int]:
-        """Find indices of adjacent duplicate strings.
+        """Return the indices of the elements of parts that result the list having no
+        adjacent duplicates.
 
         Parameters
         ----------
@@ -957,6 +1049,60 @@ class PostProcessor:
                 idx_to_keep.append(i)
 
         return idx_to_keep
+
+    def _remove_boundary_duplicates(self, groups: list[list[str]]) -> list[int]:
+        """Return the indices of elements of groups (after flattening) that result in
+        the flattened list having no duplicates, where the duplicates were only at the
+        boundaries of sublists in groups.
+
+        For example:
+        [["smoked"], ["smoked", "pork"]] returns [1, 2] because the token at index 0 is
+        a duplicate at the boundary of the sublist.
+
+        [["mahi", "mahi"]] returns [0, 1] because the duplicate is wholly within a
+        sublist and therefore kept.
+
+        Parameters
+        ----------
+        parts : list[str]
+            List of strings with single label.
+
+        Returns
+        -------
+        list[int]
+            Indices of elements in parts to keep.
+
+        Examples
+        --------
+        >>> p = PostProcessor("", [], [], [])
+        >>> p._remove_boundary_duplicates(
+            [["smoked"], ["smoked", "pork"]],
+        )
+        [1, 2]
+
+        >>> p = PostProcessor("", [], [], [])
+        >>> p._remove_boundary_duplicates(
+            [["piri", "piri", "sauce"]],
+        )
+        [0, 1, 2]
+        """
+        idx_to_discard = []
+
+        counter = count()
+        indices = [[next(counter) for _ in group] for group in groups]
+
+        for (group1_tokens, group1_idx), (group2_tokens, _) in pairwise(
+            zip(groups, indices)
+        ):
+            # We only care if the token at the end of the first group is the same as the
+            # token at the start of the second group.
+            # If these cases, we discard the token at the end of the first group.
+            if group1_tokens[-1] == group2_tokens[0]:
+                idx_to_discard.append(group1_idx[-1])
+
+        return [
+            idx for idx in chain.from_iterable(indices) if idx not in idx_to_discard
+        ]
 
     def _replace_string_numbers(self, text: str) -> str:
         """Replace string numbers (e.g. one, two) with numeric values (e.g. 1, 2).

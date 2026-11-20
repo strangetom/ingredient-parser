@@ -13,15 +13,19 @@ from ..dataclasses import Token, TokenFeatures
 from ._ambiguity import Disambiguator
 from ._constants import (
     ASCII_SHAPE_TABLE,
+    BREAKS,
+    CLOSE_BRACKET,
     DIMENSIONS,
     FLATTENED_UNITS_LIST,
     LENGTH_UNITS,
+    OPEN_BRACKET,
+    OR_TOKENS,
     SIZES,
+    STRING_NUMBERS,
     UNICODE_FRACTIONS_TO_TEXT,
     UNITS,
 )
 from ._regex import (
-    CAPITALISED_PATTERN,
     CURRENCY_PATTERN,
     DUPE_UNIT_RANGES_PATTERN,
     EXPANDED_RANGE,
@@ -34,6 +38,7 @@ from ._regex import (
     UNITS_HYPHEN_QUANTITY_PATTERN,
     UNITS_QUANTITY_PATTERN,
     UNITS_WITH_TRAILING_PERIOD,
+    WORD_SHAPE_RUN_PATTERN,
 )
 from ._structure_features import SentenceStructureFeatures
 from ._tokenize import tokenize
@@ -59,33 +64,39 @@ FeatureDict = dict[str, str | bool]
 # These are only included if the token has the feature.
 CONTEXT_FEATURES = frozenset(
     [
-        "stem",
-        "pos",
-        "is_capitalised",
-        "is_punc",
-        "is_dimension",
-        "word_shape",
+        "after_sentence_split",
+        "dimensional_phrase",
         "ends_with_inch_symbol",
-        "is_unit",
-        "is_size",
-        "is_in_parens",
-        "is_after_comma",
+        "example_phrase",
         "is_after_plus",
+        "is_dimension",
+        "is_in_parens",
         "is_length_unit",
-        "mip_start",
+        "is_punc",
+        "is_size",
+        "is_unit",
         "mip_end",
+        "mip_start",
+        "number_type",
+        "pos",
+        "stem",
         "within_mip",
-        "within_mip_clause_0",
         "within_mip_clause_-1",
         "within_mip_clause_-2",
-        "after_sentence_split",
-        "example_phrase",
-        "dimensional_phrase",
+        "within_mip_clause_0",
+        "word_shape",
+    ]
+)
+# Define a subset of CONTEXT_FEATURES that will only apply to a limited context i.e.
+# token immediately either side of the current token.
+LIMITED_CONTEXT_FEATURES = frozenset(
+    [
+        "word_shape",
     ]
 )
 # Define the size of the context window and the prefixes to apply to the features from
 # the context tokens.
-CONTEXT_TOKEN_PREFIXES = {
+_CONTEXT_TOKEN_PREFIXES = {
     -3: "prev3_",
     -2: "prev2_",
     -1: "prev_",
@@ -94,9 +105,19 @@ CONTEXT_TOKEN_PREFIXES = {
     3: "next3_",
 }
 
-OPEN = frozenset({"(", "["})
-CLOSE = frozenset({")", "]"})
-BREAKS = frozenset({",", ";", ":"})
+# Pre-compute tuple of (offset, prefix, feature name with prefix) for all context
+# features and offsets.
+# This is mainly to avoid having to calculate prefix+feature for every context feature
+# for every sentence.
+CONTEXT_FEATURE_OFFSETS = tuple(
+    (offset, prefix, {feature: prefix + feature for feature in CONTEXT_FEATURES})
+    for offset, prefix in _CONTEXT_TOKEN_PREFIXES.items()
+)
+
+
+# Create a frozenset of singular units from the UNTIS constant for quicker lookups when
+# calculating the _is_unit features.
+_DEFAULT_SINGULAR_UNITS = frozenset(UNITS.values())
 
 
 class PreProcessor:
@@ -169,23 +190,38 @@ class PreProcessor:
         custom_units : dict[str, str] | None, optional
             Dict of plural-singular pairs of custom units.
         """
+        if input_sentence == "":
+            raise ValueError("Cannot pre-process empty sentence.")
+
         self.input: str = input_sentence
         if custom_units is not None:
             self._units = UNITS | custom_units
             self._flattened_units = FLATTENED_UNITS_LIST | set(
                 chain.from_iterable(custom_units.items())
             )
+            self._singular_custom_units = frozenset(custom_units.values())
         else:
             self._units = UNITS
             self._flattened_units = FLATTENED_UNITS_LIST
+            self._singular_custom_units = frozenset()
 
         self.sentence: str = self._normalise(input_sentence)
         logger.debug("Normalised sentence: '%s'.", self.sentence)
 
         self.singularised_indices = []
         self.tokenized_sentence = self._calculate_tokens(self.sentence)
+        # Create a reusable Disambiguator object for resolving ambiguous features
+        # for tokens.
+        self.disambiguator = Disambiguator(
+            self.tokenized_sentence, self.singularised_indices
+        )
+
+        # Pre-calculate is_unit for each token.
+        self.token_is_unit = [self._is_unit(t.index) for t in self.tokenized_sentence]
         self.n_tokens = len(self.tokenized_sentence)
-        self.sentence_structure = SentenceStructureFeatures(self.tokenized_sentence)
+        self.sentence_structure = SentenceStructureFeatures(
+            self.tokenized_sentence, self._flattened_units, self.token_is_unit
+        )
 
     def __repr__(self) -> str:
         """__repr__ method.
@@ -723,7 +759,7 @@ class PreProcessor:
         """Tokenize sentence and calculate attributes for each token.
 
         The attributes calculated for each token are attributes that properties of the
-        individual token, such as things like is_numeric, is_unit.
+        individual token, such as things like is_numeric, is_dimenision, word_shape.
         It does not include attributes that depend on the token context.
 
         Parameters
@@ -739,8 +775,9 @@ class PreProcessor:
         tokens = []
         paren_depth = segment = 0
         for i, (text, pos) in enumerate(pos_tag(tokenize(sentence))):
-            # Pre-compute this once because we need it in multiple places.
+            # Pre-compute these once because we need them in multiple places.
             token_is_numeric = is_numeric(text)
+            lower_text = text.lower()
 
             # Convert tokens:
             # * Singularise units, keeping track of indices of singularised tokens
@@ -757,20 +794,20 @@ class PreProcessor:
             # Get part of speech tag, with overrides for certain tokens.
             if token_is_numeric:
                 pos = "CD"
-            elif text.lower() in ["c", "g"]:
+            elif lower_text in ["c", "g"]:
                 # Special cases for c (cup) and g (gram).
                 pos = "NN"
-            elif text.lower() in ["and/or", "or", "and"]:
+            elif lower_text in ["and/or", "or", "and"]:
                 # Force 'and/or' tag to conjunction.
                 # Force OR tag to conjunction.
                 pos = "CC"
-            elif text.lower() == "e.g.":
+            elif lower_text == "e.g.":
                 # Force "e.g." tag to preposition/subordinating conjunction .
                 pos = "IN"
-            elif text.lower() == "/":
+            elif lower_text == "/":
                 # Force "/" to have SYM tag.
                 pos = "SYM"
-            elif text.lower() == "in" and i > 0 and tokens[i - 1].feat_text == "!num":
+            elif lower_text == "in" and i > 0 and tokens[i - 1].feat_text == "!num":
                 # If the text is "in" and the previous token is a number then this is
                 # mostly likely to be the abbreviation of inches rather than the
                 # preposition.
@@ -779,13 +816,12 @@ class PreProcessor:
             features = TokenFeatures(
                 stem=stem(feat_text),
                 shape=self._word_shape(text),
-                is_capitalised=self._is_capitalised(feat_text),
                 is_punc=self._is_punc(feat_text),
                 is_dimension=self._is_dimension(feat_text),
                 ends_with_inch_symbol=self._ends_with_inch_symbol(feat_text),
             )
 
-            if feat_text in OPEN:
+            if feat_text in OPEN_BRACKET:
                 paren_depth += 1
 
             tokens.append(
@@ -800,7 +836,7 @@ class PreProcessor:
                 )
             )
 
-            if feat_text in CLOSE:
+            if feat_text in CLOSE_BRACKET:
                 paren_depth = max(paren_depth - 1, 0)
             elif feat_text in BREAKS and paren_depth == 0:
                 # We don't increment the segment counter if the BREAK is within
@@ -825,18 +861,13 @@ class PreProcessor:
         bool
             True if token  at index is a unit, else False.
         """
-        token = self.tokenized_sentence[index]
+        if self.disambiguator.is_ambiguous(index, "is_unit"):
+            return self.disambiguator.does_feature_apply(index, "is_unit")
 
-        if Disambiguator.is_ambiguous(
-            token, index in self.singularised_indices, "is_unit"
-        ):
-            disambiguator = Disambiguator(
-                self.tokenized_sentence, self.singularised_indices
-            )
-            return disambiguator.does_feature_apply(index, "is_unit")
-
-        text = token.feat_text
-        return text in self._units.values() and text.lower() not in LENGTH_UNITS
+        text = self.tokenized_sentence[index].feat_text
+        return (
+            text in _DEFAULT_SINGULAR_UNITS or text in self._singular_custom_units
+        ) and text.lower() not in LENGTH_UNITS
 
     def _is_size(self, index: int) -> bool:
         """Return True if token is a size.
@@ -851,17 +882,11 @@ class PreProcessor:
         bool
             True if token  at index is a size, else False.
         """
-        token = self.tokenized_sentence[index]
+        if self.disambiguator.is_ambiguous(index, "is_size"):
+            return self.disambiguator.does_feature_apply(index, "is_size")
 
-        if Disambiguator.is_ambiguous(
-            token, index in self.singularised_indices, "is_size"
-        ):
-            disambiguator = Disambiguator(
-                self.tokenized_sentence, self.singularised_indices
-            )
-            return disambiguator.does_feature_apply(index, "is_size")
-
-        return token.feat_text.lower() in SIZES
+        text = self.tokenized_sentence[index].feat_text
+        return text.lower() in SIZES
 
     def _is_dimension(self, token: str) -> bool:
         """Return True if token is a dimension.
@@ -984,23 +1009,6 @@ class PreProcessor:
         """
         return token in PUNCTUATION
 
-    def _follows_comma(self, index: int) -> bool:
-        """Return True if token at index follows a comma (by any amount) in sentence.
-
-        If the token at index is a comma, treat it the same as any other token
-
-        Parameters
-        ----------
-        index : int
-            Index of token to check.
-
-        Returns
-        -------
-        bool
-            True if token follows comma, else False.
-        """
-        return self.tokenized_sentence[index].segment > 0
-
     def _follows_plus(self, index: int) -> bool:
         """Return True if token at index follow "plus" by any amount in sentence.
 
@@ -1018,30 +1026,22 @@ class PreProcessor:
         """
         return "plus" in [t.feat_text for t in self.tokenized_sentence[:index]]
 
-    def _is_capitalised(self, token: str) -> bool:
-        """Return True if token starts with a capital letter.
+    def _follows_colon(self, index: int) -> bool:
+        """Return True if token at index follow ":" by any amount in sentence.
+
+        If the token at the index is ":", it doesn't count as following.
 
         Parameters
         ----------
-        token : str
-            Token to check.
+        index : int
+            Index of token to check.
 
         Returns
         -------
         bool
-            True if token starts with a capital letter, else False.
-
-        Examples
-        --------
-        >>> p = PreProcessor("")
-        >>> p._is_capitalised("Chicken")
-        True
-
-        >>> p = PreProcessor("")
-        >>> p._is_capitalised("chicken")
-        False
+            True if token follows ":", else False.
         """
-        return CAPITALISED_PATTERN.match(token) is not None
+        return ":" in [t.feat_text for t in self.tokenized_sentence[:index]]
 
     def _is_inside_parentheses(self, index: int) -> bool:
         """Return True if token is inside parentheses or is a parenthesis.
@@ -1075,6 +1075,51 @@ class PreProcessor:
 
         return bucket
 
+    def _number_type(self, token: str) -> str:
+        """Return string indicating the type of number for numeric tokens.
+
+        To avoid duplicate calls to is_numeric(), this function assumes the token being
+        passed would return True from is_numeric()
+
+        The types of number are:
+        * word
+        * multiplier
+        * range
+        * decimal
+        * fraction
+        * integer
+
+        Parameters
+        ----------
+        token : str
+            Token to return number type of.
+
+        Returns
+        -------
+        str
+            Number type.
+        """
+
+        token = token.lower()
+        if token in STRING_NUMBERS or token == "dozen":
+            return "word"
+
+        elif token.endswith("x"):
+            return "multiplier"
+
+        elif "-" in token[1:]:
+            # We don't want this to match if the token starts with "-"
+            return "range"
+
+        elif "#" in token:
+            return "fraction"
+
+        elif "." in token:
+            return "decimal"
+
+        else:
+            return "integer"
+
     def _word_shape(self, token: str) -> str:
         """Calculate the word shape for token.
 
@@ -1084,6 +1129,9 @@ class PreProcessor:
         - All uppercase characters are replaced with "X"
         - All digits are replaced with "d"
         - Punctuation is left unchanged
+
+        Runs of consecutive identical characters are capped at a maximum length of 3
+        e.g. Chicken -> Xxxxxxx -> Xxxx
 
         Parameters
         ----------
@@ -1096,7 +1144,9 @@ class PreProcessor:
             Word shape of token.
         """
         normalised = self._remove_accents(token)
-        return normalised.translate(ASCII_SHAPE_TABLE)
+        shape = normalised.translate(ASCII_SHAPE_TABLE)
+        # Cap runs of 3+ consecutive identical characters.
+        return WORD_SHAPE_RUN_PATTERN.sub(lambda m: m.group(1) * 3, shape)
 
     def _remove_accents(self, token: str) -> str:
         """Remove accents from characters in token.
@@ -1138,45 +1188,49 @@ class PreProcessor:
         token = self.tokenized_sentence[token.index]
         features = {
             "bias": "",
-            "sentence_length": str(self._sentence_length_bucket()),
             "pos": token.pos_tag,
             "stem": token.features.stem,
-            "is_capitalised": token.features.is_capitalised,
             "is_punc": token.features.is_punc,
             "is_dimension": token.features.is_dimension,
             "word_shape": token.features.shape,
             "ends_with_inch_symbol": token.features.ends_with_inch_symbol,
-            "is_unit": self._is_unit(token.index),
+            "is_unit": self.token_is_unit[token.index],
             "is_size": self._is_size(token.index),
             "is_in_parens": self._is_inside_parentheses(token.index),
-            "is_after_comma": self._follows_comma(token.index),
             "is_after_plus": self._follows_plus(token.index),
+            "is_after_colon": self._follows_colon(token.index),
             "is_length_unit": self._is_length_unit(token.index),
         }
 
         if token.feat_text != token.features.stem:
             features["token"] = token.feat_text
 
-        features |= self._ngram_features(token.feat_text, "")
-        features |= self.sentence_structure.token_features(token.index, "")
+        if token.feat_text == "!num":
+            features["number_type"] = self._number_type(token.text)
+
+        features |= self._ngram_features(token.feat_text)
+        features |= self.sentence_structure.token_features(token.index)
 
         return features
 
-    def _ngram_features(self, token: str, prefix: str) -> dict[str, str]:
+    def _ngram_features(self, token: str) -> dict[str, str]:
         """Return n-gram features for token in a dict.
 
-        N = 3, 4, 5 are returned if possible, for prefixes and suffixes.
+        N = 3 is returned if possible, for prefixes and suffixes.
         An n-gram feature is only return if length of the token greater than N for that
-        n-gram.
+        n-gram. The n-gram affixes are made lower case because repeating the feature
+        with different cases will not provide any more useful information to the model.
 
         If the token is "!num", don't return any n-gram features.
+
+        Note: N = 4, 5 were removed as features because doing so had no measurable
+        effect on model accuracy performance, mostly likely because for many of these
+        n-grams there is considerable overlap with the stem feature (for the prefixes).
 
         Parameters
         ----------
         token : str
             Token to calculate n-gram features for.
-        prefix : str
-            Feature label prefix.
 
         Returns
         -------
@@ -1185,16 +1239,8 @@ class PreProcessor:
         """
         ngram_features = {}
         if token != "!num" and len(token) >= 4:
-            ngram_features[prefix + "prefix_3"] = token[:3]
-            ngram_features[prefix + "suffix_3"] = token[-3:]
-
-        if token != "!num" and len(token) >= 5:
-            ngram_features[prefix + "prefix_4"] = token[:4]
-            ngram_features[prefix + "suffix_4"] = token[-4:]
-
-        if token != "!num" and len(token) >= 6:
-            ngram_features[prefix + "prefix_5"] = token[:5]
-            ngram_features[prefix + "suffix_5"] = token[-5:]
+            ngram_features["prefix_3"] = token[:3].lower()
+            ngram_features["suffix_3"] = token[-3:].lower()
 
         return ngram_features
 
@@ -1226,18 +1272,33 @@ class PreProcessor:
         list[str]
             List POS tags that make up ngram.
         """
-        # Calculate the minimum index, can't be less than 0.
         # Note the index in increased by +3 to account for the padding tags at the start
         # of the sentence.
-        min_ngram_index = max(0, min(index + 3, index + offset + 3))
+        # We don't need to clamp these to 0 and the sentence length because
+        # sentence_tags is already padded with the <BOS> and <EOS> tags.
+        if offset < 0:
+            return sentence_tags[index + offset + 3 : index + 3 + 1]
+        else:
+            return sentence_tags[index + 3 : index + offset + 3 + 1]
 
-        # Calculate the maximum index, can't be greater than sentence length (including
-        # the padding).
-        max_ngram_index = min(
-            len(sentence_tags) - 1, max(index + 3, index + offset + 3) + 1
-        )
+    def _whole_sentence_features(self) -> FeatureDict:
+        """Generate features based on the complete sentence.
 
-        return sentence_tags[min_ngram_index:max_ngram_index]
+        These features are applied to every token and are the same for each token.
+
+        Returns
+        -------
+        FeatureDict
+            Dict of whole sentence features.
+        """
+        return {
+            "sentence_length": str(self._sentence_length_bucket()),
+            "starts_with_qty": self.tokenized_sentence[0].feat_text == "!num",
+            "starts_with_unit": self.token_is_unit[0],
+            "has_or": any(
+                t.feat_text.lower() in OR_TOKENS for t in self.tokenized_sentence
+            ),
+        }
 
     def sentence_features(self) -> list[FeatureDict]:
         """Return dict of features for each token in sentence.
@@ -1265,6 +1326,38 @@ class PreProcessor:
             self._common_features(token) for token in self.tokenized_sentence
         ]
 
+        # Add conjunction and whole sentence features for the each token.
+        whole_sentence_features = self._whole_sentence_features()
+        for i, features in enumerate(sentence_features):
+            prev = sentence_features[i - 1] if i > 0 else None
+            next = sentence_features[i + 1] if i < self.n_tokens - 1 else None
+
+            prev_stem = prev["stem"] if prev else "<BOS>"
+
+            # We don't need a stem+next_stem feature because most of the time it will be
+            # identical to prev_stem+stem, just offset by one token.
+            features["prev_stem+stem"] = f"{prev_stem}+{features['stem']}"
+            features["is_unit+prev_num"] = (
+                f"{features['is_unit']}+{bool(prev) and prev['stem'] == '!num'}"
+            )
+            features["pos+segment"] = f"{features['pos']}+{features['segment']}"
+
+            if next and features["stem"] == "!num":
+                # number_type feature is only defined if the stem is "!num".
+                features["number_type+next_is_unit"] = (
+                    f"{features['number_type']}+{next['is_unit']}"
+                )
+
+            # Create trigram of POS tags centred on current token.
+            # The +3 is to account for the padding tags added at the start of
+            # sentence_pos_tags.
+            features["pos_ngram_centered"] = "+".join(
+                sentence_pos_tags[index] for index in range(i + 3 - 1, i + 3 + 2)
+            )
+
+            # Include whole sentence features for every token.
+            features |= whole_sentence_features
+
         # Calculate the features used for each token when the token is in the context
         # window of another token.
         # This is a list of (feature name, feature value) tuples for each each element
@@ -1282,15 +1375,21 @@ class PreProcessor:
         for i, features in enumerate(sentence_features):
             # Iterate over all context window offsets for each element of
             # sentence_features.
-            for offset, prefix in CONTEXT_TOKEN_PREFIXES.items():
+            for offset, prefix, context_feature_names in CONTEXT_FEATURE_OFFSETS:
                 # If the index for the given context feature is within the sentence
                 # (i.e. not < 0 or > sentence length), then obtain the context features
                 # for that token from the already calculated sentence_features.
                 if 0 <= i + offset < self.n_tokens:
                     for feature, value in context_features[i + offset]:
-                        features[prefix + feature] = value
+                        if feature in LIMITED_CONTEXT_FEATURES and abs(offset) > 1:
+                            # Don't use these features outside the ±1 context.
+                            continue
+
+                        features[context_feature_names[feature]] = value
 
                 pos_ngram = self._pos_ngram(sentence_pos_tags, i, offset)
-                features[prefix + "pos_ngram"] = "+".join(pos_ngram)
+                # Exclude pos_ngrams that include 2 or more padding tokens.
+                if pos_ngram.count("<BOS>") < 2 and pos_ngram.count("<EOS>") < 2:
+                    features[prefix + "pos_ngram"] = "+".join(pos_ngram)
 
         return sentence_features

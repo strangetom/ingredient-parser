@@ -61,13 +61,79 @@ class TestPreProcessor_is_unit:
         p = PreProcessor(input_sentence, custom_units={})
         assert not p._is_unit(1)
 
+    def test_ambiguous_unit_clove_long_range(self, p):
+        """
+        "clove" is a unit
+        """
+        input_sentence = "1 head of garlic, about 10 cloves"
+        p = PreProcessor(input_sentence, custom_units={})
+        assert p._is_unit(7)
+
     def test_ambiguous_unit_pound_is_not_unit(self, p):
         """
-        "teaspoon" is a unit
+        "pound" is a unit
         """
         input_sentence = "1 package pound cake"
         p = PreProcessor(input_sentence, custom_units={})
         assert not p._is_unit(2)
+
+    def test_ambiguous_unit_pound_is_unit(self, p):
+        """
+        "pound" is a unit in this instance
+        """
+        input_sentence = "1 pound cake flour"
+        p = PreProcessor(input_sentence, custom_units={})
+        assert p._is_unit(1)
+
+    def test_unit_unambiguous_due_to_plural(self, p):
+        """
+        "slabs" is not ambiguous because it is plural.
+        """
+        input_sentence = "2 slabs of bacon"
+        p = PreProcessor(input_sentence, custom_units={})
+        assert p._is_unit(1)
+
+
+class TestPreProcessor_is_size:
+    def test_true(self, p):
+        """
+        "large" is a size
+        """
+        input_sentence = "1 large avocado"
+        p = PreProcessor(input_sentence, custom_units={})
+        assert p._is_size(1)
+
+    def test_false(self, p):
+        """
+        "avocado" is a size
+        """
+        input_sentence = "1 large avocado"
+        p = PreProcessor(input_sentence, custom_units={})
+        assert not p._is_size(2)
+
+    def test_medium_is_size(self, p):
+        """
+        "medium" is a size
+        """
+        input_sentence = "1 medium banana"
+        p = PreProcessor(input_sentence, custom_units={})
+        assert p._is_size(1)
+
+    def test_medium_is_not_size(self, p):
+        """
+        "medium" is not a size in the context of "medium-ripe"
+        """
+        input_sentence = "1 medium ripe banana"
+        p = PreProcessor(input_sentence, custom_units={})
+        assert not p._is_size(1)
+
+    def test_medium_is_size_with_disambiguator(self, p):
+        """
+        "medium" is a size, despite "ripe" being within the disambiguating window.
+        """
+        input_sentence = "1 medium banana, ripe"
+        p = PreProcessor(input_sentence, custom_units={})
+        assert p._is_size(1)
 
 
 class TestPreProcessor_is_punc:
@@ -82,26 +148,6 @@ class TestPreProcessor_is_punc:
         "beer" is not punctuation
         """
         assert not p._is_punc("beer")
-
-
-class TestPreProcessor_is_capitalised:
-    def test_capitalised(self, p):
-        """
-        "Cheese" is capitalised
-        """
-        assert p._is_capitalised("Cheese")
-
-    def test_embeded_capital(self, p):
-        """
-        "lemon-Zest" is not capitalised
-        """
-        assert not p._is_capitalised("lemon-Zest")
-
-    def test_no_captials(self, p):
-        """
-        "sausage" is not capitalised
-        """
-        assert not p._is_capitalised("sausage")
 
 
 class TestPreProcessor_is_inside_parentheses:
@@ -197,61 +243,19 @@ class TestPreProcess_follows_plus:
         assert p._follows_plus(9)
 
 
-class TestPreProcess_follows_comma:
-    def test_no_comma(self):
-        """
-        No comma in input
-        """
-        input_sentence = "freshly ground black pepper"
-        p = PreProcessor(input_sentence, custom_units={})
-        assert not p._follows_comma(2)
-
-    def test_before_comma(self):
-        """
-        Token index is before comma
-        """
-        input_sentence = "freshly ground black pepper, to taste"
-        p = PreProcessor(input_sentence, custom_units={})
-        assert not p._follows_comma(1)
-
-    def test_after_comma(self):
-        """
-        Token index is after comma
-        """
-        input_sentence = "freshly ground black pepper, to taste"
-        p = PreProcessor(input_sentence, custom_units={})
-        assert p._follows_comma(5)
-
-    def test_index_is_comma(self):
-        """
-        Token at index is comma
-        """
-        input_sentence = "freshly ground black pepper, to taste"
-        p = PreProcessor(input_sentence, custom_units={})
-        assert not p._follows_comma(4)
-
-    def test_index_is_comma_and_follows_comma(self):
-        """
-        Token at index is comma and follows another comma
-        """
-        input_sentence = "freshly ground black pepper, or white pepper, to taste"
-        p = PreProcessor(input_sentence, custom_units={})
-        assert p._follows_comma(8)
-
-
 class TestPreProcessor_word_shape:
     def test_word_shape(self, p):
         """
         Test words are transformed into correct shape pattern.
         """
         # Lower case
-        assert p._word_shape("pepper") == "xxxxxx"
+        assert p._word_shape("pepper") == "xxx"
         # Upper case
-        assert p._word_shape("Pepper") == "Xxxxxx"
+        assert p._word_shape("Pepper") == "Xxxx"
         # Accents
-        assert p._word_shape("béchamel") == "xxxxxxxx"
+        assert p._word_shape("béchamel") == "xxx"
         # Numbers
-        assert p._word_shape("2-pound") == "d-xxxxx"
+        assert p._word_shape("2-pound") == "d-xxx"
         # Fraction
         assert p._word_shape("2#1$2") == "d#d$d"
         # Range

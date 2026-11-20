@@ -9,9 +9,6 @@ from ._constants import FLATTENED_UNITS_LIST, LENGTH_UNITS, STRING_NUMBERS
 # a forward slash then another number.
 FRACTION_PARTS_PATTERN = re.compile(r"(\d*\s*\d/\d+)")
 
-# Regex pattern for checking if token starts with a capital letter.
-CAPITALISED_PATTERN = re.compile(r"^[A-Z]")
-
 # Regex pattern for finding quantity and units without space between them.
 # Add additional strings to units set that aren't necessarily units, but we want to
 # treat them like units for the purposes of splitting quantities from units.
@@ -150,3 +147,8 @@ UNITS_WITH_TRAILING_PERIOD = re.compile(
 # expression to group characters by word, then we can look up the word in the
 # UNITS_RINDEX dict to get a plural version if it exists.
 PLURAL_UNIT_PATTERN = re.compile(r"\w+")
+
+# Regular expression to capture 3 or more consecutive identical characters.
+# This is used when calculating the word_shape feature to collapse runs of consecutive
+# identical characters down to a maximum run length of 3.
+WORD_SHAPE_RUN_PATTERN = re.compile(r"(.)\1{3,}")

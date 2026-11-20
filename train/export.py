@@ -82,10 +82,6 @@ def export_crfsuite_to_json(
 def quantize(params: CRFModelParameters, nbits: int) -> CRFModelParameters:
     """Quantize weights to nbit signed integer using linear scaling.
 
-    Because the model weights are only used additively during inference, and we only
-    consider the relative magnitudes of the weights, there is no need for keep the
-    scaling factor because it would just be a multiplier of all of the weights.
-
     Parameters
     ----------
     params : CRFModelParameters
@@ -105,11 +101,18 @@ def quantize(params: CRFModelParameters, nbits: int) -> CRFModelParameters:
         max_weight = max(max_weight, abs(w))
     scale = (2 ** (nbits - 1) - 1) / max_weight
 
+    # Keep track of features with a non-zero weight after quantization.
+    nonzero_state_features = set()
+
     quantized_state_features = {}
     for feature, weight in params.state_features.items():
         quantized_weight = round(weight * scale)
         if quantized_weight != 0:
             quantized_state_features[feature] = quantized_weight
+
+            # Get name of feature and add to nonzero_state_features.
+            attr = feature.split("\u001f", 1)[0]
+            nonzero_state_features.add(attr)
 
     quantized_transitions = {}
     for feature, weight in params.transitions.items():
@@ -117,8 +120,17 @@ def quantize(params: CRFModelParameters, nbits: int) -> CRFModelParameters:
         if quantized_weight != 0:
             quantized_transitions[feature] = quantized_weight
 
+    # Iterate over attributes and only keep features in the nonzero_features set.
+    idx = 0
+    updated_attributes = {}
+    for attribute in params.attributes.keys():
+        if attribute in nonzero_state_features:
+            updated_attributes[attribute] = idx
+            idx += 1
+
     params.state_features = quantized_state_features
     params.transitions = quantized_transitions
+    params.attributes = updated_attributes
     params.quantization_scale = scale
     return params
 

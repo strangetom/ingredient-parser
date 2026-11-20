@@ -109,6 +109,11 @@ def parse_ingredient(
     if lang not in SUPPORTED_LANGUAGES:
         raise ValueError(f'Unsupported language "{lang}"')
 
+    if custom_units and not isinstance(custom_units, dict):
+        raise TypeError(
+            f"Custom units should be a dict not a {type(custom_units).__name__}."
+        )
+
     if imperial_units:
         warnings.warn(
             (
@@ -332,11 +337,16 @@ def inspect_parser(
     if lang not in SUPPORTED_LANGUAGES:
         raise ValueError(f'Unsupported language "{lang}"')
 
+    if custom_units and not isinstance(custom_units, dict):
+        raise TypeError(
+            f"Custom units should be a dict not a {type(custom_units).__name__}."
+        )
+
     if imperial_units:
         warnings.warn(
             (
                 "imperial_units=True argument is deprecated. "
-                "Use volumetric_units_system='imperal'"
+                "Use volumetric_units_system='imperial'"
             ),
             DeprecationWarning,
             stacklevel=2,
