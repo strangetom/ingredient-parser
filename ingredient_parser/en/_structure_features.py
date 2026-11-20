@@ -107,7 +107,7 @@ class SentenceStructureFeatures:
     def __init__(
         self,
         tokenized_sentence: list[Token],
-        units: set[str],
+        units: frozenset[str],
         token_is_unit: list[bool],
     ):
         """Initialize.
@@ -116,7 +116,7 @@ class SentenceStructureFeatures:
         ----------
         tokenized_sentence : list[Token]
             Tokenized sentence.
-        units : set[str]
+        units : frozenset[str]
             Set of units, including custom units.
         token_is_unit : list[bool]
             List of bools indicating if token at that position in sentence is a unit.
