@@ -24,14 +24,14 @@ class DBRow:
     id: int
     sentence: str
     labels: list[str]
-    fdc_mapping: int
+    fdc_mapping: list[int | None]
 
 
 @dataclass
 class Sentence:
     uid: int
     sentence: str
-    name_mapping: list[tuple[str | None, int | None]]
+    name_mapping: list[tuple[str | IngredientText, int | None]]
 
 
 class TrainingDataValidator:
@@ -104,20 +104,22 @@ class TrainingDataValidator:
                 mapping = [
                     (name.text, fdc_id)
                     for name, fdc_id in zip_longest(
-                        p.name, item.fdc_mapping, fillvalue=IngredientText(None, 0, 0)
+                        p.name,
+                        item.fdc_mapping,
+                        fillvalue=IngredientText("", 0, 0),  # type: ignore
                     )
                 ]
             else:
                 mapping = [
-                    (name.text, fdc_id)
+                    (name.text, fdc_id)  # type: ignore
                     for name, fdc_id in zip_longest(
                         p.name, item.fdc_mapping, fillvalue=None
                     )
                 ]
 
-            sent = Sentence(uid=item.id, sentence=item.sentence, name_mapping=mapping)
+            sent = Sentence(uid=item.id, sentence=item.sentence, name_mapping=mapping)  # type: ignore
 
-            if any(name is None for name, _ in mapping):
+            if any(name == "" for name, _ in mapping):
                 # If any names are None it means there are more FDC IDs than names.
                 self.inconsistent_mapping.append(sent)
                 continue
@@ -160,7 +162,7 @@ class TrainingDataValidator:
         # 2nd column is the FDC mappings, separated by |. Each mapping has the form
         # "fdc_id (description) [sentence count]"
         # 3rd column is the list of sentence IDs that contain the name.
-        table = [
+        table: list[list[str]] = [
             [
                 name,
                 " | ".join(
@@ -196,7 +198,7 @@ class TrainingDataValidator:
     def suggest_mappings(self):
         """Suggest mapping for names without an FDC ID"""
 
-        table = []
+        table: list[list[str]] = []
         sentence_uids = []
         for sentence in self.missing_mapping:
             new_suggestion = False
