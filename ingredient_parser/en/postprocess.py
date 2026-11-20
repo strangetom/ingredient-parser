@@ -31,7 +31,7 @@ from ._constants import (
     PREPARED_INGREDIENT_TOKENS,
     SINGULAR_TOKENS,
     STOP_WORDS,
-    STRING_NUMBERS_REGEXES,
+    STRING_NUMBERS,
 )
 from ._utils import (
     combine_quantities_split_by_and,
@@ -1104,37 +1104,6 @@ class PostProcessor:
             idx for idx in chain.from_iterable(indices) if idx not in idx_to_discard
         ]
 
-    def _replace_string_numbers(self, text: str) -> str:
-        """Replace string numbers (e.g. one, two) with numeric values (e.g. 1, 2).
-
-        Parameters
-        ----------
-        text : str
-            Ingredient sentence.
-
-        Returns
-        -------
-        str
-            Ingredient sentence with string numbers replace with numeric values.
-
-        Examples
-        --------
-        >>> p = PreProcessor("")
-        >>> p._replace_string_numbers("three large onions")
-        "3 large onions"
-
-        >>> p = PreProcessor("")
-        >>> p._replace_string_numbers("twelve bonbons")
-        "12 bonbons"
-        """
-        # STRING_NUMBER_REGEXES is a dict where the values are a tuple of the compiled
-        # regular expression for matching a string number e.g. 'one', 'two' and the
-        # substitution numerical value for that string number.
-        for regex, substitution in STRING_NUMBERS_REGEXES.values():
-            text = regex.sub(rf"{substitution}", text)
-
-        return text
-
     def _convert_string_number_qty(self) -> None:
         """Convert QTY tokens that are string numbers to numeric values.
 
@@ -1150,7 +1119,7 @@ class PostProcessor:
         """
         for t in self.tokens:
             if t.label == "QTY":
-                self.tokens[t.index].text = self._replace_string_numbers(t.text)
+                self.tokens[t.index].text = STRING_NUMBERS.get(t.text, t.text)
 
         QTY_idx = [t.index for t in self.tokens if t.label == "QTY"]
 
