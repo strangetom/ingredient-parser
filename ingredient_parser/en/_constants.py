@@ -426,7 +426,7 @@ STOP_WORDS = {
     "didn't",
     "doesn't",
     "hadn't",
-    "hanesn't",
+    "hasn't",
     "haven't",
     "isn't",
     "mightn't",
