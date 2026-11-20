@@ -79,6 +79,7 @@ class ValidationResults:
     duplicate_sentence: list[DuplicateSentenceError]
     labels: list[LabelError]
     prohibited_transition: list[LabelError]
+    b_name_tok: list[LabelError]
     i_name_tok: list[LabelError]
     name_var: list[LabelError]
     name_mod: list[LabelError]
@@ -101,6 +102,7 @@ class TrainingDataValidator:
             duplicate_sentence=[],
             labels=[],
             prohibited_transition=[],
+            b_name_tok=[],
             i_name_tok=[],
             name_var=[],
             name_mod=[],
@@ -180,6 +182,7 @@ class TrainingDataValidator:
         if (
             self.validation_results.labels
             or self.validation_results.prohibited_transition
+            or self.validation_results.b_name_tok
             or self.validation_results.i_name_tok
             or self.validation_results.name_var
             or self.validation_results.name_mod
@@ -199,6 +202,13 @@ class TrainingDataValidator:
                             str(error.id)
                             for error in self.validation_results.prohibited_transition
                         }
+                    ),
+                ],
+                [
+                    "B_NAME_TOK",
+                    len(self.validation_results.b_name_tok),
+                    ",".join(
+                        {str(error.id) for error in self.validation_results.b_name_tok}
                     ),
                 ],
                 [
@@ -296,6 +306,7 @@ class TrainingDataValidator:
 
         Check for the following:
         * All labels are in allowed label set.
+        * There is at least one B_NAME_TOK label
         * No prohibited transitions are present.
         * No instances of I_NAME_TOK occurring before B_NAME_TOK since start of sequence
           of last NAME_SEP.
@@ -310,6 +321,11 @@ class TrainingDataValidator:
         if not self._validate_labels(row):
             self.validation_results.labels.append(
                 LabelError(id=row.id, error="Sentence contains invalid label.")
+            )
+
+        if not self._validate_B_NAME_TOK(row):
+            self.validation_results.b_name_tok.append(
+                LabelError(id=row.id, error="Sentence does not contain a name.")
             )
 
         if not self._validate_I_NAME_TOK(row):
@@ -349,6 +365,21 @@ class TrainingDataValidator:
             True if valid, else False.
         """
         return all(label in VALID_LABELS for label in row.labels)
+
+    def _validate_B_NAME_TOK(self, row: DBRow) -> bool:
+        """Validate all that the label sequence contains B_NAME_tok.
+
+        Parameters
+        ----------
+        row : DBRow
+            Database row.
+
+        Returns
+        -------
+        bool
+            True if valid, else False.
+        """
+        return "B_NAME_TOK" in row.labels
 
     def _validate_I_NAME_TOK(self, row: DBRow) -> bool:
         """Validate that I_NAME_TOK always appears after a B_NAME_TOK.
