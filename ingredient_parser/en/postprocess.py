@@ -179,7 +179,9 @@ class PostProcessor:
         self.separate_names = separate_names
         self.discard_isolated_stop_words = discard_isolated_stop_words
         self.string_units = string_units
-        self.volumetric_units_system = volumetric_units_system
+        self.volumetric_units_system: Literal[
+            "us_customary", "imperial", "metric", "australian", "japanese"
+        ] = volumetric_units_system
         self.foundation_foods = foundation_foods
         self.consumed = []
 
