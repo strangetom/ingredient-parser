@@ -382,7 +382,7 @@ class PerceptronTagger:
             if pairs and isinstance(pairs[0][1], _FeatureWeightCount):
                 # This is the outer object comprising {feature: _FeatureWeightCount}
                 # pairs.
-                return pairs
+                return pairs  # type: ignore
 
             # Inner objects of (tag: weight) pairs.
             for tag, weight in pairs:
