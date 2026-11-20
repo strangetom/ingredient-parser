@@ -119,6 +119,12 @@ UNITS = {
     "wedges": "wedge",
     "vials": "vial",
     "wheels": "wheel",
+    "number_one_can": "number_one_can",
+    "number_two_cans": "number_two_can",
+    "number_two_half_cans": "number_two_half_can",
+    "number_three_cans": "number_three_can",
+    "number_ten_cans": "number_ten_can",
+    "number_three_hundred_cans": "number_three_hundred_can",
 }
 
 
@@ -420,7 +426,7 @@ STOP_WORDS = {
     "didn't",
     "doesn't",
     "hadn't",
-    "hasn't",
+    "hanesn't",
     "haven't",
     "isn't",
     "mightn't",

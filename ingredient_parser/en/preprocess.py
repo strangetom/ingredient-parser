@@ -451,7 +451,7 @@ class PreProcessor:
                 return conversion[f] if (f := float(x)) in conversion else m.string
 
             # integer numbers
-            if x.is_numeric():
+            if x.isnumeric():
                 return conversion[float(x)]
 
             x = word2num(x)
