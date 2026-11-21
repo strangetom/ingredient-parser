@@ -7,6 +7,8 @@ import unicodedata
 from html import unescape
 from itertools import chain
 
+from word2num import word2num
+
 from ..dataclasses import Token, TokenFeatures
 from ._ambiguity import Disambiguator
 from ._constants import (
@@ -270,6 +272,7 @@ class PreProcessor:
             self._replace_unicode_fractions,
             combine_quantities_split_by_and,
             self._identify_fractions,
+            self._convert_proper_nouns,
             self._split_quantity_and_units,
             self._remove_unit_trailing_period,
             replace_string_range,
@@ -459,6 +462,44 @@ class PreProcessor:
             sentence = sentence.replace(match, replacement)
 
         return sentence
+
+    def _convert_proper_nouns(self, sentence: str) -> str:
+        # This will handle a lot of the most common cases that anyone would be likely to
+        # run into, but is not 100% comprehensive.
+        def can_number_replacer(m: re.Match):
+            conversion = {
+                1.0: "number_one_can",
+                2.0: "number_two_can",
+                10.0: "number_ten_can",
+                3.0: "number_three_can",
+                2.5: "number_two_half_can",
+                300.0: "number_three_hundred_can",
+            }
+
+            # these groups are the possible positions for the numbers
+            x = next(filter(None, m.group(3, 5)))
+
+            if x == "2#1$2":
+                return "number_two_half_can"
+
+            # these are the \.\d groups, so their truthiness that x is \d.\d -
+            if any(m.group(4, 6)):
+                return conversion[f] if (f := float(x)) in conversion else m.string
+
+            # integer numbers
+            if x.isnumeric():
+                return conversion[float(x)]
+
+            x = word2num(x)
+
+            # word2num returns a None if it's not able to parse
+            return conversion[x] if x in conversion else m.string
+
+        return re.sub(
+            r"(n(o\.?|umber) +(\d+(\.\d)?|\w[\w \/]*\w|\d*#\d\$\d)|#(\d+(\.\d)?)) +can",
+            can_number_replacer,
+            sentence,
+        )
 
     def _replace_unicode_fractions(self, sentence: str) -> str:
         """Replace unicode fractions with a 'fake' ascii equivalent.

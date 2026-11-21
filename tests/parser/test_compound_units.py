@@ -136,7 +136,7 @@ class TestParser_compound_units_regression:
 
         assert len(parsed.amount) == 2
         assert parsed.amount[0].quantity == 2
-        assert str(parsed.amount[0].unit) == "cans"
+        assert str(parsed.amount[0].unit) == "can"
         assert parsed.amount[1].quantity == 6
         assert str(parsed.amount[1].unit) == "ounce"
         assert parsed.name[0].text == "tomato paste"
