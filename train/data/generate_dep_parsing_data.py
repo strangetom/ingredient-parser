@@ -8,7 +8,7 @@ from pathlib import Path
 import spacy
 import tqdm
 
-from ingredient_parser._common import INTERMEDIATE_FRACTION_PATTERN, is_float
+from ingredient_parser._common import is_float
 from ingredient_parser.en import PreProcessor
 from ingredient_parser.en._tokenize import (
     FULL_STOP_TOKENISER,
@@ -16,7 +16,7 @@ from ingredient_parser.en._tokenize import (
     TRAILING_FULL_STOP,
     WHITESPACE_TOKENISER,
 )
-from ingredient_parser.en._utils import to_frac
+from ingredient_parser.en._utils import is_numeric
 
 sqlite3.register_adapter(list, json.dumps)
 
@@ -272,16 +272,7 @@ class CustomTokenizer:
             Tokenized sentences as a spaCy.tokens.Doc object.
         """
         tokens, spaces = zip(*tokenize(sentence))
-
-        fixed_tokens = []
-        for tok in tokens:
-            if INTERMEDIATE_FRACTION_PATTERN.fullmatch(tok):
-                # If the token is of the form 1#1$2 or #1$2, convert to decimal.
-                fixed_tokens.append(str(float(to_frac(tok))))
-            else:
-                fixed_tokens.append(tok)
-
-        return spacy.tokens.Doc(self.vocab, words=fixed_tokens, spaces=list(spaces))
+        return spacy.tokens.Doc(self.vocab, words=list(tokens), spaces=list(spaces))
 
 
 if __name__ == "__main__":
@@ -319,14 +310,39 @@ if __name__ == "__main__":
     # Batch size chosen to comfortably fit in 4GB GPU memory.
     text_stream = nlp.pipe(normalized, batch_size=128)
     print("Parsing sentences...")
-    for i, (original_sentence, doc) in tqdm.tqdm(
-        enumerate(zip(original, text_stream)), total=len(unique_sentences)
+    for original_sentence, doc in tqdm.tqdm(
+        zip(original, text_stream), total=len(unique_sentences)
     ):
         tokens = [t.text for t in doc]
-        tags = [t.tag_ for t in doc]
         deps = [t.dep_ for t in doc]
 
-        training_data.append((i, original_sentence, tokens, tags, deps))
+        tags = []
+        # Override part of speech tag for specific cases.
+        for t, token in enumerate(doc):
+            lower_text = token.text.lower()
+            tag = token.tag_
+
+            if is_numeric(token.text):
+                # Specifically for fractions
+                tag = "CD"
+            elif lower_text in ["c", "g"]:
+                # Special cases for c (cup) and g (gram).
+                tag = "NN"
+            elif lower_text == "e.g.":
+                # Force "e.g." tag to preposition/subordinating conjunction .
+                tag = "IN"
+            elif lower_text == "/":
+                # Force "/" to have SYM tag.
+                tag = "SYM"
+            elif lower_text == "in" and t > 0 and is_numeric(doc[t - 1].text):
+                # If the text is "in" and the previous token is a number then this is
+                # mostly likely to be the abbreviation of inches rather than the
+                # preposition.
+                tag = "NN"
+
+            tags.append(tag)
+
+        training_data.append((original_sentence, tokens, tags, deps))
 
     # Store in database.
     print("Storing parsed sentences in 'train/data/pos_deps.sqlite3'.")
@@ -336,7 +352,7 @@ if __name__ == "__main__":
         c = conn.cursor()
         c.execute("DELETE FROM en")
         c.executemany(
-            "INSERT INTO en (id, sentence, tokens, tags, deps) VALUES (?, ?, ?, ?, ?)",
+            "INSERT INTO en (sentence, tokens, tags, deps) VALUES (?, ?, ?, ?)",
             training_data,
         )
     conn.close()
