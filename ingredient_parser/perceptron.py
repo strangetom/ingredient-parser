@@ -804,10 +804,11 @@ class PerceptronTagger:
 
         # Create weights matrix and feature_vocab and assign weight value for non-zero
         # elements.
-        feature_vocab = {}
+        weights_dict = model_data["weights"]
         weights_matrix = np.zeros(
-            (len(feature_vocab), len(tags)), dtype=np.dtype(model_data["weight_dtype"])
+            (len(weights_dict), len(tags)), dtype=np.dtype(model_data["weight_dtype"])
         )
+        feature_vocab = {}
         for feature, weights in model_data["weights"].items():
             feature_idx = len(feature_vocab)
             feature_vocab[feature] = feature_idx
@@ -992,7 +993,6 @@ class PerceptronTagger:
 
         model = {
             "tags": self.model.tags,
-            # "features": list(self.model.feature_vocab.keys()),
             "weights": weights_as_dict,
             "tagdict": self.tagdict,
             "weight_dtype": self.model.weights.dtype.name,
