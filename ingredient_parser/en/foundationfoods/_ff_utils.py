@@ -12,9 +12,9 @@ from typing import Callable
 
 import numpy as np
 
-from .._loaders import load_embeddings_model
+from .._loaders import load_embeddings_model, load_pos_tagger_model
 from .._tokenize import tokenize
-from .._utils import get_pos_tagger, stem
+from .._utils import stem
 from ._ff_constants import (
     AMBIGUOUS_ADJECTIVES,
     NEGATION_TOKENS,
@@ -341,7 +341,7 @@ def load_fdc_ingredients() -> list[FDCIngredient]:
         List of FDC ingredients.
     """
     logger = logging.getLogger("ingredient-parser.fdc")
-    tagger = get_pos_tagger()
+    tagger = load_pos_tagger_model()
 
     foundation_foods = []
     with as_file(files(__package__).joinpath("..", "data/fdc_ingredients.csv.gz")) as p:

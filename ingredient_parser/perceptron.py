@@ -9,15 +9,12 @@ import random
 from collections import defaultdict
 from contextlib import contextmanager
 from itertools import chain
+from pathlib import Path
 from typing import ClassVar, Iterator
 
 import numpy as np
 
 logger = logging.getLogger(__name__)
-
-_WEIGHT_FILE_PREFIX = (
-    "taggers/averaged_perceptron_tagger_eng/averaged_perceptron_tagger_eng."
-)
 
 
 class NumpyAveragedPerceptron:
@@ -444,7 +441,7 @@ class PerceptronTagger:
 
     def __init__(
         self,
-        load: bool = True,
+        model_path: Path | None,
         autodownload_weights: bool = True,
         max_cache_size: int = 2**15,
     ):
@@ -452,9 +449,8 @@ class PerceptronTagger:
 
         Parameters
         ----------
-        load : bool, optional
-            If True, load model from default location.
-            Default is True.
+        model_path : str, optional
+            If provided, load model from given location.
         autodownload_weights : bool, optional
             If True, automatically download NLTK's PerceptronTagger weights if missing.
             (the default is True)
@@ -469,8 +465,8 @@ class PerceptronTagger:
         # tags that would otherwise be used to generate the features.
         self._tag_cache: dict[tuple[str, ...], str] = {}
 
-        if load:
-            self.load()
+        if model_path is not None:
+            self.load(model_path)
         else:
             self.model = None
 
@@ -786,8 +782,13 @@ class PerceptronTagger:
 
         return weights_matrix, feature_vocab
 
-    def load(self, path: str) -> None:
+    def load(self, path: Path) -> None:
         """Load saved model.
+
+        Parameters
+        ----------
+        path : Path
+            Path to model data JSON file.
 
         Raises
         ------

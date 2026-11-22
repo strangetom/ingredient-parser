@@ -1,4 +1,4 @@
-from ingredient_parser.en._utils import get_pos_tagger
+from ingredient_parser.en._loaders import load_pos_tagger_model
 from ingredient_parser.en.foundationfoods._ff_utils import (
     TokenizedFDCDescription,
     tokenize_fdc_description,
@@ -10,7 +10,7 @@ class TestTokenizeFDCDescription:
         """
         Test that the description is tokenized and stemmed and all tokens have weight 1.
         """
-        tagger = get_pos_tagger()
+        tagger = load_pos_tagger_model()
 
         description = "Vegetable chips"
 
@@ -32,7 +32,7 @@ class TestTokenizeFDCDescription:
         """
         Test that the weights for tokens in each phrase decrease with each phrase.
         """
-        tagger = get_pos_tagger()
+        tagger = load_pos_tagger_model()
 
         description = "Chicken, thigh, meat and skin, raw"
 
@@ -62,7 +62,7 @@ class TestTokenizeFDCDescription:
         Test that negated tokens and the following tokens within the same phrase have 0
         weight.
         """
-        tagger = get_pos_tagger()
+        tagger = load_pos_tagger_model()
 
         description = "Chicken, canned, no broth"
 
@@ -85,7 +85,7 @@ class TestTokenizeFDCDescription:
         Test that reduced relevance tokens and the following tokens within the same
         phrase have reduced weight.
         """
-        tagger = get_pos_tagger()
+        tagger = load_pos_tagger_model()
 
         description = "Chicken, canned, with broth"
 
@@ -108,7 +108,7 @@ class TestTokenizeFDCDescription:
         Test that the upper and lower limits of a percentage range are retained with the
         percentage sign.
         """
-        tagger = get_pos_tagger()
+        tagger = load_pos_tagger_model()
 
         description = "Chocolate, dark, 60-69% cacao solids"
 

@@ -16,7 +16,6 @@ from .._common import (
     is_range,
 )
 from ..dataclasses import IngredientAmount
-from ..perceptron import PerceptronTagger
 from ._constants import (
     FLATTENED_UNITS_LIST,
     STRING_NUMBERS,
@@ -24,7 +23,7 @@ from ._constants import (
     UNITS,
     UNITS_RINDEX,
 )
-from ._loaders import load_ingredient_tagdict
+from ._loaders import load_pos_tagger_model
 from ._regex import (
     FRACTION_SPLIT_AND_PATTERN,
     PLURAL_UNIT_PATTERN,
@@ -156,25 +155,6 @@ def stem(token: str) -> str:
     return STEMMER.stem(token)
 
 
-@lru_cache
-def get_pos_tagger() -> PerceptronTagger:
-    """Cached function to return part of speech tagger.
-
-    The returned part of speech tagger is the default English part of speech tagger from
-    NLTK, but with it's tagdict updated with addition ingredient sentence specific
-    entries.
-
-    Returns
-    -------
-    PerceptronTagger
-        PerceptronTagger part of speech tagger object.
-    """
-    tagger = PerceptronTagger()
-    ingredient_tagdict = load_ingredient_tagdict()
-    tagger.tagdict.update(ingredient_tagdict)
-    return tagger
-
-
 def pos_tag(tokens: list[str]) -> list[tuple[str, str]]:
     """Tag tokens with parts of speech.
 
@@ -193,7 +173,7 @@ def pos_tag(tokens: list[str]) -> list[tuple[str, str]]:
     list[tuple[str, str]]
         List of (token, tag) pairs.
     """
-    tagger = get_pos_tagger()
+    tagger = load_pos_tagger_model()
     return tagger.tag(tokens)
 
 

@@ -99,7 +99,7 @@ class SentenceStructureFeatures:
     # Examples: 1 inch thick, 2 cm in diameter, 1 inch (2 cm) long, ¼ in / 5 mm thick
     dimensional_phrase_parser = nltk.RegexpParser(r"""
         LENGTH: {<CD><LEN>}
-        PLENGTH: {<\(><LENGTH><\)>}  # LENGTH in parentheses
+        PLENGTH: {<-LRB-><LENGTH><-RRB->}  # LENGTH in parentheses
         SLENGTH: {<SYM><LENGTH>}  # LENGTH following forward slash
         DP: {<LENGTH><SLENGTH|PLENGTH>?<IN>?<DIM>*}
     """)
