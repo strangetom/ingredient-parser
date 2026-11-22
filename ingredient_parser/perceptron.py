@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
 import array
+import gzip
+import io
 import json
 import logging
 import random
@@ -10,8 +12,6 @@ from itertools import chain
 from typing import ClassVar, Iterator
 
 import numpy as np
-from nltk.data import find as nltk_find
-from nltk.downloader import download as nltk_download
 
 logger = logging.getLogger(__name__)
 
@@ -786,54 +786,38 @@ class PerceptronTagger:
 
         return weights_matrix, feature_vocab
 
-    def load(self) -> None:
-        """Load saved model at given path.
+    def load(self, path: str) -> None:
+        """Load saved model.
 
         Raises
         ------
         LookupError
             Raised if PerceptronTagger weights are cannot be found.
         """
-        try:
-            tag_path, tagdict_path, weights_path = self._get_weights_paths()
-        except LookupError as e:
-            if self.autodownload_weights:
-                logger.debug(
-                    "Downloading required NLTK resource: averaged_perceptron_tagger_eng"
-                )
-                nltk_download("averaged_perceptron_tagger_eng")
-                tag_path, tagdict_path, weights_path = self._get_weights_paths()
-            else:
-                raise e
+        with open(path, "rb") as f:
+            model_data = json.loads(gzip.decompress(f.read()))
 
-        with open(tag_path) as f:
-            # Reverse=True is need to maintain consistency with the way the NLTK
-            # Perceptron Tagger resolves tied scores.
-            tags = sorted(json.load(f), reverse=True)
-            tag_to_idx = {tag: i for i, tag in enumerate(tags)}
-
-        with open(tagdict_path) as f:
-            self.tagdict = json.load(f)
-
-        weights_matrix, feature_vocab = self._load_tag_weights(weights_path, tag_to_idx)
+        # Load tags and sort them to ensure consistency with training.
+        tags = sorted(model_data["tags"], reverse=True)
+        tag_to_idx = {tag: i for i, tag in enumerate(tags)}
+        # Load tagdict
+        self.tagdict = model_data["tagdict"]
+        # Create feature vocab dict.
+        feature_vocab = {feature: i for i, feature in enumerate(model_data["features"])}
+        # Create weights matrix and assign weight value for non-zero elements.
+        if model_data["weight_dtype"] == "int":
+            dtype = np.int32
+        else:
+            dtype = np.float64
+        weights_matrix = np.zeros((len(feature_vocab), len(tags)), dtype=dtype)
+        for feature, weights in model_data["weights"].items():
+            feature_idx = feature_vocab[feature]
+            for tag, weight in weights.items():
+                tag_idx = tag_to_idx[tag]
+                weights_matrix[feature_idx, tag_idx] = weight
 
         self.model = NumpyAveragedPerceptron(tags, weights_matrix, feature_vocab)
         logger.debug("Part of speech tagger model loaded.")
-
-    def _get_weights_paths(self) -> tuple[str, str, str]:
-        """Get paths to weights files for PerceptronTagger weights.
-
-        If the files cannot be found, a LookupError is raised.
-
-        Returns
-        -------
-        tuple[str, str, str]
-            tag_path, tagdict_path, weights_path
-        """
-        tag_path = nltk_find(_WEIGHT_FILE_PREFIX + "classes.json")
-        tagdict_path = nltk_find(_WEIGHT_FILE_PREFIX + "tagdict.json")
-        weights_path = nltk_find(_WEIGHT_FILE_PREFIX + "weights.json")
-        return tag_path, tagdict_path, weights_path
 
     def train(
         self,
@@ -957,3 +941,40 @@ class PerceptronTagger:
             n = sum(tag_freqs.values())
             if n >= FREQ_THRESHOLD and (float(mode) / n) >= AMBIGUITY_THRESHOLD:
                 self.tagdict[token] = tag
+
+    def save(self, path: str):
+        """Save model to gzipped JSON.
+
+        [description]
+        """
+        if self.model is None:
+            raise ValueError("AveragedPerceptron model has not been loaded.")
+
+        idx_to_tag = {i: tag for i, tag in enumerate(self.model.tags)}
+
+        # Convert the weights to a native Python type according to the weights matrix
+        # dtype.
+        if np.issubdtype(self.model.weights.dtype, np.integer):
+            type_func = int
+        else:
+            type_func = float
+
+        weights_as_dict = defaultdict(dict)
+        for feature, row_idx in self.model.feature_vocab.items():
+            for column_idx, weight in enumerate(self.model.weights[row_idx]):
+                if weight != 0:
+                    weights_as_dict[feature][idx_to_tag[column_idx]] = type_func(weight)
+
+        model = {
+            "tags": self.model.tags,
+            "features": list(self.model.feature_vocab.keys()),
+            "weights": weights_as_dict,
+            "tagdict": self.tagdict,
+            "weight_dtype": str(type_func),
+        }
+        # We use gzip.GzipFile and io.TextIOWrapper so that we can set mtime=0 for the
+        # gzip. This removes the timestamp from the output file meaning it is always
+        # identical for the same set of model weights.
+        with gzip.GzipFile(path, mode="wb", mtime=0) as gz:
+            with io.TextIOWrapper(gz, encoding="utf-8") as f:
+                json.dump(model, f)
