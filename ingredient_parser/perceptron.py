@@ -14,6 +14,8 @@ from typing import ClassVar, Iterator
 
 import numpy as np
 
+from ._common import is_float, is_fraction, is_range
+
 logger = logging.getLogger(__name__)
 
 
@@ -632,14 +634,14 @@ class PerceptronTagger:
         str
             Normalized token.
         """
-        if "-" in token and token[0] != "-":
-            return "!HYPHEN"
+        if is_fraction(token):
+            return "!FRACTION"
 
-        if token.isdigit() and len(token) == 4:
-            return "!YEAR"
+        if is_range(token):
+            return "!RANGE"
 
-        if token and token[0].isdigit():
-            return "!DIGITS"
+        if is_float(token):
+            return "!NUMBER"
 
         return token.lower()
 
