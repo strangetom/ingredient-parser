@@ -441,8 +441,7 @@ class PerceptronTagger:
 
     def __init__(
         self,
-        model_path: Path | None,
-        autodownload_weights: bool = True,
+        model_path: Path | None = None,
         max_cache_size: int = 2**15,
     ):
         """Initialize PerceptronTagger.
@@ -457,7 +456,6 @@ class PerceptronTagger:
         max_cache_size : int, optional
             Sets the maximum cache size when using tag_with_cache().
         """
-        self.autodownload_weights = autodownload_weights
         self.tagdict = {}
 
         self.max_cache_size = max_cache_size
@@ -493,7 +491,7 @@ class PerceptronTagger:
         Raises
         ------
         ValueError
-            Raised if AveraedPerceptron model has not been loaded.
+            Raised if AveragedPerceptron model has not been loaded.
         """
         if self.model is None:
             raise ValueError("AveragedPerceptron model has not been loaded.")
@@ -549,7 +547,7 @@ class PerceptronTagger:
         Raises
         ------
         ValueError
-            Raised if AveraedPerceptron model has not been loaded.
+            Raised if AveragedPerceptron model has not been loaded.
         """
         if self.model is None:
             raise ValueError("AveragedPerceptron model has not been loaded.")
@@ -803,16 +801,16 @@ class PerceptronTagger:
         tag_to_idx = {tag: i for i, tag in enumerate(tags)}
         # Load tagdict
         self.tagdict = model_data["tagdict"]
-        # Create feature vocab dict.
-        feature_vocab = {feature: i for i, feature in enumerate(model_data["features"])}
-        # Create weights matrix and assign weight value for non-zero elements.
-        if model_data["weight_dtype"] == "int":
-            dtype = np.int32
-        else:
-            dtype = np.float64
-        weights_matrix = np.zeros((len(feature_vocab), len(tags)), dtype=dtype)
+
+        # Create weights matrix and feature_vocab and assign weight value for non-zero
+        # elements.
+        feature_vocab = {}
+        weights_matrix = np.zeros(
+            (len(feature_vocab), len(tags)), dtype=np.dtype(model_data["weight_dtype"])
+        )
         for feature, weights in model_data["weights"].items():
-            feature_idx = feature_vocab[feature]
+            feature_idx = len(feature_vocab)
+            feature_vocab[feature] = feature_idx
             for tag, weight in weights.items():
                 tag_idx = tag_to_idx[tag]
                 weights_matrix[feature_idx, tag_idx] = weight
@@ -943,10 +941,36 @@ class PerceptronTagger:
             if n >= FREQ_THRESHOLD and (float(mode) / n) >= AMBIGUITY_THRESHOLD:
                 self.tagdict[token] = tag
 
-    def save(self, path: str):
-        """Save model to gzipped JSON.
+    def save(self, path: Path):
+        """Save model to given path.
 
-        [description]
+        Model is saved as a gzipped JSON file containing the following:
+        * tags, the list of tags the model was trained on.
+        * features, the list of features the model was trained on.
+        * weights, a dict of dicts of non-zero weights in the following format
+        {
+            "feature_a": {
+                "tag_1": weight,
+                "tag_2": weight
+            },
+            "feature_b": {
+                "tag_1": weight,
+                ...
+            },
+            ...
+        }
+        * tagdict, a dict of tags for tokens with unambiguous tags.
+        * weight_dtype, the dtype of the weights matrix.
+
+        Parameters
+        ----------
+        path : Path
+            [description]
+
+        Raises
+        ------
+        ValueError
+            [description]
         """
         if self.model is None:
             raise ValueError("AveragedPerceptron model has not been loaded.")
@@ -968,10 +992,10 @@ class PerceptronTagger:
 
         model = {
             "tags": self.model.tags,
-            "features": list(self.model.feature_vocab.keys()),
+            # "features": list(self.model.feature_vocab.keys()),
             "weights": weights_as_dict,
             "tagdict": self.tagdict,
-            "weight_dtype": str(type_func),
+            "weight_dtype": self.model.weights.dtype.name,
         }
         # We use gzip.GzipFile and io.TextIOWrapper so that we can set mtime=0 for the
         # gzip. This removes the timestamp from the output file meaning it is always
