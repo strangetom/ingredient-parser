@@ -216,6 +216,14 @@ class NumpyAveragedPerceptronTrainer:
         """
         feature_indices = self._features_to_idx(features)
 
+        # Don't consider features until they have been updated more than
+        # min_feat_updates times. We only do this during training.
+        feature_indices = [
+            idx
+            for idx in feature_indices
+            if self._feat_updates[idx] >= self.min_feat_updates
+        ]
+
         # Sum weights for active features across all tags at once.
         # Shape: (n_tags,) i.e. the summed score for each tag.
         if len(feature_indices) > 0:
@@ -826,6 +834,7 @@ class PerceptronTagger:
         tokenised_sentences: list[list[str]],
         truth: list[list[str]],
         n_iter: int = 10,
+        min_feat_updates: int = 0,
         min_abs_weight: float = 0,
         quantize_bits: int | None = None,
         make_tag_dict: bool = True,
@@ -841,6 +850,8 @@ class PerceptronTagger:
         n_iter : int, optional
             Number of training iterations.
             Default is 10.
+        min_feat_updates : int, optional
+            Minimum number of feature updates required to consider feature.
         min_abs_weight : float, optional
             Weights below this value will be pruned after training.
             Default is 0.
@@ -862,6 +873,9 @@ class PerceptronTagger:
         self.tagdict = {}
         if make_tag_dict:
             self._make_tagdict(tokenised_sentences, truth)
+
+        # Set min_feature_updates for model
+        self.model.min_feat_updates = min_feat_updates
 
         # We need to convert to list before we start training so that we can shuffle the
         # list after each training epoch.
@@ -900,6 +914,7 @@ class PerceptronTagger:
                 random.shuffle(training_data)
 
         self.model.average_weights()
+        self.model.filter_features()
         self.model.prune_weights(min_abs_weight)
         if quantize_bits:
             self.model.quantize(quantize_bits)
