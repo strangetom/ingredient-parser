@@ -3,7 +3,10 @@
 import array
 import json
 import logging
+import random
+from collections import defaultdict
 from contextlib import contextmanager
+from itertools import chain
 from typing import ClassVar, Iterator
 
 import numpy as np
@@ -20,7 +23,7 @@ _WEIGHT_FILE_PREFIX = (
 class NumpyAveragedPerceptron:
     """Averaged Perceptron for part of speech tagging implemented using NumPy.
 
-    This is design to be used with NLTK's part of speech tagger weights, but this
+    This is designed to be used with NLTK's part of speech tagger weights, but this
     implementation is tailored to the needs of this library. Specifically:
     * NumPy is used for the mathematics, to improve execution performance.
     * Only inference is implemented, no training related code.
@@ -56,7 +59,7 @@ class NumpyAveragedPerceptron:
         self.feature_vocab = feature_vocab
 
     def __repr__(self):
-        return "AveragedPerceptronNumpy()"
+        return "NumpyAveragedPerceptron()"
 
     def predict(self, features: list[str]) -> str:
         """Predict the tag for a token described by features list.
@@ -64,7 +67,7 @@ class NumpyAveragedPerceptron:
         Parameters
         ----------
         features : list[str]
-            List of features for token, built from the token properties, previous labels
+            List of features for token, built from the token properties, previous tags
             and properties of context tokens.
 
         Returns
@@ -84,8 +87,345 @@ class NumpyAveragedPerceptron:
         else:
             scores = np.zeros(self.n_tags)
 
-        # Return the best label
+        # Return the best tag.
         return self.tags[scores.argmax()]
+
+
+class NumpyAveragedPerceptronTrainer:
+    """Averaged Perceptron for training part of speech tagging implemented using NumPy.
+
+    ...
+    """
+
+    def __init__(self, tags: list[str]):
+        self.tags = tags
+        # Dict mapping tag to index in weights matrix.
+        self.tag_to_idx = {tag: i for i, tag in enumerate(self.tags)}
+        self.n_tags = len(tags)
+
+        # Initialise empty feature vocab.
+        self.feature_vocab: dict[str, int] = {}
+        # Index used when building feature vocab, mapping feature to row in weights
+        # matrix.
+        self.next_feature_index = 0
+
+        # Assume an initial size for features so we can efficiently size the weights
+        # matrix.
+        initial_features = 10_000
+        # Matrix of weights: [n_features, n_tags]
+        self.weights = np.zeros((initial_features, self.n_tags), dtype=np.float32)
+
+        # Accumulated weight for each feature/tag combination
+        self._totals = np.zeros((initial_features, self.n_tags), dtype=np.float64)
+        # The last iteration each feature/tag combination was changed.
+        # This is to avoid having to update every key in self._totals every
+        # iteration, we only update each feature/tag key when it changes,
+        # accounting for the iterations since it last changed.
+        self._tstamps = np.zeros((initial_features, self.n_tags), dtype=np.int32)
+
+        # Count the number of times each feature has been updated (independent of
+        # the tag) during training.
+        self._feat_updates = np.zeros((initial_features,), dtype=np.int32)
+        # The minimum number of feature updates required to consider the feature in
+        # the prediction step.
+        self.min_feat_updates: int = 0
+
+        # Keep track of total iterations during training so that we know how to average
+        # at the end.
+        self._iteration: int = 0
+
+    def __repr__(self):
+        return "NumpyAveragedPerceptronTrainer()"
+
+    def _resize_matrices(self) -> None:
+        """Resize matrices by doubling the number of rows.
+
+        This is called within _features_to_idx during training once the vocabulary
+        reaches the current number of rows of the matrices.
+
+        This matrix size doubling approach is used to be efficient during training. The
+        maximum size of the weights and other matrices are unknown at the start of
+        training, so an initial guess is used. Every time the number of features exceeds
+        the size of the matrix we double it's size, thus limited the number of times we
+        have to preform this operation.
+
+        At the end of training, _simplify_weights is called to trim the matrix sizes so
+        they match the actual number of features and we don't save unused empty rows.
+        """
+        current_capacity = self.weights.shape[0]
+        new_capacity = current_capacity * 2
+
+        # Helper to resize a single matrix and copy data from old matrix into new one.
+        def resize_mat(old_mat: np.ndarray) -> np.ndarray:
+            ndim = old_mat.ndim
+            dtype = old_mat.dtype
+            if ndim == 1:
+                new_mat = np.zeros((new_capacity,), dtype=dtype)
+                new_mat[:current_capacity] = old_mat
+            else:  # assume ndim=2, since we don't use anything with higher dimensions.
+                cols = old_mat.shape[1]
+                new_mat = np.zeros((new_capacity, cols), dtype=dtype)
+                new_mat[:current_capacity, :] = old_mat
+
+            return new_mat
+
+        self.weights = resize_mat(self.weights)
+        self._totals = resize_mat(self._totals)
+        self._tstamps = resize_mat(self._tstamps)
+        self._feat_updates = resize_mat(self._feat_updates)
+
+    def _features_to_idx(self, features: list[str]) -> list[int]:
+        """Map feature string to indices by lookup in vocab dict.
+
+        If the feature is not in the vocabulary, then insert it, resizing the weights
+        and other matrices as necessary.
+
+        Parameters
+        ----------
+        features : list[str]
+            Set of feature strings to return indices of.
+
+        Returns
+        -------
+        list[int]
+            List of integer indices for string features.
+        """
+        for feat in features:
+            if feat not in self.feature_vocab:
+                self.feature_vocab[feat] = self.next_feature_index
+                self.next_feature_index += 1
+
+        # Resize matrices if the vocab now exceeds the current number of rows.
+        if self.next_feature_index >= self.weights.shape[0]:
+            self._resize_matrices()
+
+        return [idx for f in features if (idx := self.feature_vocab.get(f)) is not None]
+
+    def predict(self, features: list[str]) -> str:
+        """Predict the tag for a token described by features list.
+
+        Parameters
+        ----------
+        features : list[str]
+            List of features for token, built from the token properties, previous tags
+            and properties of context tokens.
+
+        Returns
+        -------
+        str
+            Tag for token, given the provided features.
+        """
+        feature_indices = self._features_to_idx(features)
+
+        # Sum weights for active features across all tags at once.
+        # Shape: (n_tags,) i.e. the summed score for each tag.
+        if len(feature_indices) > 0:
+            scores = self.weights.take(feature_indices, axis=0).sum(axis=0)
+        else:
+            scores = np.zeros(self.n_tags)
+
+        # Return the best tag.
+        return self.tags[scores.argmax()]
+
+    def _update_totals(self, tag_index: int, feature_indices: list[int]):
+        """Update weights for feature by given change
+
+        Parameters
+        ----------
+        tag_index : int
+            Index of tag to update total for.
+        feature_indices : list[int]
+            List of indices corresponding to features to update weights for.
+        """
+        # Calculate how many iterations passed since this weight was last touched
+        iters = self._iteration - self._tstamps[feature_indices, tag_index]
+
+        # Add the accumulated weight to totals
+        # totals += iterations_passed * current_weight
+        self._totals[feature_indices, tag_index] += (
+            iters * self.weights[feature_indices, tag_index]
+        )
+
+        # Update timestamp to current iteration
+        self._tstamps[feature_indices, tag_index] = self._iteration
+
+    def update(self, truth: str, guess: str, features: list[str]) -> None:
+        """Update weights for given features.
+
+        This only makes changes if the true and predicted tags are different.
+
+        Parameters
+        ----------
+        truth : str
+            True tag for given features.
+        guess : str
+            Predicted tag for given features.
+        features : list[str]
+            Features.
+
+        Returns
+        -------
+        None
+        """
+        self._iteration += 1
+
+        if truth == guess:
+            return None
+
+        # Update the weights and accumulated totals for the features and tags are
+        # changing.
+        feature_indices = self._features_to_idx(features)
+        # For true tag
+        truth_idx = self.tag_to_idx[truth]
+        self._update_totals(truth_idx, feature_indices)
+        self.weights[feature_indices, truth_idx] += 1.0
+
+        # For guess tag
+        guess_idx = self.tag_to_idx[guess]
+        self._update_totals(guess_idx, feature_indices)
+        self.weights[feature_indices, guess_idx] -= 1.0
+
+        # Increment feature update counts.
+        # We do this here so that we only increment the count for each feature once,
+        # even though we adjusted the weights for different tags for that feature.
+        self._feat_updates[feature_indices] += 1
+
+        return None
+
+    def average_weights(self):
+        """Average the value for each weight over all updates.
+
+        This is done once at the end of training, and is what makes the Averaged
+        Perceptron as effective as it is.
+        """
+        # Final pass to bring all totals up to date
+        iters = self._iteration - self._tstamps
+        self._totals += iters * self.weights
+
+        # Average weights
+        self.weights = self._totals / self._iteration
+
+    def filter_features(self) -> None:
+        """Filter features from weights matrix if they were updated less than than
+        min_feat_updates.
+
+        If min_feat_updates is 0, do nothing.
+
+        Note: We have to also set the rows in the _totals matrix to 0 here so that the
+        features remain at zero weight for all tags when averaging. If we don't, then
+        the features would retain whatever accumulated weight total they had at the last
+        iteration the feature was updated.
+
+        Returns
+        -------
+        None
+        """
+        if self.min_feat_updates == 0:
+            # Nothing to filter
+            return None
+
+        # Initial feature count is number of features that have ever been updated.
+        initial_feature_count = np.count_nonzero(self._feat_updates)
+
+        # Set row indices where feature has not been updated at least
+        # min_feature_updates times.
+        # We're only considering rows with at least one feature update here to make the
+        # calculation of the logging message easier. We could just do
+        # np.argwhere(self._feat_updates < self.min_feat_updates), but that would also
+        # include features that have never been updated.
+        idx_to_zero = np.argwhere(
+            np.logical_and(
+                0 < self._feat_updates, self._feat_updates < self.min_feat_updates
+            )
+        )
+
+        # Set weights for these rows to 0.
+        # We also need to set the rows in the _totals matrix to zero for these too so
+        # they remain 0 after averaging.
+        self.weights[idx_to_zero, :] = 0
+        self._totals[idx_to_zero, :] = 0
+
+        filtered_count = idx_to_zero.shape[0]
+
+        filtered_pc = 100 * filtered_count / initial_feature_count
+        logger.debug(
+            "Removed %0.2f%% of features for updating less than %s times.",
+            filtered_pc,
+            self.min_feat_updates,
+        )
+
+    def prune_weights(self, min_abs_weight: float) -> None:
+        """Prune weights by removing weights smaller than min_abs_weight.
+
+        Parameters
+        ----------
+        min_abs_weight : float
+            Minimum absolute value of weight to keep.
+        """
+        if min_abs_weight == 0:
+            # Nothing to prune
+            return None
+
+        initial_weight_count = np.count_nonzero(self.weights)
+        self.weights[np.abs(self.weights) < min_abs_weight] = 0
+        remaining_count = np.count_nonzero(self.weights)
+        pruned_pc = 100 * (1 - remaining_count / initial_weight_count)
+
+        logger.debug(
+            "Pruned %0.2f%% of weights for having absolute values small than %f.",
+            pruned_pc,
+            min_abs_weight,
+        )
+
+    def quantize(self, nbits: int | None = None) -> None:
+        """Quantize weights to nbit signed integer using linear scaling.
+
+        Because the model weights are only used additively during inference, and we only
+        consider the relative magnitudes of the weights, there is no need for keep the
+        scaling factor because it would just be a multiplier of all of the weights.
+
+        Parameters
+        ----------
+        nbits : int, optional
+            Number of bits for integer scaling.
+            If None, no quantisation is performed.
+            Default is None.
+        """
+        if nbits is None:
+            return
+
+        # Choose an appropriate type to minimise model size.
+        if nbits <= 8:
+            type_ = np.int8
+        elif nbits <= 16:
+            type_ = np.int16
+        else:
+            type_ = np.int32
+
+        max_weight = np.max(np.abs(self.weights))
+        scale = (2 ** (nbits - 1) - 1) / max_weight
+        self.weights = np.round(self.weights * scale).astype(type_)
+        logger.debug("Quantized model weights using %d bits of precision.", nbits)
+
+    def simplify_weights(self) -> None:
+        """Simplify weights matrix by discarding any rows that are all zeros.
+
+        We also simplify the feature vocab to remove the entries corresponding to those
+        rows too.
+        """
+        # Find row indices where absolute sum of weights is non zero. We keep these and
+        # discard the rest.
+        mask = np.abs(self.weights).sum(axis=1) > 0
+
+        new_feature_vocab = {}
+        for feature, idx in sorted(self.feature_vocab.items(), key=lambda x: x[1]):
+            if mask[idx]:
+                new_feature_vocab[feature] = len(new_feature_vocab)
+
+        self.feature_vocab = new_feature_vocab
+        # Can't use nonzero_idx to index here because it has the wrong dimensions, so
+        # use mask.
+        self.weights = self.weights[mask]
 
 
 class _FeatureWeightCount(int):
@@ -102,11 +442,19 @@ class PerceptronTagger:
     START: ClassVar[tuple[str, str]] = ("-START-", "-START2-")
     END: ClassVar[tuple[str, str]] = ("-END-", "-END2-")
 
-    def __init__(self, autodownload_weights: bool = True, max_cache_size: int = 2**15):
+    def __init__(
+        self,
+        load: bool = True,
+        autodownload_weights: bool = True,
+        max_cache_size: int = 2**15,
+    ):
         """Initialize PerceptronTagger.
 
         Parameters
         ----------
+        load : bool, optional
+            If True, load model from default location.
+            Default is True.
         autodownload_weights : bool, optional
             If True, automatically download NLTK's PerceptronTagger weights if missing.
             (the default is True)
@@ -114,14 +462,17 @@ class PerceptronTagger:
             Sets the maximum cache size when using tag_with_cache().
         """
         self.autodownload_weights = autodownload_weights
-        self.tagdict: dict[str, str] = {}
+        self.tagdict = {}
 
         self.max_cache_size = max_cache_size
         # The tag cache keys are a tuple of the token, context tokens and context token
         # tags that would otherwise be used to generate the features.
         self._tag_cache: dict[tuple[str, ...], str] = {}
 
-        self.load()
+        if load:
+            self.load()
+        else:
+            self.model = None
 
     def __repr__(self):
         return "PerceptronTagger()"
@@ -142,7 +493,15 @@ class PerceptronTagger:
         -------
         list[tuple[str, str]]
             List of (token, tag) tuples.
+
+        Raises
+        ------
+        ValueError
+            Raised if AveraedPerceptron model has not been loaded.
         """
+        if self.model is None:
+            raise ValueError("AveragedPerceptron model has not been loaded.")
+
         output = []
         prev, prev2 = self.START
         context = [*self.START, *[self._normalize(w) for w in tokens], *self.END]
@@ -175,7 +534,7 @@ class PerceptronTagger:
 
         Alternative, `clear_cache()` can be called to manually clear the cache.
 
-        If the size of the cache exceeds
+        If the size of the cache exceeds self.max_cache_size, the cache is cleared.
 
         Parameters
         ----------
@@ -190,7 +549,15 @@ class PerceptronTagger:
         -------
         list[tuple[str, str]]
             List of (token, tag) tuples.
+
+        Raises
+        ------
+        ValueError
+            Raised if AveraedPerceptron model has not been loaded.
         """
+        if self.model is None:
+            raise ValueError("AveragedPerceptron model has not been loaded.")
+
         output = []
         prev, prev2 = self.START
         context = [*self.START, *[self._normalize(w) for w in tokens], *self.END]
@@ -316,7 +683,7 @@ class PerceptronTagger:
         return [
             "bias",
             "i suffix " + token[-3:],
-            "i pref1 " + token[0] if token else "",
+            "i pref1 " + (token[0] if token else ""),
             "i-1 tag " + prev,
             "i-2 tag " + prev2,
             "i tag+i-2 tag " + prev + " " + prev2,
@@ -334,7 +701,7 @@ class PerceptronTagger:
     def _load_tag_weights(
         weights_path: str, tag_to_idx: dict[str, int]
     ) -> tuple[np.ndarray, dict[str, int]]:
-        """Memory efficient method of loading tag weights from spare JSON file.
+        """Memory efficient method of loading tag weights from sparse JSON file.
 
         To avoid loading complete weights file into memory and then converting into to
         the NumPy array needed by NumpyAveragedPerceptron, we use this slightly more
@@ -394,7 +761,7 @@ class PerceptronTagger:
             return _FeatureWeightCount(len(pairs))
 
         with open(weights_path) as f:
-            # This return from json.load using the object_paris_hook is a dict of
+            # This return from json.load using the object_pairs_hook is a dict of
             # {feature: _FeatureWeightCount} i.e. the number of weights that are
             # non-zero for each feature.
             features = json.load(f, object_pairs_hook=object_pairs_hook)
@@ -421,11 +788,6 @@ class PerceptronTagger:
 
     def load(self) -> None:
         """Load saved model at given path.
-
-        Parameters
-        ----------
-        path : str
-            Path to model to load.
 
         Raises
         ------
@@ -472,3 +834,126 @@ class PerceptronTagger:
         tagdict_path = nltk_find(_WEIGHT_FILE_PREFIX + "tagdict.json")
         weights_path = nltk_find(_WEIGHT_FILE_PREFIX + "weights.json")
         return tag_path, tagdict_path, weights_path
+
+    def train(
+        self,
+        tokenised_sentences: list[list[str]],
+        truth: list[list[str]],
+        n_iter: int = 10,
+        min_abs_weight: float = 0,
+        quantize_bits: int | None = None,
+        make_tag_dict: bool = True,
+    ) -> None:
+        """Train model using example sentences and their true tags.
+
+        Parameters
+        ----------
+        tokenised_sentences : list[list[str]]
+            List of tokenized sentences, each comprising a list of tokens.
+        truth : list[list[str]]
+            List of true tags for each sentence.
+        n_iter : int, optional
+            Number of training iterations.
+            Default is 10.
+        min_abs_weight : float, optional
+            Weights below this value will be pruned after training.
+            Default is 0.
+        quantize_bits : int | None, optional
+            Number of bits to quantize weights to after training.
+        make_tag_dict : bool, optional
+            If True, create a dict of tags for tokens that are unambiguous in the
+            training data. Default is True.
+        """
+        # Generate list of possible tags from truth data.
+        tags = list(sorted(set(chain.from_iterable(truth)), reverse=True))
+        self.model = NumpyAveragedPerceptronTrainer(tags)
+
+        if len(self.model.tags) == 0:
+            raise ValueError("Set the model tags before training.")
+
+        # Empty tagdict at start of training. If make_tag_dict=True, we will regenerate
+        # a new tagdict. If not, we don't want to use a stale tagdict.
+        self.tagdict = {}
+        if make_tag_dict:
+            self._make_tagdict(tokenised_sentences, truth)
+
+        # We need to convert to list before we start training so that we can shuffle the
+        # list after each training epoch.
+        training_data = list(zip(tokenised_sentences, truth))
+
+        for iter_ in range(n_iter):
+            n = 0  # number of total tokens this iteration
+            c = 0  # number of correctly tagged tokens this iteration
+            for sent, true_tags in training_data:
+                prev, prev2 = self.START
+                context = [*self.START, *[self._normalize(w) for w in sent], *self.END]
+                for idx, (token, true_tag) in enumerate(
+                    zip(sent, true_tags, strict=True)
+                ):
+                    guess = self.tagdict.get(token) if make_tag_dict else None
+                    if not guess:
+                        features = self._get_features(idx, token, context, prev, prev2)
+                        guess = self.model.predict(features)
+                        # Update model weights
+                        self.model.update(true_tag, guess, features)
+
+                    # Use the guess here to avoid to model becoming over-reliant on the
+                    # historical tags being correct
+                    prev2 = prev
+                    prev = guess
+
+                    n += 1
+                    c += guess == true_tag
+
+            logger.info("Iter %d: %0.2f%% correct tokens.", iter_, 100 * c / n)
+
+            if iter_ < n_iter - 1:
+                # Shuffle data for next iteration.
+                # Don't bother shuffling if this is the last iteration because we won't
+                # do anything with the shuffled data.
+                random.shuffle(training_data)
+
+        self.model.average_weights()
+        self.model.prune_weights(min_abs_weight)
+        if quantize_bits:
+            self.model.quantize(quantize_bits)
+        self.model.simplify_weights()
+
+        # Now convert from NumpyAveragedPerceptronTrainer to NumpyAveragedPerceptron for
+        # evaluation.
+        # If we don't do this, then unknown features will try to trigger matrix resizing
+        # and will get added to the feature vocab.
+        weights = self.model.weights
+        feature_vocab = self.model.feature_vocab
+        self.model = NumpyAveragedPerceptron(tags, weights, feature_vocab)
+
+    def _make_tagdict(
+        self,
+        tokenised_sentences: list[list[str]],
+        truth: list[list[str]],
+    ) -> None:
+        """Generate dict of unambiguous token and their tags.
+
+        This dict only includes tokens that occur more than FREQ_THRESHOLD times in the
+        training data, and have the given tag at least AMBIGUITY_THRESHOLD of the time.
+
+        Parameters
+        ----------
+        tokenised_sentences : list[list[str]]
+            List of tokenized sentences.
+        truth : list[list[str]]
+            True tags for each tokenized sentence.
+        """
+        counts = defaultdict(lambda: defaultdict(int))
+        for tokens, tags in zip(tokenised_sentences, truth):
+            for token, tag in zip(tokens, tags):
+                counts[token][tag] += 1
+
+        FREQ_THRESHOLD = 10
+        AMBIGUITY_THRESHOLD = 1
+
+        for token, tag_freqs in counts.items():
+            tag, mode = max(tag_freqs.items(), key=lambda item: item[1])
+            n = sum(tag_freqs.values())
+            if n >= FREQ_THRESHOLD and (float(mode) / n) >= AMBIGUITY_THRESHOLD:
+                self.tagdict[token] = tag
