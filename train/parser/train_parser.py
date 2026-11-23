@@ -3,15 +3,12 @@
 import argparse
 import concurrent.futures as cf
 import logging
-import os
 import time
-from collections.abc import Generator
-from contextlib import contextmanager
 from datetime import timedelta
 from pathlib import Path
 from random import randint
 from statistics import mean, stdev
-from typing import TextIO, cast
+from typing import cast
 from uuid import uuid4
 
 import pycrfsuite
@@ -20,95 +17,28 @@ from tabulate import tabulate
 
 from ingredient_parser.inference import FeatureDict, NumpyCRFInference
 
-from .export import export_crfsuite_to_json
-from .test_results_to_detailed_results import test_results_to_detailed_results
-from .test_results_to_html import test_results_to_html
-from .trainers import IngredientParserTrainer
-from .training_eval import (
+from ..test_results_to_detailed_results import test_results_to_detailed_results
+from ..test_results_to_html import test_results_to_html
+from ..training_utils import (
+    convert_num_ordinal,
+    create_confusion_matrix,
+    train_model_bypass_logging,
+)
+from .parser_eval import (
     Stats,
     evalate_postprocessor_output,
     evaluate_model_only,
     evaluate_model_with_label_corrections,
 )
-from .training_utils import (
+from .parser_export import export_crfsuite_to_json
+from .parser_trainers import IngredientParserTrainer
+from .parser_utils import (
     DEFAULT_MODEL_LOCATION,
     DataVectors,
-    convert_num_ordinal,
-    create_confusion_matrix,
     load_datasets,
 )
 
 logger = logging.getLogger(__name__)
-
-
-@contextmanager
-def change_log_level(level: int) -> Generator[None, None, None]:
-    """Context manager to temporarily change logging level within the context.
-
-    On exiting the context, the original level is restored.
-
-    Parameters
-    ----------
-    level : int
-        Logging level to use within context manager.
-
-    Yields
-    ------
-    Generator[None, None, None]
-        Generator, yielding None
-    """
-    original_level = logger.getEffectiveLevel()
-    logger.setLevel(level)
-    yield
-    logger.setLevel(original_level)
-
-
-@contextmanager
-def set_redirect_log_stream(io_stream: TextIO) -> Generator[None, None, None]:
-    """Context manager to accept io_stream for logging used in web app
-        Required by web app as it bypasses train.py where logging is configured
-
-    Parameters
-    ----------
-    io_stream : TextIO
-        io.IOString() stream
-
-    Yields
-    ------
-    Generator[None, None, None]
-        Generator, yielding None
-    """
-    logging.basicConfig(
-        stream=io_stream,
-        level=logging.INFO,
-        format="[%(levelname)s] (%(module)s) %(message)s",
-    )
-
-    yield
-
-
-@contextmanager
-def set_temp_working_directory(new_path: Path) -> Generator[None, None, None]:
-    """Context manager to temporarily set working directory
-       Required by web app when html,tsv training files are dumped
-
-    Parameters
-    ----------
-    new_path : Path
-        Working directory path
-
-    Yields
-    ------
-    Generator[None, None, None]
-        Generator, yielding None
-    """
-    original_path = os.getcwd()
-    os.chdir(new_path)
-    try:
-        yield
-    finally:
-        os.chdir(original_path)
-
 
 MODEL_HYPERPARAMETERS = {
     "feature.minfreq": 0,
@@ -291,29 +221,7 @@ def train_parser_model(
     return stats
 
 
-def train_parser_model_bypass_logging(*args) -> tuple[float, Stats]:
-    """Train parser model, suppressing logging.
-
-    Parameters
-    ----------
-    *args :
-        train_parser_model function arguments.
-
-    Returns
-    -------
-    tuple[float, Stats]
-        Tuple of elapsed time, evaluation statistics.
-    """
-    start_time = time.monotonic()
-    stats = None
-    with change_log_level(
-        logging.WARNING
-    ):  # Temporarily stop logging below WARNING for multi-processing
-        stats = train_parser_model(*args)
-    return time.monotonic() - start_time, stats
-
-
-def train_single(args: argparse.Namespace) -> None:
+def train_single_parser(args: argparse.Namespace) -> None:
     """Train CRF model once.
 
     Parameters
@@ -347,7 +255,7 @@ def train_single(args: argparse.Namespace) -> None:
     )
 
 
-def train_multiple(args: argparse.Namespace) -> None:
+def train_multiple_parser(args: argparse.Namespace) -> None:
     """Train model multiple times and calculate average performance
     and performance uncertainty.
 
@@ -389,7 +297,8 @@ def train_multiple(args: argparse.Namespace) -> None:
     word_accuracies, sentence_accuracies, seeds, eval_results = [], [], [], []
     with cf.ProcessPoolExecutor(max_workers=args.processes) as executor:
         futures = [
-            executor.submit(train_parser_model_bypass_logging, *a) for a in arguments
+            executor.submit(train_model_bypass_logging, train_parser_model, *a)
+            for a in arguments
         ]
         logger.info("Multiple runs started at %s.", time.strftime("%H:%M:%S"))
         logger.info("Queued for %d separate runs.", args.runs)

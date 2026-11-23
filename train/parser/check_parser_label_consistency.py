@@ -12,7 +12,7 @@ from sklearn.pipeline import Pipeline
 
 from ingredient_parser.en._tokenize import tokenize
 
-from .training_utils import DataVectors, load_datasets
+from .parser_utils import DataVectors, load_datasets
 
 
 def create_html_table(indices: list[int], vectors: DataVectors) -> ET.Element:
@@ -224,7 +224,7 @@ def cluster_sentence_ids(model, cluster_id: int):
     return [i for i, label in enumerate(model.labels_) if label == cluster_id]
 
 
-def check_label_consistency(args: argparse.Namespace) -> None:
+def check_parser_label_consistency(args: argparse.Namespace) -> None:
     """Check label consistency across dataset(s) by identifying similar
     sentences and showing how their tokens are labelled.
 

@@ -13,7 +13,7 @@ from tabulate import tabulate
 from ingredient_parser.dataclasses import LabelledToken, ParsedIngredient
 from ingredient_parser.inference import FeatureDict, NumpyCRFInference
 
-from .training_utils import select_postprocessor, select_preprocessor
+from .parser_utils import select_postprocessor, select_preprocessor
 
 logger = logging.getLogger(__name__)
 

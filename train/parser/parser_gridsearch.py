@@ -18,15 +18,15 @@ from tabulate import tabulate
 
 from ingredient_parser.inference import FeatureDict, NumpyCRFInference
 
-from .export import export_crfsuite_to_json
-from .train_model import DEFAULT_MODEL_LOCATION
-from .trainers import IngredientParserTrainer
-from .training_eval import evaluate
-from .training_utils import (
+from ..training_utils import convert_num_ordinal
+from .parser_eval import evaluate
+from .parser_export import export_crfsuite_to_json
+from .parser_trainers import IngredientParserTrainer
+from .parser_utils import (
     DataVectors,
-    convert_num_ordinal,
     load_datasets,
 )
+from .train_parser import DEFAULT_MODEL_LOCATION
 
 logger = logging.getLogger(__name__)
 
@@ -563,7 +563,7 @@ def train_model_grid_search(
     }
 
 
-def grid_search(args: argparse.Namespace):
+def grid_search_parser(args: argparse.Namespace):
     """Perform a grid search over the specified hyperparameters and return the model
     performance statistics for each combination of parameters.
 

@@ -1,15 +1,11 @@
-#!/usr/bin/env python3
-
-import concurrent.futures as cf
-import json
 import logging
-import sqlite3
-from collections.abc import Callable, Iterable
-from contextlib import closing
-from dataclasses import dataclass
-from functools import partial
-from itertools import chain, islice
-from typing import Any
+import os
+import time
+from collections.abc import Generator
+from contextlib import contextmanager
+from itertools import chain
+from pathlib import Path
+from typing import Any, Callable, TextIO
 
 import matplotlib
 import numpy as np
@@ -20,287 +16,100 @@ matplotlib.use(
 from matplotlib import pyplot as plt
 from sklearn.metrics import ConfusionMatrixDisplay, confusion_matrix
 
-from ingredient_parser import SUPPORTED_LANGUAGES
-from ingredient_parser.inference import FeatureDict
-
 logger = logging.getLogger(__name__)
 
-sqlite3.register_converter("json", json.loads)
 
-DEFAULT_MODEL_LOCATION = "ingredient_parser/en/data/model.en.json.gz"
+@contextmanager
+def change_log_level(level: int) -> Generator[None, None, None]:
+    """Context manager to temporarily change logging level within the context.
 
-
-@dataclass
-class DataVectors:
-    """Dataclass to store the loaded and transformed inputs."""
-
-    sentences: list[str]
-    features: list[list[FeatureDict]]
-    tokens: list[list[str]]
-    labels: list[list[str]]
-    source: list[str]
-    uids: list[int]
-    discarded: int
-
-
-def chunked(iterable: Iterable, n: int) -> Iterable:
-    """Break *iterable* into lists of length *n*.
-
-    By the default, the last yielded list will have fewer than *n* elements
-    if the length of *iterable* is not divisible by *n*:
+    On exiting the context, the original level is restored.
 
     Parameters
     ----------
-    iterable : Iterable
-        Iterable to chunk.
-    n : int
-        Size of each chunk.
+    level : int
+        Logging level to use within context manager.
 
-    Returns
-    -------
-    Iterable
-        Chunks of iterable with size n (or less for the last chunk).
-
-    Examples
-    --------
-    >>> list(chunked([1, 2, 3, 4, 5, 6], 3))
-    [[1, 2, 3], [4, 5, 6]]
-
-    >>> list(chunked([1, 2, 3, 4, 5, 6, 7, 8], 3))
-    [[1, 2, 3], [4, 5, 6], [7, 8]]
-    """
-
-    def take(n: int, iterable: Iterable) -> list:
-        """Return first n items of the iterable as a list.
-
-        Parameters
-        ----------
-        n : int
-            Number of items to return in list.
-        iterable : Iterable
-            Iterable to return items from.
-
-        Returns
-        -------
-        list
-            List of first n items of iterable.
-        """
-        return list(islice(iterable, n))
-
-    return iter(partial(take, n, iter(iterable)), [])
-
-
-def select_preprocessor(lang: str) -> Any:
-    """Select appropriate PreProcessor class for given language.
-
-    Parameters
-    ----------
-    lang : str
-        Language of training data.
-
-    Returns
-    -------
-    Any
-        PreProcessor class for pre-processing in given language.
-
-    Raises
+    Yields
     ------
-    ValueError
-        Selected language not supported
+    Generator[None, None, None]
+        Generator, yielding None
     """
-    if lang not in SUPPORTED_LANGUAGES:
-        raise ValueError(f'Unsupported language "{lang}"')
-
-    match lang:
-        case "en":
-            from ingredient_parser.en import PreProcessor
-
-            return PreProcessor
+    original_level = logger.getEffectiveLevel()
+    logger.setLevel(level)
+    yield
+    logger.setLevel(original_level)
 
 
-def select_postprocessor(lang: str) -> Any:
-    """Select appropriate PostProcessor class for given language.
+@contextmanager
+def set_redirect_log_stream(io_stream: TextIO) -> Generator[None, None, None]:
+    """Context manager to accept io_stream for logging used in web app
+        Required by web app as it bypasses train.py where logging is configured
 
     Parameters
     ----------
-    lang : str
-        Language of training data.
+    io_stream : TextIO
+        io.IOString() stream
 
-    Returns
-    -------
-    Any
-        PostProcessor class for post-processing in given language.
-
-    Raises
+    Yields
     ------
-    ValueError
-        Selected language not supported
+    Generator[None, None, None]
+        Generator, yielding None
     """
-    if lang not in SUPPORTED_LANGUAGES:
-        raise ValueError(f'Unsupported language "{lang}"')
-
-    match lang:
-        case "en":
-            from ingredient_parser.en import PostProcessor
-
-            return PostProcessor
-
-
-def load_datasets(
-    database: str,
-    table: str,
-    datasets: list[str],
-    discard_other: bool = True,
-    combine_name_labels: bool = False,
-) -> DataVectors:
-    """Load raw data from csv files and transform into format required for training.
-
-    Parameters
-    ----------
-    database : str
-        Path to database of training data.
-    table : str
-        Name of database table containing training data.
-    datasets : list[str]
-        List of data source to include.
-        Valid options are: nyt, cookstr, bbc, allrecipes, tc, manual, ba.
-    discard_other : bool, optional
-        If True, discard sentences containing tokens with OTHER label.
-    combine_name_labels :  bool, optional
-        If True, combine all labels containing "NAME" into a single "NAME" label.
-
-    Returns
-    -------
-    DataVectors
-        Dataclass holding:
-            raw input sentences,
-            features extracted from sentences,
-            labels for sentences
-            source dataset of sentences
-    """
-    PreProcessor = select_preprocessor(table)
-
-    logger.info("Loading and transforming training data.")
-
-    n = len(datasets)
-    # contextlib.closing automatically calls conn.close() on exiting the context.
-    with closing(
-        sqlite3.connect(database, detect_types=sqlite3.PARSE_DECLTYPES)
-    ) as conn:
-        conn.row_factory = sqlite3.Row
-        c = conn.cursor()
-        c.execute(
-            (
-                f"SELECT id, source, sentence, labels FROM {table} "
-                f"WHERE source IN ({','.join(['?'] * n)})"
-            ),
-            datasets,
-        )
-        data = [dict(row) for row in c.fetchall()]
-
-    # Chunk data into 4 groups to process in parallel.
-    n_chunks = 4
-    # Define chunk size so all groups have about the same number of elements, except the
-    # last group which will be slightly smaller.
-    chunk_size = int((len(data) + n_chunks) / n_chunks)
-    chunks = chunked(data, chunk_size)
-
-    with cf.ProcessPoolExecutor(max_workers=4) as executor:
-        vectors = [
-            vec
-            for vec in executor.map(
-                process_sentences,
-                chunks,
-                [PreProcessor] * n_chunks,
-                [discard_other] * n_chunks,
-                [combine_name_labels] * n_chunks,
-            )
-        ]
-
-    all_vectors = DataVectors(
-        sentences=list(chain.from_iterable(v.sentences for v in vectors)),
-        features=list(chain.from_iterable(v.features for v in vectors)),
-        tokens=list(chain.from_iterable(v.tokens for v in vectors)),
-        labels=list(chain.from_iterable(v.labels for v in vectors)),
-        source=list(chain.from_iterable(v.source for v in vectors)),
-        uids=list(chain.from_iterable(v.uids for v in vectors)),
-        discarded=sum(v.discarded for v in vectors),
+    logging.basicConfig(
+        stream=io_stream,
+        level=logging.INFO,
+        format="[%(levelname)s] (%(module)s) %(message)s",
     )
 
-    logger.info("%d usable vectors.", len(all_vectors.sentences))
-    logger.info("%d discarded due to OTHER labels.", all_vectors.discarded)
-    return all_vectors
+    yield
 
 
-def process_sentences(
-    data: list[dict],
-    PreProcessor: Callable,
-    discard_other: bool,
-    combine_name_labels: bool,
-) -> DataVectors:
-    """Process sentences from database into format needed for training and evaluation.
+@contextmanager
+def set_temp_working_directory(new_path: Path) -> Generator[None, None, None]:
+    """Context manager to temporarily set working directory
+       Required by web app when html,tsv training files are dumped
 
     Parameters
     ----------
-    data : list[dict]
-        List of dicts, where each dict is the database row.
-    PreProcessor : Callable
-        PreProcessor class to preprocess sentences.
-    discard_other : bool
-        If True, discard sentences with OTHER.
-    combine_name_labels : bool
-        If True, combine all labels containing "NAME" into a single "NAME" label.
+    new_path : Path
+        Working directory path
+
+    Yields
+    ------
+    Generator[None, None, None]
+        Generator, yielding None
+    """
+    original_path = os.getcwd()
+    os.chdir(new_path)
+    try:
+        yield
+    finally:
+        os.chdir(original_path)
+
+
+def train_model_bypass_logging(func: Callable, *args) -> tuple[float, Any]:
+    """Train parser model, suppressing logging.
+
+    Parameters
+    ----------
+    func :  Callable
+        Trainer function to call with given arguments.
+    *args :
+        train_parser_model function arguments.
 
     Returns
     -------
-    DataVectors
-        Dataclass holding:
-            raw input sentences,
-            features extracted from sentences,
-            labels for sentences,
-            source dataset of sentences,
-            uids for each sentence,
-            number of discarded sentences
-
-    Raises
-    ------
-    ValueError
-        Raised if number of calculated token does not match number of labels.
+    tuple[float, Stats]
+        Tuple of elapsed time, evaluation statistics.
     """
-    source, sentences, features, tokens, labels, uids = [], [], [], [], [], []
-    discarded = 0
-    for entry in data:
-        if discard_other and "OTHER" in entry["labels"]:
-            discarded += 1
-            continue
-
-        source.append(entry["source"])
-        sentences.append(entry["sentence"])
-        p = PreProcessor(entry["sentence"], custom_units={})
-        uids.append(entry["id"])
-        features.append(p.sentence_features())
-        tokens.append([t.text for t in p.tokenized_sentence])
-
-        if combine_name_labels:
-            new_labels = []
-            for label in entry["labels"]:
-                if "NAME" in label:
-                    new_labels.append("NAME")
-                else:
-                    new_labels.append(label)
-            labels.append(new_labels)
-        else:
-            labels.append(entry["labels"])
-
-        # Ensure length of tokens and length of labels are the same
-        if len(p.tokenized_sentence) != len(entry["labels"]):
-            raise ValueError(
-                f'"{entry["sentence"]}" (ID: {entry["id"]}) has '
-                f"{len(p.tokenized_sentence)} tokens "
-                f"but {len(entry['labels'])} labels."
-            )
-
-    return DataVectors(sentences, features, tokens, labels, source, uids, discarded)
+    start_time = time.monotonic()
+    stats = None
+    with change_log_level(
+        logging.WARNING
+    ):  # Temporarily stop logging below WARNING for multi-processing
+        stats = func(*args)
+    return time.monotonic() - start_time, stats
 
 
 def create_confusion_matrix(

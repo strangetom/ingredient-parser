@@ -8,12 +8,12 @@ import sys
 from pathlib import Path
 from random import randint
 
-from train import (
-    check_label_consistency,
-    feature_search,
-    grid_search,
-    train_multiple,
-    train_single,
+from train.parser import (
+    check_parser_label_consistency,
+    feature_search_parser,
+    grid_search_parser,
+    train_multiple_parser,
+    train_single_parser,
 )
 
 
@@ -433,9 +433,9 @@ if __name__ == "__main__":
     )
 
     if args.command == "train":
-        train_single(args)
+        train_single_parser(args)
     elif args.command == "multiple":
-        train_multiple(args)
+        train_multiple_parser(args)
     elif args.command == "gridsearch":
         if args.params_from_json:
             # Read parameters from file and set the values on the args object.
@@ -448,9 +448,9 @@ if __name__ == "__main__":
                 else:
                     raise ValueError(f"{argument} is not a valid argument.")
 
-        grid_search(args)
+        grid_search_parser(args)
     elif args.command == "featuresearch":
-        feature_search(args)
+        feature_search_parser(args)
     elif args.command == "utility":
         if args.utility == "consistency":
-            check_label_consistency(args)
+            check_parser_label_consistency(args)

@@ -16,15 +16,15 @@ from tabulate import tabulate
 
 from ingredient_parser.inference import FeatureDict, NumpyCRFInference
 
-from .export import export_crfsuite_to_json
-from .train_model import DEFAULT_MODEL_LOCATION, MODEL_HYPERPARAMETERS
-from .trainers import IngredientParserTrainer
-from .training_eval import evaluate_model_with_label_corrections
-from .training_utils import (
+from ..training_utils import convert_num_ordinal
+from .parser_eval import evaluate_model_with_label_corrections
+from .parser_export import export_crfsuite_to_json
+from .parser_trainers import IngredientParserTrainer
+from .parser_utils import (
     DataVectors,
-    convert_num_ordinal,
     load_datasets,
 )
+from .train_parser import DEFAULT_MODEL_LOCATION, MODEL_HYPERPARAMETERS
 
 logger = logging.getLogger(__name__)
 
@@ -242,7 +242,7 @@ def validate_discarded_in_features(
         )
 
 
-def feature_search(args: argparse.Namespace):
+def feature_search_parser(args: argparse.Namespace):
     """Perform a grid search over the selected feature combinations and return the model
     performance statistics for each combination of features.
 
