@@ -7,8 +7,6 @@ import unicodedata
 from html import unescape
 from itertools import chain
 
-from word2num import word2num
-
 from ..dataclasses import Token, TokenFeatures
 from ._ambiguity import Disambiguator
 from ._constants import (
@@ -26,12 +24,14 @@ from ._constants import (
     UNITS,
 )
 from ._regex import (
+    CAN_NUMBER_PATTERN,
     CURRENCY_PATTERN,
     DUPE_UNIT_RANGES_PATTERN,
     EXPANDED_RANGE,
     FRACTION_PARTS_PATTERN,
     HYPHEN_SPLIT_NAME_PATTERN,
     INCH_SIZE_PATTERN,
+    NUMBER_CAN_PATTERN,
     QUANTITY_UNITS_PATTERN,
     QUANTITY_X_PATTERN,
     STRING_QUANTITY_HYPHEN_PATTERN,
@@ -272,7 +272,7 @@ class PreProcessor:
             self._replace_unicode_fractions,
             combine_quantities_split_by_and,
             self._identify_fractions,
-            self._convert_proper_nouns,
+            self._convert_unit_phrases,
             self._split_quantity_and_units,
             self._remove_unit_trailing_period,
             replace_string_range,
@@ -463,7 +463,36 @@ class PreProcessor:
 
         return sentence
 
-    def _convert_proper_nouns(self, sentence: str) -> str:
+    def _convert_unit_phrases(self, sentence: str) -> str:
+        """Identify units that are more than one word and
+        convert them into single-word phrases
+
+
+        Parameters
+        ----------
+        sentence : str
+            Ingredient sentence.
+
+        Returns
+        -------
+        str
+            Ingredient sentence with unit phrases converted to single-word phrases
+
+        Examples
+        --------
+        >>> p = PreProcessor("")
+        >>> p._identify_fractions("1 no. 2 can of tomato puree")
+        "1 number_two_can of tomato puree"
+
+        >>> p = PreProcessor("")
+        >>> p._identify_fractions("1 number 2#1$2 can of chickpeas")
+        "1 number_two_half_can of chickpeas"
+
+        >>> p = PreProcessor("")
+        >>> p._identify_fractions("1 number 300 can of chickpeas")
+        "1 number_three_hundred_can of chickpeas"
+        """
+
         # This will handle a lot of the most common cases that anyone would be likely to
         # run into, but is not 100% comprehensive.
         def can_number_replacer(m: re.Match):
@@ -490,16 +519,13 @@ class PreProcessor:
             if x.isnumeric():
                 return conversion[float(x)]
 
-            x = word2num(x)
+            return m.string
 
-            # word2num returns a None if it's not able to parse
-            return conversion[x] if x in conversion else m.string
-
-        return re.sub(
-            r"(n(o\.?|umber) +(\d+(\.\d)?|\w[\w \/]*\w|\d*#\d\$\d)|#(\d+(\.\d)?)) +can",
+        subbed = NUMBER_CAN_PATTERN.sub(
             can_number_replacer,
             sentence,
         )
+        return CAN_NUMBER_PATTERN.sub(can_number_replacer, subbed)
 
     def _replace_unicode_fractions(self, sentence: str) -> str:
         """Replace unicode fractions with a 'fake' ascii equivalent.
