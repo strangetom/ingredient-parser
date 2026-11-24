@@ -253,6 +253,7 @@ tr:first-of-type td:not(:first-of-type)::after {
 .mismatch {
 	border: 4px solid var(--red-alt);
 	background-color: var(--fg);
+	color: var(--bg);
 }
 .low-score {
 	color: var(--yellow-alt);

@@ -15,6 +15,7 @@ from train.parser import (
     train_multiple_parser,
     train_single_parser,
 )
+from train.tagger import train_multiple_tagger, train_single_tagger
 
 
 class ParseJsonArg(argparse.Action):
@@ -41,6 +42,14 @@ if __name__ == "__main__":
     subparsers = parser.add_subparsers(dest="command", help="Training commands")
 
     train_parser = subparsers.add_parser("train", help="Train CRF model.")
+    train_parser.add_argument(
+        "--model",
+        help="Model to train",
+        choices=["parser", "tagger"],
+        default="parser",
+        type=str,
+        dest="model",
+    )
     train_parser.add_argument(
         "--database",
         help="Path to database of training data",
@@ -109,6 +118,14 @@ if __name__ == "__main__":
 
     multiple_parser_help = "Average CRF performance across multiple training cycles."
     multiple_parser = subparsers.add_parser("multiple", help=multiple_parser_help)
+    multiple_parser.add_argument(
+        "--model",
+        help="Model to train",
+        choices=["parser", "tagger"],
+        default="parser",
+        type=str,
+        dest="model",
+    )
     multiple_parser.add_argument(
         "--database",
         help="Path to database of training data",
@@ -187,6 +204,14 @@ if __name__ == "__main__":
         "Grid search over all combinations of model hyperparameters."
     )
     gridsearch_parser = subparsers.add_parser("gridsearch", help=multiple_parser_help)
+    gridsearch_parser.add_argument(
+        "--model",
+        help="Model to train",
+        choices=["parser", "tagger"],
+        default="parser",
+        type=str,
+        dest="model",
+    )
     gridsearch_parser.add_argument(
         "--database",
         help="Path to database of training data",
@@ -325,6 +350,14 @@ if __name__ == "__main__":
         "featuresearch", help=featuresearch_parser_help
     )
     featuresearch_parser.add_argument(
+        "--model",
+        help="Model to train",
+        choices=["parser", "tagger"],
+        default="parser",
+        type=str,
+        dest="model",
+    )
+    featuresearch_parser.add_argument(
         "--database",
         help="Path to database of training data",
         type=str,
@@ -433,9 +466,17 @@ if __name__ == "__main__":
     )
 
     if args.command == "train":
-        train_single_parser(args)
+        if args.model == "parser":
+            train_single_parser(args)
+        elif args.model == "tagger":
+            train_single_tagger(args)
+
     elif args.command == "multiple":
-        train_multiple_parser(args)
+        if args.model == "parser":
+            train_multiple_parser(args)
+        elif args.model == "tagger":
+            train_multiple_tagger(args)
+
     elif args.command == "gridsearch":
         if args.params_from_json:
             # Read parameters from file and set the values on the args object.
