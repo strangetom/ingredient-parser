@@ -82,7 +82,7 @@ def evaluate(
         flat_predictions,
         labels=tags,
         output_dict=True,
-        zero_division="warn",
+        zero_division=0,
     )
 
     # Convert report to TokenStats dataclass

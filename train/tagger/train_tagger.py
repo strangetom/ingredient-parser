@@ -5,7 +5,9 @@ import concurrent.futures as cf
 import logging
 import random
 import time
+import warnings
 from datetime import timedelta
+from itertools import chain
 from pathlib import Path
 from random import randint
 from statistics import mean, stdev
@@ -130,11 +132,23 @@ def train_tagger_model(
     )
     trainer.save(save_model)
 
-    # Create NumpyCRFInference object for evaluation.
+    # Create PerceptronTagger object for evaluation.
     tagger = PerceptronTagger(save_model)
-    stats, labels_pred, scores_pred = evaluate_model_only(
-        tagger, tokens_test, tags_test, seed
-    )
+
+    with warnings.catch_warnings(record=True) as caught:
+        # Instead of catching the warning here, we should just check if the training
+        # and testing sets have the same tags in them.
+        warnings.simplefilter("always")
+        stats, labels_pred, scores_pred = evaluate_model_only(
+            tagger, tokens_test, tags_test, seed
+        )
+    if caught:
+        missing = set(chain.from_iterable(labels_pred)) - set(
+            chain.from_iterable(tags_test)
+        )
+        logger.warning(
+            "Seed %d: labels predicted but not in test truth: %s", seed, missing
+        )
 
     if html:
         test_results_to_html(

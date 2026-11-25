@@ -15,7 +15,7 @@ from train.parser import (
     train_multiple_parser,
     train_single_parser,
 )
-from train.tagger import train_multiple_tagger, train_single_tagger
+from train.tagger import grid_search_tagger, train_multiple_tagger, train_single_tagger
 
 
 class ParseJsonArg(argparse.Action):
@@ -482,14 +482,14 @@ if __name__ == "__main__":
             # Read parameters from file and set the values on the args object.
             with open(args.params_from_json) as f:
                 params = json.load(f)
-
             for argument, value in params.items():
-                if hasattr(args, argument):
-                    setattr(args, argument, value)
-                else:
-                    raise ValueError(f"{argument} is not a valid argument.")
+                setattr(args, argument, value)
 
-        grid_search_parser(args)
+        if args.model == "parser":
+            grid_search_parser(args)
+        elif args.model == "tagger":
+            grid_search_tagger(args)
+
     elif args.command == "featuresearch":
         feature_search_parser(args)
     elif args.command == "utility":
