@@ -20,11 +20,13 @@ class TestPreProcessor_convert_proper_nouns:
                 "1 number 1 can tomato puree",
                 "1 no 1 can tomato puree",
                 "1 no. 1 can tomato puree",
+                "1 can (no. 1) tomato puree",
             ],
             "1 number_two_can tomato puree": [
                 "1 number 2 can tomato puree",
                 "1 no 2 can tomato puree",
                 "1 no. 2 can tomato puree",
+                "1 can (number 2) tomato puree",
             ],
             "1 number_three_can tomato puree": [
                 "1 number 3 can tomato puree",
@@ -41,6 +43,8 @@ class TestPreProcessor_convert_proper_nouns:
                 "1 number 2#1$2 can tomato puree",
                 "1 no 2.5 can tomato puree",
                 "1 no. 2.5 can tomato puree",
+                "1 can (number 2#1$2) tomato puree",
+                "1 can (number 2.5) tomato puree",
             ],
             "1 number_three_hundred_can tomato puree": [
                 "1 number 300 can tomato puree",

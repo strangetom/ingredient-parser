@@ -160,5 +160,5 @@ NUMBER_CAN_PATTERN = re.compile(
     r"(n(o\.?|umber) +(\d+(\.\d)?|\d*#\d\$\d)|#(\d+(\.\d)?)) +can", re.I
 )
 CAN_NUMBER_PATTERN = re.compile(
-    r"(n(o\.?|umber) +(\d+(\.\d)?|\d*#\d\$\d)|#(\d+(\.\d)?)) +can", re.I
+    r"can \((n(o\.?|umber) +(\d+(\.\d)?|\d*#\d\$\d)|#(\d+(\.\d)?))\)", re.I
 )
