@@ -119,6 +119,15 @@ UNITS = {
     "wedges": "wedge",
     "vials": "vial",
     "wheels": "wheel",
+    # These can units are each their own unit, based on some of the USDA's can sizes.
+    # These are the cans we suspect to most likely be seen. _convert_proper_nouns will
+    # convert the compound phrases e.g. "no. 1 can" into these units
+    "number_one_can": "number_one_can",
+    "number_two_cans": "number_two_can",
+    "number_two_half_cans": "number_two_half_can",
+    "number_three_cans": "number_three_can",
+    "number_ten_cans": "number_ten_can",
+    "number_three_hundred_cans": "number_three_hundred_can",
 }
 
 

@@ -152,3 +152,15 @@ PLURAL_UNIT_PATTERN = re.compile(r"\w+")
 # This is used when calculating the word_shape feature to collapse runs of consecutive
 # identical characters down to a maximum run length of 3.
 WORD_SHAPE_RUN_PATTERN = re.compile(r"(.)\1{3,}")
+
+# Regular expressions to catch "no. <number> can" or "number <number> can", based on the
+# 2025 USDA AMS Technical Procedures (page 65). Since this is a fairly niche corner
+# case, the goal is just to catch the most likely can sizes to be seen in a recipe.
+NUMBER_CAN_PATTERN = re.compile(
+    r"((n(o\.?|umber) +(\d+(\.\d)?|\d*#\d\$\d))|#((\d+(\.\d)?)|\d*#\d\$\d)) +can", re.I
+)
+
+CAN_NUMBER_PATTERN = re.compile(
+    r"can \(((n(o\.?|umber) +(\d+(\.\d)?|\d*#\d\$\d))|#((\d+(\.\d)?)|\d*#\d\$\d))\)",
+    re.I,
+)

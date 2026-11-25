@@ -64,11 +64,11 @@ class TestPostProcessor_IngredientAmount:
         are pluralised correctly.
         """
         amount = ingredient_amount_factory(
-            quantity="2", unit="can", text="2 can", confidence=0, starting_index=0
+            quantity="2", unit="wheel", text="2 wheel", confidence=0, starting_index=0
         )
 
-        assert amount.unit == "cans"
-        assert amount.text == "2 cans"
+        assert amount.unit == "wheels"
+        assert amount.text == "2 wheels"
         assert amount.unit_system == UnitSystem.OTHER
 
     def test_pluralisation_pint_unit(self):
@@ -263,8 +263,8 @@ class Test_IngredientAmount_convert_to:
         """
         amount = ingredient_amount_factory(
             quantity="1",
-            unit="can",
-            text="1 can",
+            unit="wheel",
+            text="1 wheel",
             confidence=0,
             starting_index=0,
         )

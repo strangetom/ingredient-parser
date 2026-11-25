@@ -24,12 +24,14 @@ from ._constants import (
     UNITS,
 )
 from ._regex import (
+    CAN_NUMBER_PATTERN,
     CURRENCY_PATTERN,
     DUPE_UNIT_RANGES_PATTERN,
     EXPANDED_RANGE,
     FRACTION_PARTS_PATTERN,
     HYPHEN_SPLIT_NAME_PATTERN,
     INCH_SIZE_PATTERN,
+    NUMBER_CAN_PATTERN,
     QUANTITY_UNITS_PATTERN,
     QUANTITY_X_PATTERN,
     STRING_QUANTITY_HYPHEN_PATTERN,
@@ -270,6 +272,7 @@ class PreProcessor:
             self._replace_unicode_fractions,
             combine_quantities_split_by_and,
             self._identify_fractions,
+            self._convert_unit_phrases,
             self._split_quantity_and_units,
             self._remove_unit_trailing_period,
             replace_string_range,
@@ -459,6 +462,70 @@ class PreProcessor:
             sentence = sentence.replace(match, replacement)
 
         return sentence
+
+    def _convert_unit_phrases(self, sentence: str) -> str:
+        """Identify units that are more than one word and
+        convert them into single-word phrases
+
+
+        Parameters
+        ----------
+        sentence : str
+            Ingredient sentence.
+
+        Returns
+        -------
+        str
+            Ingredient sentence with unit phrases converted to single-word phrases
+
+        Examples
+        --------
+        >>> p = PreProcessor("")
+        >>> p._identify_fractions("1 no. 2 can of tomato puree")
+        "1 number_two_can of tomato puree"
+
+        >>> p = PreProcessor("")
+        >>> p._identify_fractions("1 number 2#1$2 can of chickpeas")
+        "1 number_two_half_can of chickpeas"
+
+        >>> p = PreProcessor("")
+        >>> p._identify_fractions("1 number 300 can of chickpeas")
+        "1 number_three_hundred_can of chickpeas"
+        """
+
+        # This will handle a lot of the most common cases that anyone would be likely to
+        # run into, but is not 100% comprehensive.
+        def can_number_replacer(m: re.Match):
+            conversion = {
+                1.0: "number_one_can",
+                2.0: "number_two_can",
+                10.0: "number_ten_can",
+                3.0: "number_three_can",
+                2.5: "number_two_half_can",
+                300.0: "number_three_hundred_can",
+            }
+
+            # these groups are the possible positions for the numbers
+            x = next(filter(None, m.group(4, 6)))
+
+            if x == "2#1$2":
+                return "number_two_half_can"
+
+            # these are the \.\d groups, so their truthiness that x is \d.\d -
+            if any(m.group(5, 8)):
+                return conversion[f] if (f := float(x)) in conversion else m.string
+
+            # integer numbers
+            if x.isnumeric():
+                return conversion[float(x)]
+
+            return m.string
+
+        subbed = NUMBER_CAN_PATTERN.sub(
+            can_number_replacer,
+            sentence,
+        )
+        return CAN_NUMBER_PATTERN.sub(can_number_replacer, subbed)
 
     def _replace_unicode_fractions(self, sentence: str) -> str:
         """Replace unicode fractions with a 'fake' ascii equivalent.
