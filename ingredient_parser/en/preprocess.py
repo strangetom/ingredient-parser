@@ -506,13 +506,13 @@ class PreProcessor:
             }
 
             # these groups are the possible positions for the numbers
-            x = next(filter(None, m.group(3, 5)))
+            x = next(filter(None, m.group(4, 6)))
 
             if x == "2#1$2":
                 return "number_two_half_can"
 
             # these are the \.\d groups, so their truthiness that x is \d.\d -
-            if any(m.group(4, 6)):
+            if any(m.group(5, 8)):
                 return conversion[f] if (f := float(x)) in conversion else m.string
 
             # integer numbers

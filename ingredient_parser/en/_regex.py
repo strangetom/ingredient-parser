@@ -157,8 +157,10 @@ WORD_SHAPE_RUN_PATTERN = re.compile(r"(.)\1{3,}")
 # 2025 USDA AMS Technical Procedures (page 65). Since this is a fairly niche corner
 # case, the goal is just to catch the most likely can sizes to be seen in a recipe.
 NUMBER_CAN_PATTERN = re.compile(
-    r"(n(o\.?|umber) +(\d+(\.\d)?|\d*#\d\$\d)|#(\d+(\.\d)?)) +can", re.I
+    r"((n(o\.?|umber) +(\d+(\.\d)?|\d*#\d\$\d))|#((\d+(\.\d)?)|\d*#\d\$\d)) +can", re.I
 )
+
 CAN_NUMBER_PATTERN = re.compile(
-    r"can \((n(o\.?|umber) +(\d+(\.\d)?|\d*#\d\$\d)|#(\d+(\.\d)?))\)", re.I
+    r"can \(((n(o\.?|umber) +(\d+(\.\d)?|\d*#\d\$\d))|#((\d+(\.\d)?)|\d*#\d\$\d))\)",
+    re.I,
 )
