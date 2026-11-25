@@ -129,6 +129,8 @@ def train_tagger_model(
         min_abs_weight=0,
         quantize_bits=8,
         make_tag_dict=True,
+        tag_dict_frequency_threshold=20,
+        tag_dict_ambiguity_threshold=1,
     )
     trainer.save(save_model)
 

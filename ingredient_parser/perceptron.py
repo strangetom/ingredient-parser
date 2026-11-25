@@ -838,6 +838,8 @@ class PerceptronTagger:
         min_abs_weight: float = 0,
         quantize_bits: int | None = None,
         make_tag_dict: bool = True,
+        tag_dict_frequency_threshold: int = 20,
+        tag_dict_ambiguity_threshold: float = 1,
     ) -> None:
         """Train model using example sentences and their true tags.
 
@@ -872,7 +874,12 @@ class PerceptronTagger:
         # a new tagdict. If not, we don't want to use a stale tagdict.
         self.tagdict = {}
         if make_tag_dict:
-            self._make_tagdict(tokenised_sentences, truth)
+            self._make_tagdict(
+                tokenised_sentences,
+                truth,
+                tag_dict_frequency_threshold,
+                tag_dict_ambiguity_threshold,
+            )
 
         # Set min_feature_updates for model
         self.model.min_feat_updates = min_feat_updates
@@ -932,11 +939,14 @@ class PerceptronTagger:
         self,
         tokenised_sentences: list[list[str]],
         truth: list[list[str]],
+        frequency_threshold: int,
+        ambiguity_threshold: float,
     ) -> None:
         """Generate dict of unambiguous token and their tags.
 
-        This dict only includes tokens that occur more than FREQ_THRESHOLD times in the
-        training data, and have the given tag at least AMBIGUITY_THRESHOLD of the time.
+        This dict only includes tokens that occur more than frequency_threshold times in
+        the training data, and have the given tag at least frequency_threshold of the
+        time.
 
         Parameters
         ----------
@@ -944,19 +954,31 @@ class PerceptronTagger:
             List of tokenized sentences.
         truth : list[list[str]]
             True tags for each tokenized sentence.
+        frequency_threshold : int
+            Number of instances of a token to consider as candidate for tagdict.
+        ambiguity_threshold : float
+            Proportion of times the candidate has a tag for it to be included in the
+            tagdict. Value between 0 and 1.
         """
+        if not (frequency_threshold > 0):
+            raise ValueError(
+                f"tagdict frequency_threshold must > 0, not {frequency_threshold}"
+            )
+
+        if not (0 < ambiguity_threshold <= 1):
+            raise ValueError(
+                f"tagdict ambiguity_threshold between [0, 1], not {ambiguity_threshold}"
+            )
+
         counts = defaultdict(lambda: defaultdict(int))
         for tokens, tags in zip(tokenised_sentences, truth):
             for token, tag in zip(tokens, tags):
                 counts[token][tag] += 1
 
-        FREQ_THRESHOLD = 10
-        AMBIGUITY_THRESHOLD = 1
-
         for token, tag_freqs in counts.items():
             tag, mode = max(tag_freqs.items(), key=lambda item: item[1])
             n = sum(tag_freqs.values())
-            if n >= FREQ_THRESHOLD and (float(mode) / n) >= AMBIGUITY_THRESHOLD:
+            if n >= frequency_threshold and (float(mode) / n) >= ambiguity_threshold:
                 self.tagdict[token] = tag
 
     def save(self, path: Path):

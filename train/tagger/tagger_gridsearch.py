@@ -36,6 +36,8 @@ VALID_HYPERPARAMS = {
     "min_abs_weight": (float, int, type(None)),
     "quantize_bits": (int, type(None)),
     "make_tag_dict": (bool,),
+    "tag_dict_frequency_threshold": (int, type(None)),
+    "tag_dict_ambiguity_threshold": (float, type(None)),
 }
 
 
@@ -218,6 +220,8 @@ def train_model_grid_search(
         min_abs_weight=parameters["min_abs_weight"],
         quantize_bits=parameters["quantize_bits"],
         make_tag_dict=parameters["make_tag_dict"],
+        tag_dict_frequency_threshold=parameters["tag_dict_frequency_threshold"],
+        tag_dict_ambiguity_threshold=parameters["tag_dict_ambiguity_threshold"],
     )
     trainer.save(save_model_path)
 
