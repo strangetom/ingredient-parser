@@ -132,7 +132,6 @@ def generate_argument_sets(args: argparse.Namespace) -> list[list]:
             save_model,
             args.seed,
             args.keep_models,
-            args.combine_name_labels,
         ]
         argument_sets.append(arguments)
 
@@ -146,7 +145,6 @@ def train_model_grid_search(
     save_model: str,
     seed: int,
     keep_model: bool,
-    combine_name_labels: bool,
 ) -> dict:
     """Train model using given training algorithm and parameters,
     returning model performance statistics, model parameters and elapsed training time.
