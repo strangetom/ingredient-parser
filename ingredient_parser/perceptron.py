@@ -173,7 +173,7 @@ class NumpyAveragedPerceptronTrainer:
         self._tstamps = resize_mat(self._tstamps)
         self._feat_updates = resize_mat(self._feat_updates)
 
-    def _features_to_idx(self, features: list[str]) -> list[int]:
+    def _features_to_idx(self, features: list[str]) -> np.ndarray:
         """Map feature string to indices by lookup in vocab dict.
 
         If the feature is not in the vocabulary, then insert it, resizing the weights
@@ -186,8 +186,8 @@ class NumpyAveragedPerceptronTrainer:
 
         Returns
         -------
-        list[int]
-            List of integer indices for string features.
+        np.ndarray
+            Array of integer indices for string features.
         """
         for feat in features:
             if feat not in self.feature_vocab:
@@ -198,7 +198,9 @@ class NumpyAveragedPerceptronTrainer:
         if self.next_feature_index >= self.weights.shape[0]:
             self._resize_matrices()
 
-        return [idx for f in features if (idx := self.feature_vocab.get(f)) is not None]
+        return np.array(
+            [idx for f in features if (idx := self.feature_vocab.get(f)) is not None]
+        )
 
     def predict(self, features: list[str]) -> str:
         """Predict the tag for a token described by features list.
@@ -218,10 +220,8 @@ class NumpyAveragedPerceptronTrainer:
 
         # Don't consider features until they have been updated more than
         # min_feat_updates times. We only do this during training.
-        feature_indices = [
-            idx
-            for idx in feature_indices
-            if self._feat_updates[idx] >= self.min_feat_updates
+        feature_indices = feature_indices[
+            self._feat_updates[feature_indices] >= self.min_feat_updates
         ]
 
         # Sum weights for active features across all tags at once.
@@ -234,15 +234,15 @@ class NumpyAveragedPerceptronTrainer:
         # Return the best tag.
         return self.tags[scores.argmax()]
 
-    def _update_totals(self, tag_index: int, feature_indices: list[int]):
+    def _update_totals(self, tag_index: int, feature_indices: np.ndarray):
         """Update weights for feature by given change
 
         Parameters
         ----------
         tag_index : int
             Index of tag to update total for.
-        feature_indices : list[int]
-            List of indices corresponding to features to update weights for.
+        feature_indices : np.ndarray
+            Array of indices corresponding to features to update weights for.
         """
         # Calculate how many iterations passed since this weight was last touched
         iters = self._iteration - self._tstamps[feature_indices, tag_index]
