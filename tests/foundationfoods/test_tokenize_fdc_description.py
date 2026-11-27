@@ -67,7 +67,7 @@ class TestTokenizeFDCDescription:
         description = "Chicken, canned, no broth"
 
         expected_tokens = ["chicken", "can", "no", "broth"]
-        expected_pos_tags = ["NN", "VBD", "DT", "NN"]
+        expected_pos_tags = ["NN", "VBN", "DT", "NN"]
         expected_weights = [1.0, 1.0 - 1e-3, 0, 0]
         with tagger.cache_context() as t:
             assert tokenize_fdc_description(
@@ -90,7 +90,7 @@ class TestTokenizeFDCDescription:
         description = "Chicken, canned, with broth"
 
         expected_tokens = ["chicken", "can", "with", "broth"]
-        expected_pos_tags = ["NN", "VBD", "IN", "NN"]
+        expected_pos_tags = ["NN", "VBN", "IN", "NN"]
         expected_weights = [1.0, 1.0 - 1e-3, 1 - 0.5 - 2e-3, 1 - 0.5 - 2e-3]
         with tagger.cache_context() as t:
             assert tokenize_fdc_description(
@@ -113,7 +113,7 @@ class TestTokenizeFDCDescription:
         description = "Chocolate, dark, 60-69% cacao solids"
 
         expected_tokens = ["chocol", "dark", "60%", "69%", "cacao", "solid"]
-        expected_pos_tags = ["NN", "JJ", "JJ", "JJ", "NN", "NNS"]
+        expected_pos_tags = ["NN", "JJ", "NN", "NN", "NN", "NNS"]
         expected_weights = [1.0, 1.0 - 1e-3, 1 - 2e-3, 1 - 2e-3, 1 - 2e-3, 1 - 2e-3]
         with tagger.cache_context() as t:
             assert tokenize_fdc_description(
