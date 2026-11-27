@@ -3,10 +3,12 @@
 import csv
 import json
 import sqlite3
+from collections import defaultdict
 from pathlib import Path
 
 import spacy
 import tqdm
+from spacy.tokens import Doc
 
 from ingredient_parser._common import is_float
 from ingredient_parser.en import PreProcessor
@@ -250,16 +252,9 @@ class CustomTokenizer:
     def __init__(self, vocab):
         self.vocab = vocab
 
-    def __call__(self, sentence: str) -> spacy.tokens.Doc:
+    def __call__(self, sentence: str) -> Doc:
         """Custom tokenizer that calls the modified version of ingredient_parser's
         tokenize function.
-
-        The sentences passed to this tokenizer have been normalized by
-        ingredient_parser.en.PreProcessor, which means that fractions have been
-        converted to the intermediate format. spaCy cannot be expected to understand
-        fractions represented in that way, so all intermediate form fractions are
-        converted to decimals. This makes them unambiguously numbers to spaCy whilst
-        still being treated as a single token.
 
         Parameters
         ----------
@@ -268,11 +263,98 @@ class CustomTokenizer:
 
         Returns
         -------
-        spacy.tokens.Doc
+        Doc
             Tokenized sentences as a spaCy.tokens.Doc object.
         """
         tokens, spaces = zip(*tokenize(sentence))
-        return spacy.tokens.Doc(self.vocab, words=list(tokens), spaces=list(spaces))
+        return Doc(self.vocab, words=list(tokens), spaces=list(spaces))
+
+
+NOUN_TAGS = frozenset({"NN", "NNS", "NNP", "NNPS"})
+SKIP_TAGS = frozenset({"JJ", "JJR", "JJS", "VBN", "RB", "CC", "HYPH", "CD"})
+FIXABLE = frozenset({"VBN", "VBD"})
+AUX = frozenset(
+    {"be", "is", "are", "was", "were", "been", "being", "has", "have", "had"}
+)
+
+
+def fix_past_participial_adjectives(
+    tokens: list[str],
+    tags: list[str],
+    lexicon: set[str],
+    original_sentence: str,
+    log_unknown: defaultdict[str, list[str]] | None = None,
+) -> list[str]:
+    """Fix the tag for past participial verbs that modify nouns and should be tagged as
+    adjectives.
+
+    Past participial verbs (e.g. cooked, roasted, frozen) that are precede nouns should
+    be tagged as adjectives (JJ) rather than VBN. For example:
+    * 2 cooked red peppers -> "cooked" is an adjective
+    * 1 bag frozen peas -> "frozen" is an adjective
+
+    This function changes the tag of a token from VBN or VBD to JJ is
+    1. The token is in the provided lexicon.
+    2. There is a noun to the right of it in the sentence (skipping tags in SKIP_TAGS).
+    3. The token is not immediately preceded by a form of "to have" or "to be".
+
+    A
+
+    Parameters
+    ----------
+    tokens : list[str]
+        Ingredient sentence token.
+    tags : list[str]
+        Ingredient sentence tags
+    lexicon : set[str]
+        Set of known part participial verbs that should be retagged as JJ.
+    original_sentence : str
+        Original sentence, added to log_unknown.
+    log_unknown : defaultdict[str, list[str]] | None, optional
+        If a defaultdict is provided, log the sentences containing VBN/VDB that satisfy
+        all the above conditions except the token being in the lexicon.
+
+    Returns
+    -------
+    list[str]
+        Corrected tags for sentence.
+    """
+    for i, (tok, tag) in enumerate(zip(tokens, tags)):
+        # Skip over token/tag where there's nothing to do.
+        if tag not in FIXABLE:
+            continue
+        if i > 0 and tokens[i - 1].lower() in AUX:
+            continue
+
+        # Scan right past modifiers to find the head noun
+        j = i + 1
+        while j < len(tokens) and tags[j] in SKIP_TAGS:
+            j += 1
+
+        prenominal = j < len(tokens) and tags[j] in NOUN_TAGS
+        if not prenominal:
+            # If there's not a noun following the tag we're trying to fix
+            # (after skipping tags in SKIP_TAGS), the skip this too.
+            continue
+
+        if tok.lower() in lexicon:
+            tags[i] = "JJ"
+        elif log_unknown is not None:
+            log_unknown[tok.lower()].append(original_sentence)
+
+    return tags
+
+
+def load_verb_lexicon(base_path: Path) -> set[str]:
+    """Load lexicon of past participle verbs from file.
+
+    Returns
+    -------
+    set[str]
+        Set of past participle verbs.
+    """
+    with open(base_path / "past_participial_verb_lexicon.txt") as f:
+        return set(f.read().splitlines())
 
 
 if __name__ == "__main__":
@@ -296,6 +378,9 @@ if __name__ == "__main__":
     original, normalized = zip(*unique_sentences)
     original = list(original)
     normalized = list(normalized)
+
+    pp_verb_lexicon = load_verb_lexicon(base_path)
+    unknown_pp_verb_log = defaultdict(list)
 
     spacy.require_gpu()
     # Use spaCy's transformer model for highest accuracy.
@@ -341,6 +426,11 @@ if __name__ == "__main__":
                 tag = "NN"
 
             tags.append(tag)
+
+        if "VBN" in tags or "VBD" in tags:
+            tags = fix_past_participial_adjectives(
+                tokens, tags, pp_verb_lexicon, original_sentence, unknown_pp_verb_log
+            )
 
         training_data.append((original_sentence, tokens, tags, deps))
 
