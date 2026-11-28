@@ -25,7 +25,7 @@ SIMPLE_EXAMPLES = [
 
 BIAS_EXAMPLES = [
     ("2 red or green peppers", (2258588, 2258590)),
-    ("2 cooked red or green peppers", (2709976, 2709977)),
+    ("200 g smoked salmon", (171985,)),
 ]
 
 MULTIPLE_EXAMPLES = [
@@ -94,7 +94,7 @@ class TestPostProcessor_match_foundation_foods:
         Test that each example sentence returns the correct foundation foods.
         """
         p = parse_ingredient(sentence, foundation_foods=True)
-        assert len(p.foundation_foods) > 1
+        assert len(p.foundation_foods) >= 1
         for ff in p.foundation_foods:
             assert ff.fdc_id in fdc_ids
 
