@@ -84,11 +84,13 @@ class SentenceStructureFeatures:
     # RegexpParser to detect phrases of examples of ingredients.
     # A sequence of nouns or adjectives, optionally followed by a comma, repeating zero
     # or more times.
-    # Followed by an optional conjunction or determinant.
-    # Followed by an optional sequence nouns or adjectives.
-    # Followed by a noun.
+    # Optionally followed by a sequence of nouns or adjectives ending with a
+    # conjunction.
+    # Optionally followed by a determinant.
+    # Optionally followed by a sequence nouns or adjectives.
+    # Ending with a noun.
     example_parser = nltk.RegexpParser(r"""
-        NP: {(<NN.*|JJ.*>+<,>?)*<CC|DT>?<NN.*|JJ.*>*<NN.*>}
+        NP: {(<NN.*|JJ.*>+<,>)*(<NN.*|JJ.*>+<CC>)?<DT>?<NN.*|JJ.*>*<NN.*>}
         EX: {<JJ.*>?<IN><NP>}
     """)
 
